@@ -5776,9 +5776,18 @@ public class DBServiceTest {
     public void testUpdateServiceIdentitySystemMetaFields() throws ServerResourceException {
         ServiceIdentity service = new ServiceIdentity();
         ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta()
-                .setProviderEndpoint("https://localhost");
+                .setProviderEndpoint("https://localhost")
+                .setSshCertSignerKeyId("ssh-signer-key-id")
+                .setClientId("client-id")
+                .setX509CertSignerKeyId("x509-signer-key-id");
         zms.dbService.updateServiceIdentitySystemMetaFields(service, "providerendpoint", meta, "unit-test");
         assertEquals(service.getProviderEndpoint(), "https://localhost");
+        zms.dbService.updateServiceIdentitySystemMetaFields(service, "sshcertsignerkeyid", meta, "unit-test");
+        assertEquals(service.getSshCertSignerKeyId(), "ssh-signer-key-id");
+        zms.dbService.updateServiceIdentitySystemMetaFields(service, "clientid", meta, "unit-test");
+        assertEquals(service.getClientId(), "client-id");
+        zms.dbService.updateServiceIdentitySystemMetaFields(service, "x509certsignerkeyid", meta, "unit-test");
+        assertEquals(service.getX509CertSignerKeyId(), "x509-signer-key-id");
         try {
             zms.dbService.updateServiceIdentitySystemMetaFields(service, "unknown", meta, "unit-test");
             fail();

@@ -455,6 +455,7 @@ func init() {
 	tServiceIdentity.Field("x509CertSignerKeyId", "String", true, nil, "requested x509 cert signer key id (system attribute)")
 	tServiceIdentity.Field("sshCertSignerKeyId", "String", true, nil, "requested ssh cert signer key id (system attribute)")
 	tServiceIdentity.Field("creds", "String", true, nil, "the credentials for the service")
+	tServiceIdentity.Field("clientId", "String", true, nil, "the OAuth2 client id for the service (system attribute)")
 	sb.AddType(tServiceIdentity.Build())
 
 	tServiceIdentities := rdl.NewStructTypeBuilder("Struct", "ServiceIdentities")
@@ -474,6 +475,7 @@ func init() {
 	tServiceIdentitySystemMeta.Field("providerEndpoint", "String", true, nil, "provider callback endpoint")
 	tServiceIdentitySystemMeta.Field("x509CertSignerKeyId", "String", true, nil, "requested x509 cert signer key id")
 	tServiceIdentitySystemMeta.Field("sshCertSignerKeyId", "String", true, nil, "requested ssh cert signer key id")
+	tServiceIdentitySystemMeta.Field("clientId", "String", true, nil, "the OAuth2 client id for the service")
 	sb.AddType(tServiceIdentitySystemMeta.Build())
 
 	tGroupAuditLog := rdl.NewStructTypeBuilder("Struct", "GroupAuditLog")

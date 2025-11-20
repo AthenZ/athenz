@@ -7096,6 +7096,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         .setProviderEndpoint(service.getProviderEndpoint())
                         .setX509CertSignerKeyId(service.getX509CertSignerKeyId())
                         .setSshCertSignerKeyId(service.getSshCertSignerKeyId())
+                        .setClientId(service.getClientId())
                         .setTags(service.getTags())
                         .setResourceOwnership(service.getResourceOwnership());
                 if (publicKeys == Boolean.TRUE) {

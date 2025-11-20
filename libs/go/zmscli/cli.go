@@ -729,6 +729,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 2 {
 				return cli.SetServiceEndpoint(dn, args[0], args[1])
 			}
+		case "set-service-client-id":
+			if argc == 2 {
+				return cli.SetServiceClientId(dn, args[0], args[1])
+			}
 		case "set-service-x509-cert-signer-keyid":
 			if argc == 2 {
 				return cli.SetServiceX509CertSignerKeyId(dn, args[0], args[1])
@@ -2604,6 +2608,18 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("            : To remove the endpoint pass \"\" as its value\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-service-endpoint storage https://coretech.athenzcompany.com:4080/tableProvider\n")
+	case "set-service-client-id":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-service-client-id service client-id\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain   : name of the domain that service belongs to\n")
+		}
+		buf.WriteString("   service  : name of the service to set the oauth2 client id\n")
+		buf.WriteString("   client-id : the client id from the Identity Provider for this service\n")
+		buf.WriteString("            : To remove the client-id pass \"\" as its value\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-service-client-id storage a343nbsf36fg\n")
 	case "set-service-x509-cert-signer-keyid":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-service-x509-cert-signer-keyid service keyid\n")
@@ -3866,6 +3882,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   add-provider-service service key_id identity_pubkey.pem|identity_key_ybase64\n")
 	buf.WriteString("   set-service-resource-ownership service resource-owner\n")
 	buf.WriteString("   set-service-endpoint service endpoint\n")
+	buf.WriteString("   set-service-client-id service client-id\n")
 	buf.WriteString("   set-service-x509-cert-signer-keyid service keyid\n")
 	buf.WriteString("   set-service-ssh-cert-signer-keyid service keyid\n")
 	buf.WriteString("   set-service-exe service executable user group\n")

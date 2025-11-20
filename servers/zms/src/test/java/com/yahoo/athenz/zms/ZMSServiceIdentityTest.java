@@ -21,11 +21,11 @@ package com.yahoo.athenz.zms;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.JOSEException;
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.server.store.AthenzDomain;
-import com.yahoo.athenz.common.server.store.ChangeLogStore;
-import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigInteger;
 import jakarta.ws.rs.core.Response;
 import org.mockito.Mockito;
@@ -674,7 +674,8 @@ public class ZMSServiceIdentityTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Test Domain1", "testOrg",
+                zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         ServiceIdentity service = new ServiceIdentity();
@@ -827,29 +828,33 @@ public class ZMSServiceIdentityTest {
     @Test
     public void testGetServiceIdentity() {
 
+        final String domainName = "service-get-domain-test";
+        final String serviceName = "service1";
+
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServiceGetDom1",
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
-        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServiceGetDom1",
-                "Service1", "http://localhost", "/usr/bin/java", "root",
+        ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName,
+                serviceName, "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
         service.setCreds("athenz-authorization-secret-for-testing");
+        service.setClientId("client-id");
 
-        zmsImpl.putServiceIdentity(ctx, "ServiceGetDom1", "Service1", auditRef, false, null, service);
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
 
-        ServiceIdentity serviceRes = zmsImpl.getServiceIdentity(ctx, "ServiceGetDom1",
-                "Service1");
+        ServiceIdentity serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
         assertNotNull(serviceRes);
-        assertEquals(serviceRes.getName(), "ServiceGetDom1.Service1".toLowerCase());
+        assertEquals(serviceRes.getName(), domainName + "." + serviceName);
         assertEquals(serviceRes.getExecutable(), "/usr/bin/java");
         assertEquals(serviceRes.getGroup(), "users");
         assertEquals(serviceRes.getUser(), "root");
         assertNull(serviceRes.getCreds());
+        assertNull(serviceRes.getClientId());
 
         // provider endpoint is a system meta attribute, so we shouldn't save it
         assertNull(serviceRes.getProviderEndpoint());
@@ -859,9 +864,41 @@ public class ZMSServiceIdentityTest {
         assertEquals(hosts.size(), 1);
         assertEquals(hosts.get(0), "host1");
 
+        // now let's update some of the fields in our service identity
+
+        service.setExecutable("/usr/bin/python");
+        service.setUser("athenz");
+        service.setGroup("admins");
+        service.setClientId("client-id2");
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
+
+        serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertNotNull(serviceRes);
+        assertEquals(serviceRes.getName(), domainName + "." + serviceName);
+        assertEquals(serviceRes.getExecutable(), "/usr/bin/python");
+        assertEquals(serviceRes.getGroup(), "admins");
+        assertEquals(serviceRes.getUser(), "athenz");
+        assertNull(serviceRes.getCreds());
+        assertNull(serviceRes.getClientId());
+
+        // now let's remove some of the attributes by setting them to null
+
+        service.setUser(null);
+        service.setClientId(null);
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
+
+        serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertNotNull(serviceRes);
+        assertEquals(serviceRes.getName(), domainName + "." + serviceName);
+        assertEquals(serviceRes.getExecutable(), "/usr/bin/python");
+        assertEquals(serviceRes.getGroup(), "admins");
+        assertNull(serviceRes.getUser());
+        assertNull(serviceRes.getCreds());
+        assertNull(serviceRes.getClientId());
+
         // this should throw a not found exception
         try {
-            zmsImpl.getServiceIdentity(ctx, "ServiceGetDom1", "Service2");
+            zmsImpl.getServiceIdentity(ctx, domainName, "Service2");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 404);
@@ -869,13 +906,13 @@ public class ZMSServiceIdentityTest {
 
         // this should throw a request error exception
         try {
-            zmsImpl.getServiceIdentity(ctx, "ServiceGetDom1", "Service2.Service3");
+            zmsImpl.getServiceIdentity(ctx, domainName, "Service2.Service3");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
 
-        zmsImpl.deleteTopLevelDomain(ctx, "ServiceGetDom1", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -897,6 +934,7 @@ public class ZMSServiceIdentityTest {
                 "users", "host1");
         service.setX509CertSignerKeyId("x509-keyid");
         service.setSshCertSignerKeyId("ssh-keyid");
+        service.setClientId("client-id");
 
         zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
 
@@ -907,11 +945,12 @@ public class ZMSServiceIdentityTest {
         assertEquals(serviceRes.getGroup(), "users");
         assertEquals(serviceRes.getUser(), "root");
 
-        // provider endpoint and key ids are system meta attributes, so we shouldn't save it
+        // provider endpoint, key ids and client-id are system meta attributes, so we shouldn't save it
 
         assertNull(serviceRes.getProviderEndpoint());
         assertNull(serviceRes.getSshCertSignerKeyId());
         assertNull(serviceRes.getX509CertSignerKeyId());
+        assertNull(serviceRes.getClientId());
 
         // now let's set the meta attribute
 
@@ -928,6 +967,7 @@ public class ZMSServiceIdentityTest {
         assertNull(serviceRes.getProviderEndpoint());
         assertNull(serviceRes.getSshCertSignerKeyId());
         assertNull(serviceRes.getX509CertSignerKeyId());
+        assertNull(serviceRes.getClientId());
 
         // now let's change the endpoint
 
@@ -942,6 +982,7 @@ public class ZMSServiceIdentityTest {
         assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
         assertNull(serviceRes.getSshCertSignerKeyId());
         assertNull(serviceRes.getX509CertSignerKeyId());
+        assertNull(serviceRes.getClientId());
 
         // now let's set the x509 cert key id
 
@@ -951,6 +992,7 @@ public class ZMSServiceIdentityTest {
         assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
         assertNull(serviceRes.getSshCertSignerKeyId());
         assertNull(serviceRes.getX509CertSignerKeyId());
+        assertNull(serviceRes.getClientId());
 
         meta.setX509CertSignerKeyId("x509-keyid");
         zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "x509certsignerkeyid", auditRef, meta);
@@ -959,6 +1001,7 @@ public class ZMSServiceIdentityTest {
         assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
         assertEquals(serviceRes.getX509CertSignerKeyId(), "x509-keyid");
         assertNull(serviceRes.getSshCertSignerKeyId());
+        assertNull(serviceRes.getClientId());
 
         meta.setX509CertSignerKeyId("x509-keyid2");
         zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "x509certsignerkeyid", auditRef, meta);
@@ -967,6 +1010,7 @@ public class ZMSServiceIdentityTest {
         assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
         assertEquals(serviceRes.getX509CertSignerKeyId(), "x509-keyid2");
         assertNull(serviceRes.getSshCertSignerKeyId());
+        assertNull(serviceRes.getClientId());
 
         // now let's set the ssh key id
 
@@ -976,6 +1020,7 @@ public class ZMSServiceIdentityTest {
         assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
         assertEquals(serviceRes.getX509CertSignerKeyId(), "x509-keyid2");
         assertNull(serviceRes.getSshCertSignerKeyId());
+        assertNull(serviceRes.getClientId());
 
         meta.setSshCertSignerKeyId("ssh-keyid");
         zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "sshcertsignerkeyid", auditRef, meta);
@@ -984,6 +1029,7 @@ public class ZMSServiceIdentityTest {
         assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
         assertEquals(serviceRes.getX509CertSignerKeyId(), "x509-keyid2");
         assertEquals(serviceRes.getSshCertSignerKeyId(), "ssh-keyid");
+        assertNull(serviceRes.getClientId());
 
         meta.setSshCertSignerKeyId("ssh-keyid2");
         zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "sshcertsignerkeyid", auditRef, meta);
@@ -992,6 +1038,27 @@ public class ZMSServiceIdentityTest {
         assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
         assertEquals(serviceRes.getX509CertSignerKeyId(), "x509-keyid2");
         assertEquals(serviceRes.getSshCertSignerKeyId(), "ssh-keyid2");
+        assertNull(serviceRes.getClientId());
+
+        // now let's set the client id
+
+        meta.setClientId("client-id");
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "clientid", auditRef, meta);
+
+        serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
+        assertEquals(serviceRes.getX509CertSignerKeyId(), "x509-keyid2");
+        assertEquals(serviceRes.getSshCertSignerKeyId(), "ssh-keyid2");
+        assertEquals(serviceRes.getClientId(), "client-id");
+
+        meta.setClientId("client-id2");
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "clientid", auditRef, meta);
+
+        serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
+        assertEquals(serviceRes.getX509CertSignerKeyId(), "x509-keyid2");
+        assertEquals(serviceRes.getSshCertSignerKeyId(), "ssh-keyid2");
+        assertEquals(serviceRes.getClientId(), "client-id2");
 
         // reset all values
 
@@ -999,12 +1066,14 @@ public class ZMSServiceIdentityTest {
         zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "providerendpoint", auditRef, meta);
         zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "x509certsignerkeyid", auditRef, meta);
         zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "sshcertsignerkeyid", auditRef, meta);
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "clientid", auditRef, meta);
 
         serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
         assertEquals(serviceRes.getName(), domainName + "." + serviceName);
         assertNull(serviceRes.getProviderEndpoint());
         assertNull(serviceRes.getSshCertSignerKeyId());
         assertNull(serviceRes.getX509CertSignerKeyId());
+        assertNull(serviceRes.getClientId());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
@@ -1640,4 +1709,862 @@ public class ZMSServiceIdentityTest {
 
         System.clearProperty(ZMSConsts.ZMS_PROP_SVC_CREDS_KEY_NAME);
     }
+
+    @Test
+    public void testDeletePublicKeyEntry() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServiceDelPubKeyDom1",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServiceDelPubKeyDom1",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServiceDelPubKeyDom1", "Service1", auditRef, false, null, service);
+
+        zmsImpl.deletePublicKeyEntry(ctx, "ServiceDelPubKeyDom1", "Service1", "1", auditRef, null);
+        ServiceIdentity serviceRes = zmsImpl.getServiceIdentity(ctx, "ServiceDelPubKeyDom1", "Service1");
+        List<PublicKeyEntry> keyList = serviceRes.getPublicKeys();
+        boolean found = false;
+        for (PublicKeyEntry entry : keyList) {
+            if (entry.getId().equals("1")) {
+                found = true;
+                break;
+            }
+        }
+        assertFalse(found);
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServiceDelPubKeyDom1", auditRef, null);
+    }
+
+    @Test
+    public void testDeletePublicKeyEntryMissingAuditRef() {
+        String domain = "testDeletePublicKeyEntryMissingAuditRef";
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(
+                domain, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        dom.setAuditEnabled(true);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject(
+                domain,
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+        zmsImpl.putServiceIdentity(ctx, domain, "Service1", auditRef, false, null, service);
+
+        PublicKeyEntry keyEntry = new PublicKeyEntry();
+        keyEntry.setId("zone1");
+        keyEntry.setKey(zmsTestInitializer.getPubKeyK2());
+        zmsImpl.putPublicKeyEntry(ctx, domain, "Service1", "zone1", auditRef, null, keyEntry);
+        try {
+            zmsImpl.deletePublicKeyEntry(ctx, domain, "Service1", "1", null, null);
+            fail("requesterror not thrown by deletePublicKeyEntry.");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Audit reference required"));
+        } finally {
+            zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
+        }
+    }
+
+    @Test
+    public void testDeletePublicKeyEntryDomainNotFound() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServiceDelPubKeyDom2",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServiceDelPubKeyDom2",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServiceDelPubKeyDom2", "Service1", auditRef, false, null, service);
+
+        // this should throw a not found exception
+        try {
+            zmsImpl.deletePublicKeyEntry(ctx, "UnknownPublicKeyDomain", "Service1", "1", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServiceDelPubKeyDom2", auditRef, null);
+    }
+
+    @Test
+    public void testDeletePublicKeyEntryInvalidService() {
+
+        ZMSImplTest.TestAuditLogger alogger = new ZMSImplTest.TestAuditLogger();
+        ZMSImpl zmsImpl = zmsTestInitializer.getZmsImpl(alogger);
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServiceDelPubKeyDom2InvalidService",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServiceDelPubKeyDom2InvalidService",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServiceDelPubKeyDom2InvalidService",
+                "Service1", auditRef, false, null, service);
+
+        // this should throw an invalid request exception
+        try {
+            zmsImpl.deletePublicKeyEntry(ctx, "ServiceDelPubKeyDom2InvalidService",
+                    "Service1.Service2", "1", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServiceDelPubKeyDom2InvalidService", auditRef, null);
+    }
+
+    @Test
+    public void testDeletePublicKeyEntryServiceNotFound() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServiceDelPubKeyDom3",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServiceDelPubKeyDom3",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServiceDelPubKeyDom3", "Service1", auditRef, false, null, service);
+
+        // this should throw a not found exception
+        try {
+            zmsImpl.deletePublicKeyEntry(ctx, "ServiceDelPubKeyDom3", "ServiceNotFound", "1", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServiceDelPubKeyDom3", auditRef, null);
+    }
+
+    @Test
+    public void testDeletePublicKeyEntryIdNotFound() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServiceDelPubKeyDom4",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServiceDelPubKeyDom4",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServiceDelPubKeyDom4", "Service1", auditRef, false, null, service);
+
+        // process invalid keys
+
+        try {
+            zmsImpl.deletePublicKeyEntry(ctx, "ServiceDelPubKeyDom4", "Service1", "zone", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        // make sure both 1 and 2 keys are still valid
+
+        ServiceIdentity serviceRes = zmsImpl.getServiceIdentity(ctx, "ServiceDelPubKeyDom4", "Service1");
+        List<PublicKeyEntry> keyList = serviceRes.getPublicKeys();
+        boolean foundKey1 = false;
+        boolean foundKey2 = false;
+        for (PublicKeyEntry entry : keyList) {
+            if (entry.getId().equals("1")) {
+                foundKey1 = true;
+            } else if (entry.getId().equals("2")) {
+                foundKey2 = true;
+            }
+        }
+        assertTrue(foundKey1);
+        assertTrue(foundKey2);
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServiceDelPubKeyDom4", auditRef, null);
+    }
+
+    @Test
+    public void testGetPublicKeyEntry() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServicePubKeyDom1",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServicePubKeyDom1",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServicePubKeyDom1", "Service1", auditRef, false, null, service);
+
+        PublicKeyEntry entry = zmsImpl.getPublicKeyEntry(ctx, "ServicePubKeyDom1", "Service1", "1");
+        assertNotNull(entry);
+        assertEquals(entry.getId(), "1");
+        assertEquals(entry.getKey(), zmsTestInitializer.getPubKeyK1());
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServicePubKeyDom1", auditRef, null);
+    }
+
+    @Test
+    public void testGetPublicKeyEntryInvalidService() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServicePubKeyDom2Invalid",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServicePubKeyDom2Invalid",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServicePubKeyDom2Invalid", "Service1", auditRef, false, null, service);
+
+        // this should throw an invalid request exception
+        try {
+            zmsImpl.getPublicKeyEntry(ctx, "ServicePubKeyDom2Invalid", "Service1.Service2", "1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServicePubKeyDom2Invalid", auditRef, null);
+    }
+
+    @Test
+    public void testGetPublicKeyEntryDomainNotFound() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServicePubKeyDom2",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServicePubKeyDom2",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServicePubKeyDom2", "Service1", auditRef, false, null, service);
+
+        // this should throw a not found exception
+        try {
+            zmsImpl.getPublicKeyEntry(ctx, "UnknownPublicKeyDomain", "Service1", "1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServicePubKeyDom2", auditRef, null);
+    }
+
+    @Test
+    public void testGetPublicKeyEntryServiceNotFound() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServicePubKeyDom3",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServicePubKeyDom3",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServicePubKeyDom3", "Service1", auditRef, false, null, service);
+
+        // this should throw a not found exception
+        try {
+            zmsImpl.getPublicKeyEntry(ctx, "ServicePubKeyDom3", "ServiceNotFound", "1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServicePubKeyDom3", auditRef, null);
+    }
+
+    @Test
+    public void testGetPublicKeyEntryIdNotFound() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServicePubKeyDom4",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServicePubKeyDom4",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServicePubKeyDom4", "Service1", auditRef, false, null, service);
+
+        // this should throw a not found exception
+        try {
+            zmsImpl.getPublicKeyEntry(ctx, "ServicePubKeyDom4", "Service1", "zone");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServicePubKeyDom4", auditRef, null);
+    }
+
+    @Test
+    public void testPutPublicKeyEntryNew() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServicePutPubKeyDom1",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServicePutPubKeyDom1",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServicePutPubKeyDom1", "Service1", auditRef, false, null, service);
+
+        PublicKeyEntry keyEntry = new PublicKeyEntry();
+        keyEntry.setId("zone1");
+        keyEntry.setKey(zmsTestInitializer.getPubKeyK2());
+
+        zmsImpl.putPublicKeyEntry(ctx, "ServicePutPubKeyDom1", "Service1", "zone1", auditRef, null, keyEntry);
+
+        ServiceIdentity serviceRes = zmsImpl.getServiceIdentity(ctx, "ServicePutPubKeyDom1", "Service1");
+        List<PublicKeyEntry> keyList = serviceRes.getPublicKeys();
+        boolean foundKey1 = false;
+        boolean foundKey2 = false;
+        boolean foundKeyZONE1 = false;
+        for (PublicKeyEntry entry : keyList) {
+            switch (entry.getId()) {
+                case "1":
+                    foundKey1 = true;
+                    break;
+                case "2":
+                    foundKey2 = true;
+                    break;
+                case "zone1":
+                    foundKeyZONE1 = true;
+                    break;
+            }
+        }
+        assertTrue(foundKey1);
+        assertTrue(foundKey2);
+        assertTrue(foundKeyZONE1);
+
+        PublicKeyEntry entry = zmsImpl.getPublicKeyEntry(ctx, "ServicePutPubKeyDom1", "Service1", "zone1");
+        assertNotNull(entry);
+        assertEquals(entry.getId(), "zone1");
+        assertEquals(entry.getKey(), zmsTestInitializer.getPubKeyK2());
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServicePutPubKeyDom1", auditRef, null);
+    }
+
+    @Test
+    public void testPutPublicKeyEntryInvalidKey() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServicePutPubKeyDom1",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServicePutPubKeyDom1",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServicePutPubKeyDom1", "Service1", auditRef, false, null, service);
+
+        PublicKeyEntry keyEntry = new PublicKeyEntry();
+        keyEntry.setId("zone1");
+        keyEntry.setKey("some-invalid-key");
+
+        try {
+            zmsImpl.putPublicKeyEntry(ctx, "ServicePutPubKeyDom1", "Service1", "zone1", auditRef, null, keyEntry);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Invalid public key"));
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServicePutPubKeyDom1", auditRef, null);
+    }
+
+    @Test
+    public void testPutPublicKeyEntryMissingAuditRef() {
+
+        ZMSImplTest.TestAuditLogger alogger = new ZMSImplTest.TestAuditLogger();
+        ZMSImpl zmsImpl = zmsTestInitializer.getZmsImpl(alogger);
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        String domain = "testPutPublicKeyEntryMissingAuditRef";
+        TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(
+                domain, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        dom.setAuditEnabled(true);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject(
+                domain,
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+        zmsImpl.putServiceIdentity(ctx, domain, "Service1", auditRef, false, null, service);
+
+        PublicKeyEntry keyEntry = new PublicKeyEntry();
+        keyEntry.setId("zone1");
+        keyEntry.setKey(zmsTestInitializer.getPubKeyK2());
+
+        try {
+            zmsImpl.putPublicKeyEntry(ctx, domain, "Service1", "zone1", null, null, keyEntry);
+            fail("requesterror not thrown by putPublicKeyEntry.");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Audit reference required"));
+        } finally {
+            zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
+        }
+    }
+
+    @Test
+    public void testPutPublicKeyEntryInvalidService() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        String domain = "testPutPublicKeyEntryInvalidService";
+        TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(
+                domain, "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject(
+                domain,
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+        zmsImpl.putServiceIdentity(ctx, domain, "Service1", auditRef, false, null, service);
+
+        PublicKeyEntry keyEntry = new PublicKeyEntry();
+        keyEntry.setId("zone1");
+        keyEntry.setKey(zmsTestInitializer.getPubKeyK2());
+
+        try {
+            zmsImpl.putPublicKeyEntry(ctx, domain, "Service1.Service2", "zone1", null, null, keyEntry);
+            fail("requesterror not thrown by putPublicKeyEntry.");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        } finally {
+            zmsImpl.deleteTopLevelDomain(ctx, domain, auditRef, null);
+        }
+    }
+
+    @Test
+    public void testPutPublicKeyEntryUpdate() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServicePutPubKeyDom1A",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServicePutPubKeyDom1A",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServicePutPubKeyDom1A", "Service1", auditRef, false, null, service);
+
+        PublicKeyEntry keyEntry = new PublicKeyEntry();
+        keyEntry.setId("1");
+        keyEntry.setKey(zmsTestInitializer.getPubKeyK2());
+
+        zmsImpl.putPublicKeyEntry(ctx, "ServicePutPubKeyDom1A", "Service1", "1", auditRef, null, keyEntry);
+
+        ServiceIdentity serviceRes = zmsImpl.getServiceIdentity(ctx, "ServicePutPubKeyDom1A", "Service1");
+        List<PublicKeyEntry> keyList = serviceRes.getPublicKeys();
+        assertEquals(keyList.size(), 2);
+
+        boolean foundKey1 = false;
+        boolean foundKey2 = false;
+        for (PublicKeyEntry entry : keyList) {
+            if (entry.getId().equals("1")) {
+                foundKey1 = true;
+            } else if (entry.getId().equals("2")) {
+                foundKey2 = true;
+            }
+        }
+
+        assertTrue(foundKey1);
+        assertTrue(foundKey2);
+
+        PublicKeyEntry entry = zmsImpl.getPublicKeyEntry(ctx, "ServicePutPubKeyDom1A", "Service1", "1");
+        assertNotNull(entry);
+        assertEquals(entry.getId(), "1");
+        assertEquals(entry.getKey(), zmsTestInitializer.getPubKeyK2());
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServicePutPubKeyDom1A", auditRef, null);
+    }
+
+    @Test
+    public void testPutPublicKeyEntryDomainNotFound() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServicePutPubKeyDom2",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServicePutPubKeyDom2",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServicePutPubKeyDom2", "Service1", auditRef, false, null, service);
+
+        // this should throw a not found exception
+        try {
+            PublicKeyEntry keyEntry = new PublicKeyEntry();
+            keyEntry.setId("zone1");
+            keyEntry.setKey(zmsTestInitializer.getPubKeyK2());
+
+            zmsImpl.putPublicKeyEntry(ctx, "UnknownPublicKeyDomain", "Service1", "zone1", auditRef, null, keyEntry);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServicePutPubKeyDom2", auditRef, null);
+    }
+
+    @Test
+    public void testPutPublicKeyEntryServiceNotFound() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServicePutPubKeyDom3",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServicePutPubKeyDom3",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServicePutPubKeyDom3", "Service1", auditRef, false, null, service);
+
+        // this should throw a not found exception
+        try {
+            PublicKeyEntry keyEntry = new PublicKeyEntry();
+            keyEntry.setId("zone1");
+            keyEntry.setKey(zmsTestInitializer.getPubKeyK2());
+
+            zmsImpl.putPublicKeyEntry(ctx, "ServicePutPubKeyDom3", "ServiceNotFound", "zone1", auditRef, null, keyEntry);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServicePutPubKeyDom3", auditRef, null);
+    }
+
+    @Test
+    public void testDeletePublicKeyEntryIdNoMatch() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServicePutPubKeyDom4",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServicePutPubKeyDom4",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServicePutPubKeyDom4", "Service1", auditRef, false, null, service);
+
+        // this should throw invalid request exception
+
+        try {
+            PublicKeyEntry keyEntry = new PublicKeyEntry();
+            keyEntry.setId("zone1");
+            keyEntry.setKey(zmsTestInitializer.getPubKeyK2());
+
+            zmsImpl.putPublicKeyEntry(ctx, "ServicePutPubKeyDom4", "Service1", "zone2", auditRef, null, keyEntry);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServicePutPubKeyDom4", auditRef, null);
+    }
+
+    @Test
+    public void testGetPublicKeyService() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("GetPublicKeyDom1",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("GetPublicKeyDom1",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "GetPublicKeyDom1", "Service1", auditRef, false, null, service);
+
+        String publicKey = zmsImpl.getPublicKey("GetPublicKeyDom1", "Service1", "0");
+        assertNull(publicKey);
+
+        assertNull(zmsImpl.getPublicKey("GetPublicKeyDom1", null, "0"));
+        assertNull(zmsImpl.getPublicKey("GetPublicKeyDom1", "Service1", null));
+
+        publicKey = zmsImpl.getPublicKey("GetPublicKeyDom1", "Service1", "1");
+        assertNotNull(publicKey);
+        assertEquals(publicKey, Crypto.ybase64DecodeString(zmsTestInitializer.getPubKeyK1()));
+
+        publicKey = zmsImpl.getPublicKey("GetPublicKeyDom1", "Service1", "2");
+        assertNotNull(publicKey);
+        assertEquals(publicKey, Crypto.ybase64DecodeString(zmsTestInitializer.getPubKeyK2()));
+
+        zmsImpl.deleteTopLevelDomain(ctx, "GetPublicKeyDom1", auditRef, null);
+    }
+
+    @Test
+    public void testRetrieveServiceIdentityInvalidServiceName() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("ServiceRetrieveDom1",
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject("ServiceRetrieveDom1",
+                "Service1", "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, "ServiceRetrieveDom1", "Service1", auditRef, false, null, service);
+
+        try {
+            zmsImpl.getServiceIdentity(ctx, "ServiceRetrieveDom1", "Service");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+        try {
+            zmsImpl.getServiceIdentity(ctx, "ServiceRetrieveDom1", "Service2");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+        try {
+            zmsImpl.getServiceIdentity(ctx, "ServiceRetrieveDom1", "Service11");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, "ServiceRetrieveDom1", auditRef, null);
+    }
+
+    @Test
+    public void testRetrieveServiceIdentityValid() {
+
+        String domainName = "serviceretrievedom2";
+        String serviceName = "service1";
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName,
+                serviceName, "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+
+        zmsImpl.putServiceIdentity(ctx, domainName, "Service1", auditRef, false, null, service);
+
+        ServiceIdentity serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertNotNull(serviceRes);
+        assertEquals(serviceRes.getName(), domainName + "." + serviceName);
+        assertEquals(serviceRes.getExecutable(), "/usr/bin/java");
+        assertEquals(serviceRes.getGroup(), "users");
+        assertEquals(serviceRes.getUser(), "root");
+
+        // provider endpoint is a system meta attribute so we shouldn't saved it
+        assertNull(serviceRes.getProviderEndpoint());
+
+        List<String> hosts = serviceRes.getHosts();
+        assertNotNull(hosts);
+        assertEquals(hosts.size(), 1);
+        assertEquals(hosts.get(0), "host1");
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testValidateServiceName() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        StringBuilder errorMessage = new StringBuilder(64);
+
+        // reserved names
+        assertFalse(zmsImpl.isValidServiceName("athenz", "com", errorMessage));
+        assertEquals(errorMessage.toString(), "reserved service name");
+        assertFalse(zmsImpl.isValidServiceName("athenz", "gov", errorMessage));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "info", errorMessage));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "org", errorMessage));
+
+        assertTrue(zmsImpl.isValidServiceName("athenz", "svc", errorMessage));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "acom", errorMessage));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "coms", errorMessage));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "borg", errorMessage));
+
+        // service names with 1 or 2 chars
+
+        errorMessage.setLength(0);
+        assertFalse(zmsImpl.isValidServiceName("athenz", "u", errorMessage));
+        assertEquals(errorMessage.toString(), "service name length too short");
+
+        assertFalse(zmsImpl.isValidServiceName("athenz", "k", errorMessage));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "r", errorMessage));
+
+        assertFalse(zmsImpl.isValidServiceName("athenz", "us", errorMessage));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "uk", errorMessage));
+        assertFalse(zmsImpl.isValidServiceName("athenz", "fr", errorMessage));
+
+        // set the min length to 0 and verify all pass
+
+        zmsImpl.serviceNameMinLength = 0;
+        assertTrue(zmsImpl.isValidServiceName("athenz", "r", errorMessage));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "us", errorMessage));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "svc", errorMessage));
+
+        // set map to null and verify all pass
+
+        zmsImpl.reservedServiceNames = null;
+        assertTrue(zmsImpl.isValidServiceName("athenz", "com", errorMessage));
+        assertTrue(zmsImpl.isValidServiceName("athenz", "gov", errorMessage));
+
+        // create new impl objects with new settings
+
+        System.setProperty(ZMSConsts.ZMS_PROP_RESERVED_SERVICE_NAMES, "one,two");
+        System.setProperty(ZMSConsts.ZMS_PROP_SERVICE_NAME_MIN_LENGTH, "0");
+        ZMSImpl zmsImpl2 = zmsTestInitializer.zmsInit();
+
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "com", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "gov", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "info", errorMessage));
+
+        assertFalse(zmsImpl2.isValidServiceName("athenz", "one", errorMessage));
+        assertFalse(zmsImpl2.isValidServiceName("athenz", "two", errorMessage));
+
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "u", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "k", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "r", errorMessage));
+        System.clearProperty(ZMSConsts.ZMS_PROP_RESERVED_SERVICE_NAMES);
+        System.clearProperty(ZMSConsts.ZMS_PROP_SERVICE_NAME_MIN_LENGTH);
+
+        // validate service names with underscores set to allow
+
+        zmsImpl2.allowUnderscoreInServiceNames = new DynamicConfigBoolean(Boolean.TRUE);
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service-name", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name", errorMessage));
+
+        // while to allow option is enabled, let's create a service with underscore
+
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain testDomain = zmsTestInitializer.createTopLevelDomainObject("athenz",
+                "Athenz Domain", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, testDomain);
+
+        ServiceIdentity service = new ServiceIdentity();
+        service.setName(ResourceUtils.serviceResourceName("athenz", "service_name"));
+        zmsImpl2.putServiceIdentity(ctx, "athenz", "service_name", auditRef, false, null, service);
+
+        // now let's disable the option. with the existing service, it should
+        // be allowed but non-existent service name with be rejected
+
+        zmsImpl2.allowUnderscoreInServiceNames = new DynamicConfigBoolean(Boolean.FALSE);
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service-name", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name", errorMessage));
+        errorMessage.setLength(0);
+        assertFalse(zmsImpl2.isValidServiceName("athenz", "service_name2", errorMessage));
+        assertEquals(errorMessage.toString(), "service name with underscore not allowed");
+
+        // by default the feature flag is not enabled for the domain
+
+        assertFalse(zmsImpl2.isDomainFeatureFlagEnabled("athenz", 1));
+        assertFalse(zmsImpl2.isDomainFeatureFlagEnabled("athenz", 2));
+
+        // enable the domain to have the underscore feature flag enabled
+        // services should now be allowed
+
+        DomainMeta meta = new DomainMeta().setFeatureFlags(1);
+        zmsImpl2.putDomainSystemMeta(ctx, "athenz", "featureflags", auditRef, meta);
+
+        assertTrue(zmsImpl2.isDomainFeatureFlagEnabled("athenz", 1));
+        assertFalse(zmsImpl2.isDomainFeatureFlagEnabled("athenz", 2));
+
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service-name", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name2", errorMessage));
+        assertTrue(zmsImpl2.isValidServiceName("athenz", "service_name3", errorMessage));
+
+        zmsImpl2.deleteDomain(ctx, auditRef, "athenz", null, "unit-test");
+
+        zmsImpl.objectStore.clearConnections();
+        zmsImpl2.objectStore.clearConnections();
+    }
+
 }

@@ -37,6 +37,7 @@ type ServiceIdentity Struct {
     String x509CertSignerKeyId (optional, x_allowempty="true"); //requested x509 cert signer key id (system attribute)
     String sshCertSignerKeyId (optional, x_allowempty="true"); //requested ssh cert signer key id (system attribute)
     String creds (optional); //the credentials for the service
+    String clientId (optional, x_allowempty="true"); //the OAuth2 client id for the service (system attribute)
 }
 
 //The representation of list of services
@@ -56,4 +57,5 @@ type ServiceIdentitySystemMeta Struct {
     String providerEndpoint (optional); //provider callback endpoint
     String x509CertSignerKeyId (optional, x_allowempty="true"); //requested x509 cert signer key id
     String sshCertSignerKeyId (optional, x_allowempty="true"); //requested ssh cert signer key id
+    String clientId (optional, x_allowempty="true"); //the OAuth2 client id for the service
 }

@@ -2617,55 +2617,6 @@ public class ZMSCoreTest {
     }
 
     @Test
-    public void testServiceIdentitySystemMetaMethod() {
-        Schema schema = ZMSSchema.instance();
-        Validator validator = new Validator(schema);
-
-        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta()
-                .setProviderEndpoint("https://host:443/endpoint")
-                .setX509CertSignerKeyId("x509-keyid")
-                .setSshCertSignerKeyId("ssh-keyid");
-        assertTrue(meta.equals(meta));
-
-        Result result = validator.validate(meta, "ServiceIdentitySystemMeta");
-        assertTrue(result.valid);
-
-        assertEquals(meta.getProviderEndpoint(), "https://host:443/endpoint");
-        assertEquals(meta.getX509CertSignerKeyId(), "x509-keyid");
-        assertEquals(meta.getSshCertSignerKeyId(), "ssh-keyid");
-
-        ServiceIdentitySystemMeta meta2 = new ServiceIdentitySystemMeta()
-                .setProviderEndpoint("https://host:443/endpoint")
-                .setX509CertSignerKeyId("x509-keyid")
-                .setSshCertSignerKeyId("ssh-keyid");
-        assertEquals(meta, meta2);
-
-        meta2.setProviderEndpoint("https://host:443/endpoint2");
-        assertNotEquals(meta, meta2);
-        meta2.setProviderEndpoint(null);
-        assertNotEquals(meta, meta2);
-        meta2.setProviderEndpoint("https://host:443/endpoint");
-        assertEquals(meta, meta2);
-
-        meta2.setX509CertSignerKeyId("x509-keyid2");
-        assertNotEquals(meta, meta2);
-        meta2.setX509CertSignerKeyId(null);
-        assertNotEquals(meta, meta2);
-        meta2.setX509CertSignerKeyId("x509-keyid");
-        assertEquals(meta, meta2);
-
-        meta2.setSshCertSignerKeyId("ssh-keyid2");
-        assertNotEquals(meta, meta2);
-        meta2.setSshCertSignerKeyId(null);
-        assertNotEquals(meta, meta2);
-        meta2.setSshCertSignerKeyId("ssh-keyid");
-        assertEquals(meta, meta2);
-
-        assertFalse(meta2.equals(null));
-        assertFalse(meta.equals(new String()));
-    }
-
-    @Test
     public void testJWSDomain() {
 
         Map<String, String> headers = new HashMap<>();

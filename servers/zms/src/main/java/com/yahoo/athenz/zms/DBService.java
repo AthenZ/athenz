@@ -1246,6 +1246,7 @@ public class DBService implements RolesProvider, DomainProvider {
             service.setProviderEndpoint(null);
             service.setX509CertSignerKeyId(null);
             service.setSshCertSignerKeyId(null);
+            service.setClientId(null);
             service.setCreds(null);
             requestSuccess = con.insertServiceIdentity(domainName, service);
         } else {
@@ -1254,6 +1255,7 @@ public class DBService implements RolesProvider, DomainProvider {
             service.setX509CertSignerKeyId(originalService.getX509CertSignerKeyId());
             service.setSshCertSignerKeyId(originalService.getSshCertSignerKeyId());
             service.setCreds(originalService.getCreds());
+            service.setClientId(originalService.getClientId());
             requestSuccess = con.updateServiceIdentity(domainName, service);
         }
 
@@ -1269,6 +1271,7 @@ public class DBService implements RolesProvider, DomainProvider {
             .append(", \"executable\": \"").append(service.getExecutable()).append('\"')
             .append(", \"user\": \"").append(service.getUser()).append('\"')
             .append(", \"group\": \"").append(service.getGroup()).append('\"')
+            .append(", \"client-id\": \"").append(service.getClientId()).append('\"')
             .append(", \"description\": \"").append(service.getDescription()).append('\"');
 
         // add domain change event
@@ -5013,6 +5016,8 @@ public class DBService implements RolesProvider, DomainProvider {
             service.setX509CertSignerKeyId(meta.getX509CertSignerKeyId());
         } else if (ZMSConsts.SYSTEM_META_SSH_CERT_SIGNER_KEYID.equals(attribute)) {
             service.setSshCertSignerKeyId(meta.getSshCertSignerKeyId());
+        } else if (ZMSConsts.SYSTEM_META_CLIENT_ID.equals(attribute)) {
+            service.setClientId(meta.getClientId());
         } else {
             throw ZMSUtils.requestError("unknown service system meta attribute: " + attribute, caller);
         }
