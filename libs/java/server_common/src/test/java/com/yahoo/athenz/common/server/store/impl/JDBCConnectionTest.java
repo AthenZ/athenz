@@ -3841,6 +3841,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_CREDS);
+        Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_CLIENT_ID);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         ServiceIdentity service = jdbcConn.getServiceIdentity("my-domain", "service1");
@@ -3853,6 +3854,7 @@ public class JDBCConnectionTest {
         assertNull(service.getX509CertSignerKeyId());
         assertNull(service.getSshCertSignerKeyId());
         assertNull(service.getCreds());
+        assertNull(service.getClientId());
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "service1");
@@ -3886,6 +3888,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("x509-keyid").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_X509_CERT_SIGNER_KEYID);
         Mockito.doReturn("ssh-keyid").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID);
         Mockito.doReturn("creds").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_CREDS);
+        Mockito.doReturn("client_id").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_CLIENT_ID);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         ServiceIdentity service = jdbcConn.getServiceIdentity("my-domain", "service1");
@@ -3898,6 +3901,7 @@ public class JDBCConnectionTest {
         assertEquals(service.getX509CertSignerKeyId(), "x509-keyid");
         assertEquals(service.getSshCertSignerKeyId(), "ssh-keyid");
         assertEquals(service.getCreds(), "creds");
+        assertEquals(service.getClientId(), "client_id");
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "service1");
@@ -4070,7 +4074,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(7, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(8, "");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(9, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setString(9, "");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(10, 4);
         jdbcConn.close();
     }
 
@@ -4149,7 +4154,8 @@ public class JDBCConnectionTest {
                 .setProviderEndpoint("https://server.athenzcompany.com")
                 .setX509CertSignerKeyId("x509-keyid")
                 .setSshCertSignerKeyId("ssh-keyid")
-                .setCreds("creds");
+                .setCreds("creds")
+                .setClientId("client-id");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -4173,7 +4179,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "x509-keyid");
         Mockito.verify(mockPrepStmt, times(1)).setString(7, "ssh-keyid");
         Mockito.verify(mockPrepStmt, times(1)).setString(8, "creds");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(9, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setString(9, "client-id");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(10, 4);
         jdbcConn.close();
     }
 
@@ -6885,6 +6892,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL)).thenReturn("athenz");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_ON_CALL)).thenReturn("athenz-oncall");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_CREDS)).thenReturn("");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_CLIENT_ID)).thenReturn("");
 
         AthenzDomain athenzDomain = jdbcConn.getAthenzDomain("my-domain");
         assertNotNull(athenzDomain);

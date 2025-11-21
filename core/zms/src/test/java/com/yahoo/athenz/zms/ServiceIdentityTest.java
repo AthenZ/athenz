@@ -50,7 +50,7 @@ public class ServiceIdentityTest {
                 .setTags(tags)
                 .setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setCreds("creds");
+                .setCreds("creds").setClientId("client-id");
 
         Validator.Result result = validator.validate(si, "ServiceIdentity");
         assertTrue(result.valid);
@@ -69,6 +69,7 @@ public class ServiceIdentityTest {
         assertEquals(si.getX509CertSignerKeyId(), "x509-keyid");
         assertEquals(si.getSshCertSignerKeyId(), "ssh-keyid");
         assertEquals(si.getCreds(), "creds");
+        assertEquals(si.getClientId(), "client-id");
 
         ServiceIdentity si2 = new ServiceIdentity().setName("test.service").setPublicKeys(pkel)
                 .setProviderEndpoint("http://test.endpoint").setModified(Timestamp.fromMillis(123456789123L))
@@ -77,7 +78,7 @@ public class ServiceIdentityTest {
                 .setTags(tags)
                 .setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setCreds("creds");
+                .setCreds("creds").setClientId("client-id");
 
         assertTrue(si2.equals(si));
         assertTrue(si.equals(si));
@@ -180,6 +181,13 @@ public class ServiceIdentityTest {
         si2.setCreds("creds");
         assertEquals(si2, si);
 
+        si2.setClientId("client-id2");
+        assertNotEquals(si2, si);
+        si2.setClientId(null);
+        assertNotEquals(si2, si);
+        si2.setClientId("client-id");
+        assertEquals(si2, si);
+
         assertFalse(si.equals(new String()));
     }
 
@@ -200,5 +208,64 @@ public class ServiceIdentityTest {
         assertEquals(credsEntry2, credsEntry);
 
         assertFalse(credsEntry.equals(new String()));
+    }
+
+    @Test
+    public void testServiceIdentitySystemMetaMethod() {
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta()
+                .setProviderEndpoint("https://host:443/endpoint")
+                .setX509CertSignerKeyId("x509-keyid")
+                .setSshCertSignerKeyId("ssh-keyid")
+                .setClientId("client-id");
+        assertTrue(meta.equals(meta));
+
+        Validator.Result result = validator.validate(meta, "ServiceIdentitySystemMeta");
+        assertTrue(result.valid);
+
+        assertEquals(meta.getProviderEndpoint(), "https://host:443/endpoint");
+        assertEquals(meta.getX509CertSignerKeyId(), "x509-keyid");
+        assertEquals(meta.getSshCertSignerKeyId(), "ssh-keyid");
+        assertEquals(meta.getClientId(), "client-id");
+
+        ServiceIdentitySystemMeta meta2 = new ServiceIdentitySystemMeta()
+                .setProviderEndpoint("https://host:443/endpoint")
+                .setX509CertSignerKeyId("x509-keyid")
+                .setSshCertSignerKeyId("ssh-keyid")
+                .setClientId("client-id");
+        assertEquals(meta, meta2);
+
+        meta2.setProviderEndpoint("https://host:443/endpoint2");
+        assertNotEquals(meta, meta2);
+        meta2.setProviderEndpoint(null);
+        assertNotEquals(meta, meta2);
+        meta2.setProviderEndpoint("https://host:443/endpoint");
+        assertEquals(meta, meta2);
+
+        meta2.setX509CertSignerKeyId("x509-keyid2");
+        assertNotEquals(meta, meta2);
+        meta2.setX509CertSignerKeyId(null);
+        assertNotEquals(meta, meta2);
+        meta2.setX509CertSignerKeyId("x509-keyid");
+        assertEquals(meta, meta2);
+
+        meta2.setSshCertSignerKeyId("ssh-keyid2");
+        assertNotEquals(meta, meta2);
+        meta2.setSshCertSignerKeyId(null);
+        assertNotEquals(meta, meta2);
+        meta2.setSshCertSignerKeyId("ssh-keyid");
+        assertEquals(meta, meta2);
+
+        meta2.setClientId("client-id2");
+        assertNotEquals(meta, meta2);
+        meta2.setClientId(null);
+        assertNotEquals(meta, meta2);
+        meta2.setClientId("client-id");
+        assertEquals(meta, meta2);
+
+        assertFalse(meta2.equals(null));
+        assertFalse(meta.equals(new String()));
     }
 }

@@ -22,6 +22,9 @@ public class ServiceIdentitySystemMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String sshCertSignerKeyId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String clientId;
 
     public ServiceIdentitySystemMeta setProviderEndpoint(String providerEndpoint) {
         this.providerEndpoint = providerEndpoint;
@@ -44,6 +47,13 @@ public class ServiceIdentitySystemMeta {
     public String getSshCertSignerKeyId() {
         return sshCertSignerKeyId;
     }
+    public ServiceIdentitySystemMeta setClientId(String clientId) {
+        this.clientId = clientId;
+        return this;
+    }
+    public String getClientId() {
+        return clientId;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -59,6 +69,9 @@ public class ServiceIdentitySystemMeta {
                 return false;
             }
             if (sshCertSignerKeyId == null ? a.sshCertSignerKeyId != null : !sshCertSignerKeyId.equals(a.sshCertSignerKeyId)) {
+                return false;
+            }
+            if (clientId == null ? a.clientId != null : !clientId.equals(a.clientId)) {
                 return false;
             }
         }

@@ -361,6 +361,24 @@ func (cli Zms) SetServiceEndpoint(dn string, sn string, endpoint string) (*strin
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
+func (cli Zms) SetServiceClientId(dn string, sn string, clientId string) (*string, error) {
+	shortName := shortname(dn, sn)
+	meta := zms.ServiceIdentitySystemMeta{
+		ClientId: clientId,
+	}
+	err := cli.Zms.PutServiceIdentitySystemMeta(zms.DomainName(dn), zms.SimpleName(shortName), "clientid", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " service " + sn + " client-id successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) SetServiceX509CertSignerKeyId(dn string, sn string, keyId string) (*string, error) {
 	shortName := shortname(dn, sn)
 	meta := zms.ServiceIdentitySystemMeta{

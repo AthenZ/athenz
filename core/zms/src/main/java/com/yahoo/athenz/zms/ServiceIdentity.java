@@ -54,6 +54,9 @@ public class ServiceIdentity {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String creds;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String clientId;
 
     public ServiceIdentity setName(String name) {
         this.name = name;
@@ -153,6 +156,13 @@ public class ServiceIdentity {
     public String getCreds() {
         return creds;
     }
+    public ServiceIdentity setClientId(String clientId) {
+        this.clientId = clientId;
+        return this;
+    }
+    public String getClientId() {
+        return clientId;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -201,6 +211,9 @@ public class ServiceIdentity {
                 return false;
             }
             if (creds == null ? a.creds != null : !creds.equals(a.creds)) {
+                return false;
+            }
+            if (clientId == null ? a.clientId != null : !clientId.equals(a.clientId)) {
                 return false;
             }
         }

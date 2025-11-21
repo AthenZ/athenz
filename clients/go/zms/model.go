@@ -3458,6 +3458,11 @@ type ServiceIdentity struct {
 	// the credentials for the service
 	//
 	Creds string `json:"creds" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// the OAuth2 client id for the service (system attribute)
+	//
+	ClientId string `json:"clientId" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewServiceIdentity - creates an initialized ServiceIdentity instance, returns a pointer to it
@@ -3541,6 +3546,12 @@ func (self *ServiceIdentity) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.Creds)
 		if !val.Valid {
 			return fmt.Errorf("ServiceIdentity.creds does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ClientId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ClientId)
+		if !val.Valid {
+			return fmt.Errorf("ServiceIdentity.clientId does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -3685,6 +3696,11 @@ type ServiceIdentitySystemMeta struct {
 	// requested ssh cert signer key id
 	//
 	SshCertSignerKeyId string `json:"sshCertSignerKeyId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// the OAuth2 client id for the service
+	//
+	ClientId string `json:"clientId" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewServiceIdentitySystemMeta - creates an initialized ServiceIdentitySystemMeta instance, returns a pointer to it
@@ -3730,6 +3746,12 @@ func (self *ServiceIdentitySystemMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.SshCertSignerKeyId)
 		if !val.Valid {
 			return fmt.Errorf("ServiceIdentitySystemMeta.sshCertSignerKeyId does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ClientId != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ClientId)
+		if !val.Valid {
+			return fmt.Errorf("ServiceIdentitySystemMeta.clientId does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
