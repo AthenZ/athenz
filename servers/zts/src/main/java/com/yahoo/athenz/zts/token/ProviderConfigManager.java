@@ -55,7 +55,7 @@ public class ProviderConfigManager {
         jwtsResolvers = new ArrayList<>();
 
         if (configFilePath == null || configFilePath.isEmpty()) {
-            LOGGER.error("Provider Manager Configuration file path is null or empty");
+            LOGGER.info("Provider Manager Configuration file path is not configured. No external providers will be loaded.");
             return;
         }
 

@@ -30,7 +30,7 @@ public interface TokenExchangeIdentityProvider {
      * JAG tokens from an external Identity Provider with an Athenz issued access
      * token.
      *
-     * @param token validated oauth2 token fron external Identity Provider
+     * @param token validated oauth2 token from external Identity Provider
      * @return the identity of the token in Athenz system.
      */
     String getIdentity(OAuth2Token token);
