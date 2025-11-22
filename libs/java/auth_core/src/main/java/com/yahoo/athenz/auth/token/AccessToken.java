@@ -505,7 +505,7 @@ public class AccessToken extends OAuth2Token {
 
         try {
             JWSSigner signer = JwtsHelper.getJWSSigner(key);
-            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+            JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder()
                     .subject(subject)
                     .jwtID(jwtId)
                     .issueTime(Date.from(Instant.ofEpochSecond(issueTime)))
@@ -521,9 +521,13 @@ public class AccessToken extends OAuth2Token {
                     .claim(CLAIM_CONFIRM, confirm)
                     .claim(CLAIM_PROXY, proxyPrincipal)
                     .claim(CLAIM_AUTHZ_DETAILS, authorizationDetails)
-                    .claim(CLAIM_RESOURCE, resource)
-                    .build();
-
+                    .claim(CLAIM_RESOURCE, resource);
+            if (customClaims != null) {
+                for (Map.Entry<String, Object> entry : customClaims.entrySet()) {
+                    claimsSetBuilder.claim(entry.getKey(), entry.getValue());
+                }
+            }
+            JWTClaimsSet claimsSet = claimsSetBuilder.build();
             SignedJWT signedJWT = new SignedJWT(
                     new JWSHeader.Builder(JWSAlgorithm.parse(sigAlg))
                             .type(new JOSEObjectType(tokenType))
@@ -540,5 +544,25 @@ public class AccessToken extends OAuth2Token {
 
     public String getSignedToken(final PrivateKey key, final String keyId, final String sigAlg) {
         return getSignedToken(key, keyId, sigAlg, HDR_TOKEN_JWT);
+    }
+
+    @Override
+    public boolean isStandardClaim(final String claimName) {
+        if (super.isStandardClaim(claimName)) {
+            return true;
+        }
+        switch (claimName) {
+            case CLAIM_SCOPE:
+            case CLAIM_SCOPE_STD:
+            case CLAIM_UID:
+            case CLAIM_CLIENT_ID:
+            case CLAIM_CONFIRM:
+            case CLAIM_PROXY:
+            case CLAIM_AUTHZ_DETAILS:
+            case CLAIM_RESOURCE:
+                return true;
+            default:
+                return false;
+        }
     }
 }

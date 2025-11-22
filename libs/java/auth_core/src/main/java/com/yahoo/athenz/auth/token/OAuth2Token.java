@@ -28,6 +28,7 @@ import com.yahoo.athenz.auth.util.StringUtils;
 import java.security.PublicKey;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class OAuth2Token {
 
@@ -36,6 +37,13 @@ public class OAuth2Token {
 
     public static final String CLAIM_VERSION = "ver";
     public static final String CLAIM_AUTH_TIME = "auth_time";
+    public static final String CLAIM_ISSUER = "iss";
+    public static final String CLAIM_SUBJECT = "sub";
+    public static final String CLAIM_AUDIENCE = "aud";
+    public static final String CLAIM_EXPIRY = "exp";
+    public static final String CLAIM_ISSUE_TIME = "iat";
+    public static final String CLAIM_NOT_BEFORE = "nbf";
+    public static final String CLAIM_JWT_ID = "jti";
 
     protected int version;
     protected long expiryTime;
@@ -49,6 +57,7 @@ public class OAuth2Token {
     protected String clientIdDomainName;
     protected String clientIdServiceName;
     protected JWTClaimsSet claimsSet = null;
+    protected Map<String, Object> customClaims = null;
     protected static DefaultJWTClaimsVerifier<SecurityContext> claimsVerifier = new DefaultJWTClaimsVerifier<>(null, null);
 
     public OAuth2Token() {
@@ -357,5 +366,50 @@ public class OAuth2Token {
 
     public String getClientIdServiceName() {
         return clientIdServiceName;
+    }
+
+    public boolean setCustomClaim(final String name, final Object value) {
+
+        // first verify that the custom claim is not one of the standard claims
+
+        if (isStandardClaim(name)) {
+            return false;
+        }
+
+        // create the custom claims map if necessary
+
+        if (customClaims == null) {
+            customClaims = new java.util.HashMap<>();
+        }
+        customClaims.put(name, value);
+        return true;
+    }
+
+    public Object getClaim(final String name) {
+        return claimsSet.getClaim(name);
+    }
+
+    /**
+     * Check if the given claim name is one of the standard claims
+     * in an OAuth2 token that is already handled separately.
+     *
+     * @param claimName claim name
+     * @return true if standard claim, false otherwise
+     */
+    public boolean isStandardClaim(final String claimName) {
+        switch (claimName) {
+            case CLAIM_ISSUER:
+            case CLAIM_SUBJECT:
+            case CLAIM_AUDIENCE:
+            case CLAIM_EXPIRY:
+            case CLAIM_ISSUE_TIME:
+            case CLAIM_NOT_BEFORE:
+            case CLAIM_JWT_ID:
+            case CLAIM_VERSION:
+            case CLAIM_AUTH_TIME:
+                return true;
+            default:
+                return false;
+        }
     }
 }

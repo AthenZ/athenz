@@ -1,0 +1,10 @@
+[
+    {
+        "issuerUri": "https://athenz.io:4443/zts/v1",
+        "jwksUri": "file://src/test/resources/jwt_jwks.json"
+    },
+    {
+        "issuerUri": "coretech.jwt",
+        "jwksUri": "file://src/test/resources/jwt_jwks.json"
+    }
+]

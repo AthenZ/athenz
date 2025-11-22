@@ -1336,5 +1336,51 @@ public class DataCacheTest {
         assertFalse(cache.isWorkloadStoreExcludedProvider("sys.openstack.classic"));
         assertTrue(cache.isWorkloadStoreExcludedProvider("omega.k8s.identity"));
     }
+
+    @Test
+    public void testDataCacheClientIds() {
+
+        final String domainName = "client-id-test-domain";
+
+        DataCache cache = new DataCache();
+        DomainData domainData = new DomainData();
+        domainData.setName(domainName);
+        cache.setDomainData(domainData);
+
+        ServiceIdentity serviceIdentity1 = new ServiceIdentity();
+        serviceIdentity1.setName(domainName + ".service1");
+        serviceIdentity1.setClientId("client1");
+
+        ServiceIdentity serviceIdentity2 = new ServiceIdentity();
+        serviceIdentity2.setName(domainName + ".service2");
+        serviceIdentity2.setClientId("client2");
+
+        ServiceIdentity serviceIdentity3 = new ServiceIdentity();
+        serviceIdentity3.setName(domainName + ".service3");
+
+        cache.processServiceIdentity(serviceIdentity1);
+        cache.processServiceIdentity(serviceIdentity2);
+        cache.processServiceIdentity(serviceIdentity3);
+
+        assertEquals("client1", cache.getServiceIdentityClientId(domainName + ".service1"));
+        assertEquals("client2", cache.getServiceIdentityClientId(domainName + ".service2"));
+        assertNull(cache.getServiceIdentityClientId(domainName + ".service3"));
+
+        // now update service3 with a client id
+        serviceIdentity3.setClientId("client3");
+        cache.processServiceIdentity(serviceIdentity3);
+
+        // remove client id from service2
+        serviceIdentity2.setClientId(null);
+        cache.processServiceIdentity(serviceIdentity2);
+
+        // change client id for service1
+        serviceIdentity1.setClientId("newclient1");
+        cache.processServiceIdentity(serviceIdentity1);
+
+        assertEquals("newclient1", cache.getServiceIdentityClientId(domainName + ".service1"));
+        assertNull(cache.getServiceIdentityClientId(domainName + ".service2"));
+        assertEquals("client3", cache.getServiceIdentityClientId(domainName + ".service3"));
+    }
 }
 

@@ -5574,4 +5574,186 @@ public class DataStoreTest {
         assertNull(store.getServiceSecret("coretech", null));
         assertNull(store.getServiceSecret(null, "storage"));
     }
+
+    @Test
+    public void testGetServiceClientId() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        // Create a domain with services that have client IDs
+        DataCache dataCache = new DataCache();
+        DomainData domainData = new DomainData();
+        domainData.setName("coretech");
+
+        ServiceIdentity service1 = new ServiceIdentity();
+        service1.setName("coretech.storage");
+        service1.setClientId("client-id-1");
+
+        ServiceIdentity service2 = new ServiceIdentity();
+        service2.setName("coretech.api");
+        service2.setClientId("client-id-2");
+
+        ServiceIdentity service3 = new ServiceIdentity();
+        service3.setName("coretech.backend");
+        // service3 has no client ID
+
+        List<ServiceIdentity> services = new ArrayList<>();
+        services.add(service1);
+        services.add(service2);
+        services.add(service3);
+
+        dataCache.processServiceIdentity(service1);
+        dataCache.processServiceIdentity(service2);
+        dataCache.processServiceIdentity(service3);
+
+        domainData.setServices(services);
+        dataCache.setDomainData(domainData);
+
+        store.addDomainToCache("coretech", dataCache);
+
+        // Test: service with client ID
+        assertEquals(store.getServiceClientId("coretech", "coretech.storage"), "client-id-1");
+        assertEquals(store.getServiceClientId("coretech", "coretech.api"), "client-id-2");
+
+        // Test: service without client ID
+        assertNull(store.getServiceClientId("coretech", "coretech.backend"));
+
+        // Test: non-existent service
+        assertNull(store.getServiceClientId("coretech", "coretech.unknown"));
+
+        // Test: non-existent domain
+        assertNull(store.getServiceClientId("unknown", "unknown.service"));
+    }
+
+    @Test
+    public void testGetServiceClientIdMultipleDomains() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        // Create first domain
+        DataCache dataCache1 = new DataCache();
+        DomainData domainData1 = new DomainData();
+        domainData1.setName("coretech");
+
+        ServiceIdentity service1 = new ServiceIdentity();
+        service1.setName("coretech.storage");
+        service1.setClientId("coretech-client-id");
+
+        dataCache1.processServiceIdentity(service1);
+        domainData1.setServices(Arrays.asList(service1));
+        dataCache1.setDomainData(domainData1);
+        store.addDomainToCache("coretech", dataCache1);
+
+        // Create second domain
+        DataCache dataCache2 = new DataCache();
+        DomainData domainData2 = new DomainData();
+        domainData2.setName("sports");
+
+        ServiceIdentity service2 = new ServiceIdentity();
+        service2.setName("sports.api");
+        service2.setClientId("sports-client-id");
+
+        dataCache2.processServiceIdentity(service2);
+        domainData2.setServices(Arrays.asList(service2));
+        dataCache2.setDomainData(domainData2);
+        store.addDomainToCache("sports", dataCache2);
+
+        // Test: verify each domain returns correct client ID
+        assertEquals(store.getServiceClientId("coretech", "coretech.storage"), "coretech-client-id");
+        assertEquals(store.getServiceClientId("sports", "sports.api"), "sports-client-id");
+
+        // Test: verify cross-domain lookup returns null
+        assertNull(store.getServiceClientId("coretech", "sports.api"));
+        assertNull(store.getServiceClientId("sports", "coretech.storage"));
+    }
+
+    @Test
+    public void testGetServiceClientIdEmptyString() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        DataCache dataCache = new DataCache();
+        DomainData domainData = new DomainData();
+        domainData.setName("coretech");
+
+        ServiceIdentity service = new ServiceIdentity();
+        service.setName("coretech.storage");
+        service.setClientId("client-id");
+
+        dataCache.processServiceIdentity(service);
+        domainData.setServices(Arrays.asList(service));
+        dataCache.setDomainData(domainData);
+        store.addDomainToCache("coretech", dataCache);
+
+        // Test: empty string domain name
+        assertNull(store.getServiceClientId("", "coretech.storage"));
+
+        // Test: empty string service name
+        assertNull(store.getServiceClientId("coretech", ""));
+    }
+
+    @Test
+    public void testGetServiceClientIdClientIdRemoved() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        DataCache dataCache = new DataCache();
+        DomainData domainData = new DomainData();
+        domainData.setName("coretech");
+
+        ServiceIdentity service = new ServiceIdentity();
+        service.setName("coretech.storage");
+        service.setClientId("client-id-1");
+
+        dataCache.processServiceIdentity(service);
+        domainData.setServices(Arrays.asList(service));
+        dataCache.setDomainData(domainData);
+        store.addDomainToCache("coretech", dataCache);
+
+        // Verify initial client ID
+        assertEquals(store.getServiceClientId("coretech", "coretech.storage"), "client-id-1");
+
+        // Update service to remove client ID
+        service.setClientId(null);
+        dataCache.processServiceIdentity(service);
+        store.addDomainToCache("coretech", dataCache);
+
+        // Verify client ID is now null
+        assertNull(store.getServiceClientId("coretech", "coretech.storage"));
+    }
+
+    @Test
+    public void testGetServiceClientIdClientIdUpdated() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root", pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        DataCache dataCache = new DataCache();
+        DomainData domainData = new DomainData();
+        domainData.setName("coretech");
+
+        ServiceIdentity service = new ServiceIdentity();
+        service.setName("coretech.storage");
+        service.setClientId("client-id-1");
+
+        dataCache.processServiceIdentity(service);
+        domainData.setServices(Arrays.asList(service));
+        dataCache.setDomainData(domainData);
+        store.addDomainToCache("coretech", dataCache);
+
+        // Verify initial client ID
+        assertEquals(store.getServiceClientId("coretech", "coretech.storage"), "client-id-1");
+
+        // Update service with new client ID
+        service.setClientId("client-id-2");
+        dataCache.processServiceIdentity(service);
+        store.addDomainToCache("coretech", dataCache);
+
+        // Verify client ID is updated
+        assertEquals(store.getServiceClientId("coretech", "coretech.storage"), "client-id-2");
+    }
 }

@@ -74,10 +74,7 @@ import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
-import com.yahoo.athenz.zts.token.AccessTokenRequest;
-import com.yahoo.athenz.zts.token.AccessTokenScope;
-import com.yahoo.athenz.zts.token.IdTokenScope;
-import com.yahoo.athenz.zts.token.TokenConfigOptions;
+import com.yahoo.athenz.zts.token.*;
 import com.yahoo.athenz.zts.transportrules.TransportRulesProcessor;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.*;
@@ -194,6 +191,7 @@ public class ZTSImpl implements ZTSHandler {
     protected String serviceCredsEncryptionAlgorithm = null;
     protected boolean jwtCurveRfcSupportOnly = false;
     protected TokenConfigOptions tokenConfigOptions = null;
+    protected ProviderConfigManager providerConfigManager;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -402,19 +400,20 @@ public class ZTSImpl implements ZTSHandler {
 
         spiffeUriManager = new SpiffeUriManager();
 
-        // create our jwt process objects and the config for validating
-        // access token requests
+        // create our external provider config manager
 
-        generateTokenConfigOptions();
+        loadExternalProviderConfigManager();
     }
 
-    void generateTokenConfigOptions() {
+    void loadExternalProviderConfigManager() {
 
-        List<JwtsResolver> jwtsResolvers = generateSupportedJAGIssuers();
+        providerConfigManager = new ProviderConfigManager(System.getProperty(ZTSConsts.ZTS_PROP_PROVIDER_CONFIG_FILE));
 
         // we're always going to add our own zts server as the last entry
         // in case our config files are not updated thus we need to extract
         // the public keys from ourselves directly
+
+        List<JwtsResolver> jwtsResolvers = providerConfigManager.getJwtsResolvers();
         jwtsResolvers.add(new JwtsResolver(ztsOpenIDIssuer + "/oauth2/keys?rfc=true", null, null));
 
         // create our token config options
@@ -504,72 +503,6 @@ public class ZTSImpl implements ZTSHandler {
         oauthConfig.setResponse_types_supported(
                 Arrays.asList(ZTSConsts.ZTS_OPENID_RESPONSE_AT_ONLY, ZTSConsts.ZTS_OPENID_RESPONSE_BOTH_IT_AT));
         oauthConfig.setToken_endpoint_auth_signing_alg_values_supported(getSupportedSigningAlgValues());
-    }
-
-    List<JwtsResolver> generateSupportedJAGIssuers() {
-
-        // extract jag issuers if configured, the format is a comma separated
-        // list of openid issuers with their default jwks_uri and proxy urls.
-        // We'll use the default jwks_uri if we're not able to extract the value
-        // from the openid-configuration endpoint
-
-        final String jagIssuers = System.getProperty(ZTSConsts.ZTS_PROP_OPENID_JAG_ISSUERS);
-        List<JwtsResolver> jwtsResolvers = new ArrayList<>();
-
-        if (StringUtil.isEmpty(jagIssuers)) {
-            return jwtsResolvers;
-        }
-
-        // the format for the jagIssuers is:
-        //    <issuer_url>[|<default_jwks_uri>|<proxy_url>][,<issuer_url>[|<default_jwks_uri>|<proxy_url>]]...
-
-        String[] issuersArray = jagIssuers.split(",");
-        for (String issuer : issuersArray) {
-
-            // extract the default jwks_uri if configured
-
-            String[] comps = issuer.split("\\|");
-            if (comps.length == 0 || comps.length > 3) {
-                LOGGER.error("Invalid jag issuer format: {}", issuer);
-                continue;
-            }
-
-            String proxyUrl = null;
-            String defaultJwksUri = null;
-
-            String issuerUri = comps[0];
-            if (comps.length > 1) {
-                defaultJwksUri = comps[1];
-            }
-            if (comps.length > 2) {
-                proxyUrl = comps[2];
-            }
-
-            if (StringUtil.isEmpty(issuerUri) && StringUtil.isEmpty(defaultJwksUri)) {
-                LOGGER.error("Invalid jag issuer format: {}", issuer);
-                continue;
-            }
-
-            // extract the jwks_uri from the openid-configuration endpoint
-
-            JwtsHelper helper = new JwtsHelper();
-
-            String jwksUri = helper.extractJwksUri(issuer + "/.well-known/openid-configuration", null, proxyUrl);
-            if (StringUtil.isEmpty(jwksUri)) {
-                jwksUri = defaultJwksUri;
-            }
-
-            if (StringUtil.isEmpty(jwksUri)) {
-                LOGGER.error("Unable to extract jwks_uri for issuer: {}", issuer);
-                continue;
-            }
-
-            // create our resolver object
-
-            jwtsResolvers.add(new JwtsResolver(jwksUri, proxyUrl, null));
-        }
-
-        return jwtsResolvers;
     }
 
     List<String> getSupportedSigningAlgValues() {
@@ -2639,9 +2572,9 @@ public class ZTSImpl implements ZTSHandler {
 
         switch (accessTokenRequest.getRequestType()) {
             case JAG_TOKEN_EXCHANGE:
-                return processAccessTokenJAGExchange(ctx, principal, accessTokenRequest, principalDomain, caller);
+                return processJAGTokenIssueRequest(ctx, principal, accessTokenRequest, principalDomain, caller);
             case JAG_JWT_BEARER:
-                return processAccessTokenJAGRequest(ctx, accessTokenRequest, principal.getFullName(),
+                return processJAGTokenExchangeRequest(ctx, accessTokenRequest, principal.getFullName(),
                         principalDomain, caller);
             case TOKEN_EXCHANGE:
                 return processAccessTokenExchangeRequest(ctx, principal, accessTokenRequest, principalDomain, caller);
@@ -2656,8 +2589,8 @@ public class ZTSImpl implements ZTSHandler {
         throw requestError("Not Yet implemented", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
     }
 
-    AccessTokenResponse processAccessTokenJAGExchange(ResourceContext ctx, Principal principal,
-            AccessTokenRequest accessTokenRequest, final String principalDomain, final String caller) {
+    AccessTokenResponse processJAGTokenIssueRequest(ResourceContext ctx, Principal principal,
+                AccessTokenRequest accessTokenRequest, final String principalDomain, final String caller) {
 
         // get our principal name for simpler access
 
@@ -2670,16 +2603,22 @@ public class ZTSImpl implements ZTSHandler {
         OAuth2Token subjectToken = accessTokenRequest.getSubjectTokenObj();
 
         // the audience of the subject token must be our client id which
-        // in our case is the principal name
+        // in our case is the principal name. However, if the token was issued
+        // by an external identity provider, it will be issued to the client id
+        // which should be configured as the client id for our service
 
         if (!principalName.equals(subjectToken.getAudience())) {
-            LOGGER.error("The subject token does not have expected audience: {}/{}", principalName,
-                    subjectToken.getAudience());
-            throw requestError("Invalid subject token audience", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            final String clientId = dataStore.getServiceClientId(principal.getDomain(), principalName);
+            if (clientId == null || !clientId.equals(subjectToken.getAudience())) {
+                LOGGER.error("The subject token does not have expected audience: {}/{}", principalName,
+                        subjectToken.getAudience());
+                throw requestError("Invalid subject token audience", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN,
+                        principalDomain);
+            }
         }
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("processAccessTokenJAGExchange(principal: {}, scope: {}, client: {}", principalName,
+            LOGGER.debug("processJAGTokenIssueRequest(principal: {}, scope: {}, client: {}", principalName,
                     accessTokenRequest.getScope(), subjectToken.getSubject());
         }
 
@@ -2711,13 +2650,24 @@ public class ZTSImpl implements ZTSHandler {
             throw notFoundError("No such domain: " + domainName, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
+        // if the token was issued by ZTS then the identity is the subject
+        // otherwise, we need to extract the identity from the token
+        // using our external provider identity class if one is configured
+
+        TokenExchangeIdentityProvider identityProvider = providerConfigManager.getProvider(subjectToken.getIssuer());
+        final String subjectIdentity = (identityProvider == null) ? subjectToken.getSubject() :
+                identityProvider.getIdentity(subjectToken);
+        if (StringUtil.isEmpty(subjectIdentity)) {
+            LOGGER.error("processJAGTokenIssueRequest: unable to extract subject identity from token");
+            throw requestError("Invalid subject token - missing subject", caller, domainName, principalDomain);
+        }
         Set<String> subjectRoles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, subjectToken.getSubject(), requestedRoles, false, subjectRoles, false);
+        dataStore.getAccessibleRoles(data, domainName, subjectIdentity, requestedRoles, false, subjectRoles, false);
 
         // we return failure if we don't have access to all the roles requested
 
         if (subjectRoles.size() != requestedRoles.length) {
-            throw forbiddenError(tokenErrorMessage(caller, subjectToken.getSubject(), domainName, requestedRoles),
+            throw forbiddenError(tokenErrorMessage(caller, subjectIdentity, domainName, requestedRoles),
                     caller, domainName, principalDomain);
         }
 
@@ -2727,7 +2677,7 @@ public class ZTSImpl implements ZTSHandler {
         for (String requestedRole : requestedRoles) {
             if (!authorizer.access(ZTSConsts.ZTS_ACTION_JAG_EXCHANGE,
                     ResourceUtils.roleResourceName(domainName, requestedRole), principal, null)) {
-                LOGGER.error("processAccessTokenJAGExchange: access check failure for {} - {}:role.{}",
+                LOGGER.error("processJAGTokenIssueRequest: access check failure for {} - {}:role.{}",
                         principalName, domainName, requestedRole);
                 throw forbiddenError("Principal not authorized for token exchange for the requested role",
                         caller, domainName, principalDomain);
@@ -2747,15 +2697,23 @@ public class ZTSImpl implements ZTSHandler {
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
         accessToken.setJwtId(UUID.randomUUID().toString());
-        accessToken.setAudience(ztsOpenIDIssuer);
+        accessToken.setAudience(accessTokenRequest.getAudience());
         accessToken.setClientId(principalName);
         accessToken.setIssueTime(iat);
         accessToken.setAuthTime(iat);
         accessToken.setExpiryTime(iat + tokenTimeout);
-        accessToken.setSubject(subjectToken.getSubject());
+        accessToken.setSubject(subjectIdentity);
         accessToken.setIssuer(ztsOpenIDIssuer);
         accessToken.setScope(roleList);
         accessToken.setResource(accessTokenRequest.getResource());
+
+        // include any exchange claims if configured for the provider
+
+        if (identityProvider != null && identityProvider.getTokenExchangeClaims() != null) {
+            for (String claim : identityProvider.getTokenExchangeClaims()) {
+                accessToken.setCustomClaim(claim, subjectToken.getClaim(claim));
+            }
+        }
 
         ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(),
@@ -2766,7 +2724,7 @@ public class ZTSImpl implements ZTSHandler {
                 .setScope(String.join(" ", roleList));
     }
 
-    AccessTokenResponse processAccessTokenJAGRequest(ResourceContext ctx, AccessTokenRequest accessTokenRequest,
+    AccessTokenResponse processJAGTokenExchangeRequest(ResourceContext ctx, AccessTokenRequest accessTokenRequest,
             final String clientPrincipalName, final String clientPrincipalDomain, final String caller) {
 
         // our jag token is required for jag token requests and has been validated
@@ -2784,11 +2742,22 @@ public class ZTSImpl implements ZTSHandler {
         }
 
         // finally we need to validate that the client_id claim MUST identify
-        // the same client as the client authentication in the request.
+        // the same client as the client authentication in the request. If the jag
+        // token is issued from a different Identity Provider, then the client_id
+        // would be the client identifier assigned by that IdP. However, in our
+        // case the client is authenticated directly by Athenz so we need to
+        // also check if the client id registered for that service matches
+        // the client id in the jag token
 
         if (!clientPrincipalName.equals(jagToken.getClientId())) {
-            LOGGER.error("Invalid jag assertion client_id claim: {}", jagToken.getClientId());
-            throw requestError("Invalid jag assertion client_id", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
+
+            // extract the client-id for the service if one is defined
+
+            final String clientId = dataStore.getServiceClientId(clientPrincipalDomain, clientPrincipalName);
+            if (clientId == null || !clientId.equals(jagToken.getClientId())) {
+                LOGGER.error("Invalid jag assertion client_id claim: {}", jagToken.getClientId());
+                throw requestError("Invalid jag assertion client_id", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
+            }
         }
 
         // now we need to validate the scope value
@@ -2802,7 +2771,9 @@ public class ZTSImpl implements ZTSHandler {
         // as the subject in the token and not the principal who was authenticated
         // to make the request (that is the client id)
 
-        String principalName = jagToken.getSubject();
+        TokenExchangeIdentityProvider identityProvider = providerConfigManager.getProvider(jagToken.getIssuer());
+        String principalName = (identityProvider == null) ? jagToken.getSubject() :
+                identityProvider.getIdentity(jagToken);
         if (StringUtil.isEmpty(principalName)) {
             LOGGER.error("Invalid jag assertion - missing subject");
             throw requestError("Invalid jag assertion - missing subject", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
@@ -2872,6 +2843,12 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setIssuer(jagAudience);
         accessToken.setScope(new ArrayList<>(roles));
 
+        if (identityProvider != null && identityProvider.getTokenExchangeClaims() != null) {
+            for (String claim : identityProvider.getTokenExchangeClaims()) {
+                accessToken.setCustomClaim(claim, jagToken.getClaim(claim));
+            }
+        }
+
         ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
 
@@ -2892,6 +2869,7 @@ public class ZTSImpl implements ZTSHandler {
 
         return response;
     }
+
 
     AccessTokenResponse processAccessTokenStandardRequest(ResourceContext ctx, Principal principal,
             AccessTokenRequest accessTokenRequest, final String principalDomain, final String caller) {
