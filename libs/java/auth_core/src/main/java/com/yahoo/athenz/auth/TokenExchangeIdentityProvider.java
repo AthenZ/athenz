@@ -33,7 +33,19 @@ public interface TokenExchangeIdentityProvider {
      * @param token validated oauth2 token from external Identity Provider
      * @return the identity of the token in Athenz system.
      */
-    String getIdentity(OAuth2Token token);
+    String getTokenIdentity(OAuth2Token token);
+
+    /**
+     * Return the audience value to be used for the token exchange.
+     * Typically, if this is an ID token then the audience would be
+     * included in the aud claim. However, if this is an access token
+     * then the audience might be a different value and the actual client
+     * id would be included in the cid or a different claim.
+     *
+     * @param token validated oauth2 token from external Identity Provider
+    *  @return the audience value
+     */
+    String getTokenAudience(OAuth2Token token);
 
     /**
      * Return the list of claims that should be included in the

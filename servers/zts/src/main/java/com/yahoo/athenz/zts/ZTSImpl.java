@@ -2607,11 +2607,14 @@ public class ZTSImpl implements ZTSHandler {
         // by an external identity provider, it will be issued to the client id
         // which should be configured as the client id for our service
 
+        TokenExchangeIdentityProvider identityProvider = providerConfigManager.getProvider(subjectToken.getIssuer());
         if (!principalName.equals(subjectToken.getAudience())) {
             final String clientId = dataStore.getServiceClientId(principal.getDomain(), principalName);
-            if (clientId == null || !clientId.equals(subjectToken.getAudience())) {
+            final String tokenAudience = identityProvider == null ? subjectToken.getAudience() :
+                    identityProvider.getTokenAudience(subjectToken);
+            if (clientId == null || !clientId.equals(tokenAudience)) {
                 LOGGER.error("The subject token does not have expected audience: {}/{}", principalName,
-                        subjectToken.getAudience());
+                        tokenAudience);
                 throw requestError("Invalid subject token audience", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN,
                         principalDomain);
             }
@@ -2654,9 +2657,8 @@ public class ZTSImpl implements ZTSHandler {
         // otherwise, we need to extract the identity from the token
         // using our external provider identity class if one is configured
 
-        TokenExchangeIdentityProvider identityProvider = providerConfigManager.getProvider(subjectToken.getIssuer());
         final String subjectIdentity = (identityProvider == null) ? subjectToken.getSubject() :
-                identityProvider.getIdentity(subjectToken);
+                identityProvider.getTokenIdentity(subjectToken);
         if (StringUtil.isEmpty(subjectIdentity)) {
             LOGGER.error("processJAGTokenIssueRequest: unable to extract subject identity from token");
             throw requestError("Invalid subject token - missing subject", caller, domainName, principalDomain);
@@ -2773,7 +2775,7 @@ public class ZTSImpl implements ZTSHandler {
 
         TokenExchangeIdentityProvider identityProvider = providerConfigManager.getProvider(jagToken.getIssuer());
         String principalName = (identityProvider == null) ? jagToken.getSubject() :
-                identityProvider.getIdentity(jagToken);
+                identityProvider.getTokenIdentity(jagToken);
         if (StringUtil.isEmpty(principalName)) {
             LOGGER.error("Invalid jag assertion - missing subject");
             throw requestError("Invalid jag assertion - missing subject", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);

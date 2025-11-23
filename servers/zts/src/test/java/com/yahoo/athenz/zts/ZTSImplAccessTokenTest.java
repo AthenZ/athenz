@@ -1917,8 +1917,13 @@ public class ZTSImplAccessTokenTest {
 
         TokenExchangeIdentityProvider provider = new TokenExchangeIdentityProvider() {
             @Override
-            public String getIdentity(OAuth2Token token) {
+            public String getTokenIdentity(OAuth2Token token) {
                 return "user_domain.user";
+            }
+
+            @Override
+            public String getTokenAudience(OAuth2Token token) {
+                return token.getAudience();
             }
 
             @Override
@@ -3386,8 +3391,13 @@ public class ZTSImplAccessTokenTest {
 
         TokenExchangeIdentityProvider provider = new TokenExchangeIdentityProvider() {
             @Override
-            public String getIdentity(OAuth2Token token) {
+            public String getTokenIdentity(OAuth2Token token) {
                 return "user_domain.user";
+            }
+
+            @Override
+            public String getTokenAudience(OAuth2Token token) {
+                return token.getAudience();
             }
 
             @Override
@@ -3484,8 +3494,13 @@ public class ZTSImplAccessTokenTest {
 
         TokenExchangeIdentityProvider provider = new TokenExchangeIdentityProvider() {
             @Override
-            public String getIdentity(OAuth2Token token) {
+            public String getTokenIdentity(OAuth2Token token) {
                 return null;
+            }
+
+            @Override
+            public String getTokenAudience(OAuth2Token token) {
+                return token.getAudience();
             }
 
             @Override
