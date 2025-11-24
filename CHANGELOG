@@ -1,3 +1,17 @@
+Athenz v1.12.30 Release / Nov 24, 2025
+--------------------------------------
+
+#3122 Implement sia provider for client assertion use cases for fetching access tokens
+#3123 ui - add static instance external appliance support for fqdn and wildcard in subdomain
+#3126 Add sia go lib to support use default service identity from pod service account annotation 
+#3128 initial work for supporting token exchange rfc
+#3130 configure oauth client id per athenz service
+#3131 support external identity provider for issuing jag tokens
+#3132 update java and go dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20251119.sql
+
 Athenz v1.12.29 Release / Nov 09, 2025
 --------------------------------------
 
