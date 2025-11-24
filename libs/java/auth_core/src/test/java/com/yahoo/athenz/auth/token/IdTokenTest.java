@@ -35,6 +35,7 @@ import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Objects;
@@ -105,6 +106,49 @@ public class IdTokenTest {
         assertEquals(claimsSet.getSubject(), "subject");
         assertEquals(claimsSet.getAudience().get(0), "coretech");
         assertEquals(claimsSet.getIssuer(), "athenz");
+    }
+
+    @Test
+    public void testIdTokenCustomClaims() throws JOSEException, ParseException {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        IdToken token = createIdToken(now);
+
+        // custom claims should return true
+        assertTrue(token.setCustomClaim("preferred_email", "noreply@athenz.io"));
+        String[] emails = new String[] {"noreply1@athenz.io", "noreply2@athenz.io"};
+        assertTrue(token.setCustomClaim("emails", emails));
+
+        // standard claims should return failure
+
+        assertFalse(token.setCustomClaim(IdToken.CLAIM_NONCE, "nonce"));
+        assertFalse(token.setCustomClaim(IdToken.CLAIM_SUBJECT, "subject"));
+
+        // verify the getters
+
+        validateIdToken(token, now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String idJws = token.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(idJws);
+
+        // now verify our signed token
+
+        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        JWSVerifier verifier = new ECDSAVerifier((ECPublicKey) publicKey);
+        SignedJWT signedJWT = SignedJWT.parse(idJws);
+        assertTrue(signedJWT.verify(verifier));
+        JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+        assertNotNull(claimsSet);
+
+        assertEquals(claimsSet.getSubject(), "subject");
+        assertEquals(claimsSet.getAudience().get(0), "coretech");
+        assertEquals(claimsSet.getIssuer(), "athenz");
+        assertEquals(claimsSet.getClaim("preferred_email"), "noreply@athenz.io");
+        assertEquals(claimsSet.getClaim("emails"), Arrays.asList(emails));
     }
 
     @Test

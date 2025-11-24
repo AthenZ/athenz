@@ -1946,6 +1946,17 @@ boolean loadZtsJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys) {
         }
     }
 
+    public String getServiceClientId(final String domainName, final String serviceName) {
+
+        // get the domain object from our cache
+
+        DataCache dataCache = getCacheStore().getIfPresent(domainName);
+        if (dataCache == null) {
+            return null;
+        }
+        return dataCache.getServiceIdentityClientId(serviceName);
+    }
+
     public String getPemPublicKey(final String publicKeyName) {
 
         String publicKey;

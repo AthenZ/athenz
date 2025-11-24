@@ -30,6 +30,7 @@ import java.security.PublicKey;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class IdToken extends OAuth2Token {
 
@@ -107,7 +108,7 @@ public class IdToken extends OAuth2Token {
 
         try {
             JWSSigner signer = JwtsHelper.getJWSSigner(key);
-            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+            JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder()
                     .subject(subject)
                     .issueTime(Date.from(Instant.ofEpochSecond(issueTime)))
                     .expirationTime(Date.from(Instant.ofEpochSecond(expiryTime)))
@@ -116,9 +117,13 @@ public class IdToken extends OAuth2Token {
                     .claim(CLAIM_AUTH_TIME, authTime)
                     .claim(CLAIM_VERSION, version)
                     .claim(CLAIM_GROUPS, groups)
-                    .claim(CLAIM_NONCE, nonce)
-                    .build();
-
+                    .claim(CLAIM_NONCE, nonce);
+            if (customClaims != null) {
+                for (Map.Entry<String, Object> entry : customClaims.entrySet()) {
+                    claimsSetBuilder.claim(entry.getKey(), entry.getValue());
+                }
+            }
+            JWTClaimsSet claimsSet = claimsSetBuilder.build();
             SignedJWT signedJWT = new SignedJWT(
                     new JWSHeader.Builder(JWSAlgorithm.parse(sigAlg))
                             .keyID(keyId)
@@ -129,6 +134,20 @@ public class IdToken extends OAuth2Token {
         } catch (JOSEException ex) {
             LOG.error("Unable to sign JWT token", ex);
             return null;
+        }
+    }
+
+    @Override
+    public boolean isStandardClaim(final String claimName) {
+        if (super.isStandardClaim(claimName)) {
+            return true;
+        }
+        switch (claimName) {
+            case CLAIM_GROUPS:
+            case CLAIM_NONCE:
+                return true;
+            default:
+                return false;
         }
     }
 }

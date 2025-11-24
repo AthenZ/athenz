@@ -195,6 +195,55 @@ public class AccessTokenTest {
     }
 
     @Test
+    public void testAccessTokenWtihCustomClaims() throws JOSEException, ParseException {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        AccessToken accessToken = createAccessToken(now);
+
+        // custom claims should return true
+        assertTrue(accessToken.setCustomClaim("preferred_email", "noreply@athenz.io"));
+        String[] emails = new String[] {"noreply1@athenz.io", "noreply2@athenz.io"};
+        assertTrue(accessToken.setCustomClaim("emails", emails));
+
+        // standard claims should return failure
+
+        assertFalse(accessToken.setCustomClaim(AccessToken.CLAIM_SCOPE, "admins"));
+        assertFalse(accessToken.setCustomClaim(AccessToken.CLAIM_SUBJECT, "subject"));
+
+        // verify the getters
+
+        validateAccessToken(accessToken, now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        // now verify our signed token
+
+        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        JWSVerifier verifier = new ECDSAVerifier((ECPublicKey) publicKey);
+        SignedJWT signedJWT = SignedJWT.parse(accessJws);
+        assertTrue(signedJWT.verify(verifier));
+        JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+        assertNotNull(claimsSet);
+
+        assertEquals(claimsSet.getSubject(), "subject");
+        assertEquals(JwtsHelper.getAudience(claimsSet), "coretech");
+        assertEquals(claimsSet.getIssuer(), "athenz");
+        assertEquals(claimsSet.getJWTID(), "jwt-id001");
+        assertEquals(claimsSet.getStringClaim("scope"), "readers");
+        List<String> scopes = claimsSet.getStringListClaim("scp");
+        assertNotNull(scopes);
+        assertEquals(scopes.size(), 1);
+        assertEquals(scopes.get(0), "readers");
+        assertEquals(claimsSet.getClaim("preferred_email"), "noreply@athenz.io");
+        assertEquals(claimsSet.getClaim("emails"), Arrays.asList(emails));
+    }
+
+    @Test
     public void testAccessTokenMultipleRoles() throws JOSEException, ParseException {
 
         long now = System.currentTimeMillis() / 1000;
@@ -255,6 +304,7 @@ public class AccessTokenTest {
         X509Certificate cert = Crypto.loadX509Certificate(certStr);
 
         AccessToken checkToken = new AccessToken(accessJws, resolver, cert);
+        assertEquals(checkToken.getClaim("sub"), "subject");
         validateAccessToken(checkToken, now);
     }
 

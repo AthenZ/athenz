@@ -51,6 +51,7 @@ public class DataCache {
     private final Map<String, Set<String>> awsRoleCache;
     private final Map<String, String> publicKeyCache;
     private final Map<String, String> svcCredsCache;
+    private final Map<String, String> svcClientIdCache;
     private final Map<String, List<String>> providerDnsSuffixCache;
     private final Map<String, List<String>> providerHostnameAllowedSuffixCache;
     private final Map<String, List<String>> providerHostnameDeniedSuffixCache;
@@ -78,6 +79,7 @@ public class DataCache {
         roleMetaCache = new HashMap<>();
         publicKeyCache = new HashMap<>();
         svcCredsCache = new HashMap<>();
+        svcClientIdCache = new HashMap<>();
         providerDnsSuffixCache = new HashMap<>();
         providerHostnameAllowedSuffixCache = new HashMap<>();
         providerHostnameDeniedSuffixCache = new HashMap<>();
@@ -422,6 +424,7 @@ public class DataCache {
     void processServiceIdentityCreds(String serviceName, String creds) {
 
         if (StringUtil.isEmpty(creds)) {
+            svcCredsCache.remove(serviceName);
             return;
         }
 
@@ -430,6 +433,20 @@ public class DataCache {
 
     public String getServiceIdentityCreds(final String serviceName) {
         return svcCredsCache.get(serviceName);
+    }
+
+    void processServiceIdentityClientId(String serviceName, String clientId) {
+
+        if (StringUtil.isEmpty(clientId)) {
+            svcClientIdCache.remove(serviceName);
+            return;
+        }
+
+        svcClientIdCache.put(serviceName, clientId);
+    }
+
+    public String getServiceIdentityClientId(final String serviceName) {
+        return svcClientIdCache.get(serviceName);
     }
 
     public void processServiceIdentity(com.yahoo.athenz.zms.ServiceIdentity service) {
@@ -445,6 +462,10 @@ public class DataCache {
         // now process the public keys
 
         processServiceIdentityPublicKeys(service.getName(), service.getPublicKeys());
+
+        // next process the client id
+
+        processServiceIdentityClientId(service.getName(), service.getClientId());
 
         // finally process service creds if enabled
 
