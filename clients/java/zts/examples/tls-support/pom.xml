@@ -27,7 +27,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-      <athenz.version>1.12.30-SNAPSHOT</athenz.version>
+      <athenz.version>1.12.30</athenz.version>
     <jjwt.version>0.11.5</jjwt.version>
     <nimbus.version>10.6</nimbus.version>
   </properties>
