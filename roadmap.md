@@ -3,6 +3,16 @@ planning to work on. At Yahoo, we review our list every quarter
 and decide which features will be implemented during that quarter. Additionally,
 we implement several smaller features as requested by our customers.
 
+# Q4 2025
+
+- Token Exchange Support (RFC-8693)
+- Authorization Grant RFC Draft implementation to support Agentic AI Use cases
+
+# Q3 2025
+
+- GCP Support - implement required interfaces to support deployment of ZTS in GCP
+- Add support for OpenTelemetry metrics library in Service Identity Agents
+
 # Q2 2025
 
 - Finalize and Test the use of OpenTelemetry metrics library
