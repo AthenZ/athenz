@@ -60,7 +60,7 @@ const sdk = new NodeSDK({
 
     resource: new Resource({
         [SemanticResourceAttributes.SERVICE_NAME]: 'athenz-ui',
-        [SemanticResourceAttributes.SERVICE_NAMESPACE]: 'Athens',
+        [SemanticResourceAttributes.SERVICE_NAMESPACE]: 'AthenzUI',
         [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]:
             process.env.ENVIRONMENT || 'local',
     }),
