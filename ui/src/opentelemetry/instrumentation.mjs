@@ -1,16 +1,16 @@
 /*instrumentation.mjs*/
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
-import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-grpc';
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc';
-import { BatchLogRecordProcessor } from '@opentelemetry/sdk-logs';
-import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
-import { credentials } from '@grpc/grpc-js';
-import { readFileSync } from 'fs';
-import { RuntimeNodeInstrumentation } from '@opentelemetry/instrumentation-runtime-node';
-import { Resource } from '@opentelemetry/resources';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
+import {NodeSDK} from '@opentelemetry/sdk-node';
+import {OTLPTraceExporter} from '@opentelemetry/exporter-trace-otlp-grpc';
+import {OTLPLogExporter} from '@opentelemetry/exporter-logs-otlp-grpc';
+import {OTLPMetricExporter} from '@opentelemetry/exporter-metrics-otlp-grpc';
+import {BatchLogRecordProcessor} from '@opentelemetry/sdk-logs';
+import {PeriodicExportingMetricReader} from '@opentelemetry/sdk-metrics';
+import {getNodeAutoInstrumentations} from '@opentelemetry/auto-instrumentations-node';
+import {credentials} from '@grpc/grpc-js';
+import {readFileSync} from 'fs';
+import {RuntimeNodeInstrumentation} from '@opentelemetry/instrumentation-runtime-node';
+import {Resource} from '@opentelemetry/resources';
+import {SemanticResourceAttributes} from '@opentelemetry/semantic-conventions';
 
 const STATIC_ASSET_EXTENSIONS = ['.js', '.css', '.svg', '.js.map', '.webp'];
 
@@ -29,7 +29,7 @@ const updateSpanName = (span, request = {}) => {
 
 // Setup gRPC credentials with TLS
 let grpcCredentials = credentials.createInsecure();
-let exporterOptions = { credentials: grpcCredentials };
+let exporterOptions = {credentials: grpcCredentials};
 const allowInsecureFallback =
     process.env.OTEL_ALLOW_INSECURE_FALLBACK === 'true';
 
@@ -37,7 +37,7 @@ if (process.env.OTEL_EXPORTER_OTLP_CA_CERTIFICATE) {
     try {
         const caCert = readFileSync(process.env.OTEL_EXPORTER_OTLP_CA_CERTIFICATE);
         grpcCredentials = credentials.createSsl(caCert);
-        exporterOptions = { credentials: grpcCredentials };
+        exporterOptions = {credentials: grpcCredentials};
     } catch (err) {
         console.error('[OTEL] Failed to read CA certificate:', err.message);
         if (allowInsecureFallback) {
@@ -45,7 +45,7 @@ if (process.env.OTEL_EXPORTER_OTLP_CA_CERTIFICATE) {
                 '[OTEL] OTEL_ALLOW_INSECURE_FALLBACK=true, falling back to insecure OTLP connection'
             );
             grpcCredentials = credentials.createInsecure();
-            exporterOptions = { credentials: grpcCredentials };
+            exporterOptions = {credentials: grpcCredentials};
         } else {
             console.error(
                 '[OTEL] Insecure fallback is not allowed. Shutting down.'
@@ -74,7 +74,7 @@ const sdk = new NodeSDK({
         exportIntervalMillis: 60000,
     }),
     instrumentations: [getNodeAutoInstrumentations({
-        '@opentelemetry/instrumentation-aws-sdk': { enabled: false },
+        '@opentelemetry/instrumentation-aws-sdk': {enabled: false},
         '@opentelemetry/instrumentation-http': {
             enabled: true,
             // Ignore static assets like JS/CSS so dashboards focus on real endpoints
@@ -88,9 +88,9 @@ const sdk = new NodeSDK({
         new RuntimeNodeInstrumentation({
             enabled: true,
             exportFloats: true,
-            memory: { enabled: true },
-            cpu: { enabled: true },
-            eventLoop: { enabled: true },
+            memory: {enabled: true},
+            cpu: {enabled: true},
+            eventLoop: {enabled: true},
         })],
 });
 
