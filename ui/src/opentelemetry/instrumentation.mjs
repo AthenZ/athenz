@@ -30,6 +30,8 @@ const updateSpanName = (span, request = {}) => {
 // Setup gRPC credentials with TLS
 let grpcCredentials = credentials.createInsecure();
 let exporterOptions = { credentials: grpcCredentials };
+const allowInsecureFallback =
+    process.env.OTEL_ALLOW_INSECURE_FALLBACK === 'true';
 
 if (process.env.OTEL_EXPORTER_OTLP_CA_CERTIFICATE) {
     try {
@@ -38,7 +40,18 @@ if (process.env.OTEL_EXPORTER_OTLP_CA_CERTIFICATE) {
         exporterOptions = { credentials: grpcCredentials };
     } catch (err) {
         console.error('[OTEL] Failed to read CA certificate:', err.message);
-        exporterOptions = { credentials: credentials.createInsecure() };
+        if (allowInsecureFallback) {
+            console.warn(
+                '[OTEL] OTEL_ALLOW_INSECURE_FALLBACK=true, falling back to insecure OTLP connection'
+            );
+            grpcCredentials = credentials.createInsecure();
+            exporterOptions = { credentials: grpcCredentials };
+        } else {
+            console.error(
+                '[OTEL] Insecure fallback is not allowed. Shutting down.'
+            );
+            throw err;
+        }
     }
 }
 
