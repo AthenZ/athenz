@@ -38,6 +38,7 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/access/tokens"
 	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/AthenZ/athenz/libs/go/sia/host/provider"
+	"github.com/AthenZ/athenz/libs/go/sia/http"
 	"github.com/AthenZ/athenz/libs/go/sia/options"
 	"github.com/AthenZ/athenz/libs/go/sia/otel"
 	"github.com/AthenZ/athenz/libs/go/sia/sds"
@@ -176,6 +177,9 @@ func GetRoleCertificates(ztsUrl string, opts *sc.Options) (int, []string) {
 		roleCert, err := client.PostRoleCertificateRequestExt(roleRequest)
 		if err != nil {
 			log.Printf("PostRoleCertificateRequest failed for %s, err: %v\n", role.Name, err)
+			// Record failure
+			tracker := http.GetStatusTracker()
+			tracker.RecordRefreshFailure(role.Name, err)
 			failures = append(failures, role.Name)
 			continue
 		}
@@ -183,9 +187,15 @@ func GetRoleCertificates(ztsUrl string, opts *sc.Options) (int, []string) {
 		err = util.SaveRoleCertKey([]byte(roleKeyBytes), []byte(roleCert.X509Certificate), role.RoleKeyFilename, role.RoleCertFilename, svcKeyFile, role.Name, role.Uid, role.Gid, role.FileMode, opts.GenerateRoleKey, opts.RotateKey, opts.BackupDir, opts.FileDirectUpdate)
 		if err != nil {
 			log.Printf("Unable to save role cert key for role %s, err: %v\n", role.Name, err)
+			// Record failure
+			tracker := http.GetStatusTracker()
+			tracker.RecordRefreshFailure(role.Name, err)
 			failures = append(failures, role.Name)
 			continue
 		}
+		// Record success
+		tracker := http.GetStatusTracker()
+		tracker.RecordRefreshSuccess(role.Name, role.RoleCertFilename)
 	}
 	otel.RecordAgentCommandResult("GetRoleCertificates", len(failures) == 0)
 	log.Printf("SIA processed %d (failures %d) role certificate requests\n", len(opts.Roles), len(failures))
@@ -486,6 +496,9 @@ func refreshSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 	ident, err := client.PostInstanceRefreshInformation(zts.ServiceName(opts.Provider.GetName()), zts.DomainName(opts.Domain), zts.SimpleName(svc.Name), zts.PathElement(opts.InstanceId), info)
 	if err != nil {
 		log.Printf("Unable to refresh instance service certificate for %s, err: %v\n", opts.Name, err)
+		// Record failure
+		tracker := http.GetStatusTracker()
+		tracker.RecordRefreshFailure(serviceName, err)
 		return err
 	}
 
@@ -493,8 +506,15 @@ func refreshSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 	svcCertBytes := []byte(ident.X509Certificate)
 	err = util.SaveServiceCertKey([]byte(svcKeyBytes), svcCertBytes, keyFile, certFile, serviceName, svc.Uid, svc.Gid, svc.FileMode, opts.RotateKey, opts.BackupDir, opts.FileDirectUpdate)
 	if err != nil {
+		// Record failure
+		tracker := http.GetStatusTracker()
+		tracker.RecordRefreshFailure(serviceName, err)
 		return err
 	}
+
+	// Record success
+	tracker := http.GetStatusTracker()
+	tracker.RecordRefreshSuccess(serviceName, certFile)
 
 	if opts.Services[0].Name == svc.Name {
 		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444, opts.FileDirectUpdate, true)
@@ -698,6 +718,10 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 
 	svcs := options.GetSvcNames(opts.Services)
 
+	// Initialize status tracker
+	tracker := http.GetStatusTracker()
+	tracker.Initialize(opts)
+
 	tokenOpts, err := tokenOptions(opts, ztsUrl)
 	if err != nil {
 		log.Printf("%s\n", err.Error())
@@ -813,7 +837,7 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 		util.NotifySystemdReadyForCommand(cmd, "systemd-notify")
 		log.Printf("Identity established for services: %s\n", svcs)
 
-		stop := make(chan bool, 1)
+		stop := make(chan struct{})
 		errors := make(chan error, 1)
 		certUpdates := make(chan bool, 1)
 
@@ -887,11 +911,22 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 		}()
 
 		go func() {
+			if opts.HttpPort != 0 {
+				log.Printf("Starting HTTP health check server on port %d\n", opts.HttpPort)
+				err := http.StartHttpServer(opts.HttpPort, stop)
+				if err != nil {
+					log.Printf("failed to start http server: %v\n", err)
+					return
+				}
+			}
+		}()
+
+		go func() {
 			if opts.SDSUdsPath != "" {
 				err := sds.StartGrpcServer(opts, certUpdates)
 				if err != nil {
 					log.Printf("failed to start grpc/uds server: %v\n", err)
-					stop <- true
+					close(stop)
 					return
 				}
 			}
@@ -902,7 +937,7 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 			signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
 			sig := <-signals
 			log.Printf("Received signal %v, stopping rotation\n", sig)
-			stop <- true
+			close(stop)
 		}()
 
 		go func() {
@@ -916,7 +951,7 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 			for {
 				select {
 				case <-t2.C:
-					log.Printf("refreshing access-token..")
+					log.Printf("refreshing access-token...")
 					err := accessTokenRequest(tokenOpts)
 					if err != nil {
 						util.ExecuteScriptWithoutBlock(opts.RunAfterTokensErrParts, err.Error(), false)

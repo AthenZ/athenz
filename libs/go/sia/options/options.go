@@ -406,6 +406,9 @@ func InitEnvConfig(config *sc.Config, provider provider.Provider) (*sc.Config, *
 	if config.OTel.ServiceInstanceID == "" {
 		config.OTel.ServiceInstanceID = os.Getenv("OTEL_SERVICE_INSTANCE_ID")
 	}
+	if config.HttpPort == 0 {
+		config.HttpPort = util.ParseEnvIntFlag("ATHENZ_SIA_HTTP_PORT", 0)
+	}
 
 	return config, configAccount, nil
 }
@@ -459,6 +462,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 	addlSanDNSEntries := make([]string, 0)
 	runAfterFailExit := false
 	roleCertsRequired := false
+	httpPort := 0
 
 	var storeTokenOption *int
 	if config != nil {
@@ -476,6 +480,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		storeTokenOption = config.StoreTokenOption
 		runAfterFailExit = config.RunAfterFailExit
 		roleCertsRequired = config.RoleCertsRequired
+		httpPort = config.HttpPort
 
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
@@ -736,6 +741,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		RunAfterFailExit:       runAfterFailExit,
 		RoleCertsRequired:      roleCertsRequired,
 		OTel:                   oTelCfg,
+		HttpPort:               httpPort,
 	}, nil
 }
 
