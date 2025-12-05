@@ -3028,23 +3028,22 @@ public class ZTSImplAccessTokenTest {
         ResourceContext context = createResourceContext(principal);
         TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
 
-        try {
-            // Request both roles but subject only has access to one
-            AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
-                    "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
-                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
-                    + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
-                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
-                    + "&scope=coretech:role.writers coretech:role.readers",
-                    tokenConfigOptions);
+        // Request both roles but subject only has access to one
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                + "&scope=coretech:role.writers coretech:role.readers",
+                tokenConfigOptions);
 
-            ztsImpl.processJAGTokenIssueRequest(context, principal,
-                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
-            fail("Expected ResourceException for partial access");
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
-        }
-        
+        AccessTokenResponse response = ztsImpl.processJAGTokenIssueRequest(context, principal,
+                accessTokenRequest, "user_domain", "postAccessTokenRequest");
+        assertNotNull(response);
+
+        // verify the response contains a single scope in the response
+
+        assertEquals(response.getScope(), "coretech:role.writers");
         cloudStore.close();
     }
 

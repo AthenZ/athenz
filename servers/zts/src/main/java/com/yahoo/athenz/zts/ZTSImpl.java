@@ -2666,9 +2666,9 @@ public class ZTSImpl implements ZTSHandler {
         Set<String> subjectRoles = new HashSet<>();
         dataStore.getAccessibleRoles(data, domainName, subjectIdentity, requestedRoles, false, subjectRoles, false);
 
-        // we return failure if we don't have access to all the roles requested
+        // we return failure if we don't have access to any roles
 
-        if (subjectRoles.size() != requestedRoles.length) {
+        if (subjectRoles.isEmpty()) {
             throw forbiddenError(tokenErrorMessage(caller, subjectIdentity, domainName, requestedRoles),
                     caller, domainName, principalDomain);
         }
