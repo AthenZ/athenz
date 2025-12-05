@@ -10618,10 +10618,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // if this is an audit enabled domain then we're going to carry
         // out the authorization in the sys.auth.audit domains
 
+        final String principalName = principal.getFullName();
         if (role.getAuditEnabled() == Boolean.TRUE) {
 
             if (!isAllowedAuditRoleMembershipApproval(principal, domain)) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " is not authorized to approve / reject members", caller);
             }
 
@@ -10631,7 +10632,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // is authorized to update the domain role membership
 
             if (!isAllowedPutMembershipAccess(principal, domain, role.getName())) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " is not authorized to approve / reject members", caller);
             }
         }
@@ -10643,9 +10644,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (role.getReviewEnabled() == Boolean.TRUE || role.getAuditEnabled() == Boolean.TRUE) {
 
-            final String principalName = principal.getFullName();
             if (principalName.equalsIgnoreCase(roleMember.getMemberName())) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " cannot approve / reject own membership", caller);
             }
 
@@ -10654,7 +10654,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     roleMember.getMemberName(), 0, true);
 
             if (principalName.equalsIgnoreCase(pendingMember.getRequestPrincipal())) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " cannot approve / reject own request", caller);
             }
         }
@@ -10668,10 +10668,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // if this is an audit enabled domain then we're going to carry
         // out the authorization in the sys.auth.audit domains
 
+        final String principalName = principal.getFullName();
         if (group.getAuditEnabled() == Boolean.TRUE) {
 
             if (!isAllowedAuditRoleMembershipApproval(principal, domain)) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " is not authorized to approve / reject members", caller);
             }
 
@@ -10681,7 +10682,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // is authorized to update the domain group membership
 
             if (!isAllowedPutMembershipAccess(principal, domain, group.getName())) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " is not authorized to approve / reject members", caller);
             }
         }
@@ -10693,9 +10694,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (group.getReviewEnabled() == Boolean.TRUE || group.getAuditEnabled() == Boolean.TRUE) {
 
-            final String principalName = principal.getFullName();
             if (principalName.equalsIgnoreCase(groupMember.getMemberName())) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " cannot approve / reject own membership", caller);
             }
 
@@ -10704,7 +10704,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     groupMember.getMemberName(), 0, true);
 
             if (principalName.equalsIgnoreCase(pendingMember.getRequestPrincipal())) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " cannot approve / reject own request", caller);
             }
         }
