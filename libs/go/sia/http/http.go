@@ -83,6 +83,8 @@ func (st *StatusTracker) RecordRefreshSuccess(certIdentity, certFile string) {
 	// Update expiry time from certificate file
 	if certificate, err := cert.FromFile(certFile); err == nil {
 		status.ExpiryTime = certificate.NotAfter
+	} else {
+		log.Printf("unable to read certificate from %s to update expiry: %v\n", certFile, err)
 	}
 }
 
@@ -138,8 +140,14 @@ func (st *StatusTracker) GetCerts() map[string]*CertStatus {
 		statusCopy := &CertStatus{
 			ExpiryTime:       status.ExpiryTime,
 			LastFailureError: status.LastFailureError,
-			LastFailureTime:  status.LastFailureTime,
-			LastRefreshTime:  status.LastRefreshTime,
+		}
+		if status.LastFailureTime != nil {
+			t := *status.LastFailureTime
+			statusCopy.LastFailureTime = &t
+		}
+		if status.LastRefreshTime != nil {
+			t := *status.LastRefreshTime
+			statusCopy.LastRefreshTime = &t
 		}
 		result[certIdentity] = statusCopy
 	}
@@ -164,7 +172,7 @@ func StartHttpServer(port int, stop <-chan struct{}) error {
 		log.Printf("Status response: %t\n", status)
 		httpStatus := http.StatusOK
 		if !status {
-			httpStatus = http.StatusBadRequest
+			httpStatus = http.StatusServiceUnavailable
 		}
 		w.WriteHeader(httpStatus)
 	})

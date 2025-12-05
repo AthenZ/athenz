@@ -111,6 +111,7 @@ func GetRoleCertificates(ztsUrl string, opts *sc.Options) (int, []string) {
 
 	//initialize our return state to success
 	failures := make([]string, 0)
+	tracker := http.GetStatusTracker()
 
 	for _, role := range opts.Roles {
 		var roleRequest = new(zts.RoleCertificateRequest)
@@ -178,7 +179,6 @@ func GetRoleCertificates(ztsUrl string, opts *sc.Options) (int, []string) {
 		if err != nil {
 			log.Printf("PostRoleCertificateRequest failed for %s, err: %v\n", role.Name, err)
 			// Record failure
-			tracker := http.GetStatusTracker()
 			tracker.RecordRefreshFailure(role.Name, err)
 			failures = append(failures, role.Name)
 			continue
@@ -188,13 +188,11 @@ func GetRoleCertificates(ztsUrl string, opts *sc.Options) (int, []string) {
 		if err != nil {
 			log.Printf("Unable to save role cert key for role %s, err: %v\n", role.Name, err)
 			// Record failure
-			tracker := http.GetStatusTracker()
 			tracker.RecordRefreshFailure(role.Name, err)
 			failures = append(failures, role.Name)
 			continue
 		}
 		// Record success
-		tracker := http.GetStatusTracker()
 		tracker.RecordRefreshSuccess(role.Name, role.RoleCertFilename)
 	}
 	otel.RecordAgentCommandResult("GetRoleCertificates", len(failures) == 0)
@@ -292,12 +290,13 @@ func registerSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 	if !opts.SanDnsHostname {
 		hostname = ""
 	}
+	serviceName := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
 	svcCertReqOptions := &util.SvcCertReqOptions{
 		Country:           opts.CertCountryName,
 		OrgName:           opts.CertOrgName,
 		Domain:            opts.Domain,
 		Service:           svc.Name,
-		CommonName:        opts.Domain + "." + svc.Name,
+		CommonName:        serviceName,
 		Account:           opts.Account,
 		InstanceId:        opts.InstanceId,
 		InstanceName:      opts.InstanceName,
@@ -349,21 +348,29 @@ func registerSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 		return err
 	}
 	client.AddCredentials("User-Agent", opts.Version)
+	tracker := http.GetStatusTracker()
+
 	ident, _, err := client.PostInstanceRegisterInformation(info)
 	if err != nil {
 		log.Printf("Unable to do PostInstanceRegisterInformation, err: %v\n", err)
+		tracker.RecordRefreshFailure(serviceName, err)
 		return err
 	}
 	svcKeyFile := util.GetSvcKeyFileName(opts.KeyDir, svc.KeyFilename, opts.Domain, svc.Name)
 	err = util.UpdateFile(svcKeyFile, []byte(util.PrivatePem(key)), svc.Uid, svc.Gid, 0440, opts.FileDirectUpdate, true)
 	if err != nil {
+		tracker.RecordRefreshFailure(serviceName, err)
 		return err
 	}
 	svcCertFile := util.GetSvcCertFileName(opts.CertDir, svc.CertFilename, opts.Domain, svc.Name)
 	err = util.UpdateFile(svcCertFile, []byte(ident.X509Certificate), svc.Uid, svc.Gid, 0444, opts.FileDirectUpdate, true)
 	if err != nil {
+		tracker.RecordRefreshFailure(serviceName, err)
 		return err
 	}
+
+	// Record success
+	tracker.RecordRefreshSuccess(serviceName, svcCertFile)
 
 	if opts.Services[0].Name == svc.Name {
 		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444, opts.FileDirectUpdate, true)
@@ -492,12 +499,11 @@ func refreshSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 		return err
 	}
 	client.AddCredentials("User-Agent", opts.Version)
+	tracker := http.GetStatusTracker()
 
 	ident, err := client.PostInstanceRefreshInformation(zts.ServiceName(opts.Provider.GetName()), zts.DomainName(opts.Domain), zts.SimpleName(svc.Name), zts.PathElement(opts.InstanceId), info)
 	if err != nil {
 		log.Printf("Unable to refresh instance service certificate for %s, err: %v\n", opts.Name, err)
-		// Record failure
-		tracker := http.GetStatusTracker()
 		tracker.RecordRefreshFailure(serviceName, err)
 		return err
 	}
@@ -506,14 +512,11 @@ func refreshSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 	svcCertBytes := []byte(ident.X509Certificate)
 	err = util.SaveServiceCertKey([]byte(svcKeyBytes), svcCertBytes, keyFile, certFile, serviceName, svc.Uid, svc.Gid, svc.FileMode, opts.RotateKey, opts.BackupDir, opts.FileDirectUpdate)
 	if err != nil {
-		// Record failure
-		tracker := http.GetStatusTracker()
 		tracker.RecordRefreshFailure(serviceName, err)
 		return err
 	}
 
 	// Record success
-	tracker := http.GetStatusTracker()
 	tracker.RecordRefreshSuccess(serviceName, certFile)
 
 	if opts.Services[0].Name == svc.Name {
