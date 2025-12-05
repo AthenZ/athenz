@@ -13,9 +13,9 @@ ifneq ($(patsubst %$(SIA_DIR),,$(lastword $(ATHENZ_DIR))),)
 endif
 
 SUBDIRS = access/config access/tokens agent aws/attestation aws/doc aws/lambda aws/meta \
-	aws/options aws/stssession file futil gcp/attestation gcp/meta gcp/functions \
-	host/hostdoc host/ip host/provider host/signature host/utils logutil options pki/cert \
-	sds ssh/hostcert ssh/hostkey util verify
+	aws/options aws/stssession config file futil gcp/attestation gcp/functions gcp/meta \
+	host/hostdoc host/ip host/provider host/signature host/utils http logutil options \
+	otel pki/cert sds ssh/hostcert ssh/hostkey util verify
 OS = darwin linux windows
 
 # check to see if go utility is installed
