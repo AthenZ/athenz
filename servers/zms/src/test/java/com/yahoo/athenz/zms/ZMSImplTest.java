@@ -20680,6 +20680,27 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("cannot approve / reject own request"));
         }
 
+        // now let's check that we first reject if the member is the approver
+
+        mbr = new Membership();
+        mbr.setMemberName("user.user1");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zmsImpl.putMembership(ctx, domainName, roleName, "user.user1", auditRef, false, null, mbr);
+
+        mbr = new Membership();
+        mbr.setMemberName("user.user1");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        try {
+            zmsImpl.putMembershipDecision(ctx, domainName, roleName, "user.user1", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("cannot approve / reject own membership"));
+        }
+
         cleanupPrincipalAuditedRoleApprovalByOrg(zmsImpl, "testOrg");
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
@@ -25231,6 +25252,27 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("cannot approve / reject own request"));
         }
 
+        // now let's check that we first reject if the member is the approver
+
+        mbr = new GroupMembership();
+        mbr.setMemberName("user.user1");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.user1", auditRef, false, null, mbr);
+
+        mbr = new GroupMembership();
+        mbr.setMemberName("user.user1");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        try {
+            zmsImpl.putGroupMembershipDecision(ctx, domainName, groupName, "user.user1", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("cannot approve / reject own membership"));
+        }
+        
         cleanupPrincipalAuditedRoleApprovalByDomain(zmsImpl, domainName);
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }

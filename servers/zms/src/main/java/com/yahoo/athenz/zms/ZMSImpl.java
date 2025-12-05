@@ -10618,10 +10618,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // if this is an audit enabled domain then we're going to carry
         // out the authorization in the sys.auth.audit domains
 
+        final String principalName = principal.getFullName();
         if (role.getAuditEnabled() == Boolean.TRUE) {
 
             if (!isAllowedAuditRoleMembershipApproval(principal, domain)) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " is not authorized to approve / reject members", caller);
             }
 
@@ -10631,40 +10632,47 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // is authorized to update the domain role membership
 
             if (!isAllowedPutMembershipAccess(principal, domain, role.getName())) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " is not authorized to approve / reject members", caller);
             }
         }
 
         // if the user is allowed to make changes in the domain but
         // the role is review or audit enabled then we need to make sure
-        // the approver cannot be the same as the requester
+        // the approver cannot be the same as the requester or the one
+        // being approved / rejected
 
         if (role.getReviewEnabled() == Boolean.TRUE || role.getAuditEnabled() == Boolean.TRUE) {
+
+            if (principalName.equalsIgnoreCase(roleMember.getMemberName())) {
+                throw ZMSUtils.forbiddenError("principal " + principalName
+                        + " cannot approve / reject own membership", caller);
+            }
 
             Membership pendingMember = dbService.getMembership(domain.getName(),
                     ZMSUtils.extractRoleName(domain.getName(), role.getName()),
                     roleMember.getMemberName(), 0, true);
 
-            if (principal.getFullName().equalsIgnoreCase(pendingMember.getRequestPrincipal())) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+            if (principalName.equalsIgnoreCase(pendingMember.getRequestPrincipal())) {
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " cannot approve / reject own request", caller);
             }
         }
     }
 
     private void validatePutGroupMembershipDecisionAuthorization(final Principal principal, final AthenzDomain domain,
-                                                                 final Group group, final GroupMember groupMember) {
+            final Group group, final GroupMember groupMember) {
 
         final String caller = "putgroupmembershipdecision";
 
         // if this is an audit enabled domain then we're going to carry
         // out the authorization in the sys.auth.audit domains
 
+        final String principalName = principal.getFullName();
         if (group.getAuditEnabled() == Boolean.TRUE) {
 
             if (!isAllowedAuditRoleMembershipApproval(principal, domain)) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " is not authorized to approve / reject members", caller);
             }
 
@@ -10674,23 +10682,29 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // is authorized to update the domain group membership
 
             if (!isAllowedPutMembershipAccess(principal, domain, group.getName())) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " is not authorized to approve / reject members", caller);
             }
         }
 
         // if the user is allowed to make changes in the domain but
         // the role is review or audit enabled then we need to make sure
-        // the approver cannot be the same as the requester
+        // the approver cannot be the same as the requester or the one
+        // being approved / rejected
 
         if (group.getReviewEnabled() == Boolean.TRUE || group.getAuditEnabled() == Boolean.TRUE) {
+
+            if (principalName.equalsIgnoreCase(groupMember.getMemberName())) {
+                throw ZMSUtils.forbiddenError("principal " + principalName
+                        + " cannot approve / reject own membership", caller);
+            }
 
             GroupMembership pendingMember = dbService.getGroupMembership(domain.getName(),
                     ZMSUtils.extractGroupName(domain.getName(), group.getName()),
                     groupMember.getMemberName(), 0, true);
 
-            if (principal.getFullName().equalsIgnoreCase(pendingMember.getRequestPrincipal())) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+            if (principalName.equalsIgnoreCase(pendingMember.getRequestPrincipal())) {
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " cannot approve / reject own request", caller);
             }
         }
