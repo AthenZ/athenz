@@ -1,3 +1,13 @@
+Athenz v1.12.31 Release / Dec 05, 2025
+--------------------------------------
+
+#3133 Adding GCP Firestore implementations for CertRecordStore and SSHRecordStore
+#3134 fix athenz version for the example code
+#3137 add HTTP support for sia agents for health checks
+#3138 allow to return jag token with subset of scopes
+#3140 membership decision should reject if the approver is the same as the member being reviewed 
+#3141 update go/java dependencies to their latest releases
+
 Athenz v1.12.30 Release / Nov 24, 2025
 --------------------------------------
 
