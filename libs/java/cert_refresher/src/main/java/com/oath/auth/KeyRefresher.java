@@ -30,6 +30,8 @@ public class KeyRefresher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KeyRefresher.class);
 
+    private static final String PROP_OTEL_DISABLED = "athenz.cert_refresher.otel_disabled";
+
     private Thread scanForFileChangesThread;
     private boolean shutdown = false; //only for testing
     //60 seconds * 60 (min in an hour)
@@ -49,6 +51,9 @@ public class KeyRefresher {
     private int retryFrequency = DEFAULT_RETRY_CHECK_FREQUENCY;
     
     private final KeyRefresherListener keyRefresherListener;
+    
+    // OpenTelemetry metrics - null if OTel is disabled or not available
+    private final OpenTelemetryCertReloadEventEmitter otelMetric;
 
     /**
      * this method should be used in the following way
@@ -102,6 +107,32 @@ public class KeyRefresher {
         this.keyManagerProxy = keyManagerProxy;
         this.trustManagerProxy = trustManagerProxy;
         this.keyRefresherListener = keyRefresherListener;
+        
+        // Initialize OpenTelemetry metrics if enabled and available
+        this.otelMetric = initOtelMetrics();
+    }
+
+    /**
+     * Initialize OpenTelemetry metrics if not disabled.
+     * 
+     * Behavior:
+     * - If athenz.cert_refresher.otel_disabled=true: OTel disabled, return null
+     * - If athenz.cert_refresher.otel_disabled=false or not set: Initialize OTel metrics
+     * 
+     * @return OpenTelemetryCertReloadEventEmitter instance or null if disabled
+     */
+    private OpenTelemetryCertReloadEventEmitter initOtelMetrics() {
+        String otelDisabledProp = System.getProperty(PROP_OTEL_DISABLED);
+        boolean otelDisabled = "true".equalsIgnoreCase(otelDisabledProp);
+        
+        if (otelDisabled) {
+            LOGGER.info("OpenTelemetry cert refresh metrics disabled ({}={})", 
+                    PROP_OTEL_DISABLED, otelDisabledProp);
+            return null;
+        }
+
+        OpenTelemetryCertReloadEventEmitter metric = new OpenTelemetryCertReloadEventEmitter();
+        return metric;
     }
 
     /**
@@ -136,14 +167,26 @@ public class KeyRefresher {
                     boolean keyFilesChanged = haveFilesBeenChanged(athenzPrivateKey, lastPrivateKeyManagerChecksum);
                     keyFilesChanged = haveFilesBeenChanged(athenzPublicCert, lastPublicCertManagerChecksum) || keyFilesChanged;
                     if (keyFilesChanged) {
-                        
-                        keyManagerProxy.setKeyManager(Utils.getKeyManagers(athenzPublicCert, athenzPrivateKey));
-                        if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("KeyRefresher detected changes. Reloaded Key managers");
+                        try {
+                            keyManagerProxy.setKeyManager(Utils.getKeyManagers(athenzPublicCert, athenzPrivateKey));
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug("KeyRefresher detected changes. Reloaded Key managers");
+                            }
+                            if (keyRefresherListener != null) {
+                                keyRefresherListener.onKeyChangeEvent();
+                            }
+                            if (otelMetric != null) {
+                                otelMetric.recordCertRefresh(athenzPublicCert);
+                            }
+                        } catch (Exception ex) {
+                            LOGGER.error("KeyRefresher detected cert change - reload FAILED: {}", athenzPublicCert, ex);
+                            if (otelMetric != null) {
+                                otelMetric.recordCertRefreshFailure(ex.getMessage());
+                            }
                         }
-                        //Signal key change event
-                        if (keyRefresherListener != null) {
-                            keyRefresherListener.onKeyChangeEvent();
+                    } else {
+                        if (otelMetric != null) {
+                            otelMetric.exportServiceCertMetric(athenzPublicCert);
                         }
                     }
                 } catch (Exception ex) {
@@ -165,7 +208,7 @@ public class KeyRefresher {
         scanForFileChangesThread.setDaemon(true);
         scanForFileChangesThread.setName("scanForFileChanges" + " started at:" + System.currentTimeMillis());
         scanForFileChangesThread.start();
-        LOGGER.info("Started KeyRefresher thread.");
+        LOGGER.info("Started KeyRefresher thread. OTel metrics enabled: {}", otelMetric != null);
     }
 
     /**
