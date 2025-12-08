@@ -7361,9 +7361,9 @@ public class JDBCConnectionTest {
         Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertNull(jdbcConn.lookupDomainByCloudProvider(null, "iaas.athenz"));
-        assertNull(jdbcConn.lookupDomainByCloudProvider("unknown", "iaas.athenz"));
-        assertNull(jdbcConn.lookupDomainByCloudProvider("aws", null));
+        assertTrue(jdbcConn.lookupDomainByCloudProvider(null, "iaas.athenz").isEmpty());
+        assertTrue(jdbcConn.lookupDomainByCloudProvider("unknown", "iaas.athenz").isEmpty());
+        assertTrue(jdbcConn.lookupDomainByCloudProvider("aws", null).isEmpty());
 
         try {
             jdbcConn.lookupDomainByCloudProvider("aws", "iaas.athenz");
@@ -7920,7 +7920,7 @@ public class JDBCConnectionTest {
     public void testListDomainsByCloudProviderUnknown() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        assertNull(jdbcConn.listDomainsByCloudProvider("unknown"));
+        assertTrue(jdbcConn.listDomainsByCloudProvider("unknown").isEmpty());
         jdbcConn.close();
     }
 

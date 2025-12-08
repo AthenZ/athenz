@@ -1442,7 +1442,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         final String caller = "lookupDomainByCloudProvider";
         final String sqlCmd = getCloudProviderLookupDomainSQLCommand(provider);
         if (sqlCmd == null || value == null) {
-            return null;
+            return Collections.emptyList();
         }
         List<String> domains = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(sqlCmd)) {
@@ -1465,7 +1465,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         final String caller = "listDomainByCloudProvider";
         final String sqlCmd = getCloudProviderListDomainsSQLCommand(provider);
         if (sqlCmd == null) {
-            return null;
+            return Collections.emptyMap();
         }
         final String columnName = getCloudProviderColumnName(provider);
         Map<String, String> domains = new HashMap<>();
