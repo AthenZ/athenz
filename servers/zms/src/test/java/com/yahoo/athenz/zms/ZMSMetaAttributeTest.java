@@ -1541,4 +1541,38 @@ public class ZMSMetaAttributeTest {
         // restore the original meta store
         zmsImpl.domainMetaStore = savedMetaStore;
     }
+
+    @Test
+    public void testMultipleDomainsWithSameProductId() {
+        System.setProperty("athenz.zms.enforce_unique_product_ids", "false");
+        ZMSImpl zmsTest = zmsTestInitializer.zmsInit();
+
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+        final String productId = "same-product-id";
+
+        final String domainName1 = "athenz-domain1-same-productid";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName1,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        dom1.setProductId(productId);
+        zmsTest.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        final String domainName2 = "athenz-domain2-same-productid";
+        TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject(domainName2
+                , "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
+        dom2.setProductId(productId);
+        zmsTest.postTopLevelDomain(ctx, auditRef, null, dom2);
+
+        DomainList domainList = zmsTest.getDomainList(ctx, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, productId, null);
+        assertNotNull(domainList);
+        assertEquals(domainList.getNames().size(), 2);
+        assertTrue(domainList.getNames().contains(domainName1));
+        assertTrue(domainList.getNames().contains(domainName2));
+
+        zmsTest.deleteTopLevelDomain(ctx, domainName1, auditRef, null);
+        zmsTest.deleteTopLevelDomain(ctx, domainName2, auditRef, null);
+
+        System.clearProperty("athenz.zms.enforce_unique_product_ids");
+    }
 }

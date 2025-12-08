@@ -3716,7 +3716,7 @@ public class JDBCConnectionTest {
 
         List<Policy> policies = jdbcConn.deleteAssumeRoleAssertions(
                 "tenant", "provider", "admin-role");
-        assertEquals(2, policies.size());
+        assertEquals(policies.size(), 2);
 
         /* 3 Verify parameter binding / execution counts */
         Mockito.verify(mockPrepStmt, times(2)).setString(1, "tenant");                // SELECT & DELETE
@@ -3760,7 +3760,7 @@ public class JDBCConnectionTest {
             jdbcConn.deleteAssumeRoleAssertions("tenant", "provider", "admin-role");
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.INTERNAL_SERVER_ERROR, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -3786,7 +3786,7 @@ public class JDBCConnectionTest {
             jdbcConn.deleteAssumeRoleAssertions("tenant", "provider", "admin-role");
             fail();
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.INTERNAL_SERVER_ERROR, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
         }
         jdbcConn.close();
     }
@@ -3822,7 +3822,7 @@ public class JDBCConnectionTest {
             jdbcConn.deleteAssumeRoleAssertions("tenant", "provider", "admin-role");
             fail(); // We must never get here.
         } catch (ServerResourceException ex) {
-            assertEquals(ServerResourceException.INTERNAL_SERVER_ERROR, ex.getCode());
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
         }
 
         jdbcConn.close();
@@ -7077,7 +7077,7 @@ public class JDBCConnectionTest {
     public void testVerifyDomainSubscriptionUniquenessFail() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-        Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString(1);
+        Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString("name");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         try {
@@ -7117,7 +7117,7 @@ public class JDBCConnectionTest {
     public void testVerifyDomainProjectUniquenessFail() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-        Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString(1);
+        Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString("name");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         try {
@@ -7157,7 +7157,7 @@ public class JDBCConnectionTest {
     public void testVerifyDomainAccountUniquenessPass() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
+        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString("name");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         jdbcConn.verifyDomainAwsAccountUniqueness("iaas.athenz", "12345", "unitTest");
@@ -7178,7 +7178,7 @@ public class JDBCConnectionTest {
     public void testVerifyDomainAccountUniquenessFail() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-        Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString(1);
+        Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString("name");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         try {
@@ -7218,7 +7218,7 @@ public class JDBCConnectionTest {
     public void testVerifyDomainProductIdNumberUniquenessPass() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
+        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString("name");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", 1001, "unitTest");
@@ -7239,7 +7239,7 @@ public class JDBCConnectionTest {
     public void testVerifyDomainProductIdNumberUniquenessFail() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-        Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString(1);
+        Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString("name");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         try {
@@ -7279,7 +7279,7 @@ public class JDBCConnectionTest {
     public void testVerifyDomainProductIdUniquenessPass() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
+        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString("name");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         jdbcConn.verifyDomainProductIdUniqueness("iaas.athenz", "abcd-1001", "unitTest");
@@ -7300,7 +7300,7 @@ public class JDBCConnectionTest {
     public void testVerifyDomainProductIdUniquenessFail() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-        Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString(1);
+        Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString("name");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         try {
@@ -7323,10 +7323,10 @@ public class JDBCConnectionTest {
     public void testLookupDomainByAwsAccount() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
+        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString("name");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        final String domainName = jdbcConn.lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AWS, "1234");
+        final String domainName = jdbcConn.lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AWS, "1234").get(0);
         assertEquals(domainName, "iaas.athenz");
         jdbcConn.close();
     }
@@ -7335,10 +7335,10 @@ public class JDBCConnectionTest {
     public void testLookupDomainByAzureSubscription() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
+        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString("name");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        final String domainName = jdbcConn.lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AZURE, "azure");
+        final String domainName = jdbcConn.lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AZURE, "azure").get(0);
         assertEquals(domainName, "iaas.athenz");
         jdbcConn.close();
     }
@@ -7347,10 +7347,10 @@ public class JDBCConnectionTest {
     public void testLookupDomainByGcpProject() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
+        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString("name");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        final String domainName = jdbcConn.lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_GCP, "gcp");
+        final String domainName = jdbcConn.lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_GCP, "gcp").get(0);
         assertEquals(domainName, "iaas.athenz");
         jdbcConn.close();
     }
@@ -7406,10 +7406,10 @@ public class JDBCConnectionTest {
     public void testLookupDomainByProductIdNumber() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
+        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString("name");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        String domainName = jdbcConn.lookupDomainByProductId(1001);
+        String domainName = jdbcConn.lookupDomainByProductId(1001).get(0);
         assertEquals(domainName, "iaas.athenz");
         jdbcConn.close();
     }
@@ -7433,10 +7433,10 @@ public class JDBCConnectionTest {
     public void testLookupDomainByProductId() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
-        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString(1);
+        Mockito.doReturn("iaas.athenz").when(mockResultSet).getString("name");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        String domainName = jdbcConn.lookupDomainByProductId("abcd-1001");
+        String domainName = jdbcConn.lookupDomainByProductId("abcd-1001").get(0);
         assertEquals(domainName, "iaas.athenz");
         jdbcConn.close();
     }
