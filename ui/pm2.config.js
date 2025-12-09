@@ -22,6 +22,8 @@ module.exports = {
             name: 'athenz-ui',
             cwd: APP_DIR,
             script: require(path.join(APP_DIR, 'package.json')).main,
+            // Load OpenTelemetry instrumentation BEFORE app starts
+            node_args: '--import ./src/opentelemetry/instrumentation.mjs',
             env_production: {
                 NODE_ENV: 'production',
             },
