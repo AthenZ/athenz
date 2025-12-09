@@ -185,7 +185,7 @@ public class KeyRefresher {
                         } catch (Exception ex) {
                             LOGGER.error("KeyRefresher detected cert change - reload FAILED: {}", athenzPublicCert, ex);
                             if (otelMetric != null) {
-                                otelMetric.recordCertRefreshFailure(athenzPublicCert, ex.getMessage());
+                                otelMetric.recordCertRefreshFailure(ex.getMessage());
                             }
                         }
                     } else {

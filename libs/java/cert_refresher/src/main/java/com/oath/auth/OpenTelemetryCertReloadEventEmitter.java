@@ -86,25 +86,24 @@ public class OpenTelemetryCertReloadEventEmitter {
      * @param certPath path to the certificate file
      */
     public void recordCertRefresh(String certPath) {
-        recordRefreshResult(certPath, true);
+        recordRefreshResult(true);
         exportServiceCertMetric(certPath);
     }
 
     /**
      * Record a failed certificate refresh (result: failure).
      *
-     * @param certPath path to the certificate file
      * @param errorMessage error description
      */
-    public void recordCertRefreshFailure(String certPath, String errorMessage) {
-        recordRefreshResult(certPath, false);
-        LOGGER.error("Certificate refresh failed for {}: {}", certPath, errorMessage);
+    public void recordCertRefreshFailure(String errorMessage) {
+        recordRefreshResult( false);
+        LOGGER.error("Certificate refresh failed: {}", errorMessage);
     }
 
     /**
      * Record refresh result with counter and timestamp.
      */
-    private void recordRefreshResult(String certPath, boolean success) {
+    private void recordRefreshResult(boolean success) {
         String result = success ? RESULT_SUCCESS : RESULT_FAILURE;
         long timestamp = System.currentTimeMillis() / 1000;
         
@@ -147,7 +146,7 @@ public class OpenTelemetryCertReloadEventEmitter {
         long secsUntilExpiry = (cert.getNotAfter().getTime() - System.currentTimeMillis()) / 1000;
 
         Attributes attrs = Attributes.builder()
-                .put("name", name)
+                .put("cname", name)
                 .build();
         
         certValidityRemainingSecs.set(secsUntilExpiry, attrs);
