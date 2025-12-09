@@ -257,7 +257,9 @@ public class KeyRefresher {
 
         final Path path = Paths.get(filePath);
         if (!path.isAbsolute()) {
-            LOGGER.debug("haveFilesBeenChanged: Relative path {} - ignoring", filePath);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Relative path: {} specified - ignoring change check", filePath);
+            }
             return false;
         }
 
