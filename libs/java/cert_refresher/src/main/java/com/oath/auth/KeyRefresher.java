@@ -31,8 +31,6 @@ public class KeyRefresher {
     private static final Logger LOGGER = LoggerFactory.getLogger(KeyRefresher.class);
 
     private static final String PROP_OTEL_DISABLED = "athenz.cert_refresher.otel_disabled";
-    private static final String PROP_OTEL_COMPONENT = "athenz.cert_refresher.otel_component_name";
-    private static final String DEFAULT_COMPONENT_NAME = "athenz-cert-refresher";
 
     private Thread scanForFileChangesThread;
     private boolean shutdown = false; //only for testing
@@ -133,9 +131,7 @@ public class KeyRefresher {
             return null;
         }
 
-        String componentName = System.getProperty(PROP_OTEL_COMPONENT, DEFAULT_COMPONENT_NAME);
-        OpenTelemetryCertReloadEventEmitter metric = new OpenTelemetryCertReloadEventEmitter(componentName);
-        LOGGER.info("OpenTelemetry cert refresh metrics initialized for component: {}", componentName);
+        OpenTelemetryCertReloadEventEmitter metric = new OpenTelemetryCertReloadEventEmitter();
         return metric;
     }
 

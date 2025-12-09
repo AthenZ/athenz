@@ -58,9 +58,8 @@ public class OpenTelemetryCertReloadEventEmitter {
     /**
      * Create OpenTelemetry X.509 cert refresh metrics.
      *
-     * @param componentName identifier for the component (e.g., "zts") - used for logging
      */
-    public OpenTelemetryCertReloadEventEmitter(String componentName) {
+    public OpenTelemetryCertReloadEventEmitter() {
         Meter meter = GlobalOpenTelemetry.get().getMeter(SCOPE_NAME);
 
         this.refreshResultCounter = meter.counterBuilder(COUNTER_NAME)
@@ -77,7 +76,7 @@ public class OpenTelemetryCertReloadEventEmitter {
                 .ofLongs()
                 .build();
         
-        LOGGER.info("OpenTelemetry cert refresh metrics initialized - component: {}", componentName);
+        LOGGER.info("OpenTelemetry cert refresh metrics initialized");
     }
 
     /**
