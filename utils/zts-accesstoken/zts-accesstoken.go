@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"strings"
 
@@ -43,7 +44,7 @@ func printVersion() {
 }
 
 func main() {
-	var domain, service, svcKeyFile, svcCertFile, svcCACertFile, roles, ntokenFile, ztsURL, hdr, conf, accessToken, authzDetails, proxyPrincipalSpiffeUris string
+	var domain, service, actor, svcKeyFile, svcCertFile, svcCACertFile, roles, ntokenFile, ztsURL, hdr, conf, accessToken, authzDetails, proxyPrincipalSpiffeUris string
 	var expireTime int
 	var proxy, validate, claims, tokenOnly, showVersion bool
 	flag.StringVar(&domain, "domain", "", "name of provider domain")
@@ -65,6 +66,7 @@ func main() {
 	flag.StringVar(&proxyPrincipalSpiffeUris, "proxy-principal-spiffe-uris", "", "comm separated list of proxy principal spiffe uris")
 	flag.BoolVar(&showVersion, "version", false, "Show version")
 	flag.BoolVar(&tokenOnly, "token-only", false, "Display the access token only")
+	flag.StringVar(&actor, "actor", "", "actor that may request on behalf of the principal")
 	flag.Parse()
 
 	if showVersion {
@@ -75,7 +77,7 @@ func main() {
 	if validate {
 		validateAccessToken(accessToken, conf, claims)
 	} else {
-		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, proxy, expireTime, tokenOnly)
+		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, actor, proxy, expireTime, tokenOnly)
 	}
 }
 
@@ -121,7 +123,7 @@ func validateAccessToken(accessToken, conf string, showClaims bool) {
 	fmt.Println("Access Token successfully validated")
 }
 
-func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris string, proxy bool, expireTime int, tokenOnly bool) {
+func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, actor string, proxy bool, expireTime int, tokenOnly bool) {
 
 	defaultConfig, _ := athenzutils.ReadDefaultConfig()
 	// check to see if we need to use zts url from our default config file
@@ -163,6 +165,12 @@ func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, s
 
 	// generate the scope for the request, convert time to seconds
 	request := athenzutils.GenerateAccessTokenRequestString(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris, "", expireTime*60)
+
+	if actor != "" {
+		params := url.Values{}
+		params.Add("actor", actor)
+		request += "&" + params.Encode()
+	}
 
 	// request an access token
 	accessTokenResponse, err := client.PostAccessTokenRequest(zts.AccessTokenRequest(request))

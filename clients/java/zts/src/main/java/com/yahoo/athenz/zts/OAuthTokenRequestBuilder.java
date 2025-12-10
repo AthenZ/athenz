@@ -53,6 +53,7 @@ public class OAuthTokenRequestBuilder {
     String subjectToken;
     String subjectTokenType;
     String assertion;
+    String actor;
     String actorToken;
     String actorTokenType;
     long expiryTime = 0;
@@ -220,6 +221,18 @@ public class OAuthTokenRequestBuilder {
      */
     public OAuthTokenRequestBuilder assertion(String assertion) {
         this.assertion = assertion;
+        return this;
+    }
+
+    /**
+     * Set the actor principal for the request which is required
+     * for token exchange with actor token. The value for this
+     * actor ends up as the value for the "may_act" claim.
+     * @param actor principal value
+     * @return this builder instance
+     */
+    public OAuthTokenRequestBuilder actor(String actor) {
+        this.actor = actor;
         return this;
     }
 
@@ -425,6 +438,10 @@ public class OAuthTokenRequestBuilder {
 
         if (!ZTSClient.isEmpty(actorTokenType)) {
             body.append("&actor_token_type=").append(URLEncoder.encode(actorTokenType, StandardCharsets.UTF_8));
+        }
+
+        if (!ZTSClient.isEmpty(actor)) {
+            body.append("&actor=").append(URLEncoder.encode(actor, StandardCharsets.UTF_8));
         }
 
         return body.toString();

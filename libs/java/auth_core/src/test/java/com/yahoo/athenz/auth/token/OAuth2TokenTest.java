@@ -332,8 +332,8 @@ public class OAuth2TokenTest {
                 .issueTime(Date.from(Instant.ofEpochSecond(now)))
                 .expirationTime(Date.from(Instant.ofEpochSecond(now + 3600)))
                 .notBeforeTime(Date.from(Instant.ofEpochSecond(now)))
-                .issuer("athenz.api")
-                .audience("https://athenz.io")
+                .issuer("https://athenz.io")
+                .audience("athenz")
                 .claim(OAuth2Token.CLAIM_AUTH_TIME, now)
                 .claim(OAuth2Token.CLAIM_VERSION, 1)
                 .build();
@@ -344,9 +344,12 @@ public class OAuth2TokenTest {
 
         KeyStore publicKeyProvider = getKeyStore(null);
         OAuth2Token oAuth2Token = new OAuth2Token(token, publicKeyProvider, "https://athenz.io");
+        validateOAuth2TokenFields(oAuth2Token, now);
+    }
 
+    void validateOAuth2TokenFields(OAuth2Token oAuth2Token, long now) {
         assertEquals(oAuth2Token.getVersion(), 1);
-        assertEquals(oAuth2Token.getAudience(), "https://athenz.io");
+        assertEquals(oAuth2Token.getAudience(), "athenz");
         assertEquals(oAuth2Token.getSubject(), "athenz.api");
         assertEquals(oAuth2Token.getIssueTime(), now);
         assertEquals(oAuth2Token.getExpiryTime(), now + 3600);
@@ -459,7 +462,7 @@ public class OAuth2TokenTest {
         // mismatched audience
 
         token = getSignedToken("athenz.api", "athenz.api", "https://athenz.io", "eckey1");
-        verifyTokenError(publicKeyProvider, token, "https://token.athenz.io", "Invalid token: mismatched audience (https://athenz.io) and issuer (https://token.athenz.io)");
+        verifyTokenError(publicKeyProvider, token, "https://token.athenz.io", "Invalid token: mismatched audience (https://athenz.io) and issuer");
 
         // invalid service identifier
 
@@ -576,17 +579,25 @@ public class OAuth2TokenTest {
 
         KeyStore publicKeyProvider = getKeyStore(null);
         OAuth2Token oAuth2Token = new OAuth2Token(token, publicKeyProvider, "https://athenz.io");
+        validateOAuth2TokenFields(oAuth2Token, now);
 
-        assertEquals(oAuth2Token.getVersion(), 1);
-        assertEquals(oAuth2Token.getAudience(), "athenz");
-        assertEquals(oAuth2Token.getSubject(), "athenz.api");
-        assertEquals(oAuth2Token.getIssueTime(), now);
-        assertEquals(oAuth2Token.getExpiryTime(), now + 3600);
-        assertEquals(oAuth2Token.getNotBeforeTime(), now);
-        assertEquals(oAuth2Token.getAuthTime(), now);
-        assertEquals(oAuth2Token.getJwtId(), "id001");
-        assertEquals(oAuth2Token.getClientIdDomainName(), "athenz");
-        assertEquals(oAuth2Token.getClientIdServiceName(), "api");
+        Set<String> issuers = new HashSet<>();
+        issuers.add("https://athenz.io:4443");
+        issuers.add("https://athenz.io");
+
+        oAuth2Token = new OAuth2Token(token, publicKeyProvider, issuers);
+        validateOAuth2TokenFields(oAuth2Token, now);
+
+        // now pass with a set without a match
+
+        issuers = new HashSet<>();
+        issuers.add("https://athenz.io:4443");
+        try {
+            new OAuth2Token(token, publicKeyProvider, issuers);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unable to parse token: Invalid token: mismatched issuer (https://athenz.io) and subject (athenz.api)"));
+        }
     }
 
     @Test

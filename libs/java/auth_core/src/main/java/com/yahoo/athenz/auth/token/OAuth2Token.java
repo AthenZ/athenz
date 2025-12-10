@@ -26,9 +26,8 @@ import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.auth.util.StringUtils;
 
 import java.security.PublicKey;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Predicate;
 
 public class OAuth2Token {
 
@@ -44,6 +43,8 @@ public class OAuth2Token {
     public static final String CLAIM_ISSUE_TIME = "iat";
     public static final String CLAIM_NOT_BEFORE = "nbf";
     public static final String CLAIM_JWT_ID = "jti";
+    public static final String CLAIM_ACT = "act";
+    public static final String CLAIM_MAY_ACT = "may_act";
 
     protected int version;
     protected long expiryTime;
@@ -56,6 +57,9 @@ public class OAuth2Token {
     protected String jwtId;
     protected String clientIdDomainName;
     protected String clientIdServiceName;
+    protected LinkedHashMap<String, Object> act;
+    protected LinkedHashMap<String, Object> mayAct;
+
     protected JWTClaimsSet claimsSet = null;
     protected Map<String, Object> customClaims = null;
     protected static DefaultJWTClaimsVerifier<SecurityContext> claimsVerifier = new DefaultJWTClaimsVerifier<>(null, null);
@@ -132,7 +136,15 @@ public class OAuth2Token {
         }
     }
 
+    public OAuth2Token(final String token, KeyStore publicKeyProvider, final Set<String> oauth2Issuers) {
+        parseOAuth2Token(token, publicKeyProvider, oauth2Issuers::contains);
+    }
+
     public OAuth2Token(final String token, KeyStore publicKeyProvider, final String oauth2Issuer) {
+        parseOAuth2Token(token, publicKeyProvider, oauth2Issuer::equals);
+    }
+
+    private void parseOAuth2Token(final String token, KeyStore publicKeyProvider, Predicate<String> oauth2IssuerCheck) {
 
         try {
             // first parse the token to extract the fields from the body and header
@@ -158,7 +170,7 @@ public class OAuth2Token {
                 throw new CryptoException("Invalid token: missing issuer, subject or audience");
             }
 
-            boolean athenzIssuer = oauth2Issuer.equals(issuer);
+            boolean athenzIssuer = oauth2IssuerCheck.test(issuer);
             if (!athenzIssuer) {
                 if (!issuer.equals(subject)) {
                     throw new CryptoException("Invalid token: mismatched issuer (" + issuer
@@ -168,9 +180,8 @@ public class OAuth2Token {
                 // extract the audience of the token. for athenz support case this
                 // value must be present and match the oidc issuer for the server
 
-                if (!audience.equals(oauth2Issuer)) {
-                    throw new CryptoException("Invalid token: mismatched audience (" + audience
-                            + ") and issuer (" + oauth2Issuer + ")");
+                if (!oauth2IssuerCheck.test(audience)) {
+                    throw new CryptoException("Invalid token: mismatched audience (" + audience + ") and issuer");
                 }
             }
 
@@ -278,6 +289,20 @@ public class OAuth2Token {
         setIssuer(claimsSet.getIssuer());
         setSubject(claimsSet.getSubject());
         setJwtId(claimsSet.getJWTID());
+
+        Object value = claimsSet.getClaim(CLAIM_MAY_ACT);
+        if (value instanceof Map) {
+            for (Map.Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
+                setMayActEntry(entry.getKey(), entry.getValue());
+            }
+        }
+
+        value = claimsSet.getClaim(CLAIM_ACT);
+        if (value instanceof Map) {
+            for (Map.Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
+                setActEntry(entry.getKey(), entry.getValue());
+            }
+        }
     }
 
     String getClaimAudience() {
@@ -368,6 +393,36 @@ public class OAuth2Token {
         return clientIdServiceName;
     }
 
+    public LinkedHashMap<String, Object> getMayAct() {
+        return mayAct;
+    }
+
+    public void setMayAct(LinkedHashMap<String, Object> mayAct) {
+        this.mayAct = mayAct;
+    }
+
+    public void setMayActEntry(final String key, final Object value) {
+        if (mayAct == null) {
+            mayAct = new LinkedHashMap<>();
+        }
+        mayAct.put(key, value);
+    }
+
+    public LinkedHashMap<String, Object> getAct() {
+        return act;
+    }
+
+    public void setAct(LinkedHashMap<String, Object> act) {
+        this.act = act;
+    }
+
+    public void setActEntry(final String key, final Object value) {
+        if (act == null) {
+            act = new LinkedHashMap<>();
+        }
+        act.put(key, value);
+    }
+
     public boolean setCustomClaim(final String name, final Object value) {
 
         // first verify that the custom claim is not one of the standard claims
@@ -407,6 +462,8 @@ public class OAuth2Token {
             case CLAIM_JWT_ID:
             case CLAIM_VERSION:
             case CLAIM_AUTH_TIME:
+            case CLAIM_ACT:
+            case CLAIM_MAY_ACT:
                 return true;
             default:
                 return false;

@@ -19,10 +19,12 @@ import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.yahoo.athenz.auth.KeyStore;
 
+import java.util.Set;
+
 public class TokenConfigOptions {
 
     KeyStore publicKeyProvider = null;
-    String oauth2Issuer = null;
+    Set<String> oauth2Issuers = null;
     ConfigurableJWTProcessor<SecurityContext> jwtIDTProcessor = null;
     ConfigurableJWTProcessor<SecurityContext> jwtJAGProcessor = null;
 
@@ -34,12 +36,12 @@ public class TokenConfigOptions {
         this.publicKeyProvider = publicKeyProvider;
     }
 
-    public String getOauth2Issuer() {
-        return oauth2Issuer;
+    public Set<String> getOauth2Issuers() {
+        return oauth2Issuers;
     }
 
-    public void setOauth2Issuer(String oauth2Issuer) {
-        this.oauth2Issuer = oauth2Issuer;
+    public void setOauth2Issuers(Set<String> oauth2Issuers) {
+        this.oauth2Issuers = oauth2Issuers;
     }
 
     public ConfigurableJWTProcessor<SecurityContext> getJwtIDTProcessor() {

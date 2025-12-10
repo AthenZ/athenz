@@ -30,6 +30,7 @@ import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,6 +63,7 @@ public class AccessTokenRequest {
     private static final String KEY_SUBJECT_TOKEN = "subject_token";
     private static final String KEY_SUBJECT_TOKEN_TYPE = "subject_token_type";
     private static final String KEY_ASSERTION = "assertion";
+    private static final String KEY_ACTOR = "actor";
     private static final String KEY_ACTOR_TOKEN = "actor_token";
     private static final String KEY_ACTOR_TOKEN_TYPE = "actor_token_type";
 
@@ -88,6 +90,7 @@ public class AccessTokenRequest {
     String subjectToken = null;
     String subjectTokenType = null;
     String assertion = null;
+    String actor = null;
     String actorToken = null;
     String actorTokenType = null;
     List<String> proxyPrincipalsSpiffeUris = null;
@@ -167,6 +170,9 @@ public class AccessTokenRequest {
                 case KEY_ASSERTION:
                     assertion = value;
                     break;
+                case KEY_ACTOR:
+                    actor = value;
+                    break;
                 case KEY_ACTOR_TOKEN:
                     actorToken = value;
                     break;
@@ -205,8 +211,8 @@ public class AccessTokenRequest {
                     requestType = RequestType.JAG_TOKEN_EXCHANGE;
                     validateJAGTokenExchangeRequest(options);
                 } else if (OAUTH_TOKEN_TYPE_ACCESS.equals(requestedTokenType) || StringUtil.isEmpty(requestedTokenType)) {
-                     requestType = RequestType.TOKEN_EXCHANGE;
-                     validateAccessTokenExchangeRequest(options);
+                    requestType = RequestType.TOKEN_EXCHANGE;
+                    validateAccessTokenExchangeRequest(options);
                 } else {
                     throw new IllegalArgumentException("Invalid requested token type: " + requestedTokenType);
                 }
@@ -296,18 +302,7 @@ public class AccessTokenRequest {
         // if we have an actor token specified then we must have
         // an actor token type as well. So let's validate accordingly.
 
-        if (!StringUtil.isEmpty(actorToken)) {
-            if (!validJwtTokenType(actorTokenType)) {
-                throw new IllegalArgumentException("Invalid actor token type: " + actorTokenType);
-            }
-
-            try {
-                actorTokenObj = new OAuth2Token(actorToken, options.getPublicKeyProvider(),
-                        options.getOauth2Issuer());
-            } catch (Exception ex) {
-                throw new IllegalArgumentException("Invalid actor token: " + ex.getMessage());
-            }
-        }
+        validateActorToken(options);
     }
 
     boolean validJwtTokenType(final String tokenType) {
@@ -345,6 +340,42 @@ public class AccessTokenRequest {
         }
     }
 
+    void validateActorToken(TokenConfigOptions options) {
+        if (StringUtil.isEmpty(actorToken)) {
+            return;
+        }
+
+        if (!validJwtTokenType(actorTokenType)) {
+            throw new IllegalArgumentException("Invalid actor token type: " + actorTokenType);
+        }
+
+        try {
+            actorTokenObj = new OAuth2Token(actorToken, options.getPublicKeyProvider(),
+                    options.getOauth2Issuers());
+
+            // actor token becomes our principal object
+
+            principal = SimplePrincipal.create(actorTokenObj.getClientIdDomainName(),
+                    actorTokenObj.getClientIdServiceName(), null, actorTokenObj.getIssueTime(), null);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Invalid actor token: " + ex.getMessage());
+        }
+
+        // now let's verify the fields in our subject token
+        // it must have a may_act claim with the subject claim
+        // that must match our actor token subject
+
+        LinkedHashMap<String, Object> mayAct = subjectTokenObj.getMayAct();
+        if (mayAct == null || !mayAct.containsKey(OAuth2Token.CLAIM_SUBJECT)) {
+            throw new IllegalArgumentException("Invalid subject token: missing may_act claim");
+        }
+
+        final String mayActSub = (String) mayAct.get(OAuth2Token.CLAIM_SUBJECT);
+        if (!mayActSub.equals(actorTokenObj.getSubject())) {
+            throw new IllegalArgumentException("Invalid subject token: may_act sub does not match actor token subject");
+        }
+    }
+
     void validateClientAssertion(TokenConfigOptions options) {
 
         if (!StringUtil.isEmpty(clientAssertion)) {
@@ -360,7 +391,7 @@ public class AccessTokenRequest {
 
             try {
                 OAuth2Token token = new OAuth2Token(clientAssertion, options.getPublicKeyProvider(),
-                        options.getOauth2Issuer());
+                        options.getOauth2Issuers());
                 principal = SimplePrincipal.create(token.getClientIdDomainName(),
                         token.getClientIdServiceName(), clientAssertion, token.getIssueTime(), null);
             } catch (Exception ex) {
@@ -419,6 +450,10 @@ public class AccessTokenRequest {
 
     public String getScope() {
         return scope;
+    }
+
+    public String getActor() {
+        return actor;
     }
 
     public String getProxyForPrincipal() {
