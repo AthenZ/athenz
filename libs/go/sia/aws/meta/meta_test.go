@@ -29,11 +29,11 @@ func TestGetMetadata(test *testing.T) {
 	// Mock the metadata endpoints
 	router := http.NewServeMux()
 	router.HandleFunc("/latest/dynamic/instance-identity/document", func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, "{ \"test\": \"document\" }")
+		fmt.Fprintf(w, "{ \"test\": \"document\" }")
 	})
 
 	router.HandleFunc("/latest/dynamic/instance-identity/pkcs7", func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, "{ \"test\": \"pkcs7\"}")
+		fmt.Fprintf(w, "{ \"test\": \"pkcs7\"}")
 	})
 
 	ts := httptest.NewServer(router)
