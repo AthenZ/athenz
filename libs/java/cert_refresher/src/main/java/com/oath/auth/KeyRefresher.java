@@ -184,10 +184,6 @@ public class KeyRefresher {
                                 otelMetric.recordCertRefreshFailure(ex.getMessage());
                             }
                         }
-                    } else {
-                        if (otelMetric != null) {
-                            otelMetric.exportServiceCertMetric(athenzPublicCert);
-                        }
                     }
                 } catch (Exception ex) {
                     // if we could not reload the SSL context (but we tried) we will

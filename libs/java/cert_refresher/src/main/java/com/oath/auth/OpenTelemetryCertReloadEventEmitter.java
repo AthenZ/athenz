@@ -31,7 +31,7 @@ import java.security.cert.X509Certificate;
  * Metrics:
  * - athenz_cert_refresher.refresh.result_total: Counter with result attribute (success/failure)
  * - athenz_cert_refresher.refresh.result_last_timestamp: Gauge with result attribute - timestamp of last result
- * - athenz_cert_refresher.service_cert.validity.remaining_secs: Gauge - seconds until cert expires
+ * - athenz_cert_refresher.cert.validity.remaining_secs: Gauge - seconds until cert expires
  */
 public class OpenTelemetryCertReloadEventEmitter {
 
@@ -45,8 +45,8 @@ public class OpenTelemetryCertReloadEventEmitter {
     private static final String GAUGE_RESULT_TIMESTAMP_NAME = "athenz_cert_refresher.refresh.result_last_timestamp";
     private static final String GAUGE_RESULT_TIMESTAMP_DESC = "Unix timestamp of last refresh result by status (success/failure)";
 
-    private static final String GAUGE_VALIDITY_NAME = "athenz_cert_refresher.service_cert.validity.remaining_secs";
-    private static final String GAUGE_VALIDITY_DESC = "Number of seconds remaining before the current service TLS certificate expires";
+    private static final String GAUGE_VALIDITY_NAME = "athenz_cert_refresher.cert.validity.remaining_secs";
+    private static final String GAUGE_VALIDITY_DESC = "Number of seconds remaining before the current TLS certificate expires";
 
     public static final String RESULT_SUCCESS = "success";
     public static final String RESULT_FAILURE = "failure";
@@ -86,7 +86,7 @@ public class OpenTelemetryCertReloadEventEmitter {
      */
     public void recordCertRefresh(String certPath) {
         recordRefreshResult(true);
-        exportServiceCertMetric(certPath);
+        exportCertMetric(certPath);
     }
 
     /**
@@ -116,28 +116,28 @@ public class OpenTelemetryCertReloadEventEmitter {
     }
 
     /**
-     * Export service certificate validity metric.
+     * Export certificate validity metric
      *
      * @param certPath path to the certificate file
      */
-    public void exportServiceCertMetric(String certPath) {
+    public void exportCertMetric(String certPath) {
         try (FileInputStream fis = new FileInputStream(certPath)) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(fis);
-            exportServiceCertMetric(cert);
+            exportCertMetric(cert);
         } catch (Exception e) {
-            LOGGER.warn("Failed to read certificate from {}: {}", certPath, e.getMessage());
+            LOGGER.error("Failed to read certificate from {}: {}", certPath, e.getMessage());
         }
     }
 
     /**
-     * Export service certificate validity metric.
+     * Export certificate validity metric
      *
      * @param cert the X.509 certificate
      */
-    public void exportServiceCertMetric(X509Certificate cert) {
+    public void exportCertMetric(X509Certificate cert) {
         if (cert == null) {
-            LOGGER.warn("exportServiceCertMetric: called with null cert");
+            LOGGER.warn("exportCertMetric: called with null cert");
             return;
         }
         
