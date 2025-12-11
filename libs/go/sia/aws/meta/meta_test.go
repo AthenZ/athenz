@@ -17,7 +17,6 @@
 package meta
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net/http"
