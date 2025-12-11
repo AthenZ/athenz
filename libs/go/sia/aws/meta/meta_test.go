@@ -79,7 +79,7 @@ func TestGetMetadataV1(test *testing.T) {
 
 	_, err = GetData(ts.URL, "/latest/dynamic/instance-identity/pkcs7")
 	if err != nil {
-		test.Errorf("Unable to retrieve instance document from %v - %v", ts.URL, err)
+                test.Errorf("Unable to retrieve document signature from %v - %v", ts.URL, err)
 		return
 	}
 }
