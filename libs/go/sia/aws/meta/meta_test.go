@@ -30,11 +30,11 @@ func TestGetMetadata(test *testing.T) {
 	// Mock the metadata endpoints
 	router := http.NewServeMux()
 	router.HandleFunc("/latest/dynamic/instance-identity/document", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "{ \"test\": \"document\" }")
+		io.WriteString(w, "{ \"test\": \"document\" }")
 	})
 
 	router.HandleFunc("/latest/dynamic/instance-identity/pkcs7", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "{ \"test\": \"pkcs7\"}")
+		io.WriteString(w, "{ \"test\": \"pkcs7\"}")
 	})
 
 	ts := httptest.NewServer(router)
@@ -43,7 +43,7 @@ func TestGetMetadata(test *testing.T) {
 	// we are going to fail on v2 and fall back to v1
         _, err := GetData(ts.URL, "/latest/dynamic/instance-identity/document")
 	if err != nil {
-		test.Errorf("Unable to retrieve instance document from %v - %v", ts.URL, err)
+		test.Errorf("Unable to retrieve document signature from %v - %v", ts.URL, err)
 		return
 	}
 
