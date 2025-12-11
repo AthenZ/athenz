@@ -3486,9 +3486,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            final String domain = con.lookupDomainByCloudProvider(provider, value);
-            if (domain != null) {
-                domList.setNames(Collections.singletonList(domain));
+            final List<String> domains = con.lookupDomainByCloudProvider(provider, value);
+            if (!domains.isEmpty()) {
+                domList.setNames(domains);
             }
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
@@ -3512,9 +3512,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            String domain = con.lookupDomainByProductId(productId);
-            if (domain != null) {
-                domList.setNames(Collections.singletonList(domain));
+            final List<String> domains = con.lookupDomainByProductId(productId);
+            if (!domains.isEmpty()) {
+                domList.setNames(domains);
             }
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
@@ -3526,9 +3526,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            String domain = con.lookupDomainByProductId(productId);
-            if (domain != null) {
-                domList.setNames(Collections.singletonList(domain));
+            final List<String> domains = con.lookupDomainByProductId(productId);
+            if (!domains.isEmpty()) {
+                domList.setNames(domains);
             }
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
