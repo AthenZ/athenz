@@ -14426,6 +14426,64 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testLoadSolutionTemplatesWithBothTrustAndMembers() {
+        // Create a mock solution template with a role that has both trust and members
+        String invalidTemplateJson = "{"
+                + "\"templates\": {"
+                + "\"invalid_template\": {"
+                + "\"roles\": ["
+                + "{"
+                + "\"name\": \"test_role\","
+                + "\"trust\": \"trusted.domain\","
+                + "\"roleMembers\": ["
+                + "{"
+                + "\"memberName\": \"user.testuser\""
+                + "}"
+                + "]"
+                + "}"
+                + "]"
+                + "}"
+                + "}"
+                + "}";
+
+        // Write invalid template to a temporary file
+        File tempFile = null;
+        try {
+            tempFile = File.createTempFile("invalid_template", ".json");
+            try (FileWriter writer = new FileWriter(tempFile)) {
+                writer.write(invalidTemplateJson);
+            }
+
+            // Set system property to point to the invalid template file
+            String originalProperty = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
+            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
+
+            try {
+                // This should throw RuntimeException when loading templates
+                new ZMSImpl();
+                fail("Expected RuntimeException when loading solution template with both trust and members");
+            } catch (RuntimeException ex) {
+                assertTrue(ex.getMessage().contains("has both trust and members defined"));
+                assertTrue(ex.getMessage().contains("invalid_template"));
+                assertTrue(ex.getMessage().contains("test_role"));
+            } finally {
+                // Restore original property
+                if (originalProperty != null) {
+                    System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, originalProperty);
+                } else {
+                    System.clearProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
+                }
+            }
+        } catch (IOException ex) {
+            fail("Failed to create temporary test file: " + ex.getMessage());
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete();
+            }
+        }
+    }
+
+    @Test
     public void testPutPolicyNoLoopbackNoSuchDomainError() {
         final String auditRef = zmsTestInitializer.getAuditRef();
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);

@@ -1311,6 +1311,22 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             serverSolutionTemplates.setTemplates(new HashMap<>());
             serverSolutionTemplateNames = Collections.emptyList();
         } else {
+            // validate that we don't have any roles with both members and trust attributes
+
+            for (String templateName : serverSolutionTemplates.getTemplates().keySet()) {
+                Template template = serverSolutionTemplates.get(templateName);
+                if (template.getRoles() == null) {
+                    continue;
+                }
+                for (Role role : template.getRoles()) {
+                    if (!StringUtil.isEmpty(role.getTrust()) && role.getRoleMembers() != null && !role.getRoleMembers().isEmpty()) {
+                        LOG.error("Solution Template {} role {} has both trust and members defined. Exiting...",
+                                templateName, role.getName());
+                        throw new RuntimeException("Solution Template " + templateName + " role " + role.getName() + " has both trust and members defined");
+                    }
+                }
+            }
+
             serverSolutionTemplateNames = new ArrayList<>(serverSolutionTemplates.names());
             Collections.sort(serverSolutionTemplateNames);
         }
