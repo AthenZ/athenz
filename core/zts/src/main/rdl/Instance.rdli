@@ -9,8 +9,8 @@ type InstanceRegisterInformation Struct {
     ServiceName provider; //the provider service name (i.e. "aws.us-west-2", "sys.openstack.cluster1")
     DomainName domain; //the domain of the instance
     SimpleName service; //the service this instance is supposed to run
-    String attestationData; //identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.
-    String csr; //the Certificate Signing Request for the expected X.509 certificate in the response
+    String attestationData (optional); //identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.
+    String csr (optional); //the Certificate Signing Request for the expected X.509 certificate in the response
     String ssh (optional); //deprecated - use sshCertRequest, if present, return an SSH host certificate. Format is JSON.
     SSHCertRequest sshCertRequest (optional); //if present, return an SSH host certificate
     Bool token (optional); //if true, return a service token signed by ZTS for this service
@@ -23,6 +23,12 @@ type InstanceRegisterInformation Struct {
     SimpleName cloud (optional); //optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.
     SimpleName x509CertSignerKeyId (optional); //requested x509 cert signer key id
     SimpleName sshCertSignerKeyId (optional); //requested ssh cert signer key id
+    PathElement jwtSVIDInstanceId (optional); //unique instance id within provider's namespace for the jwt svid
+    String jwtSVIDAudience (optional); //the audience value for the jwt svid
+    EntityName jwtSVIDNonce (optional); //the nonce value for the jwt svid
+    String jwtSVIDSpiffe (optional); //the spiffe uri for the jwt svid
+    Bool jwtSVIDSpiffeSubject (optional); //if true, return the spiffe uri as the jwt svid sub claim value
+    SimpleName jwtSVIDKeyType (optional); //optional signing key type - RSA or EC. Might be ignored if server doesn't have the requested type configured
 }
 
 type InstanceRefreshInformation Struct {

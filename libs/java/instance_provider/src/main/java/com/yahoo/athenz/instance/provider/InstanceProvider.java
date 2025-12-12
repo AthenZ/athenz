@@ -87,13 +87,27 @@ public interface InstanceProvider {
         UNKNOWN
     }
 
+    enum SVIDType {
+        X509,
+        JWT
+    }
+
     /**
      * Get Provider scheme. Currently supported schemes are HTTP
-     * or CLASS. By default we'll return UNKNOWN.
+     * or CLASS. By default, we'll return UNKNOWN.
      * @return the scheme for the provider
      */
     default Scheme getProviderScheme() {
         return Scheme.UNKNOWN;
+    }
+
+    /**
+     * Get the type of SVID issued by this provider. Currently supported
+     * types are X509 or JWT. By default, we'll return X509.
+     * @return the SVID type for the provider
+     */
+    default SVIDType getSVIDType() {
+        return SVIDType.X509;
     }
 
     /**
