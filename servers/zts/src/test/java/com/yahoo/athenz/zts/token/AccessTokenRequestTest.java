@@ -39,7 +39,9 @@ import java.security.PrivateKey;
 import java.security.interfaces.ECPrivateKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.testng.Assert.*;
 
@@ -53,7 +55,7 @@ public class AccessTokenRequestTest {
     public void setup() {
         defaultConfigOptions = new TokenConfigOptions();
         defaultConfigOptions.setPublicKeyProvider(null);
-        defaultConfigOptions.setOauth2Issuer(null);
+        defaultConfigOptions.setOauth2Issuers(null);
         defaultConfigOptions.setJwtJAGProcessor(createJAGProcessor());
         defaultConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
     }
@@ -62,13 +64,15 @@ public class AccessTokenRequestTest {
     public void testAccessTokenRequest() {
 
         AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials&scope=coretech:role.writers"
-                + "&authorization_details=details&expires_in=100&proxy_principal_spiffe_uris=", defaultConfigOptions);
+                + "&authorization_details=details&expires_in=100&proxy_principal_spiffe_uris=&actor=athenz.api",
+                defaultConfigOptions);
         assertNotNull(request);
         assertEquals(request.getGrantType(), "client_credentials");
         assertEquals(request.getScope(), "coretech:role.writers");
         assertEquals(request.getAuthzDetails(), "details");
         assertEquals(request.getExpiryTime(), 100);
         assertNull(request.getProxyPrincipalsSpiffeUris());
+        assertEquals(request.getActor(), "athenz.api");
     }
 
     @Test
@@ -187,7 +191,7 @@ public class AccessTokenRequestTest {
         try {
             TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
             tokenConfigOptions.setPublicKeyProvider(publicKeyProvider);
-            tokenConfigOptions.setOauth2Issuer("https://athenz.io");
+            tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io"));
             new AccessTokenRequest("grant_type=client_credentials&scope=coretech:role.writers"
                     + "&authorization_details=details&expires_in=100&client_assertion=invalid-token"
                     + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
@@ -226,7 +230,7 @@ public class AccessTokenRequestTest {
 
         TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
         tokenConfigOptions.setPublicKeyProvider(publicKeyProvider);
-        tokenConfigOptions.setOauth2Issuer("https://athenz.io/zts/v1");
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io/zts/v1"));
         AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials&scope=coretech:role.writers"
                         + "&authorization_details=details&expires_in=100&client_assertion=" + token
                         + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
@@ -651,7 +655,7 @@ public class AccessTokenRequestTest {
 
         TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
         tokenConfigOptions.setPublicKeyProvider(publicKeyProvider);
-        tokenConfigOptions.setOauth2Issuer("https://athenz.io/zts/v1");
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io/zts/v1"));
         AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials&scope=coretech:role.writers"
                         + "&client_assertion=" + token
                         + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
@@ -830,7 +834,7 @@ public class AccessTokenRequestTest {
                 .thenReturn(Crypto.loadPublicKey(ecPublicKey));
 
         try {
-            defaultConfigOptions.setOauth2Issuer("https://athenz.io:4443/zts/v1");
+            defaultConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
             defaultConfigOptions.setPublicKeyProvider(publicKeyProvider);
             new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
                     + "&audience=sports&subject_token=" + subjectToken
@@ -857,7 +861,7 @@ public class AccessTokenRequestTest {
         try {
             TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
             tokenConfigOptions.setPublicKeyProvider(publicKeyProvider);
-            tokenConfigOptions.setOauth2Issuer("https://athenz.io");
+            tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io"));
             tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
             tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
             new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
@@ -889,13 +893,13 @@ public class AccessTokenRequestTest {
         // Create a subject token for user_domain.user with audience as proxy-user1
         long expiryTime = now + 3600;
         String subjectToken = createToken(privateKey, "0", "user_domain.user",
-                "user_domain.proxy-user1", expiryTime, null);
+                "user_domain.proxy-user1", expiryTime, "athenz.api", null);
         String actorToken = createToken(privateKey, "0", "athenz.api",
                 "athenz.api", expiryTime, null);
 
         TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
         tokenConfigOptions.setPublicKeyProvider(publicKeyProvider);
-        tokenConfigOptions.setOauth2Issuer("https://athenz.io:4443/zts/v1");
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
         tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
         tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
         AccessTokenRequest request = new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
@@ -907,6 +911,89 @@ public class AccessTokenRequestTest {
         assertNotNull(request);
         assertEquals(request.getActorToken(), actorToken);
         assertNotNull(request.getActorTokenObj());
+    }
+
+
+    @Test
+    public void testAccessTokenRequestTokenExchangeWithActorTokenWithoutMayActClaim() {
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        final File ecPublicKey = new File("./src/test/resources/zts_public_ec.pem");
+
+        long now = System.currentTimeMillis() / 1000;
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        KeyStore publicKeyProvider = Mockito.mock(KeyStore.class);
+        Mockito.when(publicKeyProvider.getServicePublicKey("athenz", "api", "eckey1"))
+                .thenReturn(Crypto.loadPublicKey(ecPublicKey));
+        Mockito.when(publicKeyProvider.getServicePublicKey("sys.auth", "zts", "0"))
+                .thenReturn(Crypto.loadPublicKey(ecPublicKey));
+
+        // Create a subject token for user_domain.user with audience as proxy-user1
+        long expiryTime = now + 3600;
+        String subjectToken = createToken(privateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime, null);
+        String actorToken = createToken(privateKey, "0", "athenz.api",
+                "athenz.api", expiryTime, null);
+
+        TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
+        tokenConfigOptions.setPublicKeyProvider(publicKeyProvider);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+
+        try {
+            new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&audience=sports&subject_token=" + subjectToken
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&actor_token=" + actorToken
+                    + "&actor_token_type=urn:ietf:params:oauth:token-type:id_token",
+                    tokenConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid subject token: missing may_act claim");
+        }
+    }
+
+    @Test
+    public void testAccessTokenRequestTokenExchangeWithActorTokenWithActMismatch() {
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        final File ecPublicKey = new File("./src/test/resources/zts_public_ec.pem");
+
+        long now = System.currentTimeMillis() / 1000;
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        KeyStore publicKeyProvider = Mockito.mock(KeyStore.class);
+        Mockito.when(publicKeyProvider.getServicePublicKey("athenz", "api", "eckey1"))
+                .thenReturn(Crypto.loadPublicKey(ecPublicKey));
+        Mockito.when(publicKeyProvider.getServicePublicKey("sys.auth", "zts", "0"))
+                .thenReturn(Crypto.loadPublicKey(ecPublicKey));
+
+        // Create a subject token for user_domain.user with audience as proxy-user1
+        long expiryTime = now + 3600;
+        String subjectToken = createToken(privateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime, "athenz.api2", null);
+        String actorToken = createToken(privateKey, "0", "athenz.api",
+                "athenz.api", expiryTime, null);
+
+        TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
+        tokenConfigOptions.setPublicKeyProvider(publicKeyProvider);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+
+        try {
+            new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&audience=sports&subject_token=" + subjectToken
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&actor_token=" + actorToken
+                    + "&actor_token_type=urn:ietf:params:oauth:token-type:id_token",
+                    tokenConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid subject token: may_act sub does not match actor token subject");
+        }
     }
 
     @Test
@@ -989,7 +1076,7 @@ public class AccessTokenRequestTest {
 
         TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
         tokenConfigOptions.setPublicKeyProvider(publicKeyProvider);
-        tokenConfigOptions.setOauth2Issuer("https://athenz.io/zts/v1");
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io/zts/v1"));
         tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
         AccessTokenRequest request = new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
                 + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
@@ -1078,11 +1165,17 @@ public class AccessTokenRequestTest {
         }
     }
 
-    private String createToken(PrivateKey privateKey, String keyId, String subject,
-                               String audience, long expiryTime, String tokenType) {
+    private String createToken(PrivateKey privateKey, String keyId, String subject, String audience,
+            long expiryTime, String mayActSubject, String tokenType) {
+
         try {
             JWSSigner signer = JwtsHelper.getJWSSigner(privateKey);
             long now = System.currentTimeMillis() / 1000;
+            HashMap<String, String> mayActMap = null;
+            if (mayActSubject != null) {
+                mayActMap = new HashMap<>();
+                mayActMap.put("sub", mayActSubject);
+            }
             JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                     .subject(subject)
                     .issueTime(Date.from(Instant.ofEpochSecond(now)))
@@ -1091,6 +1184,7 @@ public class AccessTokenRequestTest {
                     .audience(audience)
                     .claim("ver", 1)
                     .claim("auth_time", now)
+                    .claim("may_act", mayActMap)
                     .build();
 
             JWSHeader.Builder builder = new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(keyId);
@@ -1104,6 +1198,11 @@ public class AccessTokenRequestTest {
             fail("Failed to create ID token: " + ex.getMessage());
             return null;
         }
+    }
+
+    private String createToken(PrivateKey privateKey, String keyId, String subject, String audience,
+            long expiryTime, String tokenType) {
+        return createToken(privateKey, keyId, subject, audience, expiryTime, null, tokenType);
     }
 
     private ConfigurableJWTProcessor<SecurityContext> createJAGProcessor() {

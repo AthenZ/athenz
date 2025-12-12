@@ -594,10 +594,11 @@ public class OAuthTokenRequestBuilderTest {
     @Test
     public void testGetRequestBodyWithActorToken() {
         OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
-                .actorToken("actor-token-value");
+                .actorToken("actor-token-value").actor("athenz.api");
         String body = builder.getRequestBody();
         assertNotNull(body);
         assertTrue(body.contains("actor_token=" + URLEncoder.encode("actor-token-value", StandardCharsets.UTF_8)));
+        assertTrue(body.contains("actor=athenz.api"));
     }
 
     @Test
