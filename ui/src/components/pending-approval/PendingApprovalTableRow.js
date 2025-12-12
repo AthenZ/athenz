@@ -149,8 +149,7 @@ export default class PendingApprovalTableRow extends React.Component {
             ? () => {}
             : this.props.pendingDecision.bind(this, key, false);
         let shouldDisplayFlatPicker =
-            this.props.pendingState !== PENDING_STATE_ENUM.DELETE &&
-            this.props.category !== 'group';
+            this.props.pendingState !== PENDING_STATE_ENUM.DELETE;
         return (
             <TableRow
                 color={this.props.color}
