@@ -337,8 +337,8 @@ public class ZTSSchema {
             .field("provider", "ServiceName", false, "the provider service name (i.e. \"aws.us-west-2\", \"sys.openstack.cluster1\")")
             .field("domain", "DomainName", false, "the domain of the instance")
             .field("service", "SimpleName", false, "the service this instance is supposed to run")
-            .field("attestationData", "String", false, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
-            .field("csr", "String", false, "the Certificate Signing Request for the expected X.509 certificate in the response")
+            .field("attestationData", "String", true, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")
+            .field("csr", "String", true, "the Certificate Signing Request for the expected X.509 certificate in the response")
             .field("ssh", "String", true, "deprecated - use sshCertRequest, if present, return an SSH host certificate. Format is JSON.")
             .field("sshCertRequest", "SSHCertRequest", true, "if present, return an SSH host certificate")
             .field("token", "Bool", true, "if true, return a service token signed by ZTS for this service")
@@ -350,7 +350,13 @@ public class ZTSSchema {
             .field("namespace", "SimpleName", true, "spiffe/k8s namespace value")
             .field("cloud", "SimpleName", true, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.")
             .field("x509CertSignerKeyId", "SimpleName", true, "requested x509 cert signer key id")
-            .field("sshCertSignerKeyId", "SimpleName", true, "requested ssh cert signer key id");
+            .field("sshCertSignerKeyId", "SimpleName", true, "requested ssh cert signer key id")
+            .field("jwtSVIDInstanceId", "PathElement", true, "unique instance id within provider's namespace for the jwt svid")
+            .field("jwtSVIDAudience", "String", true, "the audience value for the jwt svid")
+            .field("jwtSVIDNonce", "EntityName", true, "the nonce value for the jwt svid")
+            .field("jwtSVIDSpiffe", "String", true, "the spiffe uri for the jwt svid")
+            .field("jwtSVIDSpiffeSubject", "Bool", true, "if true, return the spiffe uri as the jwt svid sub claim value")
+            .field("jwtSVIDKeyType", "SimpleName", true, "optional signing key type - RSA or EC. Might be ignored if server doesn't have the requested type configured");
 
         sb.structType("InstanceRefreshInformation")
             .field("attestationData", "String", true, "identity attestation data including document with its signature containing attributes like IP address, instance-id, account#, etc.")

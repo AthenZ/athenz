@@ -76,6 +76,7 @@ import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import jakarta.servlet.ServletContext;
 import org.eclipse.jetty.http.HttpHeader;
 import org.mockito.ArgumentCaptor;
@@ -331,10 +332,6 @@ public class ZTSImplTest {
         return metric;
     }
 
-    private String generateRoleName(String domain, String role) {
-        return domain + ":role." + role;
-    }
-
     private String generateGroupName(String domain, String group) {
         return domain + ":group." + group;
     }
@@ -384,29 +381,29 @@ public class ZTSImplTest {
         List<Role> roles = new ArrayList<>();
 
         Role role = new Role();
-        role.setName(generateRoleName(domainName, "admin"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "admin"));
         List<RoleMember> members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user_domain.adminuser"));
         role.setRoleMembers(members);
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(domainName, "writers"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "writers"));
         role.setRoleMembers(writers);
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(domainName, "readers"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "readers"));
         role.setRoleMembers(readers);
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(domainName, "tenant.readers"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "tenant.readers"));
         role.setTrust(tenantDomain);
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(domainName, serviceName + ".tenant." + tenantDomain + ".admin"));
+        role.setName(ResourceUtils.roleResourceName(domainName, serviceName + ".tenant." + tenantDomain + ".admin"));
         role.setTrust(tenantDomain);
         roles.add(role);
 
@@ -453,7 +450,7 @@ public class ZTSImplTest {
         com.yahoo.athenz.zms.Assertion assertion = new com.yahoo.athenz.zms.Assertion();
         assertion.setResource(domainName + ":tenant." + tenantDomain + ".*");
         assertion.setAction("read");
-        assertion.setRole(generateRoleName(domainName, "tenant.readers"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, "tenant.readers"));
 
         List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -468,7 +465,7 @@ public class ZTSImplTest {
         assertion = new com.yahoo.athenz.zms.Assertion();
         assertion.setResource(domainName + ":service." + serviceName + ".tenant." + tenantDomain + ".*");
         assertion.setAction("read");
-        assertion.setRole(generateRoleName(domainName, serviceName + ".tenant." + tenantDomain + ".admin"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, serviceName + ".tenant." + tenantDomain + ".admin"));
 
         assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -548,7 +545,7 @@ public class ZTSImplTest {
         List<Role> roles = new ArrayList<>();
         String memberName = "user_domain.user1";
         Role role = new Role();
-        role.setName(generateRoleName(domainName, "admin"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "admin"));
         List<RoleMember> members = new ArrayList<>();
         RoleMember roleMember = new RoleMember();
         roleMember.setMemberName("user_domain.adminuser");
@@ -557,7 +554,7 @@ public class ZTSImplTest {
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(domainName, "role1"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "role1"));
         members = new ArrayList<>();
         roleMember = new RoleMember();
         roleMember.setMemberName(memberName);
@@ -567,7 +564,7 @@ public class ZTSImplTest {
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(domainName, "role2"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "role2"));
         members = new ArrayList<>();
         roleMember = new RoleMember();
         roleMember.setMemberName(memberName);
@@ -606,19 +603,19 @@ public class ZTSImplTest {
         List<Role> roles = new ArrayList<>();
 
         Role role = new Role();
-        role.setName(generateRoleName(domainName, "admin"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "admin"));
         List<RoleMember> members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user_domain.adminuser"));
         role.setRoleMembers(members);
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(domainName, serviceName + ".tenant." + tenantDomain1 + ".admin"));
+        role.setName(ResourceUtils.roleResourceName(domainName, serviceName + ".tenant." + tenantDomain1 + ".admin"));
         role.setTrust(tenantDomain1);
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(domainName, serviceName + ".tenant." + tenantDomain2 + ".admin"));
+        role.setName(ResourceUtils.roleResourceName(domainName, serviceName + ".tenant." + tenantDomain2 + ".admin"));
         role.setTrust(tenantDomain2);
         roles.add(role);
 
@@ -645,7 +642,7 @@ public class ZTSImplTest {
         com.yahoo.athenz.zms.Assertion assertion = new com.yahoo.athenz.zms.Assertion();
         assertion.setResource(domainName + ":service." + serviceName + ".tenant." + tenantDomain1 + ".*");
         assertion.setAction("read");
-        assertion.setRole(generateRoleName(domainName, serviceName + ".tenant." + tenantDomain1 + ".admin"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, serviceName + ".tenant." + tenantDomain1 + ".admin"));
 
         List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -658,7 +655,7 @@ public class ZTSImplTest {
         assertion = new com.yahoo.athenz.zms.Assertion();
         assertion.setResource(domainName + ":service." + serviceName + ".tenant." + tenantDomain2 + ".*");
         assertion.setAction("read");
-        assertion.setRole(generateRoleName(domainName, serviceName + ".tenant." + tenantDomain2 + ".admin"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, serviceName + ".tenant." + tenantDomain2 + ".admin"));
 
         assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -698,14 +695,14 @@ public class ZTSImplTest {
         List<Role> roles = new ArrayList<>();
 
         Role role = new Role();
-        role.setName(generateRoleName(domainName, "admin"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "admin"));
         List<RoleMember> members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user_domain.user"));
         role.setRoleMembers(members);
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(domainName, "tenancy." + providerDomain + "." + providerService + ".admin"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "tenancy." + providerDomain + "." + providerService + ".admin"));
         members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user_domain.user100"));
         members.add(new RoleMember().setMemberName("user_domain.user101"));
@@ -713,7 +710,7 @@ public class ZTSImplTest {
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(domainName, "readers"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "readers"));
         members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user_domain.user100"));
         members.add(new RoleMember().setMemberName("user_domain.user101"));
@@ -736,9 +733,9 @@ public class ZTSImplTest {
 
         com.yahoo.athenz.zms.Policy policy = new com.yahoo.athenz.zms.Policy();
         com.yahoo.athenz.zms.Assertion assertion = new com.yahoo.athenz.zms.Assertion();
-        assertion.setResource(generateRoleName(providerDomain, "tenant.readers"));
+        assertion.setResource(ResourceUtils.roleResourceName(providerDomain, "tenant.readers"));
         assertion.setAction("assume_role");
-        assertion.setRole(generateRoleName(domainName, "readers"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, "readers"));
 
         List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -749,9 +746,9 @@ public class ZTSImplTest {
 
         policy = new com.yahoo.athenz.zms.Policy();
         assertion = new com.yahoo.athenz.zms.Assertion();
-        assertion.setResource(generateRoleName(providerDomain, providerService + ".tenant." + domainName + ".admin"));
+        assertion.setResource(ResourceUtils.roleResourceName(providerDomain, providerService + ".tenant." + domainName + ".admin"));
         assertion.setAction("assume_role");
-        assertion.setRole(generateRoleName(domainName, "tenancy." + providerDomain + "." + providerService + ".admin"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, "tenancy." + providerDomain + "." + providerService + ".admin"));
 
         assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -789,18 +786,18 @@ public class ZTSImplTest {
         List<Role> roles = new ArrayList<>();
 
         Role role = new Role();
-        role.setName(generateRoleName(domainName, "superusers"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "superusers"));
         List<RoleMember> members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user_domain.admin_user"));
         role.setRoleMembers(members);
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(domainName, "users"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "users"));
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(domainName, "netops_superusers"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "netops_superusers"));
         role.setTrust(tenantDomain);
         roles.add(role);
 
@@ -810,7 +807,7 @@ public class ZTSImplTest {
         com.yahoo.athenz.zms.Assertion assertion = new com.yahoo.athenz.zms.Assertion();
         assertion.setResource(domainName + ":node.*");
         assertion.setAction("node_user");
-        assertion.setRole(generateRoleName(domainName, "users"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, "users"));
 
         List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -823,7 +820,7 @@ public class ZTSImplTest {
         assertion = new com.yahoo.athenz.zms.Assertion();
         assertion.setResource(domainName + ":node.*");
         assertion.setAction("node_sudo");
-        assertion.setRole(generateRoleName(domainName, "netops_superusers"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, "netops_superusers"));
 
         assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -836,7 +833,7 @@ public class ZTSImplTest {
         assertion = new com.yahoo.athenz.zms.Assertion();
         assertion.setResource(domainName + ":node.*");
         assertion.setAction("node_user");
-        assertion.setRole(generateRoleName(domainName, "superusers"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, "superusers"));
 
         assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -875,14 +872,14 @@ public class ZTSImplTest {
         List<Role> roles = new ArrayList<>();
 
         Role role = new Role();
-        role.setName(generateRoleName(domainName, "superusers"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "superusers"));
         List<RoleMember> members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user_domain.siteops_user_1"));
         role.setRoleMembers(members);
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(domainName, "users"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "users"));
         roles.add(role);
 
         List<com.yahoo.athenz.zms.Policy> policies = new ArrayList<>();
@@ -891,7 +888,7 @@ public class ZTSImplTest {
         com.yahoo.athenz.zms.Assertion assertion = new com.yahoo.athenz.zms.Assertion();
         assertion.setResource("*:role.netops_superusers");
         assertion.setAction("assume_role");
-        assertion.setRole(generateRoleName(domainName, "superusers"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, "superusers"));
 
         List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -904,7 +901,7 @@ public class ZTSImplTest {
         assertion = new com.yahoo.athenz.zms.Assertion();
         assertion.setResource(domainName + "netops:node.*");
         assertion.setAction("node_user");
-        assertion.setRole(generateRoleName(domainName, "users"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, "users"));
 
         assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -917,7 +914,7 @@ public class ZTSImplTest {
         assertion = new com.yahoo.athenz.zms.Assertion();
         assertion.setResource(domainName + "netops:node.*");
         assertion.setAction("node_sudo");
-        assertion.setRole(generateRoleName(domainName, "superusers"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, "superusers"));
 
         assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -954,14 +951,14 @@ public class ZTSImplTest {
         List<Role> roles = new ArrayList<>();
 
         Role role = new Role();
-        role.setName(generateRoleName(domainName, "admin"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "admin"));
         List<RoleMember> members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user_domain.user"));
         role.setRoleMembers(members);
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(domainName, "aws_role"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "aws_role"));
         members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user_domain.user100"));
         members.add(new RoleMember().setMemberName("user_domain.user101"));
@@ -974,7 +971,7 @@ public class ZTSImplTest {
         com.yahoo.athenz.zms.Assertion assertion = new com.yahoo.athenz.zms.Assertion();
         assertion.setResource(domainName + ":aws_role_name");
         assertion.setAction("assume_aws_role");
-        assertion.setRole(generateRoleName(domainName, "aws_role"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, "aws_role"));
 
         List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -2299,7 +2296,7 @@ public class ZTSImplTest {
         }
 
         // process sys.auth domain without zms service
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
         providerDomain.getDomain().setServices(createServices("sys.auth", "zts"));
         try {
@@ -2330,7 +2327,7 @@ public class ZTSImplTest {
     @Test
     public void testGetAthenzJWK() throws InterruptedException {
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
         providerDomain.getDomain().setServices(
                 Stream.of(createServices("sys.auth", "zts"),
@@ -2381,7 +2378,7 @@ public class ZTSImplTest {
 
     @Test
     public void testInvalidSysAuthService() {
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
         com.yahoo.athenz.zts.ServiceIdentity ztsService = zts.sysAuthService(ZTS_SERVICE);
         com.yahoo.athenz.zts.ServiceIdentity zmsService = zts.sysAuthService(ZMS_SERVICE);
@@ -2407,7 +2404,7 @@ public class ZTSImplTest {
 
     @Test
     public void testFillAthenzJWKConfig() {
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
         providerDomain.getDomain().setServices(
                 Stream.of(createServices("sys.auth", "zts"),
@@ -2447,7 +2444,7 @@ public class ZTSImplTest {
     @Test
     public void testLoadAthenzJWK() {
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
         providerDomain.getDomain().setServices(
                 Stream.of(createServices("sys.auth", "zts"),
@@ -4915,76 +4912,6 @@ public class ZTSImplTest {
         AthenzObject.LIST.convertToLowerCase(null);
     }
 
-    private SignedDomain signedAuthorizedProviderDomain() {
-
-        SignedDomain signedDomain = new SignedDomain();
-
-        List<Role> roles = new ArrayList<>();
-
-        Role role = new Role();
-        role.setName(generateRoleName("sys.auth", "providers"));
-        List<RoleMember> members = new ArrayList<>();
-        members.add(new RoleMember().setMemberName("athenz.provider"));
-        members.add(new RoleMember().setMemberName("sys.auth.zts"));
-        role.setRoleMembers(members);
-        roles.add(role);
-
-        List<com.yahoo.athenz.zms.Policy> policies = new ArrayList<>();
-
-        com.yahoo.athenz.zms.Policy policy = new com.yahoo.athenz.zms.Policy();
-        com.yahoo.athenz.zms.Assertion assertion1 = new com.yahoo.athenz.zms.Assertion();
-        assertion1.setResource("sys.auth:instance");
-        assertion1.setAction("launch");
-        assertion1.setRole("sys.auth:role.providers");
-
-        com.yahoo.athenz.zms.Assertion assertion2 = new com.yahoo.athenz.zms.Assertion();
-        assertion2.setResource("sys.auth:dns.ostk.athenz.cloud");
-        assertion2.setAction("launch");
-        assertion2.setRole("sys.auth:role.providers");
-
-        com.yahoo.athenz.zms.Assertion assertion3 = new com.yahoo.athenz.zms.Assertion();
-        assertion3.setResource("sys.auth:hostname.athenz.cloud");
-        assertion3.setAction("launch");
-        assertion3.setRole("sys.auth:role.providers");
-
-        com.yahoo.athenz.zms.Assertion assertion4 = new com.yahoo.athenz.zms.Assertion();
-        assertion4.setResource("sys.auth:hostname.athenz.info");
-        assertion4.setAction("launch");
-        assertion4.setRole("sys.auth:role.providers");
-
-        List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
-        assertions.add(assertion1);
-        assertions.add(assertion2);
-        assertions.add(assertion3);
-        assertions.add(assertion4);
-
-        policy.setAssertions(assertions);
-        policy.setName("sys.auth:policy.providers");
-        policies.add(policy);
-
-        com.yahoo.athenz.zms.DomainPolicies domainPolicies = new com.yahoo.athenz.zms.DomainPolicies();
-        domainPolicies.setDomain("sys.auth");
-        domainPolicies.setPolicies(policies);
-
-        com.yahoo.athenz.zms.SignedPolicies signedPolicies = new com.yahoo.athenz.zms.SignedPolicies();
-        signedPolicies.setContents(domainPolicies);
-        signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
-        signedPolicies.setKeyId("0");
-
-        DomainData domain = new DomainData();
-        domain.setName("sys.auth");
-        domain.setRoles(roles);
-        domain.setPolicies(signedPolicies);
-        domain.setModified(Timestamp.fromCurrentTime());
-
-        signedDomain.setDomain(domain);
-
-        signedDomain.setSignature(Crypto.sign(SignUtils.asCanonicalString(domain), privateKey));
-        signedDomain.setKeyId("0");
-
-        return signedDomain;
-    }
-
     private SignedDomain signedBootstrapTenantDomain(String provider, String domainName,
             String serviceName) {
         return signedBootstrapTenantDomain(provider, domainName, serviceName, null);
@@ -4998,7 +4925,7 @@ public class ZTSImplTest {
         List<Role> roles = new ArrayList<>();
 
         Role role = new Role();
-        role.setName(generateRoleName(domainName, "providers"));
+        role.setName(ResourceUtils.roleResourceName(domainName, "providers"));
         List<RoleMember> members = new ArrayList<>();
         members.add(new RoleMember().setMemberName(provider));
         role.setRoleMembers(members);
@@ -5010,7 +4937,7 @@ public class ZTSImplTest {
         com.yahoo.athenz.zms.Assertion assertion = new com.yahoo.athenz.zms.Assertion();
         assertion.setResource(domainName + ":service." + serviceName);
         assertion.setAction("launch");
-        assertion.setRole(generateRoleName(domainName, "providers"));
+        assertion.setRole(ResourceUtils.roleResourceName(domainName, "providers"));
 
         List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -5054,7 +4981,7 @@ public class ZTSImplTest {
         Mockito.when(mockCloudStore.getGCPProjectId("athenz")).thenReturn("my-gcp-project-xsdc");
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5066,6 +4993,7 @@ public class ZTSImplTest {
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
         Mockito.when(providerClient.getProviderScheme()).thenReturn(InstanceProvider.Scheme.CLASS);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         Map<String, String> attrs = new HashMap<>();
         attrs.put("certSSH", "true");
@@ -5102,6 +5030,72 @@ public class ZTSImplTest {
         assertEquals(response.getStatus(), 201);
         InstanceIdentity resIdentity = (InstanceIdentity) response.getEntity();
         assertNotNull(resIdentity.getX509Certificate());
+        ztsImpl.enableWorkloadStore = false;
+    }
+
+    @Test
+    public void testPostInstanceRegisterInformationNoAttestationData() throws IOException, ProviderResourceException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        Mockito.when(mockCloudStore.getAzureSubscription("athenz")).thenReturn("12345");
+        Mockito.when(mockCloudStore.getGCPProjectId("athenz")).thenReturn("my-gcp-project-xsdc");
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
+        store.processSignedDomain(providerDomain, false);
+
+        SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
+        store.processSignedDomain(tenantDomain, false);
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
+        InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getProviderScheme()).thenReturn(InstanceProvider.Scheme.CLASS);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
+
+        Map<String, String> attrs = new HashMap<>();
+        attrs.put("certSSH", "true");
+
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setDomain("athenz").setService("production").setProvider("athenz.provider")
+                .setAttributes(attrs);
+
+        InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
+        Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
+
+        path = Paths.get("src/test/resources/athenz.instanceid.pem");
+        String pem = new String(Files.readAllBytes(path));
+
+        InstanceIdentity identity = new InstanceIdentity().setName("athenz.production")
+                .setX509Certificate(pem);
+        Mockito.doReturn(identity).when(instanceManager).generateIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyInt(), Mockito.any(), Mockito.any());
+
+        ztsImpl.instanceProviderManager = instanceProviderManager;
+        ztsImpl.instanceCertManager = instanceManager;
+        ztsImpl.enableWorkloadStore = true;
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setCsr(certCsr).setDomain("athenz").setService("production")
+                .setProvider("athenz.provider").setToken(true);
+
+        ResourceContext context = createResourceContext(null);
+
+        try {
+            ztsImpl.postInstanceRegisterInformation(context, info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("attestation data is required for x509 certificate request"));
+        }
+
         ztsImpl.enableWorkloadStore = false;
     }
 
@@ -5143,7 +5137,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5155,6 +5149,7 @@ public class ZTSImplTest {
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
         Mockito.when(providerClient.getProviderScheme()).thenReturn(InstanceProvider.Scheme.CLASS);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         Map<String, String> attrs = new HashMap<>();
         attrs.put("certSSH", "true");
@@ -5208,7 +5203,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5220,6 +5215,7 @@ public class ZTSImplTest {
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
         Mockito.when(providerClient.getProviderScheme()).thenReturn(InstanceProvider.Scheme.CLASS);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         Map<String, String> attrs = new HashMap<>();
         attrs.put("certSSH", "true");
@@ -5270,7 +5266,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5282,6 +5278,7 @@ public class ZTSImplTest {
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
         Mockito.when(providerClient.getProviderScheme()).thenReturn(InstanceProvider.Scheme.CLASS);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         Map<String, String> attrs = new HashMap<>();
         attrs.put("certSSH", "true");
@@ -5344,7 +5341,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5356,6 +5353,7 @@ public class ZTSImplTest {
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
         Mockito.when(providerClient.getProviderScheme()).thenReturn(InstanceProvider.Scheme.CLASS);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         Map<String, String> attrs = new HashMap<>();
         attrs.put("certSSH", "true");
@@ -5409,7 +5407,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5420,6 +5418,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         Map<String, String> attrs = new HashMap<>();
         attrs.put("certSSH", "false");
@@ -5471,7 +5470,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5485,6 +5484,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         Map<String, String> attrs = new HashMap<>();
         attrs.put("certSSH", "true");
@@ -5550,7 +5550,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5561,6 +5561,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -5613,7 +5614,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5624,6 +5625,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         Map<String, String> attrs = new HashMap<>();
         attrs.put(InstanceProvider.ZTS_CERT_SUBJECT_OU, "Testing Domain");
@@ -5671,7 +5673,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5682,6 +5684,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         Map<String, String> instanceAttrs = new HashMap<>();
         instanceAttrs.put(InstanceProvider.ZTS_CERT_REFRESH, "false");
@@ -5729,7 +5732,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5768,7 +5771,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5779,6 +5782,8 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
+
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
         Map<String, String> confirmAttrs = new HashMap<>();
@@ -5824,7 +5829,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5864,7 +5869,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5875,6 +5880,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenThrow(new ResourceException(400));
@@ -5906,7 +5912,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5917,6 +5923,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any()))
@@ -5962,7 +5969,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -5996,7 +6003,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6030,7 +6037,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6061,7 +6068,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6072,6 +6079,8 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
+
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -6109,7 +6118,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6120,6 +6129,8 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
+
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -6161,7 +6172,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6172,6 +6183,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -6216,7 +6228,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6227,6 +6239,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -6270,7 +6283,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6281,6 +6294,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -6344,7 +6358,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6361,6 +6375,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider")
                 .setAttributes(attrs);
@@ -6436,7 +6451,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6458,6 +6473,7 @@ public class ZTSImplTest {
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
         Mockito.when(providerClient.getProviderScheme()).thenReturn(InstanceProvider.Scheme.CLASS);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
@@ -6535,7 +6551,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6578,7 +6594,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6618,7 +6634,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6629,6 +6645,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         Map<String, String> attrs = new HashMap<>();
         attrs.put("certRefresh", "false");
@@ -6684,7 +6701,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6695,6 +6712,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -6765,7 +6783,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6776,6 +6794,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -6867,7 +6886,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6878,6 +6897,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
@@ -6961,7 +6981,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -6972,6 +6992,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
@@ -7028,7 +7049,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7039,6 +7060,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -7096,7 +7118,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7107,6 +7129,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -7161,7 +7184,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7205,7 +7228,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7242,7 +7265,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7253,6 +7276,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -7310,7 +7334,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7321,6 +7345,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -7378,7 +7403,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7389,6 +7414,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -7441,7 +7467,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7452,6 +7478,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -7511,7 +7538,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7522,6 +7549,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -7581,7 +7609,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7592,6 +7620,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -7647,7 +7676,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7658,6 +7687,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -7715,7 +7745,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7726,6 +7756,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -7917,7 +7948,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -7928,6 +7959,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
         InstanceConfirmation confirmation = new InstanceConfirmation()
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
@@ -7987,7 +8019,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -8038,7 +8070,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -8089,7 +8121,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -9526,7 +9558,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -9582,7 +9614,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -11036,7 +11068,7 @@ public class ZTSImplTest {
         // create the admin role
 
         Role role = new Role();
-        role.setName(generateRoleName(newsDomainName, "admin"));
+        role.setName(ResourceUtils.roleResourceName(newsDomainName, "admin"));
         List<RoleMember> members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user_domain.adminuser"));
         role.setRoleMembers(members);
@@ -11069,7 +11101,7 @@ public class ZTSImplTest {
         Assertion assertion = new com.yahoo.athenz.zms.Assertion();
         assertion.setResource(newsDomainName + ".*");
         assertion.setAction("*");
-        assertion.setRole(generateRoleName(newsDomainName, "admin"));
+        assertion.setRole(ResourceUtils.roleResourceName(newsDomainName, "admin"));
 
         List<Assertion> assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -11115,7 +11147,7 @@ public class ZTSImplTest {
         // create the admin role
 
         Role role = new Role();
-        role.setName(generateRoleName(weatherDomainName, "admin"));
+        role.setName(ResourceUtils.roleResourceName(weatherDomainName, "admin"));
         List<RoleMember> members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user_domain.adminuser"));
         role.setRoleMembers(members);
@@ -11123,7 +11155,7 @@ public class ZTSImplTest {
 
         // create the trusted role
 
-        roles.add(new Role().setName(generateRoleName(weatherDomainName, roleName)).setTrust(sportsDomainName));
+        roles.add(new Role().setName(ResourceUtils.roleResourceName(weatherDomainName, roleName)).setTrust(sportsDomainName));
 
         // no services
 
@@ -11137,7 +11169,7 @@ public class ZTSImplTest {
         com.yahoo.athenz.zms.Assertion assertion = new com.yahoo.athenz.zms.Assertion();
         assertion.setResource(weatherDomainName + ".*");
         assertion.setAction("*");
-        assertion.setRole(generateRoleName(weatherDomainName, "admin"));
+        assertion.setRole(ResourceUtils.roleResourceName(weatherDomainName, "admin"));
 
         List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -11177,14 +11209,14 @@ public class ZTSImplTest {
 
         roles = new ArrayList<>();
         role = new Role();
-        role.setName(generateRoleName(sportsDomainName, "admin"));
+        role.setName(ResourceUtils.roleResourceName(sportsDomainName, "admin"));
         members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user_domain.adminuser"));
         role.setRoleMembers(members);
         roles.add(role);
 
         role = new Role();
-        role.setName(generateRoleName(sportsDomainName, roleName));
+        role.setName(ResourceUtils.roleResourceName(sportsDomainName, roleName));
         members = new ArrayList<>();
         members.add(new RoleMember().setMemberName("user_domain.user2"));
         members.add(new RoleMember().setMemberName(ResourceUtils.groupResourceName(newsDomainName, "group1")));
@@ -11197,7 +11229,7 @@ public class ZTSImplTest {
         assertion = new com.yahoo.athenz.zms.Assertion();
         assertion.setResource(sportsDomainName + ".*");
         assertion.setAction("*");
-        assertion.setRole(generateRoleName(sportsDomainName, "admin"));
+        assertion.setRole(ResourceUtils.roleResourceName(sportsDomainName, "admin"));
 
         assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -11209,9 +11241,9 @@ public class ZTSImplTest {
         policy = new com.yahoo.athenz.zms.Policy();
         assertion = new com.yahoo.athenz.zms.Assertion();
         final String assumeRoleDomain = wildCardAssumeDomain ? "*" : weatherDomainName;
-        assertion.setResource(generateRoleName(assumeRoleDomain, assumeRoleName));
+        assertion.setResource(ResourceUtils.roleResourceName(assumeRoleDomain, assumeRoleName));
         assertion.setAction("assume_role");
-        assertion.setRole(generateRoleName(sportsDomainName, roleName));
+        assertion.setRole(ResourceUtils.roleResourceName(sportsDomainName, roleName));
 
         assertions = new ArrayList<>();
         assertions.add(assertion);
@@ -11739,7 +11771,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("sys.auth.zts", "athenz", "production");
@@ -11748,6 +11780,7 @@ public class ZTSImplTest {
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
         Mockito.when(providerClient.getProviderScheme()).thenReturn(InstanceProvider.Scheme.CLASS);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         // include the principal from the request object
 
@@ -11797,6 +11830,7 @@ public class ZTSImplTest {
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
         Mockito.when(providerClient.getProviderScheme()).thenReturn(InstanceProvider.Scheme.CLASS);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         // include the principal from the request object
 
@@ -11835,7 +11869,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -11876,7 +11910,7 @@ public class ZTSImplTest {
         DataStore store = new DataStore(structStore, null, ztsMetric);
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        SignedDomain providerDomain = signedAuthorizedProviderDomain();
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
         store.processSignedDomain(providerDomain, false);
 
         SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
@@ -11885,6 +11919,7 @@ public class ZTSImplTest {
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
         Mockito.when(providerClient.getProviderScheme()).thenReturn(InstanceProvider.Scheme.CLASS);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
         // include the principal from the request object
 

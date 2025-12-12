@@ -51,6 +51,12 @@ public class InstanceRegisterInformationTest {
         i1.setCloud("aws");
         i1.setX509CertSignerKeyId("x509KeyId");
         i1.setSshCertSignerKeyId("sshKeyId");
+        i1.setJwtSVIDSpiffeSubject(true);
+        i1.setJwtSVIDAudience("audience");
+        i1.setJwtSVIDNonce("nonce");
+        i1.setJwtSVIDSpiffe("spiffe://athenz.io/service");
+        i1.setJwtSVIDInstanceId("instance-id");
+        i1.setJwtSVIDKeyType("rsa");
 
         i2.setProvider("provider");
         i2.setAttestationData("doc");
@@ -69,6 +75,12 @@ public class InstanceRegisterInformationTest {
         i2.setCloud("aws");
         i2.setX509CertSignerKeyId("x509KeyId");
         i2.setSshCertSignerKeyId("sshKeyId");
+        i2.setJwtSVIDSpiffeSubject(true);
+        i2.setJwtSVIDAudience("audience");
+        i2.setJwtSVIDNonce("nonce");
+        i2.setJwtSVIDSpiffe("spiffe://athenz.io/service");
+        i2.setJwtSVIDInstanceId("instance-id");
+        i2.setJwtSVIDKeyType("rsa");
 
         // getter assertion
         assertEquals(i1.getAttestationData(), "doc");
@@ -88,6 +100,12 @@ public class InstanceRegisterInformationTest {
         assertEquals(i1.getCloud(), "aws");
         assertEquals(i1.getX509CertSignerKeyId(), "x509KeyId");
         assertEquals(i1.getSshCertSignerKeyId(), "sshKeyId");
+        assertTrue(i1.getJwtSVIDSpiffeSubject());
+        assertEquals(i1.getJwtSVIDAudience(), "audience");
+        assertEquals(i1.getJwtSVIDNonce(), "nonce");
+        assertEquals(i1.getJwtSVIDSpiffe(), "spiffe://athenz.io/service");
+        assertEquals(i1.getJwtSVIDInstanceId(), "instance-id");
+        assertEquals(i1.getJwtSVIDKeyType(), "rsa");
 
         assertEquals(i2, i1);
         assertEquals(i2, i2);
@@ -212,6 +230,48 @@ public class InstanceRegisterInformationTest {
         i2.setSshCertSignerKeyId("keyid");
         assertNotEquals(i1, i2);
         i2.setSshCertSignerKeyId("sshKeyId");
+        assertEquals(i1, i2);
+
+        i2.setJwtSVIDSpiffeSubject(null);
+        assertNotEquals(i1, i2);
+        i2.setJwtSVIDSpiffeSubject(false);
+        assertNotEquals(i1, i2);
+        i2.setJwtSVIDSpiffeSubject(true);
+        assertEquals(i1, i2);
+
+        i2.setJwtSVIDAudience(null);
+        assertNotEquals(i1, i2);
+        i2.setJwtSVIDAudience("audience2");
+        assertNotEquals(i1, i2);
+        i2.setJwtSVIDAudience("audience");
+        assertEquals(i1, i2);
+
+        i2.setJwtSVIDNonce(null);
+        assertNotEquals(i1, i2);
+        i2.setJwtSVIDNonce("nonce2");
+        assertNotEquals(i1, i2);
+        i2.setJwtSVIDNonce("nonce");
+        assertEquals(i1, i2);
+
+        i2.setJwtSVIDSpiffe(null);
+        assertNotEquals(i1, i2);
+        i2.setJwtSVIDSpiffe("spiffe://athenz.io/service2");
+        assertNotEquals(i1, i2);
+        i2.setJwtSVIDSpiffe("spiffe://athenz.io/service");
+        assertEquals(i1, i2);
+
+        i2.setJwtSVIDKeyType(null);
+        assertNotEquals(i1, i2);
+        i2.setJwtSVIDKeyType("ec");
+        assertNotEquals(i1, i2);
+        i2.setJwtSVIDKeyType("rsa");
+        assertEquals(i1, i2);
+
+        i2.setJwtSVIDInstanceId(null);
+        assertNotEquals(i1, i2);
+        i2.setJwtSVIDInstanceId("instance-id-2");
+        assertNotEquals(i1, i2);
+        i2.setJwtSVIDInstanceId("instance-id");
         assertEquals(i1, i2);
     }
 }
