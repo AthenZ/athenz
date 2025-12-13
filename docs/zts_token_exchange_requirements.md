@@ -5,7 +5,7 @@
 Specification: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
 
 The JAG token issue feature in Athenz ZTS allows a service or user to exchange an existing
-ID token for a new jwt authorization grant (JAG) token. The JAG token then could be used
+ID token for a new JWT Authorization Grant (JAG) token. The JAG token then could be used
 by, for example, an AI agent to request the appropriate access token for the principal and
 a given service. To perform this exchange, the requesting principal must be authorized to
 do so based on policies defined in Athenz.
@@ -25,8 +25,8 @@ Requirements:
 1. Subject Token Validation
 
 - Checks if the subject token audience matches the principal name
-- If not, retrieves the service client ID assigned to the principal and if we have an external identity
-  provider fetch the token audience and validates that the client ID matches the token audience
+- If not, retrieves the service client ID assigned to the principal. If an external identity
+  provider is used, it fetches the token audience and validates that the client ID matches the token audience
 
 2. Role Names Validation
 
@@ -59,11 +59,11 @@ Requirements:
 1. JAG Token Validation
 
 - Checks that the JAG token's audience claim matches either ztsOpenIDIssuer (OIDC issuer) or
-  ztsOAuthIssuer (OAuth issuer) values configured in the ZTS Server 
+  ztsOAuthIssuer (OAuth issuer) values configured in the ZTS Server
 - Checks that the JAG token's client_id matches the authenticated client principal name
    or the registered service client ID for the principal
 - Checks that the JAG token has a non-empty scope claim. If the scope claim in the access token
-  requests is provided, then it must match the scope claim in the JAG token or be a subset of it.
+  request is provided, then it must match the scope claim in the JAG token or be a subset of it.
 
 2. Role Names Validation
 
@@ -94,19 +94,19 @@ Requirements:
 1. Role Names Validation
 
 - Checks that the subject token has a non-empty scope claim. If the scope claim in the access token
-  requests is provided, then it must match the scope claim in the token or be a subset of it.
+  request is provided, then it must match the scope claim in the token or be a subset of it.
 - Validates that the subject identity has access to at least one of the requested roles
 
 2. Impersonation Authorization Check
 
 - Verifies the calling principal is authorized to perform token impersonation from the source
   domain to the target domain based on the following assertion:
-        action: `zts.token_source_exchange`
-        resource: `{sourceDomain}:{targetDomain>}`
+    action: `zts.token_source_exchange`
+    resource: `{sourceDomain}:{targetDomain}`
 - For each subject identity access role, checks if the authenticated principal is authorized
   to perform token exchange based on the following assertion:
-         action: `zts.token_target_exchange`
-         resource: `{targetDomain}:{sourceDomain}:role.{roleName}`
+    action: `zts.token_target_exchange`
+    resource: `{targetDomain}:{sourceDomain}:role.{roleName}`
 
 ## Access Token Exchange (Delegation)
 Specification: https://datatracker.ietf.org/doc/html/rfc8693
@@ -134,15 +134,15 @@ Requirements:
 1. Role Names Validation
 
 - Checks that the subject token has a non-empty scope claim. If the scope claim in the access token
-  requests is provided, then it must match the scope claim in the token or be a subset of it.
+  request is provided, then it must match the scope claim in the token or be a subset of it.
 - Validates that the subject identity has access to at least one of the requested roles
 
 2. Delegation Authorization Check
 
 - For each subject identity access role, checks if the authenticated principal (identity from the
   actor token) is authorized to perform token exchange based on the following assertion:
-  action: `zts.token_target_exchange`
-  resource: `{targetDomain}:{sourceDomain}:role.{roleName}`
+    action: `zts.token_target_exchange`
+    resource: `{targetDomain}:{sourceDomain}:role.{roleName}`
 
 ## External Token Exchange Provider Support
 
