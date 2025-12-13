@@ -12781,7 +12781,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
 
-        return dbService.listServiceDependencies(domainName);
+        // first let's get the service dependencies from our own database
+
+        ServiceIdentityList services = dbService.listServiceDependencies(domainName);
+
+        // now we'll check with each service provider to see if
+        // they have a dependency on our domain
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        Map<String, ServiceProviderManager.DomainDependencyProvider> serviceProvidersWithEndpoints
+                = serviceProviderManager.getServiceProvidersWithEndpoints();
+        for (String serviceProvider : serviceProvidersWithEndpoints.keySet()) {
+            DomainDependencyProviderResponse providerResponse = serviceProviderClient.getDependencyStatus(
+                    serviceProvidersWithEndpoints.get(serviceProvider),
+                    domainName, principal.getFullName());
+            if (providerResponse.getStatus().equals(ZMSConsts.PROVIDER_RESPONSE_DENY)) {
+                services.getNames().add(serviceProvider);
+            }
+        }
+        return services;
     }
 
     @Override
