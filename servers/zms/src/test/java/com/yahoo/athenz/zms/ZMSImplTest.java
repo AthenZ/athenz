@@ -14484,6 +14484,63 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testLoadSolutionTemplatesWithNullRoles() {
+        // Create a solution template with null roles to test the continue statement
+        String templateJson = "{"
+                + "\"templates\": {"
+                + "\"template_with_null_roles\": {"
+                + "\"roles\": null"
+                + "},"
+                + "\"template_with_valid_roles\": {"
+                + "\"roles\": ["
+                + "{"
+                + "\"name\": \"valid_role\","
+                + "\"roleMembers\": ["
+                + "{"
+                + "\"memberName\": \"user.testuser\""
+                + "}"
+                + "]"
+                + "}"
+                + "]"
+                + "}"
+                + "}"
+                + "}";
+
+        // Write template to a temporary file
+        File tempFile = null;
+        try {
+            tempFile = File.createTempFile("null_roles_template", ".json");
+            try (FileWriter writer = new FileWriter(tempFile)) {
+                writer.write(templateJson);
+            }
+
+            // Set system property to point to the template file
+            String originalProperty = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
+            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
+
+            try {
+                // This should successfully load without throwing an exception
+                // The template with null roles should be skipped via continue statement
+                ZMSImpl zmsImpl = new ZMSImpl();
+                assertNotNull(zmsImpl);
+            } finally {
+                // Restore original property
+                if (originalProperty != null) {
+                    System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, originalProperty);
+                } else {
+                    System.clearProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
+                }
+            }
+        } catch (IOException ex) {
+            fail("Failed to create temporary test file: " + ex.getMessage());
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete();
+            }
+        }
+    }
+
+    @Test
     public void testPutPolicyNoLoopbackNoSuchDomainError() {
         final String auditRef = zmsTestInitializer.getAuditRef();
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
@@ -23013,7 +23070,7 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
 
         DomainTemplateDetailsList serverTemplateDetailsList = zmsImpl.getServerTemplateDetailsList(ctx);
-        assertEquals(serverTemplateDetailsList.getMetaData().size(), 15);
+        assertEquals(serverTemplateDetailsList.getMetaData().size(), 17);
         TemplateMetaData vipTemplateMetaData = null;
         for (TemplateMetaData templateMetaData : serverTemplateDetailsList.getMetaData()) {
             if (templateMetaData.getTemplateName().equals("vipng")) {
@@ -23032,7 +23089,7 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
 
         DomainTemplateDetailsList serverTemplateDetailsList = zmsImpl.getServerTemplateDetailsList(ctx);
-        assertEquals(serverTemplateDetailsList.getMetaData().size(), 15);
+        assertEquals(serverTemplateDetailsList.getMetaData().size(), 17);
         List<TemplateMetaData> templates = serverTemplateDetailsList.getMetaData();
 
         String previousTemplateName = "";
