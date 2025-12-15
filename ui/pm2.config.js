@@ -22,8 +22,11 @@ module.exports = {
             name: 'athenz-ui',
             cwd: APP_DIR,
             script: require(path.join(APP_DIR, 'package.json')).main,
+            // Load OpenTelemetry instrumentation BEFORE app starts
+            node_args: '-r ./src/opentelemetry/instrumentation.mjs',
             env_production: {
                 NODE_ENV: 'production',
+                OTEL_EXPORTER_OTLP_CA_CERTIFICATE: '/opt/yahoo/share/ssl/certs/yahoo_certificate_bundle.pem',
             },
         },
     ],
