@@ -15,6 +15,7 @@
  */
 package com.oath.auth;
 
+import com.yahoo.athenz.auth.util.Crypto;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
@@ -129,11 +130,13 @@ public class OpenTelemetryCertReloadEventEmitter {
             return;
         }
         
-        String name = cert.getSubjectX500Principal().getName();
+        String cn = Crypto.extractX509CertCommonName(cert);
+        String subject = cert.getSubjectX500Principal().getName();
         long secsUntilExpiry = (cert.getNotAfter().getTime() - System.currentTimeMillis()) / 1000;
 
         Attributes attrs = Attributes.builder()
-                .put("cname", name)
+                .put("cn", cn != null ? cn : "")
+                .put("subject", subject != null ? subject : "")
                 .build();
         
         certValidityRemainingSecs.set(secsUntilExpiry, attrs);

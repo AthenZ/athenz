@@ -30,7 +30,7 @@ public class KeyRefresher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KeyRefresher.class);
 
-    private static final String PROP_OTEL_DISABLED = "athenz.cert_refresher.otel_disabled";
+    private static final String PROP_OTEL_ENABLED = "athenz.cert_refresher.otel_enabled";
 
     private Thread scanForFileChangesThread;
     private boolean shutdown = false; //only for testing
@@ -116,19 +116,17 @@ public class KeyRefresher {
      * Initialize OpenTelemetry metrics if explicitly enabled.
      * 
      * Behavior:
-     * - If athenz.cert_refresher.otel_disabled=false: Initialize OTel metrics
-     * - If athenz.cert_refresher.otel_disabled=true or not set: OTel disabled, return null
+     * - If athenz.cert_refresher.otel_enabled=true: Initialize OTel metrics
+     * - If athenz.cert_refresher.otel_enabled=false or not set: OTel disabled, return null
      * - If OTel JARs are not available on classpath: Log warning and return null
      * 
      * @return OpenTelemetryCertReloadEventEmitter instance or null if disabled or unavailable
      */
     private OpenTelemetryCertReloadEventEmitter initOtelMetrics() {
-        String otelDisabledProp = System.getProperty(PROP_OTEL_DISABLED);
-        boolean otelDisabled = !Boolean.FALSE.toString().equalsIgnoreCase(otelDisabledProp);
+        boolean otelEnabled = Boolean.parseBoolean(System.getProperty(PROP_OTEL_ENABLED, "false"));
         
-        if (otelDisabled) {
-            LOGGER.info("OpenTelemetry cert refresh metrics disabled ({}={})", 
-                    PROP_OTEL_DISABLED, otelDisabledProp);
+        if (!otelEnabled) {
+            LOGGER.info("OpenTelemetry cert refresh metrics disabled ({}=false)", PROP_OTEL_ENABLED);
             return null;
         }
 
