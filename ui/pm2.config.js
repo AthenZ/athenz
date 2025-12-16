@@ -23,9 +23,11 @@ module.exports = {
             cwd: APP_DIR,
             script: require(path.join(APP_DIR, 'package.json')).main,
             // Load OpenTelemetry instrumentation BEFORE app starts
-            node_args: '--import ./src/opentelemetry/instrumentation.mjs',
+            node_args: '-r ./src/opentelemetry/instrumentation.mjs',
             env_production: {
                 NODE_ENV: 'production',
+                OTEL_EXPORTER_OTLP_CA_CERTIFICATE:
+                    process.env.OTEL_EXPORTER_OTLP_CA_CERTIFICATE,
             },
         },
     ],
