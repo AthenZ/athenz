@@ -26,7 +26,7 @@ module.exports = {
             node_args: '-r ./src/opentelemetry/instrumentation.mjs',
             env_production: {
                 NODE_ENV: 'production',
-                OTEL_EXPORTER_OTLP_CA_CERTIFICATE: process.env.OTEL_EXPORTER_CA_CERTIFICATE,
+                OTEL_EXPORTER_OTLP_CA_CERTIFICATE: process.env.OTEL_EXPORTER_OTLP_CA_CERTIFICATE,
             },
         },
     ],
