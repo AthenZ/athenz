@@ -113,17 +113,18 @@ public class KeyRefresher {
     }
 
     /**
-     * Initialize OpenTelemetry metrics if not disabled.
+     * Initialize OpenTelemetry metrics if explicitly enabled.
      * 
      * Behavior:
-     * - If athenz.cert_refresher.otel_disabled=true: OTel disabled, return null
-     * - If athenz.cert_refresher.otel_disabled=false or not set: Initialize OTel metrics
+     * - If athenz.cert_refresher.otel_disabled=false: Initialize OTel metrics
+     * - If athenz.cert_refresher.otel_disabled=true or not set: OTel disabled, return null
+     * - If OTel JARs are not available on classpath: Log warning and return null
      * 
-     * @return OpenTelemetryCertReloadEventEmitter instance or null if disabled
+     * @return OpenTelemetryCertReloadEventEmitter instance or null if disabled or unavailable
      */
     private OpenTelemetryCertReloadEventEmitter initOtelMetrics() {
         String otelDisabledProp = System.getProperty(PROP_OTEL_DISABLED);
-        boolean otelDisabled = "true".equalsIgnoreCase(otelDisabledProp);
+        boolean otelDisabled = !Boolean.FALSE.toString().equalsIgnoreCase(otelDisabledProp);
         
         if (otelDisabled) {
             LOGGER.info("OpenTelemetry cert refresh metrics disabled ({}={})", 
@@ -131,8 +132,13 @@ public class KeyRefresher {
             return null;
         }
 
-        OpenTelemetryCertReloadEventEmitter metric = new OpenTelemetryCertReloadEventEmitter();
-        return metric;
+        try {
+            return new OpenTelemetryCertReloadEventEmitter();
+        } catch (NoClassDefFoundError e) {
+            LOGGER.warn("OpenTelemetry metrics enabled but OTel JARs not available on classpath. " +
+                    "Metrics will be disabled. Error: {}", e.getMessage());
+            return null;
+        }
     }
 
     /**
@@ -167,28 +173,24 @@ public class KeyRefresher {
                     boolean keyFilesChanged = haveFilesBeenChanged(athenzPrivateKey, lastPrivateKeyManagerChecksum);
                     keyFilesChanged = haveFilesBeenChanged(athenzPublicCert, lastPublicCertManagerChecksum) || keyFilesChanged;
                     if (keyFilesChanged) {
-                        try {
-                            keyManagerProxy.setKeyManager(Utils.getKeyManagers(athenzPublicCert, athenzPrivateKey));
-                            if (LOGGER.isDebugEnabled()) {
-                                LOGGER.debug("KeyRefresher detected changes. Reloaded Key managers");
-                            }
-                            if (keyRefresherListener != null) {
-                                keyRefresherListener.onKeyChangeEvent();
-                            }
-                            if (otelMetric != null) {
-                                otelMetric.recordCertRefresh(athenzPublicCert);
-                            }
-                        } catch (Exception ex) {
-                            LOGGER.error("KeyRefresher detected cert change - reload FAILED: {}", athenzPublicCert, ex);
-                            if (otelMetric != null) {
-                                otelMetric.recordCertRefreshFailure(ex.getMessage());
-                            }
+                        keyManagerProxy.setKeyManager(Utils.getKeyManagers(athenzPublicCert, athenzPrivateKey));
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("KeyRefresher detected changes. Reloaded Key managers");
+                        }
+                        if (keyRefresherListener != null) {
+                            keyRefresherListener.onKeyChangeEvent();
+                        }
+                        if (otelMetric != null) {
+                            otelMetric.recordCertRefresh(athenzPublicCert);
                         }
                     }
                 } catch (Exception ex) {
                     // if we could not reload the SSL context (but we tried) we will
                     // ignore it and hope it works on the next loop
                     LOGGER.error("Error loading ssl context", ex);
+                    if (otelMetric != null) {
+                        otelMetric.recordCertRefreshFailure(ex.getMessage());
+                    }
                 }
                 try {
                     if (LOGGER.isDebugEnabled()) {

@@ -30,7 +30,6 @@ import java.security.cert.X509Certificate;
  * 
  * Metrics:
  * - athenz_cert_refresher.refresh.result_total: Counter with result attribute (success/failure)
- * - athenz_cert_refresher.refresh.result_last_timestamp: Gauge with result attribute - timestamp of last result
  * - athenz_cert_refresher.cert.validity.remaining_secs: Gauge - seconds until cert expires
  */
 public class OpenTelemetryCertReloadEventEmitter {
@@ -42,9 +41,6 @@ public class OpenTelemetryCertReloadEventEmitter {
     private static final String COUNTER_NAME = "athenz_cert_refresher.refresh.result_total";
     private static final String COUNTER_DESC = "Counts the total number of certificate refresh operations by result";
 
-    private static final String GAUGE_RESULT_TIMESTAMP_NAME = "athenz_cert_refresher.refresh.result_last_timestamp";
-    private static final String GAUGE_RESULT_TIMESTAMP_DESC = "Unix timestamp of last refresh result by status (success/failure)";
-
     private static final String GAUGE_VALIDITY_NAME = "athenz_cert_refresher.cert.validity.remaining_secs";
     private static final String GAUGE_VALIDITY_DESC = "Number of seconds remaining before the current TLS certificate expires";
 
@@ -52,7 +48,6 @@ public class OpenTelemetryCertReloadEventEmitter {
     public static final String RESULT_FAILURE = "failure";
 
     private final LongCounter refreshResultCounter;
-    private final LongGauge resultLastTimestampGauge;
     private final LongGauge certValidityRemainingSecs;
 
     /**
@@ -64,11 +59,6 @@ public class OpenTelemetryCertReloadEventEmitter {
 
         this.refreshResultCounter = meter.counterBuilder(COUNTER_NAME)
                 .setDescription(COUNTER_DESC)
-                .build();
-
-        this.resultLastTimestampGauge = meter.gaugeBuilder(GAUGE_RESULT_TIMESTAMP_NAME)
-                .setDescription(GAUGE_RESULT_TIMESTAMP_DESC)
-                .ofLongs()
                 .build();
 
         this.certValidityRemainingSecs = meter.gaugeBuilder(GAUGE_VALIDITY_NAME)
@@ -100,11 +90,10 @@ public class OpenTelemetryCertReloadEventEmitter {
     }
 
     /**
-     * Record refresh result with counter and timestamp.
+     * Record refresh result with counter.
      */
     private void recordRefreshResult(boolean success) {
         String result = success ? RESULT_SUCCESS : RESULT_FAILURE;
-        long timestamp = System.currentTimeMillis() / 1000;
         
         Attributes attrs = Attributes.builder()
                 .put("function", "cert_refresh")
@@ -112,7 +101,6 @@ public class OpenTelemetryCertReloadEventEmitter {
                 .build();
         
         refreshResultCounter.add(1, attrs);
-        resultLastTimestampGauge.set(timestamp, attrs);
     }
 
     /**
