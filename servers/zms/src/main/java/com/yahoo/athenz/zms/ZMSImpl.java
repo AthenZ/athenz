@@ -12776,12 +12776,35 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
+        // policy, service, etc. name)
 
-        domainName = domainName.toLowerCase();
-        setRequestDomain(ctx, domainName);
+        String serviceDomainName = domainName.toLowerCase();
+        setRequestDomain(ctx, serviceDomainName);
 
-        return dbService.listServiceDependencies(domainName);
+        // first let's get the service dependencies from our own database
+
+        ServiceIdentityList services = dbService.listServiceDependencies(serviceDomainName);
+        Set<String> dependentServices = new HashSet<>(services.getNames());
+
+        // now we'll check with each service provider to see if
+        // they have a dependency on our domain
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        Map<String, ServiceProviderManager.DomainDependencyProvider> serviceProvidersWithEndpoints
+                = serviceProviderManager.getServiceProvidersWithEndpoints();
+
+        Set<String> dynamicDependencies = serviceProvidersWithEndpoints.entrySet().parallelStream()
+                .filter(entry -> {
+                    DomainDependencyProviderResponse providerResponse = serviceProviderClient.getDependencyStatus(
+                            entry.getValue(), serviceDomainName, principal.getFullName());
+                    return providerResponse.getStatus().equals(ZMSConsts.PROVIDER_RESPONSE_DENY);
+                })
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+
+        dependentServices.addAll(dynamicDependencies);
+        services.setNames(new ArrayList<>(dependentServices));
+        return services;
     }
 
     @Override
