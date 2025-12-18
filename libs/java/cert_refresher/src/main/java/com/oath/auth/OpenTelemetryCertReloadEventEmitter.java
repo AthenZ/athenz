@@ -66,7 +66,7 @@ public class OpenTelemetryCertReloadEventEmitter {
                 .setDescription(GAUGE_VALIDITY_DESC)
                 .ofLongs()
                 .build();
-        
+
         LOGGER.info("OpenTelemetry cert refresh metrics initialized");
     }
 
@@ -75,7 +75,7 @@ public class OpenTelemetryCertReloadEventEmitter {
      *
      * @param certPath path to the certificate file
      */
-    public void recordCertRefresh(String certPath) {
+    public void recordCertRefresh(final String certPath) {
         recordRefreshResult(true);
         exportCertMetric(certPath);
     }
@@ -85,15 +85,15 @@ public class OpenTelemetryCertReloadEventEmitter {
      *
      * @param errorMessage error description
      */
-    public void recordCertRefreshFailure(String errorMessage) {
-        recordRefreshResult( false);
+    public void recordCertRefreshFailure(final String errorMessage) {
+        recordRefreshResult(false);
         LOGGER.error("Certificate refresh failed: {}", errorMessage);
     }
 
     /**
      * Record refresh result with counter.
      */
-    private void recordRefreshResult(boolean success) {
+    private void recordRefreshResult(final boolean success) {
         String result = success ? RESULT_SUCCESS : RESULT_FAILURE;
         
         Attributes attrs = Attributes.builder()
@@ -109,7 +109,7 @@ public class OpenTelemetryCertReloadEventEmitter {
      *
      * @param certPath path to the certificate file
      */
-    public void exportCertMetric(String certPath) {
+    public void exportCertMetric(final String certPath) {
         try (FileInputStream fis = new FileInputStream(certPath)) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             X509Certificate cert = (X509Certificate) cf.generateCertificate(fis);
@@ -124,7 +124,7 @@ public class OpenTelemetryCertReloadEventEmitter {
      *
      * @param cert the X.509 certificate
      */
-    public void exportCertMetric(X509Certificate cert) {
+    public void exportCertMetric(final X509Certificate cert) {
         if (cert == null) {
             LOGGER.warn("exportCertMetric: called with null cert");
             return;
