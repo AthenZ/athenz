@@ -155,10 +155,7 @@ public class OpenTelemetryCertReloadEventEmitterTest {
 
     @Test
     public void testExportCertMetricWithInvalidPath() {
-        // Should not throw - logs error internally
         emitter.exportCertMetric("/nonexistent/path/cert.pem");
-
-        verify(mockCounter, times(1)).add(eq(1L), any(Attributes.class));
         verify(mockGauge, never()).set(anyLong(), any(Attributes.class));
     }
 

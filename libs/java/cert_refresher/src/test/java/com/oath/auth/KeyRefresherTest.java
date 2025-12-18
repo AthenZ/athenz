@@ -31,13 +31,12 @@ public class KeyRefresherTest {
 
     private final ClassLoader classLoader = this.getClass().getClassLoader();
     private final MessageDigest md = MessageDigest.getInstance("MD5");
-    MockedConstruction<OpenTelemetryCertReloadEventEmitter> mockedOtel = mockConstruction(OpenTelemetryCertReloadEventEmitter.class);
 
     public KeyRefresherTest() throws NoSuchAlgorithmException {
     }
 
     @Test
-    public void haveFilesBeenChangedTestFilesAlteredAndOtelEnabled() throws Exception {
+    public void haveFilesBeenChangedTestFilesAltered() throws Exception {
 
         TrustStore mockedTrustStore = Mockito.mock(TrustStore.class);
         TrustManagerProxy mockedTrustManagerProxy = Mockito.mock(TrustManagerProxy.class);
@@ -118,8 +117,8 @@ public class KeyRefresherTest {
     }
 
     @Test
-    public void scanForFileChangesTestNoChangesAndOtelEnabled() throws Exception {
-        System.setProperty("athenz.cert_refresher.otel_enabled", "true");
+    public void scanForFileChangesTestNoChanges() throws Exception {
+
         TrustStore mockedTrustStore = Mockito.mock(TrustStore.class);
         TrustManagerProxy mockedTrustManagerProxy = Mockito.mock(TrustManagerProxy.class);
         KeyManagerProxy mockedKeyManagerProxy = Mockito.mock(KeyManagerProxy.class);
@@ -137,16 +136,11 @@ public class KeyRefresherTest {
         keyRefresher.startup(100);
         Thread.sleep(3000);
         keyRefresher.shutdown();
-
-        assertEquals(mockedOtel.constructed().size(), 1);
-        OpenTelemetryCertReloadEventEmitter mockOtelMetric = mockedOtel.constructed().get(0);
-        verifyNoInteractions(mockOtelMetric);
-        System.clearProperty("athenz.cert_refresher.otel_enabled");
     }
 
     @Test
-    public void scanForFileChangesTestWithChangesAndOtelEnabled() throws Exception {
-        System.setProperty("athenz.cert_refresher.otel_enabled", "true");
+    public void scanForFileChangesTestWithChanges() throws Exception {
+
         TrustStore mockedTrustStore = Mockito.mock(TrustStore.class);
         TrustManagerProxy mockedTrustManagerProxy = Mockito.mock(TrustManagerProxy.class);
         KeyManagerProxy mockedKeyManagerProxy = Mockito.mock(KeyManagerProxy.class);
@@ -168,16 +162,10 @@ public class KeyRefresherTest {
         Thread.sleep(3000);
         assertTrue(listener.keyChanged);
         keyRefresher.shutdown();
-
-        assertEquals(mockedOtel.constructed().size(), 1);
-        OpenTelemetryCertReloadEventEmitter mockOtelMetric = mockedOtel.constructed().get(0);
-        verify(mockOtelMetric, atLeastOnce()).recordCertRefresh(anyString());
-        System.clearProperty("athenz.cert_refresher.otel_enabled");
     }
 
     @Test
-    public void testGenerateKeyRefresherFromCaCertAndOtelEnabled() throws Exception {
-        System.setProperty("athenz.cert_refresher.otel_enabled", "true");
+    public void testGenerateKeyRefresherFromCaCert() throws Exception {
 
         KeyRefresher keyRefresher = Utils.generateKeyRefresher("truststore.jks", "gdpr.aws.core.cert.pem",
                 "unit_test_gdpr.aws.core.key.pem");
@@ -201,10 +189,6 @@ public class KeyRefresherTest {
         Thread.sleep(500);
         assertNotNull(keyRefresher);
         keyRefresher.shutdown();
-        assertEquals(mockedOtel.constructed().size(), 5);
-        OpenTelemetryCertReloadEventEmitter mockOtelMetric = mockedOtel.constructed().get(0);
-        verify(mockOtelMetric, atLeastOnce()).recordCertRefresh(anyString());
-        System.clearProperty("athenz.cert_refresher.otel_enabled");
     }
 
     static class TestKeyRefresherListener implements KeyRefresherListener {
@@ -216,33 +200,91 @@ public class KeyRefresherTest {
     }
 
     @Test
-    public void testOtelMetricsCalledOnCertRefreshFailure() throws Exception {
+    public void testOtelMetricsCalledOnCertRefresh() throws Exception {
+        // Set property FIRST, then create mock, then create KeyRefresher
         System.setProperty("athenz.cert_refresher.otel_enabled", "true");
+
+        try (MockedConstruction<OpenTelemetryCertReloadEventEmitter> mockedOtel =
+                     mockConstruction(OpenTelemetryCertReloadEventEmitter.class)) {
+
+            TrustStore mockedTrustStore = Mockito.mock(TrustStore.class);
+            TrustManagerProxy mockedTrustManagerProxy = Mockito.mock(TrustManagerProxy.class);
+            KeyManagerProxy mockedKeyManagerProxy = Mockito.mock(KeyManagerProxy.class);
+
+            final String certFile = Objects.requireNonNull(classLoader.getResource("gdpr.aws.core.cert.pem")).getFile();
+            final String keyFile = Objects.requireNonNull(classLoader.getResource("unit_test_gdpr.aws.core.key.pem")).getFile();
+
+            KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile, mockedTrustStore,
+                    mockedKeyManagerProxy, mockedTrustManagerProxy) {
+                @Override
+                protected boolean haveFilesBeenChanged(String filePath, byte[] checksum) {
+                    return true;
+                }
+            };
+
+            keyRefresher.startup(100);
+            Thread.sleep(500);
+            keyRefresher.shutdown();
+
+            // Verify OTel emitter was constructed and recordCertRefresh was called
+            assertEquals(mockedOtel.constructed().size(), 1);
+            OpenTelemetryCertReloadEventEmitter mockOtelMetric = mockedOtel.constructed().get(0);
+            verify(mockOtelMetric, atLeastOnce()).recordCertRefresh(anyString());
+        } finally {
+            System.clearProperty("athenz.cert_refresher.otel_enabled");
+        }
+    }
+
+    @Test
+    public void testOtelMetricsCalledOnCertRefreshFailure() throws Exception {
+        // Set property FIRST, then create mock, then create KeyRefresher
+        System.setProperty("athenz.cert_refresher.otel_enabled", "true");
+
+        try (MockedConstruction<OpenTelemetryCertReloadEventEmitter> mockedOtel =
+                     mockConstruction(OpenTelemetryCertReloadEventEmitter.class)) {
+
+            TrustStore mockedTrustStore = Mockito.mock(TrustStore.class);
+            TrustManagerProxy mockedTrustManagerProxy = Mockito.mock(TrustManagerProxy.class);
+            KeyManagerProxy mockedKeyManagerProxy = Mockito.mock(KeyManagerProxy.class);
+            doThrow(new RuntimeException("Test exception")).when(mockedKeyManagerProxy).setKeyManager(any());
+
+            final String certFile = Objects.requireNonNull(classLoader.getResource("gdpr.aws.core.cert.pem")).getFile();
+            final String keyFile = Objects.requireNonNull(classLoader.getResource("unit_test_gdpr.aws.core.key.pem")).getFile();
+
+            KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile, mockedTrustStore,
+                    mockedKeyManagerProxy, mockedTrustManagerProxy) {
+                @Override
+                protected boolean haveFilesBeenChanged(String filePath, byte[] checksum) {
+                    return true;
+                }
+            };
+
+            keyRefresher.startup(100);
+            Thread.sleep(500);
+            keyRefresher.shutdown();
+
+            // Verify OTel emitter was constructed and recordCertRefreshFailure was called
+            assertEquals(mockedOtel.constructed().size(), 1);
+            OpenTelemetryCertReloadEventEmitter mockOtelMetric = mockedOtel.constructed().get(0);
+            verify(mockOtelMetric, atLeastOnce()).recordCertRefreshFailure(anyString());
+        } finally {
+            System.clearProperty("athenz.cert_refresher.otel_enabled");
+        }
+    }
+
+    @Test
+    public void testOtelMetricsDisabledByDefault() throws Exception {
+        System.clearProperty("athenz.cert_refresher.otel_enabled");
+
         TrustStore mockedTrustStore = Mockito.mock(TrustStore.class);
         TrustManagerProxy mockedTrustManagerProxy = Mockito.mock(TrustManagerProxy.class);
         KeyManagerProxy mockedKeyManagerProxy = Mockito.mock(KeyManagerProxy.class);
-        doThrow(new RuntimeException("Test exception")).when(mockedKeyManagerProxy).setKeyManager(any());
 
         final String certFile = Objects.requireNonNull(classLoader.getResource("gdpr.aws.core.cert.pem")).getFile();
         final String keyFile = Objects.requireNonNull(classLoader.getResource("unit_test_gdpr.aws.core.key.pem")).getFile();
 
         KeyRefresher keyRefresher = new KeyRefresher(certFile, keyFile, mockedTrustStore,
-                mockedKeyManagerProxy, mockedTrustManagerProxy) {
-            @Override
-            protected boolean haveFilesBeenChanged(String filePath, byte[] checksum) {
-                return true;
-            }
-        };
-
-        keyRefresher.startup(100);
-        Thread.sleep(500);
-        keyRefresher.shutdown();
-
-        // Verify OTel emitter was constructed and recordCertRefreshFailure was called
-        assertEquals(mockedOtel.constructed().size(), 1);
-        OpenTelemetryCertReloadEventEmitter mockOtelMetric = mockedOtel.constructed().get(0);
-        verify(mockOtelMetric, atLeastOnce()).recordCertRefreshFailure(anyString());
-
-        System.clearProperty("athenz.cert_refresher.otel_enabled");
+                mockedKeyManagerProxy, mockedTrustManagerProxy);
+        assertNotNull(keyRefresher);
     }
 }
