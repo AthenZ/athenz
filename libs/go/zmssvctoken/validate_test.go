@@ -8,12 +8,16 @@ import (
 	"strings"
 	"testing"
 	"time"
-
+	"net/http"
+	"net/http/httptest"
+	
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/ardielle/ardielle-go/rdl"
 )
+
+type handler func(src keySource) (pubKey []byte, rawResponse string, err error)
 
 func makeTokenWithKey(t *testing.T, src keySource, k []byte) string {
 	tb, err := NewTokenBuilder(src.domain, src.name, k, src.keyVersion)
@@ -114,24 +118,51 @@ var handlerMap = map[keySource]handler{
 
 func TestCachedValidate(t *testing.T) {
 	a := assert.New(t)
-	h := func(src keySource) (pubKey []byte, rawResponse string, err error) {
+
+	h := func(src keySource) (pubkey []byte, rawResponse string, err error) {
 		h2, ok := handlerMap[src]
 		if ok {
 			return h2(src)
 		}
+		fmt.Printf("returning s404\n")
 		return s404(src)
 	}
-	s, baseURL, err := newServer(h)
-	t.Log(baseURL)
 
-	require.Nil(t, err)
-	go func() {
-		s.run()
-	}()
-	defer s.close()
+	router := http.NewServeMux()
+	router.HandleFunc("GET /v1/domain/{domain}/service/{name}/publickey/{keyVersion}", func(w http.ResponseWriter, r *http.Request) {
+
+		fmt.Printf("Handler called\n")
+		src := keySource{
+			domain:     r.PathValue("domain"),
+			name:       r.PathValue("name"),
+			keyVersion: r.PathValue("keyVersion"),
+		}
+		
+		key, resp, err := h(src)
+
+		if err != nil {
+			if rdlError, ok := err.(*rdl.ResourceError); ok {
+				w.WriteHeader(rdlError.Code)
+				w.Write([]byte(rdlError.Message))
+			} else {
+				w.WriteHeader(500)
+				w.Write([]byte(err.Error()))
+			}
+			return
+		}
+		if resp != "" {
+			w.Write([]byte(resp))
+			return
+		}
+		keyString := getEncoding().EncodeToString(key)
+		w.Write([]byte(fmt.Sprintf(`{ "key": "%s" }`, keyString)))
+	})
+
+	s := httptest.NewServer(router)
+	defer s.Close()
 
 	config := ValidationConfig{
-		ZTSBaseUrl:            baseURL,
+		ZTSBaseUrl:            s.URL + "/v1",
 		CacheTTL:              2 * time.Second,
 		PublicKeyFetchTimeout: 1 * time.Second,
 	}
