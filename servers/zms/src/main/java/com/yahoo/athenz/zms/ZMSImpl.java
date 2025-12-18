@@ -1313,8 +1313,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         } else {
             // validate that we don't have any roles with both members and trust attributes
 
-            for (String templateName : serverSolutionTemplates.getTemplates().keySet()) {
-                Template template = serverSolutionTemplates.get(templateName);
+            for (Map.Entry<String, Template> entry : serverSolutionTemplates.getTemplates().entrySet()) {
+                final String templateName = entry.getKey();
+                final Template template = entry.getValue();
                 if (template.getRoles() == null) {
                     continue;
                 }
