@@ -657,6 +657,43 @@
             ],
             "policies": [
             ]
+        },
+        "template_role_with_both_trust_and_members": {
+            "metadata":
+            {
+                "latestVersion": 1,
+                "timestamp": "2024-02-15T00:00:00.000Z",
+                "description": "TemplateRoleTest",
+                "autoUpdate": false
+            },
+            "roles": [
+                {
+                    "name": "_domain_:role.trust-and-members",
+                    "description": "Role for Testing",
+                    "trust": "sys.network",
+                    "roleMembers": [
+                            {
+                                "memberName": "sys.builder"
+                            }
+                    ]
+                }
+            ]
+        },
+        "template_trust_role": {
+            "metadata":
+            {
+                "latestVersion": 1,
+                "timestamp": "2024-02-15T00:00:00.000Z",
+                "description": "TemplateRoleTest",
+                "autoUpdate": false
+            },
+            "roles": [
+                {
+                    "name": "_domain_:role.target-role",
+                    "description": "Role for Testing",
+                    "trust": "sys.network"
+                }
+            ]
         }
     }
 }
