@@ -9,8 +9,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net"
+	
 	"net/http"
+	"net/http/httptest"
+	
 	"os"
 	"path/filepath"
 	"testing"
@@ -18,7 +20,7 @@ import (
 
 	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
 	siautil "github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/dimfeld/httptreemux"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
@@ -40,33 +42,6 @@ const (
 var testConfig *ZpuConfiguration
 var ztsClient zts.ZTSClient
 var port string
-
-type testServer struct {
-	listener net.Listener
-	addr     string
-}
-
-func (t *testServer) start(h http.Handler) {
-	listener, err := net.Listen("tcp", ":0")
-	if err != nil {
-		log.Fatalf("Unable to serve on randomly assigned port")
-	}
-	s := &http.Server{Handler: h}
-	t.listener = listener
-	t.addr = listener.Addr().String()
-
-	go func() {
-		s.Serve(listener)
-	}()
-}
-
-func (t *testServer) stop() {
-	t.listener.Close()
-}
-
-func (t *testServer) baseUrl(version string) string {
-	return "http://" + t.addr + "/" + version
-}
 
 var ecdsaPrivateKeyPEM = []byte(`-----BEGIN EC PRIVATE KEY-----
 MIGkAgEBBDA27vlziu7AYNJo/aaG3mS4XPK2euiTLQDxzUoDkiMpVHRXLxSbX897
@@ -417,7 +392,7 @@ func TestECJwkToPem(t *testing.T) {
 
 func TestPolicyUpdaterJwkOnInit(t *testing.T) {
 	a := assert.New(t)
-	ztsRouter := httptreemux.New()
+	ztsRouter := http.NewServeMux()
 
 	siaDir, err := os.MkdirTemp("", "sia")
 	if err != nil {
@@ -435,23 +410,22 @@ func TestPolicyUpdaterJwkOnInit(t *testing.T) {
 	signature := "XJnQ4t33D4yr7NtUjLaWhXULFr76z.z0p3QV4uCkA5KR9L4liVRmICYwVmnXxvHAlImKlKLv7sbIHNsjBfGfCw--"
 
 	// Mock GetDomainSignedPolicyData
-	ztsRouter.GET("/zts/v1/domain/sys.auth/signed_policy_data", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	ztsRouter.HandleFunc("GET /zts/v1/domain/sys.auth/signed_policy_data", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Called /domain/sys.auth/signed_policy_data")
 		policyData, _ := devel.SignPolicy([]byte(signedPolicy), signature, "0")
 		pd, _ := json.Marshal(policyData)
 		io.WriteString(w, string(pd))
 	})
 
-	ztsServer := &testServer{}
-	ztsServer.start(ztsRouter)
-	defer ztsServer.stop()
+	ztsServer := httptest.NewServer(ztsRouter)
+	defer ztsServer.Close()
 
 	zmsKeysmap := make(map[string]string)
 	zmsKeysmap["0"] = "previous value"
 	log.Debug = true
 
 	conf := ZpuConfiguration{
-		Zts:               ztsServer.baseUrl("zts/v1"),
+		Zts:               ztsServer.URL + "/zts/v1",
 		DomainList:        "sys.auth",
 		SiaDir:            siaDir,
 		ZmsKeysmap:        zmsKeysmap,
@@ -475,8 +449,7 @@ func TestPolicyUpdaterJwkOnInit(t *testing.T) {
 
 func TestPolicyUpdaterJwkOnZtsCall(t *testing.T) {
 	a := assert.New(t)
-	ztsRouter := httptreemux.New()
-	ztsRouter.EscapeAddedRoutes = true
+	ztsRouter := http.NewServeMux()
 
 	siaDir, err := os.MkdirTemp("", "sia")
 	if err != nil {
@@ -489,7 +462,7 @@ func TestPolicyUpdaterJwkOnZtsCall(t *testing.T) {
 	signature := "XJnQ4t33D4yr7NtUjLaWhXULFr76z.z0p3QV4uCkA5KR9L4liVRmICYwVmnXxvHAlImKlKLv7sbIHNsjBfGfCw--"
 
 	// Mock GetDomainSignedPolicyData
-	ztsRouter.GET("/zts/v1/domain/sys.auth/signed_policy_data", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	ztsRouter.HandleFunc("GET /zts/v1/domain/sys.auth/signed_policy_data", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Called /domain/sys.auth/signed_policy_data")
 		policyData, _ := devel.SignPolicy([]byte(signedPolicy), signature, "0")
 		pd, _ := json.Marshal(policyData)
@@ -498,18 +471,17 @@ func TestPolicyUpdaterJwkOnZtsCall(t *testing.T) {
 
 	jwkConf := athenzJwkFromString(pubJwk)
 	// Mock GetJWKList
-	ztsRouter.GET("/zts/v1/oauth2/keys", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	ztsRouter.HandleFunc("GET /zts/v1/oauth2/keys", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Called /zts/v1/oauth2/keys")
 		ztsKeys, _ := json.Marshal(jwkConf.Zts)
 		io.WriteString(w, string(ztsKeys))
 	})
 
-	ztsServer := &testServer{}
-	ztsServer.start(ztsRouter)
-	defer ztsServer.stop()
+	ztsServer := httptest.NewServer(ztsRouter)
+	defer ztsServer.Close()
 
 	conf := ZpuConfiguration{
-		Zts:               ztsServer.baseUrl("zts/v1"),
+		Zts:               ztsServer.URL + "/zts/v1",
 		DomainList:        "sys.auth",
 		SiaDir:            siaDir,
 		ZmsKeysmap:        make(map[string]string),
