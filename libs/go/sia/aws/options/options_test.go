@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"os/user"
@@ -35,7 +35,6 @@ import (
 	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/dimfeld/httptreemux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -60,33 +59,6 @@ const iamAccessProfileJsonServiceNameOnly = `{
   "InstanceProfileArn" : "arn:aws:iam::123456789012:instance-profile/hockey-service@test-profile",
   "InstanceProfileId" : "XXXXPROFILEIDYYYY"
 }`
-
-type testServer struct {
-	listener net.Listener
-	addr     string
-}
-
-func (t *testServer) start(h http.Handler) {
-	listener, err := net.Listen("tcp", ":0")
-	if err != nil {
-		log.Panicln("Unable to serve on randomly assigned port")
-	}
-	s := &http.Server{Handler: h}
-	t.listener = listener
-	t.addr = listener.Addr().String()
-
-	go func() {
-		s.Serve(listener)
-	}()
-}
-
-func (t *testServer) stop() {
-	t.listener.Close()
-}
-
-func (t *testServer) httpUrl() string {
-	return fmt.Sprintf("http://%s", t.addr)
-}
 
 func getConfig(fileName, roleSuffix, metaEndPoint string, useRegionalSTS bool, region string) (*sc.Config, *sc.ConfigAccount, error) {
 	// Parse config bytes first, and if that fails, load values from Instance Profile and IAM info
@@ -178,17 +150,16 @@ func getGid(t *testing.T, group string) int {
 // TestOptionsNoConfig tests the scenario when there is no /etc/sia/sia_config, the system uses profile arn
 func TestOptionsNoConfig(t *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/latest/meta-data/iam/info", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /latest/meta-data/iam/info", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /latest/dynamic/instance-identity/document")
 		io.WriteString(w, iamJson)
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
-	cfg, cfgAccount, _ := getConfig("data/sia_empty_config", "-service", metaServer.httpUrl(), false, "us-west-2")
+	cfg, cfgAccount, _ := getConfig("data/sia_empty_config", "-service", metaServer.URL, false, "us-west-2")
 	opts, e := setOptions(cfg, cfgAccount, nil, "/var/lib/sia", "1.0.0")
 	require.Nilf(t, e, "error should be empty, error: %v", e)
 	require.NotNil(t, opts, "should be able to get Options")
@@ -211,17 +182,16 @@ func TestOptionsNoConfig(t *testing.T) {
 // TestOptionsNoProfileConfig tests the scenario when there is no /etc/sia/profile_config, the system uses instance profile arn
 func TestOptionsNoProfileConfig(t *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/latest/meta-data/iam/info", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /latest/meta-data/iam/info", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /latest/dynamic/instance-identity/document")
 		io.WriteString(w, iamAccessProfileJson)
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
-	configAccount, profileConfig, err := getAccessProfileConfig("data/profile_config.empty", metaServer.httpUrl())
+	configAccount, profileConfig, err := getAccessProfileConfig("data/profile_config.empty", metaServer.URL)
 	require.Nilf(t, err, "error should be empty, error: %v", err)
 
 	opts, e := setOptions(nil, configAccount, profileConfig, "/tmp", "1.0.0")
@@ -869,21 +839,20 @@ func TestOptionsWithSiaDirs(t *testing.T) {
 
 func TestOptionsWithServiceOnlySetup(t *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/latest/meta-data/iam/info", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /latest/meta-data/iam/info", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /latest/dynamic/instance-identity/document")
 		io.WriteString(w, iamAccessProfileJsonServiceNameOnly)
 	})
-	router.GET("/latest/meta-data/tags/instance/athenz-domain", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router.HandleFunc("GET /latest/meta-data/tags/instance/athenz-domain", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /latest/dynamic/instance-identity/document")
 		io.WriteString(w, "athenz")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
-	configAccount, profileConfig, err := InitProfileConfig(metaServer.httpUrl(), "-service", "@")
+	configAccount, profileConfig, err := InitProfileConfig(metaServer.URL, "-service", "@")
 	require.Nilf(t, err, "error should be empty, error: %v", err)
 
 	opts, e := setOptions(nil, configAccount, profileConfig, "/tmp", "1.0.0")
