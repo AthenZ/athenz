@@ -205,12 +205,13 @@ public class OAuthTokenScopeTest {
         assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.admin"));
         assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.any-role-name"));
         assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role.reader"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role-reader"));
         assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "system:group.reader"));
     }
 
     @Test
     public void testIsSystemAllowedRolesWildcardSuffix() {
-        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("*.role.reader");
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("*:role.reader");
         OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
 
         assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.reader"));
@@ -230,6 +231,7 @@ public class OAuthTokenScopeTest {
         assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:service.reader"));
         assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.writer"));
         assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role.reader"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "system:test-reader"));
     }
 
     @Test

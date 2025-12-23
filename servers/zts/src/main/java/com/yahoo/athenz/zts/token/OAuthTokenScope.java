@@ -262,7 +262,7 @@ public class OAuthTokenScope {
         // we have wildcard matches for the given item
         for (String allowedRolePattern : systemAllowedRoles.getStringsList()) {
             if (allowedRolePattern.contains("*")) {
-                final String regex = allowedRolePattern.replace("*", ".*");
+                final String regex = allowedRolePattern.replace(".", "\\.").replace("*", ".*");
                 if (scopeItem.matches(regex)) {
                     return true;
                 }
