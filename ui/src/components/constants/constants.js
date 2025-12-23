@@ -289,3 +289,7 @@ export const SEARCH_MAX_100_RESULTS_CAN_BE_DISPLAYED =
     'Maximum 100 results can be searched for at a time. Specify more characters in the search criteria to get better results.';
 
 export const ONCALL_URL = CLIENT_CONFIG.onCallUrl;
+const _ORGANIZATION_DOMAIN = CLIENT_CONFIG.organizationDomain;
+export function getOrganizationDomain() {
+    return _ORGANIZATION_DOMAIN;
+}

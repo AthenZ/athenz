@@ -1,320 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DomainDetails should render 1`] = `
-.emotion-0 {
-  margin: 20px 0;
-}
-
-.emotion-2 {
-  display: flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  margin: 20px 0;
-}
-
-.emotion-4 {
-  padding-right: 50px;
-  -webkit-flex-basis: 15%;
-  -ms-flex-preferred-size: 15%;
-  flex-basis: 15%;
-}
-
-.emotion-6 {
-  font-weight: 600;
-  word-break: break-all;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 400px;
-  display: flex;
-}
-
-.emotion-8 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-  font-weight: '';
-}
-
-.emotion-10 {
-  color: #9a9a9a;
-  font-size: 12px;
-  text-transform: uppercase;
-}
-
-.emotion-22 {
-  font-weight: 600;
-}
-
-.emotion-30 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-sizing: border-box;
-  display: inline-flex;
-  height: 18px;
-  outline: 0;
-  position: relative;
-}
-
-.emotion-30>input[type='checkbox'] {
-  box-sizing: border-box;
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  visibility: hidden;
-}
-
-.emotion-30>input[type='checkbox']+label {
-  box-sizing: border-box;
-  cursor: pointer;
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 18px;
-  line-height: 18px;
-  white-space: nowrap;
-}
-
-.emotion-30>input[type='checkbox']+label .label-content {
-  display: inline-flex;
-  margin-left: 6px;
-}
-
-@-moz-document url-prefix() {
-  .emotion-30>input[type='checkbox']+label .label-content {
-    margin-top: 1px;
-  }
-}
-
-.emotion-30>input[type='checkbox']+label:before {
-  background: #d5d5d5;
-  border-radius: 9px;
-  box-sizing: border-box;
-  content: '';
-  cursor: pointer;
-  display: inline-block;
-  height: 4px;
-  line-height: 16px;
-  margin: 7px 0 0 0;
-  -webkit-transition: all 0.25s;
-  transition: all 0.25s;
-  vertical-align: top;
-  width: 34px;
-}
-
-.emotion-30>input[type='checkbox']+label::after {
-  background-color: #fff;
-  border: 2px solid rgba(54,151,242,0.5);
-  border-radius: 50%;
-  box-sizing: border-box;
-  content: ' ';
-  cursor: pointer;
-  display: block;
-  height: 18px;
-  left: 0;
-  position: absolute;
-  -webkit-transition: all 0.25s ease;
-  transition: all 0.25s ease;
-  top: 0;
-  width: 18px;
-}
-
-.emotion-30>input[type='checkbox']:checked+label::before {
-  background-color: rgba(21,192,70,0.45);
-}
-
-.emotion-30>input[type='checkbox']:checked+label::after {
-  background-color: #15c046;
-  border-color: #15c046;
-  left: 16px;
-}
-
-.emotion-30>input[type='checkbox']:disabled+label {
-  color: #9a9a9a;
-  cursor: not-allowed;
-}
-
-.emotion-30>input[type='checkbox']:disabled+label::before {
-  background-color: #e8e8e8;
-  cursor: not-allowed;
-}
-
-.emotion-30>input[type='checkbox']:disabled+label::after {
-  border-color: #d5d5d5;
-  cursor: not-allowed;
-}
-
-.emotion-30>input[type='checkbox']:checked:disabled+label::after {
-  background: #d5d5d5;
-}
-
-.emotion-47 {
-  cursor: pointer;
-  margin-left: 5px;
-}
-
-.emotion-49 {
-  fill: #188fff;
-  cursor: pointer;
-  vertical-align: text-bottom;
-}
-
-<div
-  class="emotion-0 emotion-1"
-  data-testid="domain-details"
->
-  <div
-    class="emotion-2 emotion-3"
-  >
-    <div
-      class="emotion-4 emotion-5"
-    >
-      <div
-        class="emotion-6 emotion-7"
-      >
-        <a
-          class="emotion-8 emotion-9"
-          data-testid="poc-link"
-        >
-          add
-        </a>
-      </div>
-      <div
-        class="emotion-10 emotion-11"
-      >
-        POINT OF CONTACT
-      </div>
-    </div>
-    <div
-      class="emotion-4 emotion-5"
-    >
-      <div
-        class="emotion-6 emotion-7"
-      >
-        <a
-          class="emotion-8 emotion-9"
-          data-testid="security-poc-link"
-        >
-          add
-        </a>
-      </div>
-      <div
-        class="emotion-10 emotion-11"
-      >
-        SECURITY POINT OF CONTACT
-      </div>
-    </div>
-    <div
-      class="emotion-4 emotion-5"
-    >
-      <div
-        class="emotion-22 emotion-23"
-      >
-        2020-02-12 21:44 UTC
-      </div>
-      <div
-        class="emotion-10 emotion-11"
-      >
-        MODIFIED DATE
-      </div>
-    </div>
-    <div
-      class="emotion-4 emotion-5"
-    >
-      <div
-        class="emotion-22 emotion-23"
-      >
-        <div
-          class="emotion-30 denali-switch"
-          data-testid="switch-wrapper"
-        >
-          <input
-            data-testid="auditDomainDetails-switch-input"
-            disabled=""
-            id="switch-auditDomainDetails"
-            name="auditDomainDetails"
-            type="checkbox"
-            value="false"
-          />
-          <label
-            for="switch-auditDomainDetails"
-          />
-        </div>
-      </div>
-      <div
-        class="emotion-10 emotion-11"
-      >
-        AUDIT ENABLED
-      </div>
-    </div>
-    <div
-      class="emotion-4 emotion-5"
-    >
-      <div
-        class="emotion-22 emotion-23"
-      >
-        N/A
-      </div>
-      <div
-        class="emotion-10 emotion-11"
-      >
-        AWS ACCOUNT ID
-      </div>
-    </div>
-    <div
-      class="emotion-4 emotion-5"
-    >
-      <div
-        class="emotion-22 emotion-23"
-      >
-        N/A
-      </div>
-      <div
-        class="emotion-10 emotion-11"
-      >
-        GCP PROJECT ID
-      </div>
-    </div>
-    <div
-      class="emotion-22 emotion-23"
-    >
-      More Details
-    </div>
-    <div
-      class="emotion-47 emotion-48"
-    >
-      <svg
-        class="emotion-49"
-        data-testid="icon"
-        data-wdio="domain-details-expand-icon"
-        height="1.25em"
-        id=""
-        viewBox="0 0 1024 1024"
-        width="1.25em"
-      >
-        <title>
-          arrowhead-down-circle
-        </title>
-        <path
-          d="M512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c-1.203 211.592-172.408 382.797-383.885 383.999l-0.115 0.001zM512 981.333c259.206 0 469.333-210.128 469.333-469.333s-210.128-469.333-469.333-469.333c-259.206 0-469.333 210.128-469.333 469.333v0c-0.003 0.635-0.005 1.387-0.005 2.138 0 258.027 209.173 467.2 467.2 467.2 0.752 0 1.504-0.002 2.255-0.005l-0.117 0z"
-        />
-        <path
-          d="M512 558.933l-140.8-140.8c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 170.667 168.533c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 170.667-168.533c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
-        />
-      </svg>
-    </div>
-  </div>
-</div>
-`;
-
-exports[`DomainDetails should render with mock data 1`] = `
+exports[`DomainDetails should render snapshot with full metadata 1`] = `
 .emotion-0 {
   margin: 20px 0;
 }
@@ -650,7 +336,7 @@ exports[`DomainDetails should render with mock data 1`] = `
     >
       <svg
         class="emotion-49"
-        data-testid="icon"
+        data-testid="expand-domain-details"
         data-wdio="domain-details-expand-icon"
         height="1.25em"
         id=""
@@ -676,6 +362,320 @@ exports[`DomainDetails should render with mock data 1`] = `
       >
         Onboard to AWS
       </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`DomainDetails should render snapshot with minimal metadata 1`] = `
+.emotion-0 {
+  margin: 20px 0;
+}
+
+.emotion-2 {
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  margin: 20px 0;
+}
+
+.emotion-4 {
+  padding-right: 50px;
+  -webkit-flex-basis: 15%;
+  -ms-flex-preferred-size: 15%;
+  flex-basis: 15%;
+}
+
+.emotion-6 {
+  font-weight: 600;
+  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 400px;
+  display: flex;
+}
+
+.emotion-8 {
+  color: #3570f4;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: '';
+}
+
+.emotion-10 {
+  color: #9a9a9a;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.emotion-22 {
+  font-weight: 600;
+}
+
+.emotion-30 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-30>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-30>input[type='checkbox']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.emotion-30>input[type='checkbox']+label .label-content {
+  display: inline-flex;
+  margin-left: 6px;
+}
+
+@-moz-document url-prefix() {
+  .emotion-30>input[type='checkbox']+label .label-content {
+    margin-top: 1px;
+  }
+}
+
+.emotion-30>input[type='checkbox']+label:before {
+  background: #d5d5d5;
+  border-radius: 9px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 4px;
+  line-height: 16px;
+  margin: 7px 0 0 0;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  vertical-align: top;
+  width: 34px;
+}
+
+.emotion-30>input[type='checkbox']+label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: ' ';
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  top: 0;
+  width: 18px;
+}
+
+.emotion-30>input[type='checkbox']:checked+label::before {
+  background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-30>input[type='checkbox']:checked+label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-30>input[type='checkbox']:disabled+label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='checkbox']:disabled+label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='checkbox']:disabled+label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-30>input[type='checkbox']:checked:disabled+label::after {
+  background: #d5d5d5;
+}
+
+.emotion-47 {
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.emotion-49 {
+  fill: #188fff;
+  cursor: pointer;
+  vertical-align: text-bottom;
+}
+
+<div
+  class="emotion-0 emotion-1"
+  data-testid="domain-details"
+>
+  <div
+    class="emotion-2 emotion-3"
+  >
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-6 emotion-7"
+      >
+        <a
+          class="emotion-8 emotion-9"
+          data-testid="poc-link"
+        >
+          add
+        </a>
+      </div>
+      <div
+        class="emotion-10 emotion-11"
+      >
+        POINT OF CONTACT
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-6 emotion-7"
+      >
+        <a
+          class="emotion-8 emotion-9"
+          data-testid="security-poc-link"
+        >
+          add
+        </a>
+      </div>
+      <div
+        class="emotion-10 emotion-11"
+      >
+        SECURITY POINT OF CONTACT
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-22 emotion-23"
+      >
+        2020-02-12 21:44 UTC
+      </div>
+      <div
+        class="emotion-10 emotion-11"
+      >
+        MODIFIED DATE
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-22 emotion-23"
+      >
+        <div
+          class="emotion-30 denali-switch"
+          data-testid="switch-wrapper"
+        >
+          <input
+            data-testid="auditDomainDetails-switch-input"
+            disabled=""
+            id="switch-auditDomainDetails"
+            name="auditDomainDetails"
+            type="checkbox"
+            value="false"
+          />
+          <label
+            for="switch-auditDomainDetails"
+          />
+        </div>
+      </div>
+      <div
+        class="emotion-10 emotion-11"
+      >
+        AUDIT ENABLED
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-22 emotion-23"
+      >
+        N/A
+      </div>
+      <div
+        class="emotion-10 emotion-11"
+      >
+        AWS ACCOUNT ID
+      </div>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <div
+        class="emotion-22 emotion-23"
+      >
+        N/A
+      </div>
+      <div
+        class="emotion-10 emotion-11"
+      >
+        GCP PROJECT ID
+      </div>
+    </div>
+    <div
+      class="emotion-22 emotion-23"
+    >
+      More Details
+    </div>
+    <div
+      class="emotion-47 emotion-48"
+    >
+      <svg
+        class="emotion-49"
+        data-testid="expand-domain-details"
+        data-wdio="domain-details-expand-icon"
+        height="1.25em"
+        id=""
+        viewBox="0 0 1024 1024"
+        width="1.25em"
+      >
+        <title>
+          arrowhead-down-circle
+        </title>
+        <path
+          d="M512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c-1.203 211.592-172.408 382.797-383.885 383.999l-0.115 0.001zM512 981.333c259.206 0 469.333-210.128 469.333-469.333s-210.128-469.333-469.333-469.333c-259.206 0-469.333 210.128-469.333 469.333v0c-0.003 0.635-0.005 1.387-0.005 2.138 0 258.027 209.173 467.2 467.2 467.2 0.752 0 1.504-0.002 2.255-0.005l-0.117 0z"
+        />
+        <path
+          d="M512 558.933l-140.8-140.8c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 170.667 168.533c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 170.667-168.533c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+        />
+      </svg>
     </div>
   </div>
 </div>

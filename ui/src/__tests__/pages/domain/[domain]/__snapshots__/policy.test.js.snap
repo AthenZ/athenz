@@ -1436,7 +1436,7 @@ exports[`PolicyPage should render 1`] = `
                 >
                   <svg
                     class="emotion-93"
-                    data-testid="icon"
+                    data-testid="expand-domain-details"
                     data-wdio="domain-details-expand-icon"
                     height="1.25em"
                     id=""
