@@ -41,6 +41,7 @@ import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigInteger;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
 import com.yahoo.athenz.common.server.workload.WorkloadRecord;
@@ -13295,6 +13296,71 @@ public class ZTSImplTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+    }
+
+    @Test
+    public void testGetOIDCResponseRolesWildcardMatch() throws Exception {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        ZTSTestUtils.setStaticField(IdTokenScope.class, "systemAllowedRoles", new DynamicConfigCsv("weather:role.*"));
+        ZTSTestUtils.setStaticField(IdTokenScope.class, "maxDomains", 1);
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        SignedDomain signedDomain1 = createSignedDomain("coretech", "sports", "api", true, null);
+        store.processSignedDomain(signedDomain1, false);
+
+        SignedDomain signedDomain2 = createSignedDomain("weather", "sports", "api", true, null);
+        store.processSignedDomain(signedDomain2, false);
+
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+
+        // first ask for all the roles, and we should get failure since
+        // the domain limit is set to 1
+
+        try {
+            ztsImpl.getOIDCResponse(context, "id_token", "coretech.api",
+                    "https://localhost:4443/zts", "openid roles coretech:domain weather:domain",
+                    null, "nonce", "", null, null, null, null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertTrue(ex.getMessage().contains("Multiple domains in scope"), ex.getMessage());
+        }
+
+        // now let's ask for the specific roles in weather domain which should match
+        // our system allowed role attribute
+
+        Response response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api",
+                "https://localhost:4443/zts", "openid roles coretech:domain weather:role.writers",
+                null, "nonce", "", null, null, null, null, null);
+
+        JWTClaimsSet claimsSet = getClaimsFromResponse(response, privateKey.getKey(), null);
+        List<String> userRoles;
+        try {
+            assertNotNull(claimsSet);
+            assertEquals(claimsSet.getSubject(), "user_domain.user");
+            assertEquals(claimsSet.getAudience().get(0), "coretech.api");
+            assertEquals(claimsSet.getStringClaim("nonce"), "nonce");
+            assertEquals(claimsSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
+            userRoles = claimsSet.getStringListClaim("groups");
+            assertNotNull(userRoles);
+            assertEquals(userRoles.size(), 2);
+            assertTrue(userRoles.contains("coretech:role.writers"));
+            assertTrue(userRoles.contains("weather:role.writers"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
+
+        ZTSTestUtils.setStaticField(IdTokenScope.class, "systemAllowedRoles", null);
+        ZTSTestUtils.setStaticField(IdTokenScope.class, "maxDomains", 10);
     }
 
     @Test

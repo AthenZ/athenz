@@ -66,7 +66,7 @@ public class OAuthTokenScope {
         //   openid <domainName>:group.<groupName>
         //   openid [<domainName>:domain]+
 
-        String systemAllowedRole = null;
+        Set<String> userSystemAllowedRoles = null;
         Map<String, Set<String>> scopeRoleNames = new HashMap<>();
         Map<String, Set<String>> scopeGroupNames = new HashMap<>();
         for (String scopeItem : scopeList) {
@@ -114,12 +114,12 @@ public class OAuthTokenScope {
                 // if the role is one of our authorized roles, we're not going
                 // to process it right away to avoid counting it against
                 // the configured max domain setting. We'll process it
-                // at the end without checking the domain limit. However, we
-                // still allow only a single authorized role to be specified
-                // so if we have multiple, we'll handle the second one as a
-                // regular role scope
-                if (systemAllowedRole == null && systemAllowedRoles != null && systemAllowedRoles.hasItem(scopeItem)) {
-                    systemAllowedRole = scopeItem;
+                // at the end without checking the domain limit.
+                if (systemAllowedRoles != null && isSystemAllowedRoles(systemAllowedRoles, scopeItem)) {
+                    if (userSystemAllowedRoles == null) {
+                        userSystemAllowedRoles = new HashSet<>();
+                    }
+                    userSystemAllowedRoles.add(scopeItem);
                 } else {
                     final String scopeDomainName = scopeItem.substring(0, idx);
                     addScopeDomain(scopeDomainName, scope, true);
@@ -156,14 +156,16 @@ public class OAuthTokenScope {
             }
         }
 
-        // process our authorized role if one was specified
+        // process our authorized roles if any were specified
 
-        if (systemAllowedRole != null) {
-            int idx = systemAllowedRole.indexOf(OBJECT_ROLE);
-            final String scopeDomainName = systemAllowedRole.substring(0, idx);
-            addScopeDomain(scopeDomainName, scope, false);
-            scopeRoleNames.putIfAbsent(scopeDomainName, new HashSet<>());
-            scopeRoleNames.get(scopeDomainName).add(systemAllowedRole.substring(idx + OBJECT_ROLE.length()));
+        if (userSystemAllowedRoles != null) {
+            for (String userSystemAllowedRole : userSystemAllowedRoles) {
+                int idx = userSystemAllowedRole.indexOf(OBJECT_ROLE);
+                final String scopeDomainName = userSystemAllowedRole.substring(0, idx);
+                addScopeDomain(scopeDomainName, scope, false);
+                scopeRoleNames.putIfAbsent(scopeDomainName, new HashSet<>());
+                scopeRoleNames.get(scopeDomainName).add(userSystemAllowedRole.substring(idx + OBJECT_ROLE.length()));
+            }
         }
 
         // if the scope response is set to true then we had
@@ -246,6 +248,27 @@ public class OAuthTokenScope {
             }
             domainNames.add(scopeDomainName);
         }
+    }
+
+    boolean isSystemAllowedRoles(DynamicConfigCsv systemAllowedRoles, String scopeItem) {
+        if (systemAllowedRoles == null) {
+            return false;
+        }
+        // first we'll check if our scope item matches any of the allowed roles
+        if (systemAllowedRoles.hasItem(scopeItem)) {
+            return true;
+        }
+        // now we'll get the full list and check there as well in case
+        // we have wildcard matches for the given item
+        for (String allowedRolePattern : systemAllowedRoles.getStringsList()) {
+            if (allowedRolePattern.contains("*")) {
+                final String regex = allowedRolePattern.replace("*", ".*");
+                if (scopeItem.matches(regex)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     ResourceException error(final String message, final String scope) {

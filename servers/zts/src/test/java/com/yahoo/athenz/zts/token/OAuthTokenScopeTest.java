@@ -177,4 +177,198 @@ public class OAuthTokenScopeTest {
         assertEquals(domains.size(), 1);
         assertTrue(domains.contains("sports"));
     }
+
+    @Test
+    public void testIsSystemAllowedRolesNullConfig() {
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+        assertFalse(scope.isSystemAllowedRoles(null, "system:role.reader"));
+    }
+
+    @Test
+    public void testIsSystemAllowedRolesExactMatch() {
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("system:role.reader,system:role.writer");
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.reader"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.writer"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.admin"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role.reader"));
+    }
+
+    @Test
+    public void testIsSystemAllowedRolesWildcardPrefix() {
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("system:role.*");
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.reader"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.writer"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.admin"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.any-role-name"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role.reader"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "system:group.reader"));
+    }
+
+    @Test
+    public void testIsSystemAllowedRolesWildcardSuffix() {
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("*.role.reader");
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.reader"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role.reader"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "weather:role.reader"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.writer"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "system:group.reader"));
+    }
+
+    @Test
+    public void testIsSystemAllowedRolesWildcardMiddle() {
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("system:*.reader");
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.reader"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:group.reader"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:service.reader"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.writer"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role.reader"));
+    }
+
+    @Test
+    public void testIsSystemAllowedRolesMultipleWildcards() {
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("*:role.*");
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.reader"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.writer"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role.admin"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "weather:role.any"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "system:group.reader"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "system:service.api"));
+    }
+
+    @Test
+    public void testIsSystemAllowedRolesMixedExactAndWildcard() {
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("system:role.reader,system:role.writer,*:role.admin");
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+
+        // Exact matches
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.reader"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.writer"));
+
+        // Wildcard matches
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.admin"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role.admin"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "weather:role.admin"));
+
+        // Non-matches
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.other"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role.reader"));
+    }
+
+    @Test
+    public void testIsSystemAllowedRolesEmptyConfig() {
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("");
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.reader"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "any:role.any"));
+    }
+
+    @Test
+    public void testIsSystemAllowedRolesWhitespaceHandling() {
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv(" system:role.reader , system:role.writer ");
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+
+        // DynamicConfigCsv trims whitespace, so these should match
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.reader"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.writer"));
+    }
+
+    @Test
+    public void testIsSystemAllowedRolesSpecialCharacters() {
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("system:role.test-role,system:role.test_role,*:role.test.role");
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.test-role"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.test_role"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.test.role"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role.test.role"));
+    }
+
+    @Test
+    public void testIsSystemAllowedRolesWildcardOnly() {
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("*");
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+
+        // Wildcard * should match everything
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.reader"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role.writer"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "any:any.anything"));
+    }
+
+    @Test
+    public void testIsSystemAllowedRolesWildcardAtStart() {
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("*reader");
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.reader"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role.reader"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "reader"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.writer"));
+    }
+
+    @Test
+    public void testIsSystemAllowedRolesWildcardAtEnd() {
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("system:*");
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.reader"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:group.writer"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:service.api"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:anything"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role.reader"));
+    }
+
+    @Test
+    public void testIsSystemAllowedRolesMultipleWildcardPatterns() {
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("system:role.*,*:role.reader,*:*.admin");
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+
+        // Matches first pattern
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.reader"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.writer"));
+
+        // Matches second pattern
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role.reader"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "weather:role.reader"));
+
+        // Matches third pattern
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.admin"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:group.admin"));
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "weather:service.admin"));
+
+        // No match
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "sports:role.writer"));
+    }
+
+    @Test
+    public void testIsSystemAllowedRolesExactMatchTakesPrecedence() {
+        // Even if there's a wildcard pattern, exact match should work
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("system:role.reader,system:role.*");
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+
+        // Exact match should be found first (via hasItem)
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.reader"));
+        // Wildcard should also match
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.writer"));
+    }
+
+    @Test
+    public void testIsSystemAllowedRolesCaseSensitive() {
+        DynamicConfigCsv systemAllowedRoles = new DynamicConfigCsv("system:role.Reader");
+        OAuthTokenScope scope = new OAuthTokenScope("openid", 1, null, null);
+
+        // Should be case-sensitive
+        assertTrue(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.Reader"));
+        assertFalse(scope.isSystemAllowedRoles(systemAllowedRoles, "system:role.reader"));
+    }
 }
