@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.security.PrivateKey;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -581,5 +582,11 @@ public class ZTSTestUtils {
         signedDomain.setKeyId("0");
 
         return signedDomain;
+    }
+
+    public static void setStaticField(Class<?> clazz, String fieldName, Object value) throws Exception {
+        Field field = clazz.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(null, value);
     }
 }
