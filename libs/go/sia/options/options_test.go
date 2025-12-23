@@ -919,7 +919,7 @@ func TestOptionsWithServiceOnlySetup(t *testing.T) {
 		io.WriteString(w, iamAccessProfileJsonServiceNameOnly)
 	})
 	router.HandleFunc("/latest/meta-data/tags/instance/athenz-domain", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Called /latest/dynamic/instance-identity/document")
+log.Println("Called /latest/meta-data/tags/instance/athenz-domain")
 		io.WriteString(w, "athenz")
 	})
 
