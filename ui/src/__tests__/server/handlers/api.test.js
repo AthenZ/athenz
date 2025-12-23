@@ -247,6 +247,8 @@ describe('Fetchr Server API Test', () => {
                                                                   'user.test2',
                                                               requestTime:
                                                                   '2020-04-10T04:59:33.325Z',
+                                                              reviewReminder:
+                                                                  '2020-07-15T19:01:00.000Z',
                                                           },
                                                       ],
                                                   },
@@ -263,6 +265,8 @@ describe('Fetchr Server API Test', () => {
                                                                   'user.test2',
                                                               requestTime:
                                                                   '2020-04-10T06:04:29.337Z',
+                                                              reviewReminder:
+                                                                  '2020-07-15T19:02:00.000Z',
                                                           },
                                                       ],
                                                   },
@@ -278,6 +282,8 @@ describe('Fetchr Server API Test', () => {
                                                                   'user.test2',
                                                               requestTime:
                                                                   '2020-04-10T05:11:32.667Z',
+                                                              reviewReminder:
+                                                                  '2020-07-15T19:03:00.000Z',
                                                           },
                                                       ],
                                                   },
@@ -920,6 +926,7 @@ describe('Fetchr Server API Test', () => {
                             category: 'role',
                             requestPrincipal: 'user.test2',
                             requestTime: '2020-04-10T04:59:33.325Z',
+                            reviewReminder: '2020-07-15T19:01:00.000Z',
                             expiryDate: '2020-07-17T19:00:00.000Z',
                             memberNameFull: null,
                             requestPrincipalFull: null,
@@ -933,6 +940,7 @@ describe('Fetchr Server API Test', () => {
                             auditRef: '',
                             requestPrincipal: 'user.test2',
                             requestTime: '2020-04-10T06:04:29.337Z',
+                            reviewReminder: '2020-07-15T19:02:00.000Z',
                             expiryDate: null,
                             memberNameFull: null,
                             requestPrincipalFull: null,
@@ -945,6 +953,7 @@ describe('Fetchr Server API Test', () => {
                             userComment: 'ee',
                             auditRef: '',
                             requestPrincipal: 'user.test2',
+                            reviewReminder: '2020-07-15T19:03:00.000Z',
                             requestTime: '2020-04-10T05:11:32.667Z',
                             expiryDate: null,
                             memberNameFull: null,
@@ -979,6 +988,7 @@ describe('Fetchr Server API Test', () => {
                             category: 'role',
                             requestPrincipal: 'user.test2',
                             requestTime: '2020-04-10T04:59:33.325Z',
+                            reviewReminder: '2020-07-15T19:01:00.000Z',
                             expiryDate: '2020-07-17T19:00:00.000Z',
                             memberNameFull: null,
                             requestPrincipalFull: null,
@@ -992,6 +1002,7 @@ describe('Fetchr Server API Test', () => {
                             auditRef: '',
                             requestPrincipal: 'user.test2',
                             requestTime: '2020-04-10T06:04:29.337Z',
+                            reviewReminder: '2020-07-15T19:02:00.000Z',
                             expiryDate: null,
                             memberNameFull: null,
                             requestPrincipalFull: null,
@@ -1005,6 +1016,7 @@ describe('Fetchr Server API Test', () => {
                             auditRef: '',
                             requestPrincipal: 'user.test2',
                             requestTime: '2020-04-10T05:11:32.667Z',
+                            reviewReminder: '2020-07-15T19:03:00.000Z',
                             expiryDate: null,
                             memberNameFull: null,
                             requestPrincipalFull: null,
