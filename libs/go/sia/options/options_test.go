@@ -157,7 +157,7 @@ func TestOptionsNoConfig(t *testing.T) {
 	// Mock the metadata endpoints
 	router := http.NewServeMux()
 	router.HandleFunc("/latest/meta-data/iam/info", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Called /latest/dynamic/instance-identity/document")
+log.Println("Called /latest/meta-data/iam/info")
 		io.WriteString(w, iamJson)
 	})
 
