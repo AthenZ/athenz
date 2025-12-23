@@ -17,55 +17,25 @@
 package meta
 
 import (
-	"fmt"
-	"github.com/dimfeld/httptreemux"
 	"io"
 	"log"
-	"net"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
-type testServer struct {
-	listener net.Listener
-	addr     string
-}
-
-func (t *testServer) start(h http.Handler) {
-	listener, err := net.Listen("tcp", ":0")
-	if err != nil {
-		log.Panicln("Unable to serve on randomly assigned port")
-	}
-	s := &http.Server{Handler: h}
-	t.listener = listener
-	t.addr = listener.Addr().String()
-
-	go func() {
-		s.Serve(listener)
-	}()
-}
-
-func (t *testServer) stop() {
-	t.listener.Close()
-}
-
-func (t *testServer) httpUrl() string {
-	return fmt.Sprintf("http://%s", t.addr)
-}
-
 func TestGetMetadata(test *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/metadata/instance", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /metadata/instance", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /metadata/instance?api-version=2020-06-01")
 		io.WriteString(w, "{ \"test\": \"document\"}")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
-	_, err := GetData(metaServer.httpUrl(), "/metadata/instance?api-version=2020-06-01")
+	_, err := GetData(metaServer.URL, "/metadata/instance?api-version=2020-06-01")
 	if err != nil {
 		test.Errorf("Unable to retrieve instance document - %v", err)
 		return

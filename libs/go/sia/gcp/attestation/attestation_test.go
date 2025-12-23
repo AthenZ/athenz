@@ -21,46 +21,20 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net"
+	
 	"net/http"
+	"net/http/httptest"
+	
 	"os"
 	"strings"
 	"testing"
 
-	"github.com/dimfeld/httptreemux"
 	"golang.org/x/oauth2"
 )
 
-type testServer struct {
-	listener net.Listener
-	addr     string
-}
-
-func (t *testServer) start(h http.Handler) {
-	listener, err := net.Listen("tcp", ":0")
-	if err != nil {
-		log.Panicln("Unable to serve on randomly assigned port")
-	}
-	s := &http.Server{Handler: h}
-	t.listener = listener
-	t.addr = listener.Addr().String()
-
-	go func() {
-		s.Serve(listener)
-	}()
-}
-
-func (t *testServer) stop() {
-	t.listener.Close()
-}
-
-func (t *testServer) httpUrl() string {
-	return fmt.Sprintf("http://%s", t.addr)
-}
-
 func TestGetIdentityTokenWithInvalidAuthError(t *testing.T) {
-	router := httptreemux.New()
-	router.POST(fmt.Sprintf("/v1/projects/-/serviceAccounts/%s:generateIdToken", "unkown-service@myproject.iam.gserviceaccount.com"), func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc(fmt.Sprintf("POST /v1/projects/-/serviceAccounts/%s:generateIdToken", "unkown-service@myproject.iam.gserviceaccount.com"), func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("/v1/projects/-/serviceAccounts/%s:generateIdToken", "unkown-service@myproject.iam.gserviceaccount.com")
 		w.WriteHeader(http.StatusUnauthorized)
 		io.WriteString(w, `{
@@ -82,11 +56,10 @@ func TestGetIdentityTokenWithInvalidAuthError(t *testing.T) {
         }`)
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)	
+	defer metaServer.Close()
 
-	_, err := getServiceAccountIdentityToken(metaServer.httpUrl(),
+	_, err := getServiceAccountIdentityToken(metaServer.URL,
 		"unkown-service@myproject.iam.gserviceaccount.com",
 		"https://zts.athenz.io",
 		&oauth2.Token{AccessToken: "mock-access-token"},
@@ -97,18 +70,18 @@ func TestGetIdentityTokenWithInvalidAuthError(t *testing.T) {
 }
 
 func TestGetIdentityTokenSuccess(t *testing.T) {
-	router := httptreemux.New()
-	router.POST(fmt.Sprintf("/v1/projects/-/serviceAccounts/%s:generateIdToken", "unkown-service@myproject.iam.gserviceaccount.com"), func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc(fmt.Sprintf("POST /v1/projects/-/serviceAccounts/%s:generateIdToken", "unkown-service@myproject.iam.gserviceaccount.com"), func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("/v1/projects/-/serviceAccounts/%s:generateIdToken", "unkown-service@myproject.iam.gserviceaccount.com")
 		w.WriteHeader(http.StatusOK)
 		io.WriteString(w, `{"token": "yJhbGciOiJSUzI1NiIsImtpZCI6IjVhYWZmNDdjMjFkMDZlMjY..."}`)
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	
+	defer metaServer.Close()
 
-	token, err := getServiceAccountIdentityToken(metaServer.httpUrl(),
+	token, err := getServiceAccountIdentityToken(metaServer.URL,
 		"unkown-service@myproject.iam.gserviceaccount.com",
 		"https://zts.athenz.io",
 		&oauth2.Token{AccessToken: "mock-access-token"},
@@ -125,16 +98,16 @@ func TestGetIdentityTokenSuccess(t *testing.T) {
 // TestNewWithDirectMetadata tests the New method when service matches serviceName
 // This tests the path where identity token is retrieved directly from metadata server
 func TestNewWithDirectMetadata(t *testing.T) {
-	router := httptreemux.New()
+	router := http.NewServeMux()
 
 	// Mock service account info endpoint
-	router.GET("/computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/service-accounts/default/email")
 		io.WriteString(w, "test-service@my-project.iam.gserviceaccount.com")
 	})
 
 	// Mock identity token endpoint
-	router.GET("/computeMetadata/v1/instance/service-accounts/default/identity", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/identity", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/service-accounts/default/identity")
 		audience := r.URL.Query().Get("audience")
 		format := r.URL.Query().Get("format")
@@ -144,12 +117,11 @@ func TestNewWithDirectMetadata(t *testing.T) {
 		io.WriteString(w, "eyJhbGciOiJSUzI1NiIsImtpZCI6IjVhYWZmNDdjMjFkMDZlMjY...")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
 	// Test with service matching serviceName
-	result, err := New(metaServer.httpUrl(), "test-service", "https://zts.athenz.io")
+	result, err := New(metaServer.URL, "test-service", "https://zts.athenz.io")
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -169,32 +141,31 @@ func TestNewWithDirectMetadata(t *testing.T) {
 
 // TestNewWithDefaultServiceIdentity tests the New method when service matches defaultServiceIdentity
 func TestNewWithDefaultServiceIdentity(t *testing.T) {
-	router := httptreemux.New()
+	router := http.NewServeMux()
 
 	// Mock service account info endpoint
-	router.GET("/computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/service-accounts/default/email")
 		io.WriteString(w, "actual-service@my-project.iam.gserviceaccount.com")
 	})
 
 	// Mock defaultServiceIdentity attribute
-	router.GET("/computeMetadata/v1/instance/attributes/defaultServiceIdentity", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router.HandleFunc("GET /computeMetadata/v1/instance/attributes/defaultServiceIdentity", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/attributes/defaultServiceIdentity")
 		io.WriteString(w, "default-service")
 	})
 
 	// Mock identity token endpoint
-	router.GET("/computeMetadata/v1/instance/service-accounts/default/identity", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/identity", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/service-accounts/default/identity")
 		io.WriteString(w, "eyJhbGciOiJSUzI1NiIsImtpZCI6IjVhYWZmNDdjMjFkMDZlMjY...")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
 	// Test with service matching defaultServiceIdentity
-	result, err := New(metaServer.httpUrl(), "default-service", "https://zts.athenz.io")
+	result, err := New(metaServer.URL, "default-service", "https://zts.athenz.io")
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -215,42 +186,41 @@ func TestNewWithDefaultServiceIdentity(t *testing.T) {
 // TestNewWithServiceAccountImpersonation tests the New method when service doesn't match serviceName
 // This tests the path where service account impersonation is used
 func TestNewWithServiceAccountImpersonation(t *testing.T) {
-	router := httptreemux.New()
+	router := http.NewServeMux()
 
 	// Mock service account info endpoint
-	router.GET("/computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/service-accounts/default/email")
 		io.WriteString(w, "actual-service@my-project.iam.gserviceaccount.com")
 	})
 
 	// Mock defaultServiceIdentity attribute (returns empty/error to force impersonation path)
-	router.GET("/computeMetadata/v1/instance/attributes/defaultServiceIdentity", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router.HandleFunc("GET /computeMetadata/v1/instance/attributes/defaultServiceIdentity", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/attributes/defaultServiceIdentity")
 		w.WriteHeader(http.StatusNotFound)
 	})
 
 	// Mock OAuth2 token endpoint for default credentials
-	router.GET("/computeMetadata/v1/instance/service-accounts/default/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/token", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/service-accounts/default/token")
 		io.WriteString(w, `{"access_token": "mock-access-token", "expires_in": 3600, "token_type": "Bearer"}`)
 	})
 
 	// Mock IAM credentials endpoint for identity token generation
-	router.POST("/v1/projects/-/serviceAccounts/target-service@my-project.iam.gserviceaccount.com:generateIdToken", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router.HandleFunc("POST /v1/projects/-/serviceAccounts/target-service@my-project.iam.gserviceaccount.com:generateIdToken", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called generateIdToken for target-service")
 		w.WriteHeader(http.StatusOK)
 		io.WriteString(w, `{"token": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjVhYWZmNDdjMjFkMDZlMjY..."}`)
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
 	// Note: This test will fail because getOauth2TokenFromDefaultCredentials tries to use
 	// google.FindDefaultCredentials which won't work in test environment
 	// In a real implementation, we'd need to mock the oauth2 token source
 	// For now, we'll test the error path
-	_, err := New(metaServer.httpUrl(), "target-service", "https://zts.athenz.io")
+	_, err := New(metaServer.URL, "target-service", "https://zts.athenz.io")
 	if err == nil {
 		t.Fatalf("expected error due to oauth2 credentials not being available in test environment")
 	}
@@ -265,52 +235,49 @@ func TestNewWithServiceAccountImpersonation(t *testing.T) {
 // TestNewErrorCases tests various error scenarios for the New method
 func TestNewErrorCases(t *testing.T) {
 	t.Run("ServiceAccountInfoError", func(t *testing.T) {
-		router := httptreemux.New()
+		router := http.NewServeMux()
 		// Don't mock the service account endpoint to cause an error
 
-		metaServer := &testServer{}
-		metaServer.start(router)
-		defer metaServer.stop()
+		metaServer := httptest.NewServer(router)
+		defer metaServer.Close()
 
-		_, err := New(metaServer.httpUrl(), "test-service", "https://zts.athenz.io")
+		_, err := New(metaServer.URL, "test-service", "https://zts.athenz.io")
 		if err == nil {
 			t.Fatalf("expected error when service account info is unavailable")
 		}
 	})
 
 	t.Run("IdentityTokenError", func(t *testing.T) {
-		router := httptreemux.New()
+		router := http.NewServeMux()
 
 		// Mock service account info endpoint
-		router.GET("/computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request) {
 			io.WriteString(w, "test-service@my-project.iam.gserviceaccount.com")
 		})
 
 		// Don't mock the identity token endpoint to cause an error
 
-		metaServer := &testServer{}
-		metaServer.start(router)
-		defer metaServer.stop()
+		metaServer := httptest.NewServer(router)
+		defer metaServer.Close()
 
-		_, err := New(metaServer.httpUrl(), "test-service", "https://zts.athenz.io")
+		_, err := New(metaServer.URL, "test-service", "https://zts.athenz.io")
 		if err == nil {
 			t.Fatalf("expected error when identity token is unavailable")
 		}
 	})
 
 	t.Run("InvalidServiceAccountEmail", func(t *testing.T) {
-		router := httptreemux.New()
+		router := http.NewServeMux()
 
 		// Mock service account info endpoint with invalid format
-		router.GET("/computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+		router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request) {
 			io.WriteString(w, "invalid-email-format")
 		})
 
-		metaServer := &testServer{}
-		metaServer.start(router)
-		defer metaServer.stop()
+		metaServer := httptest.NewServer(router)
+		defer metaServer.Close()
 
-		_, err := New(metaServer.httpUrl(), "test-service", "https://zts.athenz.io")
+		_, err := New(metaServer.URL, "test-service", "https://zts.athenz.io")
 		if err == nil {
 			t.Fatalf("expected error when service account email format is invalid")
 		}
@@ -406,32 +373,31 @@ func TestNewWithGKEFallback(t *testing.T) {
 	// will return false in test environment (no in-cluster config)
 	// But it tests the same code path where defaultServiceIdentity is used from metadata
 	
-	router := httptreemux.New()
+	router := http.NewServeMux()
 
 	// Mock service account info endpoint
-	router.GET("/computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/service-accounts/default/email")
 		io.WriteString(w, "actual-service@my-project.iam.gserviceaccount.com")
 	})
 
 	// Mock defaultServiceIdentity attribute (fallback)
-	router.GET("/computeMetadata/v1/instance/attributes/defaultServiceIdentity", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router.HandleFunc("GET /computeMetadata/v1/instance/attributes/defaultServiceIdentity", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/attributes/defaultServiceIdentity")
 		io.WriteString(w, "fallback-service")
 	})
 
 	// Mock identity token endpoint
-	router.GET("/computeMetadata/v1/instance/service-accounts/default/identity", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/identity", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/service-accounts/default/identity")
 		io.WriteString(w, "eyJhbGciOiJSUzI1NiIsImtpZCI6IjVhYWZmNDdjMjFkMDZlMjY...")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
 	// Test with service matching the fallback defaultServiceIdentity
-	result, err := New(metaServer.httpUrl(), "fallback-service", "https://zts.athenz.io")
+	result, err := New(metaServer.URL, "fallback-service", "https://zts.athenz.io")
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
