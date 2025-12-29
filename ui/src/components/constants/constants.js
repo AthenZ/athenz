@@ -117,7 +117,7 @@ export const DELETE_AUDIT_REFERENCE = 'deleted using Athenz UI';
 // CLOUD_NAT -> IP or CIDR (represents a public cloud NAT gateway)
 // EXTERNAL_APPLIANCE -> IP or CIDR (Appliance present outside of enterprise deployment locations. For SaaS / Third Party / Vendor use cases)
 // CLOUD_MANAGED -> FQDN (represents a cloud managed service or endpoint)
-// SERVICE_SUBNET -> IPV4 RFC1918 CIDR (represents subnet for a given service, would be almost always a RFC1918 CIDR)
+// SERVICE_SUBNET -> IPV4 Private/Loopback/Shared Address CIDR (represents subnet for a given service)
 // NOTE: all IP/CIDR values are for IPv4 only currently since adding IPv6 support would require a much longer regex, which is bad for maintainability
 export const StaticWorkloadType = [
     {
@@ -156,7 +156,7 @@ export const StaticWorkloadType = [
         name: 'Service Subnet',
         value: 'SERVICE_SUBNET',
         pattern:
-            '^(10(\\.(([0-9]?[0-9])|(1[0-9]?[0-9])|(2[0-4]?[0-9])|(25[0-5]))){3}/([8-9]|(1[0-9])|(2[0-9])|(3[0-1])))|(172\\.((1[6-9])|(2[0-9])|(3[0-1]))(\\.(([0-9]?[0-9])|(1[0-9]?[0-9])|(2[0-4]?[0-9])|(25[0-5]))){2}/((1[2-9])|(2[0-9])|(3[0-1])))|(192\\.168(\\.(([0-9]?[0-9])|(1[0-9]?[0-9])|(2[0-4]?[0-9])|(25[0-5]))){2}/((1[6-9])|(2[0-9])|(3[0-1])))|(127(\\.(([0-9]?[0-9])|(1[0-9]?[0-9])|(2[0-4]?[0-9])|(25[0-5]))){3}/([8-9]|(1[0-9])|(2[0-9])|(3[0-1])))|(100\\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])(\\.(([0-9]?[0-9])|(1[0-9]?[0-9])|(2[0-4]?[0-9])|(25[0-5]))){2}/([1-9]|[12][0-9]|3[0-2]))$',
+            '^(10(\\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}/([8-9]|1[0-9]|2[0-9]|3[0-1]))|(172\\.((1[6-9])|2[0-9]|3[0-1])(\\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){2}/(1[2-9]|2[0-9]|3[0-1]))|(192\\.168(\\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){2}/(1[6-9]|2[0-9]|3[0-1]))|(127(\\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}/([8-9]|1[0-9]|2[0-9]|3[0-1]))|(100\\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])(\\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){2}/(1[0-9]|2[0-9]|3[0-2]))$',
     },
 ];
 
