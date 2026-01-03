@@ -4584,11 +4584,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!StringUtil.isEmpty(role.getTrust())) {
 
-            AthenzDomain athenzDomain = getAthenzDomain(role.getTrust(), true);
-            if (athenzDomain == null) {
-                throw ZMSUtils.requestError("Delegated role assigned to non existing domain", caller);
-            }
-
             if (!ZMSUtils.isCollectionEmpty(role.getRoleMembers())) {
                 throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both roleMembers and delegated domain set", caller);
             }
@@ -4599,6 +4594,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             if (domainName.equals(role.getTrust())) {
                 throw ZMSUtils.requestError("validateRoleMembers: Role cannot be delegated to itself", caller);
+            }
+
+            if (getAthenzDomain(role.getTrust(), true) == null) {
+                throw ZMSUtils.requestError("Delegated role assigned to non existing domain", caller);
             }
         }
     }
