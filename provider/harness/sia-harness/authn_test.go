@@ -33,7 +33,7 @@ func startHttpServer(token string, statusCode int) *httptest.Server {
 	router.HandleFunc("POST /oidc", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("/oidc token endpoint is called")
 		w.WriteHeader(statusCode)
-		io.WriteString(w, "{\"value\": \""+token+"\"}")
+		io.WriteString(w, "{\"data\": \""+token+"\"}")
 	})
 
 	return httptest.NewServer(router)
