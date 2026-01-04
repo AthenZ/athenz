@@ -46,8 +46,8 @@ func TestGetOIDCToken(t *testing.T) {
 	ts := startHttpServer(validToken, http.StatusOK)
 	defer ts.Close()
 
-	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", ts.URL+"/oidc?type=jwt")
-	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "test-token")
+t.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", ts.URL+"/oidc?type=jwt")
+t.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "test-token")
 
 	_, claims, err := GetOIDCToken("https://athenz.io")
 	assert.Nil(t, err)
