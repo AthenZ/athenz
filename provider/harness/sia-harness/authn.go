@@ -116,7 +116,7 @@ func GetOIDCToken(audience, harnessUrl string) (string, map[string]interface{}, 
 
 	signatureAlgorithms := []jose.SignatureAlgorithm{jose.RS256, jose.RS384, jose.RS512, jose.PS256, jose.PS384, jose.PS512, jose.ES256, jose.ES384, jose.ES512, jose.EdDSA}
 
-	oidcToken := jsonData["value"].(string)
+	oidcToken := jsonData["data"].(string)
 	tok, err := jwt.ParseSigned(oidcToken, signatureAlgorithms)
 	if err != nil {
 		return "", nil, fmt.Errorf("unable to parse oidc token: %v", err)
