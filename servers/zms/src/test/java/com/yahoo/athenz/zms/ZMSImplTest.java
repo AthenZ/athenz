@@ -7177,6 +7177,7 @@ public class ZMSImplTest {
         meta = zmsTestInitializer.createDomainMetaObject("Tenant Domain2", null, false, false, "12346", null);
         zmsImpl.putDomainMeta(ctx, "signeddom2", auditRef, null, meta);
         meta = zmsTestInitializer.createDomainMetaObject("Tenant Domain2", null, false, false, "12346", null);
+        meta.setAwsAccountName("aws-account-name");
         zmsImpl.putDomainSystemMeta(ctx, "signeddom2", "account", auditRef, meta);
 
         Role role = zmsTestInitializer.createRoleObject("signeddom1", "role1", null, "user.john", "user.jane");
@@ -7213,9 +7214,11 @@ public class ZMSImplTest {
             DomainData domainData = sDomain.getDomain();
             if (domainData.getName().equals("signeddom1")) {
                 assertEquals(domainData.getAccount(), "12345");
+                assertNull(domainData.getAwsAccountName());
                 dom1Found = true;
             } else if (domainData.getName().equals("signeddom2")) {
                 assertEquals(domainData.getAccount(), "12346");
+                assertEquals(domainData.getAwsAccountName(), "aws-account-name");
                 dom2Found = true;
             }
             assertTrue(Crypto.verify(SignUtils.asCanonicalString(sDomain.getDomain()),
@@ -18651,6 +18654,7 @@ public class ZMSImplTest {
                 .setProductId("abcd-123");
         SignedDomain domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, null);
         assertNull(domain.getDomain().getAccount());
+        assertNull(domain.getDomain().getAwsAccountName());
         assertNull(domain.getDomain().getYpmId());
         assertNull(domain.getDomain().getOrg());
         assertNull(domain.getDomain().getAuditEnabled());
@@ -18665,6 +18669,7 @@ public class ZMSImplTest {
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "unknown");
         assertNull(domain.getDomain().getAccount());
+        assertNull(domain.getDomain().getAwsAccountName());
         assertNull(domain.getDomain().getYpmId());
         assertNull(domain.getDomain().getOrg());
         assertNull(domain.getDomain().getAuditEnabled());

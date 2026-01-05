@@ -92,8 +92,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " member_expiry_days, token_expiry_mins, service_cert_expiry_mins, role_cert_expiry_mins, sign_algorithm,"
             + " service_expiry_days, user_authority_filter, group_expiry_days, azure_subscription, business_service,"
             + " member_purge_expiry_days, gcp_project, gcp_project_number, product_id, feature_flags, environment,"
-            + " azure_tenant, azure_client, x509_cert_signer_keyid, ssh_cert_signer_keyid, slack_channel, on_call, auto_delete_tenant_assume_role_assertions) "
-            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " azure_tenant, azure_client, x509_cert_signer_keyid, ssh_cert_signer_keyid, slack_channel, on_call,"
+            + " auto_delete_tenant_assume_role_assertions, aws_account_name) "
+            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3), description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?,"
             + " application_id=?, cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?,"
@@ -101,7 +102,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " group_expiry_days=?, azure_subscription=?, business_service=?, member_purge_expiry_days=?,"
             + " gcp_project=?, gcp_project_number=?, product_id=?, feature_flags=?, environment=?,"
             + " azure_tenant=?, azure_client=?, x509_cert_signer_keyid=?, ssh_cert_signer_keyid=?,"
-            + " slack_channel=?, on_call=?, auto_delete_tenant_assume_role_assertions=? WHERE name=?;";
+            + " slack_channel=?, on_call=?, auto_delete_tenant_assume_role_assertions=?, aws_account_name=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -933,6 +934,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setOrg(saveValue(rs.getString(JDBCConsts.DB_COLUMN_ORG)))
                 .setId(saveUuidValue(rs.getString(JDBCConsts.DB_COLUMN_UUID)))
                 .setAccount(saveValue(rs.getString(JDBCConsts.DB_COLUMN_ACCOUNT)))
+                .setAwsAccountName(saveValue(rs.getString(JDBCConsts.DB_COLUMN_AWS_ACCOUNT_NAME)))
                 .setAzureSubscription(saveValue(rs.getString(JDBCConsts.DB_COLUMN_AZURE_SUBSCRIPTION)))
                 .setAzureTenant(saveValue(rs.getString(JDBCConsts.DB_COLUMN_AZURE_TENANT)))
                 .setAzureClient(saveValue(rs.getString(JDBCConsts.DB_COLUMN_AZURE_CLIENT)))
@@ -1036,6 +1038,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(31, processInsertValue(domain.getSlackChannel()));
             ps.setString(32, processInsertValue(domain.getOnCall()));
             ps.setBoolean(33, processInsertValue(domain.getAutoDeleteTenantAssumeRoleAssertions(), false));
+            ps.setString(34, processInsertValue(domain.getAwsAccountName()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1198,7 +1201,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(30, processInsertValue(domain.getSlackChannel()));
             ps.setString(31, processInsertValue(domain.getOnCall()));
             ps.setBoolean(32, processInsertValue(domain.getAutoDeleteTenantAssumeRoleAssertions(), false));
-            ps.setString(33, domain.getName());
+            ps.setString(33, processInsertValue(domain.getAwsAccountName()));
+            ps.setString(34, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

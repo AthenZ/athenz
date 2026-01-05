@@ -9,11 +9,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 )
@@ -1179,9 +1180,10 @@ func (cli Zms) DeleteDomainTags(dn string, tagKey string, tagValue string) (*str
 	return &output, err
 }
 
-func (cli Zms) SetDomainAccount(dn string, account string) (*string, error) {
+func (cli Zms) SetDomainAccount(dn string, accountId, accountName string) (*string, error) {
 	meta := zms.DomainMeta{
-		Account: account,
+		Account:        accountId,
+		AwsAccountName: accountName,
 	}
 	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "account", cli.AuditRef, &meta)
 	if err != nil {

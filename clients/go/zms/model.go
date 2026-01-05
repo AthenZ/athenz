@@ -244,6 +244,11 @@ type DomainMeta struct {
 	Account string `json:"account" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// associated aws account name (system attribute)
+	//
+	AwsAccountName string `json:"awsAccountName" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional" yaml:",omitempty"`
@@ -456,6 +461,12 @@ func (self *DomainMeta) Validate() error {
 			return fmt.Errorf("DomainMeta.account does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.AwsAccountName != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AwsAccountName)
+		if !val.Valid {
+			return fmt.Errorf("DomainMeta.awsAccountName does not contain a valid String (%v)", val.Error)
+		}
+	}
 	if self.ApplicationId != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.ApplicationId)
 		if !val.Valid {
@@ -590,6 +601,11 @@ type Domain struct {
 	// enabled)
 	//
 	Account string `json:"account" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// associated aws account name (system attribute)
+	//
+	AwsAccountName string `json:"awsAccountName" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// associated product id (system attribute - uniqueness check - if enabled)
@@ -817,6 +833,12 @@ func (self *Domain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.Account)
 		if !val.Valid {
 			return fmt.Errorf("Domain.account does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AwsAccountName != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AwsAccountName)
+		if !val.Valid {
+			return fmt.Errorf("Domain.awsAccountName does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.ApplicationId != "" {
@@ -5347,6 +5369,11 @@ type TopLevelDomain struct {
 	Account string `json:"account" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// associated aws account name (system attribute)
+	//
+	AwsAccountName string `json:"awsAccountName" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional" yaml:",omitempty"`
@@ -5577,6 +5604,12 @@ func (self *TopLevelDomain) Validate() error {
 			return fmt.Errorf("TopLevelDomain.account does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.AwsAccountName != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AwsAccountName)
+		if !val.Valid {
+			return fmt.Errorf("TopLevelDomain.awsAccountName does not contain a valid String (%v)", val.Error)
+		}
+	}
 	if self.ApplicationId != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.ApplicationId)
 		if !val.Valid {
@@ -5717,6 +5750,11 @@ type SubDomain struct {
 	// enabled)
 	//
 	Account string `json:"account" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// associated aws account name (system attribute)
+	//
+	AwsAccountName string `json:"awsAccountName" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// associated product id (system attribute - uniqueness check - if enabled)
@@ -5954,6 +5992,12 @@ func (self *SubDomain) Validate() error {
 			return fmt.Errorf("SubDomain.account does not contain a valid String (%v)", val.Error)
 		}
 	}
+	if self.AwsAccountName != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AwsAccountName)
+		if !val.Valid {
+			return fmt.Errorf("SubDomain.awsAccountName does not contain a valid String (%v)", val.Error)
+		}
+	}
 	if self.ApplicationId != "" {
 		val := rdl.Validate(ZMSSchema(), "String", self.ApplicationId)
 		if !val.Valid {
@@ -6103,6 +6147,11 @@ type UserDomain struct {
 	// enabled)
 	//
 	Account string `json:"account" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// associated aws account name (system attribute)
+	//
+	AwsAccountName string `json:"awsAccountName" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// associated product id (system attribute - uniqueness check - if enabled)
@@ -6325,6 +6374,12 @@ func (self *UserDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.Account)
 		if !val.Valid {
 			return fmt.Errorf("UserDomain.account does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AwsAccountName != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AwsAccountName)
+		if !val.Valid {
+			return fmt.Errorf("UserDomain.awsAccountName does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.ApplicationId != "" {
@@ -7764,6 +7819,11 @@ type DomainData struct {
 	Account string `json:"account" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// associated aws account name (system attribute)
+	//
+	AwsAccountName string `json:"awsAccountName" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// associated product id (system attribute - uniqueness check - if enabled)
 	//
 	YpmId *int32 `json:"ypmId,omitempty" rdl:"optional" yaml:",omitempty"`
@@ -8024,6 +8084,12 @@ func (self *DomainData) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.Account)
 		if !val.Valid {
 			return fmt.Errorf("DomainData.account does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AwsAccountName != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.AwsAccountName)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.awsAccountName does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.ApplicationId != "" {

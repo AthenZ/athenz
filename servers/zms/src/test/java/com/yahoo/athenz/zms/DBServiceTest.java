@@ -1600,7 +1600,7 @@ public class DBServiceTest {
                 .setEnabled(true).setAuditEnabled(false).setAccount("12345").setYpmId(1001)
                 .setCertDnsDomain("athenz1.cloud").setMemberExpiryDays(10).setTokenExpiryMins(20)
                 .setServiceExpiryDays(45).setGroupExpiryDays(50).setBusinessService("service1")
-                .setMemberPurgeExpiryDays(90);
+                .setMemberPurgeExpiryDays(90).setAwsAccountName("aws-account-name");
         Domain metaDomain = zms.dbService.getDomain(domainName, true);
         zms.dbService.executePutDomainMeta(mockDomRsrcCtx, metaDomain, meta, null, false, auditRef, "putDomainMeta");
         metaDomain = zms.dbService.getDomain(domainName, true);
@@ -1620,6 +1620,7 @@ public class DBServiceTest {
         assertFalse(resDom2.getAuditEnabled());
         assertEquals(Integer.valueOf(1001), resDom2.getYpmId());
         assertEquals(resDom2.getAccount(), "12345");
+        assertEquals(resDom2.getAwsAccountName(), "aws-account-name");
         assertEquals(resDom2.getCertDnsDomain(), "athenz1.cloud");
         assertEquals(Integer.valueOf(20), resDom2.getTokenExpiryMins());
         assertEquals(Integer.valueOf(10), resDom2.getMemberExpiryDays());
@@ -1654,6 +1655,7 @@ public class DBServiceTest {
         assertFalse(resDom3.getAuditEnabled());
         assertEquals(Integer.valueOf(1001), resDom3.getYpmId());
         assertEquals(resDom3.getAccount(), "12345");
+        assertEquals(resDom3.getAwsAccountName(), "aws-account-name");
         assertEquals(resDom3.getCertDnsDomain(), "athenz1.cloud");
         assertEquals(Integer.valueOf(20), resDom3.getTokenExpiryMins());
         assertEquals(Integer.valueOf(10), resDom3.getMemberExpiryDays());
@@ -1685,6 +1687,7 @@ public class DBServiceTest {
         assertFalse(resDom4.getAuditEnabled());
         assertEquals(Integer.valueOf(1001), resDom4.getYpmId());
         assertEquals(resDom4.getAccount(), "12345");
+        assertEquals(resDom4.getAwsAccountName(), "aws-account-name");
         assertEquals(resDom4.getCertDnsDomain(), "athenz1.cloud");
         assertEquals(Integer.valueOf(500), resDom4.getTokenExpiryMins());
         assertEquals(Integer.valueOf(10), resDom4.getMemberExpiryDays());
@@ -5621,6 +5624,7 @@ public class DBServiceTest {
         Domain domain = new Domain();
         DomainMeta meta = new DomainMeta()
                 .setAccount("acct")
+                .setAwsAccountName("aws-acct-name")
                 .setYpmId(1234)
                 .setCertDnsDomain("athenz.cloud")
                 .setAzureSubscription("azure")
@@ -5633,6 +5637,7 @@ public class DBServiceTest {
                 .setFeatureFlags(3);
         zms.dbService.updateSystemMetaFields(domain, "account", true, meta);
         assertEquals(domain.getAccount(), "acct");
+        assertEquals(domain.getAwsAccountName(), "aws-acct-name");
         zms.dbService.updateSystemMetaFields(domain, "productid", true, meta);
         assertEquals(domain.getYpmId().intValue(), 1234);
         assertEquals(domain.getProductId(), "abcd-1234");

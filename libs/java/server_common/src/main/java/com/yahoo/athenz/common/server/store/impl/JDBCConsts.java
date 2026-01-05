@@ -69,6 +69,7 @@ public final class JDBCConsts {
     public static final String DB_COLUMN_VALUE              = "value";
     public static final String DB_COLUMN_DOMAIN_ID          = "domain_id";
     public static final String DB_COLUMN_ACCOUNT            = "account";
+    public static final String DB_COLUMN_AWS_ACCOUNT_NAME   = "aws_account_name";
     public static final String DB_COLUMN_YPM_ID             = "ypm_id";
     public static final String DB_COLUMN_PRODUCT_ID         = "product_id";
     public static final String DB_COLUMN_ADMIN              = "admin";

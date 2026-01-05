@@ -1575,4 +1575,98 @@ public class ZMSMetaAttributeTest {
 
         System.clearProperty("athenz.zms.enforce_unique_product_ids");
     }
+
+    @Test
+    public void testPutDomainMetaAwsAccountName() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "athenz-domain-with-aws-account-name";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Domain domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertNull(domain.getAccount());
+        assertNull(domain.getAwsAccountName());
+
+        // set the aws account number only
+
+        DomainMeta dm = new DomainMeta().setAccount("12345");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "account", auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getAccount(), "12345");
+        assertNull(domain.getAwsAccountName());
+
+        // update the aws account id only
+
+        zmsTestInitializer.setupPrincipalSystemMetaDelete(zmsImpl, ctx.principal().getFullName(),
+                domainName, "domain", "account");
+
+        dm = new DomainMeta().setAccount("12346");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "account", auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getAccount(), "12346");
+        assertNull(domain.getAwsAccountName());
+
+        // update the aws account name only
+
+        dm = new DomainMeta().setAccount("12346").setAwsAccountName("aws-account-new-name");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "account", auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getAccount(), "12346");
+        assertEquals(domain.getAwsAccountName(), "aws-account-new-name");
+
+        // update the name again
+
+        dm = new DomainMeta().setAccount("12346").setAwsAccountName("aws-account-another-name");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "account", auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getAccount(), "12346");
+        assertEquals(domain.getAwsAccountName(), "aws-account-another-name");
+
+        // update the both account number and name
+
+        dm = new DomainMeta().setAccount("12347").setAwsAccountName("aws-account-both-name");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "account", auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getAccount(), "12347");
+        assertEquals(domain.getAwsAccountName(), "aws-account-both-name");
+
+        // setting the aws account number will not change the name,
+        // and we don't allow removing the aws account name
+
+        dm = new DomainMeta().setAccount("12347");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "account", auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getAccount(), "12347");
+        assertEquals(domain.getAwsAccountName(), "aws-account-both-name");
+
+        // remove the aws account which must remove the name as well
+
+        dm = new DomainMeta().setAccount("");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "account", auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertNull(domain.getAccount());
+        assertNull(domain.getAwsAccountName());
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
 }

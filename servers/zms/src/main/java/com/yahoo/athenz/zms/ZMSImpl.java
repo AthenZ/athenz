@@ -1710,6 +1710,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setOrg(detail.getOrg())
                 .setId(UUID.fromCurrentTime())
                 .setAccount(detail.getAccount())
+                .setAwsAccountName(detail.getAwsAccountName())
                 .setAzureSubscription(detail.getAzureSubscription())
                 .setAzureTenant(detail.getAzureTenant())
                 .setAzureClient(detail.getAzureClient())
@@ -7465,6 +7466,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         return null;
                     }
                     signedDomain.getDomain().setAccount(account);
+                    signedDomain.getDomain().setAwsAccountName(domain.getAwsAccountName());
                     break;
                 case ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION:
                     final String azureSubscription = domain.getAzureSubscription();
@@ -7515,6 +7517,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void setDomainDataAttributes(DomainData domainData, Domain domain) {
         domainData.setDescription(domain.getDescription());
         domainData.setAccount(domain.getAccount());
+        domainData.setAwsAccountName(domain.getAwsAccountName());
         domainData.setAzureSubscription(domain.getAzureSubscription());
         domainData.setAzureTenant(domain.getAzureTenant());
         domainData.setAzureClient(domain.getAzureClient());
@@ -7597,6 +7600,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             domainData.setAuditEnabled(true);
         }
         domainData.setAccount(athenzDomain.getDomain().getAccount());
+        domainData.setAwsAccountName(athenzDomain.getDomain().getAwsAccountName());
         domainData.setAzureSubscription(athenzDomain.getDomain().getAzureSubscription());
         domainData.setAzureTenant(athenzDomain.getDomain().getAzureTenant());
         domainData.setAzureClient(athenzDomain.getDomain().getAzureClient());

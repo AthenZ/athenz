@@ -130,6 +130,7 @@ public class ZMSSchema {
             .field("enabled", "Bool", true, "Future use only, currently not used", true)
             .field("auditEnabled", "Bool", true, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.", false)
             .field("account", "String", true, "associated aws account id (system attribute - uniqueness check - if enabled)")
+            .field("awsAccountName", "String", true, "associated aws account name (system attribute)")
             .field("ypmId", "Int32", true, "associated product id (system attribute - uniqueness check - if enabled)")
             .field("applicationId", "String", true, "associated application id")
             .field("certDnsDomain", "String", true, "domain certificate dns domain (system attribute)")
