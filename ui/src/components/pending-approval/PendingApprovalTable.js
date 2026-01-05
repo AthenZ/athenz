@@ -211,7 +211,7 @@ class PendingApprovalTable extends React.Component {
             checkedList: [],
             selectAllAuditMissing: false,
             selectAllDateExpiry: '',
-            selectAllReviewReminder: '',
+            selectAllDateReviewReminder: '',
             error: '',
         });
     }
@@ -256,11 +256,21 @@ class PendingApprovalTable extends React.Component {
                     return;
                 }
                 this.state.checkedList.forEach((key) => {
+                    // Preserve individual expiration/reviewReminder if top-level fields are blank
+                    // If top-level fields are set, use them (allows bulk override)
+                    const expiration =
+                        this.state.selectAllDateExpiry ||
+                        this.state.pendingMap[key].expiryDate ||
+                        '';
+                    const reviewReminder =
+                        this.state.selectAllDateReviewReminder ||
+                        this.state.pendingMap[key].reviewReminder ||
+                        '';
                     let membership = {
                         memberName: this.state.pendingMap[key].memberName,
                         approved,
-                        expiration: this.state.selectAllDateExpiry,
-                        reviewReminder: this.state.selectAllDateReviewReminder,
+                        expiration: expiration,
+                        reviewReminder: reviewReminder,
                         pendingState: this.state.pendingMap[key].pendingState,
                     };
                     this.props

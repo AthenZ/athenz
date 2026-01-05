@@ -32,8 +32,8 @@ import (
 	"io"
 	"log"
 	"math/big"
-	"net"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
 	"os/user"
@@ -48,7 +48,6 @@ import (
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/access/config"
-	"github.com/dimfeld/httptreemux"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -63,33 +62,6 @@ type AccessTokenClaims struct {
 	Scopes   []string     `json:"scp"`
 	Confirm  ConfirmClaim `json:"cnf"`
 	jwt.RegisteredClaims
-}
-
-type testServer struct {
-	listener net.Listener
-	addr     string
-}
-
-func (t *testServer) start(h http.Handler) {
-	listener, err := net.Listen("tcp", ":0")
-	if err != nil {
-		log.Panicln("Unable to serve on randomly assigned port")
-	}
-	s := &http.Server{Handler: h}
-	t.listener = listener
-	t.addr = listener.Addr().String()
-
-	go func() {
-		s.Serve(listener)
-	}()
-}
-
-func (t *testServer) stop() {
-	t.listener.Close()
-}
-
-func (t *testServer) baseUrl(version string) string {
-	return "http://" + t.addr + "/" + version
 }
 
 func TestToBeRefreshed(t *testing.T) {
@@ -232,20 +204,24 @@ func TestToBeRefreshedWithStoreOption(t *testing.T) {
 func TestTokenWithStoreOption(t *testing.T) {
 	siaDir, err := os.MkdirTemp("", "sia.")
 	require.Nil(t, err, "should be able to create temp folder for sia")
-
-	// Mock ZTS AccessTokens api
-	ztsRouter := httptreemux.New()
 	eckey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
+	// Mock ZTS AccessTokens api
+	ztsRouter := http.NewServeMux()
+
 	// Mock Access Tokens
-	ztsRouter.POST("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	ztsRouter.HandleFunc("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request) {
+		// Verify the request
+		if r.Method != http.MethodPost {
+			t.Errorf("Expected POST request, got %s", r.Method)
+		}
+
 		log.Println("Called /zts/v1/instance")
 		io.WriteString(w, makeAccessToken(r, eckey))
 	})
 
-	ztsServer := &testServer{}
-	ztsServer.start(ztsRouter)
-	defer ztsServer.stop()
+	ztsServer := httptest.NewServer(ztsRouter)
+	defer ztsServer.Close()
 
 	tokenServices := []config.TokenService{
 		{Name: "httpd"},
@@ -260,7 +236,7 @@ func TestTokenWithStoreOption(t *testing.T) {
 		Tokens: []config.AccessToken{
 			{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
 		},
-		ZtsUrl:       ztsServer.baseUrl("zts/v1"),
+		ZtsUrl:       ztsServer.URL + "/zts/v1",
 		StoreOptions: config.AccessTokenProp,
 	}
 
@@ -307,18 +283,22 @@ func TestAccessTokensSuccess(t *testing.T) {
 	siaDir := t.TempDir()
 
 	// Mock ZTS AccessTokens api
-	ztsRouter := httptreemux.New()
+	ztsRouter := http.NewServeMux()
 	eckey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
 	// Mock Access Tokens
-	ztsRouter.POST("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	ztsRouter.HandleFunc("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request) {
+		// Verify the request
+		if r.Method != http.MethodPost {
+			t.Errorf("Expected POST request, got %s", r.Method)
+		}
+
 		log.Println("Called /zts/v1/instance")
 		io.WriteString(w, makeAccessToken(r, eckey))
 	})
 
-	ztsServer := &testServer{}
-	ztsServer.start(ztsRouter)
-	defer ztsServer.stop()
+	ztsServer := httptest.NewServer(ztsRouter)
+	defer ztsServer.Close()
 
 	tokenServices := []config.TokenService{
 		{Name: "httpd"},
@@ -337,7 +317,7 @@ func TestAccessTokensSuccess(t *testing.T) {
 			{FileName: "token4", Service: "httpd", Domain: "athenz.demo", Roles: []string{"token4"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
 			{FileName: "token1", Service: "httpd", Domain: "athenz.examples", Roles: []string{"token1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200, ProxyPrincipalSpiffeUris: "spiffe://athenz/sa/proxy"},
 		},
-		ZtsUrl: ztsServer.baseUrl("zts/v1"),
+		ZtsUrl: ztsServer.URL + "/zts/v1",
 	}
 
 	log.Printf("Options fed are: %+v\n", opts)
@@ -382,18 +362,23 @@ func TestAccessTokensRerun(t *testing.T) {
 	siaDir := t.TempDir()
 
 	// Mock ZTS AccessTokens api
-	ztsRouter := httptreemux.New()
+	ztsRouter := http.NewServeMux()
 	eckey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
 	// Mock Access Tokens
-	ztsRouter.POST("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	ztsRouter.HandleFunc("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request) {
+
+		// Verify the request
+		if r.Method != http.MethodPost {
+			t.Errorf("Expected POST request, got %s", r.Method)
+		}
+
 		log.Println("Called /zts/v1/instance")
 		io.WriteString(w, makeAccessToken(r, eckey))
 	})
 
-	ztsServer := &testServer{}
-	ztsServer.start(ztsRouter)
-	defer ztsServer.stop()
+	ztsServer := httptest.NewServer(ztsRouter)
+	defer ztsServer.Close()
 
 	tokenServices := []config.TokenService{
 		{Name: "httpd"},
@@ -409,7 +394,7 @@ func TestAccessTokensRerun(t *testing.T) {
 		Tokens: []config.AccessToken{
 			{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: tokenExpiryMins},
 		},
-		ZtsUrl: ztsServer.baseUrl("zts/v1"),
+		ZtsUrl: ztsServer.URL + "/zts/v1",
 	}
 
 	log.Printf("Options fed are: %+v\n", opts)
@@ -478,11 +463,17 @@ func TestAccessTokensUserAgent(t *testing.T) {
 	userAgent := "tokencli-1.0.0 colo-a"
 
 	// Mock ZTS AccessTokens api
-	ztsRouter := httptreemux.New()
+	ztsRouter := http.NewServeMux()
 	eckey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
 	// Mock Access Tokens
-	ztsRouter.POST("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	ztsRouter.HandleFunc("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request) {
+
+		// Verify the request
+		if r.Method != http.MethodPost {
+			t.Errorf("Expected POST request, got %s", r.Method)
+		}
+
 		log.Println("Called /zts/v1/instance")
 		if r.Header.Get(UserAgent) != userAgent {
 			panic("User-Agent is not set")
@@ -490,9 +481,8 @@ func TestAccessTokensUserAgent(t *testing.T) {
 		io.WriteString(w, makeAccessToken(r, eckey))
 	})
 
-	ztsServer := &testServer{}
-	ztsServer.start(ztsRouter)
-	defer ztsServer.stop()
+	ztsServer := httptest.NewServer(ztsRouter)
+	defer ztsServer.Close()
 
 	tokenServices := []config.TokenService{
 		{Name: "httpd"},
@@ -507,7 +497,7 @@ func TestAccessTokensUserAgent(t *testing.T) {
 		Tokens: []config.AccessToken{
 			{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
 		},
-		ZtsUrl:    ztsServer.baseUrl("zts/v1"),
+		ZtsUrl:    ztsServer.URL + "/zts/v1",
 		UserAgent: userAgent,
 	}
 
@@ -528,18 +518,23 @@ func TestAccessTokensMixedTokenErrors(t *testing.T) {
 	currentUnixTime := time.Now().Unix()
 
 	// Mock ZTS AccessTokens api
-	ztsRouter := httptreemux.New()
+	ztsRouter := http.NewServeMux()
 	eckey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
 	// Mock Access Tokens
-	ztsRouter.POST("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	ztsRouter.HandleFunc("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request) {
+
+		// Verify the request
+		if r.Method != http.MethodPost {
+			t.Errorf("Expected POST request, got %s", r.Method)
+		}
+
 		log.Println("Called /zts/v1/instance")
 		io.WriteString(w, makeAccessToken(r, eckey))
 	})
 
-	ztsServer := &testServer{}
-	ztsServer.start(ztsRouter)
-	defer ztsServer.stop()
+	ztsServer := httptest.NewServer(ztsRouter)
+	defer ztsServer.Close()
 
 	tokenServices := []config.TokenService{
 		{Name: "httpd"},
@@ -555,7 +550,7 @@ func TestAccessTokensMixedTokenErrors(t *testing.T) {
 			{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
 			{FileName: "token2", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
 		},
-		ZtsUrl: ztsServer.baseUrl("zts/v1"),
+		ZtsUrl: ztsServer.URL + "/zts/v1",
 	}
 
 	log.Printf("Options fed are: %+v\n", opts)
@@ -590,12 +585,18 @@ func TestAccessTokensApiErrors(t *testing.T) {
 	currentUnixTime := time.Now().Unix()
 
 	// Mock ZTS AccessTokens api
-	ztsRouter := httptreemux.New()
+	ztsRouter := http.NewServeMux()
 	eckey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
 	// Mock Access Tokens
 	c := 0
-	ztsRouter.POST("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	ztsRouter.HandleFunc("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request) {
+
+		// Verify the request
+		if r.Method != http.MethodPost {
+			t.Errorf("Expected POST request, got %s", r.Method)
+		}
+
 		log.Println("Called /zts/v1/token")
 		// Success the first time, api error second time, json error the third time
 		switch c {
@@ -611,9 +612,8 @@ func TestAccessTokensApiErrors(t *testing.T) {
 		c = c + 1
 	})
 
-	ztsServer := &testServer{}
-	ztsServer.start(ztsRouter)
-	defer ztsServer.stop()
+	ztsServer := httptest.NewServer(ztsRouter)
+	defer ztsServer.Close()
 
 	tokenServices := []config.TokenService{
 		{Name: "httpd"},
@@ -628,7 +628,7 @@ func TestAccessTokensApiErrors(t *testing.T) {
 		Tokens: []config.AccessToken{
 			{FileName: "token1", Service: "httpd", Domain: "athenz.demo", Roles: []string{"role1"}, User: username(t), Uid: uid(t), Gid: gid(t), Expiry: 7200},
 		},
-		ZtsUrl: ztsServer.baseUrl("zts/v1"),
+		ZtsUrl: ztsServer.URL + "/zts/v1",
 	}
 
 	log.Printf("Options fed are: %+v\n", opts)
@@ -717,24 +717,29 @@ func TestNewTokenOptions(t *testing.T) {
 	fixGidUid(opts.AccessTokens)
 
 	// Mock ZTS AccessTokens api
-	ztsRouter := httptreemux.New()
+	ztsRouter := http.NewServeMux()
 	eckey, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 
 	// Mock Access Tokens
-	ztsRouter.POST("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	ztsRouter.HandleFunc("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request) {
+
+		// Verify the request
+		if r.Method != http.MethodPost {
+			t.Errorf("Expected POST request, got %s", r.Method)
+		}
+
 		log.Println("Called /zts/v1/instance")
 		io.WriteString(w, makeAccessToken(r, eckey))
 	})
 
-	ztsServer := &testServer{}
-	ztsServer.start(ztsRouter)
-	defer ztsServer.stop()
+	ztsServer := httptest.NewServer(ztsRouter)
+	defer ztsServer.Close()
 
 	defer os.RemoveAll(siaDir + "/certs")
 	defer os.RemoveAll(siaDir + "/keys")
 	defer os.RemoveAll(siaDir + "/tokens")
 
-	tokenOpts, err := NewTokenOptions(opts, ztsServer.baseUrl("zts/v1"), "mock-ua")
+	tokenOpts, err := NewTokenOptions(opts, ztsServer.URL + "/zts/v1", "mock-ua")
 	require.Nilf(t, err, "error should not be thrown, error: %v", err)
 
 	makeIdentity(t, tokenOpts)
@@ -745,19 +750,20 @@ func TestNewTokenOptions(t *testing.T) {
 }
 
 func TestTokenRefreshOption(t *testing.T) {
-	ztsServer := &testServer{}
+	ztsRouter := http.NewServeMux()	
+	ztsServer := httptest.NewServer(ztsRouter)
 	cfg, configAccount, _ := options.InitFileConfig("data/sia_config.with-access-tokens", "http://localhost:80", false, "us-west-2", "")
 	siaDir := "/tmp"
 
 	opts, err := options.NewOptions(cfg, configAccount, nil, siaDir, "1.0.0", false, "us-west-2")
 	require.NoError(t, err, "error creating new options: %v", err)
-	tokenOpts, err := NewTokenOptions(opts, ztsServer.baseUrl("zts/v1"), "mock-ua")
+	tokenOpts, err := NewTokenOptions(opts, ztsServer.URL + "/zts/v1", "mock-ua")
 	require.Nilf(t, err, "error should not be thrown, error: %v", err)
 	dur, _ := time.ParseDuration(DefaultRefreshDuration)
 	assert.Equal(t, float64(90), dur.Minutes(), "token refresh should be default")
 
 	_ = os.Setenv(TokenRefreshPeriodProp, "1ms")
-	tokenOpts, err = NewTokenOptions(opts, ztsServer.baseUrl("zts/v1"), "mock-ua")
+	tokenOpts, err = NewTokenOptions(opts, ztsServer.URL + "/zts/v1", "mock-ua")
 	require.Nilf(t, err, "error should not be thrown, error: %v", err)
 	assert.Equal(t, int64(1), tokenOpts.TokenRefresh.Milliseconds(), "token refresh should not be specified")
 	_ = os.Unsetenv(TokenRefreshPeriodProp)

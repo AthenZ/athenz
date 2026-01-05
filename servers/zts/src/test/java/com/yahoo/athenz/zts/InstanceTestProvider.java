@@ -18,6 +18,8 @@ package com.yahoo.athenz.zts;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
+import com.yahoo.athenz.instance.provider.ProviderResourceException;
+
 import javax.net.ssl.SSLContext;
 
 public class InstanceTestProvider implements InstanceProvider {
@@ -26,6 +28,12 @@ public class InstanceTestProvider implements InstanceProvider {
         if (processExceptionCheck("init")) {
             throw new InstantiationException();
         }
+    }
+
+    @Override
+    public SVIDType getSVIDType() {
+        final String svidType = System.getProperty("athenz.instance.test.provider.svid", "x509");
+        return "x509".equalsIgnoreCase(svidType) ? SVIDType.X509 : SVIDType.JWT;
     }
 
     @Override
@@ -46,7 +54,14 @@ public class InstanceTestProvider implements InstanceProvider {
     }
 
     @Override
-    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) {
+    public InstanceConfirmation confirmInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
+        if (processExceptionCheck("confirm")) {
+            if (processExceptionCheck("argument")) {
+                throw new IllegalArgumentException();
+            } else {
+                throw new ProviderResourceException(403, "request-forbidden");
+            }
+        }
         return null;
     }
 

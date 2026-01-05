@@ -3298,6 +3298,94 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testAddSolutionTemplateSettingTrustOnRoleWithMembers() throws ServerResourceException {
+        String domainName = "warn-trust-on-role-with-members";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
+
+        // Create role-with-members-test role with members first
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user.joe"));
+        Role role = createRoleObject(domainName, "role-with-members-test", null, members);
+        zms.putRole(mockDomRsrcCtx, domainName, "role-with-members-test", auditRef, false, null, role);
+
+        // Setup log appender to capture warning messages
+        boolean[] warningLogged = new boolean[1];
+        Logger dbServiceLogger = (Logger) LoggerFactory.getLogger(DBService.class);
+        AppenderBase testAppender = new AppenderBase() {
+            @Override
+            protected void append(Object o) {
+                if (o instanceof LoggingEvent) {
+                    String message = ((LoggingEvent) o).getMessage();
+                    if (message.contains("SolutionTemplate is setting trust on role") &&
+                        message.contains("which already has members")) {
+                        warningLogged[0] = true;
+                    }
+                }
+            }
+        };
+        testAppender.start();
+        dbServiceLogger.addAppender(testAppender);
+
+        // Apply template which tries to set trust on this role
+        List<String> templates = new ArrayList<>();
+        templates.add("templateWithTrustRoleTest");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, "testCaller");
+
+        testAppender.stop();
+        dbServiceLogger.detachAppender(testAppender);
+
+        // Verify the warning was logged
+        assertTrue(warningLogged[0], "Expected warning log about setting trust on role with members");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testAddSolutionTemplateAddingMembersToTrustedRole() throws ServerResourceException {
+        String domainName = "warn-members-to-trusted-role";
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName, "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
+
+        // Create a trusted role with a name that will be used in template
+        Role role = createRoleObject(domainName, "trust-role-test", "sys.auth", null, null);
+        zms.putRole(mockDomRsrcCtx, domainName, "trust-role-test", auditRef, false, null, role);
+
+        // Setup log appender to capture warning messages
+        boolean[] warningLogged = new boolean[1];
+        Logger dbServiceLogger = (Logger) LoggerFactory.getLogger(DBService.class);
+        AppenderBase testAppender = new AppenderBase() {
+            @Override
+            protected void append(Object o) {
+                if (o instanceof LoggingEvent) {
+                    String message = ((LoggingEvent) o).getMessage();
+                    if (message.contains("SolutionTemplate is adding members to role") &&
+                        message.contains("which is a trusted role")) {
+                        warningLogged[0] = true;
+                    }
+                }
+            }
+        };
+        testAppender.start();
+        dbServiceLogger.addAppender(testAppender);
+
+        // Apply template which tries to add members to the trusted role
+        List<String> templates = new ArrayList<>();
+        templates.add("templateWithRoleMembersTest");
+        DomainTemplate domainTemplate = new DomainTemplate().setTemplateNames(templates);
+        zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName, domainTemplate, auditRef, "testCaller");
+
+        testAppender.stop();
+        dbServiceLogger.detachAppender(testAppender);
+
+        // Verify the warning was logged
+        assertTrue(warningLogged[0], "Expected warning log about adding members to trusted role");
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testApplySolutionTemplateDomainExistingPolicies() throws ServerResourceException {
 
         String caller = "testApplySolutionTemplateDomainExistingPolicies";

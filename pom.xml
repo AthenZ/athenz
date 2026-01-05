@@ -218,6 +218,7 @@
     <module>utils/zts-idtoken</module>
     <module>utils/zts-rolecert</module>
     <module>utils/zts-svccert</module>
+    <module>utils/zts-svctoken</module>
     <module>utils/msd-agent</module>
     <module>libs/nodejs/auth_core</module>
     <module>clients/nodejs/zts</module>

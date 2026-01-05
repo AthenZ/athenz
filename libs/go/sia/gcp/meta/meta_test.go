@@ -17,55 +17,25 @@
 package meta
 
 import (
-	"fmt"
-	"github.com/dimfeld/httptreemux"
 	"io"
 	"log"
-	"net"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
-type testServer struct {
-	listener net.Listener
-	addr     string
-}
-
-func (t *testServer) start(h http.Handler) {
-	listener, err := net.Listen("tcp", ":0")
-	if err != nil {
-		log.Panicln("Unable to serve on randomly assigned port")
-	}
-	s := &http.Server{Handler: h}
-	t.listener = listener
-	t.addr = listener.Addr().String()
-
-	go func() {
-		s.Serve(listener)
-	}()
-}
-
-func (t *testServer) stop() {
-	t.listener.Close()
-}
-
-func (t *testServer) httpUrl() string {
-	return fmt.Sprintf("http://%s", t.addr)
-}
-
 func TestGetMetadata(test *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/computeMetadata/v1/instance/zone", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/zone", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/zone")
 		io.WriteString(w, "projects/1001234567890/zones/us-west1-a")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
-	_, err := GetData(metaServer.httpUrl(), "/computeMetadata/v1/instance/zone")
+	_, err := GetData(metaServer.URL, "/computeMetadata/v1/instance/zone")
 	if err != nil {
 		test.Errorf("Unable to retrieve zone - %v", err)
 		return
@@ -74,17 +44,16 @@ func TestGetMetadata(test *testing.T) {
 
 func TestGetRegion(test *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/computeMetadata/v1/instance/zone", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/zone", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/zone")
 		io.WriteString(w, "projects/1001234567890/zones/us-west2-a")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
-	region := GetRegion(metaServer.httpUrl())
+	region := GetRegion(metaServer.URL)
 	if region != "us-west2" {
 		test.Errorf("Unable to match expected region: %s", region)
 	}
@@ -92,17 +61,16 @@ func TestGetRegion(test *testing.T) {
 
 func TestGetZone(test *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/computeMetadata/v1/instance/zone", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/zone", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/zone")
 		io.WriteString(w, "projects/1001234567890/zones/us-west2-a")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
-	zone := GetZone(metaServer.httpUrl())
+	zone := GetZone(metaServer.URL)
 	if zone != "us-west2-a" {
 		test.Errorf("Unable to match expected zone: %s", zone)
 	}
@@ -110,17 +78,16 @@ func TestGetZone(test *testing.T) {
 
 func TestGetDomain(test *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/computeMetadata/v1/project/attributes/athenz-domain", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/project/attributes/athenz-domain", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/project/attributes/athenz-domain")
 		io.WriteString(w, "athenz.test")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
-	domain, _ := GetDomain(metaServer.httpUrl())
+	domain, _ := GetDomain(metaServer.URL)
 	if domain != "athenz.test" {
 		test.Errorf("want domain=athenz.test got domain=%s", domain)
 	}
@@ -128,17 +95,16 @@ func TestGetDomain(test *testing.T) {
 
 func TestGetProject(test *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/computeMetadata/v1/project/project-id", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/project/project-id", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/project/project-id")
 		io.WriteString(w, "my-gcp-project")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
-	project, _ := GetProject(metaServer.httpUrl())
+	project, _ := GetProject(metaServer.URL)
 	if project != "my-gcp-project" {
 		test.Errorf("want project=my-gcp-project got project=%s", project)
 	}
@@ -146,17 +112,16 @@ func TestGetProject(test *testing.T) {
 
 func TestGetService(test *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/service-accounts/default/email")
 		io.WriteString(w, "my-sa@my-gcp-project.iam.gserviceaccount.com")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
-	service, _ := GetService(metaServer.httpUrl())
+	service, _ := GetService(metaServer.URL)
 	if service != "my-sa" {
 		test.Errorf("want service=my-sa got service=%s", service)
 	}
@@ -164,17 +129,16 @@ func TestGetService(test *testing.T) {
 
 func TestGetProfile(test *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/computeMetadata/v1/instance/attributes/accessProfile", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/attributes/accessProfile", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/attributes/accessProfile")
 		io.WriteString(w, "access-profile")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
-	profile, _ := GetProfile(metaServer.httpUrl())
+	profile, _ := GetProfile(metaServer.URL)
 	if profile != "access-profile" {
 		test.Errorf("want profile=access-profile got profile=%s", profile)
 	}
@@ -182,17 +146,16 @@ func TestGetProfile(test *testing.T) {
 
 func TestGetInstanceId(test *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/computeMetadata/v1/instance/id", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/id", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/id")
 		io.WriteString(w, "3692465022399257023")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
-	instanceId, _ := GetInstanceId(metaServer.httpUrl())
+	instanceId, _ := GetInstanceId(metaServer.URL)
 	if instanceId != "3692465022399257023" {
 		test.Errorf("want instanceId=3692465022399257023 got instanceId=%s", instanceId)
 	}
@@ -200,17 +163,16 @@ func TestGetInstanceId(test *testing.T) {
 
 func TestGetInstancePrivateIp(test *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/computeMetadata/v1/instance/network-interfaces/0/ip", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/network-interfaces/0/ip", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/network-interfaces/0/ip")
 		io.WriteString(w, "10.10.10.10")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
-	instanceIp, _ := GetInstancePrivateIp(metaServer.httpUrl())
+	instanceIp, _ := GetInstancePrivateIp(metaServer.URL)
 	if instanceIp != "10.10.10.10" {
 		test.Errorf("want instanceIp=10.10.10.10 got instanceIp=%s", instanceIp)
 	}
@@ -218,17 +180,16 @@ func TestGetInstancePrivateIp(test *testing.T) {
 
 func TestGetInstancePublicIp(test *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip")
 		io.WriteString(w, "20.20.20.20")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
-	instancePubIp, _ := GetInstancePublicIp(metaServer.httpUrl())
+	instancePubIp, _ := GetInstancePublicIp(metaServer.URL)
 	if instancePubIp != "20.20.20.20" {
 		test.Errorf("want instancePubIp=20.20.20.20 got instancePubIp=%s", instancePubIp)
 	}
@@ -236,17 +197,16 @@ func TestGetInstancePublicIp(test *testing.T) {
 
 func TestGetInstanceName(test *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.GET("/computeMetadata/v1/instance/name", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/name", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /computeMetadata/v1/instance/name")
 		io.WriteString(w, "my-vm")
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
-	instanceName, _ := GetInstanceName(metaServer.httpUrl())
+	instanceName, _ := GetInstanceName(metaServer.URL)
 	if instanceName != "my-vm" {
 		test.Errorf("want instanceName=my-vm got instanceName=%s", instanceName)
 	}

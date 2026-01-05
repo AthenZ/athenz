@@ -1311,6 +1311,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             serverSolutionTemplates.setTemplates(new HashMap<>());
             serverSolutionTemplateNames = Collections.emptyList();
         } else {
+            // validate that we don't have any roles with both members and trust attributes
+
+            for (Map.Entry<String, Template> entry : serverSolutionTemplates.getTemplates().entrySet()) {
+                final String templateName = entry.getKey();
+                final Template template = entry.getValue();
+                if (template.getRoles() == null) {
+                    continue;
+                }
+                for (Role role : template.getRoles()) {
+                    if (!StringUtil.isEmpty(role.getTrust()) && role.getRoleMembers() != null && !role.getRoleMembers().isEmpty()) {
+                        LOG.error("Solution Template {} role {} has both trust and members defined. Exiting...",
+                                templateName, role.getName());
+                        throw new RuntimeException("Solution Template " + templateName + " role " + role.getName() + " has both trust and members defined");
+                    }
+                }
+            }
+
             serverSolutionTemplateNames = new ArrayList<>(serverSolutionTemplates.names());
             Collections.sort(serverSolutionTemplateNames);
         }
@@ -4567,11 +4584,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!StringUtil.isEmpty(role.getTrust())) {
 
-            AthenzDomain athenzDomain = getAthenzDomain(role.getTrust(), true);
-            if (athenzDomain == null) {
-                throw ZMSUtils.requestError("Delegated role assigned to non existing domain", caller);
-            }
-
             if (!ZMSUtils.isCollectionEmpty(role.getRoleMembers())) {
                 throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both roleMembers and delegated domain set", caller);
             }
@@ -4582,6 +4594,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             if (domainName.equals(role.getTrust())) {
                 throw ZMSUtils.requestError("validateRoleMembers: Role cannot be delegated to itself", caller);
+            }
+
+            if (getAthenzDomain(role.getTrust(), true) == null) {
+                throw ZMSUtils.requestError("Delegated role assigned to non existing domain", caller);
             }
         }
     }
@@ -12776,12 +12792,35 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
+        // policy, service, etc. name)
 
-        domainName = domainName.toLowerCase();
-        setRequestDomain(ctx, domainName);
+        String serviceDomainName = domainName.toLowerCase();
+        setRequestDomain(ctx, serviceDomainName);
 
-        return dbService.listServiceDependencies(domainName);
+        // first let's get the service dependencies from our own database
+
+        ServiceIdentityList services = dbService.listServiceDependencies(serviceDomainName);
+        Set<String> dependentServices = new HashSet<>(services.getNames());
+
+        // now we'll check with each service provider to see if
+        // they have a dependency on our domain
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        Map<String, ServiceProviderManager.DomainDependencyProvider> serviceProvidersWithEndpoints
+                = serviceProviderManager.getServiceProvidersWithEndpoints();
+
+        Set<String> dynamicDependencies = serviceProvidersWithEndpoints.entrySet().parallelStream()
+                .filter(entry -> {
+                    DomainDependencyProviderResponse providerResponse = serviceProviderClient.getDependencyStatus(
+                            entry.getValue(), serviceDomainName, principal.getFullName());
+                    return providerResponse.getStatus().equals(ZMSConsts.PROVIDER_RESPONSE_DENY);
+                })
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+
+        dependentServices.addAll(dynamicDependencies);
+        services.setNames(new ArrayList<>(dependentServices));
+        return services;
     }
 
     @Override
