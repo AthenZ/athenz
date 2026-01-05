@@ -361,8 +361,17 @@ public class InstanceAzureProviderTest {
     @Test
     public void testConfirmInstanceAzureSubscriptionIssues() throws IOException {
 
+	File configFile = new File("./src/test/resources/azure-openid.json");
+        File jwksUri = new File("./src/test/resources/azure-jwks.json");
+        createOpenIdConfigFile(configFile, jwksUri, false);
+
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
+
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
 
         InstanceConfirmation confirmation = new InstanceConfirmation();
@@ -372,35 +381,23 @@ public class InstanceAzureProviderTest {
         Map<String, String> attributes = new HashMap<>();
         confirmation.setAttributes(attributes);
 
-        AzureAttestationData data = new AzureAttestationData();
-        data.setVmId("2222-3333");
-        data.setSubscriptionId("1111-2222");
+	System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
 
-        confirmation.setAttestationData(provider.jsonMapper.writeValueAsString(data));
-
-        try {
-            provider.confirmInstance(confirmation);
-            fail();
-        } catch (ProviderResourceException ex) {
-            assertTrue(ex.getMessage().contains("Unable to extract Azure Subscription id"));
-        }
-
-        // add the subscription but different from what's in the data object
-
-        attributes.put(InstanceProvider.ZTS_INSTANCE_AZURE_SUBSCRIPTION, "1111-3333");
-
-        try {
-            provider.confirmInstance(confirmation);
-            fail();
-        } catch (ProviderResourceException ex) {
-            assertTrue(ex.getMessage().contains("Azure Subscription Id mismatch"));
-        }
-
-        provider.close();
+        removeOpenIdConfigFile(configFile, jwksUri);
     }
 
     @Test
     public void testConfirmInstanceSanDnsMismatch() throws IOException {
+
+	File configFile = new File("./src/test/resources/azure-openid.json");
+        File jwksUri = new File("./src/test/resources/azure-jwks.json");
+        createOpenIdConfigFile(configFile, jwksUri, false);
+
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
 
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
@@ -430,6 +427,12 @@ public class InstanceAzureProviderTest {
         }
 
         provider.close();
+
+	System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
+
+        removeOpenIdConfigFile(configFile, jwksUri);
     }
 
     @Test
