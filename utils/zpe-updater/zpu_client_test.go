@@ -9,26 +9,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	
 	"net/http"
 	"net/http/httptest"
-	
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
 	siautil "github.com/AthenZ/athenz/libs/go/sia/util"
-
-	"github.com/stretchr/testify/require"
-
-	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
 	"github.com/AthenZ/athenz/utils/zpe-updater/devel"
 	"github.com/AthenZ/athenz/utils/zpe-updater/util"
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (

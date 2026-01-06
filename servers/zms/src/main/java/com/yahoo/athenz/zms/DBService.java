@@ -4427,6 +4427,7 @@ public class DBService implements RolesProvider, DomainProvider {
                         .setOrg(domain.getOrg())
                         .setApplicationId(domain.getApplicationId())
                         .setAccount(domain.getAccount())
+                        .setAwsAccountName(domain.getAwsAccountName())
                         .setAzureSubscription(domain.getAzureSubscription())
                         .setAzureTenant(domain.getAzureTenant())
                         .setAzureClient(domain.getAzureClient())
@@ -4884,6 +4885,11 @@ public class DBService implements RolesProvider, DomainProvider {
                     throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
                 }
                 domain.setAccount(meta.getAccount());
+                if (StringUtil.isEmpty(meta.getAccount())) {
+                    domain.setAwsAccountName(null);
+                } else if (!StringUtil.isEmpty(meta.getAwsAccountName())) {
+                    domain.setAwsAccountName(meta.getAwsAccountName());
+                }
                 break;
             case ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION:
                 if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getAzureSubscription(), meta.getAzureSubscription())) {
@@ -6525,6 +6531,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 .append("\", \"auditEnabled\": \"").append(domain.getAuditEnabled())
                 .append("\", \"enabled\": \"").append(domain.getEnabled())
                 .append("\", \"awsAccount\": \"").append(domain.getAccount())
+                .append("\", \"awsAccountName\": \"").append(domain.getAwsAccountName())
                 .append("\", \"appId\": \"").append(domain.getApplicationId())
                 .append("\", \"ypmid\": \"").append(domain.getYpmId())
                 .append("\", \"id\": \"").append(domain.getId())

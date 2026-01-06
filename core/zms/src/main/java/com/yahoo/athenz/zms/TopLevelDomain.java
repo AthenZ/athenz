@@ -32,6 +32,9 @@ public class TopLevelDomain {
     public String account;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String awsAccountName;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer ypmId;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -157,6 +160,13 @@ public class TopLevelDomain {
     }
     public String getAccount() {
         return account;
+    }
+    public TopLevelDomain setAwsAccountName(String awsAccountName) {
+        this.awsAccountName = awsAccountName;
+        return this;
+    }
+    public String getAwsAccountName() {
+        return awsAccountName;
     }
     public TopLevelDomain setYpmId(Integer ypmId) {
         this.ypmId = ypmId;
@@ -403,6 +413,9 @@ public class TopLevelDomain {
                 return false;
             }
             if (account == null ? a.account != null : !account.equals(a.account)) {
+                return false;
+            }
+            if (awsAccountName == null ? a.awsAccountName != null : !awsAccountName.equals(a.awsAccountName)) {
                 return false;
             }
             if (ypmId == null ? a.ypmId != null : !ypmId.equals(a.ypmId)) {

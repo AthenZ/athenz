@@ -82,6 +82,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SIGN_ALGORITHM);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_USER_AUTHORITY_FILTER);
         Mockito.doReturn("12345").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_ACCOUNT);
+        Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_AWS_ACCOUNT_NAME);
         Mockito.doReturn(1001).when(mockResultSet).getInt(JDBCConsts.DB_COLUMN_YPM_ID);
         Mockito.doReturn(90).when(mockResultSet).getInt(JDBCConsts.DB_COLUMN_MEMBER_PURGE_EXPIRY_DAYS);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_AZURE_SUBSCRIPTION);
@@ -120,6 +121,8 @@ public class JDBCConnectionTest {
         assertNull(domain.getSshCertSignerKeyId());
         assertEquals(domain.getSlackChannel(), "athenz");
         assertEquals(domain.getOnCall(), "athenz-oncall");
+        assertEquals(domain.getAccount(), "12345");
+        assertNull(domain.getAwsAccountName());
         jdbcConn.close();
     }
 
@@ -135,6 +138,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_ORG);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_UUID);
         Mockito.doReturn("12345").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_ACCOUNT);
+        Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_AWS_ACCOUNT_NAME);
         Mockito.doReturn(1001).when(mockResultSet).getInt(JDBCConsts.DB_COLUMN_YPM_ID);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_CERT_DNS_DOMAIN);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_APPLICATION_ID);
@@ -172,7 +176,8 @@ public class JDBCConnectionTest {
         assertNull(domain.getEnvironment());
         assertEquals(domain.getSlackChannel(), "athenz");
         assertEquals(domain.getOnCall(), "athenz-oncall");
-
+        assertEquals(domain.getAccount(), "12345");
+        assertNull(domain.getAwsAccountName());
         jdbcConn.close();
     }
 
@@ -429,6 +434,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("cloud_services").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_ORG);
         Mockito.doReturn("e5e97240-e94e-11e4-8163-6d083f3f473f").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_UUID);
         Mockito.doReturn("12345").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_ACCOUNT);
+        Mockito.doReturn("aws-12345").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_AWS_ACCOUNT_NAME);
         Mockito.doReturn(1001).when(mockResultSet).getInt(JDBCConsts.DB_COLUMN_YPM_ID);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_CERT_DNS_DOMAIN);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_APPLICATION_ID);
@@ -468,6 +474,8 @@ public class JDBCConnectionTest {
         assertEquals(domain.getSshCertSignerKeyId(), "ssh");
         assertEquals(domain.getSlackChannel(), "athenz");
         assertEquals(domain.getOnCall(), "athenz-oncall");
+        assertEquals(domain.getAccount(), "12345");
+        assertEquals(domain.getAwsAccountName(), "aws-12345");
         jdbcConn.close();
     }
 
@@ -670,6 +678,7 @@ public class JDBCConnectionTest {
                 .setId(UUID.fromString("e5e97240-e94e-11e4-8163-6d083f3f473f"))
                 .setOrg("cloud_services")
                 .setAccount("123456789")
+                .setAwsAccountName("aws-123456789")
                 .setYpmId(1011)
                 .setApplicationId("application_id")
                 .setCertDnsDomain("athenz.cloud")
@@ -733,7 +742,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(30, "athenz");
         Mockito.verify(mockPrepStmt, times(1)).setString(31, "athenz-oncall");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(32, true);
-        Mockito.verify(mockPrepStmt, times(1)).setString(33, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(33, "aws-123456789");
+        Mockito.verify(mockPrepStmt, times(1)).setString(34, "my-domain");
         jdbcConn.close();
     }
 
@@ -782,7 +792,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(30, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(31, "");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(32, false);
-        Mockito.verify(mockPrepStmt, times(1)).setString(33, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(33, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(34, "my-domain");
         jdbcConn.close();
     }
 
@@ -6700,6 +6711,7 @@ public class JDBCConnectionTest {
             .thenReturn("domain1").thenReturn("domain2").thenReturn("domain3"); // 3 domains
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_ACCOUNT))
                 .thenReturn("acct1").thenReturn("acct2").thenReturn("acct3"); // 3 domains
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_AWS_ACCOUNT_NAME)).thenReturn("");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_YPM_ID))
                 .thenReturn("1234").thenReturn("1235").thenReturn("1236"); // 3 domains
         Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(JDBCConsts.DB_COLUMN_MODIFIED);
@@ -6852,6 +6864,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_TRUST);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_ACCOUNT);
         Mockito.doReturn("athenz").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_ACCOUNT);
+        Mockito.doReturn("aws-athenz").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_AWS_ACCOUNT_NAME);
         Mockito.doReturn(0).when(mockResultSet).getInt(JDBCConsts.DB_COLUMN_YPM_ID);
         Mockito.doReturn(5).when(mockResultSet).getInt(JDBCConsts.DB_COLUMN_DOMAIN_ID);
         Mockito.doReturn("/usr/bin64/athenz").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_EXECUTABLE);
@@ -6897,6 +6910,8 @@ public class JDBCConnectionTest {
         AthenzDomain athenzDomain = jdbcConn.getAthenzDomain("my-domain");
         assertNotNull(athenzDomain);
         assertEquals(athenzDomain.getDomain().getName(), "my-domain");
+        assertEquals(athenzDomain.getDomain().getAccount(), "athenz");
+        assertEquals(athenzDomain.getDomain().getAwsAccountName(), "aws-athenz");
         assertEquals(athenzDomain.getDomain().getSignAlgorithm(), "rsa");
         assertEquals(athenzDomain.getDomain().getContacts().size(), 1);
         assertEquals(athenzDomain.getDomain().getContacts().get("security-contact"), "user.joe");

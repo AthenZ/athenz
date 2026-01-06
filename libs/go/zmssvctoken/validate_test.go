@@ -5,12 +5,12 @@ package zmssvctoken
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
-	"net/http"
-	"net/http/httptest"
-	
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -137,7 +137,7 @@ func TestCachedValidate(t *testing.T) {
 			name:       r.PathValue("name"),
 			keyVersion: r.PathValue("keyVersion"),
 		}
-		
+
 		key, resp, err := h(src)
 
 		if err != nil {
