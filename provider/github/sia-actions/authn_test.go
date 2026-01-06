@@ -19,38 +19,35 @@ package sia
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"log"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 )
 
-func startHttpServer(uri, token string, statusCode int) {
-	router := mux.NewRouter()
-	router.HandleFunc("/oidc", func(w http.ResponseWriter, r *http.Request) {
+func startHttpServer(token string, statusCode int) *httptest.Server {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /oidc", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("/oidc token endpoint is called")
 		w.WriteHeader(statusCode)
 		io.WriteString(w, "{\"value\": \""+token+"\"}")
-	}).Methods("GET")
+	})
 
-	err := http.ListenAndServe(uri, router)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
+	return httptest.NewServer(router)
 }
 
 func TestGetOIDCToken(t *testing.T) {
 
 	validToken := "eyJraWQiOiIwIiwiYWxnIjoiRVMyNTYifQ.eyJleHAiOjE3MDgwMjc4MTcsImlzcyI6Imh0dHBzOi8vdG9rZW4uYWN0aW9ucy5naXRodWJ1c2VyY29udGVudC5jb20iLCJhdWQiOiJodHRwczovL2F0aGVuei5pbyIsInJ1bl9pZCI6IjAwMDEiLCJlbnRlcnByaXNlIjoiYXRoZW56Iiwic3ViIjoicmVwbzphdGhlbnovc2lhOnJlZjpyZWZzL2hlYWRzL21haW4iLCJldmVudF9uYW1lIjoicHVzaCIsImlhdCI6MTcwODAyNDIxN30.ykt6O1mIjIjalTrmaU9AuSSsQghZ7Mx61gDsjVPHV0-SCqYpZNy7RtEbvgjKVCZ0kJ6BijH3aEf3EGArLHjTOQ"
-	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", "http://localhost:8081/oidc?type=jwt")
-	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "test-token")
 
-	go startHttpServer("localhost:8081", validToken, http.StatusOK)
-	time.Sleep(2 * time.Second)
+	ts := startHttpServer(validToken, http.StatusOK)
+	defer ts.Close()
+
+	t.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", ts.URL+"/oidc?type=jwt")
+	t.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "test-token")
 
 	_, claims, err := GetOIDCToken("https://athenz.io")
 	assert.Nil(t, err)
@@ -68,7 +65,7 @@ func TestGetOIDCTokenEnvNotSet(t *testing.T) {
 	assert.Equal(t, "ACTIONS_ID_TOKEN_REQUEST_URL environment variable not set", err.Error())
 
 	// now let's set the request url but not the token
-	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", "http://localhost:8081/oidc?type=jwt")
+	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", "http://localhost:0/oidc?type=jwt")
 	_, _, err = GetOIDCToken("https://athenz.io")
 	assert.NotNil(t, err)
 	assert.Equal(t, "ACTIONS_ID_TOKEN_REQUEST_TOKEN environment variable not set", err.Error())
@@ -78,11 +75,11 @@ func TestGetOIDCTokenEnvNotSet(t *testing.T) {
 
 func TestGetOIDCTokenInvalidStatusCode(t *testing.T) {
 
-	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", "http://localhost:8082/oidc?type=jwt")
-	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "test-token")
+	ts := startHttpServer("test-token", http.StatusBadRequest)
+	defer ts.Close()
 
-	go startHttpServer("localhost:8082", "invalid-token", http.StatusBadRequest)
-	time.Sleep(2 * time.Second)
+	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", ts.URL+"/oidc?type=jwt")
+	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "test-token")
 
 	_, _, err := GetOIDCToken("https://athenz.io")
 	assert.NotNil(t, err)
@@ -93,11 +90,11 @@ func TestGetOIDCTokenInvalidStatusCode(t *testing.T) {
 
 func TestGetOIDCTokenInvalidToken(t *testing.T) {
 
-	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", "http://localhost:8083/oidc?type=jwt")
-	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "test-token")
+	ts := startHttpServer("invalid-token", http.StatusOK)
+	defer ts.Close()
 
-	go startHttpServer("localhost:8083", "invalid-token", http.StatusOK)
-	time.Sleep(2 * time.Second)
+	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", ts.URL+"/oidc?type=jwt")
+	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "test-token")
 
 	_, _, err := GetOIDCToken("https://athenz.io")
 	assert.NotNil(t, err)
