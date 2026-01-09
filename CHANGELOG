@@ -1,3 +1,29 @@
+Athenz v1.12.32 Release / Jan 08, 2026
+--------------------------------------
+
+#3135 Otel configuration for default metrics
+#3145 zms storage layer does not return multiple matches for the product id listing
+#3146 x509 otel certificate refresh events in cert_refresher library
+#3148 support delegation/impersonation token exchange requests
+#3150 Use httptest and http packages to run test servers
+#3151 expiry date not shows in case of groups
+#3152 Use httptest and http packages to run test servers
+#3154 support for service jwt svids
+#3155 Bump next from 14.2.32 to 14.2.35 in /ui
+#3156 include token exchange requirements doc
+#3158 zms server does not include service dependency for dynamic checks
+#3159 Abort server startup on invalid SolutionTemplate configuration
+#3161 OTel configuration updated
+#3163 extend system allowed role support to have wildcards and multiple values
+#3164 UI - blank expiration in workflow member review should not override individual expiration
+#3166 Refactor: Optimize validation order in validateRoleStructure()
+#3167 Use httptest and http packages to run test servers
+#3171 support maintaining aws account name in the domain attributes
+#3172 update java and go dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20260104.sql
+
 Athenz v1.12.31 Release / Dec 05, 2025
 --------------------------------------
 
