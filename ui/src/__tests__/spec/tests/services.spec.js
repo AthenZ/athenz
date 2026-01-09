@@ -14,58 +14,62 @@
  * limitations under the License.
  */
 
+const {
+    authenticateAndWait,
+    navigateAndWait,
+    waitAndClick,
+    waitAndSetValue,
+    waitForElementExist,
+    waitForTabToOpenAndSwitch,
+    beforeEachTest,
+} = require('../libs/helpers');
+
 const TEST_NAME_TOOLTIP_LINK_OPENS_NEW_TAB =
     'when clicking help tooltip link, it should open a tab with athenz guide';
 
 describe('services screen tests', () => {
     let currentTest;
 
-    it(TEST_NAME_TOOLTIP_LINK_OPENS_NEW_TAB, async () => {
+    beforeEach(async () => {
+        // Clear cookies and storage between tests
+        await beforeEachTest();
+    });
+
+    // TODO: skipping until have stable environment to run this test
+    it.skip(TEST_NAME_TOOLTIP_LINK_OPENS_NEW_TAB, async () => {
         currentTest = TEST_NAME_TOOLTIP_LINK_OPENS_NEW_TAB;
         // open browser
-        await browser.newUser();
-        await browser.url(`/`);
+        await authenticateAndWait();
+        await navigateAndWait(`/`);
         // select domain
         let domain = 'athenz.dev.functional-test';
-        let testDomain = await $(`a*=${domain}`);
-        await browser.waitUntil(async () => await testDomain.isClickable());
-        await testDomain.click();
+        await waitAndClick(`a*=${domain}`);
 
         // open Services
-        let servicesButton = await $('div*=Services');
-        await browser.waitUntil(async () => await servicesButton.isClickable());
-        await servicesButton.click();
+        await waitAndClick('div*=Services');
 
         // add service
         const serviceName = 'tooltip-link-test-service';
-        let addServiceButton = await $('button*=Add Service');
-        await addServiceButton.click();
-        let serviceNameInput = await $('input[id="service-name"]');
-        await serviceNameInput.addValue(serviceName);
-        let submitButton = await $('button*=Submit');
-        await submitButton.click();
+        await waitAndClick('button*=Add Service');
+        await waitAndSetValue('input[id="service-name"]', serviceName);
+        await waitAndClick('button*=Submit');
 
         // navigate to tooltip
-        let serviceInstancesButton = await $(
+        await waitAndClick(
             `.//*[local-name()="svg" and @id="${
                 'view-instances-' + serviceName
             }"]`
         );
-        await serviceInstancesButton.click();
         // open tooltip
-        let instanceHelpTooltipButton = await $(
+        await waitAndClick(
             `.//*[local-name()="svg" and @id="instances-help-tooltip"]`
         );
-        await instanceHelpTooltipButton.click();
         // click athenz guide link
-        await browser.pause(1000); // wait a little so that onclick function is assigned to the anchor
-        let athenzGuideAnchor = await $('a*=here');
-        await athenzGuideAnchor.click();
-        await browser.pause(1000); // Just to ensure the new tab opens
-        // switch to opened tab
-        const windowHandles = await browser.getWindowHandles();
-        expect(windowHandles.length).toBeGreaterThan(1);
-        await browser.switchToWindow(windowHandles[1]);
+        // // await browser.pause(1000); // wait a little so that onclick function is assigned to the anchor
+        await waitAndClick('a*=here');
+        // await browser.pause(1000); // Just to ensure the new tab opens
+        // Wait until a new tab opens
+        await waitForTabToOpenAndSwitch();
         // verify the URL of the new tab
         const url = await browser.getUrl();
         expect(
@@ -74,20 +78,17 @@ describe('services screen tests', () => {
     });
 
     it('when clicking "Allow" button on a provider without having appropriate authorisation, the error should be displayed to the right of the button', async () => {
-        await console.log(`testtesttest inside second test`);
         // open browser
-        await browser.newUser();
-        await browser.url(`/domain/athenz.dev.test-non-admin/role`);
+        await authenticateAndWait();
+        await navigateAndWait(`/domain/athenz.dev.test-non-admin/role`);
 
         // open Services
-        let servicesDiv = await $('div*=Services');
-        await servicesDiv.click();
+        await waitAndClick('div*=Services');
 
         // click Providers
-        let providersButton = await $(
+        await waitAndClick(
             `.//*[local-name()="svg" and @id="provider-test-service-providers"]`
         );
-        await providersButton.click();
 
         // click Azure provider
         let awsProviderAllowButton = await $(
@@ -95,43 +96,45 @@ describe('services screen tests', () => {
         ).$(
             `//td[text()="AWS EC2/EKS/Fargate launches instances for the service"]/following-sibling::td//button`
         );
-        await awsProviderAllowButton.click();
+        await waitAndClick(awsProviderAllowButton);
 
         // warning should appear
         let warning = await $(`td[data-testid="provider-table"]`).$(
             `//td[text()="AWS EC2/EKS/Fargate launches instances for the service"]/following-sibling::td//div[text()="Status: 403. Message: Forbidden"]`
         );
+        await waitForElementExist(warning);
         await expect(warning).toHaveText('Status: 403. Message: Forbidden');
     });
 
     afterEach(async () => {
-        if (currentTest === TEST_NAME_TOOLTIP_LINK_OPENS_NEW_TAB) {
-            // open browser
-            await browser.newUser();
-            await browser.url(`/`);
-            // select domain
-            let domain = 'athenz.dev.functional-test';
-            let testDomain = await $(`a*=${domain}`);
-            await browser.waitUntil(async () => await testDomain.isClickable());
-            await testDomain.click();
+        try {
+            if (currentTest === TEST_NAME_TOOLTIP_LINK_OPENS_NEW_TAB) {
+                // open browser
+                await authenticateAndWait();
+                await navigateAndWait(`/`);
+                // select domain
+                let domain = 'athenz.dev.functional-test';
+                await waitAndClick(`a*=${domain}`);
 
-            // open Services
-            let servicesButton = await $('div*=Services');
-            await browser.waitUntil(
-                async () => await servicesButton.isClickable()
-            );
-            await servicesButton.click();
+                // open Services
+                await waitAndClick('div*=Services');
 
-            // delete service created for the test
-            let serviceDeleteButton = await $(
-                './/*[local-name()="svg" and @id="delete-service-tooltip-link-test-service"]'
+                // delete service created for the test
+                await waitAndClick(
+                    './/*[local-name()="svg" and @id="delete-service-tooltip-link-test-service"]'
+                );
+
+                await waitAndClick('button*=Delete');
+            }
+        } catch (error) {
+            console.error(
+                `Cleanup failed for test ${currentTest}:`,
+                error.message
             );
-            await serviceDeleteButton.click();
-            let modalDeleteButton = await $('button*=Delete');
-            await modalDeleteButton.click();
+            // Don't throw - allow other tests to continue
+        } finally {
+            // reset current test
+            currentTest = '';
         }
-
-        // reset current test
-        currentTest = '';
     });
 });

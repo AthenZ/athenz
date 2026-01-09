@@ -15,13 +15,24 @@
  */
 
 const config = require('../../../config/config');
+const {
+    authenticateAndWait,
+    navigateAndWait,
+    waitAndSetValue,
+    waitAndClick,
+    waitForElementExist,
+    waitForTabToOpenAndSwitch,
+    beforeEachTest,
+    closeAlert,
+} = require('../libs/helpers');
 const testdata = config().testdata;
 const headlessUser = testdata.userHeadless1.id;
 const humanUser = testdata.user1.id;
 
 const delegatedRole = 'delegated-role';
 const dropdownTestRoleName = 'dropdown-test-role';
-const reviewExtendTest = 'review-extend-test';
+const reviewExtendTest1 = 'review-extend-test1';
+const reviewExtendTest2 = 'review-extend-test2';
 const domainFilterTest = 'domain-filter-test';
 const multipleMemberRole = 'multiple-member-role';
 const historyTestRole = 'history-test-role';
@@ -50,55 +61,64 @@ const TEST_MULTISELECT_AUTHORITY_FILTERS =
     'Multiple authority filters for a role can be selected';
 
 async function resetDomainExpiry() {
-    await browser.newUser();
-    await browser.url(TEST_DOMAIN_SETTINGS_URI);
+    await authenticateAndWait();
+    await navigateAndWait(TEST_DOMAIN_SETTINGS_URI);
 
     const memberExpiry = await $('input[id="setting-memberExpiryDays"]');
     const groupExpiry = await $('input[id="setting-groupExpiryDays"]');
     const serviceExpiry = await $('input[id="setting-serviceExpiryDays"]');
 
-    await memberExpiry.clearValue();
-    await memberExpiry.addValue(0);
+    await waitAndSetValue(memberExpiry, '0', { clearFirst: true });
+    await waitAndSetValue(groupExpiry, '0', { clearFirst: true });
+    await waitAndSetValue(serviceExpiry, '0', { clearFirst: true });
 
-    await groupExpiry.clearValue();
-    await groupExpiry.addValue(0);
-
-    await serviceExpiry.clearValue();
-    await serviceExpiry.addValue(0);
-
-    await $('button*=Submit').click();
-
-    await $('button[data-testid="update-modal-update"]').click();
-    await $('div[data-wdio="alert-close"]').click();
+    await waitAndClick('button*=Submit');
+    await waitAndClick('button[data-testid="update-modal-update"]');
+    await closeAlert();
 }
 
 async function deleteRoleIfExists(roleName) {
-    await browser.newUser();
-    await browser.url(TEST_DOMAIN_ROLE_URI);
+    console.info(`Deleting role if exists: ${roleName}`);
+    await authenticateAndWait();
+    await navigateAndWait(TEST_DOMAIN_ROLE_URI);
     await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
+    // wait for screen to complete loading
+    await waitForElementExist('button*=Add Role');
 
-    let deleteSvg = await $(
+    const deleteSvg = await $(
         `.//*[local-name()="svg" and @id="${roleName}-delete-role-button"]`
     );
-    if (deleteSvg.isExisting()) {
-        await deleteSvg.click();
-        await $('button*=Delete').click();
-    } else {
-        console.warn(`ROLE FOR DELETION NOT FOUND: ${roleName}`);
+    // give role delete button time to appear, but don't fail if it doesn't
+    const appeared = await deleteSvg
+        .waitForExist({ timeout: 5000 })
+        .catch(() => false);
+
+    if (!appeared) {
+        console.info(`Role ${roleName} does not exist, nothing to delete`);
+        return;
     }
+    // found, proceed to delete
+    await waitAndClick(deleteSvg, { timeout: 5000 });
+
+    // wait until modal is visible
+    await waitForElementExist('div[data-testid="modal-title"]');
+
+    const confirmDelete = await $('button*=Delete');
+    await waitAndClick(confirmDelete, { timeout: 5000 });
 }
 
 describe('role screen tests', () => {
+    beforeEach(async () => {
+        // Clear cookies and storage between tests
+        await beforeEachTest();
+    });
     let currentTest;
 
     it(TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH, async () => {
         currentTest = TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH;
         // open browser
-        await browser.newUser();
-        await browser.url(`/`);
-        // select domain
-        let testDomain = await $(`a*=${TEST_DOMAIN}`);
-        await testDomain.click();
+        await authenticateAndWait();
+        await navigateAndWait(TEST_DOMAIN_ROLE_URI);
 
         await createRoleWithMembers(historyTestRole, headlessUser);
 
@@ -107,7 +127,7 @@ describe('role screen tests', () => {
         let historySvg = await $(
             `.//*[local-name()="svg" and @id="${historyTestRole}-history-role-button"]`
         );
-        await historySvg.click();
+        await waitAndClick(historySvg);
         // find row with 'ADD'
         let addTd = await $('td=ADD');
         await expect(addTd).toHaveText('ADD');
@@ -119,33 +139,23 @@ describe('role screen tests', () => {
         // refresh page
         await browser.refresh();
         // find row with 'ADD'
-        addTd = await $('td=ADD');
         await expect(addTd).toHaveText('ADD');
         // find row with headless user present
-        spanUnix = await $(`span*=${headlessUser}`);
         await expect(spanUnix).toHaveText(headlessUser);
     });
 
     it(TEST_NAME_DELEGATED_ROLE_ADDITIONAL_SETTINGS_ARE_DISABLED, async () => {
         currentTest = TEST_NAME_DELEGATED_ROLE_ADDITIONAL_SETTINGS_ARE_DISABLED;
         // open browser
-        await browser.newUser();
-        await browser.url(`/`);
-        // select domain
-        let testDomain = await $(`a*=${TEST_DOMAIN}`);
-        await browser.waitUntil(async () => await testDomain.isClickable());
-        await testDomain.click();
+        await authenticateAndWait();
+        await navigateAndWait(TEST_DOMAIN_ROLE_URI);
 
         // open Add Role screen
-        let addRoleButton = await $('button*=Add Role');
-        await browser.waitUntil(async () => await addRoleButton.isClickable());
-        await addRoleButton.click();
+        await waitAndClick('button*=Add Role');
         // select Delegated
-        let delegatedButton = await $('div*=Delegated');
-        await delegatedButton.click();
+        await waitAndClick('div*=Delegated');
         // verify all settings except Description are disabled
-        let advancedSettingsIcon = await $('#advanced-settings-icon');
-        await advancedSettingsIcon.click();
+        await waitAndClick('#advanced-settings-icon');
         let switchSettingAuditEnabled = await $('#switch-settingauditEnabled');
         await expect(switchSettingAuditEnabled).toBeDisabled();
         let switchSettingReviewEnabled = await $(
@@ -186,78 +196,57 @@ describe('role screen tests', () => {
         await expect(inputMaxMembers).toBeDisabled();
 
         // add role info
-        let inputRoleName = await $('#role-name-input');
-        await inputRoleName.addValue(delegatedRole);
-        let inputDelegateTo = await $('#delegated-to-input');
-        await inputDelegateTo.addValue('athenz.dev');
-        let buttonSubmit = await $('button*=Submit');
+        await waitAndSetValue('#role-name-input', delegatedRole);
+        await waitAndSetValue('#delegated-to-input', 'athenz.dev');
         // submit role
-        await buttonSubmit.click();
+        await waitAndClick('button*=Submit');
 
         // find row with 'delegated-role' in name and click settings svg
-        let buttonSettingsOfDelegatedRole = await $(
+        await waitAndClick(
             `.//*[local-name()="svg" and @id="${delegatedRole}-setting-role-button"]`
-        ).getElement();
-        await buttonSettingsOfDelegatedRole.click();
+        );
 
         // verify all settings except Description are disabled
-        switchSettingReviewEnabled = await $('#switch-settingreviewEnabled');
         await expect(switchSettingReviewEnabled).toBeDisabled();
-        switchSettingDeleteProtection = await $(
-            '#switch-settingdeleteProtection'
-        );
         await expect(switchSettingDeleteProtection).toBeDisabled();
-        switchSettingSelfServe = await $('#switch-settingselfServe');
         await expect(switchSettingSelfServe).toBeDisabled();
-        switchSettingSelfRenew = await $('#switch-settingselfRenew');
         await expect(switchSettingSelfRenew).toBeDisabled();
-        inputSelfRenewMins = await $('#setting-selfRenewMins');
         await expect(inputSelfRenewMins).toBeDisabled();
-        inputMemberExpiryDays = await $('#setting-memberExpiryDays');
         await expect(inputMemberExpiryDays).toBeDisabled();
-        inputGroupExpiryDays = await $('#setting-groupExpiryDays');
         await expect(inputGroupExpiryDays).toBeDisabled();
-        inputGroupReviewDays = await $('#setting-groupReviewDays');
         await expect(inputGroupReviewDays).toBeDisabled();
-        inputServiceExpiryDays = await $('#setting-serviceExpiryDays');
         await expect(inputServiceExpiryDays).toBeDisabled();
-        inputServiceReviewDays = await $('#setting-serviceReviewDays');
         await expect(inputServiceReviewDays).toBeDisabled();
-        inputTokenExpiryMins = await $('#setting-tokenExpiryMins');
         await expect(inputTokenExpiryMins).toBeDisabled();
-        inputCertExpiryMins = await $('#setting-certExpiryMins');
         await expect(inputCertExpiryMins).toBeDisabled();
-        dropdownUserAuthorityExpiration = await $(
-            '[name="setting-userAuthorityExpiration"]'
-        );
         await expect(dropdownUserAuthorityExpiration).toBeDisabled();
-        inputSettingDescription = await $('#setting-description');
         await expect(inputSettingDescription).toBeEnabled();
-        inputMaxMembers = await $('#setting-maxMembers');
         await expect(inputMaxMembers).toBeDisabled();
     });
 
     it(TEST_NAME_ADD_ROLE_MEMBER_INPUT_PRESERVES_CONTENTS_ON_BLUR, async () => {
         currentTest =
             TEST_NAME_ADD_ROLE_MEMBER_INPUT_PRESERVES_CONTENTS_ON_BLUR;
-        await browser.newUser();
-        await browser.url(TEST_DOMAIN_ROLE_URI);
+        await authenticateAndWait();
+        await navigateAndWait(TEST_DOMAIN_ROLE_URI);
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
         // click add role
-        let addRoleBtn = await $('button*=Add Role');
-        await addRoleBtn.click();
+        await waitAndClick('button*=Add Role');
 
-        await $('input[id="role-name-input"]').addValue(dropdownTestRoleName);
+        await waitAndSetValue(
+            'input[id="role-name-input"]',
+            dropdownTestRoleName
+        );
 
         const invalidMember = 'admi';
         // add random text to modal input
         let memberInput = await $('input[name="member-name"]');
-        await memberInput.addValue(invalidMember);
+        await waitAndSetValue(memberInput, invalidMember);
 
         // blur without causing calendar widget to close other elements
         await browser.keys('Tab');
-        await memberInput.click();
+        await waitAndClick(memberInput);
 
         // input did not change
         expect(await memberInput.getValue()).toBe(invalidMember);
@@ -267,23 +256,22 @@ describe('role screen tests', () => {
         expect(fontWeight).toBeUndefined();
 
         // submit (item in dropdown is not selected)
-        let submitButton = await $('button*=Submit');
-        await submitButton.click();
+        await waitAndClick('button*=Submit');
 
         // verify error message
-        let errorMessage = await $('div[data-testid="error-message"]');
+        let errorMessage = await waitForElementExist(
+            'div[data-testid="error-message"]'
+        );
         expect(await errorMessage.getText()).toBe(
             'Member must be selected in the dropdown or member input field must be empty.'
         );
 
         // type valid input and select item in dropdown
-        let clearInput = await $(
+        await waitAndClick(
             `.//*[local-name()="svg" and @data-wdio="clear-input"]`
         );
-        await clearInput.click();
-        await memberInput.addValue(headlessUser);
-        let dropdownOption = await $(`div*=${headlessUser}`);
-        await dropdownOption.click();
+        await waitAndSetValue(memberInput, headlessUser);
+        await waitAndClick(`div*=${headlessUser}`);
 
         // verify input contains selected member
         expect(await memberInput.getValue()).toBe(headlessUser);
@@ -293,8 +281,7 @@ describe('role screen tests', () => {
         expect(fontWeight.value === 700).toBe(true);
 
         // submit
-        submitButton = await $('button*=Submit');
-        await submitButton.click();
+        await waitAndClick('button*=Submit');
 
         // role can be seen added
         let roleRow = await $(
@@ -305,9 +292,9 @@ describe('role screen tests', () => {
         );
 
         // view role members
-        await $(
+        await waitAndClick(
             `.//*[local-name()="svg" and @data-wdio="${dropdownTestRoleName}-view-members"]`
-        ).click();
+        );
 
         // role has added member
         let memberRow = await $(`tr[data-wdio='${headlessUser}-member-row']`).$(
@@ -318,23 +305,24 @@ describe('role screen tests', () => {
         );
 
         // delete member
-        await $(
+        await waitAndClick(
             `.//*[local-name()="svg" and @data-wdio="${headlessUser}-delete-member"]`
-        ).click();
-        await $('button*=Delete').click();
+        );
+        await waitAndClick('button*=Delete');
+        // close alert
+        await closeAlert();
 
         // TEST ADD MEMBER TO EXISTING ROLE
 
         // open add member window
-        await $('button*=Add Member').click();
+        await waitAndClick('button*=Add Member');
 
         // test incomplete input in dropdown
-        memberInput = await $('input[name="member-name"]');
-        await memberInput.addValue(invalidMember);
+        await waitAndSetValue(memberInput, invalidMember);
 
         // blur
         await browser.keys('Tab');
-        await memberInput.click();
+        await waitAndClick(memberInput);
 
         // input did not change
         expect(await memberInput.getValue()).toBe(invalidMember);
@@ -345,10 +333,12 @@ describe('role screen tests', () => {
 
         // submit (item in dropdown is not selected)
         submitButton = await $('button*=Submit');
-        await submitButton.click();
+        await waitAndClick(submitButton);
 
         // verify error message
-        errorMessage = await $('div[data-testid="error-message"]');
+        errorMessage = await waitForElementExist(
+            'div[data-testid="error-message"]'
+        );
         expect(await errorMessage.getText()).toBe(
             'Member must be selected in the dropdown.'
         );
@@ -357,13 +347,11 @@ describe('role screen tests', () => {
         clearInput = await $(
             `.//*[local-name()="svg" and @data-wdio="clear-input"]`
         );
-        await clearInput.click();
-        await memberInput.addValue(headlessUser);
-
-        dropdownOption = await $(
+        await waitAndClick(clearInput);
+        await waitAndSetValue(memberInput, headlessUser);
+        await waitAndClick(
             `.//div[@role='option' and contains(., '${headlessUser}')]`
         );
-        await dropdownOption.click();
 
         // verify input contains selected memeber
         expect(await memberInput.getValue()).toBe(headlessUser);
@@ -373,7 +361,7 @@ describe('role screen tests', () => {
         expect(fontWeight.value === 700).toBe(true);
 
         // submit
-        await submitButton.click();
+        await waitAndClick(submitButton);
 
         // verify new member was added
         let validMemberTd = await $(
@@ -385,131 +373,109 @@ describe('role screen tests', () => {
     it(TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED, async () => {
         currentTest = TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED;
         // open browser
-        await browser.newUser();
-        await browser.url(TEST_DOMAIN_ROLE_URI);
+        await authenticateAndWait();
+        await navigateAndWait(TEST_DOMAIN_ROLE_URI);
 
-        await createRoleWithMembers(reviewExtendTest, headlessUser);
+        await createRoleWithMembers(reviewExtendTest1, headlessUser);
 
         // go to review - the extend radio should be disabled
         let reviewSvg = await $(
-            `.//*[local-name()="svg" and @data-wdio="${reviewExtendTest}-review"]`
+            `.//*[local-name()="svg" and @data-wdio="${reviewExtendTest1}-review"]`
         );
-        await reviewSvg.click();
+        await waitAndClick(reviewSvg, { timeout: 5000 });
         let extendRadio = await $('input[value="extend"]');
         await expect(extendRadio).toBeDisabled();
 
         // go to settings set user expiry days, submit
         let settingsDiv = await $('div*=Settings');
-        await settingsDiv.click();
+        await waitAndClick(settingsDiv);
         let memberExpiryDays = await $('input[id="setting-memberExpiryDays"]');
-        await memberExpiryDays.addValue(10);
+        await waitAndSetValue(memberExpiryDays, '10');
         let submitBtn = await $('button*=Submit');
-        await submitBtn.click();
+        await waitAndClick(submitBtn);
         let confirmSubmit = await $(
             'button[data-testid="update-modal-update"]'
         );
-        await confirmSubmit.click();
-        let alertClose = await $('div[data-wdio="alert-close"]');
-        await alertClose.click();
+        await waitAndClick(confirmSubmit);
+        await closeAlert();
 
         // go to review - the extend radio should be enabled
         let reviewDiv = await $('div*=Review');
-        await reviewDiv.click();
-        extendRadio = await $('input[value="extend"]');
+        await waitAndClick(reviewDiv);
         await expect(extendRadio).toBeEnabled();
 
         // go to settings, set user review days, submit
-        await settingsDiv.click();
-        memberExpiryDays = await $('input[id="setting-memberExpiryDays"]');
+        await waitAndClick(settingsDiv);
         await memberExpiryDays.clearValue();
-        await memberExpiryDays.setValue(0);
+        await waitAndSetValue(memberExpiryDays, '0');
         let memberReviewDays = await $('input[id="setting-memberReviewDays"]');
-        await memberReviewDays.addValue(10);
-        await submitBtn.click();
-        confirmSubmit = await $('button[data-testid="update-modal-update"]');
-        await confirmSubmit.click();
-        await alertClose.click();
+        await waitAndSetValue(memberReviewDays, '10');
+        await waitAndClick(submitBtn);
+        await waitAndClick(confirmSubmit);
+        await closeAlert();
 
         // go to review - the extend radio should be enabled
-        reviewDiv = await $('div*=Review');
-        await reviewDiv.click();
-        extendRadio = await $('input[value="extend"]');
+        await waitAndClick(reviewDiv);
         await expect(extendRadio).toBeEnabled();
 
         // go to settings, set group expiry days, submit
-        await settingsDiv.click();
-        memberReviewDays = await $('input[id="setting-memberReviewDays"]');
+        await waitAndClick(settingsDiv);
         await memberReviewDays.clearValue();
-        await memberReviewDays.setValue(0);
+        await waitAndSetValue(memberReviewDays, '0');
         let groupExpiryDays = await $('input[id="setting-groupExpiryDays"]');
-        await groupExpiryDays.addValue(10);
-        await submitBtn.click();
-        confirmSubmit = await $('button[data-testid="update-modal-update"]');
-        await confirmSubmit.click();
-        await alertClose.click();
+        await waitAndSetValue(groupExpiryDays, '10');
+        await waitAndClick(submitBtn);
+        await waitAndClick(confirmSubmit);
+        await closeAlert();
 
         // go to review - the extend radio should be enabled
-        reviewDiv = await $('div*=Review');
-        await reviewDiv.click();
-        extendRadio = await $('input[value="extend"]');
+        await waitAndClick(reviewDiv);
         await expect(extendRadio).toBeEnabled();
 
         // go to settings, set group review days, submit
-        await settingsDiv.click();
-        groupExpiryDays = await $('input[id="setting-groupExpiryDays"]');
+        await waitAndClick(settingsDiv);
         await groupExpiryDays.clearValue();
-        await groupExpiryDays.setValue(0);
+        await waitAndSetValue(groupExpiryDays, '0');
         let groupReviewDays = await $('input[id="setting-groupReviewDays"]');
-        await groupReviewDays.addValue(10);
-        await submitBtn.click();
-        confirmSubmit = await $('button[data-testid="update-modal-update"]');
-        await confirmSubmit.click();
-        await alertClose.click();
+        await waitAndSetValue(groupReviewDays, '10');
+        await waitAndClick(submitBtn);
+        await waitAndClick(confirmSubmit);
+        await closeAlert();
 
         // go to review - the extend radio should be enabled
-        reviewDiv = await $('div*=Review');
-        await reviewDiv.click();
-        extendRadio = await $('input[value="extend"]');
+        await waitAndClick(reviewDiv);
         await expect(extendRadio).toBeEnabled();
 
         // go to settings, set service review days, submit
-        await settingsDiv.click();
-        groupReviewDays = await $('input[id="setting-groupReviewDays"]');
+        await waitAndClick(settingsDiv);
         await groupReviewDays.clearValue();
-        await groupReviewDays.setValue(0);
+        await waitAndSetValue(groupReviewDays, '0');
         let serviceExpiryDays = await $(
             'input[id="setting-serviceExpiryDays"]'
         );
-        await serviceExpiryDays.addValue(10);
-        await submitBtn.click();
-        confirmSubmit = await $('button[data-testid="update-modal-update"]');
-        await confirmSubmit.click();
-        await alertClose.click();
+        await waitAndSetValue(serviceExpiryDays, '10');
+        await waitAndClick(submitBtn);
+        await waitAndClick(confirmSubmit);
+        await closeAlert();
 
         // go to review - the extend radio should be enabled
-        reviewDiv = await $('div*=Review');
-        await reviewDiv.click();
-        extendRadio = await $('input[value="extend"]');
+        await waitAndClick(reviewDiv);
         await expect(extendRadio).toBeEnabled();
 
         // go to settings, set service expiry days, submit
-        await settingsDiv.click();
-        serviceExpiryDays = await $('input[id="setting-serviceExpiryDays"]');
+        await waitAndClick(settingsDiv);
         await serviceExpiryDays.clearValue();
-        await serviceExpiryDays.setValue(0);
+        await waitAndSetValue(serviceExpiryDays, '0');
         let serviceReviewDays = await $(
             'input[id="setting-serviceReviewDays"]'
         );
-        await serviceReviewDays.addValue(10);
-        await submitBtn.click();
-        confirmSubmit = await $('button[data-testid="update-modal-update"]');
-        await confirmSubmit.click();
-        await alertClose.click();
+        await waitAndSetValue(serviceReviewDays, '10');
+        await waitAndClick(submitBtn);
+        await waitAndClick(confirmSubmit);
+        await closeAlert();
 
         // go to review - the extend radio should be enabled
-        reviewDiv = await $('div*=Review');
-        await reviewDiv.click();
-        extendRadio = await $('input[value="extend"]');
+        await waitAndClick(reviewDiv);
         await expect(extendRadio).toBeEnabled();
     });
 
@@ -520,35 +486,39 @@ describe('role screen tests', () => {
         const GROUP_EXPIRY_DAYS = 20;
         const SERVICE_EXPIRY_DAYS = 30;
 
-        await browser.newUser();
-        await browser.url(TEST_DOMAIN_SETTINGS_URI);
+        await authenticateAndWait();
+        await navigateAndWait(TEST_DOMAIN_SETTINGS_URI);
 
-        await $('input[id="setting-memberExpiryDays"]').addValue(
+        await waitAndSetValue(
+            'input[id="setting-memberExpiryDays"]',
             MEMBER_EXPIRY_DAYS
         );
-        await $('input[id="setting-groupExpiryDays"]').addValue(
+        await waitAndSetValue(
+            'input[id="setting-groupExpiryDays"]',
             GROUP_EXPIRY_DAYS
         );
-        await $('input[id="setting-serviceExpiryDays"]').addValue(
+        await waitAndSetValue(
+            'input[id="setting-serviceExpiryDays"]',
             SERVICE_EXPIRY_DAYS
         );
-        await $('button*=Submit').click();
+        await waitAndClick('button*=Submit');
 
-        await $('button[data-testid="update-modal-update"]').click();
-        await $('div[data-wdio="alert-close"]').click();
+        await waitAndClick('button[data-testid="update-modal-update"]');
+        await closeAlert();
 
-        await browser.url(TEST_DOMAIN_ROLE_URI);
+        await navigateAndWait(TEST_DOMAIN_ROLE_URI);
 
-        await createRoleWithMembers(reviewExtendTest, headlessUser);
+        await createRoleWithMembers(reviewExtendTest2, headlessUser);
 
-        await $(
-            `.//*[local-name()="svg" and @data-wdio="${reviewExtendTest}-review"]`
-        ).click();
+        await waitAndClick(
+            `.//*[local-name()="svg" and @data-wdio="${reviewExtendTest2}-review"]`
+        );
 
-        const extendRadio = await $('input[value="extend"]');
-        const expiryDetails = await $(
+        const extendRadio = await waitForElementExist('input[value="extend"]');
+        const expirySpan = await waitForElementExist(
             'span[data-testid="role-expiration-details"]'
-        ).getText();
+        );
+        const expiryDetails = await expirySpan.getText();
 
         expect(extendRadio).toBeEnabled();
         expect(expiryDetails).toContain(
@@ -565,43 +535,45 @@ describe('role screen tests', () => {
     it(TEST_NAME_DOMAIN_FILTER, async () => {
         currentTest = TEST_NAME_DOMAIN_FILTER;
         // open browser
-        await browser.newUser();
-        await browser.url(TEST_DOMAIN_ROLE_URI);
+        await authenticateAndWait();
+        await navigateAndWait(TEST_DOMAIN_ROLE_URI);
 
         // open add role modal
         let addiRoleButton = await $('button*=Add Role');
-        await addiRoleButton.click();
+        await waitAndClick(addiRoleButton);
         // add role name
         let inputRoleName = await $('#role-name-input');
-        await inputRoleName.addValue(domainFilterTest);
+        await waitAndSetValue(inputRoleName, domainFilterTest);
         // specify domain
         let advancedSettingsIcon = await $('#advanced-settings-icon');
-        await advancedSettingsIcon.click();
+        await waitAndClick(advancedSettingsIcon);
         let principalDomainFilter = await $('#setting-principalDomainFilter');
-        await principalDomainFilter.addValue('athenz');
+        await waitAndSetValue(principalDomainFilter, 'athenz');
         // attempt to submit a member that doesn't belong to specified domain
         // add user
         let memberInput = await $('input[name="member-name"]');
-        await memberInput.addValue(humanUser);
+        await waitAndSetValue(memberInput, humanUser);
         let dropdownOption = await $(`div*=${humanUser}`);
-        await dropdownOption.click();
+        await waitAndClick(dropdownOption);
         // submit
         let submitButton = await $('button*=Submit');
-        await submitButton.click();
+        await waitAndClick(submitButton);
         // verify fail message
-        let errorMessage = await $('div[data-testid="error-message"]');
+        let errorMessage = await waitForElementExist(
+            'div[data-testid="error-message"]'
+        );
         await expect(await errorMessage.getText()).toBe(
             `Status: 400. Message: Principal ${humanUser} is not allowed for the role`
         );
         // change to specified domain
         await principalDomainFilter.clearValue();
-        await principalDomainFilter.addValue('user');
+        await waitAndSetValue(principalDomainFilter, 'user');
         // submit - success
-        await submitButton.click();
+        await waitAndClick(submitButton);
         // view role members
-        await $(
+        await waitAndClick(
             `.//*[local-name()="svg" and @data-wdio="${domainFilterTest}-view-members"]`
-        ).click();
+        );
         // verify member was added to the role
         let memberRow = await $(`tr[data-wdio='${humanUser}-member-row']`).$(
             `td*=${humanUser}`
@@ -610,40 +582,39 @@ describe('role screen tests', () => {
 
         // check that domain filter applies to an existing role
         // let's reuse the role created above
-        await $('button*=Add Member').click();
+        await waitAndClick('button*=Add Member');
         // attempt to add headless user
-        memberInput = await $('input[name="member-name"]');
-        await memberInput.addValue(headlessUser);
-        await $(`div*=${headlessUser}`).click();
+        await waitAndSetValue(memberInput, headlessUser);
+        await waitAndClick(`div*=${headlessUser}`);
         // submit
-        await $('button*=Submit').click();
+        await waitAndClick('button*=Submit');
         // verify fail message - headless domain is not registered in the filter yet
-        errorMessage = await $('div[data-testid="error-message"]');
         expect(await errorMessage.getText()).toBe(
             `Status: 400. Message: Principal ${headlessUser} is not allowed for the role`
         );
         // close modal
-        await $('button*=Cancel').click();
+        await waitAndClick('button*=Cancel');
 
         // let's add headless user to domain filter in role settings
-        await $('div*=Settings').click();
-        principalDomainFilter = await $('#setting-principalDomainFilter');
+        await waitAndClick('div*=Settings');
         await principalDomainFilter.clearValue();
-        await principalDomainFilter.addValue(
+        await waitAndSetValue(
+            principalDomainFilter,
             `${testdata.userHeadless1.type},${testdata.user1.type}`
         );
         // submit
-        await $('button*=Submit').click();
-        await $('button[data-testid="update-modal-update"]').click();
+        await waitAndClick('button*=Submit');
+        await waitAndClick('button[data-testid="update-modal-update"]');
+        await closeAlert();
 
         // now it must be possible to add member of a headless domain
         // add headless user
-        await $('div*=Members').click();
-        await $('button*=Add Member').click();
-        await $('input[name="member-name"]').addValue(headlessUser);
-        await $(`div*=${headlessUser}`).click();
+        await waitAndClick('div*=Members');
+        await waitAndClick('button*=Add Member');
+        await waitAndSetValue('input[name="member-name"]', headlessUser);
+        await waitAndClick(`div*=${headlessUser}`);
         // submit
-        await $('button*=Submit').click();
+        await waitAndClick('button*=Submit');
         // check new member was added
         memberRow = await $(`tr[data-wdio='${headlessUser}-member-row']`).$(
             `td*=${headlessUser}`
@@ -656,14 +627,13 @@ describe('role screen tests', () => {
     it('Pressing Cmd + Click on a role group links opens a new tab', async () => {
         // uses existing role group
         // open browser
-        await browser.newUser();
-        await browser.url(TEST_DOMAIN_ROLE_URI);
+        await authenticateAndWait();
+        await navigateAndWait(TEST_DOMAIN_ROLE_URI);
 
         // expand aws roles
-        let rolesExpand = await $(
+        await waitAndClick(
             './/*[local-name()="svg" and @data-wdio="AWS-roles-expand"]'
         );
-        await rolesExpand.click();
 
         const awsRole = 'aws_instance_launch_provider';
         let awsRoleMembersIcon = await $(
@@ -680,16 +650,13 @@ describe('role screen tests', () => {
                 ],
             },
         ]);
-        await awsRoleMembersIcon.click();
+        await waitAndClick(awsRoleMembersIcon);
         // Release all actions to reset states
         await browser.releaseActions();
 
-        await browser.pause(1000); // Just to ensure the new tab opens
-        // switch to opened tab
-        const windowHandles = await browser.getWindowHandles();
-        expect(windowHandles.length).toBeGreaterThan(1);
-        const tab = windowHandles.length - 1;
-        await browser.switchToWindow(windowHandles[tab]);
+        // Wait until a new tab opens
+        await waitForTabToOpenAndSwitch();
+
         // verify the URL of the new tab
         const url = await browser.getUrl();
         expect(url.includes(`${TEST_DOMAIN_ROLE_URI}/${awsRole}/members`)).toBe(
@@ -704,8 +671,8 @@ describe('role screen tests', () => {
     it(TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS, async () => {
         currentTest = TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS;
         // open browser
-        await browser.newUser();
-        await browser.url(TEST_DOMAIN_ROLE_URI);
+        await authenticateAndWait();
+        await navigateAndWait(TEST_DOMAIN_ROLE_URI);
 
         await createRoleWithMembers(
             multipleMemberRole,
@@ -714,9 +681,9 @@ describe('role screen tests', () => {
         );
 
         // verify both members were added to the role
-        await $(
+        await waitAndClick(
             `.//*[local-name()="svg" and @data-wdio="${multipleMemberRole}-view-members"]`
-        ).click();
+        );
         let memberRow1 = await $(
             `tr[data-wdio='${headlessUser}-member-row']`
         ).$(`td*=${headlessUser}`);
@@ -734,13 +701,13 @@ describe('role screen tests', () => {
         const adminRole = 'admin';
 
         // open browser
-        await browser.newUser();
-        await browser.url(TEST_DOMAIN_ROLE_URI);
+        await authenticateAndWait();
+        await navigateAndWait(TEST_DOMAIN_ROLE_URI);
 
         // verify rule policy is expanded by default for role
-        await $(
+        await waitAndClick(
             `.//*[local-name()="svg" and @data-wdio="${adminRole}-policy-rules"]`
-        ).click();
+        );
 
         const roleRow = await $(
             `tr[data-wdio='${adminRole}-policy-rule-row']`
@@ -757,21 +724,21 @@ describe('role screen tests', () => {
         const authFilters = ['OnShore-US', 'DataGovernance'];
 
         // open browser
-        await browser.newUser();
-        await browser.url(TEST_DOMAIN_ROLE_URI);
+        await authenticateAndWait();
+        await navigateAndWait(TEST_DOMAIN_ROLE_URI);
 
         await createRoleWithMembers(multiSelectRole, headlessUser);
 
-        await $(
+        await waitAndClick(
             `.//*[local-name()="svg" and @id="${multiSelectRole}-setting-role-button"]`
-        ).click();
+        );
 
-        await $('div[class*=denali-multiselect]').click();
-        await $('div*=OnShore-US').click();
-        await $('div*=DataGovernance').click();
-        await $('button*=Submit').click();
+        await waitAndClick('div[class*=denali-multiselect]');
+        await waitAndClick('div*=OnShore-US');
+        await waitAndClick('div*=DataGovernance');
+        await waitAndClick('button*=Submit');
 
-        await $('button[data-testid="update-modal-update"]').click();
+        await waitAndClick('button[data-testid="update-modal-update"]');
         const successAlert = await $('div[id="alert-title"]');
 
         const dropdownItems = await $$(
@@ -787,48 +754,57 @@ describe('role screen tests', () => {
     });
 
     afterEach(async () => {
-        switch (currentTest) {
-            case TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH:
-                await deleteRoleIfExists(historyTestRole);
-                break;
-            case TEST_NAME_DELEGATED_ROLE_ADDITIONAL_SETTINGS_ARE_DISABLED:
-                await deleteRoleIfExists(delegatedRole);
-                break;
-            case TEST_NAME_ADD_ROLE_MEMBER_INPUT_PRESERVES_CONTENTS_ON_BLUR:
-                await deleteRoleIfExists(dropdownTestRoleName);
-                break;
-            case TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED:
-                await deleteRoleIfExists(reviewExtendTest);
-                break;
-            case TEST_DOMAIN_EXPIRY_ENFORCED_BY_DEFAULT:
-                await deleteRoleIfExists(reviewExtendTest);
-                await resetDomainExpiry();
-                break;
-            case TEST_NAME_DOMAIN_FILTER:
-                await deleteRoleIfExists(domainFilterTest);
-                break;
-            case TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS:
-                await deleteRoleIfExists(multipleMemberRole);
-                break;
-            case TEST_MULTISELECT_AUTHORITY_FILTERS:
-                await deleteRoleIfExists(multiSelectRole);
-                break;
+        try {
+            switch (currentTest) {
+                case TEST_NAME_HISTORY_VISIBLE_AFTER_PAGE_REFRESH:
+                    await deleteRoleIfExists(historyTestRole);
+                    break;
+                case TEST_NAME_DELEGATED_ROLE_ADDITIONAL_SETTINGS_ARE_DISABLED:
+                    await deleteRoleIfExists(delegatedRole);
+                    break;
+                case TEST_NAME_ADD_ROLE_MEMBER_INPUT_PRESERVES_CONTENTS_ON_BLUR:
+                    await deleteRoleIfExists(dropdownTestRoleName);
+                    break;
+                case TEST_NAME_ROLE_REVIEW_EXTEND_DISABLED:
+                    await deleteRoleIfExists(reviewExtendTest1);
+                    break;
+                case TEST_DOMAIN_EXPIRY_ENFORCED_BY_DEFAULT:
+                    await deleteRoleIfExists(reviewExtendTest2);
+                    await resetDomainExpiry();
+                    break;
+                case TEST_NAME_DOMAIN_FILTER:
+                    await deleteRoleIfExists(domainFilterTest);
+                    break;
+                case TEST_ADD_ROLE_WITH_MULTIPLE_MEMBERS:
+                    await deleteRoleIfExists(multipleMemberRole);
+                    break;
+                case TEST_MULTISELECT_AUTHORITY_FILTERS:
+                    await deleteRoleIfExists(multiSelectRole);
+                    break;
+            }
+        } catch (error) {
+            console.error(
+                `Cleanup failed for test ${currentTest}:`,
+                error.message
+            );
+            // Don't throw - allow other tests to continue
+        } finally {
+            // reset current test
+            currentTest = '';
         }
-
-        // reset current test
-        currentTest = '';
     });
 
     const createRoleWithMembers = async (roleName, ...members) => {
-        await $('button*=Add Role').click();
-        await $('#role-name-input').addValue(roleName);
-
+        await waitAndClick('button*=Add Role');
+        // modal is open
+        await waitAndSetValue('#role-name-input', roleName);
+        // add members
         for (const member of members) {
-            await $('input[name="member-name"]').addValue(member);
-            await $(`div*=${member}`).click();
-            await $(`button[data-wdio="add-role-member"]`).click();
+            await waitAndSetValue('input[name="member-name"]', member);
+            await waitAndClick(`div*=${member}`);
+            await waitAndClick(`button[data-wdio="add-role-member"]`);
         }
 
-        await $('button*=Submit').click();
+        await waitAndClick('button*=Submit');
     };
 });
