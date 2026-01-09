@@ -129,13 +129,12 @@
         "@testing-library/react": "13.4.0",
         "@types/jest": "29.5.12",
         "@wdio/cli": "9.19.1",
-        "@wdio/local-runner": "9.4.1",
-        "@wdio/mocha-framework": "9.2.8",
-        "@wdio/sauce-service": "9.2.14",
-        "@wdio/spec-reporter": "9.2.14",
+        "@wdio/local-runner": "9.19.1",
+        "@wdio/mocha-framework": "9.19.1",
+        "@wdio/sauce-service": "9.19.1",
+        "@wdio/spec-reporter": "9.19.1",
         "babel-jest": "29.7.0",
         "babel-preset-current-node-syntax": "1.0.1",
-        "chromedriver": "131",
         "dotenv": "16.0.2",
         "expect": "29.0.3",
         "expect-webdriverio": "^5.3.4",
@@ -153,7 +152,7 @@
         "react-test-renderer": "18.2.0",
         "sinon": "14.0.0",
         "supertest": "7.0.0",
-        "webdriverio": "9.4.1"
+        "webdriverio": "9.19.1"
     },
     "overrides": {
         "esbuild": "0.25.0",

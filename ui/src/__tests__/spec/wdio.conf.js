@@ -65,6 +65,7 @@ let functionalConfig = {
 
 const sauceLabsKey = functionalConfig.sauceKey || '';
 const sauceLabsUser = functionalConfig.sauceUser || '';
+const maxInstances = sauceLabsUser ? 4 : 2;
 const localOrRemote = {};
 if (!sauceLabsUser) {
     //
@@ -87,7 +88,6 @@ if (!sauceLabsUser) {
                     '--disable-search-engine-choice-screen', // Disables choose your search engine popup
                 ],
             },
-            browserVersion: '135',
             acceptInsecureCerts: true,
         },
     ];
@@ -186,7 +186,7 @@ let config = {
     // and 30 processes will get spawned. The property handles how many capabilities
     // from the same test should run tests.
     //
-    maxInstances: 10,
+    maxInstances: maxInstances,
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
@@ -228,14 +228,14 @@ let config = {
     baseUrl: functionalConfig.instance,
     //
     // Default timeout for all waitFor* commands.
-    waitforTimeout: 10000,
+    waitforTimeout: 30000,
     //
     // Default timeout in milliseconds for request
     // if browser driver or grid doesn't send response
-    connectionRetryTimeout: 120000,
+    connectionRetryTimeout: 180000,
     //
     // Default request retries count
-    connectionRetryCount: 3,
+    connectionRetryCount: 5,
     //
     // Test runner services
     // Services take over a specific job you don't want to take care of. They enhance
@@ -251,10 +251,10 @@ let config = {
     framework: 'mocha',
     //
     // The number of times to retry the entire specfile when it fails as a whole
-    // specFileRetries: 1,
+    specFileRetries: 1,
     //
     // Delay in seconds between the spec file retry attempts
-    // specFileRetriesDelay: 0,
+    specFileRetriesDelay: 5,
     //
     // Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
     // specFileRetriesDeferred: false,
@@ -269,7 +269,7 @@ let config = {
     // See the full list at http://mochajs.org/
     mochaOpts: {
         ui: 'bdd',
-        timeout: 60000,
+        timeout: 120000,
         retries: 2,
     },
     //
@@ -338,11 +338,15 @@ let config = {
                 functionalConfig.athenzCertFile +
                 ' -zts ' +
                 functionalConfig.athensZtsAPI;
+
             console.log('Fetching access token using command: ', command);
+
             exec(command, (err, stdout, stderr) => {
                 let value = {};
                 if (err) {
                     console.log('Fetching tokens failed: ', err, stderr);
+                    callback(err, value);
+                    return;
                 }
                 if (stdout) {
                     try {
@@ -350,50 +354,87 @@ let config = {
                     } catch (e) {
                         console.log('Parsing JSON failed: ', e);
                         callback(e, value);
+                        return;
                     }
                 }
                 callback(err, value);
             });
         };
 
-        browser.addCommand('newUser', function () {
-            return new Promise(function (fulfill, reject) {
-                getAccessToken(async function (err, tokens) {
-                    if (err) {
-                        reject(err);
-                        return;
-                    } else {
-                        await browser.url('/akamai');
-                        await browser.setCookies({
-                            name: 'okta_at',
-                            value: tokens.access_token,
-                            path: '/',
-                            domain: functionalConfig.cookieDomain,
-                            secure: true,
-                            httpOnly: true,
-                        });
-
-                        await browser.setCookies({
-                            name: 'okta_it',
-                            value: tokens.id_token,
-                            path: '/',
-                            domain: functionalConfig.cookieDomain,
-                            secure: true,
-                            httpOnly: true,
-                        });
-
-                        await browser.setCookies({
-                            name: 'okta_rt',
-                            value: '',
-                            path: '/',
-                            domain: functionalConfig.cookieDomain,
-                            secure: true,
-                            httpOnly: true,
-                        });
-                        fulfill();
-                    }
-                });
+        // Add retry wrapper
+        const getAccessTokenWithRetry = (retries = 3, delay = 2000) => {
+            return new Promise((fulfill, reject) => {
+                const attempt = (remaining) => {
+                    getAccessToken(async (err, tokens) => {
+                        if (err && remaining > 0) {
+                            console.log(
+                                `Retry ${4 - remaining}/3 for access token...`
+                            );
+                            setTimeout(() => attempt(remaining - 1), delay);
+                        } else if (err) {
+                            reject(
+                                new Error(
+                                    `Failed to get access token after ${retries} attempts: ${err.message}`
+                                )
+                            );
+                        } else {
+                            fulfill(tokens);
+                        }
+                    });
+                };
+                attempt(retries);
             });
+        };
+
+        browser.addCommand('newUser', async function () {
+            try {
+                const tokens = await getAccessTokenWithRetry();
+
+                await browser.url('/akamai');
+
+                // Wait for page to be ready
+                await browser.waitUntil(
+                    async () =>
+                        await browser.execute(
+                            () => document.readyState === 'complete'
+                        ),
+                    { timeout: 10000 }
+                );
+
+                await browser.setCookies({
+                    name: 'okta_at',
+                    value: tokens.access_token,
+                    path: '/',
+                    domain: functionalConfig.cookieDomain,
+                    secure: true,
+                    httpOnly: true,
+                });
+
+                await browser.setCookies({
+                    name: 'okta_it',
+                    value: tokens.id_token,
+                    path: '/',
+                    domain: functionalConfig.cookieDomain,
+                    secure: true,
+                    httpOnly: true,
+                });
+
+                await browser.setCookies({
+                    name: 'okta_rt',
+                    value: '',
+                    path: '/',
+                    domain: functionalConfig.cookieDomain,
+                    secure: true,
+                    httpOnly: true,
+                });
+
+                // Wait for cookies to be set
+                await browser.pause(500);
+            } catch (error) {
+                throw new Error(
+                    `Failed to authenticate user: ${error.message}`
+                );
+            }
         });
     },
     /**
@@ -436,6 +477,44 @@ let config = {
      * @param {Boolean} result.passed    true if test has passed, otherwise false
      * @param {Object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
+    afterTest: async function (
+        test,
+        context,
+        { error, result, duration, passed, retries }
+    ) {
+        // when running locally save screenshot if test did not pass - skip this for SauceLabs runs
+        if (!passed && !sauceLabsUser) {
+            const fs = require('fs');
+            const path = require('path');
+            const artifactsDir =
+                process.env.TEST_DIR ||
+                path.resolve(process.cwd(), 'artifacts');
+            const screenshotsDir = path.resolve(artifactsDir, 'screenshots');
+
+            if (!fs.existsSync(screenshotsDir)) {
+                fs.mkdirSync(screenshotsDir, { recursive: true });
+            }
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `failure-${test.title.replace(
+                /\s+/g,
+                '-'
+            )}-${timestamp}`;
+            const screenshotPath = path.resolve(
+                screenshotsDir,
+                `${filename}.png`
+            );
+
+            try {
+                await browser.saveScreenshot(screenshotPath);
+                console.log(`Screenshot saved: ${screenshotPath}`);
+            } catch (e) {
+                console.error(
+                    `Failed to save screenshot: ${e.message} for test ${test.title}`
+                );
+            }
+        }
+    },
     // afterTest: function(test, context, { error, result, duration, passed, retries }) {
     // },
 
