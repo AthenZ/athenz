@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 const config = require('../../../config/config');
-const { ONCALL_URL } = require('../../../components/constants/constants');
+const {
+    authenticateAndWait,
+    navigateAndWait,
+    waitAndClick,
+    waitAndSetValue,
+    beforeEachTest,
+    closeAlert,
+} = require('../libs/helpers');
 const testdata = config().testdata;
 
 const userName = testdata.user1.name;
@@ -25,77 +32,64 @@ const TEST_ADD_ON_CALL_TEAM =
 
 describe('Domain', () => {
     let currentTest;
+    beforeEach(async () => {
+        await beforeEachTest();
+    });
 
     it('should successfully add domain point of contact and security poc', async () => {
-        await browser.newUser();
-        await browser.url(`/`);
+        await authenticateAndWait();
+        await navigateAndWait('/');
 
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
-        let testDomain = await $('a*=athenz.dev.functional-test');
-        await browser.waitUntil(async () => await testDomain.isClickable());
-        await testDomain.click();
+        await waitAndClick('a*=athenz.dev.functional-test');
 
         // test adding poc
         let pocAnchor = await $('a[data-testid="poc-link"]');
-        await browser.waitUntil(async () => await pocAnchor.isClickable());
-        await pocAnchor.click();
-        let userInput = await $('input[name="poc-name"]');
-        await userInput.addValue(`${userId}`);
-        let userOption = await $(`div*=${userName} [${userId}]`);
-        await userOption.click();
-        let submitButton = await $('button*=Submit');
-        await submitButton.click();
+        await waitAndClick(pocAnchor);
+        await waitAndSetValue('input[name="poc-name"]', `${userId}`);
+        await waitAndClick(`div*=${userName} [${userId}]`);
+        await waitAndClick('button*=Submit');
+        // close alert
+        await closeAlert();
         await expect(pocAnchor).toHaveText(
             expect.stringContaining(`${userName}`)
         );
 
         // test adding security poc
         let securityPocAnchor = await $('a[data-testid="security-poc-link"]');
-        await browser.waitUntil(
-            async () => await securityPocAnchor.isClickable()
-        );
-        await securityPocAnchor.click();
-        userInput = await $('input[name="poc-name"]');
-        await userInput.addValue(`${userId}`);
-        userOption = await $(`div*=${userName} [${userId}]`);
-        await userOption.click();
-        submitButton = await $('button*=Submit');
-        await submitButton.click();
+        await waitAndClick(securityPocAnchor);
+        await waitAndSetValue('input[name="poc-name"]', `${userId}`);
+        await waitAndClick(`div*=${userName} [${userId}]`);
+        await waitAndClick('button*=Submit');
+        // close alert
+        await closeAlert();
         await expect(securityPocAnchor).toHaveText(
             expect.stringContaining(`${userName}`)
         );
     });
 
     it('should successfully add and clear domain slack channel', async () => {
-        await browser.newUser();
-        await browser.url(`/`);
+        await authenticateAndWait();
+        await navigateAndWait('/');
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
-        let testDomain = await $('a*=athenz.dev.functional-test');
-        await browser.waitUntil(async () => await testDomain.isClickable());
-        await testDomain.click();
+        await waitAndClick('a*=athenz.dev.functional-test');
 
         // expand domain details
-        let expand = await $(
+        await waitAndClick(
             `.//*[local-name()="svg" and @data-wdio="domain-details-expand-icon"]`
         );
-        await expand.click();
 
         // click add slack channel
         let addSlackChannel = await $('a[data-testid="add-slack-channel"]');
-        await browser.waitUntil(
-            async () => await addSlackChannel.isClickable()
-        );
-        await addSlackChannel.click();
+        await waitAndClick(addSlackChannel);
 
         let randomInt = Math.floor(Math.random() * 100); // random number to append to slack channel name
         let slackChannelName = 'slack-channel-' + randomInt;
         let slackChannelInput = await $('input[name="slack-channel-input"]');
-        await slackChannelInput.clearValue();
-        await slackChannelInput.addValue(slackChannelName);
-        let submitButton = await $('button*=Submit');
-        await submitButton.click();
+        await waitAndSetValue(slackChannelInput, slackChannelName);
+        await waitAndClick('button*=Submit');
         await expect(addSlackChannel).toHaveText(
             expect.stringContaining(slackChannelName)
         );
@@ -104,34 +98,33 @@ describe('Domain', () => {
     it(TEST_ADD_ON_CALL_TEAM, async () => {
         currentTest = TEST_ADD_ON_CALL_TEAM;
 
-        await browser.newUser();
-        await browser.url(`/domain/athenz.dev.functional-test/role`);
+        await authenticateAndWait();
+        await navigateAndWait(`/domain/athenz.dev.functional-test/role`);
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
         const ONCALL_TEAM_NAME = 'team-1';
 
         // expand domain details
-        await $(
+        await waitAndClick(
             `.//*[local-name()="svg" and @data-wdio="domain-details-expand-icon"]`
-        ).click();
+        );
 
         // click add on call team
-        let addOnCallTeam = await $('a[data-testid="add-oncall-team"]');
+        await waitAndClick('a[data-testid="add-oncall-team"]');
 
-        await browser.waitUntil(async () => await addOnCallTeam.isClickable());
-
-        await addOnCallTeam.click();
-
-        await $('input[id="on-call-team-input"]').addValue(ONCALL_TEAM_NAME);
-        await $('button*=Submit').click();
-        await $('div[data-wdio="alert-close"]').click();
+        await waitAndSetValue(
+            'input[id="on-call-team-input"]',
+            ONCALL_TEAM_NAME
+        );
+        await waitAndClick('button*=Submit');
+        await closeAlert();
 
         const editOnCallButton = await $(
             `.//*[local-name()="svg" and @data-wdio="edit-oncall-team"]`
         );
 
         // verify on call team name has been added
-        addOnCallTeam = await $('a[data-testid="oncall-team-link"]');
+        let addOnCallTeam = await $('a[data-testid="oncall-team-link"]');
 
         const onCallLink = await addOnCallTeam.getAttribute('href');
 
@@ -147,17 +140,16 @@ describe('Domain', () => {
     });
 
     it('Domain Workflow - input to select dommain - should preserve input on blur, make input bold when selected in dropdown', async () => {
-        await browser.newUser();
-
+        await authenticateAndWait();
         // open domain history page
-        await browser.url(`/workflow/domain?domain=`);
+        await navigateAndWait(`/workflow/domain?domain=`);
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
         const nonexistentDomain = 'nonexistent.domain';
 
         // add random text
         let input = await $('input[name="domains-inputd"]');
-        await input.addValue(nonexistentDomain);
+        await waitAndSetValue(input, nonexistentDomain);
 
         // blur
         await browser.keys('Tab');
@@ -172,13 +164,12 @@ describe('Domain', () => {
         let clearInput = await $(
             `.//*[local-name()="svg" and @data-wdio="clear-input"]`
         );
-        await clearInput.click();
+        await waitAndClick(clearInput);
 
         // type valid input and select item in dropdown
         const testDomain = 'athenz.dev.functional-test';
-        await input.addValue(testDomain);
-        let dropdownOption = await $(`div*=${testDomain}`);
-        await dropdownOption.click();
+        await waitAndSetValue(input, testDomain);
+        await waitAndClick(`div*=${testDomain}`);
 
         // verify input contains pes service
         expect(await input.getValue()).toBe(testDomain);
@@ -189,26 +180,39 @@ describe('Domain', () => {
     });
 
     afterEach(async () => {
-        // runs after each test and checks what currentTest value was set and executes appropriate cleanup logic if defined
-        if (currentTest === TEST_ADD_ON_CALL_TEAM) {
-            await browser.newUser();
-            await browser.url(`/domain/athenz.dev.functional-test/role`);
+        try {
+            // runs after each test and checks what currentTest value was set and executes appropriate cleanup logic if defined
+            if (currentTest === TEST_ADD_ON_CALL_TEAM) {
+                await authenticateAndWait();
+                // open domain history page
+                await navigateAndWait(
+                    `/domain/athenz.dev.functional-test/role`
+                );
 
-            await $(
-                `.//*[local-name()="svg" and @data-wdio="domain-details-expand-icon"]`
-            ).click();
+                await waitAndClick(
+                    './/*[local-name()="svg" and @data-wdio="domain-details-expand-icon"]'
+                );
 
-            await $(
-                `.//*[local-name()="svg" and @data-wdio="edit-oncall-team"]`
-            ).click();
+                await waitAndClick(
+                    `.//*[local-name()="svg" and @data-wdio="edit-oncall-team"]`
+                );
 
-            const onCallInput = await $('input[name="on-call-team-input"]');
-            await onCallInput.clearValue();
-            await onCallInput.setValue(' ');
+                const onCallInput = await $('input[name="on-call-team-input"]');
+                await waitAndSetValue(onCallInput, ' ', {
+                    clearFirst: true,
+                });
 
-            await $('button*=Submit').click();
+                await waitAndClick('button*=Submit');
+            }
+        } catch (error) {
+            console.error(
+                `Cleanup failed for test ${currentTest}:`,
+                error.message
+            );
+            // Don't throw - allow other tests to continue
+        } finally {
+            // reset current test
+            currentTest = '';
         }
-        // reset current test name
-        currentTest = '';
     });
 });
