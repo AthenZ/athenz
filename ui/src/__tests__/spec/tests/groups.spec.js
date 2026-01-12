@@ -69,16 +69,9 @@ describe('group screen tests:', () => {
         // open browser
         await authenticateAndWait();
         await navigateAndWait(`/domain/${TEST_DOMAIN}/group`);
+
         // ADD test group
-        // open Add Group screen
-        await waitAndClick('button*=Add Group');
-        // add group info
-        await waitAndSetValue('#group-name-input', historyTestGroup);
-        // add user
-        await waitAndSetValue('[name="member-name"]', headlessUser);
-        await waitAndClick(`div*=${headlessUser}`);
-        // submit role
-        await waitAndClick('button*=Submit');
+        await createGroup(historyTestGroup, headlessUser);
 
         // Verify history entry of added group member is present
         // open history
@@ -177,7 +170,7 @@ describe('group screen tests:', () => {
         await expect(extendRadio).toBeDisabled();
 
         // go to settings set user expiry days, submit
-        let settingsDiv = await waitAndClick('div*=Settings');
+        await waitAndClick('div*=Settings');
         await waitAndSetValue('input[id="setting-memberExpiryDays"]', 10);
         await waitAndClick('button*=Submit');
         await waitAndClick('button[data-testid="update-modal-update"]');
@@ -189,7 +182,7 @@ describe('group screen tests:', () => {
         await expect(extendRadio).toBeEnabled();
 
         // go to settings, set service expiry days, submit
-        await waitAndClick(settingsDiv);
+        await waitAndClick('div*=Settings');
         await waitAndSetValue('input[id="setting-memberExpiryDays"]', 0);
         await waitAndSetValue('input[id="setting-serviceExpiryDays"]', 10);
         await waitAndClick('button*=Submit');
@@ -208,12 +201,8 @@ describe('group screen tests:', () => {
         await authenticateAndWait();
         await navigateAndWait(GROUP_URI);
 
-        // open add group modal
-        await waitAndClick('button*=Add Group');
-        // add group name
-        await waitAndSetValue('#group-name-input', domainFilterTest);
-        // submit
-        await waitAndClick('button*=Submit');
+        // create group
+        await createGroup(domainFilterTest);
 
         // specify headless user type domain in settings
         // open settings
@@ -546,3 +535,37 @@ describe('group screen tests:', () => {
         }
     });
 });
+
+async function createGroup(groupName, ...members) {
+    await waitAndClick('button*=Add Group');
+    await waitAndSetValue('#group-name-input', groupName);
+
+    // add members
+    for (const member of members) {
+        await waitAndSetValue('input[name="member-name"]', member);
+        await waitAndClick(`div*=${member}`);
+        await waitAndClick(`button[data-wdio="add-group-member"]`);
+    }
+
+    await waitAndClick('button*=Submit');
+
+    // Check for "already exists" error
+    const errorMessage = await $('div[data-testid="error-message"]');
+    const exists = await errorMessage
+        .waitForExist({ timeout: 1000 })
+        .catch(() => false);
+    if (exists) {
+        const text = await errorMessage.getText();
+        if (
+            text.includes(
+                `Status: 409. Message: Group ${groupName} already exists`
+            )
+        ) {
+            throw new Error(
+                `Group "${groupName}" already exists - failing to perform cleanup.`
+            );
+        } else {
+            throw new Error(`Unexpected error during group creation: ${text}`);
+        }
+    }
+}

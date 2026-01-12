@@ -318,6 +318,7 @@ describe('role screen tests', () => {
         await waitAndClick('button*=Add Member');
 
         // test incomplete input in dropdown
+        memberInput = await $('input[name="member-name"]');
         await waitAndSetValue(memberInput, invalidMember);
 
         // blur
@@ -382,100 +383,94 @@ describe('role screen tests', () => {
         let reviewSvg = await $(
             `.//*[local-name()="svg" and @data-wdio="${reviewExtendTest1}-review"]`
         );
-        await waitAndClick(reviewSvg, { timeout: 5000 });
+        await waitAndClick(reviewSvg);
         let extendRadio = await $('input[value="extend"]');
         await expect(extendRadio).toBeDisabled();
 
         // go to settings set user expiry days, submit
-        let settingsDiv = await $('div*=Settings');
-        await waitAndClick(settingsDiv);
+        await waitAndClick('div*=Settings');
         let memberExpiryDays = await $('input[id="setting-memberExpiryDays"]');
         await waitAndSetValue(memberExpiryDays, '10');
-        let submitBtn = await $('button*=Submit');
-        await waitAndClick(submitBtn);
-        let confirmSubmit = await $(
-            'button[data-testid="update-modal-update"]'
-        );
-        await waitAndClick(confirmSubmit);
+        await waitAndClick('button*=Submit');
+        await waitAndClick('button[data-testid="update-modal-update"]');
         await closeAlert();
 
         // go to review - the extend radio should be enabled
-        let reviewDiv = await $('div*=Review');
-        await waitAndClick(reviewDiv);
+        await waitAndClick('div*=Review');
         await expect(extendRadio).toBeEnabled();
 
         // go to settings, set user review days, submit
-        await waitAndClick(settingsDiv);
+        await waitAndClick('div*=Settings');
         await memberExpiryDays.clearValue();
         await waitAndSetValue(memberExpiryDays, '0');
         let memberReviewDays = await $('input[id="setting-memberReviewDays"]');
         await waitAndSetValue(memberReviewDays, '10');
-        await waitAndClick(submitBtn);
-        await waitAndClick(confirmSubmit);
+        await waitAndClick('button*=Submit');
+        await waitAndClick('button[data-testid="update-modal-update"]');
         await closeAlert();
 
         // go to review - the extend radio should be enabled
-        await waitAndClick(reviewDiv);
+        await waitAndClick('div*=Review');
         await expect(extendRadio).toBeEnabled();
 
         // go to settings, set group expiry days, submit
-        await waitAndClick(settingsDiv);
+        await waitAndClick('div*=Settings');
         await memberReviewDays.clearValue();
         await waitAndSetValue(memberReviewDays, '0');
         let groupExpiryDays = await $('input[id="setting-groupExpiryDays"]');
         await waitAndSetValue(groupExpiryDays, '10');
-        await waitAndClick(submitBtn);
-        await waitAndClick(confirmSubmit);
+        await waitAndClick('button*=Submit');
+        await waitAndClick('button[data-testid="update-modal-update"]');
         await closeAlert();
 
         // go to review - the extend radio should be enabled
-        await waitAndClick(reviewDiv);
+        await waitAndClick('div*=Review');
         await expect(extendRadio).toBeEnabled();
 
         // go to settings, set group review days, submit
-        await waitAndClick(settingsDiv);
+        await waitAndClick('div*=Settings');
         await groupExpiryDays.clearValue();
         await waitAndSetValue(groupExpiryDays, '0');
         let groupReviewDays = await $('input[id="setting-groupReviewDays"]');
         await waitAndSetValue(groupReviewDays, '10');
-        await waitAndClick(submitBtn);
-        await waitAndClick(confirmSubmit);
+        await waitAndClick('button*=Submit');
+        await waitAndClick('button[data-testid="update-modal-update"]');
         await closeAlert();
 
         // go to review - the extend radio should be enabled
-        await waitAndClick(reviewDiv);
+        await waitAndClick('div*=Review');
         await expect(extendRadio).toBeEnabled();
 
         // go to settings, set service review days, submit
-        await waitAndClick(settingsDiv);
+        await waitAndClick('div*=Settings');
         await groupReviewDays.clearValue();
         await waitAndSetValue(groupReviewDays, '0');
         let serviceExpiryDays = await $(
             'input[id="setting-serviceExpiryDays"]'
         );
         await waitAndSetValue(serviceExpiryDays, '10');
-        await waitAndClick(submitBtn);
-        await waitAndClick(confirmSubmit);
+        await waitAndClick('button*=Submit');
+        await waitAndClick('button[data-testid="update-modal-update"]');
         await closeAlert();
 
         // go to review - the extend radio should be enabled
-        await waitAndClick(reviewDiv);
+        await waitAndClick('div*=Review');
         await expect(extendRadio).toBeEnabled();
 
         // go to settings, set service expiry days, submit
-        await waitAndClick(settingsDiv);
+        await waitAndClick('div*=Settings');
         await serviceExpiryDays.clearValue();
         await waitAndSetValue(serviceExpiryDays, '0');
         let serviceReviewDays = await $(
             'input[id="setting-serviceReviewDays"]'
         );
         await waitAndSetValue(serviceReviewDays, '10');
-        await waitAndClick(submitBtn);
-        await waitAndClick(confirmSubmit);
+        await waitAndClick('button*=Submit');
+        await waitAndClick('button[data-testid="update-modal-update"]');
         await closeAlert();
 
         // go to review - the extend radio should be enabled
-        await waitAndClick(reviewDiv);
+        await waitAndClick('div*=Review');
         await expect(extendRadio).toBeEnabled();
     });
 
@@ -551,8 +546,7 @@ describe('role screen tests', () => {
         await waitAndSetValue(principalDomainFilter, 'athenz');
         // attempt to submit a member that doesn't belong to specified domain
         // add user
-        let memberInput = await $('input[name="member-name"]');
-        await waitAndSetValue(memberInput, humanUser);
+        await waitAndSetValue('input[name="member-name"]', humanUser);
         let dropdownOption = await $(`div*=${humanUser}`);
         await waitAndClick(dropdownOption);
         // submit
@@ -584,7 +578,7 @@ describe('role screen tests', () => {
         // let's reuse the role created above
         await waitAndClick('button*=Add Member');
         // attempt to add headless user
-        await waitAndSetValue(memberInput, headlessUser);
+        await waitAndSetValue('input[name="member-name"]', headlessUser);
         await waitAndClick(`div*=${headlessUser}`);
         // submit
         await waitAndClick('button*=Submit');
@@ -806,5 +800,25 @@ describe('role screen tests', () => {
         }
 
         await waitAndClick('button*=Submit');
+
+        // Check for "already exists" error
+        const errorMessage = await $('div[data-testid="error-message"]');
+        const exists = await errorMessage
+            .waitForExist({ timeout: 1000 })
+            .catch(() => false);
+        if (exists) {
+            const text = await errorMessage.getText();
+            if (
+                text.includes(
+                    `Status: 409. Message: Role ${roleName} already exists`
+                )
+            ) {
+                throw new Error(
+                    `Role "${roleName}" already exists - failing to perform cleanup.`
+                );
+            }
+        } else {
+            throw new Error(`Unexpected error during role creation: ${text}`);
+        }
     };
 });
