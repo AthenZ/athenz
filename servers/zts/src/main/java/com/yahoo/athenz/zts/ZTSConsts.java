@@ -254,4 +254,7 @@ public final class ZTSConsts {
     public static final String ZTS_ISSUER_TYPE_OIDC_PORT = "oidc_port";
 
     public static final String ZTS_ACTION_JAG_EXCHANGE = "zts.jag_exchange";
+    public static final String ZTS_ACTION_TOKEN_SOURCE_EXCHANGE = "zts.token_source_exchange";
+    public static final String ZTS_ACTION_TOKEN_TARGET_EXCHANGE = "zts.token_target_exchange";
+
 }

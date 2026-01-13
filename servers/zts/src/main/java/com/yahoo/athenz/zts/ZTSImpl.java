@@ -229,7 +229,7 @@ public class ZTSImpl implements ZTSHandler {
 
     private static final String SYS_AUTH = "sys.auth";
 
-    private static final byte[] PERIOD = { 46 };
+    private static final byte[] PERIOD = {46};
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZTSImpl.class);
 
@@ -276,7 +276,7 @@ public class ZTSImpl implements ZTSHandler {
 
     enum ServiceX509RefreshRequestStatus {
         SUCCESS, DNS_NAME_MISMATCH, PUBLIC_KEY_MISMATCH, IP_NOT_ALLOWED
-     }
+    }
 
     public ZTSImpl() {
         this(null, null);
@@ -331,7 +331,7 @@ public class ZTSImpl implements ZTSHandler {
 
         loadHostnameResolver();
 
-       // create our cloud store if configured
+        // create our cloud store if configured
 
         cloudStore = (implCloudStore == null) ? new CloudStore() : implCloudStore;
 
@@ -420,7 +420,11 @@ public class ZTSImpl implements ZTSHandler {
 
         tokenConfigOptions = new TokenConfigOptions();
         tokenConfigOptions.setPublicKeyProvider(dataStore);
-        tokenConfigOptions.setOauth2Issuer(ztsOAuthIssuer);
+        Set<String> oauth2Issuers = new HashSet<>();
+        oauth2Issuers.add(ztsOAuthIssuer);
+        oauth2Issuers.add(ztsOpenIDIssuer);
+        oauth2Issuers.add(ztsOIDCPortIssuer);
+        tokenConfigOptions.setOauth2Issuers(oauth2Issuers);
         tokenConfigOptions.setJwtIDTProcessor(JwtsHelper.getJWTProcessor(jwtsResolvers, JwtsHelper.JWT_TYPE_VERIFIER));
         tokenConfigOptions.setJwtJAGProcessor(JwtsHelper.getJWTProcessor(jwtsResolvers, JwtsHelper.JWT_JAG_TYPE_VERIFIER));
     }
@@ -777,7 +781,7 @@ public class ZTSImpl implements ZTSHandler {
                 InetAddress localhost = java.net.InetAddress.getLocalHost();
                 serverHostName = localhost.getCanonicalHostName();
             } catch (java.net.UnknownHostException e) {
-                LOGGER.info("Unable to determine local hostname: {}" , e.getMessage());
+                LOGGER.info("Unable to determine local hostname: {}", e.getMessage());
             }
         }
 
@@ -1174,7 +1178,7 @@ public class ZTSImpl implements ZTSHandler {
     }
 
     public PublicKeyEntry getPublicKeyEntry(ResourceContext ctx, String domainName,
-            String serviceName, String keyId) {
+                                            String serviceName, String keyId) {
 
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
@@ -1553,9 +1557,9 @@ public class ZTSImpl implements ZTSHandler {
         ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForProprietaryObjects);
         String signature = Crypto.sign(SignUtils.asCanonicalString(signedPolicyData), privateKey.getKey());
         DomainSignedPolicyData result = new DomainSignedPolicyData()
-            .setSignedPolicyData(signedPolicyData)
-            .setSignature(signature)
-            .setKeyId(privateKey.getId());
+                .setSignedPolicyData(signedPolicyData)
+                .setSignature(signature)
+                .setKeyId(privateKey.getId());
 
         return Response.status(ResourceException.OK).entity(result).header("ETag", tag).build();
     }
@@ -1579,7 +1583,7 @@ public class ZTSImpl implements ZTSHandler {
     }
 
     int determineTokenTimeout(DataCache data, Set<String> roles, Integer minExpiryTime,
-            Integer maxExpiryTime) {
+                              Integer maxExpiryTime) {
 
         // we're going to default our return value to the default token
         // timeout configured in the server
@@ -1619,7 +1623,7 @@ public class ZTSImpl implements ZTSHandler {
 
         int maxAllowedExpirySecs = getConfiguredTokenExpiryTimeMins(data, roles) * 60;
         if (maxAllowedExpirySecs > 0 && maxAllowedExpirySecs < tokenTimeout) {
-            tokenTimeout =  maxAllowedExpirySecs;
+            tokenTimeout = maxAllowedExpirySecs;
         }
 
         return tokenTimeout;
@@ -1631,7 +1635,7 @@ public class ZTSImpl implements ZTSHandler {
         // time for the given set of roles
 
         int maxAllowedExpiry = 0;
-        for (String role: roles) {
+        for (String role : roles) {
             RoleMeta rm = data.getRoleMeta(role);
             if (rm == null) {
                 continue;
@@ -1659,7 +1663,7 @@ public class ZTSImpl implements ZTSHandler {
     }
 
     public TenantDomains getTenantDomains(ResourceContext ctx, String providerDomainName,
-            String userName, String roleName, String serviceName) {
+                                          String userName, String roleName, String serviceName) {
 
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
@@ -1815,7 +1819,7 @@ public class ZTSImpl implements ZTSHandler {
     }
 
     void checkRoleTokenAuthorizedServiceRequest(final Principal principal,
-            final String domainName, final String caller) {
+                                                final String domainName, final String caller) {
 
         final String authorizedService = principal.getAuthorizedService();
 
@@ -1834,7 +1838,7 @@ public class ZTSImpl implements ZTSHandler {
 
         if (!domainName.equals(checkDomain)) {
             throw forbiddenError("Authorized service domain " + checkDomain +
-                    " does not match request domain " + domainName, caller,
+                            " does not match request domain " + domainName, caller,
                     domainName, principal.getDomain());
         }
     }
@@ -1842,7 +1846,7 @@ public class ZTSImpl implements ZTSHandler {
     // Token interface
     @Override
     public RoleToken getRoleToken(ResourceContext ctx, String domainName, String roleNames,
-            Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal) {
+                                  Integer minExpiryTime, Integer maxExpiryTime, String proxyForPrincipal) {
 
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
@@ -1895,7 +1899,7 @@ public class ZTSImpl implements ZTSHandler {
         if (proxyForPrincipal != null && !isAuthorizedProxyUser(authorizedProxyUsers, principalName)) {
             LOGGER.error("getRoleToken: Principal {} not authorized for proxy role token request", principalName);
             throw forbiddenError("getRoleToken: Principal: " + principalName
-                    + " not authorized for proxy role token request", caller,
+                            + " not authorized for proxy role token request", caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
@@ -1973,9 +1977,9 @@ public class ZTSImpl implements ZTSHandler {
         ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForProprietaryObjects);
         com.yahoo.athenz.auth.token.RoleToken token =
                 new com.yahoo.athenz.auth.token.RoleToken.Builder(ZTS_ROLE_TOKEN_VERSION, domainName, roleList)
-                    .expirationWindow(tokenTimeout).host(serverHostName).keyId(privateKey.getId())
-                    .principal(principalName).ip(ServletRequestUtil.getRemoteAddress(ctx.request()))
-                    .proxyUser(proxyUser).domainCompleteRoleSet(domainCompleteRoleSet).build();
+                        .expirationWindow(tokenTimeout).host(serverHostName).keyId(privateKey.getId())
+                        .principal(principalName).ip(ServletRequestUtil.getRemoteAddress(ctx.request()))
+                        .proxyUser(proxyUser).domainCompleteRoleSet(domainCompleteRoleSet).build();
         token.sign(privateKey.getKey());
 
         RoleToken roleToken = new RoleToken();
@@ -2016,8 +2020,8 @@ public class ZTSImpl implements ZTSHandler {
 
     @Override
     public Response getOIDCResponse(ResourceContext ctx, String responseType, String clientId, String redirectUri,
-            String scope, String state, String nonce, String keyType, Boolean fullArn,
-            Integer timeout, String output, Boolean roleInAudClaim, Boolean allScopePresent) {
+                                    String scope, String state, String nonce, String keyType, Boolean fullArn,
+                                    Integer timeout, String output, Boolean roleInAudClaim, Boolean allScopePresent) {
 
         final String caller = ctx.getApiName();
 
@@ -2165,8 +2169,8 @@ public class ZTSImpl implements ZTSHandler {
     }
 
     List<String> processIdTokenGroups(final String principalName, IdTokenScope tokenRequest,
-            final String clientIdDomainName, Boolean allScopePresent,
-            final String principalDomain, final String caller) {
+                                      final String clientIdDomainName, Boolean allScopePresent,
+                                      final String principalDomain, final String caller) {
 
         List<String> tokenGroups;
         Set<String> domainNames = tokenRequest.getDomainNames();
@@ -2216,7 +2220,7 @@ public class ZTSImpl implements ZTSHandler {
     }
 
     List<String> processDomainIdTokenGroups(final String principalName, final String domainName, Set<String> groupNames,
-            final String principalDomain, final String caller) {
+                                            final String principalDomain, final String caller) {
 
         // first validate the input
 
@@ -2238,8 +2242,8 @@ public class ZTSImpl implements ZTSHandler {
     }
 
     List<String> processIdTokenRoles(final String principalName, IdTokenScope tokenRequest,
-            final String clientIdDomainName, Boolean fullArn, Boolean allScopePresent,
-            final String principalDomain, final String caller) {
+                                     final String clientIdDomainName, Boolean fullArn, Boolean allScopePresent,
+                                     final String principalDomain, final String caller) {
 
         List<String> tokenRoles;
         Set<String> domainNames = tokenRequest.getDomainNames();
@@ -2298,7 +2302,7 @@ public class ZTSImpl implements ZTSHandler {
     }
 
     List<String> processDomainIdTokenRoles(final String principalName, final String domainName, String[] roleNames,
-            Boolean fullArn, final String principalDomain, final String caller) {
+                                           Boolean fullArn, final String principalDomain, final String caller) {
 
         // first validate the input
 
@@ -2586,7 +2590,300 @@ public class ZTSImpl implements ZTSHandler {
 
     AccessTokenResponse processAccessTokenExchangeRequest(ResourceContext ctx, Principal principal,
             AccessTokenRequest accessTokenRequest, final String principalDomain, final String caller) {
-        throw requestError("Not Yet implemented", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+
+        // based on the actor object we'll know if this is an impersonation
+        // request or a delegation request.
+
+        OAuth2Token actorToken = accessTokenRequest.getActorTokenObj();
+        if (actorToken != null) {
+            return processAccessTokenDelegationRequest(ctx, principal, actorToken, accessTokenRequest,
+                    principalDomain, caller);
+        } else {
+            return processAccessTokenImpersonationRequest(ctx, principal, accessTokenRequest,
+                    principalDomain, caller);
+        }
+    }
+
+    AccessTokenResponse processAccessTokenImpersonationRequest(ResourceContext ctx, Principal principal,
+            AccessTokenRequest accessTokenRequest, final String principalDomain, final String caller) {
+
+        // in the impersonation request the subject token is issued with a specific
+        // domain as the audience and the new audience is expected to be different
+        // domain that's been authorized for impersonation. If there is no scope
+        // specified, then we'll default to the same scope as the subject token
+        // otherwise the new set of scopes must be a subset of the subject token scopes
+
+        final String requestDomainName = accessTokenRequest.getAudience();
+        validate(requestDomainName, TYPE_DOMAIN_NAME, principalDomain, caller);
+
+        DataCache targetData = dataStore.getDataCache(requestDomainName);
+        if  (targetData == null) {
+            throw notFoundError("No such target domain: " + requestDomainName, caller,
+                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        setRequestDomain(ctx, requestDomainName);
+
+        OAuth2Token subjectToken = accessTokenRequest.getSubjectTokenObj();
+        final String sourceDomainName = subjectToken.getAudience();
+        DataCache sourceData = dataStore.getDataCache(sourceDomainName);
+        if (sourceData == null) {
+            throw notFoundError("No such source domain: " + sourceDomainName, caller,
+                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        // validate that the requested scopes are a subset of the subject token scopes
+
+        String[] requestedRoles = tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        if (requestedRoles == null) {
+            throw requestError("Invalid scope for token exchange", caller, requestDomainName, principalDomain);
+        }
+
+        // verify if the principal in the subject has access to the requested
+        // roles in the target domain
+
+        Set<String> roles = new HashSet<>();
+        final String subjectPrincipal = subjectToken.getSubject();
+        dataStore.getAccessibleRoles(targetData, requestDomainName, subjectPrincipal,
+                requestedRoles, false, roles, false);
+
+        // we return failure if we don't have access to any roles
+
+        if (roles.isEmpty()) {
+            throw forbiddenError(tokenErrorMessage(caller, subjectPrincipal, requestDomainName, requestedRoles),
+                    caller, requestDomainName, principalDomain);
+        }
+
+        // now let's verify that our principal is authorized to carry
+        // out impersonation from source to target domain
+
+        final String resource = sourceDomainName + ":" + requestDomainName;
+        if (!authorizer.access(ZTSConsts.ZTS_ACTION_TOKEN_SOURCE_EXCHANGE, resource, principal, null)) {
+            throw forbiddenError("Principal not authorized for token impersonation from source domain",
+                    caller, requestDomainName, principalDomain);
+        }
+
+        // make sure our principal is authorized to request a token
+        // exchange for the given roles
+
+        final String principalName = principal.getFullName();
+        for (String role : roles) {
+            if (!authorizer.access(ZTSConsts.ZTS_ACTION_TOKEN_TARGET_EXCHANGE,
+                    requestDomainName + ":" + ResourceUtils.roleResourceName(sourceDomainName, role),
+                    principal, null)) {
+                LOGGER.error("processAccessTokenImpersonationRequest: access check failure for {} - {}:{}:role.{}",
+                        principalName, requestDomainName, sourceDomainName, role);
+                throw forbiddenError("Principal not authorized for token exchange for the requested role",
+                        caller, requestDomainName, principalDomain);
+            }
+        }
+
+        int tokenTimeout = determineTokenTimeout(targetData, roles, null, accessTokenRequest.getExpiryTime());
+        long iat = System.currentTimeMillis() / 1000;
+
+        AccessToken accessToken = new AccessToken();
+        accessToken.setVersion(1);
+        accessToken.setJwtId(UUID.randomUUID().toString());
+        accessToken.setAudience(requestDomainName);
+        accessToken.setClientId(principalName);
+        accessToken.setIssueTime(iat);
+        accessToken.setAuthTime(iat);
+        accessToken.setExpiryTime(iat + tokenTimeout);
+        accessToken.setUserId(principalName);
+        accessToken.setSubject(subjectPrincipal);
+        accessToken.setIssuer(accessTokenRequest.isUseOpenIDIssuer() ? ztsOpenIDIssuer : ztsOAuthIssuer);
+        accessToken.setScope(new ArrayList<>(roles));
+
+        // if we have a certificate used for mTLS authentication then
+        // we're going to bind the certificate to the access token
+        // and the optional proxy principals if specified
+
+        X509Certificate cert = principal.getX509Certificate();
+        if (cert != null) {
+            accessToken.setConfirmX509CertHash(cert);
+            if (accessTokenRequest.getProxyPrincipalsSpiffeUris() != null) {
+                accessToken.setConfirmProxyPrincipalSpiffeUris(accessTokenRequest.getProxyPrincipalsSpiffeUris());
+            }
+        }
+
+        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
+        String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
+
+        return new AccessTokenResponse().setAccess_token(accessJwts)
+                .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in(tokenTimeout)
+                .setScope(generateScopeResponse(roles, requestDomainName, false));
+    }
+
+    String[] tokenExchangeRequestedRoles(AccessTokenRequest accessTokenRequest, OAuth2Token subjectToken,
+            final String requestDomainName) {
+
+        // first let's extract our scope claim from the subject token
+        // and convert that into a string array
+
+        Object scopeClaim = subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD);
+        if (scopeClaim == null) {
+            LOGGER.error("subject token does not contain the scope claim");
+            return null;
+        }
+
+        String[] scopeRoles = scopeClaim.toString().split(" ");
+        final String scope = accessTokenRequest.getScope();
+        if (StringUtil.isEmpty(scope)) {
+            return scopeRoles;
+        }
+
+        // if we have scope specified then we need to make sure the scope
+        // domain matches our subject token audience
+
+        AccessTokenScope tokenScope = new AccessTokenScope(scope, null);
+        if (!requestDomainName.equals(tokenScope.getDomainName())) {
+            LOGGER.error("token scope domain {} does not match subject token audience {}",
+                    tokenScope.getDomainName(), requestDomainName);
+            return null;
+        }
+
+        // and the scope roles must be a subset of the subject token roles
+
+        String[] requestedRoles = tokenScope.getRoleNames(requestDomainName);
+        if (requestedRoles == null) {
+            return scopeRoles;
+        } else if (ZTSUtils.isSubset(requestedRoles, scopeRoles)) {
+            return requestedRoles;
+        } else {
+            LOGGER.error("requested roles are not a subset of subject token roles");
+            return null;
+        }
+    }
+
+    AccessTokenResponse processAccessTokenDelegationRequest(ResourceContext ctx, Principal principal,
+            OAuth2Token actorToken, AccessTokenRequest accessTokenRequest, final String principalDomain,
+            final String caller) {
+
+        // if we have requested authenticated by another principal other than
+        // the actor token principal then we'll just do a quick check here
+        // to make sure the principals match
+
+        if (!principal.getFullName().equals(actorToken.getSubject())) {
+            throw forbiddenError("Request principal does not match actor token principal",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        // in the delegation request the subject token is issued with a specific
+        // domain as the audience and the new audience is expected to be different
+        // domain that's been authorized for delegation. If there is no scope
+        // specified, then we'll default to the same scope as the subject token
+        // otherwise the new set of scopes must be a subset of the subject token scopes
+
+        final String requestDomainName = accessTokenRequest.getAudience();
+        validate(requestDomainName, TYPE_DOMAIN_NAME, principalDomain, caller);
+
+        DataCache targetData = dataStore.getDataCache(requestDomainName);
+        if  (targetData == null) {
+            throw notFoundError("No such target domain: " + requestDomainName, caller,
+                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        setRequestDomain(ctx, requestDomainName);
+
+        OAuth2Token subjectToken = accessTokenRequest.getSubjectTokenObj();
+        final String sourceDomainName = subjectToken.getAudience();
+        DataCache sourceData = dataStore.getDataCache(sourceDomainName);
+        if (sourceData == null) {
+            throw notFoundError("No such source domain: " + sourceDomainName, caller,
+                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        // validate that the requested scopes are a subset of the subject token scopes
+
+        String[] requestedRoles = tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        if (requestedRoles == null) {
+            throw requestError("Invalid scope for token exchange", caller, requestDomainName, principalDomain);
+        }
+
+        // verify if the principal in the subject has access to the requested
+        // roles in the target domain
+
+        Set<String> roles = new HashSet<>();
+        final String subjectPrincipal = subjectToken.getSubject();
+        dataStore.getAccessibleRoles(targetData, requestDomainName, subjectPrincipal,
+                requestedRoles, false, roles, false);
+
+        // we return failure if we don't have access to any roles
+
+        if (roles.isEmpty()) {
+            throw forbiddenError(tokenErrorMessage(caller, subjectPrincipal, requestDomainName, requestedRoles),
+                    caller, requestDomainName, principalDomain);
+        }
+
+        // make sure our principal is authorized to request a token
+        // exchange for the given roles
+
+        final String principalName = principal.getFullName();
+        for (String role : roles) {
+            if (!authorizer.access(ZTSConsts.ZTS_ACTION_TOKEN_TARGET_EXCHANGE,
+                    requestDomainName + ":" + ResourceUtils.roleResourceName(sourceDomainName, role),
+                    principal, null)) {
+                LOGGER.error("processAccessTokenDelegationRequest: access check failure for {} - {}:{}:role.{}",
+                        principalName, requestDomainName, sourceDomainName, role);
+                throw forbiddenError("Principal not authorized for token exchange for the requested role",
+                        caller, requestDomainName, principalDomain);
+            }
+        }
+
+        int tokenTimeout = determineTokenTimeout(targetData, roles, null, accessTokenRequest.getExpiryTime());
+        long iat = System.currentTimeMillis() / 1000;
+
+        AccessToken accessToken = new AccessToken();
+        accessToken.setVersion(1);
+        accessToken.setJwtId(UUID.randomUUID().toString());
+        accessToken.setAudience(requestDomainName);
+        accessToken.setClientId(principalName);
+        accessToken.setIssueTime(iat);
+        accessToken.setAuthTime(iat);
+        accessToken.setExpiryTime(iat + tokenTimeout);
+        accessToken.setUserId(principalName);
+        accessToken.setSubject(subjectPrincipal);
+        accessToken.setIssuer(accessTokenRequest.isUseOpenIDIssuer() ? ztsOpenIDIssuer : ztsOAuthIssuer);
+        accessToken.setScope(new ArrayList<>(roles));
+
+        // include the act claim in our response. we're going to use
+        // the act claim from the original token and then add our new
+        // actor on top of it
+
+        LinkedHashMap<String, Object> subjectActClaim = subjectToken.getAct();
+        LinkedHashMap<String, Object> actClaim = new LinkedHashMap<>();
+        actClaim.put(OAuth2Token.CLAIM_SUBJECT, actorToken.getSubject());
+        if (subjectActClaim != null) {
+            actClaim.put(OAuth2Token.CLAIM_ACT, subjectActClaim);
+        }
+        accessToken.setAct(actClaim);
+
+        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
+        String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
+
+        return new AccessTokenResponse().setAccess_token(accessJwts)
+                .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in(tokenTimeout)
+                .setScope(generateScopeResponse(roles, requestDomainName, false));
+    }
+
+    String generateScopeResponse(Set<String> roles, final String domainName, boolean openIdScope) {
+
+        StringBuilder sb = new StringBuilder();
+        for (String role : roles) {
+            sb.append(domainName).append(OAuthTokenScope.OBJECT_ROLE).append(role).append(" ");
+        }
+
+        // either remove the trailing id or add the openid scope if requested
+
+        if (openIdScope) {
+            sb.append(AccessTokenScope.OBJECT_OPENID);
+        } else {
+            if (sb.length() > 0) {
+                sb.setLength(sb.length() - 1); // remove last space
+            }
+        }
+
+        return sb.toString();
     }
 
     AccessTokenResponse processJAGTokenIssueRequest(ResourceContext ctx, Principal principal,
@@ -2666,9 +2963,9 @@ public class ZTSImpl implements ZTSHandler {
         Set<String> subjectRoles = new HashSet<>();
         dataStore.getAccessibleRoles(data, domainName, subjectIdentity, requestedRoles, false, subjectRoles, false);
 
-        // we return failure if we don't have access to all the roles requested
+        // we return failure if we don't have access to any roles
 
-        if (subjectRoles.size() != requestedRoles.length) {
+        if (subjectRoles.isEmpty()) {
             throw forbiddenError(tokenErrorMessage(caller, subjectIdentity, domainName, requestedRoles),
                     caller, domainName, principalDomain);
         }
@@ -2723,7 +3020,7 @@ public class ZTSImpl implements ZTSHandler {
 
         return new AccessTokenResponse().setAccess_token(accessJwts).setToken_type(OAUTH_NA_TOKEN)
                 .setIssued_token_type(OAUTH_JAG_TOKEN).setExpires_in(tokenTimeout)
-                .setScope(String.join(" ", roleList));
+                .setScope(generateScopeResponse(subjectRoles, domainName, false));
     }
 
     AccessTokenResponse processJAGTokenExchangeRequest(ResourceContext ctx, AccessTokenRequest accessTokenRequest,
@@ -2862,11 +3159,7 @@ public class ZTSImpl implements ZTSHandler {
         // set of scopes
 
         if (tokenScope.sendScopeResponse() || requestedRoles != null && requestedRoles.length != roles.size()) {
-            List<String> domainRoles = new ArrayList<>();
-            for (String role : roles) {
-                domainRoles.add(domainName + AccessTokenScope.OBJECT_ROLE + role);
-            }
-            response.setScope(String.join(" ", domainRoles));
+            response.setScope(generateScopeResponse(roles, domainName, false));
         }
 
         return response;
@@ -2879,6 +3172,14 @@ public class ZTSImpl implements ZTSHandler {
         // get our principal name for simpler access
 
         String principalName = principal.getFullName();
+
+        // if we have an actor specified then we need to validate that it's
+        // a valid principal name
+
+        final String actor = accessTokenRequest.getActor();
+        if (actor != null) {
+            validate(actor, TYPE_SERVICE_NAME, principalDomain, caller);
+        }
 
         // if we have a proxy for principal value then we need to validate
         // that the principal is authorized for such operations
@@ -3006,6 +3307,10 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setScope(new ArrayList<>(roles));
         accessToken.setAuthorizationDetails(accessTokenRequest.getAuthzDetails());
 
+        if (actor != null) {
+            accessToken.setMayActEntry(AccessToken.CLAIM_SUBJECT, actor);
+        }
+
         // if we have a certificate used for mTLS authentication then
         // we're going to bind the certificate to the access token
         // and the optional proxy principals if specified
@@ -3055,14 +3360,7 @@ public class ZTSImpl implements ZTSHandler {
         // set of scopes
 
         if (tokenScope.sendScopeResponse() || requestedRoles != null && requestedRoles.length != roles.size()) {
-            List<String> domainRoles = new ArrayList<>();
-            for (String role : roles) {
-                domainRoles.add(domainName + AccessTokenScope.OBJECT_ROLE + role);
-            }
-            if (tokenScope.isOpenIdScope()) {
-                domainRoles.add(AccessTokenScope.OBJECT_OPENID);
-            }
-            response.setScope(String.join(" ", domainRoles));
+            response.setScope(generateScopeResponse(roles, domainName, tokenScope.isOpenIdScope()));
         }
 
         return response;
@@ -4186,6 +4484,26 @@ public class ZTSImpl implements ZTSHandler {
             throw forbiddenError(errorMsg.toString(), caller, domain, principalDomain);
         }
 
+        if (StringUtil.isEmpty(info.getCsr())) {
+            return postInstanceJWTRegister(ctx, info, domain, service, cn, principalDomain, provider, caller);
+        } else {
+            return postInstanceX509CertificateRegister(ctx, info, domain, service, cn, principalDomain,
+                    domainData, provider, errorMsg, serviceIdentity, ipAddress, caller);
+        }
+    }
+
+    Response postInstanceX509CertificateRegister(ResourceContext ctx, InstanceRegisterInformation info,
+            final String domain, final String service, final String cn, final String principalDomain,
+            DomainData domainData, final String provider, StringBuilder errorMsg,
+            com.yahoo.athenz.zms.ServiceIdentity serviceIdentity, final String ipAddress, final String caller) {
+
+        // make sure we have valid attestation data for our x.509 request
+
+        if (StringUtil.isEmpty(info.getAttestationData())) {
+            throw requestError("attestation data is required for x509 certificate request",
+                    caller, domain, principalDomain);
+        }
+
         // validate request/csr details
 
         X509ServiceCertRequest certReq;
@@ -4208,13 +4526,11 @@ public class ZTSImpl implements ZTSHandler {
 
         final String certReqInstanceId = certReq.getInstanceId();
 
-        // validate attestation data is included in the request
+        // get our instance provider, the method will throw an exception
+        // if the provider is not found or invalid type
 
-        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider, hostnameResolver);
-        if (instanceProvider == null) {
-            throw requestError("unable to get instance for provider: " + provider,
-                    caller, domain, principalDomain);
-        }
+        InstanceProvider instanceProvider = getInstanceProvider(provider, InstanceProvider.SVIDType.X509,
+                domain, principalDomain, caller);
 
         // include instance details in the query access log to help
         // with debugging requests
@@ -4233,28 +4549,10 @@ public class ZTSImpl implements ZTSHandler {
                 InstanceProvider.ZTS_INSTANCE_SAN_IP);
 
         // make sure to close our provider when its no longer needed
+        // and the method will do that for us
 
-        Object timerProviderMetric = metric.startTiming("providerregister_timing", provider, null,
-                null, null, Metric.TimerMetricType.PROVIDER_LATENCY);
-        int providerStatusCode = ResourceException.OK;
-        try {
-            instance = instanceProvider.confirmInstance(instance);
-        } catch (ProviderResourceException ex) {
-            metric.increment("providerconfirm_failure", domain, provider);
-            providerStatusCode = (ex.getCode() == ProviderResourceException.GATEWAY_TIMEOUT) ?
-                    ResourceException.GATEWAY_TIMEOUT : ResourceException.FORBIDDEN;
-            throw error(providerStatusCode, getExceptionMsg("unable to verify attestation data: ", ctx,
-                    ex, info.getHostname()), caller, domain, principalDomain);
-        } catch (Exception ex) {
-            metric.increment("providerconfirm_failure", domain, provider);
-            providerStatusCode = ResourceException.FORBIDDEN;
-            throw forbiddenError(getExceptionMsg("unable to verify attestation data: ", ctx, ex, info.getHostname()),
-                    caller, domain, principalDomain);
-        } finally {
-            metric.stopTiming(timerProviderMetric, provider, null, null, providerStatusCode, null);
-            closeInstanceProvider(instanceProvider);
-        }
-        metric.increment("providerconfirm_success", domain, provider);
+        instance = validateConfirmationData(ctx, instance, instanceProvider, provider, domain,
+                principalDomain, info.getHostname(), caller);
 
         // determine what type of certificate the provider is authorizing
         // this instance to get - possible values are: server, client or
@@ -4262,8 +4560,8 @@ public class ZTSImpl implements ZTSHandler {
         // going to see if the provider wants to impose an expiry time
         // though the certificate signer might decide to ignore that
         // request and override it with its own value. Other optional
-        // attributes we get back from the provider include whether or
-        // not the certs can be refreshed or ssh certs can be requested
+        // attributes we get back from the provider include whether
+        // the certs can be refreshed or ssh certs can be requested
 
         String certUsage = null;
         String certSubjectOU = null;
@@ -4319,7 +4617,7 @@ public class ZTSImpl implements ZTSHandler {
             // generate an ssh object for recording
 
             Set<String> attestedSshCertPrincipalSet = createSshPrincipalsSet(attestedSshCertPrincipals,
-                instancePrivateIp, ipAddress);
+                    instancePrivateIp, ipAddress);
             SSHCertRecord certRecord = generateSSHCertRecord(ctx, cn, certReqInstanceId, instancePrivateIp);
             instanceCertManager.generateSSHIdentity(null, identity, info.getHostname(), info.getSsh(),
                     info.getSshCertRequest(), certRecord, ZTSConsts.ZTS_SSH_HOST, false, attestedSshCertPrincipalSet,
@@ -4364,8 +4662,8 @@ public class ZTSImpl implements ZTSHandler {
         if (info.getToken() == Boolean.TRUE) {
             ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForProprietaryObjects);
             PrincipalToken svcToken = new PrincipalToken.Builder("S1", domain, service)
-                .expirationWindow(svcTokenTimeout).keyId(privateKey.getId()).host(serverHostName)
-                .ip(ipAddress).keyService(ZTSConsts.ZTS_SERVICE).build();
+                    .expirationWindow(svcTokenTimeout).keyId(privateKey.getId()).host(serverHostName)
+                    .ip(ipAddress).keyService(ZTSConsts.ZTS_SERVICE).build();
             svcToken.sign(privateKey.getKey());
             identity.setServiceToken(svcToken.getSignedToken());
         }
@@ -4380,6 +4678,146 @@ public class ZTSImpl implements ZTSHandler {
                 + "/" + service + "/" + certReqInstanceId;
         return Response.status(ResourceException.CREATED).entity(identity)
                 .header("Location", location).build();
+    }
+
+    Response postInstanceJWTRegister(ResourceContext ctx, InstanceRegisterInformation info,
+            final String domain, final String service, final String cn, final String principalDomain,
+            final String provider, final String caller) {
+
+        // we need to validate our spiffe value if one is provided
+
+        final String spiffeUri = info.getJwtSVIDSpiffe();
+        if (!StringUtil.isEmpty(spiffeUri)) {
+            if (!spiffeUriManager.validateServiceCertUri(spiffeUri, domain, service, info.getNamespace())) {
+                throw requestError("SPIFFE URI validation failed", caller, domain, principalDomain);
+            }
+        } else if (info.getJwtSVIDSpiffeSubject() == Boolean.TRUE) {
+            throw requestError("SPIFFE URI is required when jwtSVIDSpiffeSubject is true",
+                    caller, domain, principalDomain);
+        }
+
+        // get our instance provider, the method will throw an exception
+        // if the provider is not found or invalid type
+
+        InstanceProvider instanceProvider = getInstanceProvider(provider, InstanceProvider.SVIDType.JWT,
+                domain, principalDomain, caller);
+
+        // include instance details in the query access log to help
+        // with debugging requests
+
+        final String jwtReqInstanceId = info.getJwtSVIDInstanceId();
+
+        ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY,
+                getInstanceRegisterQueryLog(provider, jwtReqInstanceId, info.getHostname()));
+
+        InstanceConfirmation instance = newInstanceConfirmationForRegister(ctx, provider, domain,
+                service, info.getAttestationData(), jwtReqInstanceId, info.getHostname(),
+                null, instanceProvider.getProviderScheme(), info.getCloud());
+
+        // make sure to close our provider when its no longer needed
+        // and the method will do that for us
+
+        validateConfirmationData(ctx, instance, instanceProvider, provider, domain,
+                principalDomain, info.getHostname(), caller);
+
+        // set the required attributes in the identity object
+
+        InstanceIdentity identity = new InstanceIdentity();
+        identity.setName(cn);
+        identity.setProvider(provider);
+        identity.setInstanceId(jwtReqInstanceId);
+
+        // generate id token for the instance
+
+        long iat = System.currentTimeMillis() / 1000;
+
+        IdToken idToken = new IdToken();
+        idToken.setVersion(1);
+        idToken.setAudience(info.getJwtSVIDAudience());
+        idToken.setIssuer(ztsOpenIDIssuer);
+        idToken.setNonce(info.getJwtSVIDNonce());
+        idToken.setIssueTime(iat);
+        idToken.setAuthTime(iat);
+
+        if (info.getJwtSVIDSpiffeSubject() == Boolean.TRUE) {
+            idToken.setSubject(info.getJwtSVIDSpiffe());
+        } else {
+            idToken.setSubject(cn);
+            if (!StringUtil.isEmpty(info.getJwtSVIDSpiffe())) {
+                idToken.setSpiffe(info.getJwtSVIDSpiffe());
+            }
+        }
+
+        // for user principals we're going to use the default 1 hour while for
+        // service principals 12 hours as the max timeout, unless the client
+        // is explicitly asking for something smaller.
+
+        long expiryTime = iat + determineOIDCIdTokenTimeout(principalDomain, info.getExpiryTime());
+        idToken.setExpiryTime(expiryTime);
+
+        ServerPrivateKey signPrivateKey = getSignPrivateKey(info.getJwtSVIDKeyType());
+        identity.setServiceToken(idToken.getSignedToken(signPrivateKey.getKey(),
+                signPrivateKey.getId(), signPrivateKey.getAlgorithm()));
+
+        final String location = "/zts/v1/instance/" + provider + "/" + domain
+                + "/" + service + "/" + jwtReqInstanceId;
+        return Response.status(ResourceException.CREATED).entity(identity)
+                .header("Location", location).build();
+    }
+
+    InstanceConfirmation validateConfirmationData(ResourceContext ctx, InstanceConfirmation instance,
+                InstanceProvider instanceProvider, final String provider, final String domain,
+                final String principalDomain, final String hostname, final String caller) {
+
+        // make sure to close our provider when its no longer needed
+
+        Object timerProviderMetric = metric.startTiming("providerregister_timing", provider, null,
+                null, null, Metric.TimerMetricType.PROVIDER_LATENCY);
+        int providerStatusCode = ResourceException.OK;
+
+        try {
+
+            instance = instanceProvider.confirmInstance(instance);
+
+        } catch (ProviderResourceException ex) {
+
+            metric.increment("providerconfirm_failure", domain, provider);
+            providerStatusCode = (ex.getCode() == ProviderResourceException.GATEWAY_TIMEOUT) ?
+                    ResourceException.GATEWAY_TIMEOUT : ResourceException.FORBIDDEN;
+            throw error(providerStatusCode, getExceptionMsg("unable to verify attestation data: ", ctx,
+                    ex, hostname), caller, domain, principalDomain);
+
+        } catch (Exception ex) {
+
+            metric.increment("providerconfirm_failure", domain, provider);
+            providerStatusCode = ResourceException.FORBIDDEN;
+            throw forbiddenError(getExceptionMsg("unable to verify attestation data: ", ctx, ex, hostname),
+                    caller, domain, principalDomain);
+
+        } finally {
+
+            metric.stopTiming(timerProviderMetric, provider, null, null, providerStatusCode, null);
+            closeInstanceProvider(instanceProvider);
+        }
+
+        metric.increment("providerconfirm_success", domain, provider);
+        return instance;
+    }
+
+    InstanceProvider getInstanceProvider(final String providerName, InstanceProvider.SVIDType providerType,
+            final String domainName, final String principalDomain, final String caller) {
+
+        InstanceProvider instanceProvider = instanceProviderManager.getProvider(providerName, hostnameResolver);
+        if (instanceProvider == null) {
+            throw requestError("unable to get instance for provider: " + providerName,
+                    caller, domainName, principalDomain);
+        }
+
+        if (instanceProvider.getSVIDType() != providerType) {
+            throw requestError("invalid instance provider type for " + providerType + ": " + providerName,
+                    caller, domainName, principalDomain);
+        }
+        return instanceProvider;
     }
 
     String getServiceX509KeySignerId(DomainData domainData, com.yahoo.athenz.zms.ServiceIdentity serviceIdentity,
@@ -4523,25 +4961,7 @@ public class ZTSImpl implements ZTSHandler {
 
         Map<String, String> attributes = new HashMap<>();
         attributes.put(InstanceProvider.ZTS_INSTANCE_ID, instanceId);
-        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, String.join(",", certReq.getProviderDnsNames()));
         attributes.put(InstanceProvider.ZTS_INSTANCE_CLIENT_IP, ServletRequestUtil.getRemoteAddress(ctx.request()));
-        final List<String> certReqIps = certReq.getIpAddresses();
-        if (certReqIps != null && !certReqIps.isEmpty()) {
-            attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, String.join(",", certReqIps));
-        }
-        if (certHostname != null) {
-            attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_HOSTNAME, certHostname);
-        }
-
-        // we have verified our athenz and spiffe uris but we're going
-        // to send them all to the provider in case provider wants
-        // to do further verification with additional uris if any were
-        // included in the csr
-
-        final List<String> certUris = certReq.getUris();
-        if (certUris != null && !certUris.isEmpty()) {
-            attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_URI, String.join(",", certUris));
-        }
 
         // if we have a cloud account setup for this domain, we're going
         // to include it in the optional attributes
@@ -4550,7 +4970,6 @@ public class ZTSImpl implements ZTSHandler {
         if (awsAccount != null) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_AWS_ACCOUNT, awsAccount);
         }
-
         final String azureSubscription = cloudStore.getAzureSubscription(domain);
         if (azureSubscription != null) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_AZURE_SUBSCRIPTION, azureSubscription);
@@ -4563,23 +4982,14 @@ public class ZTSImpl implements ZTSHandler {
         if (azureClient != null) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_AZURE_CLIENT, azureClient);
         }
-
-
         final String gcpProject = cloudStore.getGCPProjectId(domain);
         if (gcpProject != null) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_GCP_PROJECT, gcpProject);
         }
 
-        // if this is a class based provider then we're also going
-        // to provide the public key in the CSR
-
-        if (providerScheme == InstanceProvider.Scheme.CLASS) {
-            attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, Crypto.extractX509CSRPublicKey(certReq.getCertReq()));
-        }
-
         // include the hostname if one is specified
 
-        if (instanceHostname != null && !instanceHostname.isEmpty()) {
+        if (!StringUtil.isEmpty(instanceHostname)) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_HOSTNAME, instanceHostname);
         }
 
@@ -4590,8 +5000,40 @@ public class ZTSImpl implements ZTSHandler {
             attributes.put(InstanceProvider.ZTS_REQUEST_PRINCIPAL, principal.getFullName());
         }
 
-        if (cloud != null && !cloud.isEmpty()) {
+        if (!StringUtil.isEmpty(cloud)) {
             attributes.put(InstanceProvider.ZTS_INSTANCE_CLOUD, cloud);
+        }
+
+        // include all the attribute if the certificate request is provided
+        // this will help the provider to make more informed decisions
+        // certificate request could be null if the request is for jwt svid
+
+        if (certReq != null) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, String.join(",", certReq.getProviderDnsNames()));
+            final List<String> certReqIps = certReq.getIpAddresses();
+            if (certReqIps != null && !certReqIps.isEmpty()) {
+                attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, String.join(",", certReqIps));
+            }
+            if (certHostname != null) {
+                attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_HOSTNAME, certHostname);
+            }
+
+            // we have verified our athenz and spiffe uris but we're going
+            // to send them all to the provider in case provider wants
+            // to do further verification with additional uris if any were
+            // included in the csr
+
+            final List<String> certUris = certReq.getUris();
+            if (certUris != null && !certUris.isEmpty()) {
+                attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_URI, String.join(",", certUris));
+            }
+
+            // if this is a class based provider then we're also going
+            // to provide the public key in the CSR
+
+            if (providerScheme == InstanceProvider.Scheme.CLASS) {
+                attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, Crypto.extractX509CSRPublicKey(certReq.getCertReq()));
+            }
         }
 
         instance.setAttributes(attributes);

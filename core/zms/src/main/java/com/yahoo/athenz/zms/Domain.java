@@ -35,6 +35,9 @@ public class Domain {
     public String account;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String awsAccountName;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Integer ypmId;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -162,6 +165,13 @@ public class Domain {
     }
     public String getAccount() {
         return account;
+    }
+    public Domain setAwsAccountName(String awsAccountName) {
+        this.awsAccountName = awsAccountName;
+        return this;
+    }
+    public String getAwsAccountName() {
+        return awsAccountName;
     }
     public Domain setYpmId(Integer ypmId) {
         this.ypmId = ypmId;
@@ -408,6 +418,9 @@ public class Domain {
                 return false;
             }
             if (account == null ? a.account != null : !account.equals(a.account)) {
+                return false;
+            }
+            if (awsAccountName == null ? a.awsAccountName != null : !awsAccountName.equals(a.awsAccountName)) {
                 return false;
             }
             if (ypmId == null ? a.ypmId != null : !ypmId.equals(a.ypmId)) {

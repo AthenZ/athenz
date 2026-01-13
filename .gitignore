@@ -118,7 +118,14 @@ utils/zts-idtoken/src/
 utils/zts-rolecert/bin/
 utils/zts-rolecert/pkg/
 utils/zts-rolecert/src/
+utils/zts-svctoken/bin/
+utils/zts-svctoken/pkg/
+utils/zts-svctoken/src/
 utils/msd-agent/pkg/
+utils/zts-accesstoken/zts-accesstoken
+utils/zts-rolecert/zts-rolecert
+utils/zts-roletoken/zts-roletoken
+utils/zts-svccert/zts-svccert
 libs/go/ztsclientutil/bin/
 libs/go/ztsclientutil/pkg/
 libs/go/ztsclientutil/src/

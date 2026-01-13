@@ -26,6 +26,7 @@ module.exports.getPendingDomainMemberData = (values) => {
             member.memberRoles.forEach((role) => {
                 const roleName = role.roleName;
                 const expiryDate = role.expiration || null;
+                const reviewReminder = role.reviewReminder || null;
                 const userComment = role.auditRef || null;
                 const key = domainName + memberName + roleName;
                 pendingMap[key] = {
@@ -42,6 +43,7 @@ module.exports.getPendingDomainMemberData = (values) => {
                     ),
                     requestTime: role.requestTime,
                     expiryDate: expiryDate,
+                    reviewReminder: reviewReminder,
                     pendingState: role.pendingState,
                 };
             });
@@ -54,6 +56,7 @@ module.exports.getPendingDomainMemberData = (values) => {
             member.memberGroups.forEach((group) => {
                 const groupName = group.groupName;
                 const expiryDate = group.expiration || null;
+                const reviewReminder = group.reviewReminder || null;
                 const userComment = group.auditRef || null;
                 const key = domainName + memberName + groupName;
                 pendingMap[key] = {
@@ -70,6 +73,7 @@ module.exports.getPendingDomainMemberData = (values) => {
                     ),
                     requestTime: group.requestTime,
                     expiryDate: expiryDate,
+                    reviewReminder: reviewReminder,
                     pendingState: group.pendingState,
                 };
             });

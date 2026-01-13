@@ -34,71 +34,83 @@ const POLICY_INSTANCE_ONE = 'test.test.tst1.com';
 
 const TEST_DOMAIN = 'athenz.dev.functional-test';
 const TEST_DOMAIN_SERVICE_URI = `/domain/${TEST_DOMAIN}/service`;
+const {
+    authenticateAndWait,
+    navigateAndWait,
+    waitAndClick,
+    waitAndSetValue,
+    waitForElementExist,
+    beforeEachTest,
+} = require('../libs/helpers');
 
 describe('Microsegmentation', () => {
     let currentTest;
+    beforeEach(async () => {
+        await beforeEachTest();
+    });
 
     it(
         TEST_ENFORCE_AND_REPORT_WITH_TWO_HOSTS_STAR_OR_EMPTY_CANNOT_BE_USED_AS_HOST,
         async () => {
             currentTest =
                 TEST_ENFORCE_AND_REPORT_WITH_TWO_HOSTS_STAR_OR_EMPTY_CANNOT_BE_USED_AS_HOST;
-            await browser.newUser();
-            await browser.url(`/domain/athenz.dev.functional-test/role`);
+            await authenticateAndWait();
+            await navigateAndWait(`/domain/athenz.dev.functional-test/role`);
             await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
             // add service before test
-            await $('div*=Services').click();
-            await $('button*=Add Service').click();
-            await $('input[data-wdio="service-name"]').addValue(
+            await waitAndClick('div*=Services');
+            await waitAndClick('button*=Add Service');
+            await waitAndSetValue(
+                'input[data-wdio="service-name"]',
                 SERVICE_NAME_TWO_HOSTS
             );
-            await $('button*=Submit').click();
+            await waitAndClick('button*=Submit');
 
             // navigate to Microsegmentation tab
-            await $('div*=Microsegmentation').click();
+            await waitAndClick('div*=Microsegmentation');
             // click add ACL policy
-            await $('button*=Add ACL Policy').click();
+            await waitAndClick('button*=Add ACL Policy');
             // add identifier
             const policyName = 'noEmptyHostsInPolicyWithTwoHosts';
-            await $('input[data-wdio="identifier"]').addValue(policyName);
+            await waitAndSetValue('input[data-wdio="identifier"]', policyName);
 
             // select destination service - TODO will need cleanup
-            await $('input[name="destinationService"]').click();
-            let testServiceInDropdown = await $(
+            await waitAndClick('input[name="destinationService"]');
+            await waitAndClick(
                 `//div[contains(text(), "${SERVICE_NAME_TWO_HOSTS}")]`
             );
-            await testServiceInDropdown.click();
 
             // add PES Host
-            let addPesHost = await $(
+            await waitAndClick(
                 `.//*[local-name()="svg" and @data-wdio="add-circle"]`
             );
-            await addPesHost.click();
             // add first host
-            let instances0 = await $('input[data-wdio="instances0"]');
-            await instances0.addValue(POLICY_INSTANCE_ONE);
+            await waitAndSetValue(
+                'input[data-wdio="instances0"]',
+                POLICY_INSTANCE_ONE
+            );
             // leave second hosts empty
-            let instances1 = await $('input[data-wdio="instances1"]');
-            await instances1.addValue('');
+            await waitAndSetValue('input[data-wdio="instances1"]', '');
 
-            let destPort = await $('input[data-wdio="destination-port"]');
-            await destPort.addValue('4443');
-
-            let sourceService = await $('input[data-wdio="source-service"]');
-            await sourceService.addValue('yamas.api');
-
-            let protocolDropdown = await $('input[name="protocol"]');
-            await protocolDropdown.click();
-            let dropdownOption = await $('//div[contains(text(), "TCP")]');
-            await dropdownOption.click();
+            await waitAndSetValue(
+                'input[data-wdio="destination-port"]',
+                '4443'
+            );
+            await waitAndSetValue(
+                'input[data-wdio="source-service"]',
+                'yamas.api'
+            );
+            await waitAndClick('input[name="protocol"]');
+            await waitAndClick('//div[contains(text(), "TCP")]');
 
             // attempt to submit
-            let submitButton = await $('button*=Submit');
-            await submitButton.click();
+            await waitAndClick('button*=Submit');
 
             // verify error exists and matches
-            let errorMessage = await $('div[data-testid="error-message"]');
+            let errorMessage = await waitForElementExist(
+                'div[data-testid="error-message"]'
+            );
             expect(await errorMessage.getText()).toBe(
                 'The same host can not exist in both "Report" and "Enforce" modes.'
             );
@@ -117,37 +129,44 @@ describe('Microsegmentation', () => {
     it(TEST_ENFORCEMENT_POLICY_HOSTS_SPACE, async () => {
         currentTest = TEST_ENFORCEMENT_POLICY_HOSTS_SPACE;
 
-        await browser.newUser();
-        await browser.url(TEST_DOMAIN_SERVICE_URI);
+        await authenticateAndWait();
+        await navigateAndWait(TEST_DOMAIN_SERVICE_URI);
 
-        await $('div*=Services').click();
-        await $('button*=Add Service').click();
-        await $('input[data-wdio="service-name"]').addValue(TEST_SERVICE);
-        await $('button*=Submit').click();
+        await waitAndClick('div*=Services');
+        await waitAndClick('button*=Add Service');
+        await waitAndSetValue('input[data-wdio="service-name"]', TEST_SERVICE);
+        await waitAndClick('button*=Submit');
 
-        await $('div*=Microsegmentation').click();
-        await $('button*=Add ACL Policy').click();
-        await $('input[data-wdio="identifier"]').addValue(TEST_POLICY);
+        await waitAndClick('div*=Microsegmentation');
+        await waitAndClick('button*=Add ACL Policy');
+        await waitAndSetValue('input[data-wdio="identifier"]', TEST_POLICY);
 
-        await $('input[name="destinationService"]').click();
-        await $(`//div[contains(text(), "${TEST_SERVICE}")]`).click();
+        await waitAndClick('input[name="destinationService"]');
+        await waitAndClick(`//div[contains(text(), "${TEST_SERVICE}")]`);
 
-        await $(`.//*[local-name()="svg" and @data-wdio="add-circle"]`).click();
+        await waitAndClick(
+            `.//*[local-name()="svg" and @data-wdio="add-circle"]`
+        );
 
-        await $('input[data-wdio="instances0"]').addValue(POLICY_INSTANCE_ONE);
-        await $('input[data-wdio="instances1"]').addValue(' ');
+        await waitAndSetValue(
+            'input[data-wdio="instances0"]',
+            POLICY_INSTANCE_ONE
+        );
+        await waitAndSetValue('input[data-wdio="instances1"]', ' ');
 
-        await $('input[data-wdio="destination-port"]').addValue('4443');
+        await waitAndSetValue('input[data-wdio="destination-port"]', '4443');
 
-        await $('input[data-wdio="source-service"]').addValue('yamas.api');
+        await waitAndSetValue('input[data-wdio="source-service"]', 'yamas.api');
 
-        await $('input[name="protocol"]').click();
-        await $('//div[contains(text(), "TCP")]').click();
+        await waitAndClick('input[name="protocol"]');
+        await waitAndClick('//div[contains(text(), "TCP")]');
 
-        await $('button*=Submit').click();
+        await waitAndClick('button*=Submit');
 
         // verify error exists and matches
-        let errorMessage = await $('div[data-testid="error-message"]');
+        let errorMessage = await waitForElementExist(
+            'div[data-testid="error-message"]'
+        );
         expect(await errorMessage.getText()).toBe(
             'Invalid policy enforcement hosts'
         );
@@ -161,21 +180,31 @@ describe('Microsegmentation', () => {
     });
 
     const deleteService = async (serviceName) => {
-        await browser.newUser();
-        await browser.url(TEST_DOMAIN_SERVICE_URI);
+        await authenticateAndWait();
+        await navigateAndWait(TEST_DOMAIN_SERVICE_URI);
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
+
+        // wait for screen to complete loading
+        await waitForElementExist('button*=Add Service');
 
         let deleteSvg = await $(
             `.//*[local-name()="svg" and @id="delete-service-${serviceName}"]`
         );
 
-        if (deleteSvg.isExisting()) {
-            // attempt to delete only if service exists
-            await deleteSvg.click();
-            await $('button*=Delete').click();
-        } else {
-            console.warn(`SERVICE FOR DELETION NOT FOUND: ${serviceName}`);
+        // give it time to appear, but don't fail if it doesn't
+        const appeared = await deleteSvg
+            .waitForExist({ timeout: 5000 })
+            .catch(() => false);
+
+        if (!appeared) {
+            console.warn(
+                `SERVICE FOR DELETION NOT FOUND (after wait): ${serviceName}`
+            );
+            return;
         }
+        // found, proceed to delete
+        await waitAndClick(deleteSvg, { timeout: 5000 });
+        await waitAndClick('button*=Delete');
     };
 
     it(
@@ -191,54 +220,63 @@ describe('Microsegmentation', () => {
             const SOURCE_SERVICE_2 = 'sys.auth.zts';
 
             // Add service
-            await browser.newUser();
-            await browser.url(`/domain/${TEST_DOMAIN}/service`);
-            await $('div*=Services').click();
-            await $('button*=Add Service').click();
-            await $('input[data-wdio="service-name"]').addValue(
+            await authenticateAndWait();
+            await navigateAndWait(`/domain/${TEST_DOMAIN}/service`);
+            await waitAndClick('div*=Services');
+            await waitAndClick('button*=Add Service');
+            await waitAndSetValue(
+                'input[data-wdio="service-name"]',
                 SERVICE_NAME_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES
             );
-            await $('button*=Submit').click();
+            await waitAndClick('button*=Submit');
 
             // Go to Microsegmentation tab
-            await $('div*=Microsegmentation').click();
-            await $('button*=Add ACL Policy').click();
+            await waitAndClick('div*=Microsegmentation');
+            await waitAndClick('button*=Add ACL Policy');
 
             // Fill identifier
-            await $('input[data-wdio="identifier"]').addValue(
+            await waitAndSetValue(
+                'input[data-wdio="identifier"]',
                 POLICY_NAME_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES
             );
 
             // Select destination service
-            await $('input[name="destinationService"]').click();
-            await $(`//div[contains(text(), "${SERVICE_NAME}")]`).click();
+            await waitAndClick('input[name="destinationService"]');
+            await waitAndClick(`//div[contains(text(), "${SERVICE_NAME}")]`);
 
             // Add two hosts: one for report, one for enforce
-            await $(
+            await waitAndClick(
                 `.//*[local-name()="svg" and @data-wdio="add-circle"]`
-            ).click(); // add second host input
-            await $('input[data-wdio="instances0"]').addValue(HOST_REPORT);
-            await $('input[data-wdio="instances1"]').addValue(HOST_ENFORCE);
+            ); // add second host input
+            await waitAndSetValue('input[data-wdio="instances0"]', HOST_REPORT);
+            await waitAndSetValue(
+                'input[data-wdio="instances1"]',
+                HOST_ENFORCE
+            );
 
             // Assuming report is selected for first set of hosts and enforce for second
 
             // Assuming On-Prem is selected for both first host
             // Select AWS and GCP for second host and deselect On-Prem
-            await $('label[for="scopeawsCheckBox1"]').click();
-            await $('label[for="scopegcpCheckBox1"]').click();
-            await $('label[for="scopeonpremCheckBox1"]').click();
+            await waitAndClick('label[for="scopeawsCheckBox1"]');
+            await waitAndClick('label[for="scopegcpCheckBox1"]');
+            await waitAndClick('label[for="scopeonpremCheckBox1"]');
 
             // Destination port
-            await $('input[data-wdio="destination-port"]').addValue('4443');
+            await waitAndSetValue(
+                'input[data-wdio="destination-port"]',
+                '4443'
+            );
 
             // Add multiple source services
-            await $('input[data-wdio="source-service"]').addValue(
+            await waitAndSetValue(
+                'input[data-wdio="source-service"]',
                 `${SOURCE_SERVICE_1},${SOURCE_SERVICE_2}` // Add both source services in one input
             );
 
             // Protocol
-            await $('input[name="protocol"]').click();
-            await $('//div[contains(text(), "TCP")]').click();
+            await waitAndClick('input[name="protocol"]');
+            await waitAndClick('//div[contains(text(), "TCP")]');
 
             // Submit
             // await $('button*=Submit').click();
@@ -250,23 +288,32 @@ describe('Microsegmentation', () => {
 
     // cleanup after tests
     afterEach(async () => {
-        // if executed test name matches - cleanup
-        if (
-            currentTest ===
-            TEST_ENFORCE_AND_REPORT_WITH_TWO_HOSTS_STAR_OR_EMPTY_CANNOT_BE_USED_AS_HOST
-        ) {
-            await deleteService(SERVICE_NAME_TWO_HOSTS);
-        } else if (currentTest === TEST_ENFORCEMENT_POLICY_HOSTS_SPACE) {
-            await deleteService(TEST_SERVICE);
-        } else if (
-            currentTest ===
-            TEST_ADD_POLICY_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES
-        ) {
-            await deleteService(
-                SERVICE_NAME_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES
+        try {
+            // if executed test name matches - cleanup
+            if (
+                currentTest ===
+                TEST_ENFORCE_AND_REPORT_WITH_TWO_HOSTS_STAR_OR_EMPTY_CANNOT_BE_USED_AS_HOST
+            ) {
+                await deleteService(SERVICE_NAME_TWO_HOSTS);
+            } else if (currentTest === TEST_ENFORCEMENT_POLICY_HOSTS_SPACE) {
+                await deleteService(TEST_SERVICE);
+            } else if (
+                currentTest ===
+                TEST_ADD_POLICY_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES
+            ) {
+                await deleteService(
+                    SERVICE_NAME_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES
+                );
+            }
+        } catch (error) {
+            console.error(
+                `Cleanup failed for test ${currentTest}:`,
+                error.message
             );
+            // Don't throw - allow other tests to continue
+        } finally {
+            // reset current test
+            currentTest = '';
         }
-        // reset current test
-        currentTest = '';
     });
 });

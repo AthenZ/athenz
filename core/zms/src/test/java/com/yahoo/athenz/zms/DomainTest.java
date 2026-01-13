@@ -77,7 +77,7 @@ public class DomainTest {
 
         DomainMeta dm = new DomainMeta().init();
         dm.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
-                .setAccount("aws").setYpmId(10).setApplicationId("101")
+                .setAccount("aws").setAwsAccountName("aws-name").setYpmId(10).setApplicationId("101")
                 .setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30).setTokenExpiryMins(300)
                 .setServiceCertExpiryMins(120).setRoleCertExpiryMins(150).setSignAlgorithm("ec")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
@@ -98,6 +98,7 @@ public class DomainTest {
         assertTrue(dm.getEnabled());
         assertFalse(dm.getAuditEnabled());
         assertEquals(dm.getAccount(), "aws");
+        assertEquals(dm.getAwsAccountName(), "aws-name");
         assertEquals(dm.getAzureSubscription(), "azure");
         assertEquals(dm.getAzureTenant(), "tenant");
         assertEquals(dm.getAzureClient(), "client");
@@ -131,7 +132,7 @@ public class DomainTest {
 
         DomainMeta dm2 = new DomainMeta().init();
         dm2.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
-                .setAccount("aws").setYpmId(10).setApplicationId("101")
+                .setAccount("aws").setAwsAccountName("aws-name").setYpmId(10).setApplicationId("101")
                 .setCertDnsDomain("athenz.cloud").setMemberExpiryDays(30).setTokenExpiryMins(300)
                 .setServiceCertExpiryMins(120).setRoleCertExpiryMins(150).setSignAlgorithm("ec")
                 .setServiceExpiryDays(40).setUserAuthorityFilter("OnShore").setGroupExpiryDays(50)
@@ -194,6 +195,13 @@ public class DomainTest {
         dm2.setAccount(null);
         assertNotEquals(dm, dm2);
         dm2.setAccount("aws");
+        assertEquals(dm, dm2);
+
+        dm2.setAwsAccountName("aws-name2");
+        assertNotEquals(dm, dm2);
+        dm2.setAwsAccountName(null);
+        assertNotEquals(dm, dm2);
+        dm2.setAwsAccountName("aws-name");
         assertEquals(dm, dm2);
 
         dm2.setAzureSubscription("azure2");
@@ -397,7 +405,8 @@ public class DomainTest {
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true);
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
+                .setAwsAccountName("aws-name");
 
         result = validator.validate(tld, "TopLevelDomain");
         assertTrue(result.valid);
@@ -407,6 +416,7 @@ public class DomainTest {
         assertTrue(tld.getEnabled());
         assertFalse(tld.getAuditEnabled());
         assertEquals(tld.getAccount(), "aws");
+        assertEquals(tld.getAwsAccountName(), "aws-name");
         assertEquals(tld.getAzureSubscription(), "azure");
         assertEquals(tld.getAzureTenant(), "tenant");
         assertEquals(tld.getAzureClient(), "client");
@@ -453,7 +463,8 @@ public class DomainTest {
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true);
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
+                .setAwsAccountName("aws-name");
 
         assertEquals(tld, tld2);
         assertEquals(tld, tld);
@@ -498,6 +509,13 @@ public class DomainTest {
         tld2.setAccount(null);
         assertNotEquals(tld, tld2);
         tld2.setAccount("aws");
+        assertEquals(tld, tld2);
+
+        tld2.setAwsAccountName("aws-name2");
+        assertNotEquals(tld, tld2);
+        tld2.setAwsAccountName(null);
+        assertNotEquals(tld, tld2);
+        tld2.setAwsAccountName("aws-name");
         assertEquals(tld, tld2);
 
         tld2.setProductId("abcd-1235");
@@ -694,8 +712,8 @@ public class DomainTest {
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall")
-                .setAutoDeleteTenantAssumeRoleAssertions(true);
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
+                .setAwsAccountName("aws-name");
 
         Validator.Result result = validator.validate(sd, "SubDomain");
         assertTrue(result.valid, result.error);
@@ -705,6 +723,7 @@ public class DomainTest {
         assertTrue(sd.getEnabled());
         assertFalse(sd.getAuditEnabled());
         assertEquals(sd.getAccount(), "aws");
+        assertEquals(sd.getAwsAccountName(), "aws-name");
         assertEquals(sd.getAzureSubscription(), "azure");
         assertEquals(sd.getAzureTenant(), "tenant");
         assertEquals(sd.getAzureClient(), "client");
@@ -754,8 +773,8 @@ public class DomainTest {
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall")
-                .setAutoDeleteTenantAssumeRoleAssertions(true);
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
+                .setAwsAccountName("aws-name");
 
         assertEquals(sd, sd2);
         assertEquals(sd, sd);
@@ -808,6 +827,13 @@ public class DomainTest {
         sd2.setAccount(null);
         assertNotEquals(sd, sd2);
         sd2.setAccount("aws");
+        assertEquals(sd, sd2);
+
+        sd2.setAwsAccountName("aws-name2");
+        assertNotEquals(sd, sd2);
+        sd2.setAwsAccountName(null);
+        assertNotEquals(sd, sd2);
+        sd2.setAwsAccountName("aws-name");
         assertEquals(sd, sd2);
 
         sd2.setAzureSubscription("azure2");
@@ -995,7 +1021,8 @@ public class DomainTest {
                 .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
                 .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true);
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
+                .setAwsAccountName("aws-name");
 
         Validator.Result result = validator.validate(ud, "UserDomain");
         assertTrue(result.valid);
@@ -1005,6 +1032,7 @@ public class DomainTest {
         assertTrue(ud.getEnabled());
         assertFalse(ud.getAuditEnabled());
         assertEquals(ud.getAccount(), "aws");
+        assertEquals(ud.getAwsAccountName(), "aws-name");
         assertEquals(ud.getAzureSubscription(), "azure");
         assertEquals(ud.getAzureTenant(), "tenant");
         assertEquals(ud.getAzureClient(), "client");
@@ -1051,7 +1079,8 @@ public class DomainTest {
                 .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
                 .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true);
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
+                .setAwsAccountName("aws-name");
 
         assertEquals(ud, ud2);
         assertEquals(ud, ud);
@@ -1096,6 +1125,13 @@ public class DomainTest {
         ud2.setAccount(null);
         assertNotEquals(ud, ud2);
         ud2.setAccount("aws");
+        assertEquals(ud, ud2);
+
+        ud2.setAwsAccountName("aws-name2");
+        assertNotEquals(ud, ud2);
+        ud2.setAwsAccountName(null);
+        assertNotEquals(ud, ud2);
+        ud2.setAwsAccountName("aws-name");
         assertEquals(ud, ud2);
 
         ud2.setProductId("abcd-1235");
@@ -1310,8 +1346,8 @@ public class DomainTest {
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall")
-                .setAutoDeleteTenantAssumeRoleAssertions(true);
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
+                .setAwsAccountName("aws-name");
 
         Validator.Result result = validator.validate(d, "Domain");
         assertTrue(result.valid);
@@ -1324,6 +1360,7 @@ public class DomainTest {
         assertTrue(d.getEnabled());
         assertTrue(d.getAuditEnabled());
         assertEquals(d.getAccount(), "aws");
+        assertEquals(d.getAwsAccountName(), "aws-name");
         assertEquals(d.getAzureSubscription(), "azure");
         assertEquals(d.getAzureTenant(), "tenant");
         assertEquals(d.getAzureClient(), "client");
@@ -1369,8 +1406,8 @@ public class DomainTest {
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall")
-                .setAutoDeleteTenantAssumeRoleAssertions(true);
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
+                .setAwsAccountName("aws-name");
 
         assertEquals(d, d2);
         assertEquals(d, d);
@@ -1422,6 +1459,13 @@ public class DomainTest {
         d2.setAccount(null);
         assertNotEquals(d, d2);
         d2.setAccount("aws");
+        assertEquals(d, d2);
+
+        d2.setAwsAccountName("aws-name2");
+        assertNotEquals(d, d2);
+        d2.setAwsAccountName(null);
+        assertNotEquals(d, d2);
+        d2.setAwsAccountName("aws-name");
         assertEquals(d, d2);
 
         d2.setAzureSubscription("azure2");

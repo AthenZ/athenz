@@ -52,6 +52,7 @@ public class InstanceProviderTest {
         provider.setPubKeysProvider(null);
 
         assertEquals(provider.getProviderScheme(), InstanceProvider.Scheme.UNKNOWN);
+        assertEquals(provider.getSVIDType(), InstanceProvider.SVIDType.X509);
 
         try {
             provider.getInstanceRegisterToken(null);

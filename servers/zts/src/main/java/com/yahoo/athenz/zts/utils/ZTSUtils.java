@@ -18,9 +18,7 @@ package com.yahoo.athenz.zts.utils;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.Utils;
@@ -490,5 +488,15 @@ public class ZTSUtils {
             LOGGER.error("Token expiry too far in the future: {} - {}", expiryTime, ex.getMessage());
         }
         return remainingExpiry;
+    }
+
+    public static boolean isSubset(String[] subset, String[] superset) {
+        Set<String> supersetSet = new HashSet<>(Arrays.asList(superset));
+        for (String element : subset) {
+            if (!supersetSet.contains(element)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

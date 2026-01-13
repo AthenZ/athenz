@@ -17,6 +17,7 @@ type DomainMeta Struct {
     Bool enabled (optional, default=true); //Future use only, currently not used
     Bool auditEnabled (optional, default=false); //Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.
     String account (optional); //associated aws account id (system attribute - uniqueness check - if enabled)
+    String awsAccountName (optional); //associated aws account name (system attribute)
     Int32 ypmId (optional); //associated product id (system attribute - uniqueness check - if enabled)
     String applicationId (optional); //associated application id
     String certDnsDomain (optional); //domain certificate dns domain (system attribute)

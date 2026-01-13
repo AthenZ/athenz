@@ -2921,13 +2921,13 @@ type InstanceRegisterInformation struct {
 	// identity attestation data including document with its signature containing
 	// attributes like IP address, instance-id, account#, etc.
 	//
-	AttestationData string `json:"attestationData"`
+	AttestationData string `json:"attestationData,omitempty" rdl:"optional"`
 
 	//
 	// the Certificate Signing Request for the expected X.509 certificate in the
 	// response
 	//
-	Csr string `json:"csr"`
+	Csr string `json:"csr,omitempty" rdl:"optional"`
 
 	//
 	// deprecated - use sshCertRequest, if present, return an SSH host
@@ -2990,6 +2990,37 @@ type InstanceRegisterInformation struct {
 	// requested ssh cert signer key id
 	//
 	SshCertSignerKeyId SimpleName `json:"sshCertSignerKeyId,omitempty" rdl:"optional"`
+
+	//
+	// unique instance id within provider's namespace for the jwt svid
+	//
+	JwtSVIDInstanceId PathElement `json:"jwtSVIDInstanceId,omitempty" rdl:"optional"`
+
+	//
+	// the audience value for the jwt svid
+	//
+	JwtSVIDAudience string `json:"jwtSVIDAudience,omitempty" rdl:"optional"`
+
+	//
+	// the nonce value for the jwt svid
+	//
+	JwtSVIDNonce EntityName `json:"jwtSVIDNonce,omitempty" rdl:"optional"`
+
+	//
+	// the spiffe uri for the jwt svid
+	//
+	JwtSVIDSpiffe string `json:"jwtSVIDSpiffe,omitempty" rdl:"optional"`
+
+	//
+	// if true, return the spiffe uri as the jwt svid sub claim value
+	//
+	JwtSVIDSpiffeSubject *bool `json:"jwtSVIDSpiffeSubject,omitempty" rdl:"optional"`
+
+	//
+	// optional signing key type - RSA or EC. Might be ignored if server doesn't
+	// have the requested type configured
+	//
+	JwtSVIDKeyType SimpleName `json:"jwtSVIDKeyType,omitempty" rdl:"optional"`
 }
 
 // NewInstanceRegisterInformation - creates an initialized InstanceRegisterInformation instance, returns a pointer to it
@@ -3043,17 +3074,13 @@ func (self *InstanceRegisterInformation) Validate() error {
 			return fmt.Errorf("InstanceRegisterInformation.service does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
-	if self.AttestationData == "" {
-		return fmt.Errorf("InstanceRegisterInformation.attestationData is missing but is a required field")
-	} else {
+	if self.AttestationData != "" {
 		val := rdl.Validate(ZTSSchema(), "String", self.AttestationData)
 		if !val.Valid {
 			return fmt.Errorf("InstanceRegisterInformation.attestationData does not contain a valid String (%v)", val.Error)
 		}
 	}
-	if self.Csr == "" {
-		return fmt.Errorf("InstanceRegisterInformation.csr is missing but is a required field")
-	} else {
+	if self.Csr != "" {
 		val := rdl.Validate(ZTSSchema(), "String", self.Csr)
 		if !val.Valid {
 			return fmt.Errorf("InstanceRegisterInformation.csr does not contain a valid String (%v)", val.Error)
@@ -3093,6 +3120,36 @@ func (self *InstanceRegisterInformation) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "SimpleName", self.SshCertSignerKeyId)
 		if !val.Valid {
 			return fmt.Errorf("InstanceRegisterInformation.sshCertSignerKeyId does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.JwtSVIDInstanceId != "" {
+		val := rdl.Validate(ZTSSchema(), "PathElement", self.JwtSVIDInstanceId)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.jwtSVIDInstanceId does not contain a valid PathElement (%v)", val.Error)
+		}
+	}
+	if self.JwtSVIDAudience != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.JwtSVIDAudience)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.jwtSVIDAudience does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.JwtSVIDNonce != "" {
+		val := rdl.Validate(ZTSSchema(), "EntityName", self.JwtSVIDNonce)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.jwtSVIDNonce does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.JwtSVIDSpiffe != "" {
+		val := rdl.Validate(ZTSSchema(), "String", self.JwtSVIDSpiffe)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.jwtSVIDSpiffe does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.JwtSVIDKeyType != "" {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.JwtSVIDKeyType)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.jwtSVIDKeyType does not contain a valid SimpleName (%v)", val.Error)
 		}
 	}
 	return nil

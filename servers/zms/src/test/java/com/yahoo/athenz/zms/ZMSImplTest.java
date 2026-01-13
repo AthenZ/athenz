@@ -7177,6 +7177,7 @@ public class ZMSImplTest {
         meta = zmsTestInitializer.createDomainMetaObject("Tenant Domain2", null, false, false, "12346", null);
         zmsImpl.putDomainMeta(ctx, "signeddom2", auditRef, null, meta);
         meta = zmsTestInitializer.createDomainMetaObject("Tenant Domain2", null, false, false, "12346", null);
+        meta.setAwsAccountName("aws-account-name");
         zmsImpl.putDomainSystemMeta(ctx, "signeddom2", "account", auditRef, meta);
 
         Role role = zmsTestInitializer.createRoleObject("signeddom1", "role1", null, "user.john", "user.jane");
@@ -7213,9 +7214,11 @@ public class ZMSImplTest {
             DomainData domainData = sDomain.getDomain();
             if (domainData.getName().equals("signeddom1")) {
                 assertEquals(domainData.getAccount(), "12345");
+                assertNull(domainData.getAwsAccountName());
                 dom1Found = true;
             } else if (domainData.getName().equals("signeddom2")) {
                 assertEquals(domainData.getAccount(), "12346");
+                assertEquals(domainData.getAwsAccountName(), "aws-account-name");
                 dom2Found = true;
             }
             assertTrue(Crypto.verify(SignUtils.asCanonicalString(sDomain.getDomain()),
@@ -14426,6 +14429,121 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testLoadSolutionTemplatesWithBothTrustAndMembers() {
+        // Create a mock solution template with a role that has both trust and members
+        String invalidTemplateJson = "{"
+                + "\"templates\": {"
+                + "\"invalid_template\": {"
+                + "\"roles\": ["
+                + "{"
+                + "\"name\": \"test_role\","
+                + "\"trust\": \"trusted.domain\","
+                + "\"roleMembers\": ["
+                + "{"
+                + "\"memberName\": \"user.testuser\""
+                + "}"
+                + "]"
+                + "}"
+                + "]"
+                + "}"
+                + "}"
+                + "}";
+
+        // Write invalid template to a temporary file
+        File tempFile = null;
+        try {
+            tempFile = File.createTempFile("invalid_template", ".json");
+            try (FileWriter writer = new FileWriter(tempFile)) {
+                writer.write(invalidTemplateJson);
+            }
+
+            // Set system property to point to the invalid template file
+            String originalProperty = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
+            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
+
+            try {
+                // This should throw RuntimeException when loading templates
+                new ZMSImpl();
+                fail("Expected RuntimeException when loading solution template with both trust and members");
+            } catch (RuntimeException ex) {
+                assertTrue(ex.getMessage().contains("has both trust and members defined"));
+                assertTrue(ex.getMessage().contains("invalid_template"));
+                assertTrue(ex.getMessage().contains("test_role"));
+            } finally {
+                // Restore original property
+                if (originalProperty != null) {
+                    System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, originalProperty);
+                } else {
+                    System.clearProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
+                }
+            }
+        } catch (IOException ex) {
+            fail("Failed to create temporary test file: " + ex.getMessage());
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete();
+            }
+        }
+    }
+
+    @Test
+    public void testLoadSolutionTemplatesWithNullRoles() {
+        // Create a solution template with null roles to test the continue statement
+        String templateJson = "{"
+                + "\"templates\": {"
+                + "\"template_with_null_roles\": {"
+                + "\"roles\": null"
+                + "},"
+                + "\"template_with_valid_roles\": {"
+                + "\"roles\": ["
+                + "{"
+                + "\"name\": \"valid_role\","
+                + "\"roleMembers\": ["
+                + "{"
+                + "\"memberName\": \"user.testuser\""
+                + "}"
+                + "]"
+                + "}"
+                + "]"
+                + "}"
+                + "}"
+                + "}";
+
+        // Write template to a temporary file
+        File tempFile = null;
+        try {
+            tempFile = File.createTempFile("null_roles_template", ".json");
+            try (FileWriter writer = new FileWriter(tempFile)) {
+                writer.write(templateJson);
+            }
+
+            // Set system property to point to the template file
+            String originalProperty = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
+            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
+
+            try {
+                // This should successfully load without throwing an exception
+                // The template with null roles should be skipped via continue statement
+                ZMSImpl zmsImpl = new ZMSImpl();
+                assertNotNull(zmsImpl);
+            } finally {
+                // Restore original property
+                if (originalProperty != null) {
+                    System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, originalProperty);
+                } else {
+                    System.clearProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
+                }
+            }
+        } catch (IOException ex) {
+            fail("Failed to create temporary test file: " + ex.getMessage());
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete();
+            }
+        }
+    }
+
+    @Test
     public void testPutPolicyNoLoopbackNoSuchDomainError() {
         final String auditRef = zmsTestInitializer.getAuditRef();
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
@@ -18536,6 +18654,7 @@ public class ZMSImplTest {
                 .setProductId("abcd-123");
         SignedDomain domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, null);
         assertNull(domain.getDomain().getAccount());
+        assertNull(domain.getDomain().getAwsAccountName());
         assertNull(domain.getDomain().getYpmId());
         assertNull(domain.getDomain().getOrg());
         assertNull(domain.getDomain().getAuditEnabled());
@@ -18550,6 +18669,7 @@ public class ZMSImplTest {
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "unknown");
         assertNull(domain.getDomain().getAccount());
+        assertNull(domain.getDomain().getAwsAccountName());
         assertNull(domain.getDomain().getYpmId());
         assertNull(domain.getDomain().getOrg());
         assertNull(domain.getDomain().getAuditEnabled());
@@ -20678,6 +20798,27 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("cannot approve / reject own request"));
+        }
+
+        // now let's check that we first reject if the member is the approver
+
+        mbr = new Membership();
+        mbr.setMemberName("user.user1");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zmsImpl.putMembership(ctx, domainName, roleName, "user.user1", auditRef, false, null, mbr);
+
+        mbr = new Membership();
+        mbr.setMemberName("user.user1");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        try {
+            zmsImpl.putMembershipDecision(ctx, domainName, roleName, "user.user1", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("cannot approve / reject own membership"));
         }
 
         cleanupPrincipalAuditedRoleApprovalByOrg(zmsImpl, "testOrg");
@@ -22955,7 +23096,7 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
 
         DomainTemplateDetailsList serverTemplateDetailsList = zmsImpl.getServerTemplateDetailsList(ctx);
-        assertEquals(serverTemplateDetailsList.getMetaData().size(), 15);
+        assertEquals(serverTemplateDetailsList.getMetaData().size(), 17);
         TemplateMetaData vipTemplateMetaData = null;
         for (TemplateMetaData templateMetaData : serverTemplateDetailsList.getMetaData()) {
             if (templateMetaData.getTemplateName().equals("vipng")) {
@@ -22974,7 +23115,7 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
 
         DomainTemplateDetailsList serverTemplateDetailsList = zmsImpl.getServerTemplateDetailsList(ctx);
-        assertEquals(serverTemplateDetailsList.getMetaData().size(), 15);
+        assertEquals(serverTemplateDetailsList.getMetaData().size(), 17);
         List<TemplateMetaData> templates = serverTemplateDetailsList.getMetaData();
 
         String previousTemplateName = "";
@@ -25231,6 +25372,27 @@ public class ZMSImplTest {
             assertTrue(ex.getMessage().contains("cannot approve / reject own request"));
         }
 
+        // now let's check that we first reject if the member is the approver
+
+        mbr = new GroupMembership();
+        mbr.setMemberName("user.user1");
+        mbr.setActive(false);
+        mbr.setApproved(false);
+        zmsImpl.putGroupMembership(ctx, domainName, groupName, "user.user1", auditRef, false, null, mbr);
+
+        mbr = new GroupMembership();
+        mbr.setMemberName("user.user1");
+        mbr.setActive(true);
+        mbr.setApproved(true);
+
+        try {
+            zmsImpl.putGroupMembershipDecision(ctx, domainName, groupName, "user.user1", auditRef, mbr);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("cannot approve / reject own membership"));
+        }
+        
         cleanupPrincipalAuditedRoleApprovalByDomain(zmsImpl, domainName);
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }

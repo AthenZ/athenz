@@ -38,9 +38,11 @@ public class IdToken extends OAuth2Token {
 
     public static final String CLAIM_GROUPS = "groups";
     public static final String CLAIM_NONCE  = "nonce";
+    public static final String CLAIM_SPIFFE  = "spiffe";
 
     private List<String> groups;
     private String nonce;
+    private String spiffe;
 
     /**
      * Creates an empty id token
@@ -86,6 +88,7 @@ public class IdToken extends OAuth2Token {
     void setIdTokenFields() {
         setNonce(JwtsHelper.getStringClaim(claimsSet, CLAIM_NONCE));
         setGroups(JwtsHelper.getStringListClaim(claimsSet, CLAIM_GROUPS));
+        setSpiffe(JwtsHelper.getStringClaim(claimsSet, CLAIM_SPIFFE));
     }
 
     public List<String> getGroups() {
@@ -104,6 +107,14 @@ public class IdToken extends OAuth2Token {
         this.nonce = nonce;
     }
 
+    public String getSpiffe() {
+        return spiffe;
+    }
+
+    public void setSpiffe(String spiffe) {
+        this.spiffe = spiffe;
+    }
+
     public String getSignedToken(final PrivateKey key, final String keyId, final String sigAlg) {
 
         try {
@@ -117,7 +128,8 @@ public class IdToken extends OAuth2Token {
                     .claim(CLAIM_AUTH_TIME, authTime)
                     .claim(CLAIM_VERSION, version)
                     .claim(CLAIM_GROUPS, groups)
-                    .claim(CLAIM_NONCE, nonce);
+                    .claim(CLAIM_NONCE, nonce)
+                    .claim(CLAIM_SPIFFE, spiffe);
             if (customClaims != null) {
                 for (Map.Entry<String, Object> entry : customClaims.entrySet()) {
                     claimsSetBuilder.claim(entry.getKey(), entry.getValue());
@@ -145,6 +157,7 @@ public class IdToken extends OAuth2Token {
         switch (claimName) {
             case CLAIM_GROUPS:
             case CLAIM_NONCE:
+            case CLAIM_SPIFFE:
                 return true;
             default:
                 return false;

@@ -729,4 +729,228 @@ public class ZTSUtilsTest {
         // Allow for small time difference due to test execution time
         assertTrue(remainingExpiry >= 1799 && remainingExpiry <= 1800);
     }
+
+    @Test
+    public void testIsSubsetEmptySubset() {
+        // Empty subset is a subset of any set
+        String[] subset = new String[0];
+        String[] superset = new String[]{"a", "b", "c"};
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetEmptySuperset() {
+        // Non-empty subset cannot be subset of empty superset
+        String[] subset = new String[]{"a"};
+        String[] superset = new String[0];
+        assertFalse(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetBothEmpty() {
+        // Empty subset is subset of empty superset
+        String[] subset = new String[0];
+        String[] superset = new String[0];
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetValidSubset() {
+        // Subset is actually a subset
+        String[] subset = new String[]{"a", "b"};
+        String[] superset = new String[]{"a", "b", "c", "d"};
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetNotSubset() {
+        // Subset contains element not in superset
+        String[] subset = new String[]{"a", "b", "e"};
+        String[] superset = new String[]{"a", "b", "c", "d"};
+        assertFalse(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetEqualSets() {
+        // Subset equals superset
+        String[] subset = new String[]{"a", "b", "c"};
+        String[] superset = new String[]{"a", "b", "c"};
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetSingleElement() {
+        // Single element subset
+        String[] subset = new String[]{"a"};
+        String[] superset = new String[]{"a", "b", "c"};
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetSingleElementNotInSuperset() {
+        // Single element not in superset
+        String[] subset = new String[]{"z"};
+        String[] superset = new String[]{"a", "b", "c"};
+        assertFalse(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetOrderIndependent() {
+        // Order should not matter
+        String[] subset = new String[]{"c", "a", "b"};
+        String[] superset = new String[]{"a", "b", "c", "d"};
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetSupersetOrderIndependent() {
+        // Superset order should not matter
+        String[] subset = new String[]{"a", "b"};
+        String[] superset = new String[]{"d", "c", "b", "a"};
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetDuplicatesInSubset() {
+        // Duplicates in subset should be handled correctly
+        String[] subset = new String[]{"a", "a", "b"};
+        String[] superset = new String[]{"a", "b", "c"};
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetDuplicatesInSuperset() {
+        // Duplicates in superset should be handled correctly
+        String[] subset = new String[]{"a", "b"};
+        String[] superset = new String[]{"a", "a", "b", "b", "c"};
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetCaseSensitive() {
+        // Strings are case-sensitive
+        String[] subset = new String[]{"A", "b"};
+        String[] superset = new String[]{"a", "b", "c"};
+        assertFalse(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetCaseSensitiveMatch() {
+        // Case-sensitive match
+        String[] subset = new String[]{"A", "B"};
+        String[] superset = new String[]{"A", "B", "C"};
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetLargeSets() {
+        // Test with larger sets
+        String[] subset = new String[]{"a", "c", "e", "g"};
+        String[] superset = new String[]{"a", "b", "c", "d", "e", "f", "g", "h"};
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetLargeSetsNotSubset() {
+        // Test with larger sets where subset is not valid
+        String[] subset = new String[]{"a", "c", "e", "z"};
+        String[] superset = new String[]{"a", "b", "c", "d", "e", "f", "g", "h"};
+        assertFalse(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetAllElementsMissing() {
+        // All elements of subset are missing from superset
+        String[] subset = new String[]{"x", "y", "z"};
+        String[] superset = new String[]{"a", "b", "c"};
+        assertFalse(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetPartialMatch() {
+        // Some elements match, some don't
+        String[] subset = new String[]{"a", "x", "b"};
+        String[] superset = new String[]{"a", "b", "c"};
+        assertFalse(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetWithEmptyStrings() {
+        // Test with empty strings
+        String[] subset = new String[]{"", "a"};
+        String[] superset = new String[]{"", "a", "b"};
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetWithEmptyStringNotInSuperset() {
+        // Empty string not in superset
+        String[] subset = new String[]{"", "a"};
+        String[] superset = new String[]{"a", "b"};
+        assertFalse(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetWithSpecialCharacters() {
+        // Test with special characters
+        String[] subset = new String[]{"a-b", "c_d"};
+        String[] superset = new String[]{"a-b", "c_d", "e.f"};
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetWithNumbers() {
+        // Test with numeric strings
+        String[] subset = new String[]{"1", "2"};
+        String[] superset = new String[]{"1", "2", "3", "4"};
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetWithWhitespace() {
+        // Test with whitespace
+        String[] subset = new String[]{"a b", "c"};
+        String[] superset = new String[]{"a b", "c", "d"};
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test(expectedExceptions = NullPointerException.class)
+    public void testIsSubsetNullSubset() {
+        // Null subset should throw NullPointerException
+        String[] subset = null;
+        String[] superset = new String[]{"a", "b", "c"};
+        ZTSUtils.isSubset(subset, superset);
+    }
+
+    @Test(expectedExceptions = NullPointerException.class)
+    public void testIsSubsetNullSuperset() {
+        // Null superset should throw NullPointerException
+        String[] subset = new String[]{"a", "b"};
+        String[] superset = null;
+        ZTSUtils.isSubset(subset, superset);
+    }
+
+    @Test(expectedExceptions = NullPointerException.class)
+    public void testIsSubsetBothNull() {
+        // Both null should throw NullPointerException
+        String[] subset = null;
+        String[] superset = null;
+        ZTSUtils.isSubset(subset, superset);
+    }
+
+    @Test
+    public void testIsSubsetNullElementsInSubset() {
+        // Null elements in subset array
+        String[] subset = new String[]{null, "a"};
+        String[] superset = new String[]{null, "a", "b"};
+        assertTrue(ZTSUtils.isSubset(subset, superset));
+    }
+
+    @Test
+    public void testIsSubsetNullElementNotInSuperset() {
+        // Null element in subset but not in superset
+        String[] subset = new String[]{null, "a"};
+        String[] superset = new String[]{"a", "b"};
+        assertFalse(ZTSUtils.isSubset(subset, superset));
+    }
 }

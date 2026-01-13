@@ -19,28 +19,24 @@ package sia
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"log"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
 )
 
-func startHttpServer(uri, token string, statusCode int) {
-	router := mux.NewRouter()
-	router.HandleFunc("/oidc", func(w http.ResponseWriter, r *http.Request) {
+func startHttpServer(token string, statusCode int) *httptest.Server {
+	router := http.NewServeMux()
+	router.HandleFunc("POST /oidc", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("/oidc token endpoint is called")
 		w.WriteHeader(statusCode)
 		io.WriteString(w, "{\"data\": \""+token+"\"}")
-	}).Methods("POST")
+	})
 
-	err := http.ListenAndServe(uri, router)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
+	return httptest.NewServer(router)
 }
 
 func TestGetOIDCToken(t *testing.T) {
@@ -56,10 +52,10 @@ func TestGetOIDCToken(t *testing.T) {
 	os.Setenv("HARNESS_TRIGGER_TYPE", "manual")
 	os.Setenv("HARNESS_SEQUENCE_ID", "1")
 
-	go startHttpServer("localhost:8081", validToken, http.StatusOK)
-	time.Sleep(2 * time.Second)
+	ts := startHttpServer(validToken, http.StatusOK)
+	defer ts.Close()
 
-	_, claims, err := GetOIDCToken("https://athenz.io", "http://localhost:8081/oidc")
+	_, claims, err := GetOIDCToken("https://athenz.io", ts.URL+"/oidc")
 	assert.Nil(t, err)
 	assert.Equal(t, "https://athenz.io", claims["aud"].(string))
 	assert.Equal(t, "account/1234:org/athenzorg:project/athenz:pipeline/job-uuid", claims["sub"].(string))
@@ -75,7 +71,7 @@ func TestGetOIDCToken(t *testing.T) {
 func TestGetOIDCTokenEnvNotSet(t *testing.T) {
 
 	// both env variables missing - first check is for request url
-	_, _, err := GetOIDCToken("https://athenz.io", "http://localhost:8081/oidc")
+	_, _, err := GetOIDCToken("https://athenz.io", "http://localhost:0/oidc")
 	assert.NotNil(t, err)
 	assert.Equal(t, "HARNESS_OIDC_API_KEY environment variable not set", err.Error())
 
@@ -93,10 +89,10 @@ func TestGetOIDCTokenInvalidStatusCode(t *testing.T) {
 	os.Setenv("HARNESS_TRIGGER_TYPE", "MANUAL")
 	os.Setenv("HARNESS_SEQUENCE_ID", "5")
 
-	go startHttpServer("localhost:8082", "invalid-token", http.StatusBadRequest)
-	time.Sleep(2 * time.Second)
+	ts := startHttpServer("invalid-token", http.StatusBadRequest)
+	defer ts.Close()
 
-	_, _, err := GetOIDCToken("https://athenz.io", "http://localhost:8082/oidc")
+	_, _, err := GetOIDCToken("https://athenz.io", ts.URL+"/oidc")
 	assert.NotNil(t, err)
 	assert.Equal(t, "oidc token get status error: 400", err.Error())
 
@@ -114,10 +110,10 @@ func TestGetOIDCTokenInvalidToken(t *testing.T) {
 	os.Setenv("HARNESS_TRIGGER_TYPE", "MANUAL")
 	os.Setenv("HARNESS_SEQUENCE_ID", "5")
 
-	go startHttpServer("localhost:8083", "invalid-token", http.StatusOK)
-	time.Sleep(2 * time.Second)
+	ts := startHttpServer("invalid-token", http.StatusOK)
+	defer ts.Close()
 
-	_, _, err := GetOIDCToken("https://athenz.io", "http://localhost:8083/oidc")
+	_, _, err := GetOIDCToken("https://athenz.io", ts.URL+"/oidc")
 	assert.NotNil(t, err)
 	assert.Equal(t, "unable to parse oidc token: go-jose/go-jose: compact JWS format must have three parts", err.Error())
 

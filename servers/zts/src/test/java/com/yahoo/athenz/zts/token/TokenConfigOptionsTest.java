@@ -21,6 +21,9 @@ import com.yahoo.athenz.auth.KeyStore;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
+import java.util.Collections;
+import java.util.Set;
+
 import static org.testng.Assert.*;
 
 public class TokenConfigOptionsTest {
@@ -30,7 +33,7 @@ public class TokenConfigOptionsTest {
         TokenConfigOptions options = new TokenConfigOptions();
         assertNotNull(options);
         assertNull(options.getPublicKeyProvider());
-        assertNull(options.getOauth2Issuer());
+        assertNull(options.getOauth2Issuers());
         assertNull(options.getJwtIDTProcessor());
         assertNull(options.getJwtJAGProcessor());
     }
@@ -63,26 +66,26 @@ public class TokenConfigOptionsTest {
         TokenConfigOptions options = new TokenConfigOptions();
         
         // Initially null
-        assertNull(options.getOauth2Issuer());
+        assertNull(options.getOauth2Issuers());
         
         // Set a value
-        String issuer = "https://athenz.io/zts/v1";
-        options.setOauth2Issuer(issuer);
-        assertNotNull(options.getOauth2Issuer());
-        assertEquals(options.getOauth2Issuer(), issuer);
+        Set<String> issuer = Set.of("https://athenz.io/zts/v1");
+        options.setOauth2Issuers(issuer);
+        assertNotNull(options.getOauth2Issuers());
+        assertEquals(options.getOauth2Issuers(), issuer);
         
         // Set to null
-        options.setOauth2Issuer(null);
-        assertNull(options.getOauth2Issuer());
+        options.setOauth2Issuers(null);
+        assertNull(options.getOauth2Issuers());
         
         // Set a different value
-        String anotherIssuer = "https://example.com/oauth2";
-        options.setOauth2Issuer(anotherIssuer);
-        assertEquals(options.getOauth2Issuer(), anotherIssuer);
+        Set<String> anotherIssuer = Set.of("https://example.com/oauth2");
+        options.setOauth2Issuers(anotherIssuer);
+        assertEquals(options.getOauth2Issuers(), anotherIssuer);
         
         // Set empty string
-        options.setOauth2Issuer("");
-        assertEquals(options.getOauth2Issuer(), "");
+        options.setOauth2Issuers(Collections.emptySet());
+        assertEquals(options.getOauth2Issuers(), Collections.emptySet());
     }
 
     @Test
@@ -154,13 +157,13 @@ public class TokenConfigOptionsTest {
         
         // Set all fields
         options.setPublicKeyProvider(mockKeyStore);
-        options.setOauth2Issuer(issuer);
+        options.setOauth2Issuers(Set.of(issuer));
         options.setJwtIDTProcessor(mockIDTProcessor);
         options.setJwtJAGProcessor(mockJAGProcessor);
         
         // Verify all fields are set correctly
         assertEquals(options.getPublicKeyProvider(), mockKeyStore);
-        assertEquals(options.getOauth2Issuer(), issuer);
+        assertEquals(options.getOauth2Issuers(), Set.of(issuer));
         assertEquals(options.getJwtIDTProcessor(), mockIDTProcessor);
         assertEquals(options.getJwtJAGProcessor(), mockJAGProcessor);
     }

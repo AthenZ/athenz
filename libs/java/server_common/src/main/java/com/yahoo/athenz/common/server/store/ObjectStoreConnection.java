@@ -35,7 +35,7 @@ public interface ObjectStoreConnection extends Closeable {
     void commitChanges() throws ServerResourceException;
     void rollbackChanges() throws ServerResourceException;
     void close();
-    void setOperationTimeout(int opTimout);
+    void setOperationTimeout(int opTimeout);
     void setTagLimit(int domainLimit, int roleLimit, int groupLimit, int policyLimit, int serviceLimit);
 
     // Domain commands
@@ -47,9 +47,9 @@ public interface ObjectStoreConnection extends Closeable {
     long getDomainModTimestamp(String domainName) throws ServerResourceException;
     boolean updateDomainModTimestamp(String domainName) throws ServerResourceException;
     List<String> listDomains(String prefix, long modifiedSince) throws ServerResourceException;
-    String lookupDomainByProductId(int productId) throws ServerResourceException;
-    String lookupDomainByProductId(String productId) throws ServerResourceException;
-    String lookupDomainByCloudProvider(String provider, String value) throws ServerResourceException;
+    List<String> lookupDomainByProductId(int productId) throws ServerResourceException;
+    List<String> lookupDomainByProductId(String productId) throws ServerResourceException;
+    List<String> lookupDomainByCloudProvider(String provider, String value) throws ServerResourceException;
     Map<String, String> listDomainsByCloudProvider(String provider) throws ServerResourceException;
     List<String> lookupDomainByRole(String roleMember, String roleName) throws ServerResourceException;
     List<String> lookupDomainByBusinessService(String businessService) throws ServerResourceException;

@@ -1311,6 +1311,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             serverSolutionTemplates.setTemplates(new HashMap<>());
             serverSolutionTemplateNames = Collections.emptyList();
         } else {
+            // validate that we don't have any roles with both members and trust attributes
+
+            for (Map.Entry<String, Template> entry : serverSolutionTemplates.getTemplates().entrySet()) {
+                final String templateName = entry.getKey();
+                final Template template = entry.getValue();
+                if (template.getRoles() == null) {
+                    continue;
+                }
+                for (Role role : template.getRoles()) {
+                    if (!StringUtil.isEmpty(role.getTrust()) && role.getRoleMembers() != null && !role.getRoleMembers().isEmpty()) {
+                        LOG.error("Solution Template {} role {} has both trust and members defined. Exiting...",
+                                templateName, role.getName());
+                        throw new RuntimeException("Solution Template " + templateName + " role " + role.getName() + " has both trust and members defined");
+                    }
+                }
+            }
+
             serverSolutionTemplateNames = new ArrayList<>(serverSolutionTemplates.names());
             Collections.sort(serverSolutionTemplateNames);
         }
@@ -1693,6 +1710,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setOrg(detail.getOrg())
                 .setId(UUID.fromCurrentTime())
                 .setAccount(detail.getAccount())
+                .setAwsAccountName(detail.getAwsAccountName())
                 .setAzureSubscription(detail.getAzureSubscription())
                 .setAzureTenant(detail.getAzureTenant())
                 .setAzureClient(detail.getAzureClient())
@@ -4567,11 +4585,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!StringUtil.isEmpty(role.getTrust())) {
 
-            AthenzDomain athenzDomain = getAthenzDomain(role.getTrust(), true);
-            if (athenzDomain == null) {
-                throw ZMSUtils.requestError("Delegated role assigned to non existing domain", caller);
-            }
-
             if (!ZMSUtils.isCollectionEmpty(role.getRoleMembers())) {
                 throw ZMSUtils.requestError("validateRoleMembers: Role cannot have both roleMembers and delegated domain set", caller);
             }
@@ -4582,6 +4595,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             if (domainName.equals(role.getTrust())) {
                 throw ZMSUtils.requestError("validateRoleMembers: Role cannot be delegated to itself", caller);
+            }
+
+            if (getAthenzDomain(role.getTrust(), true) == null) {
+                throw ZMSUtils.requestError("Delegated role assigned to non existing domain", caller);
             }
         }
     }
@@ -7449,6 +7466,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         return null;
                     }
                     signedDomain.getDomain().setAccount(account);
+                    signedDomain.getDomain().setAwsAccountName(domain.getAwsAccountName());
                     break;
                 case ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION:
                     final String azureSubscription = domain.getAzureSubscription();
@@ -7499,6 +7517,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     void setDomainDataAttributes(DomainData domainData, Domain domain) {
         domainData.setDescription(domain.getDescription());
         domainData.setAccount(domain.getAccount());
+        domainData.setAwsAccountName(domain.getAwsAccountName());
         domainData.setAzureSubscription(domain.getAzureSubscription());
         domainData.setAzureTenant(domain.getAzureTenant());
         domainData.setAzureClient(domain.getAzureClient());
@@ -7581,6 +7600,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             domainData.setAuditEnabled(true);
         }
         domainData.setAccount(athenzDomain.getDomain().getAccount());
+        domainData.setAwsAccountName(athenzDomain.getDomain().getAwsAccountName());
         domainData.setAzureSubscription(athenzDomain.getDomain().getAzureSubscription());
         domainData.setAzureTenant(athenzDomain.getDomain().getAzureTenant());
         domainData.setAzureClient(athenzDomain.getDomain().getAzureClient());
@@ -10618,10 +10638,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // if this is an audit enabled domain then we're going to carry
         // out the authorization in the sys.auth.audit domains
 
+        final String principalName = principal.getFullName();
         if (role.getAuditEnabled() == Boolean.TRUE) {
 
             if (!isAllowedAuditRoleMembershipApproval(principal, domain)) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " is not authorized to approve / reject members", caller);
             }
 
@@ -10631,40 +10652,47 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // is authorized to update the domain role membership
 
             if (!isAllowedPutMembershipAccess(principal, domain, role.getName())) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " is not authorized to approve / reject members", caller);
             }
         }
 
         // if the user is allowed to make changes in the domain but
         // the role is review or audit enabled then we need to make sure
-        // the approver cannot be the same as the requester
+        // the approver cannot be the same as the requester or the one
+        // being approved / rejected
 
         if (role.getReviewEnabled() == Boolean.TRUE || role.getAuditEnabled() == Boolean.TRUE) {
+
+            if (principalName.equalsIgnoreCase(roleMember.getMemberName())) {
+                throw ZMSUtils.forbiddenError("principal " + principalName
+                        + " cannot approve / reject own membership", caller);
+            }
 
             Membership pendingMember = dbService.getMembership(domain.getName(),
                     ZMSUtils.extractRoleName(domain.getName(), role.getName()),
                     roleMember.getMemberName(), 0, true);
 
-            if (principal.getFullName().equalsIgnoreCase(pendingMember.getRequestPrincipal())) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+            if (principalName.equalsIgnoreCase(pendingMember.getRequestPrincipal())) {
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " cannot approve / reject own request", caller);
             }
         }
     }
 
     private void validatePutGroupMembershipDecisionAuthorization(final Principal principal, final AthenzDomain domain,
-                                                                 final Group group, final GroupMember groupMember) {
+            final Group group, final GroupMember groupMember) {
 
         final String caller = "putgroupmembershipdecision";
 
         // if this is an audit enabled domain then we're going to carry
         // out the authorization in the sys.auth.audit domains
 
+        final String principalName = principal.getFullName();
         if (group.getAuditEnabled() == Boolean.TRUE) {
 
             if (!isAllowedAuditRoleMembershipApproval(principal, domain)) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " is not authorized to approve / reject members", caller);
             }
 
@@ -10674,23 +10702,29 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             // is authorized to update the domain group membership
 
             if (!isAllowedPutMembershipAccess(principal, domain, group.getName())) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " is not authorized to approve / reject members", caller);
             }
         }
 
         // if the user is allowed to make changes in the domain but
         // the role is review or audit enabled then we need to make sure
-        // the approver cannot be the same as the requester
+        // the approver cannot be the same as the requester or the one
+        // being approved / rejected
 
         if (group.getReviewEnabled() == Boolean.TRUE || group.getAuditEnabled() == Boolean.TRUE) {
+
+            if (principalName.equalsIgnoreCase(groupMember.getMemberName())) {
+                throw ZMSUtils.forbiddenError("principal " + principalName
+                        + " cannot approve / reject own membership", caller);
+            }
 
             GroupMembership pendingMember = dbService.getGroupMembership(domain.getName(),
                     ZMSUtils.extractGroupName(domain.getName(), group.getName()),
                     groupMember.getMemberName(), 0, true);
 
-            if (principal.getFullName().equalsIgnoreCase(pendingMember.getRequestPrincipal())) {
-                throw ZMSUtils.forbiddenError("principal " + principal.getFullName()
+            if (principalName.equalsIgnoreCase(pendingMember.getRequestPrincipal())) {
+                throw ZMSUtils.forbiddenError("principal " + principalName
                         + " cannot approve / reject own request", caller);
             }
         }
@@ -12762,12 +12796,35 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
-        // policy, service, etc name)
+        // policy, service, etc. name)
 
-        domainName = domainName.toLowerCase();
-        setRequestDomain(ctx, domainName);
+        String serviceDomainName = domainName.toLowerCase();
+        setRequestDomain(ctx, serviceDomainName);
 
-        return dbService.listServiceDependencies(domainName);
+        // first let's get the service dependencies from our own database
+
+        ServiceIdentityList services = dbService.listServiceDependencies(serviceDomainName);
+        Set<String> dependentServices = new HashSet<>(services.getNames());
+
+        // now we'll check with each service provider to see if
+        // they have a dependency on our domain
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        Map<String, ServiceProviderManager.DomainDependencyProvider> serviceProvidersWithEndpoints
+                = serviceProviderManager.getServiceProvidersWithEndpoints();
+
+        Set<String> dynamicDependencies = serviceProvidersWithEndpoints.entrySet().parallelStream()
+                .filter(entry -> {
+                    DomainDependencyProviderResponse providerResponse = serviceProviderClient.getDependencyStatus(
+                            entry.getValue(), serviceDomainName, principal.getFullName());
+                    return providerResponse.getStatus().equals(ZMSConsts.PROVIDER_RESPONSE_DENY);
+                })
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+
+        dependentServices.addAll(dynamicDependencies);
+        services.setNames(new ArrayList<>(dependentServices));
+        return services;
     }
 
     @Override

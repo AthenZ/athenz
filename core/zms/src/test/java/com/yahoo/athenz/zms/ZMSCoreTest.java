@@ -619,13 +619,15 @@ public class ZMSCoreTest {
                 .setProductId("abcd-1234").setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test"))
                 .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setObjectOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true);
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
+                .setAwsAccountName("aws-name");
 
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid, result.error);
 
         assertEquals(dd.getName(), "test.domain");
         assertEquals(dd.getAccount(), "aws");
+        assertEquals(dd.getAwsAccountName(), "aws-name");
         assertEquals(dd.getAzureSubscription(), "azure");
         assertEquals(dd.getAzureTenant(), "tenant");
         assertEquals(dd.getAzureClient(), "client");
@@ -680,7 +682,8 @@ public class ZMSCoreTest {
                 .setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setObjectOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true);
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
+                .setAwsAccountName("aws-name");
 
         assertEquals(dd2, dd);
         assertNotEquals(dd, null);
@@ -742,6 +745,13 @@ public class ZMSCoreTest {
         dd2.setAccount(null);
         assertNotEquals(dd, dd2);
         dd2.setAccount("aws");
+        assertEquals(dd, dd2);
+
+        dd2.setAwsAccountName("aws-name2");
+        assertNotEquals(dd, dd2);
+        dd2.setAwsAccountName(null);
+        assertNotEquals(dd, dd2);
+        dd2.setAwsAccountName("aws-name");
         assertEquals(dd, dd2);
 
         dd2.setAzureSubscription("azure2");

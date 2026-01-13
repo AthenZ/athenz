@@ -25,6 +25,7 @@ import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.impl.*;
+import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.OAuth2Token;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
@@ -49,6 +50,7 @@ import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.NonNull;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -64,6 +66,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPrivateKey;
 import java.text.ParseException;
@@ -752,7 +755,7 @@ public class ZTSImplAccessTokenTest {
 
         final String scope = URLEncoder.encode("coretech:domain openid coretech:service.api", StandardCharsets.UTF_8);
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
-                "grant_type=client_credentials&scope=" + scope + "&expires_in=240");
+                "grant_type=client_credentials&scope=" + scope + "&expires_in=240&actor=athenz.api");
         assertNotNull(resp);
         assertEquals(resp.getScope(), "coretech:role.writers openid");
 
@@ -772,10 +775,14 @@ public class ZTSImplAccessTokenTest {
         } catch(Exception ex) {
             fail(ex.getMessage());
         }
+
         try {
             assertNotNull(claimSet);
             assertEquals(claimSet.getStringClaim("scope"), "writers");
             assertEquals(claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime(), 240 * 1000);
+            Map mayActClaim = (Map) claimSet.getClaim("may_act");
+            assertNotNull(mayActClaim);
+            assertEquals(mayActClaim.get("sub"), "athenz.api");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -2514,6 +2521,7 @@ public class ZTSImplAccessTokenTest {
         JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null, null, true);
 
         ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
+        jwtProcessor.setJWSTypeVerifier(JwtsHelper.JWT_TYPE_VERIFIER);
         jwtProcessor.setJWSKeySelector(new JWSVerificationKeySelector<>(JwtsHelper.JWS_SUPPORTED_ALGORITHMS,
                 resolver.getKeySource()));
         return jwtProcessor;
@@ -2853,7 +2861,7 @@ public class ZTSImplAccessTokenTest {
     private TokenConfigOptions createTokenConfigOptions(ZTSImpl ztsImpl) {
         TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
         tokenConfigOptions.setPublicKeyProvider(null);
-        tokenConfigOptions.setOauth2Issuer(ztsImpl.ztsOAuthIssuer);
+        tokenConfigOptions.setOauth2Issuers(Set.of("ztsImpl.ztsOAuthIssuer"));
         tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
         tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
         return tokenConfigOptions;
@@ -3028,23 +3036,22 @@ public class ZTSImplAccessTokenTest {
         ResourceContext context = createResourceContext(principal);
         TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
 
-        try {
-            // Request both roles but subject only has access to one
-            AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
-                    "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
-                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
-                    + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
-                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
-                    + "&scope=coretech:role.writers coretech:role.readers",
-                    tokenConfigOptions);
+        // Request both roles but subject only has access to one
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                + "&scope=coretech:role.writers coretech:role.readers",
+                tokenConfigOptions);
 
-            ztsImpl.processJAGTokenIssueRequest(context, principal,
-                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
-            fail("Expected ResourceException for partial access");
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
-        }
-        
+        AccessTokenResponse response = ztsImpl.processJAGTokenIssueRequest(context, principal,
+                accessTokenRequest, "user_domain", "postAccessTokenRequest");
+        assertNotNull(response);
+
+        // verify the response contains a single scope in the response
+
+        assertEquals(response.getScope(), "coretech:role.writers");
         cloudStore.close();
     }
 
@@ -3335,55 +3342,6 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
-    public void testProcessAccessTokenExchangeNotImplemented() {
-        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
-
-        CloudStore cloudStore = new CloudStore();
-        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
-        ztsImpl.tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
-
-        // set back to our zts rsa private key
-        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
-
-        // Create domain with roles and policies
-        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processSignedDomain(signedDomain, false);
-
-        // Add JAG exchange authorization policy
-        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
-
-        // Load EC private key for creating tokens
-        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
-        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-
-        // Create a subject token for user_domain.user with audience as proxy-user1
-        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
-        String subjectToken = createIdToken(privateKey, "0", "user_domain.user",
-                "user_domain.proxy-user1", expiryTime);
-
-        // Create principal for proxy-user1 who will request the token exchange
-        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
-                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
-        assertNotNull(principal);
-        ResourceContext context = createResourceContext(principal);
-
-        final String tokenRequest = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
-                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
-                + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
-                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
-                + "&scope=coretech:role.writers";
-
-        try {
-            ztsImpl.postAccessTokenRequest(context, tokenRequest);
-            fail();
-        } catch (Exception ex) {
-            assertTrue(ex.getMessage().contains("Not Yet implemented"));
-        }
-
-        cloudStore.close();
-    }
-
-    @Test
     public void testProcessJAGTokenIssueRequestSuccessWithExternalProvider() throws JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
@@ -3629,6 +3587,2336 @@ public class ZTSImplAccessTokenTest {
 
             // Check that the token type header is JAG
             assertEquals(signedJWT.getHeader().getType().toString(), "oauth-id-jag+jwt");
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testGenerateScopeResponseEmptyRoles() {
+        Set<String> roles = new HashSet<>();
+        String domainName = "testdomain";
+        
+        String result = zts.generateScopeResponse(roles, domainName, false);
+        assertEquals(result, "");
+        
+        result = zts.generateScopeResponse(roles, domainName, true);
+        assertEquals(result, "openid");
+    }
+
+    @Test
+    public void testGenerateScopeResponseSingleRole() {
+        Set<String> roles = new HashSet<>();
+        roles.add("admin");
+        String domainName = "testdomain";
+        
+        String result = zts.generateScopeResponse(roles, domainName, false);
+        assertEquals(result, "testdomain:role.admin");
+        
+        result = zts.generateScopeResponse(roles, domainName, true);
+        assertEquals(result, "testdomain:role.admin openid");
+    }
+
+    @Test
+    public void testGenerateScopeResponseMultipleRoles() {
+        Set<String> roles = new HashSet<>();
+        roles.add("admin");
+        roles.add("writer");
+        roles.add("reader");
+        String domainName = "testdomain";
+        
+        String result = zts.generateScopeResponse(roles, domainName, false);
+        // Order may vary due to HashSet, so we check that all roles are present
+        assertTrue(result.contains("testdomain:role.admin"));
+        assertTrue(result.contains("testdomain:role.writer"));
+        assertTrue(result.contains("testdomain:role.reader"));
+        // Should not contain openid
+        assertFalse(result.contains("openid"));
+        // Should have 2 spaces (one between each role)
+        long spaceCount = result.chars().filter(ch -> ch == ' ').count();
+        assertEquals(spaceCount, 2);
+        
+        result = zts.generateScopeResponse(roles, domainName, true);
+        assertTrue(result.contains("testdomain:role.admin"));
+        assertTrue(result.contains("testdomain:role.writer"));
+        assertTrue(result.contains("testdomain:role.reader"));
+        assertTrue(result.contains("openid"));
+        // Should have 3 spaces (one between each role and one before openid)
+        spaceCount = result.chars().filter(ch -> ch == ' ').count();
+        assertEquals(spaceCount, 3);
+    }
+
+    @Test
+    public void testGenerateScopeResponseWithSpecialCharacters() {
+        Set<String> roles = new HashSet<>();
+        roles.add("role-with-dash");
+        roles.add("role_with_underscore");
+        String domainName = "test-domain";
+        
+        String result = zts.generateScopeResponse(roles, domainName, false);
+        assertTrue(result.contains("test-domain:role.role-with-dash"));
+        assertTrue(result.contains("test-domain:role.role_with_underscore"));
+        
+        result = zts.generateScopeResponse(roles, domainName, true);
+        assertTrue(result.contains("test-domain:role.role-with-dash"));
+        assertTrue(result.contains("test-domain:role.role_with_underscore"));
+        assertTrue(result.contains("openid"));
+    }
+
+    @Test
+    public void testGenerateScopeResponseNullDomain() {
+        Set<String> roles = new HashSet<>();
+        roles.add("admin");
+
+        String result = zts.generateScopeResponse(roles, null, false);
+        assertEquals(result, "null:role.admin");
+    }
+
+    @Test
+    public void testTokenExchangeRequestedRolesNullScopeClaim() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "testdomain";
+        
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn(null);
+        
+        String[] result = zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        assertNull(result);
+    }
+
+    @Test
+    public void testTokenExchangeRequestedRolesEmptyScopeInRequest() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "testdomain";
+        
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin writer");
+        Mockito.when(accessTokenRequest.getScope()).thenReturn("");
+        
+        String[] result = zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        assertNotNull(result);
+        assertEquals(result.length, 2);
+        // Order may vary, so check both roles are present
+        Set<String> resultSet = new HashSet<>(Arrays.asList(result));
+        assertTrue(resultSet.contains("admin"));
+        assertTrue(resultSet.contains("writer"));
+    }
+
+    @Test
+    public void testTokenExchangeRequestedRolesNullScopeInRequest() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "testdomain";
+        
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin writer");
+        Mockito.when(accessTokenRequest.getScope()).thenReturn(null);
+        
+        String[] result = zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        assertNotNull(result);
+        assertEquals(result.length, 2);
+        Set<String> resultSet = new HashSet<>(Arrays.asList(result));
+        assertTrue(resultSet.contains("admin"));
+        assertTrue(resultSet.contains("writer"));
+    }
+
+    @Test
+    public void testTokenExchangeRequestedRolesValidSubset() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "testdomain";
+        
+        // Subject token has: admin, writer, reader
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin writer reader");
+        // Request only: admin, writer (subset)
+        Mockito.when(accessTokenRequest.getScope()).thenReturn("testdomain:role.admin testdomain:role.writer");
+        
+        String[] result = zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        assertNotNull(result);
+        assertEquals(result.length, 2);
+        Set<String> resultSet = new HashSet<>(Arrays.asList(result));
+        assertTrue(resultSet.contains("admin"));
+        assertTrue(resultSet.contains("writer"));
+        assertFalse(resultSet.contains("reader"));
+    }
+
+    @Test
+    public void testTokenExchangeRequestedRolesExactMatch() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "testdomain";
+        
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin writer");
+        Mockito.when(accessTokenRequest.getScope()).thenReturn("testdomain:role.admin testdomain:role.writer");
+        
+        String[] result = zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        assertNotNull(result);
+        assertEquals(result.length, 2);
+        Set<String> resultSet = new HashSet<>(Arrays.asList(result));
+        assertTrue(resultSet.contains("admin"));
+        assertTrue(resultSet.contains("writer"));
+    }
+
+    @Test
+    public void testTokenExchangeRequestedRolesNotSubset() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "testdomain";
+        
+        // Subject token has: admin, writer
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin writer");
+        // Request: admin, writer, reader (not a subset)
+        Mockito.when(accessTokenRequest.getScope()).thenReturn("testdomain:role.admin testdomain:role.writer testdomain:role.reader");
+        
+        String[] result = zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        assertNull(result);
+    }
+
+    @Test
+    public void testTokenExchangeRequestedRolesDomainMismatch() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "testdomain";
+        
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin");
+        // Request domain is different
+        Mockito.when(accessTokenRequest.getScope()).thenReturn("otherdomain:role.admin");
+        
+        String[] result = zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        assertNull(result);
+    }
+
+    @Test
+    public void testTokenExchangeRequestedRolesNoRequestedRoles() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "testdomain";
+        
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin writer");
+        // Request has domain scope but no specific roles
+        Mockito.when(accessTokenRequest.getScope()).thenReturn("testdomain:domain");
+        
+        String[] result = zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        assertNotNull(result);
+        // Should return all roles from subject token
+        assertEquals(result.length, 2);
+        Set<String> resultSet = new HashSet<>(Arrays.asList(result));
+        assertTrue(resultSet.contains("admin"));
+        assertTrue(resultSet.contains("writer"));
+    }
+
+    @Test
+    public void testTokenExchangeRequestedRolesSingleRole() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "testdomain";
+        
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin writer");
+        Mockito.when(accessTokenRequest.getScope()).thenReturn("testdomain:role.admin");
+        
+        String[] result = zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        assertNotNull(result);
+        assertEquals(result.length, 1);
+        assertEquals(result[0], "admin");
+    }
+
+    @Test
+    public void testTokenExchangeRequestedRolesEmptySubjectTokenScope() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "testdomain";
+        
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("");
+        Mockito.when(accessTokenRequest.getScope()).thenReturn("testdomain:role.admin");
+        
+        assertNull(zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName));
+    }
+
+    @Test
+    public void testTokenExchangeRequestedRolesScopeClaimAsString() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "testdomain";
+        
+        // Test that toString() is called on the scope claim
+        Object scopeClaim = "testdomain:role.admin testdomain:role.writer";
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn(scopeClaim);
+        Mockito.when(accessTokenRequest.getScope()).thenReturn("");
+        
+        String[] result = zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        assertNotNull(result);
+        assertEquals(result.length, 2);
+        Set<String> resultSet = new HashSet<>(Arrays.asList(result));
+        assertTrue(resultSet.contains("testdomain:role.admin"));
+        assertTrue(resultSet.contains("testdomain:role.writer"));
+    }
+
+    private String createAccessToken(PrivateKey privateKey, final String keyId, final String subject,
+                final String audience, List<String> roles, final String mayActSubject, final String actSubject,
+                long expiryTime) {
+        try {
+            AccessToken accessToken = new AccessToken();
+            accessToken.setVersion(1);
+            accessToken.setJwtId(UUID.randomUUID().toString());
+            accessToken.setAudience(audience);
+            accessToken.setSubject(subject);
+            long iat = System.currentTimeMillis() / 1000;
+            accessToken.setIssueTime(iat);
+            accessToken.setAuthTime(iat);
+            accessToken.setExpiryTime(expiryTime);
+            accessToken.setUserId(subject);
+            accessToken.setClientId(subject);
+            accessToken.setIssuer("https://athenz.io:4443/zts/v1");
+            accessToken.setScope(roles != null ? roles : new ArrayList<>());
+            if (mayActSubject != null) {
+                accessToken.setMayActEntry("sub", mayActSubject);
+            }
+            if (actSubject != null) {
+                accessToken.setActEntry("sub", actSubject);
+            }
+
+            ServerPrivateKey serverPrivateKey = new ServerPrivateKey(privateKey, keyId);
+            
+            return accessToken.getSignedToken(serverPrivateKey.getKey(), serverPrivateKey.getId(), 
+                    serverPrivateKey.getAlgorithm());
+        } catch (Exception ex) {
+            fail("Failed to create AccessToken: " + ex.getMessage());
+            return null;
+        }
+    }
+
+    // Helper method to create a signed OAuth2Token for actor token
+    private String createActorToken(PrivateKey privateKey, String keyId, String subject, 
+                String audience, long expiryTime) {
+        try {
+            JWSSigner signer = JwtsHelper.getJWSSigner(privateKey);
+            long now = System.currentTimeMillis() / 1000;
+            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                    .subject(subject)
+                    .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                    .expirationTime(Date.from(Instant.ofEpochSecond(expiryTime)))
+                    .issuer("https://athenz.io:4443/zts/v1")
+                    .audience(audience)
+                    .claim("ver", 1)
+                    .claim("auth_time", now)
+                    .build();
+            SignedJWT signedJWT = new SignedJWT(
+                    new JWSHeader.Builder(JWSAlgorithm.ES256)
+                            .keyID(keyId)
+                            .build(),
+                    claimsSet);
+            signedJWT.sign(signer);
+            return signedJWT.serialize();
+        } catch (JOSEException ex) {
+            fail("Failed to create actor token: " + ex.getMessage());
+            return null;
+        }
+    }
+
+    // Helper method to add token target exchange policy
+    private void addTokenTargetExchangePolicy(String targetDomainName, String sourceDomainName, 
+            String principalName, String roleName) {
+        DataCache data = store.getDataCache(targetDomainName);
+        if (data == null) {
+            return;
+        }
+
+        DomainData domainData = data.getDomainData();
+        SignedPolicies signedPolicies = domainData.getPolicies();
+        DomainPolicies domainPolicies = signedPolicies.getContents();
+        List<Policy> policies = new ArrayList<>(domainPolicies.getPolicies());
+
+        // Create a policy that allows the principal to perform token target exchange
+        Policy exchangePolicy = new Policy();
+        exchangePolicy.setName(generatePolicyName(targetDomainName, "token_target_exchange_" + roleName));
+
+        Assertion assertion = new Assertion();
+        assertion.setResource(targetDomainName + ":" + ResourceUtils.roleResourceName(sourceDomainName, roleName));
+        assertion.setAction(ZTSConsts.ZTS_ACTION_TOKEN_TARGET_EXCHANGE);
+        assertion.setEffect(com.yahoo.athenz.zms.AssertionEffect.ALLOW);
+
+        // Create a role for the principal
+        Role principalRole = new Role();
+        principalRole.setName(generateRoleName(targetDomainName, "token_exchanger_" + roleName));
+        List<RoleMember> principalMembers = new ArrayList<>();
+        principalMembers.add(new RoleMember().setMemberName(principalName));
+        principalRole.setRoleMembers(principalMembers);
+
+        // Add role to domain if it doesn't exist
+        List<Role> roles = new ArrayList<>(domainData.getRoles());
+        boolean roleExists = roles.stream().anyMatch(r -> r.getName().equals(principalRole.getName()));
+        if (!roleExists) {
+            roles.add(principalRole);
+            domainData.setRoles(roles);
+        }
+
+        assertion.setRole(generateRoleName(targetDomainName, "token_exchanger_" + roleName));
+
+        List<Assertion> assertions = new ArrayList<>();
+        assertions.add(assertion);
+        exchangePolicy.setAssertions(assertions);
+        policies.add(exchangePolicy);
+
+        domainPolicies.setPolicies(policies);
+        signedPolicies.setContents(domainPolicies);
+        signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
+
+        domainData.setPolicies(signedPolicies);
+
+        // Update the data cache
+        store.processSignedDomain(new SignedDomain()
+                .setDomain(domainData)
+                .setSignature(Crypto.sign(SignUtils.asCanonicalString(domainData), privateKey))
+                .setKeyId("0"), false);
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestSuccess() throws JOSEException {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        // Create source domain
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        // Create target domain
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        // Add token target exchange policy
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        // Load EC private key for creating tokens
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        // Create subject token (AccessToken) with roles in source domain
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime);
+
+        // Create actor token (OAuth2Token)
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1", 
+                "targetdomain", expiryTime);
+
+        // Create principal for proxy-user1 who will request the token exchange
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&actor_token=" + actorTokenStr
+                + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenDelegationRequest(context, principal,
+                accessTokenRequest.getActorTokenObj(), accessTokenRequest, "user_domain", "postAccessTokenRequest");
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+        assertEquals(response.getToken_type(), "Bearer");
+        assertTrue(response.getExpires_in() > 0);
+        assertEquals(response.getScope(), "targetdomain:role.writers");
+
+        // Verify the access token
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertNotNull(claimSet);
+            assertNotNull(claimSet.getJWTID());
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "targetdomain");
+            assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
+
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenExchangeDelegationRequestSuccess() throws JOSEException {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        // Create source domain
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        // Create target domain
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        // Add token target exchange policy
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        // Load EC private key for creating tokens
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        // Create subject token (AccessToken) with roles in source domain
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user",
+                "sourcedomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime);
+
+        // Create actor token (OAuth2Token)
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1",
+                "targetdomain", expiryTime);
+
+        // Create principal for proxy-user1 who will request the token exchange
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        ztsImpl.tokenConfigOptions = tokenConfigOptions;
+
+        final String requestBody = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                        + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                        + "&subject_token=" + subjectTokenStr
+                        + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                        + "&actor_token=" + actorTokenStr
+                        + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                        + "&audience=targetdomain"
+                        + "&scope=targetdomain:role.writers";
+
+        AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, requestBody);
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+        assertEquals(response.getToken_type(), "Bearer");
+        assertTrue(response.getExpires_in() > 0);
+        assertEquals(response.getScope(), "targetdomain:role.writers");
+
+        // Verify the access token
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertNotNull(claimSet);
+            assertNotNull(claimSet.getJWTID());
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "targetdomain");
+            assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
+
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+
+            Map actMap = (Map) claimSet.getClaim("act");
+            assertNotNull(actMap);
+            assertEquals(actMap.get("sub"), "user_domain.proxy-user1");
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenExchangeDelegationRequestSuccessMultipleActors() throws JOSEException {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        // Create source domain
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        // Create target domain
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        // Add token target exchange policy
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        // Load EC private key for creating tokens
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        // Create subject token (AccessToken) with roles in source domain
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user",
+                "sourcedomain", subjectRoles, "user_domain.proxy-user1", "athenz.actor", expiryTime);
+
+        // Create actor token (OAuth2Token)
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1",
+                "targetdomain", expiryTime);
+
+        // Create principal for proxy-user1 who will request the token exchange
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        ztsImpl.tokenConfigOptions = tokenConfigOptions;
+
+        final String requestBody = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&actor_token=" + actorTokenStr
+                + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers";
+
+        AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, requestBody);
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+        assertEquals(response.getToken_type(), "Bearer");
+        assertTrue(response.getExpires_in() > 0);
+        assertEquals(response.getScope(), "targetdomain:role.writers");
+
+        // Verify the access token
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertNotNull(claimSet);
+            assertNotNull(claimSet.getJWTID());
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "targetdomain");
+            assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
+
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+
+            Map actMap = (Map) claimSet.getClaim("act");
+            assertNotNull(actMap);
+            assertEquals(actMap.get("sub"), "user_domain.proxy-user1");
+            Map subActMap = (Map) actMap.get("act");
+            assertNotNull(subActMap);
+            assertEquals(subActMap.get("sub"), "athenz.actor");
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestPrincipalMismatch() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, "user_domain.different-user", null, expiryTime);
+
+        // Actor token has different subject than principal
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.different-user", 
+                "targetdomain", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&actor_token=" + actorTokenStr
+                + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+
+        try {
+            ztsImpl.processAccessTokenDelegationRequest(context, principal,
+                    accessTokenRequest.getActorTokenObj(), accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for principal mismatch");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("Request principal does not match actor token principal"));
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestTargetDomainNotFound() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime);
+
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1", 
+                "nonexistentdomain", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&actor_token=" + actorTokenStr
+                + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=nonexistentdomain"
+                + "&scope=nonexistentdomain:role.writers",
+                tokenConfigOptions);
+
+        try {
+            ztsImpl.processAccessTokenDelegationRequest(context, principal,
+                    accessTokenRequest.getActorTokenObj(), accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for target domain not found");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("No such target domain"));
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestSourceDomainNotFound() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        // Subject token has audience pointing to non-existent source domain
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user", 
+                "nonexistentdomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime);
+
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1", 
+                "targetdomain", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&actor_token=" + actorTokenStr
+                + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+
+        try {
+            ztsImpl.processAccessTokenDelegationRequest(context, principal,
+                    accessTokenRequest.getActorTokenObj(), accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for source domain not found");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("No such source domain"));
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestInvalidScope() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        // Subject token only has "writers" role
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime);
+
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1", 
+                "targetdomain", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        // Request a role that's not in the subject token
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&actor_token=" + actorTokenStr
+                + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.readers",
+                tokenConfigOptions);
+
+        try {
+            ztsImpl.processAccessTokenDelegationRequest(context, principal,
+                    accessTokenRequest.getActorTokenObj(), accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for invalid scope");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Invalid scope for token exchange"));
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestNoAccessibleRoles() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        // Remove user_domain.user from writers role in targetdomain to test no accessible roles
+        DataCache targetData = store.getDataCache("targetdomain");
+        DomainData domainData = targetData.getDomainData();
+        List<Role> roles = new ArrayList<>(domainData.getRoles());
+        for (Role role : roles) {
+            if (role.getName().equals("targetdomain:role.writers")) {
+                List<RoleMember> members = new ArrayList<>(role.getRoleMembers());
+                members.removeIf(m -> m.getMemberName().equals("user_domain.user"));
+                role.setRoleMembers(members);
+                break;
+            }
+        }
+        domainData.setRoles(roles);
+        store.processSignedDomain(new SignedDomain()
+                .setDomain(domainData)
+                .setSignature(Crypto.sign(SignUtils.asCanonicalString(domainData), privateKey))
+                .setKeyId("0"), false);
+
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime);
+
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1", 
+                "targetdomain", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&actor_token=" + actorTokenStr
+                + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+
+        try {
+            ztsImpl.processAccessTokenDelegationRequest(context, principal,
+                    accessTokenRequest.getActorTokenObj(), accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for no accessible roles");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("user_domain.user") || ex.getMessage().contains("targetdomain"));
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestNotAuthorizedForExchange() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        // Don't add token target exchange policy - principal won't be authorized
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime);
+
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1", 
+                "targetdomain", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&actor_token=" + actorTokenStr
+                + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+
+        try {
+            ztsImpl.processAccessTokenDelegationRequest(context, principal,
+                    accessTokenRequest.getActorTokenObj(), accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for not authorized");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("Principal not authorized for token exchange"));
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestMultipleRoles() throws JOSEException {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "readers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        // Subject token has both roles
+        List<String> subjectRoles = Arrays.asList("writers", "readers");
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user1", 
+                "sourcedomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime);
+
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1", 
+                "targetdomain", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&actor_token=" + actorTokenStr
+                + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers targetdomain:role.readers",
+                tokenConfigOptions);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenDelegationRequest(context, principal,
+                accessTokenRequest.getActorTokenObj(), accessTokenRequest, "user_domain", "postAccessTokenRequest");
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+        assertEquals(response.getToken_type(), "Bearer");
+        assertTrue(response.getExpires_in() > 0);
+
+        // Verify scope response contains both roles
+        String scope = response.getScope();
+        assertTrue(scope.contains("targetdomain:role.writers"));
+        assertTrue(scope.contains("targetdomain:role.readers"));
+
+        // Verify the access token
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(scopes.size(), 2);
+            assertTrue(scopes.contains("writers"));
+            assertTrue(scopes.contains("readers"));
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestWithExpiryTime() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime);
+
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1", 
+                "targetdomain", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        // Request with specific expiry time
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&actor_token=" + actorTokenStr
+                + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers"
+                + "&expires_in=600",
+                tokenConfigOptions);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenDelegationRequest(context, principal,
+                accessTokenRequest.getActorTokenObj(), accessTokenRequest, "user_domain", "postAccessTokenRequest");
+
+        assertNotNull(response);
+        assertEquals(Integer.valueOf(600), response.getExpires_in());
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestWithOpenIDIssuer() throws JOSEException {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime);
+
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1", 
+                "targetdomain", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&actor_token=" + actorTokenStr
+                + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers"
+                + "&use_openid_issuer=true",
+                tokenConfigOptions);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenDelegationRequest(context, principal,
+                accessTokenRequest.getActorTokenObj(), accessTokenRequest, "user_domain", "postAccessTokenRequest");
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+
+        // Verify the access token uses OpenID issuer
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    KeyStore getServerPublicKeyProvider(final PrivateKey privateKey) {
+
+        PublicKey publicKey = Crypto.extractPublicKey(privateKey);
+        final String publicPem = Crypto.convertToPEMFormat(publicKey);
+
+        // implement a new keystore interface that will load
+        // the public key for the server from the given file
+
+        return new KeyStore() {
+            @Override
+            public String getPublicKey(String domain, String service, String keyId) {
+                return publicPem;
+            }
+            @Override
+            public PublicKey getServicePublicKey(String domain, String service, String keyId) {
+                return publicKey;
+            }
+        };
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestDefaultScope() {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime);
+
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1", 
+                "targetdomain", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+
+        // Don't specify scope - should default to subject token scope
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&actor_token=" + actorTokenStr
+                + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain",
+                tokenConfigOptions);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenDelegationRequest(context, principal,
+                accessTokenRequest.getActorTokenObj(), accessTokenRequest, "user_domain", "postAccessTokenRequest");
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+        assertEquals(response.getScope(), "targetdomain:role.writers");
+
+        cloudStore.close();
+    }
+
+    // Helper method to add token source exchange policy
+    private void addTokenSourceExchangePolicy(String sourceDomainName, String targetDomainName, 
+            String principalName) {
+
+        DataCache data = store.getDataCache(sourceDomainName);
+        if (data == null) {
+            return;
+        }
+
+        DomainData domainData = data.getDomainData();
+        SignedPolicies signedPolicies = domainData.getPolicies();
+        DomainPolicies domainPolicies = signedPolicies.getContents();
+        List<Policy> policies = new ArrayList<>(domainPolicies.getPolicies());
+
+        // Create a policy that allows the principal to perform token source exchange
+        Policy exchangePolicy = new Policy();
+        exchangePolicy.setName(generatePolicyName(targetDomainName, "token_source_exchange"));
+
+        Assertion assertion = new Assertion();
+        assertion.setResource(sourceDomainName + ":" + targetDomainName);
+        assertion.setAction(ZTSConsts.ZTS_ACTION_TOKEN_SOURCE_EXCHANGE);
+        assertion.setEffect(com.yahoo.athenz.zms.AssertionEffect.ALLOW);
+
+        // Create a role for the principal
+        Role principalRole = new Role();
+        principalRole.setName(generateRoleName(targetDomainName, "token_source_exchanger"));
+        List<RoleMember> principalMembers = new ArrayList<>();
+        principalMembers.add(new RoleMember().setMemberName(principalName));
+        principalRole.setRoleMembers(principalMembers);
+
+        // Add role to domain if it doesn't exist
+        List<Role> roles = new ArrayList<>(domainData.getRoles());
+        boolean roleExists = roles.stream().anyMatch(r -> r.getName().equals(principalRole.getName()));
+        if (!roleExists) {
+            roles.add(principalRole);
+            domainData.setRoles(roles);
+        }
+
+        assertion.setRole(generateRoleName(targetDomainName, "token_source_exchanger"));
+
+        List<Assertion> assertions = new ArrayList<>();
+        assertions.add(assertion);
+        exchangePolicy.setAssertions(assertions);
+        policies.add(exchangePolicy);
+
+        domainPolicies.setPolicies(policies);
+        signedPolicies.setContents(domainPolicies);
+        signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
+
+        domainData.setPolicies(signedPolicies);
+
+        // Update the data cache
+        store.processSignedDomain(new SignedDomain()
+                .setDomain(domainData)
+                .setSignature(Crypto.sign(SignUtils.asCanonicalString(domainData), privateKey))
+                .setKeyId("0"), false);
+    }
+
+    // Helper method to create subject token for impersonation (no mayAct, no actor)
+    private String createSubjectToken(PrivateKey privateKey, final String keyId, final String subject,
+                final String audience, List<String> roles, long expiryTime) {
+        try {
+            AccessToken accessToken = new AccessToken();
+            accessToken.setVersion(1);
+            accessToken.setJwtId(UUID.randomUUID().toString());
+            accessToken.setAudience(audience);
+            accessToken.setSubject(subject);
+            long iat = System.currentTimeMillis() / 1000;
+            accessToken.setIssueTime(iat);
+            accessToken.setAuthTime(iat);
+            accessToken.setExpiryTime(expiryTime);
+            accessToken.setUserId(subject);
+            accessToken.setClientId(subject);
+            accessToken.setIssuer("https://athenz.io:4443/zts/v1");
+            accessToken.setScope(roles != null ? roles : new ArrayList<>());
+
+            ServerPrivateKey serverPrivateKey = new ServerPrivateKey(privateKey, keyId);
+            
+            return accessToken.getSignedToken(serverPrivateKey.getKey(), serverPrivateKey.getId(), 
+                    serverPrivateKey.getAlgorithm());
+        } catch (Exception ex) {
+            fail("Failed to create SubjectToken: " + ex.getMessage());
+            return null;
+        }
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestSuccess() throws JOSEException {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        // Create source domain
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        // Create target domain
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        // Add token source exchange policy
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        
+        // Add token target exchange policy
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        // Load EC private key for creating tokens
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        // Create subject token (AccessToken) with roles in source domain
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, expiryTime);
+
+        // Create principal for proxy-user1 who will request the token exchange
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                accessTokenRequest, "user_domain", "postAccessTokenRequest");
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+        assertEquals(response.getToken_type(), "Bearer");
+        assertTrue(response.getExpires_in() > 0);
+        assertEquals(response.getScope(), "targetdomain:role.writers");
+
+        // Verify the access token
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertNotNull(claimSet);
+            assertNotNull(claimSet.getJWTID());
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "targetdomain");
+            assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
+            assertEquals(claimSet.getStringClaim("client_id"), "user_domain.proxy-user1");
+            assertEquals(claimSet.getStringClaim("uid"), "user_domain.proxy-user1");
+
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestSuccessDefaultScope() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        
+        // Don't specify scope - should default to subject token scope
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain",
+                tokenConfigOptions);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                accessTokenRequest, "user_domain", "postAccessTokenRequest");
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+        assertEquals(response.getScope(), "targetdomain:role.writers");
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestSuccessMultipleRoles() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "readers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = Arrays.asList("writers", "readers");
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user1",
+                "sourcedomain", subjectRoles, expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers targetdomain:role.readers",
+                tokenConfigOptions);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                accessTokenRequest, "user_domain", "postAccessTokenRequest");
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+        assertTrue(response.getScope().contains("targetdomain:role.writers"));
+        assertTrue(response.getScope().contains("targetdomain:role.readers"));
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestSuccessWithOpenIDIssuer() throws JOSEException {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers"
+                + "&use_openid_issuer=true",
+                tokenConfigOptions);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                accessTokenRequest, "user_domain", "postAccessTokenRequest");
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+
+        // Verify the access token uses OpenID issuer
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+            assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestTargetDomainNotFound() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=nonexistentdomain"
+                + "&scope=nonexistentdomain:role.writers",
+                tokenConfigOptions);
+
+        try {
+            ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for target domain not found");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("No such target domain"));
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestSourceDomainNotFound() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        // Subject token has audience set to non-existent source domain
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user", 
+                "nonexistentsource", subjectRoles, expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+
+        try {
+            ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for source domain not found");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("No such source domain"));
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestInvalidScope() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        // Subject token only has "writers" role
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        // Requesting "readers" role which is not in subject token
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.readers",
+                tokenConfigOptions);
+
+        try {
+            ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for invalid scope");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Invalid scope for token exchange"));
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestSubjectNoAccess() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        // Don't add token target exchange policy - principal won't be authorized
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        // Subject token has "writers" but subject principal doesn't have access in target domain
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user5", 
+                "sourcedomain", subjectRoles, expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+
+        try {
+            ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for subject no access");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("not included in the requested role(s) in domain targetdomain"));
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestNotAuthorizedForSourceExchange() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        // Don't add token source exchange policy - principal won't be authorized
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+
+        try {
+            ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for not authorized for source exchange");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("Principal not authorized for token impersonation from source domain"));
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestNotAuthorizedForTargetExchange() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        // Don't add token target exchange policy - principal won't be authorized
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+
+        try {
+            ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for not authorized for target exchange");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("Principal not authorized for token exchange for the requested role"));
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestPartialRoleAccess() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        // Only add target exchange policy for "writers", not "readers"
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = Arrays.asList("writers", "readers");
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        // Request both roles but only "writers" is authorized
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers targetdomain:role.readers",
+                tokenConfigOptions);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                accessTokenRequest, "user_domain", "postAccessTokenRequest");
+        assertEquals(response.getScope(), "targetdomain:role.writers");
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestSuccessWithMTLS() throws Exception {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        // Load certificate for mTLS
+        Path certPath = Paths.get("src/test/resources/athenz.instanceid.pem");
+        String certPem = new String(Files.readAllBytes(certPath));
+        X509Certificate cert = Crypto.loadX509Certificate(certPem);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, expiryTime);
+
+        // Create principal with certificate for mTLS
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        principal.setX509Certificate(cert);
+
+        assertNotNull(principal.getX509Certificate());
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                accessTokenRequest, "user_domain", "postAccessTokenRequest");
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+
+        // Verify the access token has certificate binding
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+            assertNotNull(claimSet.getClaim("cnf"));
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestSuccessWithProxyPrincipals() throws Exception {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        // Load certificate for mTLS
+        Path certPath = Paths.get("src/test/resources/athenz.instanceid.pem");
+        String certPem = new String(Files.readAllBytes(certPath));
+        X509Certificate cert = Crypto.loadX509Certificate(certPem);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user", 
+                "sourcedomain", subjectRoles, expiryTime);
+
+        // Create principal with certificate for mTLS
+        SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        principal.setX509Certificate(cert);
+
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        
+        // Include proxy principals spiffe URIs in the request string
+        AccessTokenRequest accessTokenRequest = getAccessTokenRequest(subjectTokenStr, tokenConfigOptions);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                accessTokenRequest, "user_domain", "postAccessTokenRequest");
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+
+        // Verify the access token has proxy principals spiffe URIs
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+            assertNotNull(claimSet.getClaim("cnf"));
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    private static @NonNull AccessTokenRequest getAccessTokenRequest(String subjectTokenStr,
+            TokenConfigOptions tokenConfigOptions) {
+        String proxyPrincipalsEncoded = "spiffe://athenz.io/sa/proxy1,spiffe://athenz.io/sa/proxy2";
+        return new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers"
+                + "&proxy_principal_spiffe_uris=" + proxyPrincipalsEncoded,
+                tokenConfigOptions);
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestEmptyRoles() {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        // Subject token has "writers" but subject principal doesn't have access in target domain
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user5", 
+                "sourcedomain", subjectRoles, expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+
+        try {
+            ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                    accessTokenRequest, "user_domain", "postAccessTokenRequest");
+            fail("Expected ResourceException for empty roles");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("not included in the requested role(s) in domain targetdomain"));
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenExchangeImpersonationRequestSuccess() throws JOSEException {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "readers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = Arrays.asList("writers", "readers");
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user1",
+                "sourcedomain", subjectRoles, expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        ztsImpl.tokenConfigOptions = tokenConfigOptions;
+
+        final String requestBody = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                        + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                        + "&subject_token=" + subjectTokenStr
+                        + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                        + "&audience=targetdomain"
+                        + "&scope=targetdomain:role.writers targetdomain:role.readers";
+
+        AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, requestBody);
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+        assertTrue(response.getScope().contains("targetdomain:role.writers"));
+        assertTrue(response.getScope().contains("targetdomain:role.readers"));
+
+        // Verify the access token
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertNotNull(claimSet);
+            assertNotNull(claimSet.getJWTID());
+            assertEquals(claimSet.getSubject(), "user_domain.user1");
+            assertEquals(claimSet.getAudience().get(0), "targetdomain");
+            assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
+
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(scopes.size(), 2);
+            assertTrue(scopes.contains("writers"));
+            assertTrue(scopes.contains("readers"));
+
+            // no actor claim should be present in impersonation token
+            assertNull(claimSet.getClaim("act"));
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
