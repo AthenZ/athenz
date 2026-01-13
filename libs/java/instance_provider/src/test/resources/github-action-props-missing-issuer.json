@@ -1,0 +1,10 @@
+{
+  "props": [
+    {
+      "provider_dns_suffix": "example-suffix1,example-suffix2",
+      "enterprise": "enterprise1",
+      "audience": "https://audience1.com",
+      "jwks_uri": "https://issuer1.com/jwks"
+    }
+  ]
+}
