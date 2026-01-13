@@ -217,6 +217,7 @@ func TestStoreAthenzIdentityInCertificateManager(t *testing.T) {
 				tt.certName,
 				tt.location,
 				tt.siaCertData,
+				0,
 				tt.resourceLabels,
 			)
 
@@ -366,6 +367,7 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 				tt.certName,
 				tt.location,
 				tt.siaCertData,
+				0,
 				tt.resourceLabels,
 			)
 
@@ -420,6 +422,7 @@ func TestStoreIdentityInCertificateManager_ProjectIdError(t *testing.T) {
 		"test-cert",
 		"global",
 		testCert,
+		0,
 		nil,
 	)
 
@@ -460,6 +463,7 @@ func TestStoreIdentityInCertificateManager_CertificateRequestCalled(t *testing.T
 		"my-cert",
 		"us-west1",
 		testCert,
+		0,
 		nil,
 	)
 

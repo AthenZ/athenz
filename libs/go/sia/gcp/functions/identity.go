@@ -314,7 +314,15 @@ func (p *DefaultMetadataProvider) GetProject(metaEndpoint string) (string, error
 //
 // The location parameter specifies where the certificate should be created (e.g., "global").
 // For regional certificates, specify the region (e.g., "us-central1").
-func StoreAthenzIdentityInCertificateManager(certificateName, location string, siaCertData *util.SiaCertData, resourceLabels map[string]string) error {
+//
+// The scope parameter specifies the scope of the certificate. Valid values are:
+//   - 0: DEFAULT
+//   - 1: EDGE_CACHE
+//   - 2: REGIONAL_LOAD_BALANCER
+//   - 3: CLIENT_AUTH
+//
+// The resourceLabels parameter allows you to set custom labels on the certificate resource.
+func StoreAthenzIdentityInCertificateManager(certificateName, location string, siaCertData *util.SiaCertData, scope int32, resourceLabels map[string]string) error {
 
 	// Validate input
 	if siaCertData == nil || siaCertData.X509CertificatePem == "" || siaCertData.PrivateKeyPem == "" {
@@ -335,10 +343,10 @@ func StoreAthenzIdentityInCertificateManager(certificateName, location string, s
 	// Wrap the real client in an adapter to match the interface
 	clientAdapter := &certificateManagerClientAdapter{client: certificateManagerClient}
 	metadataProvider := &DefaultMetadataProvider{}
-	return storeIdentityInCertificateManager(ctx, clientAdapter, metadataProvider, certificateName, location, siaCertData, resourceLabels)
+	return storeIdentityInCertificateManager(ctx, clientAdapter, metadataProvider, certificateName, location, siaCertData, scope, resourceLabels)
 }
 
-func storeIdentityInCertificateManager(ctx context.Context, certificateManagerClient CertificateManagerClientInterface, metadataProvider MetadataProvider, certificateName, location string, siaCertData *util.SiaCertData, resourceLabels map[string]string) error {
+func storeIdentityInCertificateManager(ctx context.Context, certificateManagerClient CertificateManagerClientInterface, metadataProvider MetadataProvider, certificateName, location string, siaCertData *util.SiaCertData, scope int32, resourceLabels map[string]string) error {
 
 	// Get the project id from metadata
 	gcpProjectId, err := metadataProvider.GetProject(gcpMetaDataServer)
@@ -365,6 +373,7 @@ func storeIdentityInCertificateManager(ctx context.Context, certificateManagerCl
 				},
 			},
 			Labels: resourceLabels,
+			Scope:  certificatemanagerpb.Certificate_Scope(scope),
 		},
 	}
 
