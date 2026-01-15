@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.security.PrivateKey;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -511,5 +512,81 @@ public class ZTSTestUtils {
             }
         }
         return false;
+    }
+
+    public static SignedDomain signedAuthorizedProviderDomain(PrivateKey privateKey) {
+
+        SignedDomain signedDomain = new SignedDomain();
+
+        List<Role> roles = new ArrayList<>();
+
+        Role role = new Role();
+        role.setName(ResourceUtils.roleResourceName("sys.auth", "providers"));
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("athenz.provider"));
+        members.add(new RoleMember().setMemberName("sys.auth.zts"));
+        role.setRoleMembers(members);
+        roles.add(role);
+
+        List<com.yahoo.athenz.zms.Policy> policies = new ArrayList<>();
+
+        com.yahoo.athenz.zms.Policy policy = new com.yahoo.athenz.zms.Policy();
+        com.yahoo.athenz.zms.Assertion assertion1 = new com.yahoo.athenz.zms.Assertion();
+        assertion1.setResource("sys.auth:instance");
+        assertion1.setAction("launch");
+        assertion1.setRole("sys.auth:role.providers");
+
+        com.yahoo.athenz.zms.Assertion assertion2 = new com.yahoo.athenz.zms.Assertion();
+        assertion2.setResource("sys.auth:dns.ostk.athenz.cloud");
+        assertion2.setAction("launch");
+        assertion2.setRole("sys.auth:role.providers");
+
+        com.yahoo.athenz.zms.Assertion assertion3 = new com.yahoo.athenz.zms.Assertion();
+        assertion3.setResource("sys.auth:hostname.athenz.cloud");
+        assertion3.setAction("launch");
+        assertion3.setRole("sys.auth:role.providers");
+
+        com.yahoo.athenz.zms.Assertion assertion4 = new com.yahoo.athenz.zms.Assertion();
+        assertion4.setResource("sys.auth:hostname.athenz.info");
+        assertion4.setAction("launch");
+        assertion4.setRole("sys.auth:role.providers");
+
+        List<com.yahoo.athenz.zms.Assertion> assertions = new ArrayList<>();
+        assertions.add(assertion1);
+        assertions.add(assertion2);
+        assertions.add(assertion3);
+        assertions.add(assertion4);
+
+        policy.setAssertions(assertions);
+        policy.setName("sys.auth:policy.providers");
+        policies.add(policy);
+
+        com.yahoo.athenz.zms.DomainPolicies domainPolicies = new com.yahoo.athenz.zms.DomainPolicies();
+        domainPolicies.setDomain("sys.auth");
+        domainPolicies.setPolicies(policies);
+
+        com.yahoo.athenz.zms.SignedPolicies signedPolicies = new com.yahoo.athenz.zms.SignedPolicies();
+        signedPolicies.setContents(domainPolicies);
+        signedPolicies.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainPolicies), privateKey));
+        signedPolicies.setKeyId("0");
+
+        DomainData domain = new DomainData();
+        domain.setName("sys.auth");
+        domain.setRoles(roles);
+        domain.setPolicies(signedPolicies);
+        domain.setModified(Timestamp.fromCurrentTime());
+
+        signedDomain.setDomain(domain);
+
+        signedDomain.setSignature(Crypto.sign(SignUtils.asCanonicalString(domain), privateKey));
+        signedDomain.setKeyId("0");
+
+        return signedDomain;
+    }
+
+    public static void setStaticField(Class<?> clazz, String fieldName, Object value) throws Exception {
+        Field field = clazz.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(null, value);
     }
 }

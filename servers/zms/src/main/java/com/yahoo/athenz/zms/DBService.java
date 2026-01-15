@@ -3486,9 +3486,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            final String domain = con.lookupDomainByCloudProvider(provider, value);
-            if (domain != null) {
-                domList.setNames(Collections.singletonList(domain));
+            final List<String> domains = con.lookupDomainByCloudProvider(provider, value);
+            if (!domains.isEmpty()) {
+                domList.setNames(domains);
             }
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
@@ -3512,9 +3512,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            String domain = con.lookupDomainByProductId(productId);
-            if (domain != null) {
-                domList.setNames(Collections.singletonList(domain));
+            final List<String> domains = con.lookupDomainByProductId(productId);
+            if (!domains.isEmpty()) {
+                domList.setNames(domains);
             }
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
@@ -3526,9 +3526,9 @@ public class DBService implements RolesProvider, DomainProvider {
 
         DomainList domList = new DomainList();
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            String domain = con.lookupDomainByProductId(productId);
-            if (domain != null) {
-                domList.setNames(Collections.singletonList(domain));
+            final List<String> domains = con.lookupDomainByProductId(productId);
+            if (!domains.isEmpty()) {
+                domList.setNames(domains);
             }
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
@@ -4427,6 +4427,7 @@ public class DBService implements RolesProvider, DomainProvider {
                         .setOrg(domain.getOrg())
                         .setApplicationId(domain.getApplicationId())
                         .setAccount(domain.getAccount())
+                        .setAwsAccountName(domain.getAwsAccountName())
                         .setAzureSubscription(domain.getAzureSubscription())
                         .setAzureTenant(domain.getAzureTenant())
                         .setAzureClient(domain.getAzureClient())
@@ -4884,6 +4885,11 @@ public class DBService implements RolesProvider, DomainProvider {
                     throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
                 }
                 domain.setAccount(meta.getAccount());
+                if (StringUtil.isEmpty(meta.getAccount())) {
+                    domain.setAwsAccountName(null);
+                } else if (!StringUtil.isEmpty(meta.getAwsAccountName())) {
+                    domain.setAwsAccountName(meta.getAwsAccountName());
+                }
                 break;
             case ZMSConsts.SYSTEM_META_AZURE_SUBSCRIPTION:
                 if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getAzureSubscription(), meta.getAzureSubscription())) {
@@ -5165,6 +5171,21 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 if (originalRole != null) {
                     mergeOriginalRoleAndMetaRoleAttributes(originalRole, templateRole);
+                }
+
+                // Check for conflict: Existing members, applying Trust
+                if (originalRole != null && StringUtil.isEmpty(originalRole.getTrust()) &&
+                        originalRole.getRoleMembers() != null && !originalRole.getRoleMembers().isEmpty()) {
+                    if (!StringUtil.isEmpty(templateRole.getTrust())) {
+                        LOG.warn("SolutionTemplate is setting trust on role {} which already has members", templateRole.getName());
+                    }
+                }
+
+                // Check for conflict: Existing Trust, applying Members
+                if (originalRole != null && !StringUtil.isEmpty(originalRole.getTrust())) {
+                    if (templateRole.getRoleMembers() != null && !templateRole.getRoleMembers().isEmpty()) {
+                        LOG.warn("SolutionTemplate is adding members to role {} which is a trusted role", templateRole.getName());
+                    }
                 }
 
                 // before processing, make sure to validate the role to make
@@ -6510,6 +6531,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 .append("\", \"auditEnabled\": \"").append(domain.getAuditEnabled())
                 .append("\", \"enabled\": \"").append(domain.getEnabled())
                 .append("\", \"awsAccount\": \"").append(domain.getAccount())
+                .append("\", \"awsAccountName\": \"").append(domain.getAwsAccountName())
                 .append("\", \"appId\": \"").append(domain.getApplicationId())
                 .append("\", \"ypmid\": \"").append(domain.getYpmId())
                 .append("\", \"id\": \"").append(domain.getId())

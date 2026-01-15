@@ -240,6 +240,12 @@ public class DomainDependencyTest {
                     "to get response from server: https://localhost/service-provider\"}");
         }
 
+        // get the domain dependency list and make sure provider is included
+
+        ServiceIdentityList serviceIdentityList = zmsImpl.getDependentServiceList(sysAdminCtx, secondTopLevelDomain);
+        assertEquals(serviceIdentityList.getNames().size(), 1);
+        assertEquals(serviceIdentityList.getNames().get(0), fullServiceProviderName);
+
         // Now make the service provider client approve deletion of the domains
 
         ServiceProviderClient serviceProviderClient = Mockito.mock(ServiceProviderClient.class);

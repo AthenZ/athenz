@@ -13,45 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const {
+    navigateAndWait,
+    waitAndClick,
+    waitAndSetValue,
+    authenticateAndWait,
+    waitForElement,
+    waitForElementExist,
+    beforeEachTest,
+} = require('../libs/helpers');
 
 describe('Home page', () => {
+    beforeEach(async () => {
+        await beforeEachTest();
+    });
+
     it('should redirect to okta without credentials', async () => {
-        await browser.url(`/`);
+        await navigateAndWait('/');
         await expect(browser).toHaveUrl(expect.stringContaining('okta'));
     });
 
     it('should login with valid credentials', async () => {
-        await browser.newUser();
-        await browser.url(`/`);
+        await authenticateAndWait();
+        await navigateAndWait('/');
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
     });
 
     // TODO: Update test when able to create a new domain with unique name 'X' and create role against 'X'
     it('should successfully add and delete role', async () => {
+        await authenticateAndWait();
+        await navigateAndWait('/');
+
         let testDomain = await $('a*=athenz.dev.functional-test');
         let testRoleName = 'testroleindex';
-        await browser.waitUntil(async () => await testDomain.isClickable());
-        await testDomain.click();
+        await waitAndClick(testDomain);
 
-        let addRoleButton = await $('button*=Add Role');
-        await browser.waitUntil(async () => await addRoleButton.isClickable());
-        await addRoleButton.click();
-        let roleNameInput = await $('#role-name-input');
-        await roleNameInput.addValue(testRoleName);
-        let submitButton = await $('button*=Submit');
-        await submitButton.click();
+        await waitAndClick('button*=Add Role');
+        await waitAndSetValue('#role-name-input', testRoleName);
+        await waitAndClick('button*=Submit');
 
         let testRole = await $(`span*= ${testRoleName}`);
-        await browser.waitUntil(async () => await testRole.isDisplayed());
+        await waitForElement(testRole);
         await expect(testRole).toExist();
 
-        let deleteRoleButton = await $(`#${testRoleName}-delete-role-button`);
-        await deleteRoleButton.click();
+        await waitAndClick(`#${testRoleName}-delete-role-button`);
+        await waitAndClick('button[data-testid="delete-modal-delete"]');
 
-        let confirmDeleteRoleButton = await $(
-            'button[data-testid="delete-modal-delete"]'
-        );
-        await confirmDeleteRoleButton.click();
+        await waitForElementExist(testRole, { reverse: true });
         await expect(testRole).not.toExist();
     });
 });

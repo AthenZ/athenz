@@ -92,8 +92,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " member_expiry_days, token_expiry_mins, service_cert_expiry_mins, role_cert_expiry_mins, sign_algorithm,"
             + " service_expiry_days, user_authority_filter, group_expiry_days, azure_subscription, business_service,"
             + " member_purge_expiry_days, gcp_project, gcp_project_number, product_id, feature_flags, environment,"
-            + " azure_tenant, azure_client, x509_cert_signer_keyid, ssh_cert_signer_keyid, slack_channel, on_call, auto_delete_tenant_assume_role_assertions) "
-            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " azure_tenant, azure_client, x509_cert_signer_keyid, ssh_cert_signer_keyid, slack_channel, on_call,"
+            + " auto_delete_tenant_assume_role_assertions, aws_account_name) "
+            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3), description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?,"
             + " application_id=?, cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?,"
@@ -101,7 +102,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " group_expiry_days=?, azure_subscription=?, business_service=?, member_purge_expiry_days=?,"
             + " gcp_project=?, gcp_project_number=?, product_id=?, feature_flags=?, environment=?,"
             + " azure_tenant=?, azure_client=?, x509_cert_signer_keyid=?, ssh_cert_signer_keyid=?,"
-            + " slack_channel=?, on_call=?, auto_delete_tenant_assume_role_assertions=? WHERE name=?;";
+            + " slack_channel=?, on_call=?, auto_delete_tenant_assume_role_assertions=?, aws_account_name=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -933,6 +934,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setOrg(saveValue(rs.getString(JDBCConsts.DB_COLUMN_ORG)))
                 .setId(saveUuidValue(rs.getString(JDBCConsts.DB_COLUMN_UUID)))
                 .setAccount(saveValue(rs.getString(JDBCConsts.DB_COLUMN_ACCOUNT)))
+                .setAwsAccountName(saveValue(rs.getString(JDBCConsts.DB_COLUMN_AWS_ACCOUNT_NAME)))
                 .setAzureSubscription(saveValue(rs.getString(JDBCConsts.DB_COLUMN_AZURE_SUBSCRIPTION)))
                 .setAzureTenant(saveValue(rs.getString(JDBCConsts.DB_COLUMN_AZURE_TENANT)))
                 .setAzureClient(saveValue(rs.getString(JDBCConsts.DB_COLUMN_AZURE_CLIENT)))
@@ -1036,6 +1038,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(31, processInsertValue(domain.getSlackChannel()));
             ps.setString(32, processInsertValue(domain.getOnCall()));
             ps.setBoolean(33, processInsertValue(domain.getAutoDeleteTenantAssumeRoleAssertions(), false));
+            ps.setString(34, processInsertValue(domain.getAwsAccountName()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1068,7 +1071,26 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
     }
 
-    void verifyDomainProductIdUniqueness(final String name, Integer productNumber, final String caller) throws ServerResourceException {
+    void uniquenessCheck(final List<String> domains, final String domainName, final String label,
+            final String caller) throws ServerResourceException {
+
+        // if the domains list is null or empty then we're good
+
+        if (domains == null || domains.isEmpty()) {
+            return;
+        }
+
+        // if we have more than one domain or the single
+        // domain is different from our current domain
+        // then our value is not unique
+
+        if (domains.size() > 1 || !domains.get(0).equals(domainName)) {
+            throw requestError(caller, label + " is already assigned to domain: " + domains.get(0));
+        }
+    }
+
+    void verifyDomainProductIdUniqueness(final String domainName, Integer productNumber, final String caller)
+            throws ServerResourceException {
 
         if (productNumber == null || productNumber == 0) {
             return;
@@ -1076,13 +1098,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainOptions != null && !domainOptions.getEnforceUniqueProductIds()) {
             return;
         }
-        final String domainName = lookupDomainByProductId(productNumber);
-        if (domainName != null && !domainName.equals(name)) {
-            throw requestError(caller, "Product Id: " + productNumber + " is already assigned to domain: " + domainName);
-        }
+        uniquenessCheck(lookupDomainByProductId(productNumber), domainName, "Product Id: " + productNumber, caller);
     }
 
-    void verifyDomainProductIdUniqueness(final String name, String productId, final String caller) throws ServerResourceException {
+    void verifyDomainProductIdUniqueness(final String domainName, String productId, final String caller)
+            throws ServerResourceException {
 
         if (StringUtil.isEmpty(productId)) {
             return;
@@ -1090,13 +1110,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainOptions != null && !domainOptions.getEnforceUniqueProductIds()) {
             return;
         }
-        final String domainName = lookupDomainByProductId(productId);
-        if (domainName != null && !domainName.equals(name)) {
-            throw requestError(caller, "Product Id: " + productId + " is already assigned to domain: " + domainName);
-        }
+        uniquenessCheck(lookupDomainByProductId(productId), domainName, "Product Id: " + productId, caller);
     }
 
-    void verifyDomainAwsAccountUniqueness(final String name, final String account, final String caller) throws ServerResourceException {
+    void verifyDomainAwsAccountUniqueness(final String domainName, final String account, final String caller)
+            throws ServerResourceException {
 
         if (StringUtil.isEmpty(account)) {
             return;
@@ -1104,13 +1122,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainOptions != null && !domainOptions.getEnforceUniqueAWSAccounts()) {
             return;
         }
-        final String domainName = lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AWS, account);
-        if (domainName != null && !domainName.equals(name)) {
-            throw requestError(caller, "Account Id: " + account + " is already assigned to domain: " + domainName);
-        }
+        uniquenessCheck(lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AWS, account), domainName,
+                "Account Id: " + account, caller);
     }
 
-    void verifyDomainAzureSubscriptionUniqueness(final String name, final String subscription, final String caller) throws ServerResourceException {
+    void verifyDomainAzureSubscriptionUniqueness(final String domainName, final String subscription,
+            final String caller) throws ServerResourceException {
 
         if (StringUtil.isEmpty(subscription)) {
             return;
@@ -1118,13 +1135,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainOptions != null && !domainOptions.getEnforceUniqueAzureSubscriptions()) {
             return;
         }
-        final String domainName = lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AZURE, subscription);
-        if (domainName != null && !domainName.equals(name)) {
-            throw requestError(caller, "Subscription Id: " + subscription + " is already assigned to domain: " + domainName);
-        }
+        uniquenessCheck(lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AZURE, subscription), domainName,
+                "Subscription Id: " + subscription, caller);
     }
 
-    void verifyDomainGcpProjectUniqueness(final String name, final String project, final String caller) throws ServerResourceException {
+    void verifyDomainGcpProjectUniqueness(final String domainName, final String project, final String caller)
+            throws ServerResourceException {
 
         if (StringUtil.isEmpty(project)) {
             return;
@@ -1132,10 +1148,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainOptions != null && !domainOptions.getEnforceUniqueGCPProjects()) {
             return;
         }
-        final String domainName = lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_GCP, project);
-        if (domainName != null && !domainName.equals(name)) {
-            throw requestError(caller, "Project: " + project + " is already assigned to domain: " + domainName);
-        }
+        uniquenessCheck(lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_GCP, project), domainName,
+                "Project: " + project, caller);
     }
 
     @Override
@@ -1187,7 +1201,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(30, processInsertValue(domain.getSlackChannel()));
             ps.setString(31, processInsertValue(domain.getOnCall()));
             ps.setBoolean(32, processInsertValue(domain.getAutoDeleteTenantAssumeRoleAssertions(), false));
-            ps.setString(33, domain.getName());
+            ps.setString(33, processInsertValue(domain.getAwsAccountName()));
+            ps.setString(34, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1343,41 +1358,41 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public String lookupDomainByProductId(int productId) throws ServerResourceException {
+    public List<String> lookupDomainByProductId(int productId) throws ServerResourceException {
 
         final String caller = "lookupDomainByProductId";
-        String domainName = null;
+        List<String> domains = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_WITH_YPM_ID)) {
             ps.setInt(1, productId);
             try (ResultSet rs = executeQuery(ps, caller)) {
-                if (rs.next()) {
-                    domainName = rs.getString(1);
+                while (rs.next()) {
+                    domains.add(rs.getString(JDBCConsts.DB_COLUMN_NAME));
                 }
             }
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
-
-        return domainName;
+        Collections.sort(domains);
+        return domains;
     }
 
     @Override
-    public String lookupDomainByProductId(String productId) throws ServerResourceException {
+    public List<String> lookupDomainByProductId(String productId) throws ServerResourceException {
 
         final String caller = "lookupDomainByProductId";
-        String domainName = null;
+        List<String> domains = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(SQL_GET_DOMAIN_WITH_PRODUCT_ID)) {
             ps.setString(1, productId);
             try (ResultSet rs = executeQuery(ps, caller)) {
-                if (rs.next()) {
-                    domainName = rs.getString(1);
+                while (rs.next()) {
+                    domains.add(rs.getString(JDBCConsts.DB_COLUMN_NAME));
                 }
             }
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
-
-        return domainName;
+        Collections.sort(domains);
+        return domains;
     }
 
     String getCloudProviderLookupDomainSQLCommand(final String provider) {
@@ -1426,26 +1441,26 @@ public class JDBCConnection implements ObjectStoreConnection {
     }
 
     @Override
-    public String lookupDomainByCloudProvider(String provider, String value) throws ServerResourceException {
+    public List<String> lookupDomainByCloudProvider(String provider, String value) throws ServerResourceException {
 
         final String caller = "lookupDomainByCloudProvider";
         final String sqlCmd = getCloudProviderLookupDomainSQLCommand(provider);
         if (sqlCmd == null || value == null) {
-            return null;
+            return Collections.emptyList();
         }
-        String domainName = null;
+        List<String> domains = new ArrayList<>();
         try (PreparedStatement ps = con.prepareStatement(sqlCmd)) {
             ps.setString(1, value.trim());
             try (ResultSet rs = executeQuery(ps, caller)) {
-                if (rs.next()) {
-                    domainName = rs.getString(1);
+                while (rs.next()) {
+                    domains.add(rs.getString(JDBCConsts.DB_COLUMN_NAME));
                 }
             }
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
         }
-
-        return domainName;
+        Collections.sort(domains);
+        return domains;
     }
 
     @Override
@@ -1454,7 +1469,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         final String caller = "listDomainByCloudProvider";
         final String sqlCmd = getCloudProviderListDomainsSQLCommand(provider);
         if (sqlCmd == null) {
-            return null;
+            return Collections.emptyMap();
         }
         final String columnName = getCloudProviderColumnName(provider);
         Map<String, String> domains = new HashMap<>();

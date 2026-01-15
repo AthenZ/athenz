@@ -22,6 +22,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
+import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -57,7 +58,7 @@ public class AccessTokenTest {
     void setAccessCommonFields(AccessToken accessToken, long now) {
         accessToken.setAuthTime(now);
         accessToken.setJwtId("jwt-id001");
-        accessToken.setSubject("subject");
+        accessToken.setSubject("athenz.api");
         accessToken.setUserId("userid");
         accessToken.setExpiryTime(now + 3600);
         accessToken.setIssueTime(now);
@@ -67,6 +68,8 @@ public class AccessTokenTest {
         accessToken.setIssuer("athenz");
         accessToken.setProxyPrincipal("proxy.user");
         accessToken.setConfirmEntry("x5t#uri", "spiffe://athenz/sa/api");
+        accessToken.setActEntry("sub", "user.sub1");
+        accessToken.setMayActEntry("sub", "user.sub2");
         accessToken.setAuthorizationDetails("[{\"type\":\"message_access\",\"data\":\"resource\"}]");
 
         try {
@@ -99,7 +102,7 @@ public class AccessTokenTest {
 
     void validateAccessTokenCommon(AccessToken accessToken, long now) {
         assertEquals(now, accessToken.getAuthTime());
-        assertEquals(accessToken.getSubject(), "subject");
+        assertEquals(accessToken.getSubject(), "athenz.api");
         assertEquals(accessToken.getUserId(), "userid");
         assertEquals(accessToken.getExpiryTime(), now + 3600);
         assertEquals(accessToken.getIssueTime(), now);
@@ -183,7 +186,7 @@ public class AccessTokenTest {
         JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
         assertNotNull(claimsSet);
 
-        assertEquals(claimsSet.getSubject(), "subject");
+        assertEquals(claimsSet.getSubject(), "athenz.api");
         assertEquals(JwtsHelper.getAudience(claimsSet), "coretech");
         assertEquals(claimsSet.getIssuer(), "athenz");
         assertEquals(claimsSet.getJWTID(), "jwt-id001");
@@ -192,6 +195,12 @@ public class AccessTokenTest {
         assertNotNull(scopes);
         assertEquals(scopes.size(), 1);
         assertEquals(scopes.get(0), "readers");
+
+        Map <?, ?> act = (Map<?, ?>) claimsSet.getClaim("act");
+        assertEquals(act.get("sub"), "user.sub1");
+
+        Map <?, ?> mayAct = (Map<?, ?>) claimsSet.getClaim("may_act");
+        assertEquals(mayAct.get("sub"), "user.sub2");
     }
 
     @Test
@@ -230,7 +239,7 @@ public class AccessTokenTest {
         JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
         assertNotNull(claimsSet);
 
-        assertEquals(claimsSet.getSubject(), "subject");
+        assertEquals(claimsSet.getSubject(), "athenz.api");
         assertEquals(JwtsHelper.getAudience(claimsSet), "coretech");
         assertEquals(claimsSet.getIssuer(), "athenz");
         assertEquals(claimsSet.getJWTID(), "jwt-id001");
@@ -269,7 +278,7 @@ public class AccessTokenTest {
         JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
         assertNotNull(claimsSet);
 
-        assertEquals(claimsSet.getSubject(), "subject");
+        assertEquals(claimsSet.getSubject(), "athenz.api");
         assertEquals(JwtsHelper.getAudience(claimsSet), "coretech");
         assertEquals(claimsSet.getIssuer(), "athenz");
         assertEquals(claimsSet.getJWTID(), "jwt-id001");
@@ -304,7 +313,7 @@ public class AccessTokenTest {
         X509Certificate cert = Crypto.loadX509Certificate(certStr);
 
         AccessToken checkToken = new AccessToken(accessJws, resolver, cert);
-        assertEquals(checkToken.getClaim("sub"), "subject");
+        assertEquals(checkToken.getClaim("sub"), "athenz.api");
         validateAccessToken(checkToken, now);
     }
 
@@ -1374,5 +1383,109 @@ public class AccessTokenTest {
         AccessToken checkToken = new AccessToken(accessJws, jwtProcessor);
         validateAccessToken(checkToken, now);
         assertEquals(checkToken.getResource(), "test-resource");
+    }
+
+    @Test
+    public void testActFields() throws IOException {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        // now verify our signed token
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+
+        Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        AccessToken checkToken = new AccessToken(accessJws, resolver, cert);
+        assertNotNull(checkToken);
+
+        assertEquals(checkToken.getAct().get("sub"), "user.sub1");
+        assertEquals(checkToken.getMayAct().get("sub"), "user.sub2");
+
+        // add additional fields in the token
+
+        LinkedHashMap<String, Object> act = new LinkedHashMap<>();
+        act.put("sub", "user.sub1");
+        act.put("iss", "athenz");
+        accessToken.setAct(act);
+
+        LinkedHashMap<String, Object> mayAct = new LinkedHashMap<>();
+        mayAct.put("sub", "user.sub2");
+        mayAct.put("iss", "athenz2");
+        accessToken.setMayAct(mayAct);
+
+        // now get the signed token
+
+        accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
+        checkToken = new AccessToken(accessJws, resolver, cert);
+        assertNotNull(checkToken);
+
+        assertEquals(checkToken.getAct().get("sub"), "user.sub1");
+        assertEquals(checkToken.getAct().get("iss"), "athenz");
+
+        assertEquals(checkToken.getMayAct().get("sub"), "user.sub2");
+        assertEquals(checkToken.getMayAct().get("iss"), "athenz2");
+    }
+
+    @Test
+    public void testAccessTokenSignedTokenKeyProvider() {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        AccessToken accessToken = createAccessToken(now);
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        // now verify our signed token
+
+        KeyStore keyStore = new KeyStore() {
+            @Override
+            public String getPublicKey(String domain, String service, String keyId) {
+                return null;
+            }
+
+            @Override
+            public PublicKey getServicePublicKey(String domain, String service, String keyId) {
+                return Crypto.loadPublicKey(ecPublicKey);
+            }
+        };
+        AccessToken checkToken = new AccessToken(accessJws, keyStore, "athenz");
+        validateAccessToken(checkToken, now);
+
+        Set<String> oauth2Issers = new HashSet<>();
+        oauth2Issers.add("athenz");
+        AccessToken oauth2Token = new AccessToken(accessJws, keyStore, oauth2Issers);
+        validateAccessToken(oauth2Token, now);
+
+        oauth2Issers = new HashSet<>();
+        oauth2Issers.add("athenz-issuer");
+        oauth2Issers.add("athenz");
+        oauth2Token = new AccessToken(accessJws, keyStore, oauth2Issers);
+        validateAccessToken(oauth2Token, now);
+
+        // now with a set without a match
+
+        oauth2Issers = new HashSet<>();
+        oauth2Issers.add("athenz-issuer");
+        try {
+            new AccessToken(accessJws, keyStore, oauth2Issers);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Invalid token: mismatched issuer (athenz) and subject (athenz.api)"));
+        }
     }
 }

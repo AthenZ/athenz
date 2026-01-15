@@ -181,6 +181,11 @@ public class AccessToken extends OAuth2Token {
         }
     }
 
+    public AccessToken(final String token, KeyStore publicKeyProvider, final Set<String> oauth2Issuers) {
+        super(token, publicKeyProvider, oauth2Issuers);
+        setAccessTokenFields();
+    }
+
     public AccessToken(final String token, KeyStore publicKeyProvider, final String oauth2Issuer) {
         super(token, publicKeyProvider, oauth2Issuer);
         setAccessTokenFields();
@@ -521,7 +526,9 @@ public class AccessToken extends OAuth2Token {
                     .claim(CLAIM_CONFIRM, confirm)
                     .claim(CLAIM_PROXY, proxyPrincipal)
                     .claim(CLAIM_AUTHZ_DETAILS, authorizationDetails)
-                    .claim(CLAIM_RESOURCE, resource);
+                    .claim(CLAIM_RESOURCE, resource)
+                    .claim(CLAIM_ACT, act)
+                    .claim(CLAIM_MAY_ACT, mayAct);
             if (customClaims != null) {
                 for (Map.Entry<String, Object> entry : customClaims.entrySet()) {
                     claimsSetBuilder.claim(entry.getKey(), entry.getValue());

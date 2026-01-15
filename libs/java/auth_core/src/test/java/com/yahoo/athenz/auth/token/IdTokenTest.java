@@ -109,6 +109,40 @@ public class IdTokenTest {
     }
 
     @Test
+    public void testIdTokenWithSpiffe() throws JOSEException, ParseException {
+
+        long now = System.currentTimeMillis() / 1000;
+
+        IdToken token = createIdToken(now);
+        token.setSpiffe("spiffe://athenz.io/dev");
+
+        // verify the getters
+
+        validateIdToken(token, now);
+        assertEquals(token.getSpiffe(), "spiffe://athenz.io/dev");
+
+        // now get the signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String idJws = token.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(idJws);
+
+        // now verify our signed token
+
+        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        JWSVerifier verifier = new ECDSAVerifier((ECPublicKey) publicKey);
+        SignedJWT signedJWT = SignedJWT.parse(idJws);
+        assertTrue(signedJWT.verify(verifier));
+        JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+        assertNotNull(claimsSet);
+
+        assertEquals(claimsSet.getSubject(), "subject");
+        assertEquals(claimsSet.getAudience().get(0), "coretech");
+        assertEquals(claimsSet.getIssuer(), "athenz");
+        assertEquals(claimsSet.getStringClaim("spiffe"), "spiffe://athenz.io/dev");
+    }
+
+    @Test
     public void testIdTokenCustomClaims() throws JOSEException, ParseException {
 
         long now = System.currentTimeMillis() / 1000;

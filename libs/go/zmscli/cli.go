@@ -886,8 +886,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 				return cli.ResetDomainResourceOwnership(dn, args[0])
 			}
 		case "set-aws-account", "set-domain-account":
-			if argc == 1 {
-				return cli.SetDomainAccount(dn, args[0])
+			if argc == 2 {
+				return cli.SetDomainAccount(dn, args[0], args[1])
+			} else if argc == 1 {
+				return cli.SetDomainAccount(dn, args[0], "")
 			}
 		case "set-azure-subscription", "set-domain-subscription":
 			if argc == 3 {
@@ -1588,14 +1590,15 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-domain-meta \"Coretech Hosted\"\n")
 	case "set-aws-account", "set-domain-account":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   [-o json] " + domainParam + " set-aws-account account-id\n")
+		buf.WriteString("   [-o json] " + domainParam + " set-aws-account account-id [account-name]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain        : name of the domain being updated\n")
 		}
 		buf.WriteString("   account-id    : set the aws account id for the domain\n")
+		buf.WriteString("   account-name  : set the aws account name for the domain\n")
 		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domainExample + " set-aws-account \"134901934383\"\n")
+		buf.WriteString("   " + domainExample + " set-aws-account \"1234567890\" \"prod-sports-acct\"\n")
 	case "set-azure-subscription", "set-domain-subscription":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " set-azure-subscription subscription-id tenant-id client-id\n")

@@ -156,6 +156,7 @@ func init() {
 	tDomainMeta.Field("enabled", "Bool", true, true, "Future use only, currently not used")
 	tDomainMeta.Field("auditEnabled", "Bool", true, false, "Flag indicates whether or not domain modifications should be logged for SOX+Auditing. If true, the auditRef parameter must be supplied(not empty) for any API defining it.")
 	tDomainMeta.Field("account", "String", true, nil, "associated aws account id (system attribute - uniqueness check - if enabled)")
+	tDomainMeta.Field("awsAccountName", "String", true, nil, "associated aws account name (system attribute)")
 	tDomainMeta.Field("ypmId", "Int32", true, nil, "associated product id (system attribute - uniqueness check - if enabled)")
 	tDomainMeta.Field("applicationId", "String", true, nil, "associated application id")
 	tDomainMeta.Field("certDnsDomain", "String", true, nil, "domain certificate dns domain (system attribute)")

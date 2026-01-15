@@ -23,43 +23,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/dimfeld/httptreemux"
+
 	"io"
 	"log"
-	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"regexp"
 	"strings"
 	"testing"
 )
-
-type testServer struct {
-	listener net.Listener
-	addr     string
-}
-
-func (t *testServer) start(h http.Handler) {
-	listener, err := net.Listen("tcp", ":0")
-	if err != nil {
-		log.Panicln("Unable to serve on randomly assigned port")
-	}
-	s := &http.Server{Handler: h}
-	t.listener = listener
-	t.addr = listener.Addr().String()
-
-	go func() {
-		s.Serve(listener)
-	}()
-}
-
-func (t *testServer) stop() {
-	t.listener.Close()
-}
-
-func (t *testServer) httpUrl() string {
-	return fmt.Sprintf("http://%s", t.addr)
-}
 
 func TestGenerateSecretJsonData(test *testing.T) {
 
@@ -96,8 +69,8 @@ func TestGenerateSecretJsonData(test *testing.T) {
 
 func TestGenerateIdentity(test *testing.T) {
 	// Mock the metadata endpoints
-	router := httptreemux.New()
-	router.POST("/instance", func(w http.ResponseWriter, r *http.Request, params map[string]string) {
+	router := http.NewServeMux()
+	router.HandleFunc("POST /instance", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Called /instance")
 		certPem, _ := os.ReadFile("data/cert.pem")
 		caCertPem, _ := os.ReadFile("data/ca.cert.pem")
@@ -113,16 +86,15 @@ func TestGenerateIdentity(test *testing.T) {
 		io.WriteString(w, string(data))
 	})
 
-	metaServer := &testServer{}
-	metaServer.start(router)
-	defer metaServer.stop()
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
 
 	privateKey, _ := PrivateKey("data/key.pem", false)
 	csrSubjectFields := CsrSubjectFields{
 		Country:      "US",
 		Organization: "Athenz",
 	}
-	identity, err := RegisterIdentity("sports", "api", "provider", metaServer.httpUrl(), "id-001", "attestation-data", "", []string{"athenz.io"}, csrSubjectFields, false, privateKey)
+	identity, err := RegisterIdentity("sports", "api", "provider", metaServer.URL, "id-001", "attestation-data", "", []string{"athenz.io"}, csrSubjectFields, false, privateKey)
 	if err != nil {
 		test.Errorf("unable to register identity :%v\n", err)
 		return

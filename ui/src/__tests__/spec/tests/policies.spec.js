@@ -14,31 +14,46 @@
  * limitations under the License.
  */
 
+const {
+    authenticateAndWait,
+    navigateAndWait,
+    waitAndClick,
+    waitAndSetValue,
+    waitForElementExist,
+    beforeEachTest,
+} = require('../libs/helpers');
+
 const dropdownTestPolicyName = 'policy-dropdown-test';
 const TEST_NAME_ADD_POLICY_TO_ROLE_SHOULD_PRESERVE_INPUT_ON_BLUR =
     'add policy to new role and existing role - should preserve input on blur, make input bold when selected in dropdown, reject unselected input';
 
 describe('Policies Screen', () => {
     let currentTest;
+    beforeEach(async () => {
+        await beforeEachTest();
+    });
+
     it(TEST_NAME_ADD_POLICY_TO_ROLE_SHOULD_PRESERVE_INPUT_ON_BLUR, async () => {
         currentTest =
             TEST_NAME_ADD_POLICY_TO_ROLE_SHOULD_PRESERVE_INPUT_ON_BLUR;
-        await browser.newUser();
-        await browser.url(`/domain/athenz.dev.functional-test/policy`);
+        await authenticateAndWait();
+        await navigateAndWait(`/domain/athenz.dev.functional-test/policy`);
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
         // click add policy
-        let addPolicyBtn = await $('button*=Add Policy');
-        await addPolicyBtn.click();
+        await waitAndClick('button*=Add Policy');
 
-        await $('input[id="policy-name"]').addValue(dropdownTestPolicyName);
-        await $('input[id="rule-action"]').addValue('rule-action');
-        await $('input[id="rule-resource"]').addValue('rule-resource');
+        await waitAndSetValue(
+            'input[id="policy-name"]',
+            dropdownTestPolicyName
+        );
+        await waitAndSetValue('input[id="rule-action"]', 'rule-action');
+        await waitAndSetValue('input[id="rule-resource"]', 'rule-resource');
 
         const invalidRole = 'admi';
         // add random text to modal input
         let roleInput = await $('input[name="rule-role"]');
-        await roleInput.addValue(invalidRole);
+        await waitAndSetValue(roleInput, invalidRole);
 
         // blur
         await browser.keys('Tab');
@@ -51,11 +66,12 @@ describe('Policies Screen', () => {
         expect(fontWeight).toBeUndefined();
 
         // submit (item in dropdown is not selected)
-        let submitButton = await $('button*=Submit');
-        await submitButton.click();
+        await waitAndClick('button*=Submit');
 
         // verify error message
-        let errorMessage = await $('div[data-testid="error-message"]');
+        let errorMessage = await waitForElementExist(
+            'div[data-testid="error-message"]'
+        );
         expect(await errorMessage.getText()).toBe(
             'Role must be selected in the dropdown.'
         );
@@ -64,11 +80,10 @@ describe('Policies Screen', () => {
         let clearInput = await $(
             `.//*[local-name()="svg" and @data-wdio="clear-input"]`
         );
-        await clearInput.click();
+        await waitAndClick(clearInput);
         const validRole = 'admin';
-        await roleInput.addValue(validRole);
-        let dropdownOption = await $(`div*=${validRole}`);
-        await dropdownOption.click();
+        await waitAndSetValue(roleInput, validRole);
+        await waitAndClick(`div*=${validRole}`);
 
         // verify input contains selected role
         expect(await roleInput.getValue()).toBe(validRole);
@@ -78,11 +93,12 @@ describe('Policies Screen', () => {
         expect(fontWeight.value === 700).toBe(true);
 
         // submit
-        submitButton = await $('button*=Submit');
-        await submitButton.click();
+        await waitAndClick('button*=Submit');
 
         // policy can be seen added
-        let policyRow = await $(`td*=${dropdownTestPolicyName}`);
+        let policyRow = await waitForElementExist(
+            `td*=${dropdownTestPolicyName}`
+        );
         await expect(policyRow).toHaveText(
             expect.stringContaining(dropdownTestPolicyName)
         );
@@ -90,19 +106,19 @@ describe('Policies Screen', () => {
         // TEST ADD RULE TO EXISTING POLICY
 
         // show rules for the policy we created
-        await $(
+        await waitAndClick(
             `.//*[local-name()="svg" and @data-wdio="${dropdownTestPolicyName}-rules"]`
-        ).click();
+        );
         // open add rule window
-        await $('a*=Add rule').click();
+        await waitAndClick('a*=Add rule');
         // fill the form
         const resource = 'dropdown-test-resource';
-        await $('input[id="rule-action"]').addValue('rule-action');
-        await $('input[id="rule-resource"]').addValue(resource);
+        await waitAndSetValue('input[id="rule-action"]', 'rule-action');
+        await waitAndSetValue('input[id="rule-resource"]', resource);
 
         // test incomplete input in dropdown
         roleInput = await $('input[name="rule-role"]');
-        await roleInput.addValue(invalidRole);
+        await waitAndSetValue(roleInput, invalidRole);
 
         // blur
         await browser.keys('Tab');
@@ -115,26 +131,25 @@ describe('Policies Screen', () => {
         expect(fontWeight).toBeUndefined();
 
         // submit (item in dropdown is not selected)
-        submitButton = await $('button*=Submit');
-        await submitButton.click();
+        await waitAndClick('button*=Submit');
 
         // verify error message
-        errorMessage = await $('div[data-testid="error-message"]');
+        errorMessage = await waitForElementExist(
+            'div[data-testid="error-message"]'
+        );
         expect(await errorMessage.getText()).toBe(
             'Role must be selected in the dropdown.'
         );
 
         // type valid input and select item in dropdown
-        clearInput = await $(
+        await waitAndClick(
             `.//*[local-name()="svg" and @data-wdio="clear-input"]`
         );
-        await clearInput.click();
-        await roleInput.addValue(validRole);
+        await waitAndSetValue(roleInput, validRole);
 
-        dropdownOption = await $(
+        await waitAndClick(
             `.//div[@role='option' and contains(., '${validRole}')]`
         );
-        await dropdownOption.click();
 
         // verify input contains selected role
         expect(await roleInput.getValue()).toBe(validRole);
@@ -144,10 +159,10 @@ describe('Policies Screen', () => {
         expect(fontWeight.value === 700).toBe(true);
 
         // submit
-        await submitButton.click();
+        await waitAndClick('button*=Submit');
 
         // verify new rule was added
-        let newRuleResource = await $(
+        let newRuleResource = await waitForElementExist(
             `td*=athenz.dev.functional-test:${resource}`
         );
         expect(newRuleResource).toHaveText(
@@ -156,22 +171,34 @@ describe('Policies Screen', () => {
     });
 
     afterEach(async () => {
-        if (
-            currentTest ===
-            TEST_NAME_ADD_POLICY_TO_ROLE_SHOULD_PRESERVE_INPUT_ON_BLUR
-        ) {
-            // delete policy created in previous test
-            await browser.newUser();
-            await browser.url(`/domain/athenz.dev.functional-test/policy`);
-            await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
+        try {
+            if (
+                currentTest ===
+                TEST_NAME_ADD_POLICY_TO_ROLE_SHOULD_PRESERVE_INPUT_ON_BLUR
+            ) {
+                // delete policy created in previous test
+                await authenticateAndWait();
+                await navigateAndWait(
+                    `/domain/athenz.dev.functional-test/policy`
+                );
+                await expect(browser).toHaveUrl(
+                    expect.stringContaining('athenz')
+                );
 
-            await $(
-                `.//*[local-name()="svg" and @data-wdio="${dropdownTestPolicyName}-delete"]`
-            ).click();
-            await $('button*=Delete').click();
+                await waitAndClick(
+                    `.//*[local-name()="svg" and @data-wdio="${dropdownTestPolicyName}-delete"]`
+                );
+                await waitAndClick('button*=Delete');
+            }
+        } catch (error) {
+            console.error(
+                `Cleanup failed for test ${currentTest}:`,
+                error.message
+            );
+            // Don't throw - allow other tests to continue
+        } finally {
+            // reset current test
+            currentTest = '';
         }
-
-        // reset current test value
-        currentTest = '';
     });
 });

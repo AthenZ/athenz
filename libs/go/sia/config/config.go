@@ -112,6 +112,7 @@ type Config struct {
 	RunAfterFailExit  bool                     `json:"run_after_fail_exit,omitempty"`        //exit process if run_after script fails
 	RoleCertsRequired bool                     `json:"role_certs_required,omitempty"`        //role certs are required for system operations, fail if not successful
 	OTel              OTel                     `json:"otel"`                                 //OpenTelemetry configuration
+	HttpPort          int                      `json:"http_port,omitempty"`                  //HTTP port for health check
 }
 
 type AccessProfileConfig struct {
@@ -223,6 +224,7 @@ type Options struct {
 	RunAfterFailExit       bool              //exit process if run_after script fails
 	RoleCertsRequired      bool              //role certs are required for system operations, fail if not successful
 	OTel                   OTel              //openTelemetry configuration
+	HttpPort               int               //HTTP port for health check
 }
 
 // OTel stores the configuration for OpenTelemetry.

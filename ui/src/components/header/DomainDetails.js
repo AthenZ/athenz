@@ -24,6 +24,7 @@ import {
     MODAL_TIME_OUT,
     ENVIRONMENT_DROPDOWN_OPTIONS,
     ONCALL_URL,
+    getOrganizationDomain,
 } from '../constants/constants';
 import AddModal from '../modal/AddModal';
 import RequestUtils from '../utils/RequestUtils';
@@ -381,6 +382,14 @@ class DomainDetails extends React.Component {
             ? `${ONCALL_URL}/${onCallTeam}`
             : '';
 
+        let organization = this.props.domainDetails.org || 'N/A';
+        let organizationRoleUrl = '';
+        const organizationDomain = getOrganizationDomain();
+        // if organizationDomain was set via config, and org is set for current domain - display as link
+        if (organizationDomain && organization !== 'N/A') {
+            organizationRoleUrl = `/domain/${organizationDomain}/role/${organization}/members`;
+        }
+
         if (this.state.showError) {
             return (
                 <Alert
@@ -563,6 +572,7 @@ class DomainDetails extends React.Component {
                             }
                             dataWdio={'domain-details-expand-icon'}
                             onClick={expandDomain}
+                            data-testid='expand-domain-details'
                             color={colors.icons}
                             isLink
                             size={'1.25em'}
@@ -629,10 +639,17 @@ class DomainDetails extends React.Component {
                             <LabelDiv>Product ID</LabelDiv>
                         </SectionDiv>
                         <SectionDiv>
-                            <ValueDiv>
-                                {this.props.domainDetails.org
-                                    ? this.props.domainDetails.org
-                                    : 'N/A'}
+                            <ValueDiv data-testid='organization-name'>
+                                {organizationRoleUrl ? (
+                                    <StyledAnchor
+                                        data-testid='organization-link'
+                                        href={organizationRoleUrl}
+                                    >
+                                        {organization}
+                                    </StyledAnchor>
+                                ) : (
+                                    organization
+                                )}
                             </ValueDiv>
                             <LabelDiv>ORGANIZATION</LabelDiv>
                         </SectionDiv>

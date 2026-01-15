@@ -30,6 +30,8 @@ public class KeyRefresher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KeyRefresher.class);
 
+    private static final String PROP_OTEL_ENABLED = "athenz.cert_refresher.otel_enabled";
+
     private Thread scanForFileChangesThread;
     private boolean shutdown = false; //only for testing
     //60 seconds * 60 (min in an hour)
@@ -49,6 +51,9 @@ public class KeyRefresher {
     private int retryFrequency = DEFAULT_RETRY_CHECK_FREQUENCY;
     
     private final KeyRefresherListener keyRefresherListener;
+    
+    // OpenTelemetry metrics - null if OTel is disabled or not available
+    private final OpenTelemetryCertReloadEventEmitter otelMetric;
 
     /**
      * this method should be used in the following way
@@ -102,6 +107,36 @@ public class KeyRefresher {
         this.keyManagerProxy = keyManagerProxy;
         this.trustManagerProxy = trustManagerProxy;
         this.keyRefresherListener = keyRefresherListener;
+        
+        // Initialize OpenTelemetry metrics if enabled and available
+        this.otelMetric = initOtelMetrics();
+    }
+
+    /**
+     * Initialize OpenTelemetry metrics if explicitly enabled.
+     * 
+     * Behavior:
+     * - If athenz.cert_refresher.otel_enabled=true: Initialize OTel metrics
+     * - If athenz.cert_refresher.otel_enabled=false or not set: OTel disabled, return null
+     * - If OTel JARs are not available on classpath: Log warning and return null
+     * 
+     * @return OpenTelemetryCertReloadEventEmitter instance or null if disabled or unavailable
+     */
+    private OpenTelemetryCertReloadEventEmitter initOtelMetrics() {
+        boolean otelEnabled = Boolean.parseBoolean(System.getProperty(PROP_OTEL_ENABLED, "false"));
+        
+        if (!otelEnabled) {
+            LOGGER.info("OpenTelemetry cert refresh metrics disabled ({}=false)", PROP_OTEL_ENABLED);
+            return null;
+        }
+
+        try {
+            return new OpenTelemetryCertReloadEventEmitter();
+        } catch (NoClassDefFoundError e) {
+            LOGGER.warn("OpenTelemetry metrics enabled but OTel JARs not available on classpath. " +
+                    "Metrics will be disabled. Error: {}", e.getMessage());
+            return null;
+        }
     }
 
     /**
@@ -136,20 +171,24 @@ public class KeyRefresher {
                     boolean keyFilesChanged = haveFilesBeenChanged(athenzPrivateKey, lastPrivateKeyManagerChecksum);
                     keyFilesChanged = haveFilesBeenChanged(athenzPublicCert, lastPublicCertManagerChecksum) || keyFilesChanged;
                     if (keyFilesChanged) {
-                        
                         keyManagerProxy.setKeyManager(Utils.getKeyManagers(athenzPublicCert, athenzPrivateKey));
                         if (LOGGER.isDebugEnabled()) {
                             LOGGER.debug("KeyRefresher detected changes. Reloaded Key managers");
                         }
-                        //Signal key change event
                         if (keyRefresherListener != null) {
                             keyRefresherListener.onKeyChangeEvent();
+                        }
+                        if (otelMetric != null) {
+                            otelMetric.recordCertRefresh(athenzPublicCert);
                         }
                     }
                 } catch (Exception ex) {
                     // if we could not reload the SSL context (but we tried) we will
                     // ignore it and hope it works on the next loop
                     LOGGER.error("Error loading ssl context", ex);
+                    if (otelMetric != null) {
+                        otelMetric.recordCertRefreshFailure(ex.getMessage());
+                    }
                 }
                 try {
                     if (LOGGER.isDebugEnabled()) {
@@ -165,7 +204,7 @@ public class KeyRefresher {
         scanForFileChangesThread.setDaemon(true);
         scanForFileChangesThread.setName("scanForFileChanges" + " started at:" + System.currentTimeMillis());
         scanForFileChangesThread.start();
-        LOGGER.info("Started KeyRefresher thread.");
+        LOGGER.info("Started KeyRefresher thread. OTel metrics enabled: {}", otelMetric != null);
     }
 
     /**
