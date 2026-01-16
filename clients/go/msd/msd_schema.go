@@ -122,19 +122,19 @@ func init() {
 	sb.AddType(tTransportPolicySubjectServiceName.Build())
 
 	tStaticWorkloadComponent := rdl.NewStringTypeBuilder("StaticWorkloadComponent")
-	tStaticWorkloadComponent.Pattern("[a-zA-Z0-9][a-zA-Z0-9-:._]*")
+	tStaticWorkloadComponent.Pattern("[A-Za-z0-9][A-Za-z0-9:_\\.-]*")
 	sb.AddType(tStaticWorkloadComponent.Build())
 
 	tStaticWorkloadFQDN := rdl.NewStringTypeBuilder("StaticWorkloadFQDN")
-	tStaticWorkloadFQDN.Pattern("([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*")
+	tStaticWorkloadFQDN.Pattern("([A-Za-z0-9][A-Za-z0-9:_\\.-]*\\.)*[A-Za-z0-9][A-Za-z0-9:_\\.-]*")
 	sb.AddType(tStaticWorkloadFQDN.Build())
 
 	tStaticWorkloadName := rdl.NewStringTypeBuilder("StaticWorkloadName")
-	tStaticWorkloadName.Pattern("\\*\\.(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)|(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?")
+	tStaticWorkloadName.Pattern("(\\*\\.([A-Za-z0-9][A-Za-z0-9:_\\.-]*\\.)*[A-Za-z0-9][A-Za-z0-9:_\\.-]*)|((([A-Za-z0-9][A-Za-z0-9:_\\.-]*\\.)*[A-Za-z0-9][A-Za-z0-9:_\\.-]*)(\\/[0-9]{1,3})?)")
 	sb.AddType(tStaticWorkloadName.Build())
 
 	tTransportPolicySubjectExternal := rdl.NewStringTypeBuilder("TransportPolicySubjectExternal")
-	tTransportPolicySubjectExternal.Pattern("(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?")
+	tTransportPolicySubjectExternal.Pattern("(([A-Za-z0-9][A-Za-z0-9:_\\.-]*\\.)*[A-Za-z0-9][A-Za-z0-9:_\\.-]*)(\\/[0-9]{1,3})?")
 	sb.AddType(tTransportPolicySubjectExternal.Build())
 
 	tTransportPolicyEnforcementState := rdl.NewEnumTypeBuilder("Enum", "TransportPolicyEnforcementState")

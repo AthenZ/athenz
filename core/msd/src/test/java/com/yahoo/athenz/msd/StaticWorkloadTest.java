@@ -132,6 +132,8 @@ public class StaticWorkloadTest {
                 {"ABC::AA012_113_3332_11344", true},
                 {"myhostname.subdomain.domain.com", true},
                 {"*.myhostname.subdomain.domain.com", true},
+                {"id.subdomain.domain.com", true},
+                {"id-uat.subdomain.domain.com", true},
                 {"*.*.subdomain.domain.com", false},
                 {"*.myhostname.*.domain.com", false},
                 {"*.myhostname.subdomain.domain.com/24", false},
