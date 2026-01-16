@@ -88,7 +88,7 @@ describe('StaticWorkloadType', () => {
                     );
                     break;
                 case 'SERVICE_SUBNET':
-                    let rfc1918CIDR = [
+                    let validServiceSubnetCIDRs = [
                         '10.0.0.0/8',
                         '10.1.2.0/24',
                         '172.16.0.0/12',
@@ -99,9 +99,10 @@ describe('StaticWorkloadType', () => {
                         '192.168.2.0/24',
                         '192.168.100.0/24',
                         '10.255.255.0/24',
+                        '100.64.0.0/10',
                     ];
 
-                    let nonRFC1918CIDR = [
+                    let invalidServiceSubnetCIDRs = [
                         '8.8.8.0/24',
                         '203.0.113.0/24',
                         '198.51.100.0/24',
@@ -112,10 +113,10 @@ describe('StaticWorkloadType', () => {
                         '169.254.0.0/16',
                         '198.18.0.0/15',
                     ];
-                    forEach(rfc1918CIDR, (cidr) => {
+                    forEach(validServiceSubnetCIDRs, (cidr) => {
                         expect(cidr).toMatch(new RegExp(type.pattern));
                     });
-                    forEach(nonRFC1918CIDR, (cidr) => {
+                    forEach(invalidServiceSubnetCIDRs, (cidr) => {
                         expect(cidr).not.toMatch(new RegExp(type.pattern));
                     });
                     break;
