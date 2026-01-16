@@ -816,9 +816,11 @@ describe('role screen tests', () => {
                 throw new Error(
                     `Role "${roleName}" already exists - failing to perform cleanup.`
                 );
+            } else {
+                throw new Error(
+                    `Unexpected error during role creation: ${text}`
+                );
             }
-        } else {
-            throw new Error(`Unexpected error during role creation: ${text}`);
         }
     };
 });
