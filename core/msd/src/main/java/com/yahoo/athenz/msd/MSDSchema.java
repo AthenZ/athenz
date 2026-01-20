@@ -105,16 +105,16 @@ public class MSDSchema {
             .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
 
         sb.stringType("StaticWorkloadComponent")
-            .pattern("[a-zA-Z0-9][a-zA-Z0-9-:._]*");
+            .pattern("[A-Za-z0-9][A-Za-z0-9:_\\.-]*");
 
         sb.stringType("StaticWorkloadFQDN")
-            .pattern("([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*");
+            .pattern("([A-Za-z0-9][A-Za-z0-9:_\\.-]*\\.)*[A-Za-z0-9][A-Za-z0-9:_\\.-]*");
 
         sb.stringType("StaticWorkloadName")
-            .pattern("\\*\\.(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)|(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?");
+            .pattern("(\\*\\.([A-Za-z0-9][A-Za-z0-9:_\\.-]*\\.)*[A-Za-z0-9][A-Za-z0-9:_\\.-]*)|((([A-Za-z0-9][A-Za-z0-9:_\\.-]*\\.)*[A-Za-z0-9][A-Za-z0-9:_\\.-]*)(\\/[0-9]{1,3})?)");
 
         sb.stringType("TransportPolicySubjectExternal")
-            .pattern("(([a-zA-Z0-9][a-zA-Z0-9-:._]*\\.)*[a-zA-Z0-9][a-zA-Z0-9-:._]*)(\\/[0-9]{1,3})?");
+            .pattern("(([A-Za-z0-9][A-Za-z0-9:_\\.-]*\\.)*[A-Za-z0-9][A-Za-z0-9:_\\.-]*)(\\/[0-9]{1,3})?");
 
         sb.enumType("TransportPolicyEnforcementState")
             .comment("Types of transport policy enforcement states")
