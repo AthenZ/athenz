@@ -19,8 +19,8 @@ import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('HistoryList', () => {
     it('should render', () => {
-        const startDate = '2025-01-20 07:51';
-        const endDate = '2025-01-20 07:55';
+        const startDate = '2026-01-20 07:51';
+        const endDate = '2026-01-20 07:55';
         const { getByTestId } = renderWithRedux(
             <HistoryList startDate={startDate} endDate={endDate} />
         );
