@@ -26,43 +26,82 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
 
-	"cloud.google.com/go/certificatemanager/apiv1/certificatemanagerpb"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/googleapis/gax-go/v2"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	certificatemanagerapi "google.golang.org/api/certificatemanager/v1"
+	"google.golang.org/api/googleapi"
 )
 
-// mockCertificateOperation is a mock implementation of CertificateOperationInterface
-type mockCertificateOperation struct {
-	name     string
-	waitErr  error
-	waitResp *certificatemanagerpb.Certificate
+// mockCertificateManagerOperations is a mock implementation of CertificateManagerOperations
+type mockCertificateManagerOperations struct {
+	createErr     error
+	patchErr      error
+	getOpErr      error
+	createCalled  bool
+	patchCalled   bool
+	getOpCalled   bool
+	createOp      *certificatemanagerapi.Operation
+	patchOp       *certificatemanagerapi.Operation
+	operation     *certificatemanagerapi.Operation
+	pollCount     int
+	operationName string
 }
 
-func (m *mockCertificateOperation) Name() string {
-	if m.name == "" {
-		return "operations/test-operation"
+func (m *mockCertificateManagerOperations) CreateCertificate(_ context.Context, parent string, _ *certificatemanagerapi.Certificate, _ string) (*certificatemanagerapi.Operation, error) {
+	m.createCalled = true
+	if m.createErr != nil {
+		return nil, m.createErr
 	}
-	return m.name
+	if m.createOp == nil {
+		return &certificatemanagerapi.Operation{
+			Name: fmt.Sprintf("%s/operations/test-create-op", parent),
+			Done: false,
+		}, nil
+	}
+	return m.createOp, nil
 }
 
-func (m *mockCertificateOperation) Wait(_ context.Context, _ ...gax.CallOption) (*certificatemanagerpb.Certificate, error) {
-	return m.waitResp, m.waitErr
+func (m *mockCertificateManagerOperations) PatchCertificate(_ context.Context, name string, _ *certificatemanagerapi.Certificate, _ string) (*certificatemanagerapi.Operation, error) {
+	m.patchCalled = true
+	if m.patchErr != nil {
+		return nil, m.patchErr
+	}
+	if m.patchOp == nil {
+		// Extract parent from name (format: projects/{project}/locations/{location}/certificates/{name})
+		parts := strings.Split(name, "/certificates/")
+		parent := parts[0]
+		return &certificatemanagerapi.Operation{
+			Name: fmt.Sprintf("%s/operations/test-patch-op", parent),
+			Done: false,
+		}, nil
+	}
+	return m.patchOp, nil
 }
 
-// mockCertificateManagerClient is a mock implementation of CertificateManagerClientInterface
-type mockCertificateManagerClient struct {
-	createErr    error
-	updateErr    error
-	createCalled bool
-	updateCalled bool
-	closeErr     error
-	waitErr      error
+func (m *mockCertificateManagerOperations) GetOperation(_ context.Context, operationName string) (*certificatemanagerapi.Operation, error) {
+	m.getOpCalled = true
+	m.pollCount++
+	m.operationName = operationName
+	if m.getOpErr != nil {
+		return nil, m.getOpErr
+	}
+	if m.operation == nil {
+		// Simulate operation completion after first poll
+		return &certificatemanagerapi.Operation{
+			Name: operationName,
+			Done: true,
+		}, nil
+	}
+	// Return the configured operation, mark as done after first poll
+	op := m.operation
+	if m.pollCount > 1 {
+		op.Done = true
+	}
+	return op, nil
 }
 
 // mockMetadataProvider is a mock implementation of MetadataProvider
@@ -77,34 +116,6 @@ func (m *mockMetadataProvider) GetProject(_ string) (string, error) {
 		return "", m.err
 	}
 	return m.projectID, nil
-}
-
-func (m *mockCertificateManagerClient) CreateCertificate(_ context.Context, _ *certificatemanagerpb.CreateCertificateRequest, _ ...gax.CallOption) (CertificateOperationInterface, error) {
-	m.createCalled = true
-	if m.createErr != nil {
-		return nil, m.createErr
-	}
-	return &mockCertificateOperation{
-		name:     "operations/test-operation",
-		waitErr:  m.waitErr,
-		waitResp: nil,
-	}, nil
-}
-
-func (m *mockCertificateManagerClient) UpdateCertificate(_ context.Context, _ *certificatemanagerpb.UpdateCertificateRequest, _ ...gax.CallOption) (CertificateOperationInterface, error) {
-	m.updateCalled = true
-	if m.updateErr != nil {
-		return nil, m.updateErr
-	}
-	return &mockCertificateOperation{
-		name:     "operations/test-update-operation",
-		waitErr:  m.waitErr,
-		waitResp: nil,
-	}, nil
-}
-
-func (m *mockCertificateManagerClient) Close() error {
-	return m.closeErr
 }
 
 // generateTestCertificate generates a test certificate for testing purposes
@@ -217,6 +228,7 @@ func TestStoreAthenzIdentityInCertificateManager(t *testing.T) {
 				tt.certName,
 				tt.location,
 				tt.siaCertData,
+				"CLIENT_AUTH",
 				tt.resourceLabels,
 			)
 
@@ -249,12 +261,12 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 		location           string
 		siaCertData        *util.SiaCertData
 		resourceLabels     map[string]string
-		mockClient         *mockCertificateManagerClient
+		mockOperations     *mockCertificateManagerOperations
 		metadataProvider   *mockMetadataProvider
 		expectError        bool
 		errorContains      string
 		expectCreateCalled bool
-		expectUpdateCalled bool
+		expectPatchCalled  bool
 	}{
 		{
 			name:           "successful certificate creation",
@@ -262,9 +274,10 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 			location:       "global",
 			siaCertData:    testCert,
 			resourceLabels: nil,
-			mockClient: &mockCertificateManagerClient{
+			mockOperations: &mockCertificateManagerOperations{
 				createErr: nil,
-				updateErr: nil,
+				patchErr:  nil,
+				getOpErr:  nil,
 			},
 			metadataProvider: &mockMetadataProvider{
 				projectID: "test-gcp-project",
@@ -272,7 +285,7 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 			},
 			expectError:        false,
 			expectCreateCalled: true,
-			expectUpdateCalled: false,
+			expectPatchCalled:  false,
 		},
 		{
 			name:        "certificate already exists - update",
@@ -283,9 +296,13 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 				"domain":  "test.domain",
 				"service": "test-service",
 			},
-			mockClient: &mockCertificateManagerClient{
-				createErr: status.Error(codes.AlreadyExists, "certificate already exists"),
-				updateErr: nil,
+			mockOperations: &mockCertificateManagerOperations{
+				createErr: &googleapi.Error{
+					Code:    http.StatusConflict,
+					Message: "certificate already exists",
+				},
+				patchErr: nil,
+				getOpErr: nil,
 			},
 			metadataProvider: &mockMetadataProvider{
 				projectID: "test-gcp-project",
@@ -293,17 +310,21 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 			},
 			expectError:        false,
 			expectCreateCalled: true,
-			expectUpdateCalled: true,
+			expectPatchCalled:  true,
 		},
 		{
-			name:           "certificate already exists with ALREADY_EXISTS error",
+			name:           "certificate already exists with HTTP 409 error",
 			certName:       "test-cert",
 			location:       "global",
 			siaCertData:    testCert,
 			resourceLabels: nil,
-			mockClient: &mockCertificateManagerClient{
-				createErr: status.Error(codes.AlreadyExists, "certificate already exists"),
-				updateErr: nil,
+			mockOperations: &mockCertificateManagerOperations{
+				createErr: &googleapi.Error{
+					Code:    http.StatusConflict,
+					Message: "certificate already exists",
+				},
+				patchErr: nil,
+				getOpErr: nil,
 			},
 			metadataProvider: &mockMetadataProvider{
 				projectID: "test-gcp-project",
@@ -311,17 +332,21 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 			},
 			expectError:        false,
 			expectCreateCalled: true,
-			expectUpdateCalled: true,
+			expectPatchCalled:  true,
 		},
 		{
-			name:           "create error - non-exists error",
+			name:           "create error - non-conflict error",
 			certName:       "test-cert",
 			location:       "global",
 			siaCertData:    testCert,
 			resourceLabels: nil,
-			mockClient: &mockCertificateManagerClient{
-				createErr: status.Error(codes.PermissionDenied, "permission denied"),
-				updateErr: nil,
+			mockOperations: &mockCertificateManagerOperations{
+				createErr: &googleapi.Error{
+					Code:    http.StatusForbidden,
+					Message: "permission denied",
+				},
+				patchErr: nil,
+				getOpErr: nil,
 			},
 			metadataProvider: &mockMetadataProvider{
 				projectID: "test-gcp-project",
@@ -330,17 +355,21 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 			expectError:        true,
 			errorContains:      "permission denied",
 			expectCreateCalled: true,
-			expectUpdateCalled: false,
+			expectPatchCalled:  false,
 		},
 		{
-			name:           "update error after create fails",
+			name:           "patch error after create fails with conflict",
 			certName:       "test-cert",
 			location:       "global",
 			siaCertData:    testCert,
 			resourceLabels: nil,
-			mockClient: &mockCertificateManagerClient{
-				createErr: status.Error(codes.AlreadyExists, "certificate already exists"),
-				updateErr: errors.New("unable to update certificate"),
+			mockOperations: &mockCertificateManagerOperations{
+				createErr: &googleapi.Error{
+					Code:    http.StatusConflict,
+					Message: "certificate already exists",
+				},
+				patchErr: errors.New("unable to update certificate"),
+				getOpErr: nil,
 			},
 			metadataProvider: &mockMetadataProvider{
 				projectID: "test-gcp-project",
@@ -349,23 +378,26 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 			expectError:        true,
 			errorContains:      "unable to update certificate",
 			expectCreateCalled: true,
-			expectUpdateCalled: true,
+			expectPatchCalled:  true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			tt.mockClient.createCalled = false
-			tt.mockClient.updateCalled = false
+			tt.mockOperations.createCalled = false
+			tt.mockOperations.patchCalled = false
+			tt.mockOperations.getOpCalled = false
+			tt.mockOperations.pollCount = 0
 
 			err := storeIdentityInCertificateManager(
 				ctx,
-				tt.mockClient,
+				tt.mockOperations,
 				tt.metadataProvider,
 				tt.certName,
 				tt.location,
 				tt.siaCertData,
+				"CLIENT_AUTH",
 				tt.resourceLabels,
 			)
 
@@ -381,18 +413,18 @@ func TestStoreIdentityInCertificateManager(t *testing.T) {
 				}
 			}
 
-			if tt.expectCreateCalled && !tt.mockClient.createCalled {
+			if tt.expectCreateCalled && !tt.mockOperations.createCalled {
 				t.Errorf("expected CreateCertificate to be called but it wasn't")
 			}
-			if !tt.expectCreateCalled && tt.mockClient.createCalled {
+			if !tt.expectCreateCalled && tt.mockOperations.createCalled {
 				t.Errorf("expected CreateCertificate not to be called but it was")
 			}
 
-			if tt.expectUpdateCalled && !tt.mockClient.updateCalled {
-				t.Errorf("expected UpdateCertificate to be called but it wasn't")
+			if tt.expectPatchCalled && !tt.mockOperations.patchCalled {
+				t.Errorf("expected PatchCertificate to be called but it wasn't")
 			}
-			if !tt.expectUpdateCalled && tt.mockClient.updateCalled {
-				t.Errorf("expected UpdateCertificate not to be called but it was")
+			if !tt.expectPatchCalled && tt.mockOperations.patchCalled {
+				t.Errorf("expected PatchCertificate not to be called but it was")
 			}
 		})
 	}
@@ -407,7 +439,7 @@ func TestStoreIdentityInCertificateManager_ProjectIdError(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	mockClient := &mockCertificateManagerClient{}
+	mockOperations := &mockCertificateManagerOperations{}
 	mockMetadataProvider := &mockMetadataProvider{
 		projectID: "",
 		err:       errors.New("metadata server unavailable"),
@@ -415,11 +447,12 @@ func TestStoreIdentityInCertificateManager_ProjectIdError(t *testing.T) {
 
 	err = storeIdentityInCertificateManager(
 		ctx,
-		mockClient,
+		mockOperations,
 		mockMetadataProvider,
 		"test-cert",
 		"global",
 		testCert,
+		"CLIENT_AUTH",
 		nil,
 	)
 
@@ -429,7 +462,7 @@ func TestStoreIdentityInCertificateManager_ProjectIdError(t *testing.T) {
 		t.Errorf("expected error about project id, got: %v", err)
 	}
 
-	if mockClient.createCalled {
+	if mockOperations.createCalled {
 		t.Errorf("CreateCertificate should not be called when GetProject fails")
 	}
 }
@@ -444,9 +477,10 @@ func TestStoreIdentityInCertificateManager_CertificateRequestCalled(t *testing.T
 	}
 
 	ctx := context.Background()
-	mockClient := &mockCertificateManagerClient{
+	mockOperations := &mockCertificateManagerOperations{
 		createErr: nil,
-		updateErr: nil,
+		patchErr:  nil,
+		getOpErr:  nil,
 	}
 	mockMetadataProvider := &mockMetadataProvider{
 		projectID: "test-gcp-project",
@@ -455,11 +489,12 @@ func TestStoreIdentityInCertificateManager_CertificateRequestCalled(t *testing.T
 
 	err = storeIdentityInCertificateManager(
 		ctx,
-		mockClient,
+		mockOperations,
 		mockMetadataProvider,
 		"my-cert",
 		"us-west1",
 		testCert,
+		"CLIENT_AUTH",
 		nil,
 	)
 
@@ -467,7 +502,96 @@ func TestStoreIdentityInCertificateManager_CertificateRequestCalled(t *testing.T
 		t.Errorf("unexpected error: %v", err)
 	}
 
-	if !mockClient.createCalled {
+	if !mockOperations.createCalled {
 		t.Errorf("expected CreateCertificate to be called")
+	}
+}
+
+// TestWaitForOperation tests the waitForOperation function
+func TestWaitForOperation(t *testing.T) {
+	tests := []struct {
+		name          string
+		mockOps       *mockCertificateManagerOperations
+		operationName string
+		expectError   bool
+		errorContains string
+		expectPolls   int
+	}{
+		{
+			name: "operation completes immediately",
+			mockOps: &mockCertificateManagerOperations{
+				operation: &certificatemanagerapi.Operation{
+					Name: "projects/test/locations/global/operations/test-op",
+					Done: true,
+				},
+			},
+			operationName: "projects/test/locations/global/operations/test-op",
+			expectError:   false,
+			expectPolls:   1,
+		},
+		{
+			name: "operation completes after polling",
+			mockOps: &mockCertificateManagerOperations{
+				operation: &certificatemanagerapi.Operation{
+					Name: "projects/test/locations/global/operations/test-op",
+					Done: false,
+				},
+			},
+			operationName: "projects/test/locations/global/operations/test-op",
+			expectError:   false,
+			expectPolls:   2, // First poll returns not done, second returns done
+		},
+		{
+			name: "operation fails with error",
+			mockOps: &mockCertificateManagerOperations{
+				operation: &certificatemanagerapi.Operation{
+					Name: "projects/test/locations/global/operations/test-op",
+					Done: true,
+					Error: &certificatemanagerapi.Status{
+						Message: "operation failed",
+					},
+				},
+			},
+			operationName: "projects/test/locations/global/operations/test-op",
+			expectError:   true,
+			errorContains: "operation failed",
+			expectPolls:   1,
+		},
+		{
+			name: "get operation fails",
+			mockOps: &mockCertificateManagerOperations{
+				getOpErr: errors.New("network error"),
+			},
+			operationName: "projects/test/locations/global/operations/test-op",
+			expectError:   true,
+			errorContains: "failed to get operation status",
+			expectPolls:   1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			tt.mockOps.pollCount = 0
+			tt.mockOps.getOpCalled = false
+
+			err := waitForOperation(ctx, tt.mockOps, "test", "global", tt.operationName)
+
+			if tt.expectError {
+				if err == nil {
+					t.Errorf("expected error but got nil")
+				} else if tt.errorContains != "" && !strings.Contains(err.Error(), tt.errorContains) {
+					t.Errorf("expected error to contain %q, got %q", tt.errorContains, err.Error())
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+			}
+
+			if tt.expectPolls > 0 && tt.mockOps.pollCount != tt.expectPolls {
+				t.Errorf("expected %d polls, got %d", tt.expectPolls, tt.mockOps.pollCount)
+			}
+		})
 	}
 }
