@@ -575,7 +575,7 @@ func TestWaitForOperation(t *testing.T) {
 			tt.mockOps.pollCount = 0
 			tt.mockOps.getOpCalled = false
 
-			err := waitForOperation(ctx, tt.mockOps, "test", "global", tt.operationName)
+			err := waitForOperation(ctx, tt.mockOps, tt.operationName)
 
 			if tt.expectError {
 				if err == nil {

@@ -331,7 +331,7 @@ func storeIdentityInCertificateManager(ctx context.Context, operations Certifica
 	createOp, err := operations.CreateCertificate(ctx, parent, certificate, certificateName)
 	if err == nil {
 		log.Printf("Waiting for CreateCertificate operation %s to complete...\n", createOp.Name)
-		err = waitForOperation(ctx, operations, gcpProjectId, location, createOp.Name)
+		err = waitForOperation(ctx, operations, createOp.Name)
 		if err != nil {
 			log.Printf("CreateCertificate (wait) operation failed: %v\n", err)
 		} else {
@@ -350,11 +350,15 @@ func storeIdentityInCertificateManager(ctx context.Context, operations Certifica
 	log.Println("Certificate already exists, we'll be updating it...")
 
 	// Update the existing certificate using Patch
-	updateMask := "selfManaged,labels"
+	updateMaskParts := []string{"selfManaged"}
+	if certificate.Labels != nil {
+		updateMaskParts = append(updateMaskParts, "labels")
+	}
+	updateMask := strings.Join(updateMaskParts, ",")
 	updateOp, err := operations.PatchCertificate(ctx, certificateFullName, certificate, updateMask)
 	if err == nil {
 		log.Printf("Waiting for PatchCertificate operation %s to complete...\n", updateOp.Name)
-		err = waitForOperation(ctx, operations, gcpProjectId, location, updateOp.Name)
+		err = waitForOperation(ctx, operations, updateOp.Name)
 		if err != nil {
 			log.Printf("PatchCertificate (wait) operation failed: %v\n", err)
 		} else {
@@ -368,7 +372,7 @@ func storeIdentityInCertificateManager(ctx context.Context, operations Certifica
 
 // waitForOperation polls a long-running operation until it completes
 // operationName should be the full operation path: projects/{project}/locations/{location}/operations/{operation_id}
-func waitForOperation(ctx context.Context, operations CertificateManagerOperations, projectId, location, operationName string) error {
+func waitForOperation(ctx context.Context, operations CertificateManagerOperations, operationName string) error {
 	// Poll the operation with exponential backoff
 	maxAttempts := 60
 	backoff := 2 * time.Second
