@@ -113,13 +113,7 @@ public class InstanceAzureProviderTest {
     @Test
     public void testInitializeEmptyValues() throws IOException {
 
-        File configFile = new File("./src/test/resources/azure-openid.json");
-        File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, false);
-
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+        setupProviderSettings(false);
 
         System.clearProperty(InstanceAzureProvider.AZURE_PROP_DNS_SUFFIX);
 
@@ -129,10 +123,7 @@ public class InstanceAzureProviderTest {
 
         assertTrue(provider.dnsSuffixes.isEmpty());
         provider.close();
-
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
+        clearProviderSettings();
     }
 
     @Test
@@ -237,13 +228,8 @@ public class InstanceAzureProviderTest {
     @Test
     public void testRefreshInstance() throws IOException, ProviderResourceException {
 
-        File configFile = new File("./src/test/resources/azure-openid.json");
-        File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, true);
+        setupProviderSettings(true);
 
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
@@ -296,12 +282,7 @@ public class InstanceAzureProviderTest {
         assertNotNull(providerConfirm);
 
         provider.close();
-
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
-
-        removeOpenIdConfigFile(configFile, jwksUri);
+        clearProviderSettings();
     }
 
     private HttpDriver setupHttpDriver() throws IOException {
@@ -361,6 +342,8 @@ public class InstanceAzureProviderTest {
     @Test
     public void testConfirmInstanceAzureSubscriptionIssues() throws IOException {
 
+        setupProviderSettings(false);
+
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAzureProvider", null, null);
@@ -397,10 +380,13 @@ public class InstanceAzureProviderTest {
         }
 
         provider.close();
+        clearProviderSettings();
     }
 
     @Test
     public void testConfirmInstanceSanDnsMismatch() throws IOException {
+
+        setupProviderSettings(false);
 
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
@@ -430,18 +416,13 @@ public class InstanceAzureProviderTest {
         }
 
         provider.close();
+        clearProviderSettings();
     }
 
     @Test
     public void testConfirmInstanceInvalidAccessToken() throws IOException {
 
-        File configFile = new File("./src/test/resources/azure-openid.json");
-        File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, false);
-
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+        setupProviderSettings(false);
 
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
@@ -475,12 +456,7 @@ public class InstanceAzureProviderTest {
         }
 
         provider.close();
-
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
-
-        removeOpenIdConfigFile(configFile, jwksUri);
+        clearProviderSettings();
     }
 
     @Test
@@ -526,24 +502,13 @@ public class InstanceAzureProviderTest {
         }
 
         provider.close();
-
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
-
-        removeOpenIdConfigFile(configFile, jwksUri);
+        clearProviderSettings();
     }
 
     @Test
     public void testConfirmInstanceUnableToFetchVMDetails() throws IOException {
 
-        File configFile = new File("./src/test/resources/azure-openid.json");
-        File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, true);
-
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+        setupProviderSettings(true);
 
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
@@ -619,24 +584,13 @@ public class InstanceAzureProviderTest {
         }
 
         provider.close();
-
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
-
-        removeOpenIdConfigFile(configFile, jwksUri);
+        clearProviderSettings();
     }
 
     @Test
     public void testConfirmInstanceInvalidVMDetails() throws IOException {
 
-        File configFile = new File("./src/test/resources/azure-openid.json");
-        File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, true);
-
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+        setupProviderSettings(true);
 
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
@@ -674,24 +628,13 @@ public class InstanceAzureProviderTest {
         }
 
         provider.close();
-
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
-
-        removeOpenIdConfigFile(configFile, jwksUri);
+        clearProviderSettings();
     }
 
     @Test
     public void testConfirmInstanceSubjectMismatch() throws IOException {
 
-        File configFile = new File("./src/test/resources/azure-openid.json");
-        File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, true);
-
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+        setupProviderSettings(true);
 
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
@@ -746,24 +689,13 @@ public class InstanceAzureProviderTest {
         }
 
         provider.close();
-
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
-
-        removeOpenIdConfigFile(configFile, jwksUri);
+        clearProviderSettings();
     }
 
     @Test
     public void testConfirmInstanceServiceNameMismatch() throws IOException {
 
-        File configFile = new File("./src/test/resources/azure-openid.json");
-        File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, true);
-
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+        setupProviderSettings(true);
 
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
@@ -818,24 +750,13 @@ public class InstanceAzureProviderTest {
         }
 
         provider.close();
-
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
-
-        removeOpenIdConfigFile(configFile, jwksUri);
+        clearProviderSettings();
     }
 
     @Test
     public void testConfirmInstanceVMIdMismatch() throws IOException {
 
-        File configFile = new File("./src/test/resources/azure-openid.json");
-        File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, true);
-
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+        setupProviderSettings(true);
 
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
@@ -890,12 +811,7 @@ public class InstanceAzureProviderTest {
         }
 
         provider.close();
-
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
-
-        removeOpenIdConfigFile(configFile, jwksUri);
+        clearProviderSettings();
     }
 
     @Test
@@ -913,13 +829,7 @@ public class InstanceAzureProviderTest {
     @Test
     public void testConfirmInstanceProviderMismatch() throws IOException {
 
-        File configFile = new File("./src/test/resources/azure-openid.json");
-        File jwksUri = new File("./src/test/resources/azure-jwks.json");
-        createOpenIdConfigFile(configFile, jwksUri, true);
-
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
-        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+        setupProviderSettings(true);
 
         InstanceAzureProvider provider = new InstanceAzureProvider();
         setUpExternalCredentialsProvider(provider);
@@ -974,12 +884,7 @@ public class InstanceAzureProviderTest {
         }
 
         provider.close();
-
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
-        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
-
-        removeOpenIdConfigFile(configFile, jwksUri);
+        clearProviderSettings();
     }
 
     private String createAccessToken() {
@@ -1043,5 +948,25 @@ public class InstanceAzureProviderTest {
                     "}";
             Files.write(jwksUri.toPath(), keyContents.getBytes());
         }
+    }
+
+    private void setupProviderSettings(boolean bCreateJwksFile) throws IOException {
+        File configFile = new File("./src/test/resources/azure-openid.json");
+        File jwksUri = new File("./src/test/resources/azure-jwks.json");
+        createOpenIdConfigFile(configFile, jwksUri, bCreateJwksFile);
+
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI, "https://azure-zts");
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI, "file://" + configFile.getCanonicalPath());
+        System.setProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI, "file://" + jwksUri.getCanonicalPath());
+    }
+
+    private void clearProviderSettings() {
+        File configFile = new File("./src/test/resources/azure-openid.json");
+        File jwksUri = new File("./src/test/resources/azure-jwks.json");
+        removeOpenIdConfigFile(configFile, jwksUri);
+
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_ZTS_RESOURCE_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_CONFIG_URI);
+        System.clearProperty(InstanceAzureProvider.AZURE_PROP_OPENID_JWKS_URI);
     }
 }
