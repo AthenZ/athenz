@@ -22,20 +22,19 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 
-	certificatemanager "cloud.google.com/go/certificatemanager/apiv1"
-	"cloud.google.com/go/certificatemanager/apiv1/certificatemanagerpb"
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 	gcpa "github.com/AthenZ/athenz/libs/go/sia/gcp/attestation"
 	gcpm "github.com/AthenZ/athenz/libs/go/sia/gcp/meta"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/googleapis/gax-go/v2"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/fieldmaskpb"
+	certificatemanagerapi "google.golang.org/api/certificatemanager/v1"
+	"google.golang.org/api/googleapi"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -232,65 +231,6 @@ func StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService,
 	return err
 }
 
-// CertificateOperationInterface defines the interface for certificate operations
-type CertificateOperationInterface interface {
-	Name() string
-	Wait(context.Context, ...gax.CallOption) (*certificatemanagerpb.Certificate, error)
-}
-
-// CertificateManagerClientInterface defines the interface for certificate manager client operations
-type CertificateManagerClientInterface interface {
-	CreateCertificate(context.Context, *certificatemanagerpb.CreateCertificateRequest, ...gax.CallOption) (CertificateOperationInterface, error)
-	UpdateCertificate(context.Context, *certificatemanagerpb.UpdateCertificateRequest, ...gax.CallOption) (CertificateOperationInterface, error)
-	Close() error
-}
-
-// certificateOperationAdapter adapts a concrete operation to the interface
-type certificateOperationAdapter struct {
-	createOp *certificatemanager.CreateCertificateOperation
-	updateOp *certificatemanager.UpdateCertificateOperation
-	isCreate bool
-}
-
-func (a *certificateOperationAdapter) Name() string {
-	if a.isCreate {
-		return a.createOp.Name()
-	}
-	return a.updateOp.Name()
-}
-
-func (a *certificateOperationAdapter) Wait(ctx context.Context, opts ...gax.CallOption) (*certificatemanagerpb.Certificate, error) {
-	if a.isCreate {
-		return a.createOp.Wait(ctx, opts...)
-	}
-	return a.updateOp.Wait(ctx, opts...)
-}
-
-// certificateManagerClientAdapter adapts the real client to the interface
-type certificateManagerClientAdapter struct {
-	client *certificatemanager.Client
-}
-
-func (a *certificateManagerClientAdapter) CreateCertificate(ctx context.Context, req *certificatemanagerpb.CreateCertificateRequest, opts ...gax.CallOption) (CertificateOperationInterface, error) {
-	op, err := a.client.CreateCertificate(ctx, req, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &certificateOperationAdapter{createOp: op, isCreate: true}, nil
-}
-
-func (a *certificateManagerClientAdapter) UpdateCertificate(ctx context.Context, req *certificatemanagerpb.UpdateCertificateRequest, opts ...gax.CallOption) (CertificateOperationInterface, error) {
-	op, err := a.client.UpdateCertificate(ctx, req, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &certificateOperationAdapter{updateOp: op, isCreate: false}, nil
-}
-
-func (a *certificateManagerClientAdapter) Close() error {
-	return a.client.Close()
-}
-
 // MetadataProvider defines the interface for GCP metadata operations
 type MetadataProvider interface {
 	GetProject(metaEndpoint string) (string, error)
@@ -304,6 +244,31 @@ func (p *DefaultMetadataProvider) GetProject(metaEndpoint string) (string, error
 	return gcpm.GetProject(metaEndpoint)
 }
 
+// CertificateManagerOperations defines operations needed for certificate management
+type CertificateManagerOperations interface {
+	CreateCertificate(ctx context.Context, parent string, certificate *certificatemanagerapi.Certificate, certificateId string) (*certificatemanagerapi.Operation, error)
+	PatchCertificate(ctx context.Context, name string, certificate *certificatemanagerapi.Certificate, updateMask string) (*certificatemanagerapi.Operation, error)
+	GetOperation(ctx context.Context, operationName string) (*certificatemanagerapi.Operation, error)
+}
+
+// certificateManagerOperationsImpl implements CertificateManagerOperations using the REST API
+type certificateManagerOperationsImpl struct {
+	service *certificatemanagerapi.Service
+}
+
+func (c *certificateManagerOperationsImpl) CreateCertificate(ctx context.Context, parent string, certificate *certificatemanagerapi.Certificate, certificateId string) (*certificatemanagerapi.Operation, error) {
+	return c.service.Projects.Locations.Certificates.Create(parent, certificate).CertificateId(certificateId).Context(ctx).Do()
+}
+
+func (c *certificateManagerOperationsImpl) PatchCertificate(ctx context.Context, name string, certificate *certificatemanagerapi.Certificate, updateMask string) (*certificatemanagerapi.Operation, error) {
+	return c.service.Projects.Locations.Certificates.Patch(name, certificate).UpdateMask(updateMask).Context(ctx).Do()
+}
+
+func (c *certificateManagerOperationsImpl) GetOperation(ctx context.Context, operationName string) (*certificatemanagerapi.Operation, error) {
+	opsService := certificatemanagerapi.NewProjectsLocationsOperationsService(c.service)
+	return opsService.Get(operationName).Context(ctx).Do()
+}
+
 // StoreAthenzIdentityInCertificateManager store the retrieved athenz identity certificate
 // in Google Certificate Manager. The certificate is stored as a self-managed certificate
 // with the certificate and private key.
@@ -314,31 +279,30 @@ func (p *DefaultMetadataProvider) GetProject(metaEndpoint string) (string, error
 //
 // The location parameter specifies where the certificate should be created (e.g., "global").
 // For regional certificates, specify the region (e.g., "us-central1").
-func StoreAthenzIdentityInCertificateManager(certificateName, location string, siaCertData *util.SiaCertData, resourceLabels map[string]string) error {
+//
+// The scope parameter specifies the scope of the certificate. The valid values are:
+// "DEFAULT", "EDGE_CACHE", "ALL_REGIONS", and "CLIENT_AUTH".
+func StoreAthenzIdentityInCertificateManager(certificateName, location string, siaCertData *util.SiaCertData, scope string, resourceLabels map[string]string) error {
 
 	// Validate input
 	if siaCertData == nil || siaCertData.X509CertificatePem == "" || siaCertData.PrivateKeyPem == "" {
 		return fmt.Errorf("invalid certificate data: certificate and private key must be provided")
 	}
 
-	// Create the GCP certificate manager client.
+	// Create the GCP certificate manager service client.
 	ctx := context.Background()
 
-	certificateManagerClient, err := certificatemanager.NewClient(ctx)
+	certificateManagerService, err := certificatemanagerapi.NewService(ctx, option.WithScopes("https://www.googleapis.com/auth/cloud-platform"))
 	if err != nil {
-		return fmt.Errorf("unable to create certificate manager client: %v", err)
+		return fmt.Errorf("unable to create certificate manager service: %v", err)
 	}
-	defer (func() {
-		_ = certificateManagerClient.Close()
-	})()
 
-	// Wrap the real client in an adapter to match the interface
-	clientAdapter := &certificateManagerClientAdapter{client: certificateManagerClient}
+	operations := &certificateManagerOperationsImpl{service: certificateManagerService}
 	metadataProvider := &DefaultMetadataProvider{}
-	return storeIdentityInCertificateManager(ctx, clientAdapter, metadataProvider, certificateName, location, siaCertData, resourceLabels)
+	return storeIdentityInCertificateManager(ctx, operations, metadataProvider, certificateName, location, siaCertData, scope, resourceLabels)
 }
 
-func storeIdentityInCertificateManager(ctx context.Context, certificateManagerClient CertificateManagerClientInterface, metadataProvider MetadataProvider, certificateName, location string, siaCertData *util.SiaCertData, resourceLabels map[string]string) error {
+func storeIdentityInCertificateManager(ctx context.Context, operations CertificateManagerOperations, metadataProvider MetadataProvider, certificateName, location string, siaCertData *util.SiaCertData, scope string, resourceLabels map[string]string) error {
 
 	// Get the project id from metadata
 	gcpProjectId, err := metadataProvider.GetProject(gcpMetaDataServer)
@@ -352,27 +316,22 @@ func storeIdentityInCertificateManager(ctx context.Context, certificateManagerCl
 	// Build the certificate resource name
 	certificateFullName := fmt.Sprintf("%s/certificates/%s", parent, certificateName)
 
-	// Create the self-managed certificate request
-	createCertificateReq := &certificatemanagerpb.CreateCertificateRequest{
-		Parent:        parent,
-		CertificateId: certificateName,
-		Certificate: &certificatemanagerpb.Certificate{
-			Name: certificateFullName,
-			Type: &certificatemanagerpb.Certificate_SelfManaged{
-				SelfManaged: &certificatemanagerpb.Certificate_SelfManagedCertificate{
-					PemCertificate: siaCertData.X509CertificatePem,
-					PemPrivateKey:  siaCertData.PrivateKeyPem,
-				},
-			},
-			Labels: resourceLabels,
+	// Create the self-managed certificate object
+	certificate := &certificatemanagerapi.Certificate{
+		Name: certificateFullName,
+		SelfManaged: &certificatemanagerapi.SelfManagedCertificate{
+			PemCertificate: siaCertData.X509CertificatePem,
+			PemPrivateKey:  siaCertData.PrivateKeyPem,
 		},
+		Scope:  scope,
+		Labels: resourceLabels,
 	}
 
 	// Try to create the certificate
-	createOp, err := certificateManagerClient.CreateCertificate(ctx, createCertificateReq)
+	createOp, err := operations.CreateCertificate(ctx, parent, certificate, certificateName)
 	if err == nil {
-		log.Printf("Waiting for CreateCertificate operation %s to complete...\n", createOp.Name())
-		_, err = createOp.Wait(ctx)
+		log.Printf("Waiting for CreateCertificate operation %s to complete...\n", createOp.Name)
+		err = waitForOperation(ctx, operations, createOp.Name)
 		if err != nil {
 			log.Printf("CreateCertificate (wait) operation failed: %v\n", err)
 		} else {
@@ -381,45 +340,66 @@ func storeIdentityInCertificateManager(ctx context.Context, certificateManagerCl
 		return err
 	}
 
-	// check if the error because the certificate already exists and as such
-	// we just need to update the certificate instead
-
-	st, ok := status.FromError(err)
-	if !ok || st.Code() != codes.AlreadyExists {
+	// Check if the error is because the certificate already exists
+	googleErr, ok := err.(*googleapi.Error)
+	if !ok || googleErr.Code != http.StatusConflict {
 		log.Printf("CreateCertificate operation failed: %v\n", err)
 		return err
 	}
 
 	log.Println("Certificate already exists, we'll be updating it...")
 
-	// Update the existing certificate
-	updateCertificateReq := &certificatemanagerpb.UpdateCertificateRequest{
-		Certificate: &certificatemanagerpb.Certificate{
-			Name: certificateFullName,
-			Type: &certificatemanagerpb.Certificate_SelfManaged{
-				SelfManaged: &certificatemanagerpb.Certificate_SelfManagedCertificate{
-					PemCertificate: siaCertData.X509CertificatePem,
-					PemPrivateKey:  siaCertData.PrivateKeyPem,
-				},
-			},
-			Labels: resourceLabels,
-		},
-		UpdateMask: &fieldmaskpb.FieldMask{
-			Paths: []string{"self_managed", "labels"},
-		},
+	// Update the existing certificate using Patch
+	updateMaskParts := []string{"selfManaged"}
+	if certificate.Labels != nil {
+		updateMaskParts = append(updateMaskParts, "labels")
 	}
-
-	updateOp, err := certificateManagerClient.UpdateCertificate(ctx, updateCertificateReq)
+	updateMask := strings.Join(updateMaskParts, ",")
+	updateOp, err := operations.PatchCertificate(ctx, certificateFullName, certificate, updateMask)
 	if err == nil {
-		log.Printf("Waiting for UpdateCertificate operation %s to complete...\n", updateOp.Name())
-		_, err = updateOp.Wait(ctx)
+		log.Printf("Waiting for PatchCertificate operation %s to complete...\n", updateOp.Name)
+		err = waitForOperation(ctx, operations, updateOp.Name)
 		if err != nil {
-			log.Printf("UpdateCertificate (wait) operation failed: %v\n", err)
+			log.Printf("PatchCertificate (wait) operation failed: %v\n", err)
 		} else {
-			log.Println("UpdateCertificate operation succeeded")
+			log.Println("PatchCertificate operation succeeded")
 		}
 	} else {
-		log.Printf("UpdateCertificate operation failed: %v\n", err)
+		log.Printf("PatchCertificate operation failed: %v\n", err)
 	}
 	return err
+}
+
+// waitForOperation polls a long-running operation until it completes
+// operationName should be the full operation path: projects/{project}/locations/{location}/operations/{operation_id}
+func waitForOperation(ctx context.Context, operations CertificateManagerOperations, operationName string) error {
+	// Poll the operation with exponential backoff
+	maxAttempts := 60
+	backoff := 2 * time.Second
+	for i := 0; i < maxAttempts; i++ {
+		op, err := operations.GetOperation(ctx, operationName)
+		if err != nil {
+			return fmt.Errorf("failed to get operation status: %v", err)
+		}
+
+		if op.Done {
+			if op.Error != nil {
+				return fmt.Errorf("operation failed: %s", op.Error.Message)
+			}
+			return nil
+		}
+
+		// Wait before next poll
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(backoff):
+			// Exponential backoff with max 30 seconds
+			if backoff < 30*time.Second {
+				backoff *= 2
+			}
+		}
+	}
+
+	return fmt.Errorf("operation did not complete within expected time: %s", operationName)
 }
