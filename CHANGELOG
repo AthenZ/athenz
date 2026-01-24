@@ -1,3 +1,18 @@
+Athenz v1.12.33 Release / Jan 23, 2026
+--------------------------------------
+
+#3162 ui - display domains org as link to a role in audit domain
+#3165 Support rfc6598 IP addresses in service subnet
+#3173 UI - fix functional tests
+#3174 UI - fix functional tests
+#3177 Fix the FQDN regexp of StaticWorkloadName
+#3178 ui - functional test fixes
+#3179 UI - fix snapshots
+#3180 Bump lodash from 4.17.21 to 4.17.23 in /ui
+#3181 use gcp certificate manager v1 api for scope support
+#3182 update all test cases to set the jwks uri as expected
+#3183 update go and java dependencies to their latest releases
+
 Athenz v1.12.32 Release / Jan 08, 2026
 --------------------------------------
 
