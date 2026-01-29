@@ -256,6 +256,35 @@ func (cli Zms) AddGroupMembers(dn string, group string, members []string) (*stri
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
+func (cli Zms) AddDueDateGroupMember(dn string, group string, member string, expiration *rdl.Timestamp) (*string, error) {
+	fullResourceName := dn + ":group." + group
+	validatedUser := cli.validatedUser(member)
+
+	var membership zms.GroupMembership
+	membership.MemberName = zms.GroupMemberName(validatedUser)
+	membership.GroupName = zms.ResourceName(group)
+	if expiration != nil {
+		membership.Expiration = expiration
+	}
+	returnObject := false
+	_, err := cli.Zms.PutGroupMembership(zms.DomainName(dn), zms.EntityName(group), zms.GroupMemberName(validatedUser), cli.AuditRef, &returnObject, cli.ResourceOwner, &membership)
+	if err != nil {
+		return nil, err
+	}
+	var s string
+	if cli.Verbose {
+		s = "[Added to " + fullResourceName + ": " + validatedUser + "]"
+	} else {
+		s = "[Added to " + group + ": " + validatedUser + "]"
+	}
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) DeleteGroupMembers(dn string, group string, members []string) (*string, error) {
 	fullResourceName := dn + ":group." + group
 	ms := cli.validatedUsers(members, false)
