@@ -30,3 +30,17 @@ aws_request_timeout=<milliseconds>
 \# The client credentials used to connect to aws using basic credentials
 aws_cred_keyid=<aws credential keyid>
 aws_cred_access_key=<aws credential access key>
+
+\# Custom S3-compatible endpoint URL for non-AWS S3 services
+\# If not specified, the standard AWS S3 endpoint will be used
+aws_s3_endpoint=<custom s3 endpoint URL>
+
+\# Path to custom CA certificate file for S3 endpoint verification
+\# Optional. Only required when using self-signed certificates with custom S3 endpoints
+\# If not specified, system default trust store will be used
+aws_s3_ca_cert=<path to CA certificate file>
+
+\# Enable/disable checksum validation for S3 operations
+\# Set to "true" to enable checksum validation
+\# If not specified, checksum validation is disabled
+aws_s3_checksum_validation=<true|false>

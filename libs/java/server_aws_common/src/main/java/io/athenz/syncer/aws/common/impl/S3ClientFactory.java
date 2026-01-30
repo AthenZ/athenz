@@ -16,6 +16,7 @@
 
 package io.athenz.syncer.aws.common.impl;
 
+import com.yahoo.athenz.auth.util.Crypto;
 import io.athenz.syncer.common.zms.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,11 +24,18 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 
+import javax.net.ssl.TrustManagerFactory;
+import java.net.URI;
+import java.security.KeyStore;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 
 public class S3ClientFactory {
@@ -71,30 +79,55 @@ public class S3ClientFactory {
             }
         }
 
-        SdkHttpClient apacheHttpClient = ApacheHttpClient.builder()
+        ApacheHttpClient.Builder httpClientBuilder = ApacheHttpClient.builder()
                 .connectionTimeout(Duration.ofMillis(connectionTimeout))
-                .socketTimeout(Duration.ofMillis(requestTimeout))
-                .build();
+                .socketTimeout(Duration.ofMillis(requestTimeout));
 
-        S3Client s3client;
+        final String caCertPath = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_S3_CA_CERT);
+        if (!Config.isEmpty(caCertPath)) {
+            X509Certificate[] certs = Crypto.loadX509Certificates(caCertPath);
+            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            keyStore.load(null, null); // Initialize empty keystore
+            int i = 0;
+            for (X509Certificate cert : certs) {
+                keyStore.setCertificateEntry("custom-ca-" + i++, cert);
+            }
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(keyStore);
+
+            httpClientBuilder.tlsTrustManagersProvider(tmf::getTrustManagers);
+        }
+
+        SdkHttpClient apacheHttpClient = httpClientBuilder.build();
+
+        S3ClientBuilder s3ClientBuilder = S3Client.builder()
+                .httpClient(apacheHttpClient)
+                .region(getRegion());
+
+        // Enable checksum calculation and validation if configured
+        final String checksumValidation = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_S3_CHECKSUM_VALIDATION);
+        if (!Config.isEmpty(checksumValidation) && Boolean.parseBoolean(checksumValidation)) {
+            s3ClientBuilder
+                    .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
+                    .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED);
+            LOGGER.debug("S3 checksum calculation and validation enabled");
+        }
+
+        final String awsS3Endpoint = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_S3_ENDPOINT);
+        if (!Config.isEmpty(awsS3Endpoint)) {
+            s3ClientBuilder.endpointOverride(URI.create(awsS3Endpoint));
+        }
+
         final String awsKeyId = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_KEY_ID);
         final String awsAccKey = Config.getInstance().getConfigParam(Config.SYNC_CFG_PARAM_AWS_ACCESS_KEY);
         if (!Config.isEmpty(awsKeyId) && !Config.isEmpty(awsAccKey)) {
             AwsBasicCredentials awsCreds = AwsBasicCredentials.builder()
                     .accessKeyId(awsKeyId).secretAccessKey(awsAccKey).build();
             StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(awsCreds);
-
-            s3client = S3Client.builder()
-                    .credentialsProvider(credentialsProvider)
-                    .httpClient(apacheHttpClient)
-                    .region(getRegion())
-                    .build();
-        } else {
-            s3client = S3Client.builder()
-                    .httpClient(apacheHttpClient)
-                    .region(getRegion())
-                    .build();
+            s3ClientBuilder.credentialsProvider(credentialsProvider);
         }
+
+        S3Client s3client = s3ClientBuilder.build();
 
         verifyBucketExist(s3client, bucket);
 
