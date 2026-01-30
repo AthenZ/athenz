@@ -528,11 +528,13 @@ public class DBService implements RolesProvider, DomainProvider {
             if (newAssertions != null) {
                 for (Assertion assertion : newAssertions) {
                     if (!con.insertAssertion(domainName, policyName, policy.getVersion(), assertion)) {
+                        LOG.error("unable to insert assertion for policy {} in domain {}", policyName, domainName);
                         return false;
                     }
                     // insert the new assertion conditions if any
                     if (assertion.getConditions() != null) {
                         if (!con.insertAssertionConditions(assertion.getId(), assertion.getConditions())) {
+                            LOG.error("unable to insert assertion conditions for policy {} in domain {}", policyName, domainName);
                             return false;
                         }
                     }
@@ -563,6 +565,7 @@ public class DBService implements RolesProvider, DomainProvider {
             if (!ignoreDeletes) {
                 for (Assertion assertion : delAssertions) {
                     if (!con.deleteAssertion(domainName, policyName, policy.getVersion(), assertion.getId())) {
+                        LOG.error("unable to delete assertion for policy {} in domain {}", policyName, domainName);
                         return false;
                     }
                 }
@@ -571,10 +574,12 @@ public class DBService implements RolesProvider, DomainProvider {
 
             for (Assertion assertion : addAssertions) {
                 if (!con.insertAssertion(domainName, policyName, policy.getVersion(), assertion)) {
+                    LOG.error("unable to insert assertion for policy {} in domain {}", policyName, domainName);
                     return false;
                 }
                 if (assertion.getConditions() != null) {
                     if (!con.insertAssertionConditions(assertion.getId(), assertion.getConditions())) {
+                        LOG.error("unable to insert assertion condition for policy {} in domain {}", policyName, domainName);
                         return false;
                     }
                 }
@@ -588,6 +593,7 @@ public class DBService implements RolesProvider, DomainProvider {
             for (Map.Entry<Long, List<AssertionCondition>> entry : delConditions.entrySet()) {
                 Long assertionId = entry.getKey();
                 if (!con.deleteAssertionConditions(assertionId)) {
+                    LOG.error("unable to delete assertion condition for policy {} in domain {}", policyName, domainName);
                     return false;
                 }
             }
@@ -596,6 +602,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 Long assertionId = entry.getKey();
                 List<AssertionCondition> conditionsList = entry.getValue();
                 if (!con.insertAssertionConditions(assertionId, new AssertionConditions().setConditionsList(conditionsList))) {
+                    LOG.error("unable to insert assertion condition for policy {} in domain {}", policyName, domainName);
                     return false;
                 }
             }
@@ -819,6 +826,8 @@ public class DBService implements RolesProvider, DomainProvider {
                     }
                     member.setRequestPrincipal(admin);
                     if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
+                        LOG.error("unable to insert member {} to role {} in domain {}",
+                                member.getMemberName(), roleName, domainName);
                         return false;
                     }
                 }
@@ -922,6 +931,8 @@ public class DBService implements RolesProvider, DomainProvider {
                         member.setPendingState(null);
                     }
                     if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
+                        LOG.error("unable to insert member {} to group {} in domain {}",
+                                member.getMemberName(), groupName, domainName);
                         return false;
                     }
                 }
@@ -1155,11 +1166,15 @@ public class DBService implements RolesProvider, DomainProvider {
                 if (pendingState && deleteProtection == Boolean.TRUE) {
                     member.setApproved(false).setPendingState(ZMSConsts.PENDING_REQUEST_DELETE_STATE);
                     if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
+                        LOG.error("unable to insert member {} to role {} in domain {}",
+                                member.getMemberName(), roleName, domainName);
                         return false;
                     }
                     addMemberToNotifySet(notifyMembers, member.getMemberName());
                 } else {
                     if (!con.deleteRoleMember(domainName, roleName, member.getMemberName(), admin, auditRef)) {
+                        LOG.error("unable to delete member {} from role {} in domain {}",
+                                member.getMemberName(), roleName, domainName);
                         return false;
                     }
                 }
@@ -1175,6 +1190,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 member.setPendingState(null);
             }
             if (!con.insertRoleMember(domainName, roleName, member, admin, auditRef)) {
+                LOG.error("unable to insert member {} to role {} in domain {}",
+                        member.getMemberName(), roleName, domainName);
                 return false;
             }
         }
@@ -1209,11 +1226,15 @@ public class DBService implements RolesProvider, DomainProvider {
                 if (pendingState && deleteProtection == Boolean.TRUE) {
                     member.setApproved(false).setPendingState(ZMSConsts.PENDING_REQUEST_DELETE_STATE);
                     if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
+                        LOG.error("unable to insert member {} to group {} in domain {}",
+                                member.getMemberName(), groupName, domainName);
                         return false;
                     }
                     addMemberToNotifySet(notifyMembers, member.getMemberName());
                 } else {
                     if (!con.deleteGroupMember(domainName, groupName, member.getMemberName(), admin, auditRef)) {
+                        LOG.error("unable to delete member {} from group {} in domain {}",
+                                member.getMemberName(), groupName, domainName);
                         return false;
                     }
                 }
@@ -1229,6 +1250,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 member.setPendingState(null);
             }
             if (!con.insertGroupMember(domainName, groupName, member, admin, auditRef)) {
+                LOG.error("unable to insert member {} to group {} in domain {}",
+                        member.getMemberName(), groupName, domainName);
                 return false;
             }
         }
@@ -1290,6 +1313,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 for (PublicKeyEntry publicKey : publicKeys) {
                     if (!con.insertPublicKeyEntry(domainName, serviceName, publicKey)) {
+                        LOG.error("unable to insert public key to service {} in domain {}", serviceName, domainName);
                         return false;
                     }
                 }
@@ -1331,6 +1355,7 @@ public class DBService implements RolesProvider, DomainProvider {
             if (!ignoreDeletes) {
                 for (String publicKey : delPublicKeysSet) {
                     if (!con.deletePublicKeyEntry(domainName, serviceName, publicKey)) {
+                        LOG.error("unable to delete public key from service {} in domain {}", serviceName, domainName);
                         return false;
                     }
                 }
@@ -1339,6 +1364,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
             for (String publicKey : newPublicKeysSet) {
                 if (!con.insertPublicKeyEntry(domainName, serviceName, publicKeysMap.get(publicKey))) {
+                    LOG.error("unable to insert public key to service {} in domain {}", serviceName, domainName);
                     return false;
                 }
             }
@@ -1346,6 +1372,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
             for (String publicKey : updatePublicKeysSet) {
                 if (!con.updatePublicKeyEntry(domainName, serviceName, updatePublicKeysMap.get(publicKey))) {
+                    LOG.error("unable to update public key in service {} in domain {}", serviceName, domainName);
                     return false;
                 }
             }
@@ -1374,6 +1401,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
         for (String host : delHosts) {
             if (!con.deleteServiceHost(domainName, serviceName, host)) {
+                LOG.error("unable to delete host in service {} in domain {}", serviceName, domainName);
                 return false;
             }
         }
@@ -1381,6 +1409,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
         for (String host : newHosts) {
             if (!con.insertServiceHost(domainName, serviceName, host)) {
+                LOG.error("unable to insert host to service {} in domain {}", serviceName, domainName);
                 return false;
             }
         }
@@ -1587,6 +1616,7 @@ public class DBService implements RolesProvider, DomainProvider {
             // insert assertion (and get new assertion id)
 
             if (!con.insertAssertion(domainName, policyName, version, assertion)) {
+                LOG.error("unable to insert assertion to policy {} in domain {}", policyName, domainName);
                 return false;
             }
 
@@ -1594,6 +1624,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
             if (assertionConditions.getConditionsList() != null && !assertionConditions.getConditionsList().isEmpty()) {
                 if (!con.insertAssertionConditions(assertion.getId(), assertionConditions)) {
+                    LOG.error("unable to insert assertion conditions to policy {} in domain {}", policyName, domainName);
                     return false;
                 }
             }
@@ -3255,8 +3286,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // left behind will be cleaned up from this operation
 
                 if (!con.deletePrincipal(userName, true)) {
-                    throw ZMSUtils.notFoundError(caller + ": unable to delete user: "
-                            + userName, caller);
+                    throw ZMSUtils.notFoundError(caller + ": unable to delete user: " + userName, caller);
                 }
 
                 // automatically update any domain contact record where this user is referenced
@@ -4539,6 +4569,8 @@ public class DBService implements RolesProvider, DomainProvider {
             for (Map.Entry<String, String> entry : updatedContacts.entrySet()) {
                 if (!StringUtil.isEmpty(entry.getValue())) {
                     if (!con.insertDomainContact(domainName, entry.getKey(), entry.getValue())) {
+                        LOG.error("unable to insert contact {}/{} in domain {}",
+                                entry.getKey(), entry.getValue(), domainName);
                         return false;
                     }
                 }
@@ -4552,6 +4584,7 @@ public class DBService implements RolesProvider, DomainProvider {
         if (updatedContacts.isEmpty()) {
             for (String contact : originalContacts.keySet()) {
                 if (!con.deleteDomainContact(domainName, contact)) {
+                    LOG.error("unable to delete contact type {} in domain {}", contact, domainName);
                     return false;
                 }
             }
@@ -4568,10 +4601,12 @@ public class DBService implements RolesProvider, DomainProvider {
                 if (!originalContacts.get(type).equals(name)) {
                     if (StringUtil.isEmpty(name)) {
                         if (!con.deleteDomainContact(domainName, type)) {
+                            LOG.error("unable to delete contact {} in domain {}", type, domainName);
                             return false;
                         }
                     } else {
                         if (!con.updateDomainContact(domainName, type, name)) {
+                            LOG.error("unable to update contact {}/{} in domain {}", type, name, domainName);
                             return false;
                         }
                     }
@@ -4579,6 +4614,7 @@ public class DBService implements RolesProvider, DomainProvider {
             } else {
                 if (!StringUtil.isEmpty(entry.getValue())) {
                     if (!con.insertDomainContact(domainName, type, name)) {
+                        LOG.error("unable to insert contact {}/{} in domain {}", type, name, domainName);
                         return false;
                     }
                 }
@@ -4591,6 +4627,7 @@ public class DBService implements RolesProvider, DomainProvider {
         for (String type : originalContacts.keySet()) {
             if (!updatedContacts.containsKey(type)) {
                 if (!con.deleteDomainContact(domainName, type)) {
+                    LOG.error("unable to delete contact type {} in domain {}", type, domainName);
                     return false;
                 }
             }
@@ -7697,11 +7734,12 @@ public class DBService implements RolesProvider, DomainProvider {
                 roleMember.setPendingState(roleMember.getApproved() == Boolean.FALSE ? ZMSConsts.PENDING_REQUEST_ADD_STATE : null);
                 roleMember.setRequestPrincipal(principal);
                 if (!con.insertRoleMember(domainName, roleName, roleMember, principal, auditRef)) {
-                    LOG.error("unable to update member {}", roleMember.getMemberName());
+                    LOG.error("unable to update member {} in domain {}", roleMember.getMemberName(), domainName);
                     continue;
                 }
             } catch (Exception ex) {
-                LOG.error("unable to update member {} error: {}", roleMember.getMemberName(), ex.getMessage());
+                LOG.error("unable to update member {} in domain {}, error: {}", roleMember.getMemberName(),
+                        domainName, ex.getMessage());
                 continue;
             }
 
@@ -7729,11 +7767,12 @@ public class DBService implements RolesProvider, DomainProvider {
         for (GroupMember groupMember : groupMembers) {
             try {
                 if (!con.insertGroupMember(domainName, groupName, groupMember, principal, auditRef)) {
-                    LOG.error("unable to update group member {}", groupMember.getMemberName());
+                    LOG.error("unable to update group member {} in domain {}", groupMember.getMemberName(), domainName);
                     continue;
                 }
             } catch (Exception ex) {
-                LOG.error("unable to update member {} error: {}", groupMember.getMemberName(), ex.getMessage());
+                LOG.error("unable to update member {} in domain {}, error: {}", groupMember.getMemberName(),
+                        domainName, ex.getMessage());
                 continue;
             }
 
@@ -7762,11 +7801,12 @@ public class DBService implements RolesProvider, DomainProvider {
             try {
                 if (!con.updateRoleMemberDisabledState(domainName, roleName, roleMember.getMemberName(), principal,
                         roleMember.getSystemDisabled(), auditRef)) {
-                    LOG.error("unable to update member {}", roleMember.getMemberName());
+                    LOG.error("unable to update member {} in domain {}", roleMember.getMemberName(), domainName);
                     continue;
                 }
             } catch (Exception ex) {
-                LOG.error("unable to update member {} error: {}", roleMember.getMemberName(), ex.getMessage());
+                LOG.error("unable to update member {} in domain {}, error: {}", roleMember.getMemberName(),
+                        domainName, ex.getMessage());
                 continue;
             }
 
@@ -7795,11 +7835,12 @@ public class DBService implements RolesProvider, DomainProvider {
             try {
                 if (!con.updateGroupMemberDisabledState(domainName, groupName, groupMember.getMemberName(), principal,
                         groupMember.getSystemDisabled(), auditRef)) {
-                    LOG.error("unable to update group member {}", groupMember.getMemberName());
+                    LOG.error("unable to update group member {} in domain {}", groupMember.getMemberName(), domainName);
                     continue;
                 }
             } catch (Exception ex) {
-                LOG.error("unable to update group member {} error: {}", groupMember.getMemberName(), ex.getMessage());
+                LOG.error("unable to update group member {} in domain {}, error: {}", groupMember.getMemberName(),
+                        domainName, ex.getMessage());
                 continue;
             }
 
@@ -9220,7 +9261,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 // process our insert assertion condition.
 
                 if (!con.insertAssertionConditions(assertionId, assertionConditions)) {
-                    throw ZMSUtils.requestError(String.format("%s: unable to insert assertion conditions for policy=%s assertionId=%d", caller, policyName, assertionId), caller);
+                    throw ZMSUtils.requestError(String.format("%s: unable to insert assertion conditions for policy=%s assertionId=%d",
+                            caller, policyName, assertionId), caller);
                 }
 
                 // update our policy and domain time-stamps, and invalidate local cache entry
@@ -9573,6 +9615,7 @@ public class DBService implements RolesProvider, DomainProvider {
         // if we didn't insert a dependency then we need to return failure
 
         if (!con.insertDomainDependency(domainName, service)) {
+            LOG.error("unable to insert dependency {} in domain {}", service, domainName);
             return false;
         }
 
@@ -9592,6 +9635,7 @@ public class DBService implements RolesProvider, DomainProvider {
         // if we didn't delete the dependency then we need to return failure
 
         if (!con.deleteDomainDependency(domainName, service)) {
+            LOG.error("unable to delete dependency {} in domain {}", service, domainName);
             return false;
         }
 
