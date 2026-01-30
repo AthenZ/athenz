@@ -679,6 +679,14 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc >= 2 {
 				return cli.AddGroupMembers(dn, args[0], args[1:])
 			}
+		case "add-temporary-group-member":
+			if argc == 3 {
+				expiration, err := getTimestamp(args[2])
+				if err == nil {
+					return cli.AddDueDateGroupMember(dn, args[0], args[1], &expiration)
+				}
+				return nil, err
+			}
 		case "delete-group-member", "delete-group-members":
 			if argc >= 2 {
 				return cli.DeleteGroupMembers(dn, args[0], args[1:])
@@ -2415,7 +2423,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " add-group readers -audit-enabled\n")
 	case "add-group-member":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " add-member group user_or_service [user_or_service ...]\n")
+		buf.WriteString("   " + domainParam + " add-group-member group user_or_service [user_or_service ...]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain          : name of the domain that group belongs to\n")
@@ -2424,6 +2432,18 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   user_or_service : users or services to be added as members\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " add-member readers " + cli.UserDomain + ".john " + cli.UserDomain + ".joe media.sports.storage\n")
+	case "add-temporary-group-member":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " add-temporary-group-member group user_or_service expiration\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain          : name of the domain that group belongs to\n")
+		}
+		buf.WriteString("   group           : name of the group to add member to\n")
+		buf.WriteString("   user_or_service : user or service to be added as member\n")
+		buf.WriteString("   expiration      : expiration date format yyyy-mm-ddThh:mm:ss.msecZ\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " add-temporary-group-member readers-team " + cli.UserDomain + ".john 2017-03-02T15:04:05.999Z\n")
 	case "check-group-member":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " check-group-member group user_or_service [user_or_service ...]\n")
@@ -3853,6 +3873,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   list-groups-for-review [principal]\n")
 	buf.WriteString("   add-group group [-audit-enabled] [member ... ]\n")
 	buf.WriteString("   add-group-member group user_or_service [user_or_service ...]\n")
+	buf.WriteString("   add-temporary-group-member group user_or_service expiration\n")
 	buf.WriteString("   check-group-member group user_or_service [user_or_service ...]\n")
 	buf.WriteString("   check-active-group-member group user_or_service\n")
 	buf.WriteString("   delete-group-member group user_or_service [user_or_service ...]\n")
