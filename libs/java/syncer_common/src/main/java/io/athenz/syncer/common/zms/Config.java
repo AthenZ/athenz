@@ -71,7 +71,7 @@ public class Config {
     public static final String SYNC_CFG_PARAM_AWS_S3_REGION = "aws_s3_region";
     public static final String SYNC_CFG_PARAM_AWS_S3_ENDPOINT = "aws_s3_endpoint";
     public static final String SYNC_CFG_PARAM_AWS_S3_CA_CERT = "aws_s3_ca_cert";
-    public static final String SYNC_CFG_PARAM_AWS_S3_CHECKSUM_VALIDATION = "aws_s3_checksum_validation";
+    public static final String SYNC_CFG_PARAM_AWS_S3_CHECKSUM_VALIDATION = "aws_s3_use_checksum_validation_when_required";
     public static final String SYNC_CFG_PARAM_STATE_BUILDER_THREADS = "state_builder_threads";
     public static final String SYNC_CFG_PARAM_STATE_BUILDER_TIMEOUT = "state_builder_timeout";
     public static final String SYNC_CFG_PARAM_DOMAIN_REFRESH_COUNT = "domain_refresh_count";

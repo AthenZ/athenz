@@ -40,7 +40,7 @@ aws_s3_endpoint=<custom s3 endpoint URL>
 \# If not specified, system default trust store will be used
 aws_s3_ca_cert=<path to CA certificate file>
 
-\# Enable/disable checksum validation for S3 operations
-\# Set to "true" to enable checksum validation
-\# If not specified, checksum validation is disabled
-aws_s3_checksum_validation=<true|false>
+\# When set to "true", enables RequestChecksumCalculation.WHEN_REQUIRED and 
+\# ResponseChecksumValidation.WHEN_REQUIRED for S3 client operations
+\# If not specified, uses SDK default behavior (WHEN_SUPPORTED)
+aws_s3_use_checksum_validation_when_required=<true|false>
