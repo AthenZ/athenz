@@ -12801,6 +12801,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         String serviceDomainName = domainName.toLowerCase();
         setRequestDomain(ctx, serviceDomainName);
 
+        if (dbService.getDomain(serviceDomainName, false) == null) {
+            throw ZMSUtils.notFoundError("No such domain: " + serviceDomainName, caller);
+        }
+
         // first let's get the service dependencies from our own database
 
         ServiceIdentityList services = dbService.listServiceDependencies(serviceDomainName);

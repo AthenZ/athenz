@@ -463,8 +463,15 @@ public class DomainDependencyTest {
         ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
 
-        ServiceIdentityList dependentServiceList = zmsImpl.getDependentServiceList(ctx, "some.unknown.domain");
-        assertTrue(dependentServiceList.getNames().isEmpty());
+        // asking for domain dependency on a non-existent domain should return 404 not found exception
+
+        try {
+            zmsImpl.getDependentServiceList(ctx, "some.unknown.domain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("No such domain: some.unknown.domain"));
+        }
     }
 
     @Test
