@@ -6371,6 +6371,30 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testProcessRoleInsertRoleMemberFailure() throws ServerResourceException {
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        // Create a role with role members
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.member1"));
+        Role role = new Role().setName("newRole").setRoleMembers(roleMembers);
+
+        // Mock insertRole to return true (so we pass the first check)
+        Mockito.when(conn.insertRole(anyString(), any(Role.class))).thenReturn(true);
+
+        // Mock insertRoleMember to return false (to trigger failure)
+        Mockito.when(conn.insertRoleMember(anyString(), anyString(), any(RoleMember.class),
+                anyString(), anyString())).thenReturn(false);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean result = zms.dbService.processRole(conn, null, "testDomain", "newRole",
+                role, adminUser, null, auditRef, false, auditDetails);
+
+        // Assert that processRole returns false when insertRoleMember fails
+        assertFalse(result);
+    }
+
+    @Test
     public void testUpdateRoleMetaFields() throws ServerResourceException {
         final String caller = "testUpdateRoleMetaFields";
         Role role = new Role();
@@ -10783,6 +10807,28 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testUpdateGroupMemberDisabledStateException() throws ServerResourceException {
+
+        final String domainName = "update-group-members-disabled-exception";
+        final String groupName = "group1";
+
+        Mockito.when(mockJdbcConn.updateGroupMemberDisabledState(anyString(), anyString(), anyString(), anyString(),
+                anyInt(), anyString())).thenThrow(new ServerResourceException(ServerResourceException.INTERNAL_SERVER_ERROR, "Database error"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        List<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.joe").setSystemDisabled(1));
+        groupMembers.add(new GroupMember().setMemberName("user.jane").setSystemDisabled(2));
+
+        assertFalse(zms.dbService.updateGroupMemberDisabledState(mockDomRsrcCtx, mockJdbcConn, groupMembers,
+                domainName, groupName, adminUser, auditRef, "unit-test"));
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
     public void testExecutePutGroupMembershipDecisionFailure() throws ServerResourceException {
 
         final String domainName = "put-group-mbr-dec-err";
@@ -11932,6 +11978,165 @@ public class DBServiceTest {
                 .collect(Collectors.toList())
                 .contains("tagVal"));
 
+    }
+
+    @Test
+    public void testProcessServiceIdentityInsertPublicKeyEntryFailure() throws ServerResourceException {
+        // Test case for insertPublicKeyEntry fails for new service
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        PublicKeyEntry publicKey = new PublicKeyEntry().setId("key1").setKey("public-key-data");
+        List<PublicKeyEntry> publicKeys = Collections.singletonList(publicKey);
+        ServiceIdentity service = new ServiceIdentity()
+                .setName("newService")
+                .setPublicKeys(publicKeys);
+
+        Mockito.when(conn.insertServiceIdentity("sys.auth", service)).thenReturn(true);
+        Mockito.when(conn.insertPublicKeyEntry("sys.auth", "newService", publicKey)).thenReturn(false);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processServiceIdentity(null, conn, null, "sys.auth", "newService",
+                service, false, auditDetails);
+
+        assertFalse(success);
+        Mockito.verify(conn, times(1)).insertServiceIdentity("sys.auth", service);
+        Mockito.verify(conn, times(1)).insertPublicKeyEntry("sys.auth", "newService", publicKey);
+    }
+
+    @Test
+    public void testProcessServiceIdentityDeletePublicKeyEntryFailure() throws ServerResourceException {
+        // Test case for deletePublicKeyEntry fails for update service
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        PublicKeyEntry originalPublicKey = new PublicKeyEntry().setId("key1").setKey("original-key-data");
+        List<PublicKeyEntry> originalPublicKeys = Collections.singletonList(originalPublicKey);
+        ServiceIdentity originalService = new ServiceIdentity()
+                .setName("existingService")
+                .setPublicKeys(originalPublicKeys);
+
+        // New service without the public key (should trigger deletion)
+        ServiceIdentity service = new ServiceIdentity()
+                .setName("existingService")
+                .setPublicKeys(null);
+
+        Mockito.when(conn.updateServiceIdentity("sys.auth", service)).thenReturn(true);
+        Mockito.when(conn.deletePublicKeyEntry("sys.auth", "existingService", "key1")).thenReturn(false);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processServiceIdentity(null, conn, originalService, "sys.auth", "existingService",
+                service, false, auditDetails);
+
+        assertFalse(success);
+        Mockito.verify(conn, times(1)).updateServiceIdentity("sys.auth", service);
+        Mockito.verify(conn, times(1)).deletePublicKeyEntry("sys.auth", "existingService", "key1");
+    }
+
+    @Test
+    public void testProcessServiceIdentityUpdatePublicKeyEntryFailure() throws ServerResourceException {
+        // Test case for updatePublicKeyEntry fails for update service
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        PublicKeyEntry originalPublicKey = new PublicKeyEntry().setId("key1").setKey("original-key-data");
+        List<PublicKeyEntry> originalPublicKeys = Collections.singletonList(originalPublicKey);
+        ServiceIdentity originalService = new ServiceIdentity()
+                .setName("existingService")
+                .setPublicKeys(originalPublicKeys);
+
+        // Update service with same key id but different key value (should trigger update)
+        PublicKeyEntry updatedPublicKey = new PublicKeyEntry().setId("key1").setKey("updated-key-data");
+        List<PublicKeyEntry> updatedPublicKeys = Collections.singletonList(updatedPublicKey);
+        ServiceIdentity service = new ServiceIdentity()
+                .setName("existingService")
+                .setPublicKeys(updatedPublicKeys);
+
+        Mockito.when(conn.updateServiceIdentity("sys.auth", service)).thenReturn(true);
+        Mockito.when(conn.updatePublicKeyEntry("sys.auth", "existingService", updatedPublicKey)).thenReturn(false);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processServiceIdentity(null, conn, originalService, "sys.auth", "existingService",
+                service, false, auditDetails);
+
+        assertFalse(success);
+        Mockito.verify(conn, times(1)).updateServiceIdentity("sys.auth", service);
+        Mockito.verify(conn, times(1)).updatePublicKeyEntry("sys.auth", "existingService", updatedPublicKey);
+    }
+
+    @Test
+    public void testProcessServiceIdentityDeleteServiceHostFailure() throws ServerResourceException {
+        // Test case for deleteServiceHost fails
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        List<String> originalHosts = Collections.singletonList("host1.example.com");
+        ServiceIdentity originalService = new ServiceIdentity()
+                .setName("existingService")
+                .setHosts(originalHosts);
+
+        // New service without the host (should trigger deletion)
+        ServiceIdentity service = new ServiceIdentity()
+                .setName("existingService")
+                .setHosts(null);
+
+        Mockito.when(conn.updateServiceIdentity("sys.auth", service)).thenReturn(true);
+        Mockito.when(conn.deleteServiceHost("sys.auth", "existingService", "host1.example.com")).thenReturn(false);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processServiceIdentity(null, conn, originalService, "sys.auth", "existingService",
+                service, false, auditDetails);
+
+        assertFalse(success);
+        Mockito.verify(conn, times(1)).updateServiceIdentity("sys.auth", service);
+        Mockito.verify(conn, times(1)).deleteServiceHost("sys.auth", "existingService", "host1.example.com");
+    }
+
+    @Test
+    public void testProcessServiceIdentityInsertServiceHostFailure() throws ServerResourceException {
+        // Test case for insertServiceHost fails
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        ServiceIdentity originalService = new ServiceIdentity()
+                .setName("existingService")
+                .setHosts(null);
+
+        // New service with a new host (should trigger insertion)
+        List<String> newHosts = Collections.singletonList("newhost.example.com");
+        ServiceIdentity service = new ServiceIdentity()
+                .setName("existingService")
+                .setHosts(newHosts);
+
+        Mockito.when(conn.updateServiceIdentity("sys.auth", service)).thenReturn(true);
+        Mockito.when(conn.insertServiceHost("sys.auth", "existingService", "newhost.example.com")).thenReturn(false);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processServiceIdentity(null, conn, originalService, "sys.auth", "existingService",
+                service, false, auditDetails);
+
+        assertFalse(success);
+        Mockito.verify(conn, times(1)).updateServiceIdentity("sys.auth", service);
+        Mockito.verify(conn, times(1)).insertServiceHost("sys.auth", "existingService", "newhost.example.com");
+    }
+
+    @Test
+    public void testProcessServiceIdentityProcessTagsFailure() throws ServerResourceException {
+        // Test case for processServiceIdentityTags fails
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        Map<String, TagValueList> serviceTags = Collections.singletonMap(
+                "tagKey", new TagValueList().setList(Collections.singletonList("tagVal"))
+        );
+        ServiceIdentity service = new ServiceIdentity()
+                .setName("newService")
+                .setTags(serviceTags);
+
+        Mockito.when(conn.insertServiceIdentity("sys.auth", service)).thenReturn(true);
+        Mockito.when(conn.insertServiceTags("newService", "sys.auth", serviceTags)).thenReturn(false);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processServiceIdentity(null, conn, null, "sys.auth", "newService",
+                service, false, auditDetails);
+
+        assertFalse(success);
+        Mockito.verify(conn, times(1)).insertServiceIdentity("sys.auth", service);
+        Mockito.verify(conn, times(1)).insertServiceTags("newService", "sys.auth", serviceTags);
     }
 
     @Test
@@ -13434,6 +13639,122 @@ public class DBServiceTest {
 
 
     }
+
+    @Test
+    public void testProcessPolicyDeleteAssertionReturnsFalse() throws ServerResourceException {
+        // Test case for deleteAssertion returns false
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        // Create original policy with an assertion that will be deleted
+        Policy originalPolicy = new Policy().setName("testPolicy");
+        Assertion oldAssertion = new Assertion()
+                .setId(1L)
+                .setAction("testAction")
+                .setResource("sys.auth:testResource")
+                .setRole("sys.auth:role.testRole")
+                .setEffect(AssertionEffect.ALLOW);
+        originalPolicy.setAssertions(new LinkedList<>(Collections.singletonList(oldAssertion)));
+
+        // Create new policy without the old assertion (so it will be deleted)
+        Policy newPolicy = new Policy().setName("testPolicy");
+        newPolicy.setAssertions(new LinkedList<>());
+
+        // Mock updatePolicy to return true, but deleteAssertion to return false
+        Mockito.when(conn.updatePolicy("sys.auth", newPolicy)).thenReturn(true);
+        Mockito.when(conn.deleteAssertion("sys.auth", "testPolicy", null, 1L)).thenReturn(false);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processPolicy(conn, originalPolicy, "sys.auth", "testPolicy",
+                newPolicy, false, auditDetails);
+
+        assertFalse(success);
+        Mockito.verify(conn, Mockito.times(1)).deleteAssertion("sys.auth", "testPolicy", null, 1L);
+    }
+
+    @Test
+    public void testProcessPolicyInsertAssertionReturnsFalse() throws ServerResourceException {
+        // Test case for insertAssertion returns false
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        // Create original policy with an assertion
+        Policy originalPolicy = new Policy().setName("testPolicy");
+        Assertion oldAssertion = new Assertion()
+                .setId(1L)
+                .setAction("oldAction")
+                .setResource("sys.auth:oldResource")
+                .setRole("sys.auth:role.oldRole")
+                .setEffect(AssertionEffect.ALLOW);
+        originalPolicy.setAssertions(new LinkedList<>(Collections.singletonList(oldAssertion)));
+
+        // Create new policy with a different assertion (so old one stays, new one is added)
+        Policy newPolicy = new Policy().setName("testPolicy");
+        Assertion newAssertion = new Assertion()
+                .setId(2L)
+                .setAction("newAction")
+                .setResource("sys.auth:newResource")
+                .setRole("sys.auth:role.newRole")
+                .setEffect(AssertionEffect.ALLOW);
+        newPolicy.setAssertions(new LinkedList<>(Collections.singletonList(newAssertion)));
+
+        // Mock updatePolicy to return true, deleteAssertion to return true (for old assertion),
+        // but insertAssertion to return false
+        Mockito.when(conn.updatePolicy("sys.auth", newPolicy)).thenReturn(true);
+        Mockito.when(conn.deleteAssertion("sys.auth", "testPolicy", null, 1L)).thenReturn(true);
+        Mockito.when(conn.insertAssertion("sys.auth", "testPolicy", null, newAssertion)).thenReturn(false);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processPolicy(conn, originalPolicy, "sys.auth", "testPolicy",
+                newPolicy, false, auditDetails);
+
+        assertFalse(success);
+        Mockito.verify(conn, Mockito.times(1)).insertAssertion("sys.auth", "testPolicy", null, newAssertion);
+    }
+
+    @Test
+    public void testProcessPolicyInsertAssertionConditionsReturnsFalse() throws ServerResourceException {
+        // Test case for insertAssertionConditions returns false
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+
+        // Create original policy with an assertion
+        Policy originalPolicy = new Policy().setName("testPolicy");
+        Assertion oldAssertion = new Assertion()
+                .setId(1L)
+                .setAction("oldAction")
+                .setResource("sys.auth:oldResource")
+                .setRole("sys.auth:role.oldRole")
+                .setEffect(AssertionEffect.ALLOW);
+        originalPolicy.setAssertions(new LinkedList<>(Collections.singletonList(oldAssertion)));
+
+        // Create new policy with a new assertion that has conditions
+        Policy newPolicy = new Policy().setName("testPolicy");
+        Assertion newAssertion = new Assertion()
+                .setId(2L)
+                .setAction("newAction")
+                .setResource("sys.auth:newResource")
+                .setRole("sys.auth:role.newRole")
+                .setEffect(AssertionEffect.ALLOW)
+                .setConditions(
+                        new AssertionConditions()
+                                .setConditionsList(List.of(createAssertionConditionObject(1, "test1", "test1")))
+                );
+        newPolicy.setAssertions(new LinkedList<>(Collections.singletonList(newAssertion)));
+
+        // Mock updatePolicy to return true, deleteAssertion to return true,
+        // insertAssertion to return true, but insertAssertionConditions to return false
+        Mockito.when(conn.updatePolicy("sys.auth", newPolicy)).thenReturn(true);
+        Mockito.when(conn.deleteAssertion("sys.auth", "testPolicy", null, 1L)).thenReturn(true);
+        Mockito.when(conn.insertAssertion("sys.auth", "testPolicy", null, newAssertion)).thenReturn(true);
+        Mockito.when(conn.insertAssertionConditions(2L, newAssertion.getConditions())).thenReturn(false);
+
+        StringBuilder auditDetails = new StringBuilder("testAudit");
+        boolean success = zms.dbService.processPolicy(conn, originalPolicy, "sys.auth", "testPolicy",
+                newPolicy, false, auditDetails);
+
+        assertFalse(success);
+        Mockito.verify(conn, Mockito.times(1)).insertAssertion("sys.auth", "testPolicy", null, newAssertion);
+        Mockito.verify(conn, Mockito.times(1)).insertAssertionConditions(2L, newAssertion.getConditions());
+    }
+
     @Test
     public void testProcessPolicyWithTagsInsert() throws ServerResourceException {
         ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
@@ -13985,6 +14306,114 @@ public class DBServiceTest {
                 roleName, "user.admin", false, null, null, auditRef, auditDetails));
         assertTrue(zms.dbService.processUpdateRoleMembers(conn, originalRole, new ArrayList<>(), false, domainName,
                 roleName, "user.admin", false, null, null, auditRef, auditDetails));
+    }
+
+    @Test
+    public void testProcessUpdateGroupMembersInsertGroupMemberReturnsFalse() throws Exception {
+
+        final String domainName = "process-update-group-members-insert-fails";
+        final String groupName = "group1";
+
+        // Create original group with a member that will be deleted
+        List<GroupMember> oldMembers = new ArrayList<>();
+        oldMembers.add(new GroupMember().setMemberName("user.joe").setActive(true).setApproved(true));
+        Group originalGroup = new Group().setName(groupName).setGroupMembers(oldMembers);
+
+        // New group with no members (member will be deleted)
+        List<GroupMember> newMembers = new ArrayList<>();
+
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        // Mock insertGroupMember to return false
+        Mockito.when(conn.insertGroupMember(eq(domainName), eq(groupName), any(GroupMember.class),
+                eq("user.admin"), eq(auditRef))).thenReturn(false);
+
+        StringBuilder auditDetails = new StringBuilder();
+        Set<String> notifyMembers = new HashSet<>();
+
+        // Use reflection to access the private method
+        java.lang.reflect.Method method = DBService.class.getDeclaredMethod(
+                "processUpdateGroupMembers",
+                ObjectStoreConnection.class,
+                Group.class,
+                List.class,
+                boolean.class,
+                String.class,
+                String.class,
+                String.class,
+                boolean.class,
+                Boolean.class,
+                Set.class,
+                String.class,
+                StringBuilder.class
+        );
+        method.setAccessible(true);
+
+        // Test: pendingState=true, deleteProtection=Boolean.TRUE, ignoreDeletes=false
+        // This will trigger the code path where insertGroupMember is called for deleted members
+        boolean result = (boolean) method.invoke(zms.dbService, conn, originalGroup, newMembers, false,
+                domainName, groupName, "user.admin", true, Boolean.TRUE, notifyMembers, auditRef, auditDetails);
+
+        assertFalse(result, "processUpdateGroupMembers should return false when insertGroupMember returns false");
+
+        // Verify that insertGroupMember was called for the deleted member
+        Mockito.verify(conn, times(1)).insertGroupMember(eq(domainName), eq(groupName),
+                any(GroupMember.class), eq("user.admin"), eq(auditRef));
+    }
+
+    @Test
+    public void testProcessUpdateGroupMembersInsertGroupMemberReturnsTrue() throws Exception {
+
+        final String domainName = "process-update-group-members-insert-succeeds";
+        final String groupName = "group1";
+
+        // Create original group with a member that will be deleted
+        List<GroupMember> oldMembers = new ArrayList<>();
+        oldMembers.add(new GroupMember().setMemberName("user.joe").setActive(true).setApproved(true));
+        Group originalGroup = new Group().setName(groupName).setGroupMembers(oldMembers);
+
+        // New group with no members (member will be deleted)
+        List<GroupMember> newMembers = new ArrayList<>();
+
+        ObjectStoreConnection conn = Mockito.mock(ObjectStoreConnection.class);
+        // Mock insertGroupMember to return true
+        Mockito.when(conn.insertGroupMember(eq(domainName), eq(groupName), any(GroupMember.class),
+                eq("user.admin"), eq(auditRef))).thenReturn(true);
+
+        StringBuilder auditDetails = new StringBuilder();
+        Set<String> notifyMembers = new HashSet<>();
+
+        // Use reflection to access the private method
+        java.lang.reflect.Method method = DBService.class.getDeclaredMethod(
+                "processUpdateGroupMembers",
+                ObjectStoreConnection.class,
+                Group.class,
+                List.class,
+                boolean.class,
+                String.class,
+                String.class,
+                String.class,
+                boolean.class,
+                Boolean.class,
+                Set.class,
+                String.class,
+                StringBuilder.class
+        );
+        method.setAccessible(true);
+
+        // Test: pendingState=true, deleteProtection=Boolean.TRUE, ignoreDeletes=false
+        // This will trigger the code path where insertGroupMember is called for deleted members
+        boolean result = (boolean) method.invoke(zms.dbService, conn, originalGroup, newMembers, false,
+                domainName, groupName, "user.admin", true, Boolean.TRUE, notifyMembers, auditRef, auditDetails);
+
+        assertTrue(result, "processUpdateGroupMembers should return true when insertGroupMember succeeds");
+
+        // Verify that insertGroupMember was called for the deleted member
+        Mockito.verify(conn, times(1)).insertGroupMember(eq(domainName), eq(groupName),
+                any(GroupMember.class), eq("user.admin"), eq(auditRef));
+
+        // Verify that the member was added to notifyMembers
+        assertTrue(notifyMembers.contains("user.joe"),
+                "Member should be added to notifyMembers when insertGroupMember succeeds");
     }
 
     @Test
