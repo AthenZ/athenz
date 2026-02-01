@@ -16,10 +16,13 @@
 
 package io.athenz.server.aws.common.store.impl;
 
+import com.yahoo.athenz.auth.util.Crypto;
 import io.athenz.server.aws.common.utils.Utils;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.model.*;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +34,10 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.TrustManagerFactory;
+import java.net.URI;
+import java.security.KeyStore;
+import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -53,6 +60,8 @@ public class S3ChangeLogStore implements ChangeLogStore {
 
     private static final String NUMBER_OF_THREADS = "athenz.zts.bucket.threads";
     private static final String DEFAULT_TIMEOUT_SECONDS = "athenz.zts.bucket.threads.timeout";
+    private static final String ZTS_PROP_AWS_S3_ENDPOINT = "athenz.zts.aws_s3_endpoint";
+    private static final String ZTS_PROP_AWS_S3_CA_CERT = "athenz.zts.aws_s3_ca_cert";
     private final int nThreads = Integer.parseInt(System.getProperty(NUMBER_OF_THREADS, "10"));
     private final int defaultTimeoutSeconds = Integer.parseInt(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
     protected Map<String, SignedDomain> tempSignedDomainMap = new ConcurrentHashMap<>();
@@ -497,7 +506,38 @@ public class S3ChangeLogStore implements ChangeLogStore {
             throw new RuntimeException("S3ChangeLogStore: Couldn't detect AWS region");
         }
 
-        return S3Client.builder().region(Region.of(awsRegion)).build();
+        S3ClientBuilder s3ClientBuilder = S3Client.builder().region(Region.of(awsRegion));
+
+        // check if we have a custom endpoint
+        String s3Endpoint = System.getProperty(ZTS_PROP_AWS_S3_ENDPOINT);
+        if (!StringUtil.isEmpty(s3Endpoint)) {
+            s3ClientBuilder.endpointOverride(URI.create(s3Endpoint));
+        }
+
+        // check if we have a custom ca cert
+        String s3CaCert = System.getProperty(ZTS_PROP_AWS_S3_CA_CERT);
+        if (!StringUtil.isEmpty(s3CaCert)) {
+            try {
+                ApacheHttpClient.Builder httpClientBuilder = ApacheHttpClient.builder();
+                X509Certificate[] certs = Crypto.loadX509Certificates(s3CaCert);
+                KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+                keyStore.load(null, null); // Initialize empty keystore
+                int i = 0;
+                for (X509Certificate cert : certs) {
+                    keyStore.setCertificateEntry("custom-ca-" + i++, cert);
+                }
+                TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                tmf.init(keyStore);
+
+                httpClientBuilder.tlsTrustManagersProvider(tmf::getTrustManagers);
+                s3ClientBuilder.httpClient(httpClientBuilder.build());
+            } catch (Exception ex) {
+                LOGGER.error("S3ChangeLogStore: unable to load custom ca cert: {}", s3CaCert, ex);
+                throw new RuntimeException("S3ChangeLogStore: unable to load custom ca cert");
+            }
+        }
+
+        return s3ClientBuilder.build();
     }
 
     public ExecutorService getExecutorService() {

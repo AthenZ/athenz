@@ -21,17 +21,27 @@ import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
 import java.io.*;
+import java.net.URI;
+import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.zms.JWSDomain;
 import com.yahoo.rdl.Timestamp;
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.TlsTrustManagersProvider;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.model.*;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.SignedDomain;
@@ -639,6 +649,56 @@ public class S3ChangeLogStoreTest {
         S3ChangeLogStore store = new S3ChangeLogStore();
         S3Client s3Client = store.getS3Client();
         assertNotNull(s3Client);
+    }
+
+    @Test
+    public void testGetS3ClientWithCustomEndpointAndCaCert() throws Exception {
+        System.setProperty(ZTS_PROP_AWS_BUCKET_NAME, "test-bucket");
+        System.setProperty(ZTS_PROP_AWS_REGION_NAME, "us-west-2");
+        System.setProperty("athenz.zts.aws_s3_endpoint", "https://custom.s3.endpoint");
+        System.setProperty("athenz.zts.aws_s3_ca_cert", "src/test/resources/dummy_ca.pem");
+
+        // Mocks
+        try (MockedStatic<ApacheHttpClient> mockHttpClientStatic = Mockito.mockStatic(ApacheHttpClient.class);
+             MockedStatic<S3Client> mockS3ClientStatic = Mockito.mockStatic(S3Client.class);
+             MockedStatic<Crypto> mockCryptoStatic = Mockito.mockStatic(Crypto.class)) {
+
+            // Mock Crypto
+            mockCryptoStatic.when(() -> Crypto.loadX509Certificates(any(String.class))).thenReturn(new X509Certificate[]{mock(X509Certificate.class)});
+
+            // Mock ApacheHttpClient builder
+            ApacheHttpClient.Builder mockHttpBuilder = mock(ApacheHttpClient.Builder.class);
+            SdkHttpClient mockHttpClient = mock(SdkHttpClient.class);
+
+            mockHttpClientStatic.when(ApacheHttpClient::builder).thenReturn(mockHttpBuilder);
+            when(mockHttpBuilder.tlsTrustManagersProvider(any(TlsTrustManagersProvider.class))).thenReturn(mockHttpBuilder);
+            when(mockHttpBuilder.build()).thenReturn(mockHttpClient);
+
+            // Mock S3Client builder
+            S3ClientBuilder mockS3Builder = mock(S3ClientBuilder.class);
+            S3Client mockS3Client = mock(S3Client.class);
+
+            mockS3ClientStatic.when(S3Client::builder).thenReturn(mockS3Builder);
+            when(mockS3Builder.region(any(Region.class))).thenReturn(mockS3Builder);
+            when(mockS3Builder.endpointOverride(any(URI.class))).thenReturn(mockS3Builder);
+            when(mockS3Builder.httpClient(any(SdkHttpClient.class))).thenReturn(mockS3Builder);
+            when(mockS3Builder.build()).thenReturn(mockS3Client);
+
+            S3ChangeLogStore store = new S3ChangeLogStore();
+            S3Client client = store.getS3Client();
+            assertNotNull(client);
+
+            // Verify ApacheHttpClient configured with TrustManager
+            Mockito.verify(mockHttpBuilder).tlsTrustManagersProvider(any(TlsTrustManagersProvider.class));
+
+            // Verify S3Client configured with Endpoint Override
+            ArgumentCaptor<URI> uriCaptor = ArgumentCaptor.forClass(URI.class);
+            Mockito.verify(mockS3Builder).endpointOverride(uriCaptor.capture());
+            assertEquals(uriCaptor.getValue().toString(), "https://custom.s3.endpoint");
+        } finally {
+            System.clearProperty("athenz.zts.aws_s3_endpoint");
+            System.clearProperty("athenz.zts.aws_s3_ca_cert");
+        }
     }
 
     @Test
