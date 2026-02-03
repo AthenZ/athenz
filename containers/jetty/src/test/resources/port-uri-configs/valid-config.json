@@ -1,0 +1,39 @@
+{
+  "ports": [
+    {
+      "port": 9443,
+      "mtls_required": false,
+      "description": "mTLS port for instance registration",
+      "allowed_endpoints": [
+        {
+          "path": "/zts/v1/instance",
+          "methods": ["POST"],
+          "description": "Instance registration"
+        }
+      ]
+    },
+    {
+      "port": 4443,
+      "mtls_required": true,
+      "description": "Main HTTPS port - unrestricted",
+      "allowed_endpoints": []
+    },
+    {
+      "port": 8443,
+      "mtls_required": false,
+      "description": "Health/status port",
+      "allowed_endpoints": [
+        {
+          "path": "/zts/v1/status",
+          "methods": ["GET"],
+          "description": "ZTS API status"
+        },
+        {
+          "path": "/status",
+          "methods": ["GET"],
+          "description": "Legacy file-based health check"
+        }
+      ]
+    }
+  ]
+}

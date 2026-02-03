@@ -26,6 +26,9 @@ import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLogger;
 import com.yahoo.athenz.common.server.log.jetty.JettyConnectionLoggerFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
+import com.yahoo.athenz.container.config.PortConfig;
+import com.yahoo.athenz.container.config.PortUriConfiguration;
+import com.yahoo.athenz.container.config.PortUriConfigurationManager;
 import com.yahoo.athenz.container.filter.HealthCheckFilter;
 import jakarta.servlet.DispatcherType;
 import org.eclipse.jetty.deploy.DeploymentManager;
@@ -68,14 +71,15 @@ public class AthenzJettyContainer {
 
     static final String ATHENZ_DEFAULT_EXCLUDED_PROTOCOLS = "SSLv2,SSLv3";
 
-    private Server server = null;
+    Server server = null;
     private String banner = null;
     private Handler.Sequence handlers = null;
     private PrivateKeyStore privateKeyStore;
     private final boolean decodeAmbiguousUris;
     private final AthenzConnectionListener connectionListener = new AthenzConnectionListener();
     private final JettyConnectionLoggerFactory jettyConnectionLoggerFactory = new JettyConnectionLoggerFactory();
-    
+
+
     public AthenzJettyContainer() {
 
         // check to see if we want to support ambiguous uris
@@ -290,6 +294,9 @@ public class AthenzJettyContainer {
                 servletCtxHandler.addFilter(filterHolder, checkUri.trim(), EnumSet.of(DispatcherType.REQUEST));
             }
         }
+
+        // PortFilter is applied to all webapps (e.g. ZTS API) via webdefault.xml; no need to add it here.
+
         contexts.addHandler(servletCtxHandler);
 
         final String jettyHome = System.getProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME, getRootDir());
@@ -441,7 +448,7 @@ public class AthenzJettyContainer {
     
     void addHTTPConnector(HttpConfiguration httpConfig, int httpPort, boolean proxyProtocol,
             String listenHost, int idleTimeout) {
-        
+
         ServerConnector connector;
         if (proxyProtocol) {
             connector = new ServerConnector(server, new ProxyConnectionFactory(), new HttpConnectionFactory(httpConfig));
@@ -525,12 +532,6 @@ public class AthenzJettyContainer {
         boolean proxyProtocol = Boolean.parseBoolean(
                 System.getProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL, "false"));
 
-        // HTTP Connector
-        
-        if (httpPort > 0) {
-            addHTTPConnector(httpConfig, httpPort, proxyProtocol, listenHost, idleTimeout);
-        }
-
         // check to see if we need to create our connection logger
         // for TLS connection failures
 
@@ -545,11 +546,66 @@ public class AthenzJettyContainer {
                 System.getProperty(AthenzConsts.ATHENZ_PROP_SNI_REQUIRED, "false"));
         boolean sniHostCheck = Boolean.parseBoolean(
                 System.getProperty(AthenzConsts.ATHENZ_PROP_SNI_HOSTCHECK, "true"));
+
+        // Use port-uri.json for connectors if configured; otherwise use properties
+        PortUriConfigurationManager configManager = PortUriConfigurationManager.getInstance();
+
+        if (configManager.isPortListConfigured()) {
+            LOG.info("Creating HTTP/HTTPS connectors based on port-uri.json configuration");
+            addConnectorsFromPortConfig(configManager.getConfiguration(), httpConfig,
+                    proxyProtocol, listenHost, idleTimeout, sniRequired, sniHostCheck, connectionLogger);
+        } else {
+            LOG.info("Creating HTTP/HTTPS connectors based on properties configuration");
+            addConnectorsFromProperties(httpConfig, httpPort, httpsPort, oidcPort, statusPort,
+                    proxyProtocol, listenHost, idleTimeout, sniRequired, sniHostCheck, connectionLogger);
+        }
+    }
+
+    /**
+     * Add HTTP/HTTPS connectors based on port-uri.json configuration
+     */
+    private void addConnectorsFromPortConfig(PortUriConfiguration config, HttpConfiguration httpConfig,
+                                             boolean proxyProtocol, String listenHost, int idleTimeout, boolean sniRequired,
+                                             boolean sniHostCheck, JettyConnectionLogger connectionLogger) {
+
+        for (PortConfig portConfig : config.getPorts()) {
+            int port = portConfig.getPort();
+
+            if (port <= 0) {
+                continue;
+            }
+
+            // Determine if this port needs client authentication (mTLS)
+            boolean needClientAuth = portConfig.isMtlsRequired();
+
+            // Create HTTPS connector for this port
+            HttpConfiguration httpsConfig = getHttpsConfig(httpConfig, port, sniRequired, sniHostCheck);
+            addHTTPSConnector(httpsConfig, port, proxyProtocol, listenHost,
+                    idleTimeout, needClientAuth, connectionLogger);
+
+            LOG.info("Added connector for port {} (mTLS: {}, description: {})",
+                    port, needClientAuth, portConfig.getDescription());
+        }
+    }
+
+    /**
+     * Add HTTP/HTTPS connectors based on property configuration
+     */
+    private void addConnectorsFromProperties(HttpConfiguration httpConfig, int httpPort, int httpsPort,
+                                             int oidcPort, int statusPort, boolean proxyProtocol, String listenHost,
+                                             int idleTimeout, boolean sniRequired, boolean sniHostCheck,
+                                             JettyConnectionLogger connectionLogger) {
+
+        // Default client auth setting from properties
         boolean needClientAuth = Boolean.parseBoolean(
                 System.getProperty(AthenzConsts.ATHENZ_PROP_CLIENT_AUTH, "false"));
 
-        // HTTPS Connector
+        // HTTP Connector
+        if (httpPort > 0) {
+            addHTTPConnector(httpConfig, httpPort, proxyProtocol, listenHost, idleTimeout);
+        }
 
+        // HTTPS Connector
         if (httpsPort > 0) {
             HttpConfiguration httpsConfig = getHttpsConfig(httpConfig, httpsPort, sniRequired, sniHostCheck);
             addHTTPSConnector(httpsConfig, httpsPort, proxyProtocol, listenHost,
@@ -557,7 +613,6 @@ public class AthenzJettyContainer {
         }
 
         // OIDC Connector - only if it's different from HTTPS
-
         if (oidcPort > 0 && oidcPort != httpsPort) {
             HttpConfiguration httpsConfig = getHttpsConfig(httpConfig, oidcPort, sniRequired, sniHostCheck);
             addHTTPSConnector(httpsConfig, oidcPort, proxyProtocol, listenHost,
@@ -565,7 +620,6 @@ public class AthenzJettyContainer {
         }
 
         // Status Connector - only if it's different from HTTP/HTTPS
-        
         if (statusPort > 0 && statusPort != httpPort && statusPort != httpsPort) {
             if (httpsPort > 0) {
                 HttpConfiguration httpsConfig = getHttpsConfig(httpConfig, httpsPort, false, false);
@@ -612,9 +666,9 @@ public class AthenzJettyContainer {
         // for status port we'll use the protocol specified for the regular http
         // port. if both http and https are provided then https will be picked
         // it could also be either one of the values specified as well
-        
+
         int statusPort = ConfigProperties.getPortNumber(AthenzConsts.ATHENZ_PROP_STATUS_PORT, 0);
-        
+
         String serverHostName = getServerHostName();
 
         AthenzJettyContainer container = new AthenzJettyContainer();
@@ -625,6 +679,10 @@ public class AthenzJettyContainer {
         int maxThreads = Integer.parseInt(System.getProperty(AthenzConsts.ATHENZ_PROP_MAX_THREADS,
                 Integer.toString(AthenzConsts.ATHENZ_HTTP_MAX_THREADS)));
         container.createServer(maxThreads);
+
+        // Load port-uri.json configuration before creating connectors
+        // This must be done before addHTTPConnectors() so the configuration is available
+        loadPortUriConfiguration();
 
         HttpConfiguration httpConfig = container.newHttpConfiguration();
         container.addHTTPConnectors(httpConfig, httpPort, httpsPort, oidcPort, statusPort);
@@ -653,6 +711,21 @@ public class AthenzJettyContainer {
         final String propFile = System.getProperty(AthenzConsts.ATHENZ_PROP_FILE_NAME,
                 getRootDir() + "/conf/athenz/athenz.properties");
         CONFIG_MANAGER.addConfigSource(ConfigProviderFile.PROVIDER_DESCRIPTION_PREFIX + propFile);
+    }
+
+    /**
+     * Load port-uri.json configuration if available.
+     * This must be called before creating HTTP/HTTPS connectors.
+     */
+    static void loadPortUriConfiguration() {
+        // Configuration is automatically loaded by PortUriConfigurationManager singleton
+        // upon first getInstance() call. Just trigger initialization and log the result.
+        PortUriConfigurationManager configManager = PortUriConfigurationManager.getInstance();
+        if (configManager.isPortListConfigured()) {
+            LOG.info("Port-uri configuration successfully loaded");
+        } else {
+            LOG.info("Port-uri configuration not available, will use properties for port configuration");
+        }
     }
 
     public void run() {
