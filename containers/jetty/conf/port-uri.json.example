@@ -1,0 +1,62 @@
+{
+  "ports": [
+    {
+      "port": 9443,
+      "mtls_required": false,
+      "description": "Instance registration port - restricted endpoints only",
+      "allowed_endpoints": [
+        {
+          "path": "/zts/v1/instance",
+          "methods": ["POST"],
+          "description": "Instance registration - initial registration"
+        }
+      ]
+    },
+    {
+      "port": 4443,
+      "mtls_required": true,
+      "description": "Main API port - all endpoints allowed with mTLS required",
+      "allowed_endpoints": []
+    },
+    {
+      "port": 8443,
+      "mtls_required": false,
+      "description": "Health/status port - /zts/v1/status (ZTS API) and /status (file-based health check returning OK)",
+      "allowed_endpoints": [
+        {
+          "path": "/zts/v1/status",
+          "methods": ["GET"],
+          "description": "ZTS API status - returns JSON { \"code\": 200, \"message\": \"OK\" }"
+        },
+        {
+          "path": "/status",
+          "methods": ["GET"],
+          "description": "Legacy file-based health check - returns OK when athenz.health_check_uri_list includes /status"
+        }
+      ]
+    },
+    {
+      "port": 443,
+      "mtls_required": false,
+      "description": "JWKS and OpenID discovery endpoints",
+      "allowed_endpoints": [
+        {
+          "path": "/zts/v1/.well-known/openid-configuration",
+          "methods": ["GET"],
+          "description": "OpenID Connect discovery"
+        },
+        {
+          "path": "/zts/v1/oauth2/keys",
+          "methods": ["GET"],
+          "description": "OAuth2 JWKS public keys"
+        },
+        {
+          "path_starts_with": "/zts/v1/.well-known",
+          "path_ends_with": "openid-configuration",
+          "methods": ["GET"],
+          "description": "OpenID discovery (alternative using path_starts_with and path_ends_with)"
+        }
+      ]
+    }
+  ]
+}
