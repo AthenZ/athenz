@@ -6115,7 +6115,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // validate to make sure we have expected values for assertion fields
         // - and also to make sure that the associated role exists
 
-        validatePolicyAssertion(assertion, domainName, new HashSet<>(), caller);
+        validatePolicyAssertion(assertion, domainName, policyName, new HashSet<>(), caller);
 
         // extract the policy for the resource ownership check
 
@@ -6207,7 +6207,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // validate to make sure we have expected values for assertion fields
         // - and also to make sure that the associated role exists
 
-        validatePolicyAssertion(assertion, domainName, new HashSet<>(), caller);
+        validatePolicyAssertion(assertion, domainName, policyName, new HashSet<>(), caller);
 
         dbService.executePutAssertion(ctx, domainName, policyName, version, assertion, auditRef, caller);
 
@@ -6335,7 +6335,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         dbService.executeDeleteAssertion(ctx, domainName, policyName, version, assertionId, auditRef, caller);
     }
 
-    void validatePolicyAssertions(List<Assertion> assertions, final String roleDomainName, final String caller) {
+    void validatePolicyAssertions(List<Assertion> assertions, final String roleDomainName, final String policyName,
+            final String caller) {
 
         if (assertions == null) {
             return;
@@ -6346,7 +6347,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         Set<String> roleNamesCache = new HashSet<>();
         for (Assertion assertion : assertions) {
-            validatePolicyAssertion(assertion, roleDomainName, roleNamesCache, caller);
+            validatePolicyAssertion(assertion, roleDomainName, policyName, roleNamesCache, caller);
         }
     }
 
@@ -6361,8 +6362,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    void validatePolicyAssertion(Assertion assertion, final String roleDomainName, Set<String> roleNamesSet,
-            final String caller) {
+    void validatePolicyAssertion(Assertion assertion, final String roleDomainName, final String policyName,
+            Set<String> roleNamesSet, final String caller) {
 
         // validate the overall structure of the assertion object
 
@@ -6380,6 +6381,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
 
             validateRoleAssociatedIsExist(roleNamesSet, assertion.getRole(), roleDomainName, caller);
+        }
+
+        // check the external validator if one is configured
+
+        if (!resourceValidator.validatePolicyAssertion(roleDomainName, policyName, assertion)) {
+            throw ZMSUtils.requestError("Assertion is not allowed by external resource validator", caller);
         }
     }
 
@@ -6458,7 +6465,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // validate to make sure we have expected values for assertion fields
         // also that all the roles that associates does exists
 
-        validatePolicyAssertions(policy.getAssertions(), domainName, caller);
+        validatePolicyAssertions(policy.getAssertions(), domainName, policyName, caller);
         validatePolicyAssertionConditions(policy.getAssertions(), caller);
 
         // verify resource ownership for the request. If the object returned

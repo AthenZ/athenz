@@ -17,6 +17,7 @@ package com.yahoo.athenz.common.server.store.impl;
 
 import com.oath.auth.KeyRefresherException;
 import com.yahoo.athenz.CommonTestUtils;
+import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
@@ -662,5 +663,68 @@ public class ZMSFileMTLSChangeLogStoreTest {
 
         Map<String, DomainAttributes> domainMap = fstore.getLocalDomainAttributeList();
         assertTrue(domainMap.isEmpty());
+    }
+
+    @Test
+    public void testChangeLogInterface() {
+        ChangeLogStore store = new ChangeLogStore() {
+            @Override
+            public SignedDomain getLocalSignedDomain(String domainName) {
+                return null;
+            }
+
+            @Override
+            public SignedDomain getServerSignedDomain(String domainName) {
+                return null;
+            }
+
+            @Override
+            public void removeLocalDomain(String domainName) {
+            }
+
+            @Override
+            public void saveLocalDomain(String domainName, SignedDomain signedDomain) {
+            }
+
+            @Override
+            public List<String> getLocalDomainList() {
+                return List.of();
+            }
+
+            @Override
+            public Set<String> getServerDomainList() {
+                return Set.of();
+            }
+
+            @Override
+            public SignedDomains getServerDomainModifiedList() {
+                return null;
+            }
+
+            @Override
+            public SignedDomains getUpdatedSignedDomains(StringBuilder lastModTimeBuffer) {
+                return null;
+            }
+
+            @Override
+            public void setLastModificationTimestamp(String lastModTime) {
+
+            }
+
+            @Override
+            public boolean supportsFullRefresh() {
+                return false;
+            }
+        };
+
+        // test default method implementations
+
+        assertNull(store.getLocalJWSDomain("domain"));
+        assertNull(store.getServerJWSDomain("domain"));
+        store.saveLocalDomain("domain", new JWSDomain());
+        assertNull(store.getLocalDomainAttributeList());
+        assertNull(store.getUpdatedJWSDomains(new StringBuilder()));
+        store.setRequestConditions(false);
+        store.setJWSDomainSupport(false);
     }
 }

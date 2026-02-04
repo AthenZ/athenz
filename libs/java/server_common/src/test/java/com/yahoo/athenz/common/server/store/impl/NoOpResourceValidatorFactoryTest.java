@@ -16,10 +16,11 @@
 package com.yahoo.athenz.common.server.store.impl;
 
 import com.yahoo.athenz.common.server.store.ResourceValidator;
+import com.yahoo.athenz.zms.Assertion;
+import com.yahoo.athenz.zms.AssertionEffect;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 public class NoOpResourceValidatorFactoryTest {
 
@@ -33,5 +34,34 @@ public class NoOpResourceValidatorFactoryTest {
 
         assertTrue(validator.validateRoleMember("domain", "role", "user"));
         assertTrue(validator.validateGroupMember("domain", "group", "user"));
+
+        // validate assertions
+
+        assertTrue(validator.validatePolicyAssertion("domain", "policy", new Assertion()));
+    }
+
+    @Test
+    public void testCustomResourceValidator() {
+
+        ResourceValidator validator = new ResourceValidator() {
+            @Override
+            public boolean validateRoleMember(String domainName, String roleName, String memberName) {
+                return false;
+            }
+
+            @Override
+            public boolean validateGroupMember(String domainName, String groupName, String memberName) {
+                return false;
+            }
+        };
+
+        // validate some members - we should always return false
+
+        assertFalse(validator.validateRoleMember("domain", "role", "user"));
+        assertFalse(validator.validateGroupMember("domain", "group", "user"));
+
+        // validate assertions - since we have no override it should return true
+
+        assertTrue(validator.validatePolicyAssertion("domain", "policy", new Assertion()));
     }
 }

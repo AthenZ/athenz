@@ -16,6 +16,8 @@
 
 package com.yahoo.athenz.common.server.store;
 
+import com.yahoo.athenz.zms.Assertion;
+
 /**
  * External validator for resources managed by Athenz
  */
@@ -38,4 +40,15 @@ public interface ResourceValidator {
      * @return true if the member is valid, false otherwise
      */
     boolean validateGroupMember(String domainName, String groupName, String memberName);
+
+    /**
+     * Validate an assertion for a given policy in a given domain
+     * @param domainName domain name
+     * @param policyName policy name
+     * @param assertion assertion object
+     * @return true if the assertion is valid, false otherwise
+     */
+    default boolean validatePolicyAssertion(String domainName, String policyName, Assertion assertion) {
+        return true;
+    }
 }
