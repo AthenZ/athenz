@@ -19,6 +19,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.common.server.store.ObjectStore;
 import com.yahoo.athenz.zms.DomainOptions;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
@@ -114,5 +115,35 @@ public class JDBCObjectStoreTest {
         
         jdbcConn = (JDBCConnection) store.getConnection(true, false);
         assertEquals(jdbcConn.con, mockConn);
+    }
+
+    @Test
+    public void testObjectStoreInterface() throws ServerResourceException {
+        ObjectStore store = new ObjectStore() {
+            @Override
+            public JDBCConnection getConnection(boolean readWrite, boolean checkOperationTimeout) {
+                return null;
+            }
+
+            @Override
+            public void setOperationTimeout(int opTimeout) {
+            }
+
+            @Override
+            public void setTagLimit(int domainLimit, int roleLimit, int groupLimit, int policyLimit, int serviceLimit) {
+            }
+
+            @Override
+            public void clearConnections() {
+            }
+        };
+
+        // call/test default object store methods
+
+        store.setOperationTimeout(120);
+        store.setTagLimit(100, 20, 20, 20, 20);
+        store.clearConnections();
+        store.setDomainOptions(new DomainOptions());
+        assertNull(store.getConnection(false, false));
     }
 }

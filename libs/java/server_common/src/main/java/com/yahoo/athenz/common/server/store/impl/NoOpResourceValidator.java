@@ -17,6 +17,7 @@
 package com.yahoo.athenz.common.server.store.impl;
 
 import com.yahoo.athenz.common.server.store.ResourceValidator;
+import com.yahoo.athenz.zms.Assertion;
 
 /**
  * NoOpResourceValidator is a no-op implementation of the ResourceValidator interface.
@@ -31,6 +32,11 @@ public class NoOpResourceValidator implements ResourceValidator {
 
     @Override
     public boolean validateGroupMember(String domainName, String groupName, String memberName) {
+        return true;
+    }
+
+    @Override
+    public boolean validatePolicyAssertion(String domainName, String policyName, Assertion assertion) {
         return true;
     }
 }

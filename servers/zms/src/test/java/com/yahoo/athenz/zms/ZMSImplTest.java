@@ -57,6 +57,7 @@ import com.yahoo.athenz.zms.status.MockStatusCheckerNoException;
 import com.yahoo.athenz.zms.status.MockStatusCheckerThrowException;
 import com.yahoo.athenz.common.server.store.AthenzDomain;
 import com.yahoo.athenz.common.server.store.ObjectStoreConnection;
+import com.yahoo.athenz.common.server.store.ResourceValidator;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
@@ -2528,14 +2529,13 @@ public class ZMSImplTest {
             zmsImpl.getRole(ctx, providerDomain, roleName, false, false, false);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         // Tenant policy must still contain the single assertion
         Policy policy = zmsImpl.getPolicy(ctx, tenantDomain, policyName);
-        assertEquals(1, policy.getAssertions().size());
-        assertEquals(providerDomain + ":role." + roleName,
-                    policy.getAssertions().get(0).getResource());
+        assertEquals(policy.getAssertions().size(), 1);
+        assertEquals(policy.getAssertions().get(0).getResource(), providerDomain + ":role." + roleName);
 
         // ---- Cleanup ----------------------------------------------------------
         zmsImpl.deleteTopLevelDomain(ctx, providerDomain, auditRef, null);
@@ -2596,14 +2596,13 @@ public class ZMSImplTest {
             zmsImpl.getRole(ctx, providerDomain, roleName, false, false, false);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         // Tenant policy must still contain the single assertion
         Policy policy = zmsImpl.getPolicy(ctx, tenantDomain, policyName);
-        assertEquals(1, policy.getAssertions().size());
-        assertEquals(providerDomain + ":role." + roleName,
-                    policy.getAssertions().get(0).getResource());
+        assertEquals(policy.getAssertions().size(), 1);
+        assertEquals(policy.getAssertions().get(0).getResource(), providerDomain + ":role." + roleName);
 
         // ---- Cleanup ----------------------------------------------------------
         zmsImpl.deleteTopLevelDomain(ctx, providerDomain, auditRef, null);
@@ -2663,14 +2662,13 @@ public class ZMSImplTest {
             zmsImpl.getRole(ctx, providerDomain, roleName, false, false, false);
             fail();
         } catch (ResourceException ex) {
-            assertEquals(ResourceException.NOT_FOUND, ex.getCode());
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
         }
 
         // Tenant policy must still contain the single assertion referencing the provider role.
         Policy policy = zmsImpl.getPolicy(ctx, tenantDomain, policyName);
-        assertEquals(1, policy.getAssertions().size());
-        assertEquals(providerDomain + ":role." + roleName,
-                policy.getAssertions().get(0).getResource());
+        assertEquals(policy.getAssertions().size(), 1);
+        assertEquals(policy.getAssertions().get(0).getResource(), providerDomain + ":role." + roleName);
 
         // ---- Cleanup ----
         zmsImpl.deleteTopLevelDomain(ctx, providerDomain, auditRef, null);
@@ -6539,7 +6537,7 @@ public class ZMSImplTest {
         assertEquals(resourceGroup.toLowerCase(), tRoles.getResourceGroup());
         assertEquals(ZMSTestInitializer.TABLE_PROVIDER_ROLE_ACTIONS.size(), tRoles.getRoles().size());
 
-        // Verify domain dependency wasn't created as the provider isn't listed in the "sys.auth:role.service_providers role
+        // Verify domain dependency wasn't created as the provider isn't listed in the sys.auth:role.service_providers role
 
         try {
             zmsImpl.getDependentDomainList(ctx, domain + "." + serviceName);
@@ -9653,7 +9651,7 @@ public class ZMSImplTest {
 
         assertPutTenancyTest();
 
-        // Verify domain dependency wasn't created as the provider isn't listed in the "sys.auth:role.service_providers role
+        // Verify domain dependency wasn't created as the provider isn't listed in the sys.auth:role.service_providers role
 
         try {
             zmsImpl.getDependentDomainList(ctx, "coretech.storage");
@@ -9898,7 +9896,7 @@ public class ZMSImplTest {
 
         String tenantRoleInProviderDomain = assertPolicyForTenancyTests(zmsImpl, tenantDomain, providerService, provider);
 
-        // Verify domain dependency wasn't created as the provider isn't listed in the "sys.auth:role.service_providers role
+        // Verify domain dependency wasn't created as the provider isn't listed in the sys.auth:role.service_providers role
 
         try {
             zmsImpl.getDependentDomainList(rsrcCtx, provider);
@@ -13754,7 +13752,7 @@ public class ZMSImplTest {
         assertPutProviderResourceGroupRolesWithAuthorizedService(zmsImpl, tenantDomain, providerService,
                 providerDomain, resourceGroup, rsrcCtx);
 
-        // Verify domain dependency wasn't created as the provider isn't listed in the "sys.auth:role.service_providers role
+        // Verify domain dependency wasn't created as the provider isn't listed in the sys.auth:role.service_providers role
 
         try {
             zmsImpl.getDependentDomainList(ctx, providerDomain + "." + providerService);
@@ -15435,7 +15433,7 @@ public class ZMSImplTest {
         assertList.add(assertion);
 
         try {
-            zmsImpl.validatePolicyAssertions(assertList, "domain1", "unitTest");
+            zmsImpl.validatePolicyAssertions(assertList, "domain1", "policy1", "unitTest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -15453,7 +15451,7 @@ public class ZMSImplTest {
         assertList.add(assertion);
 
         try {
-            zmsImpl.validatePolicyAssertions(assertList, "domain1", "unitTest");
+            zmsImpl.validatePolicyAssertions(assertList, "domain1", "policy1", "unitTest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -15471,7 +15469,7 @@ public class ZMSImplTest {
         assertList.add(assertion);
 
         try {
-            zmsImpl.validatePolicyAssertions(assertList, "domain1", "unitTest");
+            zmsImpl.validatePolicyAssertions(assertList, "domain1", "policy1", "unitTest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -15492,7 +15490,7 @@ public class ZMSImplTest {
         assertion.setRole(ResourceUtils.roleResourceName("domain1", "role1"));
 
         try {
-            zmsImpl.validatePolicyAssertion(assertion, "domain1", new HashSet<>(), "unitTest");
+            zmsImpl.validatePolicyAssertion(assertion, "domain1", "policy1", new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -15507,7 +15505,7 @@ public class ZMSImplTest {
         assertion.setRole(ResourceUtils.roleResourceName("domain1", "role1"));
 
         try {
-            zmsImpl.validatePolicyAssertion(assertion, "domain1", new HashSet<>(), "unitTest");
+            zmsImpl.validatePolicyAssertion(assertion, "domain1", "policy1", new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -15522,7 +15520,7 @@ public class ZMSImplTest {
         assertion.setRole(ResourceUtils.roleResourceName("domain1", "role1"));
 
         try {
-            zmsImpl.validatePolicyAssertion(assertion, "domain1", new HashSet<>(), "unitTest");
+            zmsImpl.validatePolicyAssertion(assertion, "domain1", "policy1", new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -15537,7 +15535,7 @@ public class ZMSImplTest {
         assertion.setRole(ResourceUtils.roleResourceName("domain1", "role1"));
 
         try {
-            zmsImpl.validatePolicyAssertion(assertion, "domain1", new HashSet<>(), "unitTest");
+            zmsImpl.validatePolicyAssertion(assertion, "domain1", "policy1", new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -15552,7 +15550,7 @@ public class ZMSImplTest {
         assertion.setRole(ResourceUtils.roleResourceName("domain1", "role1"));
 
         try {
-            zmsImpl.validatePolicyAssertion(assertion, "domain1", new HashSet<>(), "unitTest");
+            zmsImpl.validatePolicyAssertion(assertion, "domain1", "policy1", new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -15567,7 +15565,7 @@ public class ZMSImplTest {
         assertion.setRole(ResourceUtils.roleResourceName("domain1", "role1"));
 
         try {
-            zmsImpl.validatePolicyAssertion(assertion, "domain1", new HashSet<>(), "unitTest");
+            zmsImpl.validatePolicyAssertion(assertion, "domain1", "policy1", new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -15582,11 +15580,181 @@ public class ZMSImplTest {
         assertion.setRole(ResourceUtils.roleResourceName("domain1", "role1"));
 
         try {
-            zmsImpl.validatePolicyAssertion(assertion, "domain1", new HashSet<>(), "unitTest");
+            zmsImpl.validatePolicyAssertion(assertion, "domain1", "policy1", new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
+    }
+
+    @Test
+    public void testValidatePolicyAssertionResourceValidatorRejects() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // create a valid assertion that would pass all basic validation
+        Assertion assertion = new Assertion();
+        assertion.setAction("update");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource("domain1:resource1");
+        assertion.setRole(ResourceUtils.roleResourceName("domain1", "role1"));
+
+        // set up our resource validator that returns false
+        ResourceValidator savedResourceValidator = zmsImpl.resourceValidator;
+        DynamicConfigBoolean savedValidateRoles = zmsImpl.validatePolicyAssertionRoles;
+        zmsImpl.validatePolicyAssertionRoles = new DynamicConfigBoolean(false);
+        zmsImpl.resourceValidator = new ResourceValidator() {
+            @Override
+            public boolean validateRoleMember(String domainName, String roleName, String memberName) {
+                return true;
+            }
+
+            @Override
+            public boolean validateGroupMember(String domainName, String groupName, String memberName) {
+                return true;
+            }
+
+            @Override
+            public boolean validatePolicyAssertion(String domainName, String policyName, Assertion assertion) {
+                return false;
+            }
+        };
+
+        try {
+            zmsImpl.validatePolicyAssertion(assertion, "domain1", "policy1", new HashSet<>(), "unitTest");
+            fail("Expected ResourceException when resourceValidator returns false");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Assertion is not allowed by external resource validator"),
+                    "Expected error message about external resource validator, but got: " + ex.getMessage());
+        }
+
+        // restore the original resource validator
+        zmsImpl.resourceValidator = savedResourceValidator;
+        zmsImpl.validatePolicyAssertionRoles = savedValidateRoles;
+    }
+
+    @Test
+    public void testValidatePolicyAssertionResourceValidatorRejectsWithSpecificAssertion() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // create a valid assertion
+        Assertion assertion = new Assertion();
+        assertion.setAction("delete");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setResource("domain1:resource2");
+        assertion.setRole(ResourceUtils.roleResourceName("domain1", "role1"));
+
+        // set up our resource validator that rejects specific assertions
+        ResourceValidator savedResourceValidator = zmsImpl.resourceValidator;
+        DynamicConfigBoolean savedValidateRoles = zmsImpl.validatePolicyAssertionRoles;
+        zmsImpl.validatePolicyAssertionRoles = new DynamicConfigBoolean(false);
+        zmsImpl.resourceValidator = new ResourceValidator() {
+            @Override
+            public boolean validateRoleMember(String domainName, String roleName, String memberName) {
+                return true;
+            }
+
+            @Override
+            public boolean validateGroupMember(String domainName, String groupName, String memberName) {
+                return true;
+            }
+
+            @Override
+            public boolean validatePolicyAssertion(String domainName, String policyName, Assertion assertion) {
+                // reject assertions with "delete" action
+                return !"delete".equals(assertion.getAction());
+            }
+        };
+
+        try {
+            zmsImpl.validatePolicyAssertion(assertion, "domain1", "policy1", new HashSet<>(), "unitTest");
+            fail("Expected ResourceException when resourceValidator returns false for delete action");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Assertion is not allowed by external resource validator"),
+                    "Expected error message about external resource validator, but got: " + ex.getMessage());
+        }
+
+        // test that a different action is allowed
+        assertion.setAction("read");
+        try {
+            zmsImpl.validatePolicyAssertion(assertion, "domain1", "policy1", new HashSet<>(), "unitTest");
+            // should not throw exception for read action
+        } catch (ResourceException ex) {
+            fail("Should not throw exception for read action, but got: " + ex.getMessage());
+        }
+
+        zmsImpl.resourceValidator = savedResourceValidator;
+        zmsImpl.validatePolicyAssertionRoles = savedValidateRoles;
+    }
+
+    @Test
+    public void testValidatePolicyAssertionsResourceValidatorRejects() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        String domainName = "domain-resource-validator";
+        String roleName = "role1";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        addRoleNeededForTest(domainName, roleName);
+
+        // create valid assertions
+        Assertion assertion1 = new Assertion();
+        assertion1.setAction("update");
+        assertion1.setEffect(AssertionEffect.ALLOW);
+        assertion1.setResource(domainName + ":resource1");
+        assertion1.setRole(ResourceUtils.roleResourceName(domainName, roleName));
+
+        Assertion assertion2 = new Assertion();
+        assertion2.setAction("read");
+        assertion2.setEffect(AssertionEffect.ALLOW);
+        assertion2.setResource(domainName + ":resource2");
+        assertion2.setRole(ResourceUtils.roleResourceName(domainName, roleName));
+
+        List<Assertion> assertList = new ArrayList<>();
+        assertList.add(assertion1);
+        assertList.add(assertion2);
+
+        // set up our resource validator that returns false for the second assertion
+        ResourceValidator savedResourceValidator = zmsImpl.resourceValidator;
+        zmsImpl.resourceValidator = new ResourceValidator() {
+            @Override
+            public boolean validateRoleMember(String domainName, String roleName, String memberName) {
+                return true;
+            }
+
+            @Override
+            public boolean validateGroupMember(String domainName, String groupName, String memberName) {
+                return true;
+            }
+
+            @Override
+            public boolean validatePolicyAssertion(String domainName, String policyName, Assertion assertion) {
+                // reject assertions with "read" action
+                return !"read".equals(assertion.getAction());
+            }
+        };
+
+        try {
+            zmsImpl.validatePolicyAssertions(assertList, domainName, "policy1", "unitTest");
+            fail("Expected ResourceException when resourceValidator returns false for one of the assertions");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Assertion is not allowed by external resource validator"),
+                    "Expected error message about external resource validator, but got: " + ex.getMessage());
+        } finally {
+            // restore the original resource validator
+            zmsImpl.resourceValidator = savedResourceValidator;
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -15629,7 +15797,7 @@ public class ZMSImplTest {
         assertList.add(assertion);
 
         try {
-            zmsImpl.validatePolicyAssertions(assertList, domainName, "unitTest");
+            zmsImpl.validatePolicyAssertions(assertList, domainName, "policy1", "unitTest");
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
@@ -15637,7 +15805,7 @@ public class ZMSImplTest {
         // null should also be valid
 
         try {
-            zmsImpl.validatePolicyAssertions(null, domainName, "unitTest");
+            zmsImpl.validatePolicyAssertions(null, domainName, "policy1", "unitTest");
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
@@ -15666,7 +15834,7 @@ public class ZMSImplTest {
         assertion.setRole(ResourceUtils.roleResourceName(domainName, roleName));
 
         try {
-            zmsImpl.validatePolicyAssertion(assertion, domainName, new HashSet<>(), "unitTest");
+            zmsImpl.validatePolicyAssertion(assertion, domainName, "policy1", new HashSet<>(), "unitTest");
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
@@ -15678,7 +15846,7 @@ public class ZMSImplTest {
         assertion.setRole(ResourceUtils.roleResourceName(domainName, roleName));
 
         try {
-            zmsImpl.validatePolicyAssertion(assertion, domainName, new HashSet<>(), "unitTest");
+            zmsImpl.validatePolicyAssertion(assertion, domainName, "policy1", new HashSet<>(), "unitTest");
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
@@ -15690,7 +15858,7 @@ public class ZMSImplTest {
         assertion.setRole(ResourceUtils.roleResourceName(domainName, roleName));
 
         try {
-            zmsImpl.validatePolicyAssertion(assertion, domainName, new HashSet<>(), "unitTest");
+            zmsImpl.validatePolicyAssertion(assertion, domainName, "policy1", new HashSet<>(), "unitTest");
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
@@ -15723,7 +15891,7 @@ public class ZMSImplTest {
         zmsImpl.validatePolicyAssertionRoles = new DynamicConfigBoolean(true);
 
         try {
-            zmsImpl.validatePolicyAssertion(assertion, domainName, new HashSet<>(), "unitTest");
+            zmsImpl.validatePolicyAssertion(assertion, domainName, "policy1", new HashSet<>(), "unitTest");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -15733,7 +15901,7 @@ public class ZMSImplTest {
 
         zmsImpl.validatePolicyAssertionRoles = new DynamicConfigBoolean(false);
         try {
-            zmsImpl.validatePolicyAssertion(assertion, domainName, new HashSet<>(), "unitTest");
+            zmsImpl.validatePolicyAssertion(assertion, domainName, "policy1", new HashSet<>(), "unitTest");
         } catch (ResourceException ex) {
             fail(ex.getMessage());
         }
