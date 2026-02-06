@@ -75,6 +75,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_REDIRECT_URI_SUFFIX    = "athenz.zts.redirect_uri_suffix";
     public static final String ZTS_PROP_SCOPE_ROLE_WOUT_DOMAIN = "athenz.zts.oauth_scope_role_without_domain";
     public static final String ZTS_PROP_PROVIDER_CONFIG_FILE   = "athenz.zts.oauth_provider_config_file";
+    public static final String ZTS_PROP_HOST_ISSUER_MAPPING_FILE = "athenz.zts.host_issuer_mapping_file";
 
     public static final String ZTS_PROP_CERTSIGN_BASE_URI            = "athenz.zts.certsign_base_uri";
     public static final String ZTS_PROP_CERTSIGN_REQUEST_TIMEOUT     = "athenz.zts.certsign_request_timeout";
