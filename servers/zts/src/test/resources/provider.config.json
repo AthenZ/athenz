@@ -1,6 +1,6 @@
 [
     {
-        "issuerUri": "https://athenz.io:4443/zts/v1",
+        "issuerUri": "https://stage.athenz.io:4443/zts/v1",
         "jwksUri": "file://src/test/resources/jwt_jwks.json"
     },
     {
