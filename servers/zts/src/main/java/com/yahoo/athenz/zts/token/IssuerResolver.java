@@ -201,9 +201,15 @@ public class IssuerResolver {
             }
         }
 
-        // If we have a host and it's in our mapping, return the mapped issuer
+        // If we have a host, and it's in our mapping, return the mapped issuer.
+        // If the host name contains a port number then we'll strip it out
+        // since our mapping is based on host name only
 
         if (!StringUtil.isEmpty(host)) {
+            final int portIdx = host.indexOf(':');
+            if (portIdx != -1) {
+                host = host.substring(0, portIdx);
+            }
             String mappedIssuer = hostToIssuerMap.get(host.toLowerCase());
             if (mappedIssuer != null) {
                 LOGGER.debug("Using mapped issuer {} for host {}", mappedIssuer, host);

@@ -257,9 +257,13 @@ public class IssuerResolverTest {
         );
 
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(request.getHeader("Host")).thenReturn("example.com");
+        Mockito.when(request.getHeader("Host")).thenReturn("example.com")
+                .thenReturn("example.com:443");
 
         String issuer = resolver.getAccessTokenIssuer(request, false);
+        assertEquals(issuer, "https://example.com/issuer");
+
+        issuer = resolver.getAccessTokenIssuer(request, false);
         assertEquals(issuer, "https://example.com/issuer");
     }
 
