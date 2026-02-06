@@ -1,0 +1,8 @@
+{
+  "ports": [
+    {
+      "port": 443,
+      "mtls_required": false,
+      "description": "Invalid JSON - missing closing brace"
+    }
+  ]

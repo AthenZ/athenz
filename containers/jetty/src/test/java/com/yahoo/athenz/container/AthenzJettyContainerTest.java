@@ -30,6 +30,12 @@ import org.testng.annotations.Test;
 
 import com.yahoo.athenz.common.server.log.jetty.AthenzRequestLog;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import static com.yahoo.athenz.container.config.PortUriConfigurationManager.*;
+import static java.nio.file.Files.*;
 import static org.testng.Assert.*;
 
 public class AthenzJettyContainerTest {
@@ -75,11 +81,38 @@ public class AthenzJettyContainerTest {
         System.clearProperty(AthenzConsts.ATHENZ_PROP_GRACEFUL_SHUTDOWN_TIMEOUT);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_SSL_LOG_FAILURES);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_SERVER_POOL_SET_ENABLED);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
     }
     
     @AfterClass
     public void cleanUpAfterClass() {
         System.clearProperty(AthenzConsts.ATHENZ_PROP_JETTY_HOME);
+    }
+
+    /**
+     * Helper method to disable port-uri configuration for tests that expect legacy behavior.
+     * Sets the port-uri config to an empty config file and reloads the singleton.
+     */
+    private void disablePortUriConfig() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG,
+                "src/test/resources/port-uri-configs/truly-empty-config.json");
+        resetForTesting();
+    }
+
+    private static Set<Integer> getConnectorPorts(Server server) {
+        if (server == null) {
+            return Collections.emptySet();
+        }
+        Set<Integer> ports = new HashSet<>();
+        for (Connector c : server.getConnectors()) {
+            if (c instanceof ServerConnector) {
+                int p = ((ServerConnector) c).getPort();
+                if (p > 0) {
+                    ports.add(p);
+                }
+            }
+        }
+        return ports;
     }
 
     @Test
@@ -199,6 +232,7 @@ public class AthenzJettyContainerTest {
 
     @Test
     public void testHttpConnectorsBoth() {
+        disablePortUriConfig();
 
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
@@ -258,6 +292,7 @@ public class AthenzJettyContainerTest {
 
     @Test
     public void testHttpConnectorsHttpsOnly() {
+        disablePortUriConfig();
 
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
@@ -284,6 +319,7 @@ public class AthenzJettyContainerTest {
     
     @Test
     public void testHttpConnectorsHttpOnly() {
+        disablePortUriConfig();
 
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
@@ -416,6 +452,7 @@ public class AthenzJettyContainerTest {
     
     @Test
     public void testInitContainerValidPorts() {
+        disablePortUriConfig();
         
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "4080");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "4443");
@@ -435,6 +472,7 @@ public class AthenzJettyContainerTest {
     
     @Test
     public void testInitContainerOnlyHTTPSPort() {
+        disablePortUriConfig();
         
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "0");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "4443");
@@ -457,6 +495,7 @@ public class AthenzJettyContainerTest {
     
     @Test
     public void testInitContainerOnlyHTTPPort() {
+        disablePortUriConfig();
         
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "4080");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "0");
@@ -475,6 +514,7 @@ public class AthenzJettyContainerTest {
     
     @Test
     public void testInitContainerInvalidHTTPPort() {
+        disablePortUriConfig();
         
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "-10");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "4443");
@@ -498,6 +538,7 @@ public class AthenzJettyContainerTest {
     
     @Test
     public void testInitContainerInvalidHTTPSPort() {
+        disablePortUriConfig();
         
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "4080");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "-10");
@@ -518,6 +559,7 @@ public class AthenzJettyContainerTest {
 
     @Test
     public void testInitContainerOptionalFeatures() {
+        disablePortUriConfig();
 
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "4080");
         System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "4443");
@@ -796,5 +838,636 @@ public class AthenzJettyContainerTest {
         AthenzJettyContainer.initConfigManager();
         System.clearProperty(AthenzConsts.ATHENZ_PROP_FILE_NAME);
         System.clearProperty(AthenzConsts.ATHENZ_PROP_CONFIG_SOURCE_PATHS);
+    }
+
+    @Test
+    public void testLoadPortUriConfigurationSuccess() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG,
+                "src/test/resources/port-uri-configs/valid-config.json");
+
+        // Reset singleton to pick up the new system property
+        resetForTesting();
+
+        AthenzJettyContainer.loadPortUriConfiguration();
+
+        // Configuration should be loaded
+        com.yahoo.athenz.container.config.PortUriConfigurationManager manager =
+                getInstance();
+        assertTrue(manager.isPortListConfigured());
+        assertNotNull(manager.getConfiguration());
+    }
+
+    @Test
+    public void testLoadPortUriConfigurationFileNotFound() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG,
+                "src/test/resources/non-existent-file.json");
+        // Reset to load with non-existent file
+        resetForTesting();
+
+        AthenzJettyContainer.loadPortUriConfiguration();
+
+        // Configuration should not be loaded (no exception thrown)
+        com.yahoo.athenz.container.config.PortUriConfigurationManager manager =
+                getInstance();
+        assertFalse(manager.isPortListConfigured());
+    }
+
+    @Test
+    public void testLoadPortUriConfigurationDefaultPath() {
+        // Test with default path (which won't exist in test environment)
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+        // Reset to load with default path
+        resetForTesting();
+
+        AthenzJettyContainer.loadPortUriConfiguration();
+
+        // Configuration should not be loaded
+        com.yahoo.athenz.container.config.PortUriConfigurationManager manager =
+                getInstance();
+        assertFalse(manager.isPortListConfigured());
+    }
+
+    @Test
+    public void testGetConnectorPorts() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+
+        // Initially no connectors
+        assertTrue(getConnectorPorts(container.getServer()).isEmpty());
+
+        // Add HTTP connector
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
+        container.addHTTPConnector(httpConfig, 8080, false, null, 30000);
+
+        assertTrue(getConnectorPorts(container.getServer()).contains(8080));
+        assertFalse(getConnectorPorts(container.getServer()).contains(8443));
+
+        // Add HTTPS connector
+        container.addHTTPSConnector(httpConfig, 8443, false, null, 30000, false, null);
+
+        assertTrue(getConnectorPorts(container.getServer()).contains(8080));
+        assertTrue(getConnectorPorts(container.getServer()).contains(8443));
+        assertFalse(getConnectorPorts(container.getServer()).contains(9000));
+    }
+
+    @Test
+    public void testPortConfigurationIntegration() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG,
+                "src/test/resources/port-uri-configs/valid-config.json");
+
+        // Reset singleton to pick up the new system property
+        resetForTesting();
+
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+
+        // Load port configuration
+        AthenzJettyContainer.loadPortUriConfiguration();
+
+        // Add connectors - should use port-uri.json configuration
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
+        container.addHTTPConnectors(httpConfig, 0, 0, 0, 0);
+
+        // Verify connectors were created from port-uri.json
+        Server server = container.getServer();
+        Connector[] connectors = server.getConnectors();
+
+        // Should have 3 connectors from valid-config.json (ports 9443, 4443, 8443)
+        assertEquals(connectors.length, 3);
+
+        // Verify connector ports
+        assertTrue(getConnectorPorts(container.getServer()).contains(9443));
+        assertTrue(getConnectorPorts(container.getServer()).contains(4443));
+        assertTrue(getConnectorPorts(container.getServer()).contains(8443));
+
+        // Clean up
+        resetForTesting();
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+    }
+
+    @Test
+    public void testPortConfigurationWithLegacyPorts() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG,
+                "src/test/resources/port-uri-configs/valid-config.json");
+
+        // Reset singleton to pick up the new system property
+        resetForTesting();
+
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+
+        // Load port configuration
+        AthenzJettyContainer.loadPortUriConfiguration();
+
+        // When port-uri.json is configured, only port-uri connectors are added; legacy ports are ignored
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
+        container.addHTTPConnectors(httpConfig, 8080, 8443, 0, 0);
+
+        Server server = container.getServer();
+        Connector[] connectors = server.getConnectors();
+
+        // Should have 3 connectors from port-uri.json only (9443, 4443, 8443)
+        assertEquals(connectors.length, 3);
+
+        assertTrue(getConnectorPorts(container.getServer()).contains(9443));
+        assertTrue(getConnectorPorts(container.getServer()).contains(4443));
+        assertTrue(getConnectorPorts(container.getServer()).contains(8443));
+
+        // Clean up
+        resetForTesting();
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+    }
+
+    @Test
+    public void testPortConfigurationMtlsSettings() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG,
+                "src/test/resources/port-uri-configs/valid-config.json");
+
+        // Reset singleton to pick up the new system property
+        resetForTesting();
+
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+
+        // Load port configuration
+        AthenzJettyContainer.loadPortUriConfiguration();
+
+        // Verify mTLS settings from configuration
+        com.yahoo.athenz.container.config.PortUriConfigurationManager manager =
+                getInstance();
+
+        // Port 4443 requires mTLS according to valid-config.json
+        assertTrue(manager.isMtlsRequired(4443));
+
+        // Ports 9443 and 8443 do not require mTLS
+        assertFalse(manager.isMtlsRequired(9443));
+        assertFalse(manager.isMtlsRequired(8443));
+
+        // Clean up
+        resetForTesting();
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+    }
+
+    @Test
+    public void testGetHttpsConfig() {
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
+        HttpConfiguration httpsConfig = container.getHttpsConfig(httpConfig, 8443, true, true);
+
+        assertNotNull(httpsConfig);
+        assertEquals(httpsConfig.getSecurePort(), 8443);
+        assertEquals(httpsConfig.getSecureScheme(), "https");
+
+        // Verify customizers are added
+        assertNotNull(httpsConfig.getCustomizers());
+        assertFalse(httpsConfig.getCustomizers().isEmpty());
+    }
+
+    @Test
+    public void testGetHttpsConfigNoSni() {
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
+        HttpConfiguration httpsConfig = container.getHttpsConfig(httpConfig, 8443, false, false);
+
+        assertNotNull(httpsConfig);
+        assertEquals(httpsConfig.getSecurePort(), 8443);
+        assertEquals(httpsConfig.getSecureScheme(), "https");
+    }
+
+    @Test
+    public void testCreateJettyContainerWithPortUriConfig() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "0");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "0");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG,
+                "src/test/resources/port-uri-configs/valid-config.json");
+        resetForTesting();
+
+        AthenzJettyContainer container = AthenzJettyContainer.createJettyContainer();
+        assertNotNull(container);
+
+        // Verify configuration was loaded
+        com.yahoo.athenz.container.config.PortUriConfigurationManager manager =
+                getInstance();
+        assertTrue(manager.isPortListConfigured());
+
+        Server server = container.getServer();
+        Connector[] connectors = server.getConnectors();
+
+        // Should have connectors from port-uri.json
+        assertTrue(connectors.length >= 2);
+
+        // Clean up
+        resetForTesting();
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+    }
+
+    @Test
+    public void testSSLLogFailuresEnabled() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "0");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "10443");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_SSL_LOG_FAILURES, "true");
+        disablePortUriConfig();
+
+        AthenzJettyContainer container = AthenzJettyContainer.createJettyContainer();
+        assertNotNull(container);
+
+        // Verify connection logger was created (line 560 coverage)
+        Server server = container.getServer();
+        assertNotNull(server);
+
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_SSL_LOG_FAILURES);
+    }
+
+    @Test
+    public void testPortConfigWithInvalidPort() throws Exception {
+        // Create a config with port <= 0
+        String configJson = "{\n" +
+                "  \"ports\": [\n" +
+                "    {\n" +
+                "      \"port\": 0,\n" +
+                "      \"mtls_required\": false,\n" +
+                "      \"description\": \"Invalid port\",\n" +
+                "      \"allowed_endpoints\": []\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"port\": -1,\n" +
+                "      \"mtls_required\": false,\n" +
+                "      \"description\": \"Negative port\",\n" +
+                "      \"allowed_endpoints\": []\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"port\": 8443,\n" +
+                "      \"mtls_required\": true,\n" +
+                "      \"description\": \"Valid port\",\n" +
+                "      \"allowed_endpoints\": []\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
+
+        java.nio.file.Path configFile = null;
+        try {
+            configFile = createTempFile("port-config-invalid", ".json");
+            write(configFile, configJson.getBytes());
+
+            System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG, configFile.toString());
+            resetForTesting();
+
+            System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "0");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "0");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+
+            AthenzJettyContainer container = AthenzJettyContainer.createJettyContainer();
+            assertNotNull(container);
+
+            // Should only have 1 connector (valid port 8443), invalid ports skipped (line 595 coverage)
+            Server server = container.getServer();
+            Connector[] connectors = server.getConnectors();
+            assertEquals(connectors.length, 1);
+
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+        } finally {
+            deleteIfExists(configFile);
+            resetForTesting();
+        }
+    }
+
+    @Test
+    public void testPortConflictHTTP() {
+        // Configure port-uri.json to use port 8080
+        String configJson = "{\n" +
+                "  \"ports\": [\n" +
+                "    {\n" +
+                "      \"port\": 8080,\n" +
+                "      \"mtls_required\": false,\n" +
+                "      \"description\": \"Test port\",\n" +
+                "      \"allowed_endpoints\": []\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
+
+        java.nio.file.Path configFile = null;
+        try {
+            configFile = createTempFile("port-config-conflict-http", ".json");
+            write(configFile, configJson.getBytes());
+
+            System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG, configFile.toString());
+            resetForTesting();
+
+            System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "8080"); // Conflict with port-uri config
+            System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "0");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_OIDC_PORT, "0");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_STATUS_PORT, "0");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+
+            AthenzJettyContainer container = AthenzJettyContainer.createJettyContainer();
+            assertNotNull(container);
+
+            // Port 8080 should only be used once (from port-uri config)
+            // Line 627 error log should be triggered
+            Server server = container.getServer();
+            Connector[] connectors = server.getConnectors();
+            assertEquals(connectors.length, 1); // Only port-uri config connector
+
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+        } catch (Exception e) {
+            fail("Test failed with exception: " + e.getMessage());
+        } finally {
+            try {
+                if (configFile != null) {
+                    deleteIfExists(configFile);
+                }
+            } catch (Exception ignored) {
+            }
+            resetForTesting();
+        }
+    }
+
+    @Test
+    public void testPortConflictHTTPS() {
+        // Configure port-uri.json to use port 8443
+        String configJson = "{\n" +
+                "  \"ports\": [\n" +
+                "    {\n" +
+                "      \"port\": 8443,\n" +
+                "      \"mtls_required\": true,\n" +
+                "      \"description\": \"Test HTTPS port\",\n" +
+                "      \"allowed_endpoints\": []\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
+
+        java.nio.file.Path configFile = null;
+        try {
+            configFile = createTempFile("port-config-conflict-https", ".json");
+            write(configFile, configJson.getBytes());
+
+            System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG, configFile.toString());
+            resetForTesting();
+
+            System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "0");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "8443"); // Conflict with port-uri config
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+
+            AthenzJettyContainer container = AthenzJettyContainer.createJettyContainer();
+            assertNotNull(container);
+
+            // Port 8443 should only be used once (from port-uri config)
+            // Line 636 error log should be triggered
+            Server server = container.getServer();
+            Connector[] connectors = server.getConnectors();
+            assertEquals(connectors.length, 1);
+
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+        } catch (Exception e) {
+            fail("Test failed with exception: " + e.getMessage());
+        } finally {
+            try {
+                if (configFile != null) {
+                    deleteIfExists(configFile);
+                }
+            } catch (Exception ignored) {
+            }
+            resetForTesting();
+        }
+    }
+
+    @Test
+    public void testPortConflictOIDC() {
+        // Configure port-uri.json to use port 9443
+        String configJson = "{\n" +
+                "  \"ports\": [\n" +
+                "    {\n" +
+                "      \"port\": 9443,\n" +
+                "      \"mtls_required\": false,\n" +
+                "      \"description\": \"Test OIDC port\",\n" +
+                "      \"allowed_endpoints\": []\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
+
+        java.nio.file.Path configFile = null;
+        try {
+            configFile = createTempFile("port-config-conflict-oidc", ".json");
+            write(configFile, configJson.getBytes());
+            System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG, configFile.toString());
+            resetForTesting();
+
+            System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "0");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "0");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_OIDC_PORT, "9443"); // Conflict with port-uri config
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+
+            AthenzJettyContainer container = AthenzJettyContainer.createJettyContainer();
+            assertNotNull(container);
+
+            // Port 9443 should only be used once (from port-uri config)
+            // Line 647 error log should be triggered
+            Server server = container.getServer();
+            Connector[] connectors = server.getConnectors();
+            assertEquals(connectors.length, 1);
+
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_OIDC_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+        } catch (Exception e) {
+            fail("Test failed with exception: " + e.getMessage());
+        } finally {
+            try {
+                if (configFile != null) {
+                    deleteIfExists(configFile);
+                }
+            } catch (Exception ignored) {
+            }
+            resetForTesting();
+        }
+    }
+
+    @Test
+    public void testAddConnectorsFromPropertiesWithPortUriConfiguredHTTPConflict() {
+        String configJson = "{\n" +
+                "  \"ports\": [\n" +
+                "    {\n" +
+                "      \"port\": 9080,\n" +
+                "      \"mtls_required\": false,\n" +
+                "      \"description\": \"HTTP port conflict test\",\n" +
+                "      \"allowed_endpoints\": []\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
+
+        java.nio.file.Path configFile = null;
+        try {
+            configFile = createTempFile("port-conflict-http-test", ".json");
+            write(configFile, configJson.getBytes());
+
+            System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG, configFile.toString());
+            resetForTesting();
+
+            System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "9080"); // Same as port-uri config
+            System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "0");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_OIDC_PORT, "0");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_STATUS_PORT, "0");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+
+
+            AthenzJettyContainer container = AthenzJettyContainer.createJettyContainer();
+            assertNotNull(container);
+
+            // Should have only 1 connector (from port-uri config)
+            Server server = container.getServer();
+            Connector[] connectors = server.getConnectors();
+            assertEquals(connectors.length, 1);
+
+        } catch (Exception e) {
+            fail("Test failed: " + e.getMessage());
+        } finally {
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_OIDC_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_STATUS_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+            try {
+                if (configFile != null) {
+                    deleteIfExists(configFile);
+                }
+            } catch (Exception ignored) {
+            }
+            resetForTesting();
+        }
+    }
+
+    @Test
+    public void testPortConfigInvalidPortWithMultiplePorts() {
+        String configJson = "{\n" +
+                "  \"ports\": [\n" +
+                "    {\n" +
+                "      \"port\": 0,\n" +
+                "      \"mtls_required\": false,\n" +
+                "      \"description\": \"Invalid zero port\"\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"port\": -5,\n" +
+                "      \"mtls_required\": false,\n" +
+                "      \"description\": \"Invalid negative port\"\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"port\": 9450,\n" +
+                "      \"mtls_required\": true,\n" +
+                "      \"description\": \"Valid port\"\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"port\": 0,\n" +
+                "      \"mtls_required\": false,\n" +
+                "      \"description\": \"Another invalid zero port\"\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
+
+        java.nio.file.Path configFile = null;
+        try {
+            configFile = createTempFile("invalid-ports-test", ".json");
+            write(configFile, configJson.getBytes());
+            System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG, configFile.toString());
+            resetForTesting();
+
+            System.setProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT, "0");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT, "0");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_OIDC_PORT, "0");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_STATUS_PORT, "0");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+            System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+
+            AthenzJettyContainer container = AthenzJettyContainer.createJettyContainer();
+            assertNotNull(container);
+
+            // Should have only 1 connector (port 9450), others skipped
+            Server server = container.getServer();
+            Connector[] connectors = server.getConnectors();
+            assertEquals(connectors.length, 1);
+
+        } catch (Exception e) {
+            fail("Test failed: " + e.getMessage());
+        } finally {
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTP_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_HTTPS_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_OIDC_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_STATUS_PORT);
+            System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+            try {
+                if (configFile != null) {
+                    deleteIfExists(configFile);
+                }
+            } catch (Exception ignored) {
+            }
+            resetForTesting();
+        }
     }
 }

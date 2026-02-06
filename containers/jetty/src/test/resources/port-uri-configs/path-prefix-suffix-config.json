@@ -1,0 +1,27 @@
+{
+  "ports": [
+    {
+      "port": 9444,
+      "mtls_required": false,
+      "description": "path_starts_with and path_ends_with tests",
+      "allowed_endpoints": [
+        {
+          "path_starts_with": "/zts/v1/",
+          "methods": ["GET"],
+          "description": "All ZTS v1 GET under prefix"
+        },
+        {
+          "path_ends_with": "/keys",
+          "methods": ["GET"],
+          "description": "JWKS keys endpoint"
+        },
+        {
+          "path_starts_with": "/zts/v1/",
+          "path_ends_with": "/status",
+          "methods": ["GET"],
+          "description": "ZTS status (prefix and suffix)"
+        }
+      ]
+    }
+  ]
+}
