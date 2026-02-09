@@ -75,11 +75,11 @@
     <apache.httpclient.version>5.6</apache.httpclient.version>
     <apache.httpclient4.version>4.5.14</apache.httpclient4.version>
     <aws.version>1.12.797</aws.version>
-    <aws2.version>2.41.13</aws2.version>
+    <aws2.version>2.41.24</aws2.version>
     <aws.dynamodb.local.version>2.6.1</aws.dynamodb.local.version>
     <aws.secretmanager.version>2.0.4</aws.secretmanager.version>
     <bouncycastle.version>1.83</bouncycastle.version>
-    <commons.codec.version>1.19.0</commons.codec.version>
+    <commons.codec.version>1.21.0</commons.codec.version>
     <commons.daemon.version>1.5.1</commons.daemon.version>
     <commons.dbcp2.version>2.14.0</commons.dbcp2.version>
     <commons.io.version>2.21.0</commons.io.version>
@@ -88,7 +88,7 @@
     <ehcache.version>3.11.1</ehcache.version>
     <freemarker.version>2.3.34</freemarker.version>
     <gcp.api-client.version>2.8.1</gcp.api-client.version>
-    <gcp.bom.version>26.74.0</gcp.bom.version>
+    <gcp.bom.version>26.75.0</gcp.bom.version>
     <guava.version>33.5.0-jre</guava.version>
     <hamcrest.version>3.0</hamcrest.version>
     <hamcrest.json.version>0.3</hamcrest.json.version>
@@ -100,28 +100,28 @@
     <jakarta.mail.version>2.1.5</jakarta.mail.version>
     <jakarta.servlet.version>6.0.0</jakarta.servlet.version>
     <jakarta.ws.version>4.0.0</jakarta.ws.version>
-    <jaxb.api.version>4.0.4</jaxb.api.version>
+    <jaxb.api.version>4.0.5</jaxb.api.version>
     <jaxb.impl.version>4.0.6</jaxb.impl.version>
     <jersey.version>3.1.11</jersey.version>
-    <jetty.version>12.0.31</jetty.version>
+    <jetty.version>12.0.32</jetty.version>
     <jjwt.version>0.11.5</jjwt.version>
     <jmh.version>1.35</jmh.version>
     <jna.version>5.18.1</jna.version>
     <junit.version>4.13.2</junit.version>
     <kubernetes-client.version>25.0.0</kubernetes-client.version>
     <logback.client.version>1.2.13</logback.client.version>
-    <logback.server.version>1.5.25</logback.server.version>
+    <logback.server.version>1.5.28</logback.server.version>
     <mock.server.version>5.15.0</mock.server.version>
     <mockito.version>5.21.0</mockito.version>
-    <mysql.connector.version>9.5.0</mysql.connector.version>
+    <mysql.connector.version>9.6.0</mysql.connector.version>
     <nimbus.jose.version>10.7</nimbus.jose.version>
     <okhttp3.mockwebserver.version>5.3.2</okhttp3.mockwebserver.version>
-    <opentelemetry.version>1.58.0</opentelemetry.version>
+    <opentelemetry.version>1.59.0</opentelemetry.version>
     <pam4j.version>1.11</pam4j.version>
-    <protobuf.java.version>4.33.4</protobuf.java.version>
+    <protobuf.java.version>4.33.5</protobuf.java.version>
     <pulsar.client.version>4.1.2</pulsar.client.version>
     <rdl.version>1.5.4</rdl.version>
-    <slack.client.version>1.46.0</slack.client.version>
+    <slack.client.version>1.47.0</slack.client.version>
     <slf4j.client.version>1.7.36</slf4j.client.version>
     <slf4j.server.version>2.0.17</slf4j.server.version>
     <sqlite4java.version>1.0.392</sqlite4java.version>
