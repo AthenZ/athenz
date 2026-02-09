@@ -192,6 +192,7 @@ public class ZTSImpl implements ZTSHandler {
     protected boolean jwtCurveRfcSupportOnly = false;
     protected TokenConfigOptions tokenConfigOptions = null;
     protected ProviderConfigManager providerConfigManager;
+    protected IssuerResolver issuerResolver;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -378,6 +379,8 @@ public class ZTSImpl implements ZTSHandler {
 
         setAuthorityKeyStore();
 
+        // initialize our notification manager
+
         setNotificationManager();
 
         // load the StatusChecker
@@ -400,6 +403,10 @@ public class ZTSImpl implements ZTSHandler {
 
         spiffeUriManager = new SpiffeUriManager();
 
+        // initialize our issuer resolver
+
+        issuerResolver = new IssuerResolver(ztsOAuthIssuer, ztsOpenIDIssuer, ztsOIDCPortIssuer, oidcPort, httpsPort);
+
         // create our external provider config manager
 
         loadExternalProviderConfigManager();
@@ -420,11 +427,7 @@ public class ZTSImpl implements ZTSHandler {
 
         tokenConfigOptions = new TokenConfigOptions();
         tokenConfigOptions.setPublicKeyProvider(dataStore);
-        Set<String> oauth2Issuers = new HashSet<>();
-        oauth2Issuers.add(ztsOAuthIssuer);
-        oauth2Issuers.add(ztsOpenIDIssuer);
-        oauth2Issuers.add(ztsOIDCPortIssuer);
-        tokenConfigOptions.setOauth2Issuers(oauth2Issuers);
+        tokenConfigOptions.setOauth2Issuers(issuerResolver.getOauth2Issuers());
         tokenConfigOptions.setJwtIDTProcessor(JwtsHelper.getJWTProcessor(jwtsResolvers, JwtsHelper.JWT_TYPE_VERIFIER));
         tokenConfigOptions.setJwtJAGProcessor(JwtsHelper.getJWTProcessor(jwtsResolvers, JwtsHelper.JWT_JAG_TYPE_VERIFIER));
     }
@@ -2120,7 +2123,7 @@ public class ZTSImpl implements ZTSHandler {
         idToken.setVersion(1);
         idToken.setAudience(getIdTokenAudience(clientId, roleInAudClaim, idTokenGroups));
         idToken.setSubject(principalName);
-        idToken.setIssuer(isOidcPortRequest(ctx.request(), null) ? ztsOIDCPortIssuer : ztsOpenIDIssuer);
+        idToken.setIssuer(issuerResolver.getIDTokenIssuer(ctx.request(), null));
         idToken.setNonce(nonce);
         idToken.setGroups(idTokenGroups);
         idToken.setIssueTime(iat);
@@ -2691,7 +2694,7 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setExpiryTime(iat + tokenTimeout);
         accessToken.setUserId(principalName);
         accessToken.setSubject(subjectPrincipal);
-        accessToken.setIssuer(accessTokenRequest.isUseOpenIDIssuer() ? ztsOpenIDIssuer : ztsOAuthIssuer);
+        accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), accessTokenRequest.isUseOpenIDIssuer()));
         accessToken.setScope(new ArrayList<>(roles));
 
         // if we have a certificate used for mTLS authentication then
@@ -2843,7 +2846,7 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setExpiryTime(iat + tokenTimeout);
         accessToken.setUserId(principalName);
         accessToken.setSubject(subjectPrincipal);
-        accessToken.setIssuer(accessTokenRequest.isUseOpenIDIssuer() ? ztsOpenIDIssuer : ztsOAuthIssuer);
+        accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), accessTokenRequest.isUseOpenIDIssuer()));
         accessToken.setScope(new ArrayList<>(roles));
 
         // include the act claim in our response. we're going to use
@@ -3002,7 +3005,7 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setAuthTime(iat);
         accessToken.setExpiryTime(iat + tokenTimeout);
         accessToken.setSubject(subjectIdentity);
-        accessToken.setIssuer(ztsOpenIDIssuer);
+        accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), true));
         accessToken.setScope(roleList);
         accessToken.setResource(accessTokenRequest.getResource());
 
@@ -3035,7 +3038,7 @@ public class ZTSImpl implements ZTSHandler {
         // our server oidc/oauth issuer value
 
         final String jagAudience = jagToken.getAudience();
-        if (!ztsOpenIDIssuer.equals(jagAudience) && !ztsOAuthIssuer.equals(jagAudience)) {
+        if (!issuerResolver.isOauth2Issuer(jagAudience)) {
             LOGGER.error("Invalid jag assertion aud claim: {}", jagAudience);
             throw requestError("Unknown jag assertion audience", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
         }
@@ -3302,7 +3305,7 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setExpiryTime(iat + tokenTimeout);
         accessToken.setUserId(principalName);
         accessToken.setSubject(principalName);
-        accessToken.setIssuer(accessTokenRequest.isUseOpenIDIssuer() ? ztsOpenIDIssuer : ztsOAuthIssuer);
+        accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), accessTokenRequest.isUseOpenIDIssuer()));
         accessToken.setProxyPrincipal(proxyUser);
         accessToken.setScope(new ArrayList<>(roles));
         accessToken.setAuthorizationDetails(accessTokenRequest.getAuthzDetails());
@@ -3338,7 +3341,7 @@ public class ZTSImpl implements ZTSHandler {
             idToken.setVersion(1);
             idToken.setAudience(tokenScope.getDomainName() + "." + serviceName);
             idToken.setSubject(principalName);
-            idToken.setIssuer(accessTokenRequest.isUseOpenIDIssuer() ? ztsOpenIDIssuer : ztsOAuthIssuer);
+            idToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), accessTokenRequest.isUseOpenIDIssuer()));
 
             // id tokens are only valid for up to 12 hours max
             // (value configured as a system property).
@@ -4734,7 +4737,7 @@ public class ZTSImpl implements ZTSHandler {
         IdToken idToken = new IdToken();
         idToken.setVersion(1);
         idToken.setAudience(info.getJwtSVIDAudience());
-        idToken.setIssuer(ztsOpenIDIssuer);
+        idToken.setIssuer(issuerResolver.getIDTokenIssuer(ctx.request(), null));
         idToken.setNonce(info.getJwtSVIDNonce());
         idToken.setIssueTime(iat);
         idToken.setAuthTime(iat);
@@ -5980,7 +5983,7 @@ public class ZTSImpl implements ZTSHandler {
         IdToken idToken = new IdToken();
         idToken.setVersion(1);
         final String issuerOption = extCredsAttributes.get(ZTSConsts.ZTS_EXTERNAL_ATTR_ISSUER_OPTION);
-        idToken.setIssuer(isOidcPortRequest(ctx.request(), issuerOption) ? ztsOIDCPortIssuer : ztsOpenIDIssuer);
+        idToken.setIssuer(issuerResolver.getIDTokenIssuer(ctx.request(), issuerOption));
         idToken.setNonce(Crypto.randomSalt());
         idToken.setIssueTime(iat);
         idToken.setAuthTime(iat);

@@ -39,6 +39,7 @@ import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
+import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
@@ -12551,11 +12552,11 @@ public class ZTSImplTest {
     public void testGetOIDCResponseNoRulesGroups() {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+        System.setProperty(ZTSConsts.ZTS_PROP_OIDC_PORT, "443");
+        System.setProperty(ZTSConsts.ZTS_PROP_OIDC_PORT_ISSUER, "https://athenz.io");
 
         CloudStore cloudStore = new CloudStore();
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
-        ztsImpl.oidcPort = 443;
-        ztsImpl.ztsOIDCPortIssuer = "https://athenz.io";
 
         // set back to our zts rsa private key
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
@@ -12582,6 +12583,9 @@ public class ZTSImplTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_OIDC_PORT);
+        System.clearProperty(ZTSConsts.ZTS_PROP_OIDC_PORT_ISSUER);
     }
 
     @Test
