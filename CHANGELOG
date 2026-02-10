@@ -1,3 +1,15 @@
+Athenz v1.12.34 Release / Feb 09, 2026
+--------------------------------------
+
+#3184 expose add-temporary-group-member command in zms-cli
+#3185 log all db error opertions that don't update any rows
+#3186 domain-dependency-list - return 404 for unknown domains
+#3188 Add support for S3 compatible storage
+#3190 Adding support to filter requests based on port-uri combination
+#3192 extend resource validator to check policy assertions
+#3193 extensible Issuer support for tokens
+#3195 update java/go dependencies to their latest releases
+
 Athenz v1.12.33 Release / Jan 23, 2026
 --------------------------------------
 
