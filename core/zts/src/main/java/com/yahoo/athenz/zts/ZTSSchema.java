@@ -286,6 +286,7 @@ public class ZTSSchema {
         sb.structType("OpenIDConfig")
             .field("issuer", "String", false, "url using the https scheme")
             .field("authorization_endpoint", "String", false, "oauth 2.0 authorization endpoint url")
+            .field("token_endpoint", "String", false, "oauth 2.0 token endpoint url")
             .field("jwks_uri", "String", false, "public server jwk set url")
             .arrayField("response_types_supported", "String", false, "list of supported response types")
             .arrayField("subject_types_supported", "String", false, "list of supported subject identifier types")
