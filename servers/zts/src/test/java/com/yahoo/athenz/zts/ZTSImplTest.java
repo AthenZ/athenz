@@ -12301,6 +12301,7 @@ public class ZTSImplTest {
         assertEquals(openIDConfig.getIssuer(), "https://athenz.cloud:4443/zts/v1");
         assertEquals(openIDConfig.getJwks_uri(), "https://athenz.cloud:4443/zts/v1/oauth2/keys?rfc=true");
         assertEquals(openIDConfig.getAuthorization_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/auth");
+        assertEquals(openIDConfig.getToken_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/token");
 
         assertEquals(Collections.singletonList("RS256"), openIDConfig.getId_token_signing_alg_values_supported());
         assertEquals(Collections.singletonList("id_token"), openIDConfig.getResponse_types_supported());
@@ -12315,6 +12316,7 @@ public class ZTSImplTest {
         assertEquals(openIDConfig.getIssuer(), "https://athenz.cloud:4443/zts/v1");
         assertEquals(openIDConfig.getJwks_uri(), "https://athenz.cloud:4443/zts/v1/oauth2/keys");
         assertEquals(openIDConfig.getAuthorization_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/auth");
+        assertEquals(openIDConfig.getToken_endpoint(), "https://athenz.cloud:4443/zts/v1/oauth2/token");
 
         assertEquals(Collections.singletonList("RS256"), openIDConfig.getId_token_signing_alg_values_supported());
         assertEquals(Collections.singletonList("id_token"), openIDConfig.getResponse_types_supported());
@@ -12348,6 +12350,7 @@ public class ZTSImplTest {
         assertEquals(openIDConfig.getIssuer(), "https://athenz.io/zts/v1");
         assertEquals(openIDConfig.getJwks_uri(), "https://athenz.io/zts/v1/oauth2/keys?rfc=true");
         assertEquals(openIDConfig.getAuthorization_endpoint(), "https://athenz.io/zts/v1/oauth2/auth");
+        assertEquals(openIDConfig.getToken_endpoint(), "https://athenz.io/zts/v1/oauth2/token");
 
         assertEquals(Collections.singletonList("RS256"), openIDConfig.getId_token_signing_alg_values_supported());
         assertEquals(Collections.singletonList("id_token"), openIDConfig.getResponse_types_supported());

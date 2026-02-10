@@ -29,6 +29,7 @@ type JWK Struct {
 type OpenIDConfig Struct {
     String issuer; //url using the https scheme
     String authorization_endpoint; //oauth 2.0 authorization endpoint url
+    String token_endpoint; //oauth 2.0 token endpoint url
     String jwks_uri; //public server jwk set url
     Array<String> response_types_supported; //list of supported response types
     Array<String> subject_types_supported; //list of supported subject identifier types

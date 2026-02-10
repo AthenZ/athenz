@@ -688,6 +688,7 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         openIDConfig.setIssuer("https://athenz.cloud");
         openIDConfig.setJwks_uri("https://athenz.cloud/oauth2/keys");
         openIDConfig.setAuthorization_endpoint("https://athenz.cloud/access");
+        openIDConfig.setToken_endpoint("https://athenz.cloud/token");
         openIDConfig.setSubject_types_supported(Collections.singletonList("public"));
         openIDConfig.setResponse_types_supported(Collections.singletonList("id_token"));
         openIDConfig.setId_token_signing_alg_values_supported(Collections.singletonList("RS256"));

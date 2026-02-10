@@ -1289,6 +1289,9 @@ var ztsspec = {
           "authorization_endpoint" : {
             "type" : "string"
           },
+          "token_endpoint" : {
+            "type" : "string"
+          },
           "jwks_uri" : {
             "type" : "string"
           },

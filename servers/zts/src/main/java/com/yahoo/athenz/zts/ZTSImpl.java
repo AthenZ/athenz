@@ -487,6 +487,7 @@ public class ZTSImpl implements ZTSHandler {
         config.setIssuer(issuer);
         config.setJwks_uri(jwtCurveRfcSupportOnly ? issuer + "/oauth2/keys" : issuer + "/oauth2/keys?rfc=true");
         config.setAuthorization_endpoint(issuer + "/oauth2/auth");
+        config.setToken_endpoint(issuer + "/oauth2/token");
         config.setSubject_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_SUBJECT_TYPE_PUBLIC));
         config.setResponse_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_RESPONSE_IT_ONLY));
         config.setId_token_signing_alg_values_supported(getSupportedSigningAlgValues());
