@@ -94,7 +94,7 @@ public class OpenIDConfig {
             if (authorization_endpoint == null ? a.authorization_endpoint != null : !authorization_endpoint.equals(a.authorization_endpoint)) {
                 return false;
             }
-            if (token_endpoint == null ? a.token_endpoint != null : !token_endpoint.equals(a.token_endpoint)) {
+            if (!java.util.Objects.equals(token_endpoint, a.token_endpoint)) {
                 return false;
             }
             if (jwks_uri == null ? a.jwks_uri != null : !jwks_uri.equals(a.jwks_uri)) {
