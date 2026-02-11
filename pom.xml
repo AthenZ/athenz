@@ -212,6 +212,7 @@
     <module>utils/athenz-conf</module>
     <module>utils/zms-domainattrs</module>
     <module>utils/zms-svctoken</module>
+    <module>utils/zms-authhistory</module>
     <module>utils/zpe-updater</module>
     <module>utils/zts-roletoken</module>
     <module>utils/zts-accesstoken</module>
