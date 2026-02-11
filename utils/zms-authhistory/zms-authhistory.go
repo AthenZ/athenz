@@ -69,13 +69,13 @@ func main() {
 	// Create ZMS client with mTLS
 	client, err := athenzutils.ZmsClient(zmsURL, keyFile, certFile, caCertFile, false)
 	if err != nil {
-		log.Fatalf("Failed to create ZMS client: %v\n", err)
+		log.Fatalf("Failed to create ZMS client: %v", err)
 	}
 
 	// Call GetAuthHistoryDependencies API
 	authHistory, err := client.GetAuthHistoryDependencies(zms.DomainName(domain))
 	if err != nil {
-		log.Fatalf("Failed to get auth history dependencies: %v\n", err)
+		log.Fatalf("Failed to get auth history dependencies: %v", err)
 	}
 
 	// Process dependencies and generate report
@@ -180,33 +180,22 @@ func processDependencies(targetDomain string, authHistory *zms.AuthHistoryDepend
 		}
 	}
 
-	allServices := make(map[string]bool)
-	for serviceName := range outgoingMap {
-		allServices[serviceName] = true
-	}
-
 	// Build service reports
-	for serviceName := range allServices {
+	for serviceName, outgoingDeps := range outgoingMap {
+		if len(outgoingDeps) == 0 {
+			continue
+		}
 		report := &ServiceReport{
 			ServiceName:          serviceName,
-			OutgoingDependencies: make([]ServiceDependency, 0),
+			OutgoingDependencies: make([]ServiceDependency, 0, len(outgoingDeps)),
 		}
-
-		// Add outgoing dependencies
-		if outgoingDeps, exists := outgoingMap[serviceName]; exists {
-			for _, dep := range outgoingDeps {
-				report.OutgoingDependencies = append(report.OutgoingDependencies, dep)
-			}
+		for _, dep := range outgoingDeps {
+			report.OutgoingDependencies = append(report.OutgoingDependencies, dep)
 		}
-
 		sort.Slice(report.OutgoingDependencies, func(i, j int) bool {
 			return report.OutgoingDependencies[i].Domain < report.OutgoingDependencies[j].Domain
 		})
-
-		// Only add services that have at least one dependency
-		if len(report.OutgoingDependencies) > 0 {
-			serviceReports[serviceName] = report
-		}
+		serviceReports[serviceName] = report
 	}
 
 	// Convert incomingMap to a slice and sort by Domain, then Service
@@ -237,33 +226,40 @@ func printReport(outgoing map[string]*ServiceReport, incoming []ServiceDependenc
 	}
 	sort.Strings(serviceNames)
 
-	if domainsOnly {
-		fmt.Println("\nTarget-Domain,Last-Access")
-	} else {
-		fmt.Println("\nService,Target-Domain,Last-Access")
-	}
-	for _, serviceName := range serviceNames {
-		report := outgoing[serviceName]
-		if len(report.OutgoingDependencies) > 0 {
-			for _, dep := range report.OutgoingDependencies {
-				if domainsOnly {
-					fmt.Printf("%s,%s\n", dep.Domain, dep.LastAccess)
-				} else {
-					fmt.Printf("%s,%s,%s\n", report.ServiceName, dep.Domain, dep.LastAccess)
+	if len(outgoing) > 0 {
+		if domainsOnly {
+			fmt.Println("Target-Domain,Last-Access")
+		} else {
+			fmt.Println("Service,Target-Domain,Last-Access")
+		}
+
+		for _, serviceName := range serviceNames {
+			report := outgoing[serviceName]
+			if len(report.OutgoingDependencies) > 0 {
+				for _, dep := range report.OutgoingDependencies {
+					if domainsOnly {
+						fmt.Printf("%s,%s\n", dep.Domain, dep.LastAccess)
+					} else {
+						fmt.Printf("%s,%s,%s\n", report.ServiceName, dep.Domain, dep.LastAccess)
+					}
 				}
 			}
 		}
 	}
 
 	if len(incoming) > 0 {
+		if len(outgoing) > 0 {
+			fmt.Println()
+		}
 		if domainsOnly {
-			fmt.Println("\nSource-Domain,Last-Access")
-			for _, dep := range incoming {
-				fmt.Printf("%s,%s\n", dep.Domain, dep.LastAccess)
-			}
+			fmt.Println("Source-Domain,Last-Access")
 		} else {
-			fmt.Println("\nSource-Domain,Source-Service,Last-Access")
-			for _, dep := range incoming {
+			fmt.Println("Source-Domain,Source-Service,Last-Access")
+		}
+		for _, dep := range incoming {
+			if domainsOnly {
+				fmt.Printf("%s,%s\n", dep.Domain, dep.LastAccess)
+			} else {
 				fmt.Printf("%s,%s,%s\n", dep.Domain, dep.Service, dep.LastAccess)
 			}
 		}

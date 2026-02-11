@@ -97,6 +97,9 @@ utils/hostdoc/target/
 utils/zms-svctoken/bin/
 utils/zms-svctoken/pkg/
 utils/zms-svctoken/src/
+utils/zms-authhistory/bin/
+utils/zms-authhistory/pkg/
+utils/zms-authhistory/src/
 utils/zpe-updater/pkg/
 utils/zpe-updater/src/
 utils/zpe-updater/bin/
