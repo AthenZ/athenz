@@ -1761,6 +1761,7 @@ public class ZTSClientTest {
         assertEquals(openIDConfig.getIssuer(), "https://athenz.cloud");
         assertEquals(openIDConfig.getJwks_uri(), "https://athenz.cloud/oauth2/keys");
         assertEquals(openIDConfig.getAuthorization_endpoint(), "https://athenz.cloud/access");
+        assertEquals(openIDConfig.getToken_endpoint(), "https://athenz.cloud/token");
         assertEquals(Collections.singletonList("RS256"), openIDConfig.getId_token_signing_alg_values_supported());
         assertEquals(Collections.singletonList("id_token"), openIDConfig.getResponse_types_supported());
         assertEquals(Collections.singletonList("public"), openIDConfig.getSubject_types_supported());

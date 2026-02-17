@@ -32,6 +32,7 @@ public class OpenIDConfigTest {
         OpenIDConfig cfg2 = new OpenIDConfig();
 
         cfg1.setAuthorization_endpoint("authz-endpoint");
+        cfg1.setToken_endpoint("token-endpoint");
         cfg1.setIssuer("issuer");
         cfg1.setJwks_uri("jwks-uri");
         cfg1.setClaims_supported(Collections.singletonList("openid"));
@@ -40,6 +41,7 @@ public class OpenIDConfigTest {
         cfg1.setSubject_types_supported(Collections.singletonList("public"));
 
         cfg2.setAuthorization_endpoint("authz-endpoint");
+        cfg2.setToken_endpoint("token-endpoint");
         cfg2.setIssuer("issuer");
         cfg2.setJwks_uri("jwks-uri");
         cfg2.setClaims_supported(Collections.singletonList("openid"));
@@ -53,6 +55,7 @@ public class OpenIDConfigTest {
         assertNotEquals("openidconfig", cfg1);
 
         assertEquals("authz-endpoint", cfg1.getAuthorization_endpoint());
+        assertEquals("token-endpoint", cfg1.getToken_endpoint());
         assertEquals("issuer", cfg1.getIssuer());
         assertEquals("jwks-uri", cfg1.getJwks_uri());
         assertEquals(Collections.singletonList("openid"), cfg1.getClaims_supported());
@@ -65,6 +68,12 @@ public class OpenIDConfigTest {
         cfg2.setAuthorization_endpoint(null);
         assertNotEquals(cfg1, cfg2);
         cfg2.setAuthorization_endpoint("authz-endpoint");
+
+        cfg2.setToken_endpoint("token-endpoint2");
+        assertNotEquals(cfg1, cfg2);
+        cfg2.setToken_endpoint(null);
+        assertNotEquals(cfg1, cfg2);
+        cfg2.setToken_endpoint("token-endpoint");
 
         cfg2.setIssuer("issuer2");
         assertNotEquals(cfg1, cfg2);

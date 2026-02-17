@@ -15,6 +15,7 @@ import com.yahoo.rdl.*;
 public class OpenIDConfig {
     public String issuer;
     public String authorization_endpoint;
+    public String token_endpoint;
     public String jwks_uri;
     public List<String> response_types_supported;
     public List<String> subject_types_supported;
@@ -36,6 +37,13 @@ public class OpenIDConfig {
     }
     public String getAuthorization_endpoint() {
         return authorization_endpoint;
+    }
+    public OpenIDConfig setToken_endpoint(String token_endpoint) {
+        this.token_endpoint = token_endpoint;
+        return this;
+    }
+    public String getToken_endpoint() {
+        return token_endpoint;
     }
     public OpenIDConfig setJwks_uri(String jwks_uri) {
         this.jwks_uri = jwks_uri;
@@ -84,6 +92,9 @@ public class OpenIDConfig {
                 return false;
             }
             if (authorization_endpoint == null ? a.authorization_endpoint != null : !authorization_endpoint.equals(a.authorization_endpoint)) {
+                return false;
+            }
+            if (token_endpoint == null ? a.token_endpoint != null : !token_endpoint.equals(a.token_endpoint)) {
                 return false;
             }
             if (jwks_uri == null ? a.jwks_uri != null : !jwks_uri.equals(a.jwks_uri)) {
