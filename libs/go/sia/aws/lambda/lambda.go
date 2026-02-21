@@ -31,6 +31,7 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	acmtypes "github.com/aws/aws-sdk-go-v2/service/acm/types"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
@@ -125,7 +126,7 @@ func getInternalAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsU
 //
 // The secret specified by the name must be pre-created
 func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, secretName string, siaCertData *util.SiaCertData, isRoleCertificate bool) error {
-	return StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService, secretName, siaCertData, nil, isRoleCertificate)
+	return StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService, secretName, siaCertData, nil, isRoleCertificate, "")
 }
 
 // StoreAthenzIdentityInSecretManagerCustomFormat store the retrieved athenz identity in the
@@ -144,8 +145,10 @@ func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, secretName 
 //
 //	{  "certPem":"<x509-cert-pem>, "keyPem":"<pkey-pem> }
 //
-// The secret specified by the name must be pre-created
-func StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService, secretName string, siaCertData *util.SiaCertData, jsonFieldMapper map[string]string, isRoleCertificate bool) error {
+// The secret specified by the name must be pre-created. If the targetRoleArn is specified, the function
+// will assume the role and use the temporary credentials to access the secret manager, otherwise it
+// will use the default credentials from environment.
+func StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService, secretName string, siaCertData *util.SiaCertData, jsonFieldMapper map[string]string, isRoleCertificate bool, targetRoleArn string) error {
 
 	var keyCertJson []byte
 	var err error
@@ -161,6 +164,11 @@ func StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService,
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		return err
+	}
+	if targetRoleArn != "" {
+		stsClient := sts.NewFromConfig(cfg)
+		provider := stscreds.NewAssumeRoleProvider(stsClient, targetRoleArn)
+		cfg.Credentials = aws.NewCredentialsCache(provider)
 	}
 	svc := secretsmanager.NewFromConfig(cfg)
 	input := &secretsmanager.PutSecretValueInput{
