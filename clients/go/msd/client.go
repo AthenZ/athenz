@@ -1102,6 +1102,184 @@ func (client MSDClient) PostKubernetesNetworkPolicyRequest(domainName DomainName
 	}
 }
 
+func (client MSDClient) CreateTransportPolicySnapshot(domainName DomainName, serviceName EntityName, snapshot *TransportPolicySnapshotRequest, resourceOwner string) (*TransportPolicySnapshotMetadata, error) {
+	var data *TransportPolicySnapshotMetadata
+	headers := map[string]string{
+		"Athenz-Resource-Owner": resourceOwner,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/snapshot"
+	contentBytes, err := json.Marshal(snapshot)
+	if err != nil {
+		return data, err
+	}
+	resp, err := client.httpPost(url, headers, contentBytes)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 201:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client MSDClient) UpdateTransportPolicySnapshot(domainName DomainName, serviceName EntityName, snapshotName EntityName, updateRequest *TransportPolicySnapshotUpdateRequest, resourceOwner string) (*TransportPolicySnapshotMetadata, error) {
+	var data *TransportPolicySnapshotMetadata
+	headers := map[string]string{
+		"Athenz-Resource-Owner": resourceOwner,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/snapshot/" + fmt.Sprint(snapshotName)
+	contentBytes, err := json.Marshal(updateRequest)
+	if err != nil {
+		return data, err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client MSDClient) GetTransportPolicySnapshots(domainName DomainName, serviceName EntityName) (*TransportPolicySnapshots, error) {
+	var data *TransportPolicySnapshots
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/snapshots"
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client MSDClient) GetTransportPolicySnapshot(domainName DomainName, serviceName EntityName, snapshotName EntityName, matchingTag string) (*TransportPolicySnapshot, string, error) {
+	var data *TransportPolicySnapshot
+	headers := map[string]string{
+		"If-None-Match": matchingTag,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/snapshot/" + fmt.Sprint(snapshotName)
+	resp, err := client.httpGet(url, headers)
+	if err != nil {
+		return nil, "", err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200, 304:
+		if 304 != resp.StatusCode {
+			err = json.NewDecoder(resp.Body).Decode(&data)
+			if err != nil {
+				return nil, "", err
+			}
+		}
+		tag := resp.Header.Get(rdl.FoldHttpHeaderName("ETag"))
+		return data, tag, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, "", err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return nil, "", errobj
+	}
+}
+
+func (client MSDClient) DeleteTransportPolicySnapshot(domainName DomainName, serviceName EntityName, snapshotName EntityName, resourceOwner string) error {
+	headers := map[string]string{
+		"Athenz-Resource-Owner": resourceOwner,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/snapshot/" + fmt.Sprint(snapshotName)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
 func (client MSDClient) GetRdlSchema() (*rdl.Schema, error) {
 	var data *rdl.Schema
 	url := client.URL + "/schema"

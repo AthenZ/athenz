@@ -1,0 +1,42 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+include "TransportPolicyRule.tdl";
+
+// Request to create a new transport policy snapshot
+type TransportPolicySnapshotRequest Struct {
+    EntityName name; // Name of the snapshot
+    Bool active (default=false); // Whether this snapshot is marked as active
+}
+
+// Request to update an existing transport policy snapshot
+type TransportPolicySnapshotUpdateRequest Struct {
+    Bool active; // Whether this snapshot is marked as active
+}
+
+// Metadata for a transport policy snapshot
+type TransportPolicySnapshotMetadata Struct {
+    DomainName domainName; // Name of the domain
+    EntityName serviceName; // Name of the service
+    EntityName name; // Name of the snapshot
+    Timestamp createdTime; // Snapshot creation timestamp
+    Timestamp modified (optional); // Last modification timestamp of this snapshot
+    Bool active; // Whether this snapshot is marked as active
+}
+
+// Full transport policy snapshot containing all policies
+type TransportPolicySnapshot Struct {
+    DomainName domainName; // Name of the domain
+    EntityName serviceName; // Name of the service
+    EntityName name; // Name of the snapshot
+    Timestamp createdTime; // Snapshot creation timestamp
+    Timestamp modified (optional); // Last modification timestamp of this snapshot
+    Bool active; // Whether this snapshot is marked as active
+    TransportPolicyRules transportPolicyRules; // Transport policy rules (ingress and egress) captured in this snapshot
+}
+
+// List of transport policy snapshot metadata
+type TransportPolicySnapshots Struct {
+    Array<TransportPolicySnapshotMetadata> snapshots; // List of snapshot metadata
+}
