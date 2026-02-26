@@ -193,6 +193,7 @@ public class ZTSImpl implements ZTSHandler {
     protected TokenConfigOptions tokenConfigOptions = null;
     protected ProviderConfigManager providerConfigManager;
     protected IssuerResolver issuerResolver;
+    protected boolean instanceRegisterTokenTypeJWT = false;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -774,6 +775,11 @@ public class ZTSImpl implements ZTSHandler {
 
         jwtCurveRfcSupportOnly = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_JWK_CURVE_RFC_SUPPORT_ONLY, "false"));
+
+        // check if we should return jwt id tokens in the cert request token response
+
+        instanceRegisterTokenTypeJWT = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_CERT_REQUEST_TOKEN_TYPE_JWT, "false"));
     }
 
     static String getServerHostName() {
@@ -4660,16 +4666,11 @@ public class ZTSImpl implements ZTSHandler {
                     info.getHostname(), newCert.getNotAfter());
         }
 
-        // if we're asked to return an NToken in addition to ZTS Certificate
+        // if we're asked to return an identity token in addition to ZTS Certificate
         // then we'll generate one and include in the identity object
 
         if (info.getToken() == Boolean.TRUE) {
-            ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForProprietaryObjects);
-            PrincipalToken svcToken = new PrincipalToken.Builder("S1", domain, service)
-                    .expirationWindow(svcTokenTimeout).keyId(privateKey.getId()).host(serverHostName)
-                    .ip(ipAddress).keyService(ZTSConsts.ZTS_SERVICE).build();
-            svcToken.sign(privateKey.getKey());
-            identity.setServiceToken(svcToken.getSignedToken());
+            identity.setServiceToken(getCertRequestServiceToken(ctx, info, domain, service, cn, ipAddress));
         }
 
         fillAthenzJWKConfig(ctx, info.getAthenzJWK(), info.getAthenzJWKModified(), identity);
@@ -4684,9 +4685,56 @@ public class ZTSImpl implements ZTSHandler {
                 .header("Location", location).build();
     }
 
+    String getCertRequestServiceToken(ResourceContext ctx,  InstanceRegisterInformation info, final String domain,
+            final String service, final String cn, final String ipAddress) {
+
+        if (instanceRegisterTokenTypeJWT) {
+
+            // we must have the audience value in order to generate a token
+            // if the audience is not specified then we'll default as the issuer
+
+            long iat = System.currentTimeMillis() / 1000;
+            final String issuer = issuerResolver.getIDTokenIssuer(ctx.request(), null);
+
+            IdToken idToken = new IdToken();
+            idToken.setVersion(1);
+            idToken.setAudience(StringUtil.isEmpty(info.getJwtSVIDAudience()) ? issuer : info.getJwtSVIDAudience());
+            idToken.setIssuer(issuer);
+            idToken.setNonce(StringUtil.isEmpty(info.getJwtSVIDNonce()) ? Crypto.randomSalt() : info.getJwtSVIDNonce());
+            idToken.setIssueTime(iat);
+            idToken.setAuthTime(iat);
+            idToken.setSubject(cn);
+
+            // for user principals we're going to use the default 1 hour while for
+            // service principals 12 hours as the max timeout, unless the client
+            // is explicitly asking for something smaller.
+
+            long expiryTime = iat + determineOIDCIdTokenTimeout(domain, info.getExpiryTime());
+            idToken.setExpiryTime(expiryTime);
+
+            ServerPrivateKey signPrivateKey = getSignPrivateKey(info.getJwtSVIDKeyType());
+            return idToken.getSignedToken(signPrivateKey.getKey(), signPrivateKey.getId(), signPrivateKey.getAlgorithm());
+
+        } else {
+
+            ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForProprietaryObjects);
+            PrincipalToken svcToken = new PrincipalToken.Builder("S1", domain, service)
+                    .expirationWindow(svcTokenTimeout).keyId(privateKey.getId()).host(serverHostName)
+                    .ip(ipAddress).keyService(ZTSConsts.ZTS_SERVICE).build();
+            svcToken.sign(privateKey.getKey());
+            return svcToken.getSignedToken();
+        }
+    }
+
     Response postInstanceJWTRegister(ResourceContext ctx, InstanceRegisterInformation info,
             final String domain, final String service, final String cn, final String principalDomain,
             final String provider, final String caller) {
+
+        // make sure we have valid audience value
+
+        if (StringUtil.isEmpty(info.getJwtSVIDAudience())) {
+            throw requestError("Audience is required for jwt SVID requests", caller, domain, principalDomain);
+        }
 
         // we need to validate our spiffe value if one is provided
 
