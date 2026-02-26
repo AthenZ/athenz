@@ -15,7 +15,7 @@ Requirements:
 - The token request must have the `grant_type` parameter set to `urn:ietf:params:oauth:grant-type:token-exchange`
 - The token request must have the `requested_token_type` parameter set to `urn:ietf:params:oauth:token-type:id-jag`
 - The token request must have a subject_token parameter included with a valid ID token and the `subject_token_type`
-  parameter set to `urn:ietf:params:oauth:token-type:id-token`
+  parameter set to `urn:ietf:params:oauth:token-type:id_token`
 - The token request must have the `scope` parameter set to the list of roles being requested in the
   format: `{domainName}:role.{roleName} {domainName}:role.{roleName} ...`
 - The token request must have a valid `audience` parameter specified
@@ -85,7 +85,7 @@ Requirements:
 - The token request must have the `requested_token_type` parameter set to `urn:ietf:params:oauth:token-type:id-access-token`
   or it's not specified (default)
 - The token request must have a subject_token parameter included with a valid ID/Access token and the `subject_token_type`
-  parameter set to `urn:ietf:params:oauth:token-type:id-token`, `urn:ietf:params:oauth:token-type:id-access-token` or
+  parameter set to `urn:ietf:params:oauth:token-type:id_token`, `urn:ietf:params:oauth:token-type:id-access-token` or
   `urn:ietf:params:oauth:token-type:jwt`
 - The token request must have a valid `audience` parameter specified
 - The token request must have the `scope` parameter set to the list of roles being requested in the
@@ -121,13 +121,13 @@ Requirements:
 - The token request must have the `requested_token_type` parameter set to `urn:ietf:params:oauth:token-type:id-access-token`
   or it's not specified (default)
 - The token request must have a subject_token parameter included with a valid ID/Access token and the `subject_token_type`
-  parameter set to `urn:ietf:params:oauth:token-type:id-token`, `urn:ietf:params:oauth:token-type:id-access-token` or
+  parameter set to `urn:ietf:params:oauth:token-type:id_token`, `urn:ietf:params:oauth:token-type:id-access-token` or
   `urn:ietf:params:oauth:token-type:jwt`
 - The token request must have a valid `audience` parameter specified
 - The token request must have the `scope` parameter set to the list of roles being requested in the
   format: `{domainName}:role.{roleName} {domainName}:role.{roleName} ...`
 - The token request must have an actor_token parameter included with a valid ID/Access token and the `actor_token_type`
-  parameter set to `urn:ietf:params:oauth:token-type:id-token`, `urn:ietf:params:oauth:token-type:id-access-token` or
+  parameter set to `urn:ietf:params:oauth:token-type:id_token`, `urn:ietf:params:oauth:token-type:id-access-token` or
   `urn:ietf:params:oauth:token-type:jwt`
 - The subject_token must have a valid `may_act` claim that includes a `sub` claim that matches the actor_token's subject
 
