@@ -22,6 +22,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.impl.*;
+import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
@@ -6058,6 +6059,37 @@ public class ZTSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("unable to parse PKCS10 CSR"));
+        }
+    }
+
+    @Test
+    public void testPostInstanceJWTRegisterEmptyAudience() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
+        store.processSignedDomain(providerDomain, false);
+
+        SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
+        store.processSignedDomain(tenantDomain, false);
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setAttestationData("attestationData")
+                .setDomain("athenz").setService("production")
+                .setProvider("athenz.provider");
+
+        ResourceContext context = createResourceContext(null);
+
+        try {
+            ztsImpl.postInstanceRegisterInformation(context, info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Audience is required for jwt SVID requests"));
         }
     }
 
@@ -14650,5 +14682,334 @@ public class ZTSImplTest {
         // Test case 6: both have keyIds - should prefer serviceIdentity's keyId
         String result = ztsImpl.getServiceSshKeySignerId(domainData, serviceIdentity, "request-key-id");
         assertEquals(result, "service-ssh-key-id");
+    }
+
+    @Test
+    public void testGetCertRequestServiceTokenPrincipalToken() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ZTSImpl.serverHostName = "localhost";
+        ztsImpl.instanceRegisterTokenTypeJWT = false;
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setDomain("athenz").setService("production")
+                .setProvider("athenz.provider").setToken(true);
+
+        ResourceContext context = createResourceContext(null);
+
+        String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
+                "production", "athenz.production", MOCKCLIENTADDR);
+
+        assertNotNull(token);
+
+        PrincipalToken svcToken = new PrincipalToken(token);
+        assertEquals(svcToken.getDomain(), "athenz");
+        assertEquals(svcToken.getName(), "production");
+        assertEquals(svcToken.getHost(), "localhost");
+        assertEquals(svcToken.getIP(), MOCKCLIENTADDR);
+        assertEquals(svcToken.getKeyService(), ZTSConsts.ZTS_SERVICE);
+        assertTrue(svcToken.getExpiryTime() > System.currentTimeMillis() / 1000);
+    }
+
+    @Test
+    public void testGetCertRequestServiceTokenPrincipalTokenDifferentDomainService() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ZTSImpl.serverHostName = "localhost";
+        ztsImpl.instanceRegisterTokenTypeJWT = false;
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setDomain("sports").setService("api")
+                .setProvider("athenz.provider").setToken(true);
+
+        ResourceContext context = createResourceContext(null);
+
+        String token = ztsImpl.getCertRequestServiceToken(context, info, "sports",
+                "api", "sports.api", "192.168.1.1");
+
+        assertNotNull(token);
+
+        PrincipalToken svcToken = new PrincipalToken(token);
+        assertEquals(svcToken.getDomain(), "sports");
+        assertEquals(svcToken.getName(), "api");
+        assertEquals(svcToken.getHost(), "localhost");
+        assertEquals(svcToken.getIP(), "192.168.1.1");
+        assertEquals(svcToken.getKeyService(), ZTSConsts.ZTS_SERVICE);
+    }
+
+    @Test
+    public void testGetCertRequestServiceTokenPrincipalTokenSignatureValid() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ZTSImpl.serverHostName = "localhost";
+        ztsImpl.instanceRegisterTokenTypeJWT = false;
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setDomain("athenz").setService("production")
+                .setProvider("athenz.provider").setToken(true);
+
+        ResourceContext context = createResourceContext(null);
+
+        String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
+                "production", "athenz.production", MOCKCLIENTADDR);
+
+        assertNotNull(token);
+
+        PrincipalToken svcToken = new PrincipalToken(token);
+        assertNotNull(svcToken.getSignedToken());
+
+        ServerPrivateKey serverPrivateKey = ztsImpl.getServerPrivateKey(ztsImpl.keyAlgoForProprietaryObjects);
+        assertTrue(svcToken.validate(Crypto.convertToPEMFormat(Crypto.extractPublicKey(serverPrivateKey.getKey())),
+                300, false));
+    }
+
+    @Test
+    public void testGetCertRequestServiceTokenJWT() throws Exception {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        ZTSImpl.serverHostName = "localhost";
+        ztsImpl.instanceRegisterTokenTypeJWT = true;
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setDomain("athenz").setService("production")
+                .setProvider("athenz.provider").setToken(true)
+                .setJwtSVIDAudience("https://audience.athenz.io")
+                .setJwtSVIDNonce("test-nonce-value");
+
+        ResourceContext context = createResourceContext(null);
+
+        String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
+                "production", "athenz.production", MOCKCLIENTADDR);
+
+        assertNotNull(token);
+
+        ServerPrivateKey serverPrivateKey = ztsImpl.getSignPrivateKey(info.getJwtSVIDKeyType());
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        assertTrue(signedJWT.verify(verifier));
+
+        JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+        assertEquals(claimsSet.getAudience().get(0), "https://audience.athenz.io");
+        assertEquals(claimsSet.getSubject(), "athenz.production");
+        assertEquals(claimsSet.getStringClaim("nonce"), "test-nonce-value");
+        assertNotNull(claimsSet.getIssuer());
+        assertNotNull(claimsSet.getIssueTime());
+        assertNotNull(claimsSet.getExpirationTime());
+        assertEquals(claimsSet.getIntegerClaim("ver").intValue(), 1);
+        assertTrue(claimsSet.getExpirationTime().getTime() > System.currentTimeMillis());
+    }
+
+    @Test
+    public void testGetCertRequestServiceTokenJWTDefaultAudience() throws Exception {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        ZTSImpl.serverHostName = "localhost";
+        ztsImpl.instanceRegisterTokenTypeJWT = true;
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setDomain("athenz").setService("production")
+                .setProvider("athenz.provider").setToken(true);
+
+        ResourceContext context = createResourceContext(null);
+
+        String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
+                "production", "athenz.production", MOCKCLIENTADDR);
+
+        assertNotNull(token);
+
+        ServerPrivateKey serverPrivateKey = ztsImpl.getSignPrivateKey(null);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        assertTrue(signedJWT.verify(verifier));
+
+        JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+
+        // when audience is empty/null, issuer is used as the audience
+        assertEquals(claimsSet.getAudience().get(0), claimsSet.getIssuer());
+        assertEquals(claimsSet.getSubject(), "athenz.production");
+
+        // when nonce is empty/null, a random salt is generated
+        assertNotNull(claimsSet.getStringClaim("nonce"));
+    }
+
+    @Test
+    public void testGetCertRequestServiceTokenJWTEmptyAudienceAndNonce() throws Exception {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        ZTSImpl.serverHostName = "localhost";
+        ztsImpl.instanceRegisterTokenTypeJWT = true;
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setDomain("athenz").setService("production")
+                .setProvider("athenz.provider").setToken(true)
+                .setJwtSVIDAudience("")
+                .setJwtSVIDNonce("");
+
+        ResourceContext context = createResourceContext(null);
+
+        String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
+                "production", "athenz.production", MOCKCLIENTADDR);
+
+        assertNotNull(token);
+
+        ServerPrivateKey serverPrivateKey = ztsImpl.getSignPrivateKey(null);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        assertTrue(signedJWT.verify(verifier));
+
+        JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+
+        // empty strings should fall back to defaults
+        assertEquals(claimsSet.getAudience().get(0), claimsSet.getIssuer());
+        assertNotNull(claimsSet.getStringClaim("nonce"));
+    }
+
+    @Test
+    public void testGetCertRequestServiceTokenJWTWithKeyType() throws Exception {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY, "src/test/resources/unit_test_zts_private_ec.pem");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY, "src/test/resources/unit_test_zts_private.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        ZTSImpl.serverHostName = "localhost";
+        ztsImpl.instanceRegisterTokenTypeJWT = true;
+        ztsImpl.loadServicePrivateKey();
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setDomain("athenz").setService("production")
+                .setProvider("athenz.provider").setToken(true)
+                .setJwtSVIDAudience("https://audience.athenz.io")
+                .setJwtSVIDNonce("test-nonce")
+                .setJwtSVIDKeyType("EC");
+
+        ResourceContext context = createResourceContext(null);
+
+        String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
+                "production", "athenz.production", MOCKCLIENTADDR);
+
+        assertNotNull(token);
+
+        ServerPrivateKey serverPrivateKey = ztsImpl.getSignPrivateKey("EC");
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        assertTrue(signedJWT.verify(verifier));
+
+        JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+        assertEquals(claimsSet.getAudience().get(0), "https://audience.athenz.io");
+        assertEquals(claimsSet.getSubject(), "athenz.production");
+        assertEquals(claimsSet.getStringClaim("nonce"), "test-nonce");
+
+        // restore key setup
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY);
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY);
+    }
+
+    @Test
+    public void testGetCertRequestServiceTokenJWTExpiryTimeServiceDomain() throws Exception {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        ZTSImpl.serverHostName = "localhost";
+        ztsImpl.instanceRegisterTokenTypeJWT = true;
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setDomain("athenz").setService("production")
+                .setProvider("athenz.provider").setToken(true)
+                .setJwtSVIDAudience("https://audience.athenz.io");
+
+        ResourceContext context = createResourceContext(null);
+
+        String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
+                "production", "athenz.production", MOCKCLIENTADDR);
+
+        assertNotNull(token);
+
+        ServerPrivateKey serverPrivateKey = ztsImpl.getSignPrivateKey(null);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        assertTrue(signedJWT.verify(verifier));
+
+        JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+
+        // for a service domain (non-user), the max timeout (12 hours) should be used
+        long iat = claimsSet.getIssueTime().getTime() / 1000;
+        long exp = claimsSet.getExpirationTime().getTime() / 1000;
+        assertEquals(exp - iat, ztsImpl.idTokenMaxTimeout);
+    }
+
+    @Test
+    public void testGetCertRequestServiceTokenJWTAuthTimeSameAsIssueTime() throws Exception {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        ZTSImpl.serverHostName = "localhost";
+        ztsImpl.instanceRegisterTokenTypeJWT = true;
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setDomain("athenz").setService("production")
+                .setProvider("athenz.provider").setToken(true)
+                .setJwtSVIDAudience("https://audience.athenz.io")
+                .setJwtSVIDNonce("nonce-value");
+
+        ResourceContext context = createResourceContext(null);
+
+        String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
+                "production", "athenz.production", MOCKCLIENTADDR);
+
+        assertNotNull(token);
+
+        ServerPrivateKey serverPrivateKey = ztsImpl.getSignPrivateKey(null);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        assertTrue(signedJWT.verify(verifier));
+
+        JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
+
+        // auth_time and iat should be the same value
+        long iat = claimsSet.getIssueTime().getTime() / 1000;
+        long authTime = claimsSet.getLongClaim("auth_time");
+        assertEquals(iat, authTime);
     }
 }

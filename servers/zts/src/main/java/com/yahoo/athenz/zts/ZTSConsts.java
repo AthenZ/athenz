@@ -108,6 +108,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_REFRESH_RESET_TIME          = "athenz.zts.cert_refresh_reset_time";
     public static final String ZTS_PROP_CERT_REQUEST_VERIFY_IP           = "athenz.zts.cert_request_verify_ip";
     public static final String ZTS_PROP_CERT_REQUEST_VERIFY_SUBJECT_OU   = "athenz.zts.cert_request_verify_subject_ou";
+    public static final String ZTS_PROP_CERT_REQUEST_TOKEN_TYPE_JWT      = "athenz.zts.cert_request_token_type_jwt";
 
     public static final String ZTS_PROP_CERT_DNS_SUFFIX                         = "athenz.zts.cert_dns_suffix";
     public static final String ZTS_PROP_CERT_FILE_STORE_PATH                    = "athenz.zts.cert_file_store_path";
