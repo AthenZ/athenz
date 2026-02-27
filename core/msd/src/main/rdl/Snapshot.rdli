@@ -1,0 +1,93 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+// Snapshot types
+include "Snapshot.tdl";
+
+// Api to create a new transport policy snapshot for a domain and service
+resource TransportPolicySnapshotMetadata POST "/domain/{domainName}/service/{serviceName}/snapshot" (name=createTransportPolicySnapshot) {
+    DomainName domainName; // name of the domain
+    EntityName serviceName; // name of the service
+    TransportPolicySnapshotRequest snapshot; // snapshot request object
+    String resourceOwner (header="Athenz-Resource-Owner"); // Resource owner for the request
+    authorize ("msd.UpdateNetworkPolicy", "{domainName}:service.{serviceName}");
+    expected CREATED;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError CONFLICT;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Api to update an existing transport policy snapshot (e.g., toggle active status)
+resource TransportPolicySnapshotMetadata PUT "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}" (name=updateTransportPolicySnapshot) {
+    DomainName domainName; // name of the domain
+    EntityName serviceName; // name of the service
+    EntityName snapshotName; // name of the snapshot to update
+    TransportPolicySnapshotUpdateRequest updateRequest; // snapshot update request object
+    String resourceOwner (header="Athenz-Resource-Owner"); // Resource owner for the request
+    authorize ("msd.UpdateNetworkPolicy", "{domainName}:service.{serviceName}");
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError CONFLICT;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Api to list all transport policy snapshots for a domain and service
+resource TransportPolicySnapshots GET "/domain/{domainName}/service/{serviceName}/snapshots" (name=getTransportPolicySnapshots) {
+    DomainName domainName; // name of the domain
+    EntityName serviceName; // name of the service
+    authorize ("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}");
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Api to get a specific transport policy snapshot by name
+resource TransportPolicySnapshot GET "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}" (name=getTransportPolicySnapshot) {
+    DomainName domainName; // name of the domain
+    EntityName serviceName; // name of the service
+    EntityName snapshotName; // name of the snapshot
+    String matchingTag (header="If-None-Match"); // Retrieved from the previous request, this timestamp specifies to the server to return the snapshot if modified since this time
+    String tag (header="ETag", out); // The current snapshot modification timestamp is returned in this header
+    authorize ("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}");
+    expected OK, NOT_MODIFIED;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Api to delete a transport policy snapshot
+resource TransportPolicySnapshot DELETE "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}" (name=deleteTransportPolicySnapshot) {
+    DomainName domainName; // name of the domain
+    EntityName serviceName; // name of the service
+    EntityName snapshotName; // name of the snapshot
+    String resourceOwner (header="Athenz-Resource-Owner"); // Resource owner for the request
+    authorize ("msd.DeleteNetworkPolicy", "{domainName}:service.{serviceName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError CONFLICT;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

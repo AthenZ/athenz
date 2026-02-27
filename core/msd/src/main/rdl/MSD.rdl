@@ -13,4 +13,5 @@ include "TransportPolicyRule.rdli";
 include "Workload.rdli";
 include "NetworkPolicy.rdli";
 include "KubernetesNetworkPolicy.rdli";
+include "Snapshot.rdli";
 include "Schema.rdli";

@@ -417,6 +417,38 @@ public class MSDSchema {
             .mapField("metadata", "String", "String", false, "Kubernetes network policy metadata")
             .field("spec", "KubernetesNetworkPolicySpec", false, "Kubernetes network policy spec");
 
+        sb.structType("TransportPolicySnapshotRequest")
+            .comment("Request to create a new transport policy snapshot")
+            .field("name", "EntityName", false, "Name of the snapshot")
+            .field("active", "Bool", false, "Whether this snapshot is marked as active", false);
+
+        sb.structType("TransportPolicySnapshotUpdateRequest")
+            .comment("Request to update an existing transport policy snapshot")
+            .field("active", "Bool", false, "Whether this snapshot is marked as active");
+
+        sb.structType("TransportPolicySnapshotMetadata")
+            .comment("Metadata for a transport policy snapshot")
+            .field("domainName", "DomainName", false, "Name of the domain")
+            .field("serviceName", "EntityName", false, "Name of the service")
+            .field("name", "EntityName", false, "Name of the snapshot")
+            .field("createdTime", "Timestamp", false, "Snapshot creation timestamp")
+            .field("modified", "Timestamp", true, "Last modification timestamp of this snapshot")
+            .field("active", "Bool", false, "Whether this snapshot is marked as active");
+
+        sb.structType("TransportPolicySnapshot")
+            .comment("Full transport policy snapshot containing all policies")
+            .field("domainName", "DomainName", false, "Name of the domain")
+            .field("serviceName", "EntityName", false, "Name of the service")
+            .field("name", "EntityName", false, "Name of the snapshot")
+            .field("createdTime", "Timestamp", false, "Snapshot creation timestamp")
+            .field("modified", "Timestamp", true, "Last modification timestamp of this snapshot")
+            .field("active", "Bool", false, "Whether this snapshot is marked as active")
+            .field("transportPolicyRules", "TransportPolicyRules", false, "Transport policy rules (ingress and egress) captured in this snapshot");
+
+        sb.structType("TransportPolicySnapshots")
+            .comment("List of transport policy snapshot metadata")
+            .arrayField("snapshots", "TransportPolicySnapshotMetadata", false, "List of snapshot metadata");
+
         sb.stringType("rdl.Identifier")
             .comment("All names need to be of this restricted string type")
             .pattern("[a-zA-Z_]+[a-zA-Z_0-9]*");
@@ -1037,6 +1069,112 @@ public class MSDSchema {
             .auth("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("TransportPolicySnapshotRequest", "POST", "/domain/{domainName}/service/{serviceName}/snapshot")
+            .comment("Api to create a new transport policy snapshot for a domain and service")
+            .name("createTransportPolicySnapshot")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .input("snapshot", "TransportPolicySnapshotRequest", "snapshot request object")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
+            .auth("msd.UpdateNetworkPolicy", "{domainName}:service.{serviceName}")
+            .expected("CREATED")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("TransportPolicySnapshotUpdateRequest", "PUT", "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}")
+            .comment("Api to update an existing transport policy snapshot (e.g., toggle active status)")
+            .name("updateTransportPolicySnapshot")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .pathParam("snapshotName", "EntityName", "name of the snapshot to update")
+            .input("updateRequest", "TransportPolicySnapshotUpdateRequest", "snapshot update request object")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
+            .auth("msd.UpdateNetworkPolicy", "{domainName}:service.{serviceName}")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("TransportPolicySnapshots", "GET", "/domain/{domainName}/service/{serviceName}/snapshots")
+            .comment("Api to list all transport policy snapshots for a domain and service")
+            .name("getTransportPolicySnapshots")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .auth("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("TransportPolicySnapshot", "GET", "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}")
+            .comment("Api to get a specific transport policy snapshot by name")
+            .name("getTransportPolicySnapshot")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .pathParam("snapshotName", "EntityName", "name of the snapshot")
+            .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return the snapshot if modified since this time")
+            .output("ETag", "tag", "String", "The current snapshot modification timestamp is returned in this header")
+            .auth("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("TransportPolicySnapshot", "DELETE", "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}")
+            .comment("Api to delete a transport policy snapshot")
+            .name("deleteTransportPolicySnapshot")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .pathParam("snapshotName", "EntityName", "name of the snapshot")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
+            .auth("msd.DeleteNetworkPolicy", "{domainName}:service.{serviceName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
 
