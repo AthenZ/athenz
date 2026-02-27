@@ -333,6 +333,7 @@ func init() {
 	tOpenIDConfig := rdl.NewStructTypeBuilder("Struct", "OpenIDConfig")
 	tOpenIDConfig.Field("issuer", "String", false, nil, "url using the https scheme")
 	tOpenIDConfig.Field("authorization_endpoint", "String", false, nil, "oauth 2.0 authorization endpoint url")
+	tOpenIDConfig.Field("token_endpoint", "String", false, nil, "oauth 2.0 token endpoint url")
 	tOpenIDConfig.Field("jwks_uri", "String", false, nil, "public server jwk set url")
 	tOpenIDConfig.ArrayField("response_types_supported", "String", false, "list of supported response types")
 	tOpenIDConfig.ArrayField("subject_types_supported", "String", false, "list of supported subject identifier types")

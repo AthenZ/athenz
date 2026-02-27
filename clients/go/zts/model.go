@@ -2371,6 +2371,11 @@ type OpenIDConfig struct {
 	Authorization_endpoint string `json:"authorization_endpoint"`
 
 	//
+	// oauth 2.0 token endpoint url
+	//
+	Token_endpoint string `json:"token_endpoint"`
+
+	//
 	// public server jwk set url
 	//
 	Jwks_uri string `json:"jwks_uri"`
@@ -2451,6 +2456,14 @@ func (self *OpenIDConfig) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "String", self.Authorization_endpoint)
 		if !val.Valid {
 			return fmt.Errorf("OpenIDConfig.authorization_endpoint does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Token_endpoint == "" {
+		return fmt.Errorf("OpenIDConfig.token_endpoint is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Token_endpoint)
+		if !val.Valid {
+			return fmt.Errorf("OpenIDConfig.token_endpoint does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Jwks_uri == "" {
