@@ -2013,7 +2013,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   policy         : name of the policy to be modified\n")
 		buf.WriteString("   resource-owner : resource owner in objectowner:{owner},assertionsowner:{owner} format\n")
 		buf.WriteString(" examples:\n")
-		buf.WriteString("   " + domainExample + " set-role-resource-ownership writers objectowner:TF,assertionsowner:MSD\n")
+		buf.WriteString("   " + domainExample + " set-policy-resource-ownership writers objectowner:TF,assertionsowner:MSD\n")
 	case "add-assertion":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " add-assertion policy assertion [is_case_sensitive]\n")
