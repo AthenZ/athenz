@@ -3836,3 +3836,345 @@ func (self *KubernetesNetworkPolicyResponse) Validate() error {
 	}
 	return nil
 }
+
+// TransportPolicySnapshotRequest - Request to create a new transport policy
+// snapshot
+type TransportPolicySnapshotRequest struct {
+
+	//
+	// Name of the snapshot
+	//
+	Name EntityName `json:"name"`
+
+	//
+	// Whether this snapshot is marked as active
+	//
+	Active bool `json:"active,omitempty" rdl:"default=false" yaml:",omitempty"`
+}
+
+// NewTransportPolicySnapshotRequest - creates an initialized TransportPolicySnapshotRequest instance, returns a pointer to it
+func NewTransportPolicySnapshotRequest(init ...*TransportPolicySnapshotRequest) *TransportPolicySnapshotRequest {
+	var o *TransportPolicySnapshotRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicySnapshotRequest)
+	}
+	return o
+}
+
+type rawTransportPolicySnapshotRequest TransportPolicySnapshotRequest
+
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicySnapshotRequest
+func (self *TransportPolicySnapshotRequest) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicySnapshotRequest
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicySnapshotRequest(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *TransportPolicySnapshotRequest) Validate() error {
+	if self.Name == "" {
+		return fmt.Errorf("TransportPolicySnapshotRequest.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySnapshotRequest.name does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// TransportPolicySnapshotUpdateRequest - Request to update an existing
+// transport policy snapshot
+type TransportPolicySnapshotUpdateRequest struct {
+
+	//
+	// Whether this snapshot is marked as active
+	//
+	Active bool `json:"active"`
+}
+
+// NewTransportPolicySnapshotUpdateRequest - creates an initialized TransportPolicySnapshotUpdateRequest instance, returns a pointer to it
+func NewTransportPolicySnapshotUpdateRequest(init ...*TransportPolicySnapshotUpdateRequest) *TransportPolicySnapshotUpdateRequest {
+	var o *TransportPolicySnapshotUpdateRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicySnapshotUpdateRequest)
+	}
+	return o
+}
+
+type rawTransportPolicySnapshotUpdateRequest TransportPolicySnapshotUpdateRequest
+
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicySnapshotUpdateRequest
+func (self *TransportPolicySnapshotUpdateRequest) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicySnapshotUpdateRequest
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicySnapshotUpdateRequest(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *TransportPolicySnapshotUpdateRequest) Validate() error {
+	return nil
+}
+
+// TransportPolicySnapshotMetadata - Metadata for a transport policy snapshot
+type TransportPolicySnapshotMetadata struct {
+
+	//
+	// Name of the domain
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// Name of the service
+	//
+	ServiceName EntityName `json:"serviceName"`
+
+	//
+	// Name of the snapshot
+	//
+	Name EntityName `json:"name"`
+
+	//
+	// Snapshot creation timestamp
+	//
+	CreatedTime rdl.Timestamp `json:"createdTime"`
+
+	//
+	// Last modification timestamp of this snapshot
+	//
+	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Whether this snapshot is marked as active
+	//
+	Active bool `json:"active"`
+}
+
+// NewTransportPolicySnapshotMetadata - creates an initialized TransportPolicySnapshotMetadata instance, returns a pointer to it
+func NewTransportPolicySnapshotMetadata(init ...*TransportPolicySnapshotMetadata) *TransportPolicySnapshotMetadata {
+	var o *TransportPolicySnapshotMetadata
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicySnapshotMetadata)
+	}
+	return o
+}
+
+type rawTransportPolicySnapshotMetadata TransportPolicySnapshotMetadata
+
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicySnapshotMetadata
+func (self *TransportPolicySnapshotMetadata) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicySnapshotMetadata
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicySnapshotMetadata(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *TransportPolicySnapshotMetadata) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("TransportPolicySnapshotMetadata.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySnapshotMetadata.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.ServiceName == "" {
+		return fmt.Errorf("TransportPolicySnapshotMetadata.serviceName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.ServiceName)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySnapshotMetadata.serviceName does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.Name == "" {
+		return fmt.Errorf("TransportPolicySnapshotMetadata.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySnapshotMetadata.name does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.CreatedTime.IsZero() {
+		return fmt.Errorf("TransportPolicySnapshotMetadata: Missing required field: createdTime")
+	}
+	return nil
+}
+
+// TransportPolicySnapshot - Full transport policy snapshot containing all
+// policies
+type TransportPolicySnapshot struct {
+
+	//
+	// Name of the domain
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// Name of the service
+	//
+	ServiceName EntityName `json:"serviceName"`
+
+	//
+	// Name of the snapshot
+	//
+	Name EntityName `json:"name"`
+
+	//
+	// Snapshot creation timestamp
+	//
+	CreatedTime rdl.Timestamp `json:"createdTime"`
+
+	//
+	// Last modification timestamp of this snapshot
+	//
+	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Whether this snapshot is marked as active
+	//
+	Active bool `json:"active"`
+
+	//
+	// Transport policy rules (ingress and egress) captured in this snapshot
+	//
+	TransportPolicyRules *TransportPolicyRules `json:"transportPolicyRules"`
+}
+
+// NewTransportPolicySnapshot - creates an initialized TransportPolicySnapshot instance, returns a pointer to it
+func NewTransportPolicySnapshot(init ...*TransportPolicySnapshot) *TransportPolicySnapshot {
+	var o *TransportPolicySnapshot
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicySnapshot)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *TransportPolicySnapshot) Init() *TransportPolicySnapshot {
+	if self.TransportPolicyRules == nil {
+		self.TransportPolicyRules = NewTransportPolicyRules()
+	}
+	return self
+}
+
+type rawTransportPolicySnapshot TransportPolicySnapshot
+
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicySnapshot
+func (self *TransportPolicySnapshot) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicySnapshot
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicySnapshot(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *TransportPolicySnapshot) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("TransportPolicySnapshot.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySnapshot.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.ServiceName == "" {
+		return fmt.Errorf("TransportPolicySnapshot.serviceName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.ServiceName)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySnapshot.serviceName does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.Name == "" {
+		return fmt.Errorf("TransportPolicySnapshot.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySnapshot.name does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.CreatedTime.IsZero() {
+		return fmt.Errorf("TransportPolicySnapshot: Missing required field: createdTime")
+	}
+	if self.TransportPolicyRules == nil {
+		return fmt.Errorf("TransportPolicySnapshot: Missing required field: transportPolicyRules")
+	}
+	return nil
+}
+
+// TransportPolicySnapshots - List of transport policy snapshot metadata
+type TransportPolicySnapshots struct {
+
+	//
+	// List of snapshot metadata
+	//
+	Snapshots []*TransportPolicySnapshotMetadata `json:"snapshots"`
+}
+
+// NewTransportPolicySnapshots - creates an initialized TransportPolicySnapshots instance, returns a pointer to it
+func NewTransportPolicySnapshots(init ...*TransportPolicySnapshots) *TransportPolicySnapshots {
+	var o *TransportPolicySnapshots
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicySnapshots)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *TransportPolicySnapshots) Init() *TransportPolicySnapshots {
+	if self.Snapshots == nil {
+		self.Snapshots = make([]*TransportPolicySnapshotMetadata, 0)
+	}
+	return self
+}
+
+type rawTransportPolicySnapshots TransportPolicySnapshots
+
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicySnapshots
+func (self *TransportPolicySnapshots) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicySnapshots
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicySnapshots(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *TransportPolicySnapshots) Validate() error {
+	if self.Snapshots == nil {
+		return fmt.Errorf("TransportPolicySnapshots: Missing required field: snapshots")
+	}
+	return nil
+}
