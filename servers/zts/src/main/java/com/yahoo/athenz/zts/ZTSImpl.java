@@ -1836,7 +1836,7 @@ public class ZTSImpl implements ZTSHandler {
         // if principal is not an authorized service token then
         // we have nothing to check for
 
-        if (authorizedService == null || authorizedService.isEmpty()) {
+        if (StringUtil.isEmpty(authorizedService)) {
             return;
         }
 
@@ -2588,9 +2588,10 @@ public class ZTSImpl implements ZTSHandler {
             case JAG_TOKEN_EXCHANGE:
                 return processJAGTokenIssueRequest(ctx, principal, accessTokenRequest, principalDomain, caller);
             case JAG_JWT_BEARER:
-                return processJAGTokenExchangeRequest(ctx, accessTokenRequest, principal.getFullName(),
-                        principalDomain, caller);
-            case TOKEN_EXCHANGE:
+                return processJAGTokenExchangeRequest(ctx, principal, accessTokenRequest, principalDomain, caller);
+            case ID_TOKEN_EXCHANGE:
+                return processIdTokenExchangeRequest(ctx, principal, accessTokenRequest, principalDomain, caller);
+            case ACCESS_TOKEN_EXCHANGE:
                 return processAccessTokenExchangeRequest(ctx, principal, accessTokenRequest, principalDomain, caller);
             case ACCESS_TOKEN:
             default:
@@ -2600,6 +2601,11 @@ public class ZTSImpl implements ZTSHandler {
 
     AccessTokenResponse processAccessTokenExchangeRequest(ResourceContext ctx, Principal principal,
             AccessTokenRequest accessTokenRequest, final String principalDomain, final String caller) {
+
+        // authorized service principal is not allowed to request jag token exchange
+
+        disallowAuthorizedServicePrincipal(principal.getAuthorizedService(), "token exchange",
+                caller, principalDomain);
 
         // based on the actor object we'll know if this is an impersonation
         // request or a delegation request.
@@ -2896,8 +2902,146 @@ public class ZTSImpl implements ZTSHandler {
         return sb.toString();
     }
 
+    AccessTokenResponse processIdTokenExchangeRequest(ResourceContext ctx, Principal principal,
+            AccessTokenRequest accessTokenRequest, final String principalDomain, final String caller) {
+
+        // authorized service principal is not allowed to request id tokens
+
+        disallowAuthorizedServicePrincipal(principal.getAuthorizedService(), "id token exchange request",
+                caller, principalDomain);
+
+        // validate principal object to make sure we're not processing a role identity,
+        // and instead we require a service identity
+
+        validatePrincipalNotRoleIdentity(principal, caller);
+
+        // extract the domain name from the audience field which must be
+        // a valid service name in the domain
+
+        final String domainName = AthenzUtils.extractPrincipalDomainName(accessTokenRequest.getAudience());
+        if (domainName == null) {
+            throw requestError("Invalid client id", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        // first retrieve our domain data object from the cache
+
+        if (dataStore.getDataCache(domainName) == null) {
+            throw notFoundError("No such domain: " + domainName, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        setRequestDomain(ctx, domainName);
+
+        // get our principal name for simpler access
+
+        String principalName = principal.getFullName();
+
+        // our subject token is required for id token exchange and has been validated
+        // already during the request object creation
+
+        OAuth2Token subjectToken = accessTokenRequest.getSubjectTokenObj();
+
+        // the audience of the subject token must be our client id which
+        // in our case is the principal name. However, if the token was issued
+        // by an external identity provider, it will be issued to the client id
+        // which should be configured as the client id for our service
+
+        TokenExchangeIdentityProvider identityProvider = providerConfigManager.getProvider(subjectToken.getIssuer());
+        if (!principalName.equals(subjectToken.getAudience())) {
+            final String clientId = dataStore.getServiceClientId(principal.getDomain(), principalName);
+            final String tokenAudience = identityProvider == null ? subjectToken.getAudience() :
+                    identityProvider.getTokenAudience(subjectToken);
+            if (clientId == null || !clientId.equals(tokenAudience)) {
+                LOGGER.error("The subject token does not have expected audience: {}/{}", principalName,
+                        tokenAudience);
+                throw requestError("Invalid subject token audience", caller, domainName,
+                        principalDomain);
+            }
+        }
+
+        // if the token was issued by ZTS then the identity is the subject
+        // otherwise, we need to extract the identity from the token
+        // using our external provider identity class if one is configured
+
+        final String subjectIdentity = (identityProvider == null) ? subjectToken.getSubject() :
+                identityProvider.getTokenIdentity(subjectToken);
+        if (StringUtil.isEmpty(subjectIdentity)) {
+            LOGGER.error("processIdTokenExchangeRequest: unable to extract subject identity from token");
+            throw requestError("Invalid subject token - missing subject", caller, domainName,
+                    principalDomain);
+        }
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("processIdTokenExchangeRequest(principal: {}, subject token identity: {}, scope: {}",
+                    principalName, subjectIdentity, accessTokenRequest.getScope());
+        }
+
+        // validate that principal is authorized for id token exchange in the given domain.
+
+        final String principalResource = domainName + ":principal." + subjectIdentity;
+        if (!authorizer.access(ZTSConsts.ZTS_ACTION_ID_TOKEN_EXCHANGE, principalResource, principal, null)) {
+            LOGGER.error("access check failure:({}, {}, {})", ZTSConsts.ZTS_ACTION_ID_TOKEN_EXCHANGE,
+                    principalResource, principal);
+            throw forbiddenError("Principal not authorized for id token exchange",
+                    caller, domainName, principalDomain);
+        }
+
+        // our scopes are space separated list of values. Any groups
+        // scopes are preferred over any role scopes
+
+        IdTokenScope tokenScope = new IdTokenScope(accessTokenRequest.getScope());
+
+        // extract our list of groups for the id token
+
+        List<String> idTokenGroups = processIdTokenRoles(subjectIdentity, tokenScope, domainName, true,
+                false, principalDomain, caller);
+
+        // make sure our principal is authorized to request a jag token
+        // exchange for the given roles
+
+        Principal subjectPrincipal = createPrincipalForName(subjectIdentity);
+        for (String idTokenGroup : idTokenGroups) {
+            if (!authorizer.access(ZTSConsts.ZTS_ACTION_ID_TOKEN_EXCHANGE, idTokenGroup, subjectPrincipal, null)) {
+                LOGGER.error("access check failure:({}, {}, {})", ZTSConsts.ZTS_ACTION_ID_TOKEN_EXCHANGE,
+                        idTokenGroup, subjectPrincipal);
+                throw forbiddenError("Principal not authorized for token exchange for the requested role",
+                        caller, domainName, principalDomain);
+            }
+        }
+
+        long iat = System.currentTimeMillis() / 1000;
+
+        IdToken idToken = new IdToken();
+        idToken.setVersion(1);
+        idToken.setAudience(accessTokenRequest.getAudience());
+        idToken.setSubject(subjectIdentity);
+        idToken.setIssuer(issuerResolver.getIDTokenIssuer(ctx.request(), null));
+        idToken.setNonce(Crypto.randomSalt());
+        idToken.setGroups(idTokenGroups);
+        idToken.setIssueTime(iat);
+        idToken.setAuthTime(iat);
+
+        // for user principals we're going to use the default 1 hour while for
+        // service principals 12 hours as the max timeout, unless the client
+        // is explicitly asking for something smaller.
+
+        int tokenTimeout = determineOIDCIdTokenTimeout(principalDomain, null);
+        idToken.setExpiryTime(iat + tokenTimeout);
+
+        ServerPrivateKey signPrivateKey = getSignPrivateKey(null);
+        final String signedIdToken = idToken.getSignedToken(signPrivateKey.getKey(), signPrivateKey.getId(),
+                signPrivateKey.getAlgorithm());
+
+        return new AccessTokenResponse().setId_token(signedIdToken).setToken_type(OAUTH_BEARER_TOKEN)
+                .setIssued_token_type(ZTSConsts.OAUTH_TOKEN_TYPE_ID).setExpires_in(tokenTimeout);
+    }
+
     AccessTokenResponse processJAGTokenIssueRequest(ResourceContext ctx, Principal principal,
                 AccessTokenRequest accessTokenRequest, final String principalDomain, final String caller) {
+
+        // authorized service principal is not allowed to request jag tokens
+
+        disallowAuthorizedServicePrincipal(principal.getAuthorizedService(), "jag request",
+                caller, principalDomain);
 
         // get our principal name for simpler access
 
@@ -3033,8 +3177,13 @@ public class ZTSImpl implements ZTSHandler {
                 .setScope(generateScopeResponse(subjectRoles, domainName, false));
     }
 
-    AccessTokenResponse processJAGTokenExchangeRequest(ResourceContext ctx, AccessTokenRequest accessTokenRequest,
-            final String clientPrincipalName, final String clientPrincipalDomain, final String caller) {
+    AccessTokenResponse processJAGTokenExchangeRequest(ResourceContext ctx, Principal principal,
+            AccessTokenRequest accessTokenRequest, final String clientPrincipalDomain, final String caller) {
+
+        // authorized service principal is not allowed to request jag token exchange
+
+        disallowAuthorizedServicePrincipal(principal.getAuthorizedService(), "jag token exchange",
+                caller, clientPrincipalDomain);
 
         // our jag token is required for jag token requests and has been validated
         // already during the request object creation
@@ -3058,6 +3207,7 @@ public class ZTSImpl implements ZTSHandler {
         // also check if the client id registered for that service matches
         // the client id in the jag token
 
+        final String clientPrincipalName = principal.getFullName();
         if (!clientPrincipalName.equals(jagToken.getClientId())) {
 
             // extract the client-id for the service if one is defined
@@ -3174,7 +3324,6 @@ public class ZTSImpl implements ZTSHandler {
 
         return response;
     }
-
 
     AccessTokenResponse processAccessTokenStandardRequest(ResourceContext ctx, Principal principal,
             AccessTokenRequest accessTokenRequest, final String principalDomain, final String caller) {
@@ -6625,4 +6774,13 @@ public class ZTSImpl implements ZTSHandler {
         // do nothing..
     }
 
+    private void disallowAuthorizedServicePrincipal(final String authorizedService, final String actionDescription,
+            final String caller, final String principalDomain) {
+        if (!StringUtil.isEmpty(authorizedService)) {
+            LOGGER.error("The authorized service principal {} cannot be used for {}",
+                    authorizedService, actionDescription);
+            throw forbiddenError("Authorized service principal forbidden for " + actionDescription, caller,
+                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+    }
 }

@@ -255,8 +255,13 @@ public final class ZTSConsts {
     public static final String ZTS_ISSUER_TYPE_OPENID    = "openid";
     public static final String ZTS_ISSUER_TYPE_OIDC_PORT = "oidc_port";
 
-    public static final String ZTS_ACTION_JAG_EXCHANGE = "zts.jag_exchange";
+    public static final String ZTS_ACTION_JAG_EXCHANGE          = "zts.jag_exchange";
+    public static final String ZTS_ACTION_ID_TOKEN_EXCHANGE     = "zts.id_token_exchange";
     public static final String ZTS_ACTION_TOKEN_SOURCE_EXCHANGE = "zts.token_source_exchange";
     public static final String ZTS_ACTION_TOKEN_TARGET_EXCHANGE = "zts.token_target_exchange";
 
+    public static final String OAUTH_TOKEN_TYPE_JAG    = "urn:ietf:params:oauth:token-type:id-jag";
+    public static final String OAUTH_TOKEN_TYPE_ID     = "urn:ietf:params:oauth:token-type:id_token";
+    public static final String OAUTH_TOKEN_TYPE_ACCESS = "urn:ietf:params:oauth:token-type:access_token";
+    public static final String OAUTH_TOKEN_TYPE_JWT    = "urn:ietf:params:oauth:token-type:jwt";
 }

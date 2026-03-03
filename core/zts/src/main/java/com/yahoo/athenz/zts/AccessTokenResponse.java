@@ -12,6 +12,8 @@ import com.yahoo.rdl.*;
 //
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AccessTokenResponse {
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String access_token;
     public String token_type;
     @RdlOptional

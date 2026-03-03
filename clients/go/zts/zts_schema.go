@@ -309,7 +309,7 @@ func init() {
 	sb.AddType(tSSHCertificates.Build())
 
 	tAccessTokenResponse := rdl.NewStructTypeBuilder("Struct", "AccessTokenResponse")
-	tAccessTokenResponse.Field("access_token", "String", false, nil, "access token")
+	tAccessTokenResponse.Field("access_token", "String", true, nil, "access token")
 	tAccessTokenResponse.Field("token_type", "String", false, nil, "token type e.g. Bearer")
 	tAccessTokenResponse.Field("expires_in", "Int32", true, nil, "expiration in seconds")
 	tAccessTokenResponse.Field("scope", "String", true, nil, "scope of the access token e.g. openid")
