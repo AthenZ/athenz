@@ -2604,12 +2604,8 @@ public class ZTSImpl implements ZTSHandler {
 
         // authorized service principal is not allowed to request jag token exchange
 
-        if (!StringUtil.isEmpty(principal.getAuthorizedService())) {
-            LOGGER.error("The authorized service principal {} cannot be used for token exchange",
-                    principal.getAuthorizedService());
-            throw forbiddenError("Authorized service principal cannot request token exchange", caller,
-                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-        }
+        disallowAuthorizedServicePrincipal(principal.getAuthorizedService(), "token exchange",
+                caller, principalDomain);
 
         // based on the actor object we'll know if this is an impersonation
         // request or a delegation request.
@@ -2911,12 +2907,8 @@ public class ZTSImpl implements ZTSHandler {
 
         // authorized service principal is not allowed to request id tokens
 
-        if (!StringUtil.isEmpty(principal.getAuthorizedService())) {
-            LOGGER.error("The authorized service principal {} cannot be used for id token exchange request",
-                    principal.getAuthorizedService());
-            throw forbiddenError("Authorized service principal cannot request id token exchange", caller,
-                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-        }
+        disallowAuthorizedServicePrincipal(principal.getAuthorizedService(), "id token exchange request",
+                caller, principalDomain);
 
         // validate principal object to make sure we're not processing a role identity,
         // and instead we require a service identity
@@ -3048,12 +3040,8 @@ public class ZTSImpl implements ZTSHandler {
 
         // authorized service principal is not allowed to request jag tokens
 
-        if (!StringUtil.isEmpty(principal.getAuthorizedService())) {
-            LOGGER.error("The authorized service principal {} cannot be used for jag request",
-                    principal.getAuthorizedService());
-            throw forbiddenError("Authorized service principal cannot issue jag request", caller,
-                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-        }
+        disallowAuthorizedServicePrincipal(principal.getAuthorizedService(), "jag request",
+                caller, principalDomain);
 
         // get our principal name for simpler access
 
@@ -3194,12 +3182,8 @@ public class ZTSImpl implements ZTSHandler {
 
         // authorized service principal is not allowed to request jag token exchange
 
-        if (!StringUtil.isEmpty(principal.getAuthorizedService())) {
-            LOGGER.error("The authorized service principal {} cannot be used for jag token exchange",
-                    principal.getAuthorizedService());
-            throw forbiddenError("Authorized service principal cannot request jag token exchange", caller,
-                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
-        }
+        disallowAuthorizedServicePrincipal(principal.getAuthorizedService(), "jag token exchange",
+                caller, clientPrincipalDomain);
 
         // our jag token is required for jag token requests and has been validated
         // already during the request object creation
@@ -6790,4 +6774,13 @@ public class ZTSImpl implements ZTSHandler {
         // do nothing..
     }
 
+    private void disallowAuthorizedServicePrincipal(final String authorizedService, final String actionDescription,
+            final String caller, final String principalDomain) {
+        if (!StringUtil.isEmpty(authorizedService)) {
+            LOGGER.error("The authorized service principal {} cannot be used for {}",
+                    authorizedService, actionDescription);
+            throw forbiddenError("Authorized service principal forbidden for " + actionDescription, caller,
+                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+    }
 }

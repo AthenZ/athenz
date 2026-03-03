@@ -731,7 +731,7 @@ public class ZTSImplIDTokenTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
-            assertTrue(ex.getMessage().contains("Authorized service principal cannot request id token exchange"));
+            assertTrue(ex.getMessage().contains("Authorized service principal forbidden for id token exchange"));
         }
 
         ztsImpl.cloudStore.close();

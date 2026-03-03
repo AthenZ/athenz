@@ -2118,7 +2118,7 @@ public class ZTSImplAccessTokenTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
-            assertTrue(ex.getMessage().contains("Authorized service principal cannot request jag token exchange"));
+            assertTrue(ex.getMessage().contains("Authorized service principal forbidden for jag token exchange"));
         }
     }
 
@@ -2797,7 +2797,7 @@ public class ZTSImplAccessTokenTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
-            assertTrue(ex.getMessage().contains("Authorized service principal cannot issue jag request"));
+            assertTrue(ex.getMessage().contains("Authorized service principal forbidden for jag request"));
         }
 
         cloudStore.close();
@@ -6064,7 +6064,7 @@ public class ZTSImplAccessTokenTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
-            assertTrue(ex.getMessage().contains("Authorized service principal cannot request token exchange"));
+            assertTrue(ex.getMessage().contains("Authorized service principal forbidden for token exchange"));
         }
 
         cloudStore.close();
