@@ -25,7 +25,7 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.RdsClient;
 import software.amazon.awssdk.services.rds.RdsUtilities;
@@ -143,12 +143,12 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
 
         String authToken = null;
         try (RdsClient rdsClient = RdsClient.builder().region(getRegion())
-                    .credentialsProvider(ProfileCredentialsProvider.create()).build()) {
+                    .credentialsProvider(DefaultCredentialsProvider.create()).build()) {
 
             RdsUtilities utilities = rdsClient.utilities();
 
             GenerateAuthenticationTokenRequest tokenRequest = GenerateAuthenticationTokenRequest.builder()
-                    .credentialsProvider(ProfileCredentialsProvider.create())
+                    .credentialsProvider(DefaultCredentialsProvider.create())
                     .username(rdsUser)
                     .port(port)
                     .hostname(hostname)
