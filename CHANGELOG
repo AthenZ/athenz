@@ -1,3 +1,13 @@
+Athenz v1.12.35 Release / Feb 27, 2026
+--------------------------------------
+
+#3200 Include OIDC token endpoint to ZTS OIDC Discovery metadata
+#3201 A utility to retrieve and report authorization history dependencies
+#3204 provide option for target role arn when storing lambda identity in secret manager
+#3206 Doc: typo fixed id-token => id_token for rfc 8693 token exchange specification
+#3208 provide option to return jwt id token with x.509 instead of ntoken
+#3209 update java/go/nodejs dependencies to their latest releases
+
 Athenz v1.12.34 Release / Feb 09, 2026
 --------------------------------------
 
