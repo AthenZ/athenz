@@ -2117,7 +2117,7 @@ type AccessTokenResponse struct {
 	//
 	// access token
 	//
-	Access_token string `json:"access_token"`
+	Access_token string `json:"access_token,omitempty" rdl:"optional"`
 
 	//
 	// token type e.g. Bearer
@@ -2177,9 +2177,7 @@ func (self *AccessTokenResponse) UnmarshalJSON(b []byte) error {
 
 // Validate - checks for missing required fields, etc
 func (self *AccessTokenResponse) Validate() error {
-	if self.Access_token == "" {
-		return fmt.Errorf("AccessTokenResponse.access_token is missing but is a required field")
-	} else {
+	if self.Access_token != "" {
 		val := rdl.Validate(ZTSSchema(), "String", self.Access_token)
 		if !val.Valid {
 			return fmt.Errorf("AccessTokenResponse.access_token does not contain a valid String (%v)", val.Error)

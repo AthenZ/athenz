@@ -5,7 +5,7 @@
 include "Names.tdl";
 
 type AccessTokenResponse Struct {
-    String access_token; //access token
+    String access_token (optional); //access token
     String token_type; //token type e.g. Bearer
     Int32 expires_in (optional); //expiration in seconds
     String scope (optional); //scope of the access token e.g. openid

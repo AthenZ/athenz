@@ -43,7 +43,8 @@ public class AccessTokenRequest {
 
     public enum RequestType {
         ACCESS_TOKEN,
-        TOKEN_EXCHANGE,
+        ACCESS_TOKEN_EXCHANGE,
+        ID_TOKEN_EXCHANGE,
         JAG_TOKEN_EXCHANGE,
         JAG_JWT_BEARER
     }
@@ -68,11 +69,6 @@ public class AccessTokenRequest {
     private static final String KEY_ACTOR_TOKEN_TYPE = "actor_token_type";
 
     private static final String OAUTH_ASSERTION_TYPE_JWT_BEARER = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
-
-    private static final String OAUTH_TOKEN_TYPE_JAG = "urn:ietf:params:oauth:token-type:id-jag";
-    private static final String OAUTH_TOKEN_TYPE_ID = "urn:ietf:params:oauth:token-type:id_token";
-    private static final String OAUTH_TOKEN_TYPE_ACCESS = "urn:ietf:params:oauth:token-type:access_token";
-    private static final String OAUTH_TOKEN_TYPE_JWT = "urn:ietf:params:oauth:token-type:jwt";
 
     private static final String OAUTH_GRANT_CLIENT_CREDENTIALS = "client_credentials";
     private static final String OAUTH_GRANT_TOKEN_EXCHANGE = "urn:ietf:params:oauth:grant-type:token-exchange";
@@ -207,11 +203,14 @@ public class AccessTokenRequest {
                 // Identity Assertion Authorization Grant
                 // https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
 
-                if (OAUTH_TOKEN_TYPE_JAG.equals(requestedTokenType)) {
+                if (ZTSConsts.OAUTH_TOKEN_TYPE_JAG.equals(requestedTokenType)) {
                     requestType = RequestType.JAG_TOKEN_EXCHANGE;
                     validateJAGTokenExchangeRequest(options);
-                } else if (OAUTH_TOKEN_TYPE_ACCESS.equals(requestedTokenType) || StringUtil.isEmpty(requestedTokenType)) {
-                    requestType = RequestType.TOKEN_EXCHANGE;
+                } else if (ZTSConsts.OAUTH_TOKEN_TYPE_ID.equals(requestedTokenType)) {
+                    requestType = RequestType.ID_TOKEN_EXCHANGE;
+                    validateIdTokenExchangeRequest(options);
+                } else if (ZTSConsts.OAUTH_TOKEN_TYPE_ACCESS.equals(requestedTokenType) || StringUtil.isEmpty(requestedTokenType)) {
+                    requestType = RequestType.ACCESS_TOKEN_EXCHANGE;
                     validateAccessTokenExchangeRequest(options);
                 } else {
                     throw new IllegalArgumentException("Invalid requested token type: " + requestedTokenType);
@@ -271,7 +270,7 @@ public class AccessTokenRequest {
         // we'll validate accordingly. the actor_token and actor_token_type
         // are optional and not used in the ID Token Authz Grant spec.
 
-        if (!OAUTH_TOKEN_TYPE_ID.equals(subjectTokenType)) {
+        if (!ZTSConsts.OAUTH_TOKEN_TYPE_ID.equals(subjectTokenType)) {
             throw new IllegalArgumentException("Invalid subject token type: " + subjectTokenType);
         }
         validateSubjectToken(options);
@@ -281,6 +280,22 @@ public class AccessTokenRequest {
         // our specified token and generate a principal object
 
         validateClientAssertion(options);
+    }
+
+    void validateIdTokenExchangeRequest(TokenConfigOptions options) {
+
+        // we must have audience specified
+
+        if (StringUtil.isEmpty(audience)) {
+            throw new IllegalArgumentException("Invalid request: no audience provided");
+        }
+
+        // for id token exchange requests subject token must be an id token
+
+        if (!ZTSConsts.OAUTH_TOKEN_TYPE_ID.equals(subjectTokenType)) {
+            throw new IllegalArgumentException("Invalid subject token type: " + subjectTokenType);
+        }
+        validateSubjectToken(options);
     }
 
     void validateAccessTokenExchangeRequest(TokenConfigOptions options) {
@@ -306,8 +321,9 @@ public class AccessTokenRequest {
     }
 
     boolean validJwtTokenType(final String tokenType) {
-        return (OAUTH_TOKEN_TYPE_ID.equals(tokenType) || OAUTH_TOKEN_TYPE_ACCESS.equals(tokenType)
-                || OAUTH_TOKEN_TYPE_JWT.equals(tokenType));
+        return (ZTSConsts.OAUTH_TOKEN_TYPE_ID.equals(tokenType) ||
+                ZTSConsts.OAUTH_TOKEN_TYPE_ACCESS.equals(tokenType) ||
+                ZTSConsts.OAUTH_TOKEN_TYPE_JWT.equals(tokenType));
     }
 
     void validateJWTBearerRequest(TokenConfigOptions options) {

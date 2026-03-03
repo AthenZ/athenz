@@ -96,11 +96,15 @@ public class ZTSAuthorizer implements Authorizer {
         
         String domainName = AuthzHelper.retrieveResourceDomain(resource, op, trustDomain);
         if (domainName == null) {
+            LOGGER.error("unable to extract resource domain from resource: {}, operation: {}, trustDomain: {}",
+                    resource, op, trustDomain);
             throw new ResourceException(ResourceException.NOT_FOUND,
                     new ResourceError().code(ResourceException.NOT_FOUND).message("Domain not found"));
         }
         DataCache domain = dataStore.getDataCache(domainName);
         if (domain == null) {
+            LOGGER.error("resource domain {} not found for resource: {}, operation: {}, trustDomain: {}",
+                    domainName, resource, op, trustDomain);
             throw new ResourceException(ResourceException.NOT_FOUND,
                     new ResourceError().code(ResourceException.NOT_FOUND).message("Domain not found"));
         }

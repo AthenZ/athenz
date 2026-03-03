@@ -722,7 +722,7 @@ public class AccessTokenRequestTest {
                 + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token", defaultConfigOptions);
         assertNotNull(request);
         assertEquals(request.getGrantType(), "urn:ietf:params:oauth:grant-type:token-exchange");
-        assertEquals(request.getRequestType(), AccessTokenRequest.RequestType.TOKEN_EXCHANGE);
+        assertEquals(request.getRequestType(), AccessTokenRequest.RequestType.ACCESS_TOKEN_EXCHANGE);
         assertEquals(request.getRequestedTokenType(), "urn:ietf:params:oauth:token-type:access_token");
     }
 
@@ -742,7 +742,7 @@ public class AccessTokenRequestTest {
                 + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token", defaultConfigOptions);
         assertNotNull(request);
         assertEquals(request.getGrantType(), "urn:ietf:params:oauth:grant-type:token-exchange");
-        assertEquals(request.getRequestType(), AccessTokenRequest.RequestType.TOKEN_EXCHANGE);
+        assertEquals(request.getRequestType(), AccessTokenRequest.RequestType.ACCESS_TOKEN_EXCHANGE);
         assertTrue(StringUtil.isEmpty(request.getRequestedTokenType()));
     }
 
@@ -1162,6 +1162,53 @@ public class AccessTokenRequestTest {
             fail();
         } catch (IllegalArgumentException ex) {
             assertEquals(ex.getMessage(), "Invalid request: no audience provided");
+        }
+    }
+
+    @Test
+    public void testAccessTokenRequestIDTokenExchangeMissingAudience() {
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        // Create a subject token for user_domain.user with audience as proxy-user1
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createToken(privateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime, null);
+
+        try {
+            new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&audience=&subject_token=" + subjectToken
+                    + "&scope=readers"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token", defaultConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid request: no audience provided");
+        }
+    }
+
+    @Test
+    public void testAccessTokenRequestIDTokenExchangeInvalidSubjectTokenType() {
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        // Create a subject token for user_domain.user with audience as proxy-user1
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createToken(privateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime, null);
+
+        try {
+            new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&audience=&subject_token=" + subjectToken
+                    + "&audience=sports"
+                    + "&scope=readers"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token", defaultConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid subject token type: urn:ietf:params:oauth:token-type:access_token");
         }
     }
 

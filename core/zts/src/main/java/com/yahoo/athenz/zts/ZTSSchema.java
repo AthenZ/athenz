@@ -264,7 +264,7 @@ public class ZTSSchema {
             .field("certificateSigner", "String", true, "the SSH CA's public key for the sshCertificate (user or host)");
 
         sb.structType("AccessTokenResponse")
-            .field("access_token", "String", false, "access token")
+            .field("access_token", "String", true, "access token")
             .field("token_type", "String", false, "token type e.g. Bearer")
             .field("expires_in", "Int32", true, "expiration in seconds")
             .field("scope", "String", true, "scope of the access token e.g. openid")
