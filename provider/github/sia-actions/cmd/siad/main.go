@@ -20,12 +20,14 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"flag"
-	"github.com/AthenZ/athenz/clients/go/zts"
-	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"github.com/AthenZ/athenz/provider/github/sia-actions"
+	"fmt"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/sia/util"
+	"github.com/AthenZ/athenz/provider/github/sia-actions"
 )
 
 // Following can be set by the build script using LDFLAGS
@@ -35,8 +37,8 @@ var Version string
 func main() {
 
 	var ztsURL, domain, service, spiffeTrustDomain, subjC, subjO, subjOU, provider string
-	var caCertFile, keyFile, certFile, signerCertFile, dnsDomain string
-	var showVersion bool
+	var caCertFile, keyFile, certFile, signerCertFile, dnsDomain, oidcTokenAudience string
+	var showVersion, getOIDCToken bool
 	var expiryTime int
 	flag.IntVar(&expiryTime, "expiry-time", 360, "expiry time in minutes (optional)")
 	flag.StringVar(&keyFile, "key-file", "", "output private key file")
@@ -52,6 +54,8 @@ func main() {
 	flag.StringVar(&provider, "provider", "sys.auth.github-actions", "Athenz Provider (optional)")
 	flag.StringVar(&caCertFile, "cacert", "", "CA certificate file (optional)")
 	flag.StringVar(&spiffeTrustDomain, "spiffe-trust-domain", "", "SPIFFE trust domain (optional)")
+	flag.BoolVar(&getOIDCToken, "get-oidc-token", false, "Get OIDC token from Athenz ZTS along with X.509 identity certificate")
+	flag.StringVar(&oidcTokenAudience, "oidc-token-audience", "", "OIDC token audience (optional)")
 	flag.BoolVar(&showVersion, "version", false, "Show version")
 	flag.Parse()
 
@@ -118,6 +122,11 @@ func main() {
 		ExpiryTime:      &certExpiryTime,
 	}
 
+	if getOIDCToken {
+		req.Token = &getOIDCToken
+		req.JwtSVIDAudience = oidcTokenAudience
+	}
+
 	// request a tls certificate for this service
 	identity, _, err := client.PostInstanceRegisterInformation(req)
 	if err != nil {
@@ -138,6 +147,21 @@ func main() {
 		err = os.WriteFile(signerCertFile, []byte(identity.X509CertificateSigner), 0444)
 		if err != nil {
 			log.Fatalf("unable to write signer certificate file: %s - error: %v\n", signerCertFile, err)
+		}
+	}
+
+	if getOIDCToken {
+		if identity.ServiceToken == "" {
+			log.Fatalf("OIDC Token not found in identity response")
+		}
+		// Open GITHUB_ENV in append mode, create if it doesn't exist
+		f, err := os.OpenFile(os.Getenv("GITHUB_ENV"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatalf("Error opening GITHUB_ENV: %v\n", err)
+		}
+		defer f.Close()
+		if _, err := f.WriteString(fmt.Sprintf("ZTS_OIDC_TOKEN=%s\n", oidcToken)); err != nil {
+			log.Fatalf("Error writing to GITHUB_ENV: %v\n", err)
 		}
 	}
 }
