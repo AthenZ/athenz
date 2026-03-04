@@ -160,7 +160,7 @@ func main() {
 			log.Fatalf("Error opening GITHUB_ENV: %v\n", err)
 		}
 		defer f.Close()
-		if _, err := f.WriteString(fmt.Sprintf("ZTS_OIDC_TOKEN=%s\n", oidcToken)); err != nil {
+if _, err := f.WriteString(fmt.Sprintf("ZTS_OIDC_TOKEN=%s\n", identity.ServiceToken)); err != nil {
 			log.Fatalf("Error writing to GITHUB_ENV: %v\n", err)
 		}
 	}
