@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.db.DataSourceFactory;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.RdsClient;
 import software.amazon.awssdk.services.rds.RdsUtilities;
@@ -92,12 +92,12 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
 
         String authToken = null;
         try (RdsClient rdsClient = RdsClient.builder().region(Utils.getAwsRegion((Region.US_EAST_1)))
-                .credentialsProvider(ProfileCredentialsProvider.create()).build()) {
+                .credentialsProvider(DefaultCredentialsProvider.create()).build()) {
 
             RdsUtilities utilities = rdsClient.utilities();
 
             GenerateAuthenticationTokenRequest tokenRequest = GenerateAuthenticationTokenRequest.builder()
-                    .credentialsProvider(ProfileCredentialsProvider.create())
+                    .credentialsProvider(DefaultCredentialsProvider.create())
                     .username(rdsUser)
                     .port(port)
                     .hostname(hostname)
