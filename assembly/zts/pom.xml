@@ -39,6 +39,11 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
+      <artifactId>athenz-server-aws-common</artifactId>
+      <version>${project.parent.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
       <artifactId>athenz-instance-provider</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
