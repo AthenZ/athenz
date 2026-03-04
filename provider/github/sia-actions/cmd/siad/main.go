@@ -155,13 +155,18 @@ func main() {
 			log.Fatalf("OIDC Token not found in identity response")
 		}
 		// Open GITHUB_ENV in append mode, create if it doesn't exist
-		f, err := os.OpenFile(os.Getenv("GITHUB_ENV"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		githubEnv := os.Getenv("GITHUB_ENV")
+		if githubEnv == "" {
+			log.Println("GITHUB_ENV environment variable is not set. Skipping setting OIDC token in environment.")
+			return
+		}
+		f, err := os.OpenFile(githubEnv, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
-			log.Fatalf("Error opening GITHUB_ENV: %v\n", err)
+			log.Fatalf("Error opening GITHUB_ENV %s: %v\n", githubEnv, err)
 		}
 		defer f.Close()
 		if _, err := f.WriteString(fmt.Sprintf("ZTS_OIDC_TOKEN=%s\n", identity.ServiceToken)); err != nil {
-			log.Fatalf("Error writing to GITHUB_ENV: %v\n", err)
+			log.Fatalf("Error writing to GITHUB_ENV %s: %v\n", githubEnv, err)
 		}
 	}
 }
