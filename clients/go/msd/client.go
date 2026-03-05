@@ -1212,32 +1212,26 @@ func (client MSDClient) GetTransportPolicySnapshots(domainName DomainName, servi
 	}
 }
 
-func (client MSDClient) GetTransportPolicySnapshot(domainName DomainName, serviceName EntityName, snapshotName EntityName, matchingTag string) (*TransportPolicySnapshot, string, error) {
+func (client MSDClient) GetTransportPolicySnapshot(domainName DomainName, serviceName EntityName, snapshotName EntityName) (*TransportPolicySnapshot, error) {
 	var data *TransportPolicySnapshot
-	headers := map[string]string{
-		"If-None-Match": matchingTag,
-	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/snapshot/" + fmt.Sprint(snapshotName)
-	resp, err := client.httpGet(url, headers)
+	resp, err := client.httpGet(url, nil)
 	if err != nil {
-		return nil, "", err
+		return data, err
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
-	case 200, 304:
-		if 304 != resp.StatusCode {
-			err = json.NewDecoder(resp.Body).Decode(&data)
-			if err != nil {
-				return nil, "", err
-			}
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
 		}
-		tag := resp.Header.Get(rdl.FoldHttpHeaderName("ETag"))
-		return data, tag, nil
+		return data, nil
 	default:
 		var errobj rdl.ResourceError
 		contentBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return nil, "", err
+			return data, err
 		}
 		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
@@ -1246,7 +1240,7 @@ func (client MSDClient) GetTransportPolicySnapshot(domainName DomainName, servic
 		if errobj.Message == "" {
 			errobj.Message = string(contentBytes)
 		}
-		return nil, "", errobj
+		return data, errobj
 	}
 }
 
