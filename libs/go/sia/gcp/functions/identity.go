@@ -20,10 +20,12 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -34,6 +36,7 @@ import (
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	certificatemanagerapi "google.golang.org/api/certificatemanager/v1"
 	"google.golang.org/api/googleapi"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
 
@@ -186,7 +189,9 @@ func StoreAthenzIdentityInSecretManager(athenzDomain, athenzService, secretName 
 // The secret specified by the name must be pre-created and the service account
 // that the function is invoked with must have been authorized to assume the
 // "Secret Manager Secret Version Adder" role
-func StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService, secretName string, siaCertData *util.SiaCertData, jsonFieldMapper map[string]string, isRoleCertificate bool) error {
+// If the keepRecentVersions parameter is greater than 0, the function will also clean up old secret
+// versions, keeping only the specified number of most recent versions (including the newly added version).
+func StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService, secretName string, siaCertData *util.SiaCertData, jsonFieldMapper map[string]string, isRoleCertificate bool, keepRecentVersions int) error {
 
 	// Create the GCP secret-manager client.
 	ctx := context.Background()
@@ -219,16 +224,94 @@ func StoreAthenzIdentityInSecretManagerCustomFormat(athenzDomain, athenzService,
 	}
 
 	// Build the request
+	parentName := "projects/" + gcpProjectId + "/secrets/" + secretName
 	addSecretVersionReq := &secretmanagerpb.AddSecretVersionRequest{
-		Parent: "projects/" + gcpProjectId + "/secrets/" + secretName,
+		Parent: parentName,
 		Payload: &secretmanagerpb.SecretPayload{
 			Data: keyCertJson,
 		},
 	}
 
 	// Call the API.
-	_, err = secretManagerClient.AddSecretVersion(ctx, addSecretVersionReq)
-	return err
+	newVersion, err := secretManagerClient.AddSecretVersion(ctx, addSecretVersionReq)
+	if err != nil {
+		return fmt.Errorf("failed to add secret version: %v", err)
+	}
+
+	if keepRecentVersions > 0 {
+		destroyOldSecretVersions(ctx, &secretManagerClientWrapper{client: secretManagerClient}, parentName, newVersion.Name, keepRecentVersions)
+	}
+	return nil
+}
+
+// destroyOldSecretVersions lists all non-destroyed versions of the secret,
+// sorts them by creation time (newest first), and destroys all versions
+// beyond the keepRecentVersions limit. The newly created version identified
+// by newVersionName is always preserved regardless of the limit.
+// Errors are logged but do not cause the function to fail since cleanup
+// of old versions should not block the primary operation.
+func destroyOldSecretVersions(ctx context.Context, client SecretManagerClientIface, parentName, newVersionName string, keepRecentVersions int) {
+
+	it := client.ListSecretVersions(ctx, &secretmanagerpb.ListSecretVersionsRequest{
+		Parent: parentName,
+	})
+
+	var activeVersions []*secretmanagerpb.SecretVersion
+	for {
+		version, err := it.Next()
+		if errors.Is(err, iterator.Done) {
+			break
+		}
+		if err != nil {
+			log.Printf("Failed to list secret versions: %v\n", err)
+			return
+		}
+		if version.State != secretmanagerpb.SecretVersion_DESTROYED {
+			activeVersions = append(activeVersions, version)
+		}
+	}
+
+	sort.Slice(activeVersions, func(i, j int) bool {
+		return activeVersions[i].CreateTime.AsTime().After(activeVersions[j].CreateTime.AsTime())
+	})
+
+	if len(activeVersions) > keepRecentVersions {
+		for _, version := range activeVersions[keepRecentVersions:] {
+			// should never happen, but just in case
+			if version.Name == newVersionName {
+				continue
+			}
+			_, err := client.DestroySecretVersion(ctx, &secretmanagerpb.DestroySecretVersionRequest{
+				Name: version.Name,
+			})
+			if err != nil {
+				log.Printf("Failed to destroy version %s: %v\n", version.Name, err)
+			}
+		}
+	}
+}
+
+// SecretVersionIteratorIface abstracts iteration over secret versions for testability
+type SecretVersionIteratorIface interface {
+	Next() (*secretmanagerpb.SecretVersion, error)
+}
+
+// SecretManagerClientIface abstracts secret manager operations needed for version cleanup
+type SecretManagerClientIface interface {
+	ListSecretVersions(ctx context.Context, req *secretmanagerpb.ListSecretVersionsRequest) SecretVersionIteratorIface
+	DestroySecretVersion(ctx context.Context, req *secretmanagerpb.DestroySecretVersionRequest) (*secretmanagerpb.SecretVersion, error)
+}
+
+type secretManagerClientWrapper struct {
+	client *secretmanager.Client
+}
+
+func (w *secretManagerClientWrapper) ListSecretVersions(ctx context.Context, req *secretmanagerpb.ListSecretVersionsRequest) SecretVersionIteratorIface {
+	return w.client.ListSecretVersions(ctx, req)
+}
+
+func (w *secretManagerClientWrapper) DestroySecretVersion(ctx context.Context, req *secretmanagerpb.DestroySecretVersionRequest) (*secretmanagerpb.SecretVersion, error) {
+	return w.client.DestroySecretVersion(ctx, req)
 }
 
 // MetadataProvider defines the interface for GCP metadata operations
