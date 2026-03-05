@@ -61,10 +61,8 @@ resource TransportPolicySnapshot GET "/domain/{domainName}/service/{serviceName}
     DomainName domainName; // name of the domain
     EntityName serviceName; // name of the service
     EntityName snapshotName; // name of the snapshot
-    String matchingTag (header="If-None-Match"); // Retrieved from the previous request, this timestamp specifies to the server to return the snapshot if modified since this time
-    String tag (header="ETag", out); // The current snapshot modification timestamp is returned in this header
     authorize ("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}");
-    expected OK, NOT_MODIFIED;
+    expected OK;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;

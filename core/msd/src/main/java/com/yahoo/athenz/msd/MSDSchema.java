@@ -1148,8 +1148,6 @@ public class MSDSchema {
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("serviceName", "EntityName", "name of the service")
             .pathParam("snapshotName", "EntityName", "name of the snapshot")
-            .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return the snapshot if modified since this time")
-            .output("ETag", "tag", "String", "The current snapshot modification timestamp is returned in this header")
             .auth("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

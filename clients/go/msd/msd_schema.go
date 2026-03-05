@@ -1129,8 +1129,6 @@ func init() {
 	mGetTransportPolicySnapshot.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mGetTransportPolicySnapshot.Input("serviceName", "EntityName", true, "", "", false, nil, "name of the service")
 	mGetTransportPolicySnapshot.Input("snapshotName", "EntityName", true, "", "", false, nil, "name of the snapshot")
-	mGetTransportPolicySnapshot.Input("matchingTag", "String", false, "", "If-None-Match", false, nil, "Retrieved from the previous request, this timestamp specifies to the server to return the snapshot if modified since this time")
-	mGetTransportPolicySnapshot.Output("tag", "String", "ETag", false, "The current snapshot modification timestamp is returned in this header")
 	mGetTransportPolicySnapshot.Auth("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}", false, "")
 	mGetTransportPolicySnapshot.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetTransportPolicySnapshot.Exception("FORBIDDEN", "ResourceError", "")
