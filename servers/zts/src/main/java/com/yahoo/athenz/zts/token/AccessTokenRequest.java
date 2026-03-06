@@ -34,6 +34,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class AccessTokenRequest {
 
@@ -342,6 +345,29 @@ public class AccessTokenRequest {
             jagTokenObj = new AccessToken(assertion, options.getJwtJAGProcessor());
         } catch (Exception ex) {
             throw new IllegalArgumentException("Invalid assertion token: " + ex.getMessage());
+        }
+
+        // RFC7523: scope parameter is optional for jwt-bearer. If provided,
+        // treat it as a down-scope request, and it MUST be a subset of the
+        // assertion(JAG) scope.
+        if (!StringUtil.isEmpty(scope)) {
+            final String assertionScope = jagTokenObj.getScopeStd();
+            if (StringUtil.isEmpty(assertionScope)) {
+                throw new IllegalArgumentException("Invalid request: scope provided but assertion contains no scope");
+            }
+
+            // Normalize whitespace and split
+            final List<String> requestedScopes = Arrays.asList(scope.trim().split("\\s+"));
+            final Set<String> requestedSet = new HashSet<>(requestedScopes);
+            final Set<String> assertionSet = new HashSet<>(Arrays.asList(assertionScope.trim().split("\\s+")));
+
+            if (!assertionSet.containsAll(requestedSet)) {
+                throw new IllegalArgumentException("Invalid request: requested scope is not a subset of assertion scope");
+            }
+
+            // Override parsed token scope so downstream exchange logic uses the requested subset.
+            jagTokenObj.setScope(requestedScopes);
+            jagTokenObj.setScopeStd(String.join(" ", requestedScopes));
         }
     }
 
