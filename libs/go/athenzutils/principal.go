@@ -38,14 +38,18 @@ func ExtractServicePrincipal(x509Cert x509.Certificate) (string, error) {
 			return "", fmt.Errorf("certificate does not have a single email SAN value")
 		}
 
-		// Note: Starting from Go 1.25.2, the x509 parser performs stricter checks,
-		// ensuring the email address always has a valid format (contains '@').
-		var found bool
-		principal, _, found = strings.Cut(emails[0], "@")
-		if !found {
-			// This path should be unreachable with Go 1.22+
+		// athenz always verifies that we include a valid
+		// email in the certificate
+
+		idx := strings.Index(emails[0], "@")
+		if idx == -1 {
+			// Note: Starting from Go 1.25.2, the x509 parser performs stricter checks
+			// to ensure the email address always has a valid format (contains '@').
+			// Therefore, this path should be unreachable.
 			return "", fmt.Errorf("certificate email is invalid: %s", emails[0])
 		}
+
+		principal = emails[0][0:idx]
 	}
 
 	return principal, nil
