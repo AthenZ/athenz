@@ -19,7 +19,7 @@ $ zms-cli -d <domain-name> set-service-endpoint <service-name> <redirect-uri>
 ## AWS EKS Cluster Configuration
 
 In the AWS Console, select EKS service, then choose your cluster from the list.
-In the cluster view, select the `Configuratiion` tab and then the `Authentication`
+In the cluster view, select the `Configuration` tab and then the `Authentication`
 tab. Choose the `Associate Identity Provider` button. In the dialog box specify
 the following values (leave others blank):
 
