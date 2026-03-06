@@ -43,6 +43,9 @@ func ExtractServicePrincipal(x509Cert x509.Certificate) (string, error) {
 
 		idx := strings.Index(emails[0], "@")
 		if idx == -1 {
+			// Note: Starting from Go 1.25.2, the x509 parser performs stricter checks
+			// to ensure the email address always has a valid format (contains '@').
+			// Therefore, this path should be unreachable.
 			return "", fmt.Errorf("certificate email is invalid: %s", emails[0])
 		}
 
