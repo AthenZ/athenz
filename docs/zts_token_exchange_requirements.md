@@ -20,7 +20,8 @@ Requirements:
   format: `{domainName}:role.{roleName} {domainName}:role.{roleName} ...`
 - The token request must have a valid `audience` parameter specified
 - The requesting principal (service or user) must be authorized to perform the JAG token exchange
-  for each role in the requested scope.
+  for the evaluated subset of requested roles that the subject identity can access, with ZTS issuing
+  a token containing only those roles and denying the request entirely if no roles are accessible.
 
 1. Subject Token Validation
 
