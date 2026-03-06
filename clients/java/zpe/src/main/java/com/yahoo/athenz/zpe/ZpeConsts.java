@@ -53,6 +53,7 @@ public final class ZpeConsts {
     public static final String ZPE_PROP_ATHENZ_CONF                  = "athenz.athenz_conf";
     public static final String ZPE_PROP_JWK_ATHENZ_CONF              = "athenz.jwk_athenz_conf";
     public static final String ZPE_PROP_JWK_URI                      = "athenz.zpe.jwk_uri";
+    public static final String ZPE_PROP_JWK_PROXY_URI                = "athenz.zpe.jwk_proxy_uri";
     public static final String ZPE_PROP_JWK_PRIVATE_KEY_PATH         = "athenz.zpe.jwk_private_key_path";
     public static final String ZPE_PROP_JWK_X509_CERT_PATH           = "athenz.zpe.jwk_x509_cert_path";
 
