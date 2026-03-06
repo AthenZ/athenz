@@ -347,25 +347,35 @@ public class AccessTokenRequest {
             throw new IllegalArgumentException("Invalid assertion token: " + ex.getMessage());
         }
 
-        // RFC7523: scope parameter is optional for jwt-bearer. If provided,
-        // treat it as a down-scope request, and it MUST be a subset of the
-        // assertion(JAG) scope.
+        // RFC 7523 defines that the 'scope' parameter MAY be used.
+        // However, per RFC 7521, if the 'scope' is included,
+        // the requested scope MUST be equal to or less than the scope originally
+        // granted to the given ID-JAG token. The authorization server MUST
+        // limit the scope of the issued access token to be equal to or less
+        // than the scope originally granted to the given ID-JAG token.
         if (!StringUtil.isEmpty(scope)) {
-            final String assertionScope = jagTokenObj.getScopeStd();
-            if (StringUtil.isEmpty(assertionScope)) {
-                throw new IllegalArgumentException("Invalid request: scope provided but assertion contains no scope");
+            final String trimmedScope = scope.trim(); // i.e) "read write"
+            if (trimmedScope.isEmpty()) {
+                throw new IllegalArgumentException(
+                    "Invalid request: requested scope cannot contain only whitespace");
             }
 
-            // Normalize whitespace and split
-            final List<String> requestedScopes = Arrays.asList(scope.trim().split("\\s+"));
+            final String trimmedAssertionScope = jagTokenObj.getScopeStd().trim();
+            if (trimmedAssertionScope.isEmpty()) {
+                throw new IllegalArgumentException(
+                    "Invalid request: scope provided but assertion contains no scope");
+            }
+
+            final List<String> requestedScopes = Arrays.asList(trimmedScope.split("\\s+"));
             final Set<String> requestedSet = new HashSet<>(requestedScopes);
-            final Set<String> assertionSet = new HashSet<>(Arrays.asList(assertionScope.trim().split("\\s+")));
+            final Set<String> assertionSet =
+                new HashSet<>(Arrays.asList(trimmedAssertionScope.split("\\s+")));
 
             if (!assertionSet.containsAll(requestedSet)) {
-                throw new IllegalArgumentException("Invalid request: requested scope is not a subset of assertion scope");
+                throw new IllegalArgumentException(
+                    "Invalid request: requested scope is not a subset of assertion scope");
             }
 
-            // Override parsed token scope so downstream exchange logic uses the requested subset.
             jagTokenObj.setScope(requestedScopes);
             jagTokenObj.setScopeStd(String.join(" ", requestedScopes));
         }
