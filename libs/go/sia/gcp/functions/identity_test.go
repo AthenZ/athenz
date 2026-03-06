@@ -31,9 +31,12 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	certificatemanagerapi "google.golang.org/api/certificatemanager/v1"
 	"google.golang.org/api/googleapi"
+	"google.golang.org/api/iterator"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // mockCertificateManagerOperations is a mock implementation of CertificateManagerOperations
@@ -591,6 +594,204 @@ func TestWaitForOperation(t *testing.T) {
 
 			if tt.expectPolls > 0 && tt.mockOps.pollCount != tt.expectPolls {
 				t.Errorf("expected %d polls, got %d", tt.expectPolls, tt.mockOps.pollCount)
+			}
+		})
+	}
+}
+
+// mockSecretVersionIterator implements SecretVersionIteratorIface for testing
+type mockSecretVersionIterator struct {
+	versions []*secretmanagerpb.SecretVersion
+	index    int
+	err      error
+}
+
+func (m *mockSecretVersionIterator) Next() (*secretmanagerpb.SecretVersion, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	if m.index >= len(m.versions) {
+		return nil, iterator.Done
+	}
+	v := m.versions[m.index]
+	m.index++
+	return v, nil
+}
+
+// mockSecretManagerClient implements SecretManagerClientIface for testing
+type mockSecretManagerClient struct {
+	iterator          *mockSecretVersionIterator
+	destroyedVersions []string
+	destroyErr        error
+}
+
+func (m *mockSecretManagerClient) ListSecretVersions(_ context.Context, _ *secretmanagerpb.ListSecretVersionsRequest) SecretVersionIteratorIface {
+	return m.iterator
+}
+
+func (m *mockSecretManagerClient) DestroySecretVersion(_ context.Context, req *secretmanagerpb.DestroySecretVersionRequest) (*secretmanagerpb.SecretVersion, error) {
+	if m.destroyErr != nil {
+		return nil, m.destroyErr
+	}
+	m.destroyedVersions = append(m.destroyedVersions, req.Name)
+	return &secretmanagerpb.SecretVersion{
+		Name:  req.Name,
+		State: secretmanagerpb.SecretVersion_DESTROYED,
+	}, nil
+}
+
+func makeSecretVersion(name string, state secretmanagerpb.SecretVersion_State, createTime time.Time) *secretmanagerpb.SecretVersion {
+	return &secretmanagerpb.SecretVersion{
+		Name:       name,
+		State:      state,
+		CreateTime: timestamppb.New(createTime),
+	}
+}
+
+func TestDestroyOldSecretVersions(t *testing.T) {
+	now := time.Now()
+
+	tests := []struct {
+		name               string
+		versions           []*secretmanagerpb.SecretVersion
+		iteratorErr        error
+		destroyErr         error
+		parentName         string
+		newVersionName     string
+		keepRecentVersions int
+		expectedDestroyed  []string
+	}{
+		{
+			name:               "no versions - nothing to destroy",
+			versions:           nil,
+			parentName:         "projects/p/secrets/s",
+			newVersionName:     "projects/p/secrets/s/versions/1",
+			keepRecentVersions: 2,
+			expectedDestroyed:  nil,
+		},
+		{
+			name: "fewer versions than limit - nothing destroyed",
+			versions: []*secretmanagerpb.SecretVersion{
+				makeSecretVersion("projects/p/secrets/s/versions/1", secretmanagerpb.SecretVersion_ENABLED, now.Add(-2*time.Hour)),
+				makeSecretVersion("projects/p/secrets/s/versions/2", secretmanagerpb.SecretVersion_ENABLED, now.Add(-1*time.Hour)),
+			},
+			parentName:         "projects/p/secrets/s",
+			newVersionName:     "projects/p/secrets/s/versions/2",
+			keepRecentVersions: 3,
+			expectedDestroyed:  nil,
+		},
+		{
+			name: "exactly at limit - nothing destroyed",
+			versions: []*secretmanagerpb.SecretVersion{
+				makeSecretVersion("projects/p/secrets/s/versions/1", secretmanagerpb.SecretVersion_ENABLED, now.Add(-2*time.Hour)),
+				makeSecretVersion("projects/p/secrets/s/versions/2", secretmanagerpb.SecretVersion_ENABLED, now.Add(-1*time.Hour)),
+			},
+			parentName:         "projects/p/secrets/s",
+			newVersionName:     "projects/p/secrets/s/versions/2",
+			keepRecentVersions: 2,
+			expectedDestroyed:  nil,
+		},
+		{
+			name: "more versions than limit - oldest destroyed",
+			versions: []*secretmanagerpb.SecretVersion{
+				makeSecretVersion("projects/p/secrets/s/versions/1", secretmanagerpb.SecretVersion_ENABLED, now.Add(-3*time.Hour)),
+				makeSecretVersion("projects/p/secrets/s/versions/2", secretmanagerpb.SecretVersion_ENABLED, now.Add(-2*time.Hour)),
+				makeSecretVersion("projects/p/secrets/s/versions/3", secretmanagerpb.SecretVersion_ENABLED, now.Add(-1*time.Hour)),
+				makeSecretVersion("projects/p/secrets/s/versions/4", secretmanagerpb.SecretVersion_ENABLED, now),
+			},
+			parentName:         "projects/p/secrets/s",
+			newVersionName:     "projects/p/secrets/s/versions/4",
+			keepRecentVersions: 2,
+			expectedDestroyed:  []string{"projects/p/secrets/s/versions/2", "projects/p/secrets/s/versions/1"},
+		},
+		{
+			name: "new version is never destroyed even if beyond limit",
+			versions: []*secretmanagerpb.SecretVersion{
+				makeSecretVersion("projects/p/secrets/s/versions/1", secretmanagerpb.SecretVersion_ENABLED, now.Add(-2*time.Hour)),
+				makeSecretVersion("projects/p/secrets/s/versions/2", secretmanagerpb.SecretVersion_ENABLED, now.Add(-1*time.Hour)),
+				makeSecretVersion("projects/p/secrets/s/versions/3", secretmanagerpb.SecretVersion_ENABLED, now),
+			},
+			parentName:         "projects/p/secrets/s",
+			newVersionName:     "projects/p/secrets/s/versions/1",
+			keepRecentVersions: 2,
+			expectedDestroyed:  nil,
+		},
+		{
+			name: "keep only one version",
+			versions: []*secretmanagerpb.SecretVersion{
+				makeSecretVersion("projects/p/secrets/s/versions/1", secretmanagerpb.SecretVersion_ENABLED, now.Add(-2*time.Hour)),
+				makeSecretVersion("projects/p/secrets/s/versions/2", secretmanagerpb.SecretVersion_ENABLED, now.Add(-1*time.Hour)),
+				makeSecretVersion("projects/p/secrets/s/versions/3", secretmanagerpb.SecretVersion_ENABLED, now),
+			},
+			parentName:         "projects/p/secrets/s",
+			newVersionName:     "projects/p/secrets/s/versions/3",
+			keepRecentVersions: 1,
+			expectedDestroyed:  []string{"projects/p/secrets/s/versions/2", "projects/p/secrets/s/versions/1"},
+		},
+		{
+			name:               "iterator error - returns early without destroying",
+			versions:           nil,
+			iteratorErr:        errors.New("permission denied"),
+			parentName:         "projects/p/secrets/s",
+			newVersionName:     "projects/p/secrets/s/versions/1",
+			keepRecentVersions: 2,
+			expectedDestroyed:  nil,
+		},
+		{
+			name: "destroy error - logs but continues with remaining versions",
+			versions: []*secretmanagerpb.SecretVersion{
+				makeSecretVersion("projects/p/secrets/s/versions/1", secretmanagerpb.SecretVersion_ENABLED, now.Add(-3*time.Hour)),
+				makeSecretVersion("projects/p/secrets/s/versions/2", secretmanagerpb.SecretVersion_ENABLED, now.Add(-2*time.Hour)),
+				makeSecretVersion("projects/p/secrets/s/versions/3", secretmanagerpb.SecretVersion_ENABLED, now.Add(-1*time.Hour)),
+				makeSecretVersion("projects/p/secrets/s/versions/4", secretmanagerpb.SecretVersion_ENABLED, now),
+			},
+			parentName:         "projects/p/secrets/s",
+			newVersionName:     "projects/p/secrets/s/versions/4",
+			keepRecentVersions: 2,
+			destroyErr:         errors.New("destroy failed"),
+			expectedDestroyed:  nil,
+		},
+		{
+			name: "unsorted input versions are sorted by creation time",
+			versions: []*secretmanagerpb.SecretVersion{
+				makeSecretVersion("projects/p/secrets/s/versions/3", secretmanagerpb.SecretVersion_ENABLED, now),
+				makeSecretVersion("projects/p/secrets/s/versions/1", secretmanagerpb.SecretVersion_ENABLED, now.Add(-3*time.Hour)),
+				makeSecretVersion("projects/p/secrets/s/versions/2", secretmanagerpb.SecretVersion_ENABLED, now.Add(-1*time.Hour)),
+			},
+			parentName:         "projects/p/secrets/s",
+			newVersionName:     "projects/p/secrets/s/versions/3",
+			keepRecentVersions: 2,
+			expectedDestroyed:  []string{"projects/p/secrets/s/versions/1"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockClient := &mockSecretManagerClient{
+				iterator: &mockSecretVersionIterator{
+					versions: tt.versions,
+					err:      tt.iteratorErr,
+				},
+				destroyErr: tt.destroyErr,
+			}
+
+			ctx := context.Background()
+			destroyOldSecretVersions(ctx, mockClient, tt.parentName, tt.newVersionName, tt.keepRecentVersions)
+
+			if len(tt.expectedDestroyed) == 0 && len(mockClient.destroyedVersions) == 0 {
+				return
+			}
+
+			if len(mockClient.destroyedVersions) != len(tt.expectedDestroyed) {
+				t.Errorf("expected %d versions destroyed, got %d: %v",
+					len(tt.expectedDestroyed), len(mockClient.destroyedVersions), mockClient.destroyedVersions)
+				return
+			}
+
+			for i, expected := range tt.expectedDestroyed {
+				if mockClient.destroyedVersions[i] != expected {
+					t.Errorf("destroyed version[%d]: expected %q, got %q", i, expected, mockClient.destroyedVersions[i])
+				}
 			}
 		})
 	}
