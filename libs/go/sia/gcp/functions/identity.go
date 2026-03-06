@@ -254,6 +254,7 @@ func destroyOldSecretVersions(ctx context.Context, client SecretManagerClientIfa
 
 	it := client.ListSecretVersions(ctx, &secretmanagerpb.ListSecretVersionsRequest{
 		Parent: parentName,
+		Filter: "state != DESTROYED",
 	})
 
 	var activeVersions []*secretmanagerpb.SecretVersion
@@ -266,9 +267,7 @@ func destroyOldSecretVersions(ctx context.Context, client SecretManagerClientIfa
 			log.Printf("Failed to list secret versions: %v\n", err)
 			return
 		}
-		if version.State != secretmanagerpb.SecretVersion_DESTROYED {
-			activeVersions = append(activeVersions, version)
-		}
+		activeVersions = append(activeVersions, version)
 	}
 
 	sort.Slice(activeVersions, func(i, j int) bool {

@@ -705,33 +705,6 @@ func TestDestroyOldSecretVersions(t *testing.T) {
 			expectedDestroyed:  []string{"projects/p/secrets/s/versions/2", "projects/p/secrets/s/versions/1"},
 		},
 		{
-			name: "destroyed versions are filtered out",
-			versions: []*secretmanagerpb.SecretVersion{
-				makeSecretVersion("projects/p/secrets/s/versions/1", secretmanagerpb.SecretVersion_DESTROYED, now.Add(-4*time.Hour)),
-				makeSecretVersion("projects/p/secrets/s/versions/2", secretmanagerpb.SecretVersion_ENABLED, now.Add(-3*time.Hour)),
-				makeSecretVersion("projects/p/secrets/s/versions/3", secretmanagerpb.SecretVersion_DESTROYED, now.Add(-2*time.Hour)),
-				makeSecretVersion("projects/p/secrets/s/versions/4", secretmanagerpb.SecretVersion_ENABLED, now.Add(-1*time.Hour)),
-				makeSecretVersion("projects/p/secrets/s/versions/5", secretmanagerpb.SecretVersion_ENABLED, now),
-			},
-			parentName:         "projects/p/secrets/s",
-			newVersionName:     "projects/p/secrets/s/versions/5",
-			keepRecentVersions: 2,
-			expectedDestroyed:  []string{"projects/p/secrets/s/versions/2"},
-		},
-		{
-			name: "disabled versions are not filtered out",
-			versions: []*secretmanagerpb.SecretVersion{
-				makeSecretVersion("projects/p/secrets/s/versions/1", secretmanagerpb.SecretVersion_DISABLED, now.Add(-3*time.Hour)),
-				makeSecretVersion("projects/p/secrets/s/versions/2", secretmanagerpb.SecretVersion_ENABLED, now.Add(-2*time.Hour)),
-				makeSecretVersion("projects/p/secrets/s/versions/3", secretmanagerpb.SecretVersion_ENABLED, now.Add(-1*time.Hour)),
-				makeSecretVersion("projects/p/secrets/s/versions/4", secretmanagerpb.SecretVersion_ENABLED, now),
-			},
-			parentName:         "projects/p/secrets/s",
-			newVersionName:     "projects/p/secrets/s/versions/4",
-			keepRecentVersions: 2,
-			expectedDestroyed:  []string{"projects/p/secrets/s/versions/2", "projects/p/secrets/s/versions/1"},
-		},
-		{
 			name: "new version is never destroyed even if beyond limit",
 			versions: []*secretmanagerpb.SecretVersion{
 				makeSecretVersion("projects/p/secrets/s/versions/1", secretmanagerpb.SecretVersion_ENABLED, now.Add(-2*time.Hour)),
