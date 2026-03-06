@@ -40,7 +40,12 @@ func ExtractServicePrincipal(x509Cert x509.Certificate) (string, error) {
 
 		// Note: Starting from Go 1.25.2, the x509 parser performs stricter checks,
 		// ensuring the email address always has a valid format (contains '@').
-		principal, _, _ = strings.Cut(emails[0], "@")
+		var found bool
+		principal, _, found = strings.Cut(emails[0], "@")
+		if !found {
+			// This path should be unreachable with Go 1.22+
+			return "", fmt.Errorf("certificate email is invalid: %s", emails[0])
+		}
 	}
 
 	return principal, nil
