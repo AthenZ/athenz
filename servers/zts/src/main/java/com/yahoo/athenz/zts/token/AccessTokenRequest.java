@@ -377,8 +377,8 @@ public class AccessTokenRequest {
             }
 
             jagTokenObj.setScope(requestedScopes);
-            jagTokenObj.setScopeStd(String.join(" ", requestedScopes));
-        }
+            jagTokenObj.setScope(new java.util.ArrayList<>(requestedSet));
+            jagTokenObj.setScopeStd(String.join(" ", requestedSet));
     }
 
     void validateSubjectToken(TokenConfigOptions options) {
