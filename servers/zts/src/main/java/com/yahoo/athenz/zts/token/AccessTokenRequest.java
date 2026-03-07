@@ -367,8 +367,8 @@ public class AccessTokenRequest {
                     "Invalid request: scope provided but assertion contains no scope");
             }
 
-            final Set<String> requestedSet = new HashSet<>(Arrays.asList(trimmedScope.split("\\s+")));
-            final Set<String> assertionSet = new HashSet<>(Arrays.asList(trimmedAssertionScope.split("\\s+")));
+            final Set<String> requestedSet = new java.util.LinkedHashSet<>(Arrays.asList(trimmedScope.split("\\s+")));
+            final Set<String> assertionSet = new java.util.LinkedHashSet<>(Arrays.asList(trimmedAssertionScope.split("\\s+")));
 
             if (!assertionSet.containsAll(requestedSet)) {
                 throw new IllegalArgumentException(
