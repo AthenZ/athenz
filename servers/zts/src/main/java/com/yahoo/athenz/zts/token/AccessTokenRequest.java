@@ -354,7 +354,7 @@ public class AccessTokenRequest {
         // limit the scope of the issued access token to be equal to or less
         // than the scope originally granted to the given ID-JAG token.
         if (!StringUtil.isEmpty(scope)) {
-            final String trimmedScope = scope.trim(); // i.e) "read write"
+            final String trimmedScope = scope.trim();
             if (trimmedScope.isEmpty()) {
                 throw new IllegalArgumentException(
                     "Invalid request: requested scope cannot contain only whitespace");
@@ -369,7 +369,7 @@ public class AccessTokenRequest {
 
             final List<String> requestedScopes = Arrays.asList(trimmedScope.split("\\s+"));
             final Set<String> requestedSet = new HashSet<>(requestedScopes);
-            final Set<String> assertionSet = new HashSet<>(Arrays.asList(assertionScope.trim().split("\\s+")));
+            final Set<String> assertionSet = new HashSet<>(Arrays.asList(trimmedAssertionScope.split("\\s+")));
 
             if (!assertionSet.containsAll(requestedSet)) {
                 throw new IllegalArgumentException(
@@ -379,6 +379,7 @@ public class AccessTokenRequest {
             jagTokenObj.setScope(requestedScopes);
             jagTokenObj.setScope(new java.util.ArrayList<>(requestedSet));
             jagTokenObj.setScopeStd(String.join(" ", requestedSet));
+        }
     }
 
     void validateSubjectToken(TokenConfigOptions options) {
