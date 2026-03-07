@@ -367,8 +367,7 @@ public class AccessTokenRequest {
                     "Invalid request: scope provided but assertion contains no scope");
             }
 
-            final List<String> requestedScopes = Arrays.asList(trimmedScope.split("\\s+"));
-            final Set<String> requestedSet = new HashSet<>(requestedScopes);
+            final Set<String> requestedSet = new HashSet<>(Arrays.asList(trimmedScope.split("\\s+")));
             final Set<String> assertionSet = new HashSet<>(Arrays.asList(trimmedAssertionScope.split("\\s+")));
 
             if (!assertionSet.containsAll(requestedSet)) {
@@ -376,7 +375,6 @@ public class AccessTokenRequest {
                     "Invalid request: requested scope is not a subset of assertion scope");
             }
 
-            jagTokenObj.setScope(requestedScopes);
             jagTokenObj.setScope(new java.util.ArrayList<>(requestedSet));
             jagTokenObj.setScopeStd(String.join(" ", requestedSet));
         }
