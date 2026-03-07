@@ -361,7 +361,8 @@ public class AccessTokenRequest {
             }
 
             final String assertionScope = jagTokenObj.getScopeStd();
-            if (StringUtil.isEmpty(assertionScope) || assertionScope.trim().isEmpty()) {
+            final String trimmedAssertionScope = (assertionScope == null) ? "" : assertionScope.trim();
+            if (trimmedAssertionScope.isEmpty()) {
                 throw new IllegalArgumentException(
                     "Invalid request: scope provided but assertion contains no scope");
             }
