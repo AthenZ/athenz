@@ -34,6 +34,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class AccessTokenRequest {
 
@@ -342,6 +346,38 @@ public class AccessTokenRequest {
             jagTokenObj = new AccessToken(assertion, options.getJwtJAGProcessor());
         } catch (Exception ex) {
             throw new IllegalArgumentException("Invalid assertion token: " + ex.getMessage());
+        }
+
+        // RFC 7523 defines that the 'scope' parameter MAY be used.
+        // However, per RFC 7521, if the 'scope' is included,
+        // the requested scope MUST be equal to or less than the scope originally
+        // granted to the given ID-JAG token. The authorization server MUST
+        // limit the scope of the issued access token to be equal to or less
+        // than the scope originally granted to the given ID-JAG token.
+        if (!StringUtil.isEmpty(scope)) {
+            final String trimmedScope = scope.trim();
+            if (trimmedScope.isEmpty()) {
+                throw new IllegalArgumentException(
+                    "Invalid request: requested scope cannot contain only whitespace");
+            }
+
+            final String assertionScope = jagTokenObj.getScopeStd();
+            final String trimmedAssertionScope = (assertionScope == null) ? "" : assertionScope.trim();
+            if (trimmedAssertionScope.isEmpty()) {
+                throw new IllegalArgumentException(
+                    "Invalid request: scope provided but assertion contains no scope");
+            }
+
+            final Set<String> requestedSet = new LinkedHashSet<>(Arrays.asList(trimmedScope.split("\\s+")));
+            final Set<String> assertionSet = new LinkedHashSet<>(Arrays.asList(trimmedAssertionScope.split("\\s+")));
+
+            if (!assertionSet.containsAll(requestedSet)) {
+                throw new IllegalArgumentException(
+                    "Invalid request: requested scope is not a subset of assertion scope");
+            }
+
+            jagTokenObj.setScope(new ArrayList<>(requestedSet));
+            jagTokenObj.setScopeStd(String.join(" ", requestedSet));
         }
     }
 

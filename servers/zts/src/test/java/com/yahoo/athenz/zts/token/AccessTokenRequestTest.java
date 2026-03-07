@@ -42,6 +42,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Arrays;
 
 import static org.testng.Assert.*;
 
@@ -540,7 +541,7 @@ public class AccessTokenRequestTest {
         // Create a subject token for user_domain.user with audience as proxy-user1
         long expiryTime = System.currentTimeMillis() / 1000 + 3600;
         String assertionToken = createToken(privateKey, "0", "user_domain.user",
-                "user_domain.proxy-user1", expiryTime, AccessToken.HDR_TOKEN_JAG);
+                "user_domain.proxy-user1", expiryTime, AccessToken.HDR_TOKEN_JAG, "test");
 
         AccessTokenRequest request = new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer"
                 + "&assertion=" + assertionToken
@@ -1213,7 +1214,7 @@ public class AccessTokenRequestTest {
     }
 
     private String createToken(PrivateKey privateKey, String keyId, String subject, String audience,
-            long expiryTime, String mayActSubject, String tokenType) {
+            long expiryTime, String mayActSubject, String tokenType, String scopeStd) {
 
         try {
             JWSSigner signer = JwtsHelper.getJWSSigner(privateKey);
@@ -1223,7 +1224,7 @@ public class AccessTokenRequestTest {
                 mayActMap = new HashMap<>();
                 mayActMap.put("sub", mayActSubject);
             }
-            JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+            JWTClaimsSet.Builder claimsBuilder = new JWTClaimsSet.Builder()
                     .subject(subject)
                     .issueTime(Date.from(Instant.ofEpochSecond(now)))
                     .expirationTime(Date.from(Instant.ofEpochSecond(expiryTime)))
@@ -1231,14 +1232,22 @@ public class AccessTokenRequestTest {
                     .audience(audience)
                     .claim("ver", 1)
                     .claim("auth_time", now)
-                    .claim("may_act", mayActMap)
-                    .build();
+                    .claim("may_act", mayActMap);
+
+            if (scopeStd != null) {
+                final String trimmed = scopeStd.trim();
+                if (!trimmed.isEmpty()) {
+                    claimsBuilder
+                        .claim(AccessToken.CLAIM_SCOPE_STD, trimmed) // "scope"
+                        .claim(AccessToken.CLAIM_SCOPE, Arrays.asList(trimmed.split("\\s+"))); // "scp"
+                }
+            }
 
             JWSHeader.Builder builder = new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(keyId);
             if (tokenType != null) {
                 builder.type(new JOSEObjectType(tokenType));
             }
-            SignedJWT signedJWT = new SignedJWT(builder.build(), claimsSet);
+            SignedJWT signedJWT = new SignedJWT(builder.build(), claimsBuilder.build());
             signedJWT.sign(signer);
             return signedJWT.serialize();
         } catch (JOSEException ex) {
@@ -1249,7 +1258,12 @@ public class AccessTokenRequestTest {
 
     private String createToken(PrivateKey privateKey, String keyId, String subject, String audience,
             long expiryTime, String tokenType) {
-        return createToken(privateKey, keyId, subject, audience, expiryTime, null, tokenType);
+        return createToken(privateKey, keyId, subject, audience, expiryTime, null, tokenType, null);
+    }
+
+    private String createToken(PrivateKey privateKey, String keyId, String subject, String audience,
+            long expiryTime, String tokenType, String scopeStd) {
+        return createToken(privateKey, keyId, subject, audience, expiryTime, null, tokenType, scopeStd);
     }
 
     private ConfigurableJWTProcessor<SecurityContext> createJAGProcessor() {
