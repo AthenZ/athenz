@@ -360,16 +360,15 @@ public class AccessTokenRequest {
                     "Invalid request: requested scope cannot contain only whitespace");
             }
 
-            final String trimmedAssertionScope = jagTokenObj.getScopeStd().trim();
-            if (trimmedAssertionScope.isEmpty()) {
+            final String assertionScope = jagTokenObj.getScopeStd();
+            if (StringUtil.isEmpty(assertionScope) || assertionScope.trim().isEmpty()) {
                 throw new IllegalArgumentException(
                     "Invalid request: scope provided but assertion contains no scope");
             }
 
             final List<String> requestedScopes = Arrays.asList(trimmedScope.split("\\s+"));
             final Set<String> requestedSet = new HashSet<>(requestedScopes);
-            final Set<String> assertionSet =
-                new HashSet<>(Arrays.asList(trimmedAssertionScope.split("\\s+")));
+            final Set<String> assertionSet = new HashSet<>(Arrays.asList(assertionScope.trim().split("\\s+")));
 
             if (!assertionSet.containsAll(requestedSet)) {
                 throw new IllegalArgumentException(
