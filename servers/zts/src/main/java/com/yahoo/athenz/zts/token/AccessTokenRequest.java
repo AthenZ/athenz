@@ -35,7 +35,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class AccessTokenRequest {
@@ -367,15 +368,15 @@ public class AccessTokenRequest {
                     "Invalid request: scope provided but assertion contains no scope");
             }
 
-            final Set<String> requestedSet = new java.util.LinkedHashSet<>(Arrays.asList(trimmedScope.split("\\s+")));
-            final Set<String> assertionSet = new java.util.LinkedHashSet<>(Arrays.asList(trimmedAssertionScope.split("\\s+")));
+            final Set<String> requestedSet = new LinkedHashSet<>(Arrays.asList(trimmedScope.split("\\s+")));
+            final Set<String> assertionSet = new LinkedHashSet<>(Arrays.asList(trimmedAssertionScope.split("\\s+")));
 
             if (!assertionSet.containsAll(requestedSet)) {
                 throw new IllegalArgumentException(
                     "Invalid request: requested scope is not a subset of assertion scope");
             }
 
-            jagTokenObj.setScope(new java.util.ArrayList<>(requestedSet));
+            jagTokenObj.setScope(new ArrayList<>(requestedSet));
             jagTokenObj.setScopeStd(String.join(" ", requestedSet));
         }
     }
