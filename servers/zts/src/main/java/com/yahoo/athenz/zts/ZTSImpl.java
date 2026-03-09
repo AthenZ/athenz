@@ -3231,7 +3231,7 @@ public class ZTSImpl implements ZTSHandler {
         //    the scope of the issued access token to be a subset of the original scope.
 
         String scopeStd = jagToken.getScopeStd();
-        if (StringUtil.isEmpty(scopeStd)) {
+        if (StringUtil.isBlank(scopeStd)) {
             LOGGER.error("Invalid jag assertion - missing scope");
             throw requestError("Invalid jag assertion - missing scope", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
         }

@@ -2061,34 +2061,45 @@ public class ZTSImplAccessTokenTest {
         return new Object[][] {
             // { gotUser, gotJAGScope, gotRequestedScope, wantScope, wantErrorCode, wantErrorMessage }
             { W_USER, W, null, null, 0, null },
+            { W_USER, W, "", null, 0, null },
             { W_USER, W, W, null, 0, null },
             { W_USER, W, W_R, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
             { W_USER, W, R, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
 
             { W_USER, W_R, null, W, 0, null },
+            { W_USER, W_R, "", W, 0, null },
             { W_USER, W_R, W, null, 0, null },
             { W_USER, W_R, W_R, W, 0, null },
             { W_USER, W_R, R, null, 403, "principal user_domain.user is not included in the requested role(s) in domain coretech" },
 
             { W_USER, R, null, null, 403, "principal user_domain.user is not included in the requested role(s) in domain coretech" },
+            { W_USER, R, "", null, 403, "principal user_domain.user is not included in the requested role(s) in domain coretech" },
             { W_USER, R, W, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
             { W_USER, R, W_R, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
             { W_USER, R, R, null, 403, "principal user_domain.user is not included in the requested role(s) in domain coretech" },
 
             { WR_USER, W, null, null, 0, null },
+            { WR_USER, W, "", null, 0, null },
             { WR_USER, W, W, null, 0, null },
             { WR_USER, W, W_R, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
             { WR_USER, W, R, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
 
             { WR_USER, W_R, null, null, 0, null },
+            { WR_USER, W_R, "", null, 0, null },
             { WR_USER, W_R, W, null, 0, null },
             { WR_USER, W_R, W_R, null, 0, null },
             { WR_USER, W_R, R, null, 0, null },
 
             { WR_USER, R, null, null, 0, null },
+            { WR_USER, R, "", null, 0, null },
             { WR_USER, R, W, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
             { WR_USER, R, W_R, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
-            { WR_USER, R, R, null, 0, null }
+            { WR_USER, R, R, null, 0, null },
+
+            // edge cases:
+            { W_USER, null, null, null, 400, "Invalid jag assertion - missing scope" }, // no scope in jag assertion
+            { W_USER, "  ", null, null, 400, "Invalid jag assertion - missing scope" }, // white spaces in jag assertion
+            { W_USER, W, "  ", null, 0, null }, // white spaces in requested scope acts the same as empty requested scope
         };
     }
 
@@ -2301,44 +2312,6 @@ public class ZTSImplAccessTokenTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid jag assertion client_id"));
-        }
-    }
-
-    @Test
-    public void testProcessJAGTokenExchangeRequestMissingScope() {
-
-        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
-
-        CloudStore cloudStore = new CloudStore();
-        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
-        ztsImpl.tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
-        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
-
-        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
-        store.processSignedDomain(signedDomain, false);
-
-        // Create JAG token without scope
-        File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
-        PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
-        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
-        String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
-                "", ztsImpl.ztsOAuthIssuer, expiryTime);
-
-        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(servletRequest.isSecure()).thenReturn(true);
-        Principal principal = SimplePrincipal.create("coretech", "jwt",
-                "v=U1;d=coretech;n=jwt;s=signature", 0, null);
-        ResourceContext context = createResourceContext(principal);
-
-        try {
-            ztsImpl.postAccessTokenRequest(context,
-                    "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
-                    + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-                    + "&client_assertion=" + createClientAssertionToken(privateKey));
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("Invalid jag assertion - missing scope"));
         }
     }
 
