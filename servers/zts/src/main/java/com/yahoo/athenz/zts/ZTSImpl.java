@@ -3237,13 +3237,8 @@ public class ZTSImpl implements ZTSHandler {
         }
 
         String requestedScope = accessTokenRequest.getScope();
-        if (!StringUtil.isEmpty(requestedScope)) {
+        if (!StringUtil.isBlank(requestedScope)) {
             final String trimmedRequestedScope = requestedScope.trim();
-            if (trimmedRequestedScope.isEmpty()) {
-                throw requestError("Invalid request: requested scope cannot contain only whitespace",
-                        caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
-            }
-
             final Set<String> requestedSet = new LinkedHashSet<>(Arrays.asList(trimmedRequestedScope.split("\\s+")));
             final Set<String> assertionSet = new LinkedHashSet<>(Arrays.asList(scopeStd.split("\\s+")));
 
@@ -3271,7 +3266,7 @@ public class ZTSImpl implements ZTSHandler {
         }
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("processAccessTokenJAGRequest(principal: {}, assertionScope: {}, scope: {})", principalName, jagToken.getScopeStd(), scopeStd);
+            LOGGER.debug("processAccessTokenJAGRequest(principal: {}, assertionScope: {}, requestedScope: {}, scope: {})", principalName, jagToken.getScopeStd(), requestedScope, scopeStd);
         }
 
         // our scopes are space separated list of values

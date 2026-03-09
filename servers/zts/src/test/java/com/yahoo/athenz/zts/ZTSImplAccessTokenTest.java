@@ -58,6 +58,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.testng.annotations.DataProvider;
 
 import java.io.*;
 import java.net.URLEncoder;
@@ -2047,8 +2048,58 @@ public class ZTSImplAccessTokenTest {
         System.clearProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER);
     }
 
-    @Test
-    public void testProcessJAGTokenExchangeRequestSuccessWithSpecificRoles() {
+    @DataProvider(name = "jagTokenExchangeCases")
+    public Object[][] jagTokenExchangeCases() {
+
+        final String W_USER = "user_domain.user";
+        final String WR_USER = "user_domain.user1";
+        final String W = "coretech:role.writers";
+        final String R = "coretech:role.readers";
+        final String W_R = "coretech:role.writers coretech:role.readers";
+
+        
+        return new Object[][] {
+            // { gotUser, gotJAGScope, gotRequestedScope, wantScope, wantErrorCode, wantErrorMessage }
+            { W_USER, W, null, null, 0, null },
+            { W_USER, W, W, null, 0, null },
+            { W_USER, W, W_R, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
+            { W_USER, W, R, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
+
+            { W_USER, W_R, null, W, 0, null },
+            { W_USER, W_R, W, null, 0, null },
+            { W_USER, W_R, W_R, W, 0, null },
+            { W_USER, W_R, R, null, 403, "principal user_domain.user is not included in the requested role(s) in domain coretech" },
+
+            { W_USER, R, null, null, 403, "principal user_domain.user is not included in the requested role(s) in domain coretech" },
+            { W_USER, R, W, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
+            { W_USER, R, W_R, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
+            { W_USER, R, R, null, 403, "principal user_domain.user is not included in the requested role(s) in domain coretech" },
+
+            { WR_USER, W, null, null, 0, null },
+            { WR_USER, W, W, null, 0, null },
+            { WR_USER, W, W_R, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
+            { WR_USER, W, R, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
+
+            { WR_USER, W_R, null, null, 0, null },
+            { WR_USER, W_R, W, null, 0, null },
+            { WR_USER, W_R, W_R, null, 0, null },
+            { WR_USER, W_R, R, null, 0, null },
+
+            { WR_USER, R, null, null, 0, null },
+            { WR_USER, R, W, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
+            { WR_USER, R, W_R, null, 400, "Invalid request: requested scope is not a subset of assertion scope" },
+            { WR_USER, R, R, null, 0, null }
+        };
+    }
+
+    @Test(dataProvider = "jagTokenExchangeCases")
+    public void testProcessJAGTokenExchangeRequest(
+            String gotUser,
+            String gotJAGScope,
+            String gotRequestedScope,
+            String wantScope,
+            int wantErrorCode,
+            String wantErrorMessage) {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -2064,23 +2115,44 @@ public class ZTSImplAccessTokenTest {
         File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
         PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
         long expiryTime = System.currentTimeMillis() / 1000 + 3600;
-        String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
-                "coretech:role.writers", ztsImpl.ztsOAuthIssuer, expiryTime);
+        String jagToken = createJagToken(privateKey, "0", gotUser, "coretech.jwt",
+                gotJAGScope, ztsImpl.ztsOAuthIssuer, expiryTime);
 
-        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(servletRequest.isSecure()).thenReturn(true);
         Principal principal = SimplePrincipal.create("coretech", "jwt",
                 "v=U1;d=coretech;n=jwt;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal);
 
-        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
-                "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
-                + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-                + "&client_assertion=" + createClientAssertionToken(privateKey));
+        StringBuilder requestBody = new StringBuilder(
+                "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer"
+                        + "&assertion=" + jagToken
+                        + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                        + "&client_assertion=" + createClientAssertionToken(privateKey));
 
-        assertNotNull(resp);
-        assertNull(resp.getScope()); // No scope returned when specific role requested
-        assertNotNull(resp.getAccess_token());
+        if (gotRequestedScope != null) {
+            requestBody.append("&scope=").append(gotRequestedScope);
+        }
+
+        try {
+            AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context, requestBody.toString());
+
+            if (wantErrorCode != 0) {
+                fail("Expected error code " + wantErrorCode + " but request succeeded");
+            }
+
+            assertNotNull(resp);
+            assertEquals(resp.getScope(), wantScope);
+            assertNotNull(resp.getAccess_token());
+
+        } catch (ResourceException ex) {
+            if (wantErrorCode == 0) {
+                fail("Expected success but got error: " + ex.getMessage());
+            }
+
+            assertEquals(ex.getCode(), wantErrorCode);
+            if (!ex.getMessage().contains(wantErrorMessage)) {
+                fail("Want error: " + wantErrorMessage + ", Got error: " + ex.getMessage());
+            }
+        }
     }
 
     @Test
