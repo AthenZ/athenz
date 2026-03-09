@@ -3235,7 +3235,6 @@ public class ZTSImpl implements ZTSHandler {
             LOGGER.error("Invalid jag assertion - missing scope");
             throw requestError("Invalid jag assertion - missing scope", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
         }
-
         String requestedScope = accessTokenRequest.getScope();
         if (!StringUtil.isBlank(requestedScope)) {
             final String trimmedRequestedScope = requestedScope.trim();
