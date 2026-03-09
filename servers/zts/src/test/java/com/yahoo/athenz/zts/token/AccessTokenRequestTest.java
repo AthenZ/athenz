@@ -540,16 +540,16 @@ public class AccessTokenRequestTest {
         // Create a subject token for user_domain.user with audience as proxy-user1
         long expiryTime = System.currentTimeMillis() / 1000 + 3600;
         String assertionToken = createToken(privateKey, "0", "user_domain.user",
-                "user_domain.proxy-user1", expiryTime, null, AccessToken.HDR_TOKEN_JAG, "testscope");
+                "user_domain.proxy-user1", expiryTime, AccessToken.HDR_TOKEN_JAG);
 
         AccessTokenRequest request = new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer"
                 + "&assertion=" + assertionToken
-                + "&scope=testscope&resource=data", defaultConfigOptions);
+                + "&scope=test&resource=data", defaultConfigOptions);
         assertNotNull(request);
         assertEquals(request.getGrantType(), "urn:ietf:params:oauth:grant-type:jwt-bearer");
         assertEquals(request.getRequestType(), AccessTokenRequest.RequestType.JAG_JWT_BEARER);
         assertEquals(request.getAssertion(), assertionToken);
-        assertEquals(request.getScope(), "testscope");
+        assertEquals(request.getScope(), "test");
         assertEquals(request.getResource(), "data");
     }
 
@@ -1213,7 +1213,7 @@ public class AccessTokenRequestTest {
     }
 
     private String createToken(PrivateKey privateKey, String keyId, String subject, String audience,
-            long expiryTime, String mayActSubject, String tokenType, String scope) {
+            long expiryTime, String mayActSubject, String tokenType) {
 
         try {
             JWSSigner signer = JwtsHelper.getJWSSigner(privateKey);
@@ -1223,7 +1223,6 @@ public class AccessTokenRequestTest {
                 mayActMap = new HashMap<>();
                 mayActMap.put("sub", mayActSubject);
             }
-            
             JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                     .subject(subject)
                     .issueTime(Date.from(Instant.ofEpochSecond(now)))
@@ -1233,7 +1232,6 @@ public class AccessTokenRequestTest {
                     .claim("ver", 1)
                     .claim("auth_time", now)
                     .claim("may_act", mayActMap)
-                    .claim("scope", scope)
                     .build();
 
             JWSHeader.Builder builder = new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(keyId);
@@ -1250,13 +1248,8 @@ public class AccessTokenRequestTest {
     }
 
     private String createToken(PrivateKey privateKey, String keyId, String subject, String audience,
-            long expiryTime, String mayActSubject, String tokenType) {
-        return createToken(privateKey, keyId, subject, audience, expiryTime, mayActSubject, tokenType, null);
-    }
-
-    private String createToken(PrivateKey privateKey, String keyId, String subject, String audience,
             long expiryTime, String tokenType) {
-        return createToken(privateKey, keyId, subject, audience, expiryTime, null, tokenType, "");
+        return createToken(privateKey, keyId, subject, audience, expiryTime, null, tokenType);
     }
 
     private ConfigurableJWTProcessor<SecurityContext> createJAGProcessor() {
