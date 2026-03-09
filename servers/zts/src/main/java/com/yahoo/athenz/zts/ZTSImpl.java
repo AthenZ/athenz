@@ -3220,10 +3220,42 @@ public class ZTSImpl implements ZTSHandler {
         }
 
         // now we need to validate the scope value
+        //
+        // Mandatory Scope: While RFC 7523 defines the 'scope' parameter as
+        //    optional for JAG token, Athenz strictly requires it to determine which Athenz role
+        //    the issued Access Token should represent.
+        //
+        // Downscoping: Per RFC 7521, if a requested 'scope' is included in the
+        //    exchange request, it MUST be equal to or less than the scope originally
+        //    granted to the given ID-JAG token. The authorization server (Athenz) MUST limit
+        //    the scope of the issued access token to be a subset of the original scope.
 
-        if (StringUtil.isEmpty(jagToken.getScopeStd())) {
+        String scopeStd = jagToken.getScopeStd();
+        if (StringUtil.isEmpty(scopeStd)) {
             LOGGER.error("Invalid jag assertion - missing scope");
             throw requestError("Invalid jag assertion - missing scope", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
+        }
+
+        String requestedScope = accessTokenRequest.getScope();
+        if (!StringUtil.isEmpty(requestedScope)) {
+            final String trimmedRequestedScope = requestedScope.trim();
+            if (trimmedRequestedScope.isEmpty()) {
+                throw requestError("Invalid request: requested scope cannot contain only whitespace",
+                        caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
+            }
+
+            final Set<String> requestedSet = new LinkedHashSet<>(Arrays.asList(trimmedRequestedScope.split("\\s+")));
+            final Set<String> assertionSet = new LinkedHashSet<>(Arrays.asList(scopeStd.split("\\s+")));
+
+            if (!assertionSet.containsAll(requestedSet)) {
+                LOGGER.error("Requested scope is not a subset of assertion scope. Requested: {}, Assertion: {}", requestedSet, assertionSet);
+                throw requestError("Invalid request: requested scope is not a subset of assertion scope",
+                        caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
+            }
+
+            // The authorization server MUST limit the scope of the issued access token
+            // to be equal to or less than the scope originally granted.
+            scopeStd = String.join(" ", requestedSet);
         }
 
         // get our principal name for simpler access. with jag token that is specified
@@ -3239,13 +3271,13 @@ public class ZTSImpl implements ZTSHandler {
         }
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("processAccessTokenJAGRequest(principal: {}, scope: {})", principalName, jagToken.getScopeStd());
+            LOGGER.debug("processAccessTokenJAGRequest(principal: {}, assertionScope: {}, scope: {})", principalName, jagToken.getScopeStd(), scopeStd);
         }
 
         // our scopes are space separated list of values
 
         final String principalDomain = AthenzUtils.extractPrincipalDomainName(principalName);
-        AccessTokenScope tokenScope = new AccessTokenScope(jagToken.getScopeStd(), principalDomain);
+        AccessTokenScope tokenScope = new AccessTokenScope(scopeStd, principalDomain);
 
         // before using any of our values let's validate that they
         // match our schema
