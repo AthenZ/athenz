@@ -222,6 +222,7 @@ public final class ZTSConsts {
     public static final String ZTS_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY_DEFAULT = "75";
     public static final String ZTS_PROP_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY = "athenz.zts.cert_priority_max_percent_high_priority";
     public static final String ZTS_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY_DEFAULT = "25";
+    public static final String ZTS_PROP_PRINCIPAL_IDENTITY_ISSUER_MAP_FNAME = "athenz.zts.principal_identity_issuer_map_fname";
 
     public static final String ZTS_OPENID_RESPONSE_TOKEN_TYPE = "urn:ietf:params:oauth:token-type:";
     public static final String ZTS_OPENID_RESPONSE_AT_ONLY    = "token";

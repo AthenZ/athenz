@@ -12627,6 +12627,7 @@ public class ZTSImplTest {
     public void testGetOIDCResponseGroups() throws JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+        System.setProperty(ZTSConsts.ZTS_PROP_PRINCIPAL_IDENTITY_ISSUER_MAP_FNAME, "src/test/resources/principal_identity_issuers.json");
 
         CloudStore cloudStore = new CloudStore();
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
@@ -12635,6 +12636,7 @@ public class ZTSImplTest {
 
         Principal principal = SimplePrincipal.create("user_domain", "user",
                 "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ((SimplePrincipal) principal).setIssuerIdentity(ztsImpl.principalIdentityIssuer.getIssuerIdentity("key-id"));
         ResourceContext context = createResourceContext(principal);
 
         Group groupDev = createTestGroup("coretech", "dev-team", "user_domain.user", "user_domain.user1");
@@ -12665,12 +12667,14 @@ public class ZTSImplTest {
             assertEquals(userGroups.size(), 2);
             assertTrue(userGroups.contains("coretech:group.dev-team"));
             assertTrue(userGroups.contains("coretech:group.pe-team"));
+            assertEquals(claimsSet.getStringClaim("principal_issuer"), "athenz");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
 
         // get only one of the groups and include state
 
+        ((SimplePrincipal) principal).setIssuerIdentity(ztsImpl.principalIdentityIssuer.getIssuerIdentity("x509-partner1"));
         response = ztsImpl.getOIDCResponse(context, "id_token", "coretech.api", "https://localhost:4443/zts",
                 "openid coretech:group.dev-team", "valid-state", "nonce", "RSA", null, null, null, null, null);
         assertEquals(response.getStatus(), ResourceException.FOUND);
@@ -12698,6 +12702,7 @@ public class ZTSImplTest {
             assertNotNull(userGroups);
             assertEquals(userGroups.size(), 1);
             assertTrue(userGroups.contains("coretech:group.dev-team"));
+            assertEquals(claimsSet.getStringClaim("principal_issuer"), "partner1");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -12741,6 +12746,8 @@ public class ZTSImplTest {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("principal not included in all requested groups"));
         }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_PRINCIPAL_IDENTITY_ISSUER_MAP_FNAME);
     }
 
     @Test
@@ -14702,7 +14709,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(null);
 
         String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
-                "production", "athenz.production", MOCKCLIENTADDR);
+                "production", "athenz.production", MOCKCLIENTADDR, null);
 
         assertNotNull(token);
 
@@ -14733,7 +14740,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(null);
 
         String token = ztsImpl.getCertRequestServiceToken(context, info, "sports",
-                "api", "sports.api", "192.168.1.1");
+                "api", "sports.api", "192.168.1.1", null);
 
         assertNotNull(token);
 
@@ -14763,7 +14770,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(null);
 
         String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
-                "production", "athenz.production", MOCKCLIENTADDR);
+                "production", "athenz.production", MOCKCLIENTADDR, null);
 
         assertNotNull(token);
 
@@ -14797,7 +14804,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(null);
 
         String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
-                "production", "athenz.production", MOCKCLIENTADDR);
+                "production", "athenz.production", MOCKCLIENTADDR, null);
 
         assertNotNull(token);
 
@@ -14837,7 +14844,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(null);
 
         String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
-                "production", "athenz.production", MOCKCLIENTADDR);
+                "production", "athenz.production", MOCKCLIENTADDR, null);
 
         assertNotNull(token);
 
@@ -14878,7 +14885,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(null);
 
         String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
-                "production", "athenz.production", MOCKCLIENTADDR);
+                "production", "athenz.production", MOCKCLIENTADDR, null);
 
         assertNotNull(token);
 
@@ -14916,7 +14923,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(null);
 
         String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
-                "production", "athenz.production", MOCKCLIENTADDR);
+                "production", "athenz.production", MOCKCLIENTADDR, null);
 
         assertNotNull(token);
 
@@ -14957,7 +14964,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(null);
 
         String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
-                "production", "athenz.production", MOCKCLIENTADDR);
+                "production", "athenz.production", MOCKCLIENTADDR, null);
 
         assertNotNull(token);
 
@@ -14996,7 +15003,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(null);
 
         String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
-                "production", "athenz.production", MOCKCLIENTADDR);
+                "production", "athenz.production", MOCKCLIENTADDR, null);
 
         assertNotNull(token);
 

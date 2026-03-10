@@ -262,8 +262,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
         InstanceRegisterInformation info = createInstanceRegisterInformation("instance-001", "spiffe://athenz/sa/production",
                 false, "audience-123", "nonce-456", 3600, null, null);
 
+        DomainData domainData = new DomainData();
+        domainData.setX509CertSignerKeyId("signer-key-001");
         Response response = zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                "athenz.production", "athenz", "athenz.provider", "postInstanceJWTRegister");
+                "athenz.production", "athenz", domainData, "athenz.provider", null, "postInstanceJWTRegister");
 
         assertEquals(response.getStatus(), ResourceException.CREATED);
         assertNotNull(response.getEntity());
@@ -301,8 +303,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
         InstanceRegisterInformation info = createInstanceRegisterInformation("instance-002",
                 "spiffe://athenz/sa/production", true, "audience-123", "nonce-456", 3600, null, null);
 
+        DomainData domainData = new DomainData();
+        domainData.setX509CertSignerKeyId("signer-key-001");
         Response response = zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                "athenz.production", "athenz", "athenz.provider", "postInstanceJWTRegister");
+                "athenz.production", "athenz", domainData, "athenz.provider", null, "postInstanceJWTRegister");
 
         assertEquals(response.getStatus(), ResourceException.CREATED);
         InstanceIdentity identity = (InstanceIdentity) response.getEntity();
@@ -327,8 +331,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
                 "spiffe://wrong-domain/sa/production", false, "audience-123", "nonce-456", 3600, null, null);
 
         try {
+            DomainData domainData = new DomainData();
+            domainData.setX509CertSignerKeyId("signer-key-001");
             zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                    "athenz.production", "athenz", "athenz.provider", "postInstanceJWTRegister");
+                    "athenz.production", "athenz", domainData, "athenz.provider", null, "postInstanceJWTRegister");
             fail("Should have thrown ResourceException");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -352,8 +358,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
                 "audience-123", "nonce-456", 3600, null, null);
 
         try {
+            DomainData domainData = new DomainData();
+            domainData.setX509CertSignerKeyId("signer-key-001");
             zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                    "athenz.production", "athenz", "athenz.provider", "postInstanceJWTRegister");
+                    "athenz.production", "athenz", domainData, "athenz.provider", null, "postInstanceJWTRegister");
             fail("Should have thrown ResourceException");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -377,8 +385,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
                 "spiffe://athenz/sa/production", false, "audience-123", "nonce-456", 3600, null, null);
 
         try {
+            DomainData domainData = new DomainData();
+            domainData.setX509CertSignerKeyId("signer-key-001");
             zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                    "athenz.production", "athenz", "unknown.provider", "postInstanceJWTRegister");
+                    "athenz.production", "athenz", domainData, "unknown.provider", null, "postInstanceJWTRegister");
             fail("Should have thrown ResourceException");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -405,8 +415,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
                 "spiffe://athenz/sa/production", false, "audience-123", "nonce-456", 3600, null, null);
 
         try {
+            DomainData domainData = new DomainData();
+            domainData.setX509CertSignerKeyId("signer-key-001");
             zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                    "athenz.production", "athenz", "athenz.provider", "postInstanceJWTRegister");
+                    "athenz.production", "athenz", domainData, "athenz.provider", null, "postInstanceJWTRegister");
             fail("Should have thrown ResourceException");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
@@ -418,8 +430,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
 
         System.setProperty("athenz.instance.test.provider.argument.exception", "true");
         try {
+            DomainData domainData = new DomainData();
+            domainData.setX509CertSignerKeyId("signer-key-001");
             zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                    "athenz.production", "athenz", "athenz.provider", "postInstanceJWTRegister");
+                    "athenz.production", "athenz", domainData, "athenz.provider", null, "postInstanceJWTRegister");
             fail("Should have thrown ResourceException");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
@@ -478,8 +492,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
                 "spiffe://athenz/sa/production", false, "audience-123", "nonce-456", 3600, null, null);
 
         try {
+            DomainData domainData = new DomainData();
+            domainData.setX509CertSignerKeyId("signer-key-001");
             zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                    "athenz.production", "athenz", "athenz.provider", "postInstanceJWTRegister");
+                    "athenz.production", "athenz", domainData, "athenz.provider", null, "postInstanceJWTRegister");
             fail("Should have thrown ResourceException");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.GATEWAY_TIMEOUT);
@@ -505,8 +521,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
         InstanceRegisterInformation info = createInstanceRegisterInformation("instance-008",
                 "spiffe://athenz/sa/production", false, "audience-123", "nonce-456", 3600, "RSA", null);
 
+        DomainData domainData = new DomainData();
+        domainData.setX509CertSignerKeyId("signer-key-001");
         Response response = zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                "athenz.production", "athenz", "athenz.provider", "postInstanceJWTRegister");
+                "athenz.production", "athenz", domainData, "athenz.provider", null, "postInstanceJWTRegister");
 
         assertEquals(response.getStatus(), ResourceException.CREATED);
         InstanceIdentity identity = (InstanceIdentity) response.getEntity();
@@ -533,8 +551,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
                 "spiffe://athenz/sa/production", false, "audience-123", "nonce-456", 3600, "EC", null
         );
 
+        DomainData domainData = new DomainData();
+        domainData.setX509CertSignerKeyId("signer-key-001");
         Response response = zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                "athenz.production", "athenz", "athenz.provider", "postInstanceJWTRegister");
+                "athenz.production", "athenz", domainData, "athenz.provider", null, "postInstanceJWTRegister");
 
         assertEquals(response.getStatus(), ResourceException.CREATED);
         InstanceIdentity identity = (InstanceIdentity) response.getEntity();
@@ -561,8 +581,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
                 "spiffe://athenz/sa/production", false, "audience-123", "nonce-456", customExpiry, null, null
         );
 
+        DomainData domainData = new DomainData();
+        domainData.setX509CertSignerKeyId("signer-key-001");
         Response response = zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                "athenz.production", "athenz", "athenz.provider", "postInstanceJWTRegister");
+                "athenz.production", "athenz", domainData, "athenz.provider", null, "postInstanceJWTRegister");
 
         assertEquals(response.getStatus(), ResourceException.CREATED);
         InstanceIdentity identity = (InstanceIdentity) response.getEntity();
@@ -589,8 +611,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
         InstanceRegisterInformation info = createInstanceRegisterInformation("instance-012",
                 "spiffe://athenz/sa/production", false, "audience-123", "nonce-456", largeExpiry, null, null);
 
+        DomainData domainData = new DomainData();
+        domainData.setX509CertSignerKeyId("signer-key-001");
         Response response = zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                "athenz.production", "athenz", "athenz.provider", "postInstanceJWTRegister");
+                "athenz.production", "athenz", domainData, "athenz.provider", null, "postInstanceJWTRegister");
 
         assertEquals(response.getStatus(), ResourceException.CREATED);
         InstanceIdentity identity = (InstanceIdentity) response.getEntity();
@@ -616,8 +640,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
         InstanceRegisterInformation info = createInstanceRegisterInformation("instance-013", null, false,
                 "audience-123", "nonce-456", 3600, null, null);
 
+        DomainData domainData = new DomainData();
+        domainData.setX509CertSignerKeyId("signer-key-001");
         Response response = zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                "athenz.production", "athenz", "athenz.provider", "postInstanceJWTRegister");
+                "athenz.production", "athenz", domainData, "athenz.provider", null, "postInstanceJWTRegister");
 
         assertEquals(response.getStatus(), ResourceException.CREATED);
         InstanceIdentity identity = (InstanceIdentity) response.getEntity();
@@ -641,8 +667,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
         InstanceRegisterInformation info = createInstanceRegisterInformation("instance-014",
                 "spiffe://athenz.io/ns/prod/sa/athenz.production", false, "audience-123", "nonce-456", 3600, null, "prod");
 
+        DomainData domainData = new DomainData();
+        domainData.setX509CertSignerKeyId("signer-key-001");
         Response response = zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                "athenz.production", "athenz", "athenz.provider", "postInstanceJWTRegister");
+                "athenz.production", "athenz", domainData, "athenz.provider", null, "postInstanceJWTRegister");
 
         assertEquals(response.getStatus(), ResourceException.CREATED);
         InstanceIdentity identity = (InstanceIdentity) response.getEntity();
@@ -664,8 +692,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
         InstanceRegisterInformation info = createInstanceRegisterInformation("instance-015",
                 "spiffe://athenz/sa/production", false, "audience-123", "nonce-456", 3600, null, null);
 
+        DomainData domainData = new DomainData();
+        domainData.setX509CertSignerKeyId("signer-key-001");
         zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                "athenz.production", "athenz", "athenz.provider", "postInstanceJWTRegister");
+                "athenz.production", "athenz", domainData, "athenz.provider", null, "postInstanceJWTRegister");
 
         // Verify that access log attribute was set
         Mockito.verify(mockServletRequest, Mockito.atLeastOnce()).setAttribute(
@@ -691,8 +721,10 @@ public class ZTSImplPostInstanceJWTRegisterTest {
         InstanceRegisterInformation info = createInstanceRegisterInformation("instance-016",
                 "spiffe://athenz/sa/production", false, audience, nonce, 3600, null, null);
 
+        DomainData domainData = new DomainData();
+        domainData.setX509CertSignerKeyId("signer-key-001");
         Response response = zts.postInstanceJWTRegister(ctx, info, "athenz", "production",
-                "athenz.production", "athenz", "athenz.provider", "postInstanceJWTRegister");
+                "athenz.production", "athenz", domainData, "athenz.provider", null, "postInstanceJWTRegister");
 
         assertEquals(response.getStatus(), ResourceException.CREATED);
         InstanceIdentity identity = (InstanceIdentity) response.getEntity();

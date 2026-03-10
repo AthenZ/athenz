@@ -528,7 +528,8 @@ public class AccessToken extends OAuth2Token {
                     .claim(CLAIM_AUTHZ_DETAILS, authorizationDetails)
                     .claim(CLAIM_RESOURCE, resource)
                     .claim(CLAIM_ACT, act)
-                    .claim(CLAIM_MAY_ACT, mayAct);
+                    .claim(CLAIM_MAY_ACT, mayAct)
+                    .claim(CLAIM_PRINCIPAL_ISSUER, principalIssuer);
             if (customClaims != null) {
                 for (Map.Entry<String, Object> entry : customClaims.entrySet()) {
                     claimsSetBuilder.claim(entry.getKey(), entry.getValue());

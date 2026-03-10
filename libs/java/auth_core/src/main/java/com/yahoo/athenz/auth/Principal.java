@@ -93,7 +93,13 @@ public interface Principal {
     default X509Certificate getX509Certificate() {
         return null;
     }
-    
+
+    /** @return issuer identity of the principal credentials
+     */
+    default String getIssuerIdentity() {
+        return null;
+    }
+
     /** @return the credentials token as a string but will not contain a signature */
     String getUnsignedCredentials();
 
