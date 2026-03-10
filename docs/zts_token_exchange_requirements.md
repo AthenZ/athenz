@@ -73,6 +73,15 @@ Requirements:
 - Validates that the subject identity has access to at least one of the requested roles
   The generated token will only include roles that the subject identity has access to.
 
+## ID Token Exchange
+
+The ID token exchange feature allows a service to exchange an existing ID token for a new
+ID token that includes Athenz role/group information for a requested audience.
+
+Notes:
+
+- If the `subject_token` includes a SPIFFE ID in the `spiffe` claim, ZTS copies it into the issued ID token `spiffe` claim.
+
 ## Access Token Exchange (Impersonation)
 Specification: https://datatracker.ietf.org/doc/html/rfc8693
 
@@ -91,6 +100,7 @@ Requirements:
 - The token request must have a valid `audience` parameter specified
 - The token request must have the `scope` parameter set to the list of roles being requested in the
   format: `{domainName}:role.{roleName} {domainName}:role.{roleName} ...`
+- If the `subject_token` includes a SPIFFE ID in the `spiffe` claim, ZTS copies it into the issued access token `spiffe` claim.
 
 1. Role Names Validation
 
@@ -131,6 +141,7 @@ Requirements:
   parameter set to `urn:ietf:params:oauth:token-type:id_token`, `urn:ietf:params:oauth:token-type:id-access-token` or
   `urn:ietf:params:oauth:token-type:jwt`
 - The subject_token must have a valid `may_act` claim that includes a `sub` claim that matches the actor_token's subject
+- If the `subject_token` includes a SPIFFE ID in the `spiffe` claim, ZTS copies it into the issued access token `spiffe` claim.
 
 1. Role Names Validation
 
