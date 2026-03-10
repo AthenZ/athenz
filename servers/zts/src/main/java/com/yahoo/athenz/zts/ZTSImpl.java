@@ -2697,6 +2697,27 @@ public class ZTSImpl implements ZTSHandler {
         }
     }
 
+    String extractSpiffeIdFromToken(final OAuth2Token token) {
+        if (token == null) {
+            return null;
+        }
+
+        final Object spiffeClaim = token.getClaim(IdToken.CLAIM_SPIFFE);
+        if (spiffeClaim != null) {
+            final String spiffeId = spiffeClaim.toString();
+            if (!StringUtil.isEmpty(spiffeId) && spiffeId.startsWith(ZTSConsts.ZTS_CERT_SPIFFE_URI)) {
+                return spiffeId;
+            }
+        }
+
+        final String subject = token.getSubject();
+        if (!StringUtil.isEmpty(subject) && subject.startsWith(ZTSConsts.ZTS_CERT_SPIFFE_URI)) {
+            return subject;
+        }
+
+        return null;
+    }
+
     AccessTokenResponse processAccessTokenImpersonationRequest(ResourceContext ctx, Principal principal,
             AccessTokenRequest accessTokenRequest, final String principalDomain, final String caller) {
 
@@ -2787,6 +2808,11 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), accessTokenRequest.isUseOpenIDIssuer()));
         accessToken.setScope(new ArrayList<>(roles));
         accessToken.setPrincipalIssuer(principal.getIssuerIdentity());
+
+        final String spiffeId = extractSpiffeIdFromToken(subjectToken);
+        if (spiffeId != null) {
+            accessToken.setCustomClaim(IdToken.CLAIM_SPIFFE, spiffeId);
+        }
 
         // if we have a certificate used for mTLS authentication then
         // we're going to bind the certificate to the access token
@@ -2940,6 +2966,11 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), accessTokenRequest.isUseOpenIDIssuer()));
         accessToken.setScope(new ArrayList<>(roles));
         accessToken.setPrincipalIssuer(principal.getIssuerIdentity());
+
+        final String spiffeId = extractSpiffeIdFromToken(subjectToken);
+        if (spiffeId != null) {
+            accessToken.setCustomClaim(IdToken.CLAIM_SPIFFE, spiffeId);
+        }
 
         // include the act claim in our response. we're going to use
         // the act claim from the original token and then add our new
@@ -3099,6 +3130,11 @@ public class ZTSImpl implements ZTSHandler {
         idToken.setIssueTime(iat);
         idToken.setAuthTime(iat);
         idToken.setPrincipalIssuer(principal.getIssuerIdentity());
+
+        final String spiffeId = extractSpiffeIdFromToken(subjectToken);
+        if (spiffeId != null) {
+            idToken.setSpiffe(spiffeId);
+        }
 
         // for user principals we're going to use the default 1 hour while for
         // service principals 12 hours as the max timeout, unless the client
