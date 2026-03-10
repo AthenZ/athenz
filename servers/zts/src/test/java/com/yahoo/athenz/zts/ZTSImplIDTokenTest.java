@@ -390,6 +390,11 @@ public class ZTSImplIDTokenTest {
 
     private String createIdToken(PrivateKey privateKey, String keyId, String subject,
             String audience, long expiryTime, String issuer) {
+        return createIdToken(privateKey, keyId, subject, audience, expiryTime, issuer, null);
+    }
+
+    private String createIdToken(PrivateKey privateKey, String keyId, String subject,
+            String audience, long expiryTime, String issuer, String spiffe) {
         try {
             JWSSigner signer = JwtsHelper.getJWSSigner(privateKey);
             long now = System.currentTimeMillis() / 1000;
@@ -401,6 +406,9 @@ public class ZTSImplIDTokenTest {
                     .audience(audience)
                     .claim("ver", 1)
                     .claim("auth_time", now);
+            if (spiffe != null) {
+                builder.claim("spiffe", spiffe);
+            }
             JWTClaimsSet claimsSet = builder.build();
             SignedJWT signedJWT = new SignedJWT(
                     new JWSHeader.Builder(JWSAlgorithm.ES256)
@@ -601,6 +609,65 @@ public class ZTSImplIDTokenTest {
             assertNotNull(claimSet.getIssueTime());
             assertNotNull(claimSet.getClaim("auth_time"));
             assertTrue(claimSet.getExpirationTime().getTime() > System.currentTimeMillis());
+
+            List<String> groups = claimSet.getStringListClaim("groups");
+            assertNotNull(groups);
+            assertTrue(groups.contains("coretech:role.writers"));
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        ztsImpl.cloudStore.close();
+    }
+
+    @Test
+    public void testIdTokenExchangeSuccessWithSpiffeClaim() throws JOSEException {
+
+        ZTSImpl ztsImpl = createZtsImpl();
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        addIdTokenExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+
+        PrivateKey ecPrivateKey = loadECPrivateKey();
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        final String spiffeId = "spiffe://athenz.io/ns/default/sa/coretech.weather";
+        String subjectToken = createIdToken(ecPrivateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime, null, spiffeId);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        String tokenRequest = buildIdTokenExchangeRequest(subjectToken, "coretech.storage",
+                "coretech:role.writers");
+
+        AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, tokenRequest);
+
+        assertNotNull(response);
+        assertNotNull(response.getId_token());
+        assertEquals(response.getToken_type(), "Bearer");
+        assertEquals(response.getIssued_token_type(), ZTSConsts.OAUTH_TOKEN_TYPE_ID);
+        assertTrue(response.getExpires_in() > 0);
+        assertNull(response.getAccess_token());
+
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(response.getId_token());
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertNotNull(claimSet);
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "coretech.storage");
+            assertNotNull(claimSet.getClaim("nonce"));
+            assertNotNull(claimSet.getIssueTime());
+            assertNotNull(claimSet.getClaim("auth_time"));
+            assertTrue(claimSet.getExpirationTime().getTime() > System.currentTimeMillis());
+            assertEquals(claimSet.getStringClaim("spiffe"), spiffeId);
 
             List<String> groups = claimSet.getStringListClaim("groups");
             assertNotNull(groups);
