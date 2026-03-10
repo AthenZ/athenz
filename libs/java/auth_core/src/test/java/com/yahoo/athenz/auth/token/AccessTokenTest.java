@@ -71,6 +71,7 @@ public class AccessTokenTest {
         accessToken.setActEntry("sub", "user.sub1");
         accessToken.setMayActEntry("sub", "user.sub2");
         accessToken.setAuthorizationDetails("[{\"type\":\"message_access\",\"data\":\"resource\"}]");
+        accessToken.setPrincipalIssuer("athenz");
 
         try {
             Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
@@ -119,6 +120,7 @@ public class AccessTokenTest {
         assertEquals(accessToken.getConfirmEntry("x5t#uri"), "spiffe://athenz/sa/api");
         assertNull(accessToken.getConfirmEntry("unknown"));
         assertEquals(accessToken.getAuthorizationDetails(), "[{\"type\":\"message_access\",\"data\":\"resource\"}]");
+        assertEquals(accessToken.getPrincipalIssuer(), "athenz");
 
         try {
             Path path = Paths.get("src/test/resources/mtls_token_spec.cert");

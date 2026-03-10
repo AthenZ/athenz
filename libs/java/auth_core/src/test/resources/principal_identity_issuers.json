@@ -1,0 +1,15 @@
+{
+  "default-issuer-identity": "athenz",
+  "issuer-identities": [
+    {
+      "issuer-cert-dn": "CN = athenz.syncer, OU = athenz.syncer, O = My Test Company, L = Sunnyvale, ST = CA, C = US",
+      "issuer-identity": "primary",
+      "issuer-signer-key": "x509-primary"
+    },
+    {
+      "issuer-cert-dn": "CN = athenz.syncer, OU = athenz.syncer, O = My Test Company, L = New York, ST = NY, C = US",
+      "issuer-identity": "partner1",
+      "issuer-signer-key": "x509-partner1"
+    }
+  ]
+}

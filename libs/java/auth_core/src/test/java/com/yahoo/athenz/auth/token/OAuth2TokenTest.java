@@ -67,6 +67,7 @@ public class OAuth2TokenTest {
                 .audience("audience")
                 .claim(OAuth2Token.CLAIM_AUTH_TIME, now)
                 .claim(OAuth2Token.CLAIM_VERSION, 1)
+                .claim(OAuth2Token.CLAIM_PRINCIPAL_ISSUER, "athenz")
                 .build();
 
         SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("eckey1").build(), claimsSet);
@@ -86,6 +87,7 @@ public class OAuth2TokenTest {
         assertEquals(oAuth2Token.getNotBeforeTime(), now);
         assertEquals(oAuth2Token.getAuthTime(), now);
         assertEquals(oAuth2Token.getJwtId(), "id001");
+        assertEquals(oAuth2Token.getPrincipalIssuer(), "athenz");
 
         PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
         oAuth2Token = new OAuth2Token(token, publicKey);
@@ -98,6 +100,7 @@ public class OAuth2TokenTest {
         assertEquals(oAuth2Token.getNotBeforeTime(), now);
         assertEquals(oAuth2Token.getAuthTime(), now);
         assertEquals(oAuth2Token.getJwtId(), "id001");
+        assertEquals(oAuth2Token.getPrincipalIssuer(), "athenz");
     }
 
     @Test
@@ -133,6 +136,7 @@ public class OAuth2TokenTest {
         assertEquals(oAuth2Token.getExpiryTime(), now);
         assertEquals(oAuth2Token.getNotBeforeTime(), 0);
         assertEquals(oAuth2Token.getAuthTime(), 0);
+        assertNull(oAuth2Token.getPrincipalIssuer());
     }
 
     @Test
@@ -150,6 +154,7 @@ public class OAuth2TokenTest {
                 .audience("audience")
                 .claim(OAuth2Token.CLAIM_AUTH_TIME, now)
                 .claim(OAuth2Token.CLAIM_VERSION, 1)
+                .claim(OAuth2Token.CLAIM_PRINCIPAL_ISSUER, "athenz")
                 .build();
 
         PlainJWT plainJWT = new PlainJWT(claimsSet);
@@ -167,6 +172,7 @@ public class OAuth2TokenTest {
         assertEquals(oAuth2Token.getNotBeforeTime(), now);
         assertEquals(oAuth2Token.getAuthTime(), now);
         assertEquals(oAuth2Token.getJwtId(), "id001");
+        assertEquals(oAuth2Token.getPrincipalIssuer(), "athenz");
 
         // with public key argument
         oAuth2Token = new OAuth2Token(token, (PublicKey) null);
@@ -179,6 +185,7 @@ public class OAuth2TokenTest {
         assertEquals(oAuth2Token.getNotBeforeTime(), now);
         assertEquals(oAuth2Token.getAuthTime(), now);
         assertEquals(oAuth2Token.getJwtId(), "id001");
+        assertEquals(oAuth2Token.getPrincipalIssuer(), "athenz");
     }
 
     @Test
@@ -608,5 +615,24 @@ public class OAuth2TokenTest {
         assertTrue(oAuth2Token.isHMACAlgorithm(JWSAlgorithm.HS512));
         assertFalse(oAuth2Token.isHMACAlgorithm(JWSAlgorithm.ES256));
         assertFalse(oAuth2Token.isHMACAlgorithm(JWSAlgorithm.RS256));
+    }
+
+    @Test
+    public void testIsStandardClaim() {
+        OAuth2Token oAuth2Token = new OAuth2Token();
+        assertTrue(oAuth2Token.isStandardClaim(OAuth2Token.CLAIM_ISSUER));
+        assertTrue(oAuth2Token.isStandardClaim(OAuth2Token.CLAIM_SUBJECT));
+        assertTrue(oAuth2Token.isStandardClaim(OAuth2Token.CLAIM_AUDIENCE));
+        assertTrue(oAuth2Token.isStandardClaim(OAuth2Token.CLAIM_EXPIRY));
+        assertTrue(oAuth2Token.isStandardClaim(OAuth2Token.CLAIM_ISSUE_TIME));
+        assertTrue(oAuth2Token.isStandardClaim(OAuth2Token.CLAIM_NOT_BEFORE));
+        assertTrue(oAuth2Token.isStandardClaim(OAuth2Token.CLAIM_JWT_ID));
+        assertTrue(oAuth2Token.isStandardClaim(OAuth2Token.CLAIM_VERSION));
+        assertTrue(oAuth2Token.isStandardClaim(OAuth2Token.CLAIM_AUTH_TIME));
+        assertTrue(oAuth2Token.isStandardClaim(OAuth2Token.CLAIM_ACT));
+        assertTrue(oAuth2Token.isStandardClaim(OAuth2Token.CLAIM_MAY_ACT));
+        assertTrue(oAuth2Token.isStandardClaim(OAuth2Token.CLAIM_PRINCIPAL_ISSUER));
+
+        assertFalse(oAuth2Token.isStandardClaim("custom_claim"));
     }
 }
