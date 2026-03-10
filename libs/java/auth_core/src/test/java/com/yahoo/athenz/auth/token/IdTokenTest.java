@@ -62,6 +62,7 @@ public class IdTokenTest {
         token.setIssuer("athenz");
         token.setNonce("nonce");
         token.setGroups(Collections.singletonList("dev-team"));
+        token.setPrincipalIssuer("athenz");
         return token;
     }
 
@@ -75,6 +76,7 @@ public class IdTokenTest {
         assertEquals(token.getIssuer(), "athenz");
         assertEquals(token.getNonce(), "nonce");
         assertEquals(token.getGroups(), Collections.singletonList("dev-team"));
+        assertEquals(token.getPrincipalIssuer(), "athenz");
     }
 
     @Test

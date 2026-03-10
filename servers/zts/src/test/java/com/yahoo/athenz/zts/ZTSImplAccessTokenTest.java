@@ -605,6 +605,7 @@ public class ZTSImplAccessTokenTest {
     public void testPostAccessTokenRequestmTLSBound() throws IOException, JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+        System.setProperty(ZTSConsts.ZTS_PROP_PRINCIPAL_IDENTITY_ISSUER_MAP_FNAME, "src/test/resources/principal_identity_issuers.json");
 
         CloudStore cloudStore = new CloudStore();
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
@@ -622,6 +623,7 @@ public class ZTSImplAccessTokenTest {
         String certStr = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(certStr);
         ((SimplePrincipal) principal).setX509Certificate(cert);
+        ((SimplePrincipal) principal).setIssuerIdentity(ztsImpl.principalIdentityIssuer.getIssuerIdentity(cert));
 
         ResourceContext context = createResourceContext(principal);
 
@@ -654,12 +656,15 @@ public class ZTSImplAccessTokenTest {
             assertEquals(scopes.size(), 1);
             assertEquals(scopes.get(0), "writers");
             assertEquals(claimSet.getStringClaim("scope"), "writers");
+            assertEquals(claimSet.getStringClaim("principal_issuer"), "athenz");
 
             Map<String, Object> cnf = (Map<String, Object>) claimSet.getClaim("cnf");
             assertEquals(cnf.get("x5t#S256"), "A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_PRINCIPAL_IDENTITY_ISSUER_MAP_FNAME);
     }
 
     @Test

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Bytes;
 import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.impl.CertificateAuthority;
+import com.yahoo.athenz.auth.impl.PrincipalIdentityIssuer;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.*;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
@@ -194,6 +195,7 @@ public class ZTSImpl implements ZTSHandler {
     protected ProviderConfigManager providerConfigManager;
     protected IssuerResolver issuerResolver;
     protected boolean instanceRegisterTokenTypeJWT = false;
+    protected PrincipalIdentityIssuer principalIdentityIssuer;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -411,6 +413,10 @@ public class ZTSImpl implements ZTSHandler {
         // create our external provider config manager
 
         loadExternalProviderConfigManager();
+
+        // load our certificate identity issuer
+
+        principalIdentityIssuer = new PrincipalIdentityIssuer(System.getProperty(ZTSConsts.ZTS_PROP_PRINCIPAL_IDENTITY_ISSUER_MAP_FNAME));
     }
 
     void loadExternalProviderConfigManager() {
@@ -2135,6 +2141,7 @@ public class ZTSImpl implements ZTSHandler {
         idToken.setGroups(idTokenGroups);
         idToken.setIssueTime(iat);
         idToken.setAuthTime(iat);
+        idToken.setPrincipalIssuer(principal.getIssuerIdentity());
 
         // for user principals we're going to use the default 1 hour while for
         // service principals 12 hours as the max timeout, unless the client
@@ -2709,6 +2716,7 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setSubject(subjectPrincipal);
         accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), accessTokenRequest.isUseOpenIDIssuer()));
         accessToken.setScope(new ArrayList<>(roles));
+        accessToken.setPrincipalIssuer(principal.getIssuerIdentity());
 
         // if we have a certificate used for mTLS authentication then
         // we're going to bind the certificate to the access token
@@ -2861,6 +2869,7 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setSubject(subjectPrincipal);
         accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), accessTokenRequest.isUseOpenIDIssuer()));
         accessToken.setScope(new ArrayList<>(roles));
+        accessToken.setPrincipalIssuer(principal.getIssuerIdentity());
 
         // include the act claim in our response. we're going to use
         // the act claim from the original token and then add our new
@@ -3019,6 +3028,7 @@ public class ZTSImpl implements ZTSHandler {
         idToken.setGroups(idTokenGroups);
         idToken.setIssueTime(iat);
         idToken.setAuthTime(iat);
+        idToken.setPrincipalIssuer(principal.getIssuerIdentity());
 
         // for user principals we're going to use the default 1 hour while for
         // service principals 12 hours as the max timeout, unless the client
@@ -3159,6 +3169,7 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), true));
         accessToken.setScope(roleList);
         accessToken.setResource(accessTokenRequest.getResource());
+        accessToken.setPrincipalIssuer(principal.getIssuerIdentity());
 
         // include any exchange claims if configured for the provider
 
@@ -3301,6 +3312,7 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setSubject(principalName);
         accessToken.setIssuer(jagAudience);
         accessToken.setScope(new ArrayList<>(roles));
+        accessToken.setPrincipalIssuer(principal.getIssuerIdentity());
 
         if (identityProvider != null && identityProvider.getTokenExchangeClaims() != null) {
             for (String claim : identityProvider.getTokenExchangeClaims()) {
@@ -3465,6 +3477,7 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setProxyPrincipal(proxyUser);
         accessToken.setScope(new ArrayList<>(roles));
         accessToken.setAuthorizationDetails(accessTokenRequest.getAuthzDetails());
+        accessToken.setPrincipalIssuer(principal.getIssuerIdentity());
 
         if (actor != null) {
             accessToken.setMayActEntry(AccessToken.CLAIM_SUBJECT, actor);
@@ -3498,6 +3511,7 @@ public class ZTSImpl implements ZTSHandler {
             idToken.setAudience(tokenScope.getDomainName() + "." + serviceName);
             idToken.setSubject(principalName);
             idToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), accessTokenRequest.isUseOpenIDIssuer()));
+            idToken.setPrincipalIssuer(principal.getIssuerIdentity());
 
             // id tokens are only valid for up to 12 hours max
             // (value configured as a system property).
@@ -4644,7 +4658,8 @@ public class ZTSImpl implements ZTSHandler {
         }
 
         if (StringUtil.isEmpty(info.getCsr())) {
-            return postInstanceJWTRegister(ctx, info, domain, service, cn, principalDomain, provider, caller);
+            return postInstanceJWTRegister(ctx, info, domain, service, cn, principalDomain, domainData,
+                provider, serviceIdentity, caller);
         } else {
             return postInstanceX509CertificateRegister(ctx, info, domain, service, cn, principalDomain,
                     domainData, provider, errorMsg, serviceIdentity, ipAddress, caller);
@@ -4819,7 +4834,7 @@ public class ZTSImpl implements ZTSHandler {
         // then we'll generate one and include in the identity object
 
         if (info.getToken() == Boolean.TRUE) {
-            identity.setServiceToken(getCertRequestServiceToken(ctx, info, domain, service, cn, ipAddress));
+            identity.setServiceToken(getCertRequestServiceToken(ctx, info, domain, service, cn, ipAddress, newCert));
         }
 
         fillAthenzJWKConfig(ctx, info.getAthenzJWK(), info.getAthenzJWKModified(), identity);
@@ -4835,7 +4850,7 @@ public class ZTSImpl implements ZTSHandler {
     }
 
     String getCertRequestServiceToken(ResourceContext ctx,  InstanceRegisterInformation info, final String domain,
-            final String service, final String cn, final String ipAddress) {
+            final String service, final String cn, final String ipAddress, final X509Certificate newCert) {
 
         if (instanceRegisterTokenTypeJWT) {
 
@@ -4853,6 +4868,7 @@ public class ZTSImpl implements ZTSHandler {
             idToken.setIssueTime(iat);
             idToken.setAuthTime(iat);
             idToken.setSubject(cn);
+            idToken.setPrincipalIssuer(principalIdentityIssuer.getIssuerIdentity(newCert));
 
             // for user principals we're going to use the default 1 hour while for
             // service principals 12 hours as the max timeout, unless the client
@@ -4877,7 +4893,8 @@ public class ZTSImpl implements ZTSHandler {
 
     Response postInstanceJWTRegister(ResourceContext ctx, InstanceRegisterInformation info,
             final String domain, final String service, final String cn, final String principalDomain,
-            final String provider, final String caller) {
+            final DomainData domainData, final String provider, final com.yahoo.athenz.zms.ServiceIdentity serviceIdentity,
+            final String caller) {
 
         // make sure we have valid audience value
 
@@ -4948,6 +4965,9 @@ public class ZTSImpl implements ZTSHandler {
                 idToken.setSpiffe(info.getJwtSVIDSpiffe());
             }
         }
+
+        String signerKeyId = getServiceX509KeySignerId(domainData, serviceIdentity, null);
+        idToken.setPrincipalIssuer(principalIdentityIssuer.getIssuerIdentity(signerKeyId));
 
         // for user principals we're going to use the default 1 hour while for
         // service principals 12 hours as the max timeout, unless the client
@@ -6186,6 +6206,7 @@ public class ZTSImpl implements ZTSHandler {
         idToken.setIssueTime(iat);
         idToken.setAuthTime(iat);
         idToken.setExpiryTime(iat + idTokenMaxTimeout);
+        idToken.setPrincipalIssuer(principal.getIssuerIdentity());
 
         IdTokenSigner idTokenSigner = new IdTokenSigner() {
             @Override public String sign(IdToken idToken, String keyType) {

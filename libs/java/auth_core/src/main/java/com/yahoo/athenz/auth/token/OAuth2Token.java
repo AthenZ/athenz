@@ -45,6 +45,7 @@ public class OAuth2Token {
     public static final String CLAIM_JWT_ID = "jti";
     public static final String CLAIM_ACT = "act";
     public static final String CLAIM_MAY_ACT = "may_act";
+    public static final String CLAIM_PRINCIPAL_ISSUER = "principal_issuer";
 
     protected int version;
     protected long expiryTime;
@@ -55,6 +56,7 @@ public class OAuth2Token {
     protected String issuer;
     protected String subject;
     protected String jwtId;
+    protected String principalIssuer;
     protected String clientIdDomainName;
     protected String clientIdServiceName;
     protected LinkedHashMap<String, Object> act;
@@ -289,6 +291,7 @@ public class OAuth2Token {
         setIssuer(claimsSet.getIssuer());
         setSubject(claimsSet.getSubject());
         setJwtId(claimsSet.getJWTID());
+        setPrincipalIssuer(JwtsHelper.getStringClaim(claimsSet, CLAIM_PRINCIPAL_ISSUER));
 
         Object value = claimsSet.getClaim(CLAIM_MAY_ACT);
         if (value instanceof Map) {
@@ -423,6 +426,14 @@ public class OAuth2Token {
         act.put(key, value);
     }
 
+    public String getPrincipalIssuer() {
+        return principalIssuer;
+    }
+
+    public void setPrincipalIssuer(String principalIssuer) {
+        this.principalIssuer = principalIssuer;
+    }
+
     public boolean setCustomClaim(final String name, final Object value) {
 
         // first verify that the custom claim is not one of the standard claims
@@ -464,6 +475,7 @@ public class OAuth2Token {
             case CLAIM_AUTH_TIME:
             case CLAIM_ACT:
             case CLAIM_MAY_ACT:
+            case CLAIM_PRINCIPAL_ISSUER:
                 return true;
             default:
                 return false;

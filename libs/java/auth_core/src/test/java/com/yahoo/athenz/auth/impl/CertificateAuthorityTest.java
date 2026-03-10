@@ -326,4 +326,56 @@ public class CertificateAuthorityTest {
             System.clearProperty("athenz.authority.truststore.path");
         }
     }
+
+    @Test
+    public void testAuthenticateCertificateIssuerIdentity() {
+        System.setProperty("athenz.authority.truststore.path", "src/test/resources/x509_ca_certificate_chain.pem");
+        System.setProperty("athenz.auth.certificate.identity_issuer_map_fname",
+                "src/test/resources/principal_identity_issuers.json");
+        CertificateAuthority authority = new CertificateAuthority();
+        authority.initialize();
+
+        try (InputStream inStream = new FileInputStream("src/test/resources/x509_client_certificate_with_ca.pem")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            X509Certificate[] certs = new X509Certificate[1];
+            certs[0] = cert;
+            Principal principal = authority.authenticate(certs, null);
+            assertNotNull(principal);
+            assertEquals(principal.getDomain(), "athenz");
+            assertEquals(principal.getName(), "syncer");
+            assertEquals(principal.getIssuerIdentity(), "primary");
+        } catch (Exception e) {
+            fail();
+        } finally {
+            System.clearProperty("athenz.authority.truststore.path");
+            System.clearProperty("athenz.auth.certificate.identity_issuer_map_fname");
+        }
+    }
+
+    @Test
+    public void testAuthenticateCertificateIssuerIdentityNoMatch() {
+        System.setProperty("athenz.auth.certificate.identity_issuer_map_fname",
+                "src/test/resources/principal_identity_issuers.json");
+        CertificateAuthority authority = new CertificateAuthority();
+        authority.initialize();
+
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            X509Certificate[] certs = new X509Certificate[1];
+            certs[0] = cert;
+            Principal principal = authority.authenticate(certs, null);
+            assertNotNull(principal);
+            assertEquals(principal.getDomain(), "athenz");
+            assertEquals(principal.getName(), "syncer");
+            assertEquals(principal.getIssuerIdentity(), "athenz");
+        } catch (Exception e) {
+            fail();
+        } finally {
+            System.clearProperty("athenz.auth.certificate.identity_issuer_map_fname");
+        }
+    }
 }

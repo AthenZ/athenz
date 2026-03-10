@@ -129,7 +129,8 @@ public class IdToken extends OAuth2Token {
                     .claim(CLAIM_VERSION, version)
                     .claim(CLAIM_GROUPS, groups)
                     .claim(CLAIM_NONCE, nonce)
-                    .claim(CLAIM_SPIFFE, spiffe);
+                    .claim(CLAIM_SPIFFE, spiffe)
+                    .claim(CLAIM_PRINCIPAL_ISSUER, principalIssuer);
             if (customClaims != null) {
                 for (Map.Entry<String, Object> entry : customClaims.entrySet()) {
                     claimsSetBuilder.claim(entry.getKey(), entry.getValue());

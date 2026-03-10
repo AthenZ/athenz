@@ -558,6 +558,8 @@ public class ZTSImplIDTokenTest {
     @Test
     public void testIdTokenExchangeSuccess() throws JOSEException {
 
+        System.setProperty(ZTSConsts.ZTS_PROP_PRINCIPAL_IDENTITY_ISSUER_MAP_FNAME, "src/test/resources/principal_identity_issuers.json");
+
         ZTSImpl ztsImpl = createZtsImpl();
 
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
@@ -572,6 +574,7 @@ public class ZTSImplIDTokenTest {
 
         Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
                 "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ((SimplePrincipal) principal).setIssuerIdentity(ztsImpl.principalIdentityIssuer.getIssuerIdentity("x509-keyid"));
         ResourceContext context = createResourceContext(principal);
 
         String tokenRequest = buildIdTokenExchangeRequest(subjectToken, "coretech.storage",
@@ -601,6 +604,7 @@ public class ZTSImplIDTokenTest {
             assertNotNull(claimSet.getIssueTime());
             assertNotNull(claimSet.getClaim("auth_time"));
             assertTrue(claimSet.getExpirationTime().getTime() > System.currentTimeMillis());
+            assertEquals(claimSet.getStringClaim("principal_issuer"), "athenz");
 
             List<String> groups = claimSet.getStringListClaim("groups");
             assertNotNull(groups);
@@ -610,6 +614,7 @@ public class ZTSImplIDTokenTest {
         }
 
         ztsImpl.cloudStore.close();
+        System.clearProperty(ZTSConsts.ZTS_PROP_PRINCIPAL_IDENTITY_ISSUER_MAP_FNAME);
     }
 
     // ========================

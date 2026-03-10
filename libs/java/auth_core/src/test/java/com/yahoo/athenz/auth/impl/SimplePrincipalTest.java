@@ -215,6 +215,7 @@ public class SimplePrincipalTest {
         X509Certificate cert = Mockito.mock(X509Certificate.class);
         ((SimplePrincipal) p).setX509Certificate(cert);
         ((SimplePrincipal) p).setState(Principal.State.ACTIVE);
+        ((SimplePrincipal) p).setIssuerIdentity("partner1");
 
         assertEquals(p.toString(), "user.jdoe");
         assertEquals(p.getOriginalRequestor(), "athenz.ci");
@@ -222,6 +223,7 @@ public class SimplePrincipalTest {
         assertEquals(p.getKeyId(), "v1");
         assertEquals(p.getX509Certificate(), cert);
         assertEquals(p.getState(), Principal.State.ACTIVE);
+        assertEquals(p.getIssuerIdentity(), "partner1");
 
         Principal p2 = SimplePrincipal.create("user", "jdoe", fakeCreds, 101, userAuthority);
         assertTrue(p.equals(p2));

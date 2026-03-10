@@ -46,6 +46,7 @@ public class SimplePrincipal implements Principal {
     String applicationId = null;
     private boolean mtlsRestricted = false;
     String rolePrincipalName = null;
+    String issuerIdentity = null;
 
     // defaulting to ACTIVE state
     private Principal.State state = State.ACTIVE;
@@ -297,6 +298,15 @@ public class SimplePrincipal implements Principal {
     @Override
     public String getRolePrincipalName() {
         return this.rolePrincipalName;
+    }
+
+    @Override
+    public String getIssuerIdentity() {
+        return this.issuerIdentity;
+    }
+
+    public void setIssuerIdentity(String issuerIdentity) {
+        this.issuerIdentity = issuerIdentity;
     }
 
     @Override

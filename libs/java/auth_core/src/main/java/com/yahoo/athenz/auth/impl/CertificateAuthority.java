@@ -36,10 +36,12 @@ public class CertificateAuthority implements Authority {
 
     private static final String ATHENZ_PROP_EXCLUDED_PRINCIPALS = "athenz.auth.certificate.excluded_principals";
     private static final String ATHENZ_PROP_EXCLUDE_ROLE_CERTIFICATES = "athenz.auth.certificate.exclude_role_certificates";
+    private static final String ATHENZ_PROP_IDENTITY_ISSUER_MAP_FNAME = "athenz.auth.certificate.identity_issuer_map_fname";
 
     private static final String ATHENZ_AUTH_CHALLENGE = "AthenzX509Certificate realm=\"athenz\"";
 
     private CertificateIdentityParser certificateIdentityParser = null;
+    private PrincipalIdentityIssuer certificateIdentityIssuer = null;
     private final GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_PROP_RESTRICTED_OU);
 
     @Override
@@ -53,8 +55,9 @@ public class CertificateAuthority implements Authority {
 
         boolean excludeRoleCertificates = Boolean.parseBoolean(System.getProperty(ATHENZ_PROP_EXCLUDE_ROLE_CERTIFICATES, "false"));
 
-        this.certificateIdentityParser = new CertificateIdentityParser(excludedPrincipalSet, excludeRoleCertificates,
+        certificateIdentityParser = new CertificateIdentityParser(excludedPrincipalSet, excludeRoleCertificates,
                 new CertificateAuthorityValidator());
+        certificateIdentityIssuer = new PrincipalIdentityIssuer(System.getProperty(ATHENZ_PROP_IDENTITY_ISSUER_MAP_FNAME));
     }
 
     @Override
@@ -110,9 +113,9 @@ public class CertificateAuthority implements Authority {
         // parse certificate
         CertificateIdentity certId;
         try {
-            certId = this.certificateIdentityParser.parse(certs);
+            certId = certificateIdentityParser.parse(certs);
         } catch (CertificateIdentityException ex) {
-            this.reportError("CertificateAuthority: " + ex.getMessage(), ex.isReportError(), errMsg);
+            reportError("CertificateAuthority: " + ex.getMessage(), ex.isReportError(), errMsg);
             return null;
         }
 
@@ -129,7 +132,7 @@ public class CertificateAuthority implements Authority {
             principal.setRolePrincipalName(certId.getRolePrincipalName());
         }
         principal.setMtlsRestricted(Crypto.isRestrictedCertificate(x509Cert, globStringsMatcher));
-
+        principal.setIssuerIdentity(certificateIdentityIssuer.getIssuerIdentity(x509Cert));
         return principal;
     }
 }
