@@ -414,7 +414,7 @@ public class ZTSImpl implements ZTSHandler {
 
         loadExternalProviderConfigManager();
 
-        // load our certificate identity issuer
+        // load our principal identity issuer
 
         principalIdentityIssuer = new PrincipalIdentityIssuer(System.getProperty(ZTSConsts.ZTS_PROP_PRINCIPAL_IDENTITY_ISSUER_MAP_FNAME));
     }

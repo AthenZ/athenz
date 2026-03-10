@@ -41,7 +41,7 @@ public class CertificateAuthority implements Authority {
     private static final String ATHENZ_AUTH_CHALLENGE = "AthenzX509Certificate realm=\"athenz\"";
 
     private CertificateIdentityParser certificateIdentityParser = null;
-    private PrincipalIdentityIssuer certificateIdentityIssuer = null;
+    private PrincipalIdentityIssuer principalIdentityIssuer = null;
     private final GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_PROP_RESTRICTED_OU);
 
     @Override
@@ -57,7 +57,7 @@ public class CertificateAuthority implements Authority {
 
         certificateIdentityParser = new CertificateIdentityParser(excludedPrincipalSet, excludeRoleCertificates,
                 new CertificateAuthorityValidator());
-        certificateIdentityIssuer = new PrincipalIdentityIssuer(System.getProperty(ATHENZ_PROP_IDENTITY_ISSUER_MAP_FNAME));
+        principalIdentityIssuer = new PrincipalIdentityIssuer(System.getProperty(ATHENZ_PROP_IDENTITY_ISSUER_MAP_FNAME));
     }
 
     @Override
@@ -132,7 +132,7 @@ public class CertificateAuthority implements Authority {
             principal.setRolePrincipalName(certId.getRolePrincipalName());
         }
         principal.setMtlsRestricted(Crypto.isRestrictedCertificate(x509Cert, globStringsMatcher));
-        principal.setIssuerIdentity(certificateIdentityIssuer.getIssuerIdentity(x509Cert));
+        principal.setIssuerIdentity(principalIdentityIssuer.getIssuerIdentity(x509Cert));
         return principal;
     }
 }

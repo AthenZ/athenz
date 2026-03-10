@@ -41,7 +41,7 @@ public class PrincipalIdentityIssuer {
         issuerSignerKeyMap = new HashMap<>();
 
         if (filename == null || filename.isEmpty()) {
-            LOG.error("CertificateIdentityIssuer: no filename provided");
+            LOG.error("PrincipalIdentityIssuer: no filename provided");
             return;
         }
 
@@ -49,7 +49,7 @@ public class PrincipalIdentityIssuer {
         try {
             config = OBJECT_MAPPER.readValue(new File(filename), IssuerConfig.class);
         } catch (Exception ex) {
-            LOG.error("CertificateIdentityIssuer: unable to parse file {}: {}", filename, ex.getMessage());
+            LOG.error("PrincipalIdentityIssuer: unable to parse file {}: {}", filename, ex.getMessage());
             return;
         }
 
@@ -61,7 +61,7 @@ public class PrincipalIdentityIssuer {
 
         for (IssuerEntry entry : config.issuerIdentities) {
             if (entry.issuerIdentity == null) {
-                LOG.error("CertificateIdentityIssuer: skipping entry with null identity");
+                LOG.error("PrincipalIdentityIssuer: skipping entry with null identity");
                 continue;
             }
             if (entry.issuerCertDn != null) {
@@ -110,7 +110,7 @@ public class PrincipalIdentityIssuer {
         try {
             return new X500Principal(dn).getName();
         } catch (Exception ex) {
-            LOG.error("CertificateIdentityIssuer: unable to normalize dn {}: {}", dn, ex.getMessage());
+            LOG.error("PrincipalIdentityIssuer: unable to normalize dn {}: {}", dn, ex.getMessage());
             return null;
         }
     }
