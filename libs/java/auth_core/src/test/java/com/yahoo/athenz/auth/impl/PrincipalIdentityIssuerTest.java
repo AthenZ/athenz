@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.auth.impl;
 
+import org.bouncycastle.asn1.x500.X500Name;
+import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import javax.security.auth.x500.X500Principal;
@@ -22,6 +24,7 @@ import java.io.FileInputStream;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
 public class PrincipalIdentityIssuerTest {
@@ -154,12 +157,28 @@ public class PrincipalIdentityIssuerTest {
 
     @Test
     public void testNormalizeDn() {
-        String normalized = PrincipalIdentityIssuer.normalizeDn("CN = Athenz Primary, O = Athenz");
-        assertEquals(normalized, new X500Principal("CN=Athenz Primary,O=Athenz").getName());
+        String normalizedStringDn = PrincipalIdentityIssuer.normalizeDn("CN = Athenz Primary, O = Athenz");
+        String normalizedX500Dn = PrincipalIdentityIssuer.normalizeX500Name(
+                X500Name.getInstance(new X500Principal("CN=Athenz Primary,O=Athenz").getEncoded()));
+        assertEquals(normalizedStringDn, normalizedX500Dn);
+
+        normalizedX500Dn = PrincipalIdentityIssuer.normalizeX500Name(
+                X500Name.getInstance(new X500Principal("o=Athenz, CN=Athenz Primary").getEncoded()));
+        assertEquals(normalizedStringDn, normalizedX500Dn);
     }
 
     @Test
     public void testNormalizeDnInvalid() {
         assertNull(PrincipalIdentityIssuer.normalizeDn("not a valid dn"));
+    }
+
+    @Test
+    public void getIssuerIdentityInvalidCert() {
+        PrincipalIdentityIssuer issuer = new PrincipalIdentityIssuer(
+                "src/test/resources/principal_identity_issuers.json");
+
+        X509Certificate mockCert = Mockito.mock(X509Certificate.class);
+        when(mockCert.getIssuerX500Principal()).thenThrow(new RuntimeException("mock exception"));
+        assertEquals(issuer.getIssuerIdentity(mockCert), "athenz");
     }
 }
