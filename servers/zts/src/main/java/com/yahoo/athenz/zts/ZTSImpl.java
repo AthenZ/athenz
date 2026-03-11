@@ -2857,6 +2857,15 @@ public class ZTSImpl implements ZTSHandler {
                     caller, requestDomainName, principalDomain);
         }
 
+        // now let's verify that our principal is authorized to carry
+        // out token delegation from source to target domain
+
+        final String resource = sourceDomainName + ":" + requestDomainName;
+        if (!authorizer.access(ZTSConsts.ZTS_ACTION_TOKEN_SOURCE_EXCHANGE, resource, principal, null)) {
+            throw forbiddenError("Principal not authorized for token delegation from source domain",
+                    caller, requestDomainName, principalDomain);
+        }
+
         // make sure our principal is authorized to request a token
         // exchange for the given roles
 
@@ -3026,14 +3035,13 @@ public class ZTSImpl implements ZTSHandler {
         List<String> idTokenGroups = processIdTokenRoles(subjectIdentity, tokenScope, domainName, true,
                 false, principalDomain, caller);
 
-        // make sure our principal is authorized to request a jag token
+        // make sure our principal is authorized to request an id token
         // exchange for the given roles
 
-        Principal subjectPrincipal = createPrincipalForName(subjectIdentity);
         for (String idTokenGroup : idTokenGroups) {
-            if (!authorizer.access(ZTSConsts.ZTS_ACTION_ID_TOKEN_EXCHANGE, idTokenGroup, subjectPrincipal, null)) {
+            if (!authorizer.access(ZTSConsts.ZTS_ACTION_ID_TOKEN_EXCHANGE, idTokenGroup, principal, null)) {
                 LOGGER.error("access check failure:({}, {}, {})", ZTSConsts.ZTS_ACTION_ID_TOKEN_EXCHANGE,
-                        idTokenGroup, subjectPrincipal);
+                        idTokenGroup, principal);
                 throw forbiddenError("Principal not authorized for token exchange for the requested role",
                         caller, domainName, principalDomain);
             }
