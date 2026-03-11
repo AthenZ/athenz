@@ -60,21 +60,23 @@ public class PrincipalIdentityIssuer {
         }
 
         for (IssuerEntry entry : config.issuerIdentities) {
-            if (entry.issuerIdentity == null) {
-                LOG.error("PrincipalIdentityIssuer: skipping entry with null identity");
+            if (entry.issuerIdentity == null || entry.issuerIdentity.isEmpty()) {
+                LOG.error("PrincipalIdentityIssuer: skipping entry with null/empty identity");
                 continue;
             }
             if (entry.issuerCertDns != null) {
                 for (String dn : entry.issuerCertDns) {
                     final String normalizedDn = normalizeDn(dn);
-                    if (normalizedDn != null) {
+                    if (normalizedDn != null && !normalizedDn.isEmpty()) {
                         issuerCertDnMap.put(normalizedDn, entry.issuerIdentity);
                     }
                 }
             }
             if (entry.issuerSignerKeys != null) {
                 for (String key : entry.issuerSignerKeys) {
-                    issuerSignerKeyMap.put(key, entry.issuerIdentity);
+                    if (key != null && !key.isEmpty()) {
+                        issuerSignerKeyMap.put(key, entry.issuerIdentity);
+                    }
                 }
             }
         }
