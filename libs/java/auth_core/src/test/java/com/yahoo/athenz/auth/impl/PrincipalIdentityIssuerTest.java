@@ -130,6 +130,29 @@ public class PrincipalIdentityIssuerTest {
     }
 
     @Test
+    public void testGetIssuerIdentityMultiValueCertDn() throws Exception {
+        PrincipalIdentityIssuer issuer = new PrincipalIdentityIssuer(
+                "src/test/resources/principal_identity_issuers_multi_value.json");
+
+        try (FileInputStream inStream = new FileInputStream("src/test/resources/x509_client_certificate_with_ca.pem")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+            assertEquals(issuer.getIssuerIdentity(cert), "primary");
+        }
+    }
+
+    @Test
+    public void testGetIssuerIdentityMultiValueSignerKey() {
+        PrincipalIdentityIssuer issuer = new PrincipalIdentityIssuer(
+                "src/test/resources/principal_identity_issuers_multi_value.json");
+
+        assertEquals(issuer.getIssuerIdentity("x509-primary"), "primary");
+        assertEquals(issuer.getIssuerIdentity("x509-primary-alt"), "primary");
+        assertEquals(issuer.getIssuerIdentity("x509-partner1"), "partner1");
+        assertEquals(issuer.getIssuerIdentity("unknown-key"), "athenz");
+    }
+
+    @Test
     public void testNormalizeDn() {
         String normalized = PrincipalIdentityIssuer.normalizeDn("CN = Athenz Primary, O = Athenz");
         assertEquals(normalized, new X500Principal("CN=Athenz Primary,O=Athenz").getName());

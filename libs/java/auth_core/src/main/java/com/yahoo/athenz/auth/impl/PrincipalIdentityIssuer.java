@@ -24,6 +24,7 @@ import javax.security.auth.x500.X500Principal;
 import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PrincipalIdentityIssuer {
@@ -64,14 +65,18 @@ public class PrincipalIdentityIssuer {
                 LOG.error("PrincipalIdentityIssuer: skipping entry with null identity");
                 continue;
             }
-            if (entry.issuerCertDn != null) {
-                final String normalizedDn = normalizeDn(entry.issuerCertDn);
-                if (normalizedDn != null) {
-                    issuerCertDnMap.put(normalizedDn, entry.issuerIdentity);
+            if (entry.issuerCertDns != null) {
+                for (String dn : entry.issuerCertDns) {
+                    final String normalizedDn = normalizeDn(dn);
+                    if (normalizedDn != null) {
+                        issuerCertDnMap.put(normalizedDn, entry.issuerIdentity);
+                    }
                 }
             }
-            if (entry.issuerSignerKey != null) {
-                issuerSignerKeyMap.put(entry.issuerSignerKey, entry.issuerIdentity);
+            if (entry.issuerSignerKeys != null) {
+                for (String key : entry.issuerSignerKeys) {
+                    issuerSignerKeyMap.put(key, entry.issuerIdentity);
+                }
             }
         }
     }
@@ -125,12 +130,12 @@ public class PrincipalIdentityIssuer {
 
     static class IssuerEntry {
         @JsonProperty("issuer-cert-dn")
-        String issuerCertDn;
+        List<String> issuerCertDns;
 
         @JsonProperty("issuer-identity")
         String issuerIdentity;
 
         @JsonProperty("issuer-signer-key")
-        String issuerSignerKey;
+        List<String> issuerSignerKeys;
     }
 }
