@@ -26,6 +26,7 @@ import com.yahoo.athenz.zms.provider.DomainDependencyProviderResponse;
 import com.yahoo.athenz.zms.provider.ServiceProviderClient;
 import com.yahoo.athenz.zms.provider.ServiceProviderManager;
 import org.mockito.Mockito;
+import org.testcontainers.shaded.org.checkerframework.checker.units.qual.A;
 import org.testng.annotations.*;
 
 import java.lang.reflect.Field;
@@ -1290,6 +1291,8 @@ public class ZMSDeleteDomainTest {
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        ZMSTestUtils.setupSystemMetaAuthorization(zmsTestInitializer.getMockDomRsrcCtx(), zmsImpl,
+                ctx.principal().getFullName(), zmsTestInitializer.getAuditRef());
         DomainMeta meta = new DomainMeta();
 
         meta.setAccount("acct-1234");

@@ -1174,13 +1174,13 @@ public class ZMSSchema {
 ;
 
         sb.resource("DomainMeta", "PUT", "/domain/{name}/meta/system/{attribute}")
-            .comment("Set the specified top level domain metadata. Note that entities in the domain are not affected. Caller must have update privileges on the domain itself. If the system attribute is one of the string attributes, then the caller must also have delete action on the same resource in order to reset the configured value")
+            .comment("Set the specified top level domain metadata. Note that entities in the domain are not affected. Caller must have update privileges on the domain itself. If the system attribute is one of the string attributes, then the caller must also have delete action on the same resource in order to reset the configured value. The authorization will be carried out in the server side based on the attribute. For all attributes, the system admin will have full access with authorize (\"update\", \"sys.auth:meta.domain.{attribute}.{name}\") but for \"enabled\" attribute we'll allow domain admins to enable/disable as well with authorize (\"update\", \"{name}:\"). We're handling the enabled attribute separately to avoid any issues with regular meta calls where the state can change accidentally causing unexpected incidents")
             .name("PutDomainSystemMeta")
             .pathParam("name", "DomainName", "name of the domain to be updated")
             .pathParam("attribute", "SimpleName", "name of the system attribute to be modified")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("detail", "DomainMeta", "DomainMeta object with updated attribute values")
-            .auth("update", "sys.auth:meta.domain.{attribute}.{name}")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

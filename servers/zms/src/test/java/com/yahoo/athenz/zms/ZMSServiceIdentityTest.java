@@ -2550,6 +2550,8 @@ public class ZMSServiceIdentityTest {
         // enable the domain to have the underscore feature flag enabled
         // services should now be allowed
 
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         DomainMeta meta = new DomainMeta().setFeatureFlags(1);
         zmsImpl2.putDomainSystemMeta(ctx, "athenz", "featureflags", auditRef, meta);
 

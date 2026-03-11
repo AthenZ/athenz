@@ -2987,15 +2987,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         attribute = attribute.toLowerCase();
         AthenzObject.DOMAIN_META.convertToLowerCase(meta);
 
-        // verify that request is properly authenticated for this request
-
-        Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
-
         if (LOG.isDebugEnabled()) {
             LOG.debug("putDomainSystemMeta: name={}, attribute={}, meta={}",
                     domainName, attribute, meta);
         }
+
+        // verify that request is properly authenticated for this request
+
+        Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        verifyAuthorizedSystemMetaOperation(principal, domainName, attribute, caller);
+        verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
 
         // first obtain our domain object
 
@@ -3049,6 +3050,32 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // need to update any of our values in the meta store
 
         updateExistingDomainMetaStoreDetails(domainName, meta, changedAttrs);
+    }
+
+    void verifyAuthorizedSystemMetaOperation(Principal principal, String domainName, String attribute, String caller) {
+
+        // For all attributes, the system admin will have full access with
+        // authorize ("update", "sys.auth:meta.domain.{attribute}.{name}")
+
+        final String systemResource = SYS_AUTH + ":meta.domain." + attribute + "." + domainName;
+        if (isAllowedSystemAccess(principal, ZMSConsts.ACTION_UPDATE, systemResource)) {
+            return;
+        }
+
+        // for "enabled" attribute we'll allow domain admins to enable/disable
+        // as well with authorize ("update", "{name}:"). We're handling the enabled
+        // attribute separately to avoid any issues with regular meta calls where the
+        // state can change accidentally causing unexpected incidents
+
+        if (ZMSConsts.SYSTEM_META_ENABLED.equals(attribute)) {
+            final String domainResource = domainName + ":";
+            if (hasAccess(getAthenzDomain(domainName, false), ZMSConsts.ACTION_UPDATE, domainResource,
+                    principal, null) == AccessStatus.ALLOWED) {
+                return;
+            }
+        }
+
+        throw ZMSUtils.forbiddenError("unauthorized to update system meta attribute: " + attribute, caller);
     }
 
     void validateSolutionTemplates(List<String> templateNames, String caller) {
