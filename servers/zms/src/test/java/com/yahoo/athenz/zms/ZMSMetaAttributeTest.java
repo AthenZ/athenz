@@ -346,6 +346,8 @@ public class ZMSMetaAttributeTest {
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         // first aws account
 
         DomainMeta meta = new DomainMeta().setAccount("invalid-aws-account");
@@ -554,6 +556,8 @@ public class ZMSMetaAttributeTest {
         dom1.setBusinessService("exc-business-service");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         Domain domain = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(domain);
         assertEquals(domain.getBusinessService(), "exc-business-service");
@@ -580,6 +584,8 @@ public class ZMSMetaAttributeTest {
         final String auditRef = zmsTestInitializer.getAuditRef();
 
         final String domainName = "athenz-domain-system-meta-not-found";
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         DomainMeta meta = new DomainMeta().setAccount("aws-account");
         try {
@@ -743,6 +749,8 @@ public class ZMSMetaAttributeTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         Domain resDom1 = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(resDom1);
@@ -930,6 +938,8 @@ public class ZMSMetaAttributeTest {
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         Domain resDom1 = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(resDom1);
         long domMod1 = resDom1.getModified().millis();
@@ -961,6 +971,8 @@ public class ZMSMetaAttributeTest {
         TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         Domain resDom = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(resDom);
@@ -1069,6 +1081,8 @@ public class ZMSMetaAttributeTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, null, null,
                 zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         Domain resDom1 = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(resDom1);
@@ -1260,6 +1274,8 @@ public class ZMSMetaAttributeTest {
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         Domain domain = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(domain);
         assertNull(domain.getX509CertSignerKeyId());
@@ -1337,6 +1353,8 @@ public class ZMSMetaAttributeTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         Domain domain = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(domain);
@@ -1421,6 +1439,8 @@ public class ZMSMetaAttributeTest {
         SubDomain subDom1 = zmsTestInitializer.createSubDomainObject("sub1", domainName,
                 "sub Domain", "testOrg", zmsTestInitializer.getAdminUser(), "user.user1");
         zmsImpl.postSubDomain(ctx, domainName, auditRef, null, subDom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         Domain domain = zmsImpl.getDomain(ctx, domainName + ".sub1");
         assertNotNull(domain);
@@ -1588,6 +1608,8 @@ public class ZMSMetaAttributeTest {
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         Domain domain = zmsImpl.getDomain(ctx, domainName);
         assertNotNull(domain);
         assertNull(domain.getAccount());
@@ -1666,6 +1688,96 @@ public class ZMSMetaAttributeTest {
         assertNotNull(domain);
         assertNull(domain.getAccount());
         assertNull(domain.getAwsAccountName());
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutDomainSystemMetaForbidden() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "athenz-domain-system-meta-forbidden";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        // use a principal that is not a system admin - no system meta authorization setup
+
+        RsrcCtxWrapper nonAdminCtx = zmsTestInitializer.contextWithMockPrincipal("putdomainsystemmeta",
+                "user", "johndoe");
+
+        DomainMeta meta = new DomainMeta().setAccount("aws-account");
+        try {
+            zmsImpl.putDomainSystemMeta(nonAdminCtx, domainName, ZMSConsts.SYSTEM_META_ACCOUNT, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("unauthorized to update system meta attribute: account"));
+        }
+
+        meta = new DomainMeta().setEnabled(false);
+        try {
+            zmsImpl.putDomainSystemMeta(nonAdminCtx, domainName, ZMSConsts.SYSTEM_META_ENABLED, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("unauthorized to update system meta attribute: enabled"));
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutDomainSystemMetaEnabledDomainAdmin() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "athenz-domain-system-meta-enabled-admin";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), "user.domainadmin");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        // use a context for the domain admin who is not a system admin
+
+        RsrcCtxWrapper domainAdminCtx = zmsTestInitializer.contextWithMockPrincipal("putdomainsystemmeta",
+                "user", "domainadmin");
+
+        // the domain admin should be able to update the enabled attribute without
+        // being a system admin since verifyAuthorizedSystemMetaOperation allows
+        // domain admins to set the enabled attribute
+
+        DomainMeta meta = new DomainMeta().setEnabled(false);
+        zmsImpl.putDomainSystemMeta(domainAdminCtx, domainName, ZMSConsts.SYSTEM_META_ENABLED, auditRef, meta);
+
+        Domain domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertFalse(domain.getEnabled());
+
+        // re-enable the domain
+
+        meta.setEnabled(true);
+        zmsImpl.putDomainSystemMeta(domainAdminCtx, domainName, ZMSConsts.SYSTEM_META_ENABLED, auditRef, meta);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertTrue(domain.getEnabled());
+
+        // the same domain admin should not be able to update a non-enabled
+        // attribute like account since they are not a system admin
+
+        meta = new DomainMeta().setAccount("aws-account");
+        try {
+            zmsImpl.putDomainSystemMeta(domainAdminCtx, domainName, ZMSConsts.SYSTEM_META_ACCOUNT, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("unauthorized to update system meta attribute: account"));
+        }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }

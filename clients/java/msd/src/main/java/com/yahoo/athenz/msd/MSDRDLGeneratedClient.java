@@ -1066,7 +1066,7 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public TransportPolicySnapshot getTransportPolicySnapshot(String domainName, String serviceName, String snapshotName, String matchingTag, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
+    public TransportPolicySnapshot getTransportPolicySnapshot(String domainName, String serviceName, String snapshotName) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName)
@@ -1078,24 +1078,12 @@ public class MSDRDLGeneratedClient {
         if (credsHeader != null) {
             httpUriRequest.addHeader(credsHeader, credsToken);
         }
-        if (matchingTag != null) {
-            httpUriRequest.addHeader("If-None-Match", matchingTag);
-        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
-            case 304:
-                if (headers != null) {
-                    if (httpResponse.getFirstHeader("ETag") != null) {
-                        headers.put("tag", List.of(httpResponse.getFirstHeader("ETag").getValue()));
-                    }
-                }
-                if (code == 304) {
-                    return null;
-                }
                 return jsonMapper.readValue(httpResponseEntity.getContent(), TransportPolicySnapshot.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);

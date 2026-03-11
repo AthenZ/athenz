@@ -363,7 +363,7 @@ public class ZMSResources {
     @Path("/domain/{name}/meta/system/{attribute}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Set the specified top level domain metadata. Note that entities in the domain are not affected. Caller must have update privileges on the domain itself. If the system attribute is one of the string attributes, then the caller must also have delete action on the same resource in order to reset the configured value")
+    @Operation(description = "Set the specified top level domain metadata. Note that entities in the domain are not affected. Caller must have update privileges on the domain itself. If the system attribute is one of the string attributes, then the caller must also have delete action on the same resource in order to reset the configured value. The authorization will be carried out in the server side based on the attribute. For all attributes, the system admin will have full access with authorize (\"update\", \"sys.auth:meta.domain.{attribute}.{name}\") but for \"enabled\" attribute we'll allow domain admins to enable/disable as well with authorize (\"update\", \"{name}:\"). We're handling the enabled attribute separately to avoid any issues with regular meta calls where the state can change accidentally causing unexpected incidents")
     public void putDomainSystemMeta(
         @Parameter(description = "name of the domain to be updated", required = true) @PathParam("name") String name,
         @Parameter(description = "name of the system attribute to be modified", required = true) @PathParam("attribute") String attribute,
@@ -373,7 +373,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putDomainSystemMeta");
-            context.authorize("update", "sys.auth:meta.domain." + attribute + "." + name + "", null);
+            context.authenticate();
             this.delegate.putDomainSystemMeta(context, name, attribute, auditRef, detail);
         } catch (ResourceException e) {
             code = e.getCode();

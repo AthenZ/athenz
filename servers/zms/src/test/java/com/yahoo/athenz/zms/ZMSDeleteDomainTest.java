@@ -1290,6 +1290,8 @@ public class ZMSDeleteDomainTest {
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        ZMSTestUtils.setupSystemMetaAuthorization(zmsTestInitializer.getMockDomRsrcCtx(), zmsImpl,
+                ctx.principal().getFullName(), zmsTestInitializer.getAuditRef());
         DomainMeta meta = new DomainMeta();
 
         meta.setAccount("acct-1234");

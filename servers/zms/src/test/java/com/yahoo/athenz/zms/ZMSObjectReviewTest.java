@@ -1168,6 +1168,8 @@ public class ZMSObjectReviewTest {
                 "Role review Test Domain1", "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
                 "user.john", "user.jane");
         zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, null, role1);

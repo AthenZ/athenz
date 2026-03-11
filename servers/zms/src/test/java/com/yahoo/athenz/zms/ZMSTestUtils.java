@@ -29,6 +29,7 @@ import org.testcontainers.utility.MountableFile;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -256,5 +257,31 @@ public class ZMSTestUtils {
         }
 
         return false;
+    }
+
+    public static void setupSystemMetaAuthorization(ResourceContext ctx, ZMSImpl zmsImpl, final String principal,
+            final String auditRef) {
+
+        final String sysDomain = "sys.auth";
+        final String objectName = "domain-meta-admins";
+
+        Role role = new Role();
+        role.setName(objectName);
+        RoleMember roleMember = new RoleMember();
+        roleMember.setMemberName(principal);
+        List<RoleMember> roleMembers = Arrays.asList(roleMember);
+        role.setRoleMembers(roleMembers);
+        zmsImpl.putRole(ctx, sysDomain, objectName, auditRef, false, null, role);
+
+        Policy policy = new Policy();
+        policy.setName(objectName);
+        Assertion assertion = new Assertion();
+        assertion.setAction("update");
+        assertion.setResource("sys.auth:meta.domain.*");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setRole(sysDomain + ":role." + objectName);
+        List<Assertion> assertions = List.of(assertion);
+        policy.setAssertions(assertions);
+        zmsImpl.putPolicy(ctx, sysDomain, objectName, auditRef, false, null, policy);
     }
 }

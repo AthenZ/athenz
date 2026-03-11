@@ -1042,6 +1042,8 @@ public class ZMSImplTest {
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(), ctx.principal().getFullName());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Test Domain1", "testOrg",
                 true, true, "12345", 1001);
         zmsImpl.putDomainMeta(ctx, "AddSubDom1", auditRef, null, meta);
@@ -7158,6 +7160,8 @@ public class ZMSImplTest {
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         Group group1 = zmsTestInitializer.createGroupObject("signeddom1", "group1", "user.user1", "user.user2");
         zmsImpl.putGroup(ctx, "signeddom1", "group1", auditRef, false, null, group1);
 
@@ -10205,6 +10209,8 @@ public class ZMSImplTest {
         String providerDomain  = "providerTestPutTenancyMissingAuditRef";
         String providerService = "storage";
 
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         // create tenant and provider domains
 
         zmsTestInitializer.setupTenantDomainProviderService(tenantDomain, providerDomain, providerService,
@@ -10398,6 +10404,8 @@ public class ZMSImplTest {
         String tenantDomain    = "testDeleteTenancyMissingAuditRef";
         String providerDomain  = "providerTestDeleteTenancyMissingAuditRef";
         String providerService = "storage";
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         // create tenant and provider domains
         //
@@ -19024,6 +19032,8 @@ public class ZMSImplTest {
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         // set the meta attributes for domain
 
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Tenant Domain1", null, true, false, "12345", 0);
@@ -19773,6 +19783,8 @@ public class ZMSImplTest {
                 "Role System Meta Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for Role System Meta test", "NewOrg",
                 true, true, "12345", 1001);
         zmsImpl.putDomainMeta(ctx, "rolesystemmetadom1", auditRef, null, meta);
@@ -19803,6 +19815,8 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("rolesystemmetadom1",
                 "Role System Meta Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for Role System Meta test", "NewOrg",
                 true, true, "12345", 1001);
@@ -20067,6 +20081,8 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("rolemetadom1", "Role Meta Test Domain1", "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for Role Meta test", "NewOrg",
                 true, true, "12345", 1001);
         zmsImpl.putDomainMeta(ctx, "rolemetadom1", auditRef, null, meta);
@@ -20290,6 +20306,8 @@ public class ZMSImplTest {
 
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1","Role Test Domain1", "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         Role role1 = zmsTestInitializer.createRoleObject("testdomain1", "testrole1", null,"user.john", "user.jane");
         zmsImpl.putRole(ctx, "testdomain1", "testrole1", auditRef, false, null, role1);
@@ -20841,6 +20859,9 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval Test Domain1",
                 "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",
                 true, true, "12345", 1001);
         zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
@@ -20929,6 +20950,9 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval Test Domain1",
                 "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",
                 true, true, "12345", 1001);
         zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
@@ -21006,6 +21030,9 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval Test Domain1",
                 "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",
                 true, true, "12345", 1001);
         zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
@@ -21091,6 +21118,9 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1", "Approval Test Domain1",
                 "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",
                 true, true, "12345", 1001);
         zmsImpl.putDomainMeta(ctx, "testdomain1", auditRef, null, meta);
@@ -21250,9 +21280,14 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         final String auditRef = zmsTestInitializer.getAuditRef();
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1","Approval Test Domain1", "testOrg", "user.user1");
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1","Approval Test Domain1",
+                "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
-        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
+        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test",
+                "testOrg", true, true, "12345", 1001);
         zmsImpl.putDomainMeta(ctx, "testdomain1", auditRef, null, meta);
         zmsImpl.putDomainSystemMeta(ctx, "testdomain1", "auditenabled", auditRef, meta);
 
@@ -21311,6 +21346,8 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1", "Approval Test Domain1",
                 "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         setupPrincipalAuditedRoleApprovalByOrg(zmsImpl, "user.fury", "testorg");
 
@@ -21405,6 +21442,8 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1", "Approval Test Domain1",
                 "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         setupPrincipalAuditedRoleApprovalByOrg(zmsImpl, "user.fury", "testorg");
 
@@ -21521,6 +21560,8 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject("testdomain1","Pending Test Domain1",
                 "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",
                 true, true, "12345", 1001);
@@ -23050,6 +23091,8 @@ public class ZMSImplTest {
                 "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         setupPrincipalAuditedRoleApprovalByOrg(zmsImpl, "user.fury", "testorg");
 
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testorg",
@@ -23152,6 +23195,8 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "delete pending membership",
                 "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         setupPrincipalAuditedRoleApprovalByOrg(zmsImpl, "user.fury", "testorg");
 
@@ -25413,6 +25458,9 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval Test Domain1",
                 "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",
                 true, true, "12345", 1001);
         zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
@@ -25501,6 +25549,9 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval Test Domain1",
                 "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",
                 true, true, "12345", 1001);
         zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
@@ -25578,6 +25629,9 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval Test Domain1",
                 "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",
                 true, true, "12345", 1001);
         zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
@@ -25740,9 +25794,14 @@ public class ZMSImplTest {
         final String domainName = "put-group-dec-errors";
         final String groupName = "testgroup1";
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,"Approval Test Domain1", "testOrg", "user.user1");
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,"Approval Test Domain1",
+                "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
-        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
+        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",
+                true, true, "12345", 1001);
         zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, meta);
         zmsImpl.putDomainSystemMeta(ctx, domainName, "auditenabled", auditRef, meta);
 
@@ -25802,9 +25861,14 @@ public class ZMSImplTest {
         final String domainName2 = "put-group-sys-meta-errors2";
         final String groupName = "testgroup1";
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName1, "Approval Test Domain1", "testOrg", "user.user1");
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName1, "Approval Test Domain1",
+                "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
-        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",true, true, "12345", 1001);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
+        DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testOrg",
+                true, true, "12345", 1001);
         zmsImpl.putDomainMeta(ctx, domainName1, auditRef, null, meta);
         zmsImpl.putDomainSystemMeta(ctx, domainName1, "auditenabled", auditRef, meta);
 
@@ -26047,6 +26111,8 @@ public class ZMSImplTest {
                 "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
         setupPrincipalAuditedRoleApprovalByOrg(zmsImpl, "user.fury", "testorg");
 
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for approval test", "testorg",
@@ -26234,8 +26300,11 @@ public class ZMSImplTest {
         final String domainName = "pend-dom-grp-mbr-list";
         final String groupName = "group1";
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval Test Domain1", "testOrg", "user.user1");
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval Test Domain1",
+                "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         setupPrincipalAuditedRoleApprovalByOrg(zmsImpl, "user.fury", "testorg");
 
@@ -26334,8 +26403,11 @@ public class ZMSImplTest {
         final String domainName = "pend-dom-grp-mbr-list";
         final String groupName = "group2";
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval Test Domain1", "testOrg", "user.user1");
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Approval Test Domain1",
+                "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         setupPrincipalAuditedRoleApprovalByOrg(zmsImpl, "user.fury", "testorg");
 
@@ -26960,8 +27032,11 @@ public class ZMSImplTest {
         final String domainName = "put-group-meta-missing-auditref";
         final String groupName = "group1";
 
-        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Group Meta Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName, "Group Meta Test Domain1",
+                "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         DomainMeta meta = zmsTestInitializer.createDomainMetaObject("Domain Meta for Group Meta test", "NewOrg",
                 true, true, "12345", 1001);
@@ -27657,6 +27732,8 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Role System Meta Test Domain1", "testOrg", "user.user1");
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         DomainMeta meta = new DomainMeta().setAuditEnabled(true);
         zmsImpl.putDomainSystemMeta(ctx, domainName, "auditenabled", auditRef, meta);
