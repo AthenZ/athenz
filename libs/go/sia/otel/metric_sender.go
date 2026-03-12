@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/AthenZ/athenz/libs/go/sia/config"
@@ -29,7 +30,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.39.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
 	"google.golang.org/grpc/credentials"
 )
 
@@ -143,13 +144,17 @@ func initializeOTelSDK(ctx context.Context, oTelCfg config.OTel) (ShutdownFn, er
 	} else {
 		// HTTP/HTTPS protocol.
 		var opts []otlpmetrichttp.Option
+		setTLSClientConfig := true
 		if hasProtocolScheme(oTelCfg.CollectorEndpoint) {
+			setTLSClientConfig = strings.HasPrefix(strings.ToLower(oTelCfg.CollectorEndpoint), "https://")
 			opts = append(opts, otlpmetrichttp.WithEndpointURL(oTelCfg.CollectorEndpoint))
 		} else {
 			opts = append(opts, otlpmetrichttp.WithEndpoint(oTelCfg.CollectorEndpoint))
 		}
 
-		opts = append(opts, otlpmetrichttp.WithTLSClientConfig(oTelTLSConf))
+		if setTLSClientConfig {
+			opts = append(opts, otlpmetrichttp.WithTLSClientConfig(oTelTLSConf))
+		}
 		metricExporter, err = otlpmetrichttp.New(ctx, opts...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create oTel metric http exporter for endpoint %s: %v", oTelCfg.CollectorEndpoint, err)
