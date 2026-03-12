@@ -37,7 +37,7 @@ var Version string
 func main() {
 
 	var ztsURL, domain, service, spiffeTrustDomain, subjC, subjO, subjOU, provider string
-	var caCertFile, keyFile, certFile, signerCertFile, dnsDomain, oidcTokenAudience string
+	var caCertFile, keyFile, certFile, signerCertFile, dnsDomain, oidcTokenAudience, oidcKeyType string
 	var showVersion, getOIDCToken bool
 	var expiryTime int
 	flag.IntVar(&expiryTime, "expiry-time", 360, "expiry time in minutes (optional)")
@@ -56,6 +56,7 @@ func main() {
 	flag.StringVar(&spiffeTrustDomain, "spiffe-trust-domain", "", "SPIFFE trust domain (optional)")
 	flag.BoolVar(&getOIDCToken, "get-oidc-token", false, "Get OIDC token from Athenz ZTS along with X.509 identity certificate")
 	flag.StringVar(&oidcTokenAudience, "oidc-token-audience", "", "OIDC token audience (optional)")
+	flag.StringVar(&oidcKeyType, "oidc-key-type", "EC", "OIDC token signing key type: RSA/EC (optional)")
 	flag.BoolVar(&showVersion, "version", false, "Show version")
 	flag.Parse()
 
@@ -125,6 +126,7 @@ func main() {
 	if getOIDCToken {
 		req.Token = &getOIDCToken
 		req.JwtSVIDAudience = oidcTokenAudience
+		req.JwtSVIDKeyType = zts.SimpleName(oidcKeyType)
 	}
 
 	// request a tls certificate for this service
