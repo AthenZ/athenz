@@ -29,14 +29,18 @@ public class SpiffeUriManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(SpiffeUriManager.class);
 
     public static final String ZTS_PROP_SPIFFE_URI_VALIDATOR_CLASSES = "athenz.zts.spiffe_uri_validator_classes";
+    public static final String ZTS_PROP_SPIFFE_DEFAULT_USER_NAMESPACE = "athenz.zts.spiffe_default_user_namespace";
     public static final String ZTS_DEFAULT_SPIFFE_URI_VALIDATOR_CLASSES = "com.yahoo.athenz.common.server.spiffe.impl.SpiffeUriTrustDomain,com.yahoo.athenz.common.server.spiffe.impl.SpiffeUriBasic";
 
     private final List<SpiffeUriValidator> validators;
+    private final String defaultUserNamespace;
 
     public SpiffeUriManager() {
 
         final String validatorClasses = System.getProperty(ZTS_PROP_SPIFFE_URI_VALIDATOR_CLASSES,
                 ZTS_DEFAULT_SPIFFE_URI_VALIDATOR_CLASSES);
+
+        defaultUserNamespace = System.getProperty(ZTS_PROP_SPIFFE_DEFAULT_USER_NAMESPACE, "default");
 
         validators = new ArrayList<>();
         String[] validatorClassList = validatorClasses.split(",");
@@ -47,6 +51,10 @@ public class SpiffeUriManager {
             }
             validators.add(validator);
         }
+    }
+
+    public String getDefaultUserNamespace() {
+        return defaultUserNamespace;
     }
 
     SpiffeUriValidator getValidator(String className) {

@@ -1,0 +1,29 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+// UserCertificate - a user certificate
+type UserCertificate Struct {
+    String x509Certificate;
+}
+
+// UserCertificateRequest - a certificate signing request
+type UserCertificateRequest Struct {
+    String name; //name of the user
+    String csr; //user certificate singing request
+    String attestationData; //identity attestation data
+    Int32 expiryTime (optional); //expiry time in minutes for the certificate (server enforces max expiry)
+    SimpleName x509CertSignerKeyId (optional); //requested x509 cert signer key id
+}
+
+//Return a TLS certificate for the given principal user
+resource UserCertificate POST "/usercert" {
+    UserCertificateRequest req; //csr request
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

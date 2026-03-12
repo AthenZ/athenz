@@ -5548,4 +5548,33 @@ public class ZTSClientTest {
             System.clearProperty(ZTSClient.ZTS_CLIENT_PROP_KEYSTORE_PATH);
         }
     }
+
+    @Test
+    public void testPostUserCertificateRequest() {
+        ZTSClient client = new ZTSClient("http://localhost:4080");
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        UserCertificateRequest req = new UserCertificateRequest().setCsr("csr").setAttestationData("valid");
+        UserCertificate userCert = client.postUserCertificateRequest(req);
+        assertNotNull(userCert);
+        assertEquals(userCert.getX509Certificate(), "x509cert");
+
+        try {
+            req.setAttestationData("exc");
+            client.postUserCertificateRequest(req);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        try {
+            req.setAttestationData("forbidden");
+            client.postUserCertificateRequest(req);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+        client.close();
+    }
 }

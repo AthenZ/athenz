@@ -564,6 +564,20 @@ func init() {
 	tDomainDetails.Field("gcpProjectNumber", "String", true, nil, "associated gcp project number")
 	sb.AddType(tDomainDetails.Build())
 
+	tUserCertificate := rdl.NewStructTypeBuilder("Struct", "UserCertificate")
+	tUserCertificate.Comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. UserCertificate - a user certificate")
+	tUserCertificate.Field("x509Certificate", "String", false, nil, "")
+	sb.AddType(tUserCertificate.Build())
+
+	tUserCertificateRequest := rdl.NewStructTypeBuilder("Struct", "UserCertificateRequest")
+	tUserCertificateRequest.Comment("UserCertificateRequest - a certificate signing request")
+	tUserCertificateRequest.Field("name", "String", false, nil, "name of the user")
+	tUserCertificateRequest.Field("csr", "String", false, nil, "user certificate singing request")
+	tUserCertificateRequest.Field("attestationData", "String", false, nil, "identity attestation data")
+	tUserCertificateRequest.Field("expiryTime", "Int32", true, nil, "expiry time in minutes for the certificate (server enforces max expiry)")
+	tUserCertificateRequest.Field("x509CertSignerKeyId", "SimpleName", true, nil, "requested x509 cert signer key id")
+	sb.AddType(tUserCertificateRequest.Build())
+
 	tRdl_Identifier := rdl.NewStringTypeBuilder("rdl.Identifier")
 	tRdl_Identifier.Comment("All names need to be of this restricted string type")
 	tRdl_Identifier.Pattern("[a-zA-Z_]+[a-zA-Z_0-9]*")
@@ -1206,6 +1220,17 @@ func init() {
 	mPostExternalCredentialsRequest.Exception("FORBIDDEN", "ResourceError", "")
 	mPostExternalCredentialsRequest.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostExternalCredentialsRequest.Build())
+
+	mPostUserCertificateRequest := rdl.NewResourceBuilder("UserCertificate", "POST", "/usercert")
+	mPostUserCertificateRequest.Comment("Return a TLS certificate for the given principal user")
+	mPostUserCertificateRequest.Input("req", "UserCertificateRequest", false, "", "", false, nil, "csr request")
+	mPostUserCertificateRequest.Auth("", "", true, "")
+	mPostUserCertificateRequest.Exception("BAD_REQUEST", "ResourceError", "")
+	mPostUserCertificateRequest.Exception("FORBIDDEN", "ResourceError", "")
+	mPostUserCertificateRequest.Exception("NOT_FOUND", "ResourceError", "")
+	mPostUserCertificateRequest.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mPostUserCertificateRequest.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mPostUserCertificateRequest.Build())
 
 	mGetRdlSchema := rdl.NewResourceBuilder("rdl.Schema", "GET", "/schema")
 	mGetRdlSchema.Comment("Get RDL Schema")

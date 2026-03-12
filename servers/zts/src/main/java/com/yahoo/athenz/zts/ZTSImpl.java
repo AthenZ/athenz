@@ -137,6 +137,8 @@ public class ZTSImpl implements ZTSHandler {
     protected int roleTokenMaxTimeout;
     protected int idTokenMaxTimeout;
     protected int idTokenDefaultTimeout;
+    protected int userCertMaxTimeout;
+    protected int userCertDefaultTimeout;
     protected DynamicConfigLong x509CertRefreshResetTime;
     protected long signedPolicyTimeout;
     protected static String serverHostName = null;
@@ -196,6 +198,7 @@ public class ZTSImpl implements ZTSHandler {
     protected IssuerResolver issuerResolver;
     protected boolean instanceRegisterTokenTypeJWT = false;
     protected PrincipalIdentityIssuer principalIdentityIssuer;
+    protected String userCertProvider;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -206,6 +209,7 @@ public class ZTSImpl implements ZTSHandler {
     private static final String TYPE_INSTANCE_REFRESH_INFO = "InstanceRefreshInformation";
     private static final String TYPE_INSTANCE_REFRESH_REQUEST = "InstanceRefreshRequest";
     private static final String TYPE_ROLE_CERTIFICATE_REQUEST = "RoleCertificateRequest";
+    private static final String TYPE_USER_CERTIFICATE_REQUEST = "UserCertificateRequest";
     private static final String TYPE_SSH_CERT_REQUEST = "SSHCertRequest";
     private static final String TYPE_COMPOUND_NAME = "CompoundName";
     private static final String TYPE_RESOURCE_NAME = "ResourceName";
@@ -649,6 +653,16 @@ public class ZTSImpl implements ZTSHandler {
         idTokenDefaultTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_DEFAULT_TIMEOUT, Long.toString(timeout)));
 
+        // default (1hr) and max (12hrs) user cert timeouts
+
+        timeout = TimeUnit.SECONDS.convert(12, TimeUnit.HOURS);
+        userCertMaxTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT, Long.toString(timeout)));
+
+        timeout = TimeUnit.SECONDS.convert(1, TimeUnit.HOURS);
+        userCertDefaultTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT, Long.toString(timeout)));
+
         // signedPolicyTimeout is in milliseconds but the config setting should be in seconds
         // to be consistent with other configuration properties
 
@@ -786,6 +800,10 @@ public class ZTSImpl implements ZTSHandler {
 
         instanceRegisterTokenTypeJWT = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_CERT_REQUEST_TOKEN_TYPE_JWT, "false"));
+
+        // check if we should use the user cert provider
+
+        userCertProvider = System.getProperty(ZTSConsts.ZTS_PROP_USER_CERT_PROVIDER);
     }
 
     static String getServerHostName() {
@@ -6511,6 +6529,116 @@ public class ZTSImpl implements ZTSHandler {
         }
 
         return serverInfo;
+    }
+
+    @Override
+    public UserCertificate postUserCertificateRequest(ResourceContext ctx, UserCertificateRequest req) {
+
+        final String caller = ctx.getApiName();
+
+        if (readOnlyMode.get()) {
+            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
+                    caller, userDomain, userDomain);
+        }
+
+        // make sure we have a user authority configured
+
+        if (userAuthority == null || userCertProvider == null) {
+            throw requestError("User authority configuration is not set", caller, userDomain, userDomain);
+        }
+
+        // validate the request
+
+        validate(req, TYPE_USER_CERTIFICATE_REQUEST, userDomain, caller);
+        setRequestDomain(ctx, userDomain);
+
+        // make sure we have a valid user name
+
+        final String principalName = req.getName();
+        if (StringUtil.isEmpty(principalName)) {
+            throw requestError("User name is required", caller, userDomain, userDomain);
+        }
+
+        if (userAuthority.getUserType(principalName) != Authority.UserType.USER_ACTIVE) {
+            LOGGER.error("User {} is not valid", principalName);
+            throw requestError("User is not valid", caller, userDomain, userDomain);
+        }
+
+        // parse our request object
+
+        X509UserCertRequest certReq;
+        try {
+            certReq = new X509UserCertRequest(req.getCsr(), spiffeUriManager);
+        } catch (CryptoException ex) {
+            throw requestError("Unable to parse PKCS10 CSR: " + ex.getMessage(),
+                    caller, userDomain, userDomain);
+        }
+
+        // make sure the request csr matches our user name
+
+        if (!certReq.getCommonName().equals(principalName)) {
+            throw requestError("User Certificate Request mismatch: " + certReq.getCommonName() +
+                    "/" + principalName, caller, userDomain, userDomain);
+        }
+
+        // validate request/csr details
+
+        if (!certReq.validate(userDomain, principalName, validCertSubjectOrgValues)) {
+            throw requestError("Unable to validate cert request", caller, userDomain, userDomain);
+        }
+
+        // get our instance provider, the method will throw an exception
+        // if the provider is not found or invalid type
+
+        InstanceProvider instanceProvider = getInstanceProvider(userCertProvider, InstanceProvider.SVIDType.X509,
+            userDomain, userDomain, caller);
+        
+        InstanceConfirmation instance = new InstanceConfirmation()
+            .setAttestationData(req.getAttestationData())
+            .setDomain(userDomain).setService(principalName).setProvider(userCertProvider);
+
+        // make sure to close our provider when its no longer needed
+        // and the method will do that for us
+
+        instance = validateConfirmationData(ctx, instance, instanceProvider, userCertProvider, userDomain,
+                userDomain, principalName, caller);
+
+        // determine the expiry time for the certificate
+
+        int expiryTime = determineUserCertTimeout(req.getExpiryTime());
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("User Certificate for {} expiryTime: {}", principalName, expiryTime);
+        }
+
+        Object timerX509CertMetric = metric.startTiming("certsignx509_timing", userDomain, userDomain);
+        final String x509Cert = instanceCertManager.generateX509Certificate(userCertProvider, null, req.getCsr(),
+                InstanceProvider.ZTS_CERT_USAGE_CLIENT, expiryTime, Priority.High,
+                getUserX509KeySignerId(principalName, req.getX509CertSignerKeyId()));
+        metric.stopTiming(timerX509CertMetric, userDomain, userDomain);
+
+        if (StringUtil.isEmpty(x509Cert)) {
+            throw serverError("Unable to create certificate from the cert signer", caller, userDomain, userDomain);
+        }
+
+        final X509Certificate userCert = Crypto.loadX509Certificate(x509Cert);
+
+        // log our certificate
+
+        instanceCertManager.logX509Cert(null, ctx.request().getRemoteAddr(), ZTSConsts.ZTS_SERVICE, principalName, userCert);
+        return new UserCertificate().setX509Certificate(x509Cert);
+    }
+
+    String getUserX509KeySignerId(final String principalName, final String requestSignerKeyId) {
+        final String authoritySignerKeyId = userAuthority.getSignerKeyId(principalName);
+        return StringUtil.isEmpty(authoritySignerKeyId) ? requestSignerKeyId : authoritySignerKeyId;
+    }
+
+    int determineUserCertTimeout(Integer expiryTime) {
+        if (expiryTime == null || expiryTime <= 0) {
+            return userCertDefaultTimeout;
+        }
+        return (expiryTime > userCertMaxTimeout) ? userCertMaxTimeout : expiryTime;
     }
 
     synchronized void fetchInfoFromManifest(ServletContext servletContext) {

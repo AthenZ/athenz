@@ -491,6 +491,18 @@ public class ZTSSchema {
             .field("gcpProjectId", "String", true, "associated gcp project id")
             .field("gcpProjectNumber", "String", true, "associated gcp project number");
 
+        sb.structType("UserCertificate")
+            .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. UserCertificate - a user certificate")
+            .field("x509Certificate", "String", false, "");
+
+        sb.structType("UserCertificateRequest")
+            .comment("UserCertificateRequest - a certificate signing request")
+            .field("name", "String", false, "name of the user")
+            .field("csr", "String", false, "user certificate singing request")
+            .field("attestationData", "String", false, "identity attestation data")
+            .field("expiryTime", "Int32", true, "expiry time in minutes for the certificate (server enforces max expiry)")
+            .field("x509CertSignerKeyId", "SimpleName", true, "requested x509 cert signer key id");
+
         sb.stringType("rdl.Identifier")
             .comment("All names need to be of this restricted string type")
             .pattern("[a-zA-Z_]+[a-zA-Z_0-9]*");
@@ -1258,6 +1270,22 @@ public class ZTSSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("UserCertificateRequest", "POST", "/usercert")
+            .comment("Return a TLS certificate for the given principal user")
+            .input("req", "UserCertificateRequest", "csr request")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
 
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;

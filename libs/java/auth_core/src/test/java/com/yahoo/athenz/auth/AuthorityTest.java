@@ -79,6 +79,11 @@ public class AuthorityTest {
             public UserType getUserType(String username) {
                 return "john".equals(username) ? UserType.USER_ACTIVE : UserType.USER_SUSPENDED;
             }
+
+            @Override
+            public String getSignerKeyId(String username) {
+                return "john".equals(username) ? "x509-signer" : null;
+            }
         };
 
         assertNull(authority.getAuthenticateChallenge());
@@ -104,6 +109,9 @@ public class AuthorityTest {
         assertEquals(authority.getUserEmail("john"), "john@example.com");
         assertEquals(authority.getUserManager("john"), "john-manager");
         assertEquals(authority.getID(), "Auth-ID");
+
+        assertEquals(authority.getSignerKeyId("john"), "x509-signer");
+        assertNull(authority.getSignerKeyId("joe"));
     }
 
     @Test
@@ -154,5 +162,6 @@ public class AuthorityTest {
         assertEquals(authority.getID(), "Auth-ID");
         assertTrue(authority.getPrincipals(EnumSet.of(Principal.State.ACTIVE)).isEmpty());
         assertNull(authority.getUserManager("john"));
+        assertNull(authority.getSignerKeyId("john"));
     }
 }

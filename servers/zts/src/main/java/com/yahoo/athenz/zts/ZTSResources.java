@@ -1245,6 +1245,42 @@ public class ZTSResources {
         }
     }
 
+    @POST
+    @Path("/usercert")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Return a TLS certificate for the given principal user")
+    public UserCertificate postUserCertificateRequest(
+        @Parameter(description = "csr request", required = true) UserCertificateRequest req) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "postUserCertificateRequest");
+            context.authenticate();
+            return this.delegate.postUserCertificateRequest(context, req);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource postUserCertificateRequest");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
     @GET
     @Path("/schema")
     @Produces(MediaType.APPLICATION_JSON)
