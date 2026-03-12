@@ -17,14 +17,14 @@ package com.yahoo.athenz.auth.impl;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.security.auth.x500.X500Principal;
 import java.io.File;
 import java.security.cert.X509Certificate;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class PrincipalIdentityIssuer {
 
@@ -60,18 +60,24 @@ public class PrincipalIdentityIssuer {
         }
 
         for (IssuerEntry entry : config.issuerIdentities) {
-            if (entry.issuerIdentity == null) {
-                LOG.error("PrincipalIdentityIssuer: skipping entry with null identity");
+            if (entry.issuerIdentity == null || entry.issuerIdentity.isEmpty()) {
+                LOG.error("PrincipalIdentityIssuer: skipping entry with null/empty identity");
                 continue;
             }
-            if (entry.issuerCertDn != null) {
-                final String normalizedDn = normalizeDn(entry.issuerCertDn);
-                if (normalizedDn != null) {
-                    issuerCertDnMap.put(normalizedDn, entry.issuerIdentity);
+            if (entry.issuerCertDns != null) {
+                for (String dn : entry.issuerCertDns) {
+                    final String normalizedDn = normalizeDn(dn);
+                    if (normalizedDn != null && !normalizedDn.isEmpty()) {
+                        issuerCertDnMap.put(normalizedDn, entry.issuerIdentity);
+                    }
                 }
             }
-            if (entry.issuerSignerKey != null) {
-                issuerSignerKeyMap.put(entry.issuerSignerKey, entry.issuerIdentity);
+            if (entry.issuerSignerKeys != null) {
+                for (String key : entry.issuerSignerKeys) {
+                    if (key != null && !key.isEmpty()) {
+                        issuerSignerKeyMap.put(key, entry.issuerIdentity);
+                    }
+                }
             }
         }
     }
@@ -84,10 +90,19 @@ public class PrincipalIdentityIssuer {
      * @return the issuer identity string, or default identity if the certificate is null
      */
     public String getIssuerIdentity(X509Certificate x509Certificate) {
+
         if (x509Certificate == null) {
             return defaultIssuerIdentity;
         }
-        final String issuerDn = x509Certificate.getIssuerX500Principal().getName();
+
+        String issuerDn;
+        try {
+            issuerDn = normalizeX500Name(X500Name.getInstance(x509Certificate.getIssuerX500Principal().getEncoded()));
+        } catch (Exception ex) {
+            LOG.error("PrincipalIdentityIssuer: unable to extract issuer DN from certificate: {}", ex.getMessage());
+            return defaultIssuerIdentity;
+        }
+
         final String identity = issuerCertDnMap.get(issuerDn);
         return identity != null ? identity : defaultIssuerIdentity;
     }
@@ -106,11 +121,26 @@ public class PrincipalIdentityIssuer {
         return identity != null ? identity : defaultIssuerIdentity;
     }
 
-    static String normalizeDn(final String dn) {
+    static String normalizeX500Name(final X500Name name) {
+
+        // Get the individual RDNs (e.g., CN=User, C=US)
+
+        RDN[] rdns = name.getRDNs();
+
+        // Sort them. Using the string representation of the RDN
+
+        Arrays.sort(rdns, Comparator.comparing(Object::toString));
+
+        // Return the new X500Name built from sorted RDNs
+
+        return new X500Name(rdns).toString();
+    }
+
+    static String normalizeDn(final String dnString) {
         try {
-            return new X500Principal(dn).getName();
+            return normalizeX500Name(new X500Name(dnString));
         } catch (Exception ex) {
-            LOG.error("PrincipalIdentityIssuer: unable to normalize dn {}: {}", dn, ex.getMessage());
+            LOG.error("PrincipalIdentityIssuer: invalid DN string: {}, error: {}", dnString, ex.getMessage());
             return null;
         }
     }
@@ -125,12 +155,12 @@ public class PrincipalIdentityIssuer {
 
     static class IssuerEntry {
         @JsonProperty("issuer-cert-dn")
-        String issuerCertDn;
+        List<String> issuerCertDns;
 
         @JsonProperty("issuer-identity")
         String issuerIdentity;
 
         @JsonProperty("issuer-signer-key")
-        String issuerSignerKey;
+        List<String> issuerSignerKeys;
     }
 }
