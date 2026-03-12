@@ -1,3 +1,24 @@
+Athenz v1.12.36 Release / Mar 12, 2026
+--------------------------------------
+
+#3210 Defining snapshop api for MSD
+#3211 fix help message for set-policy-resource-ownership
+#3212 extend oidc token exchange to support id tokens
+#3213 Bump multer from 2.0.2 to 2.1.0 in /ui
+#3216 Use DefaultCredentialsProvider for RDS IAM auth
+#3218 expose get oidc token optioin for github sia
+#3219 Add server-aws-common to ZMS/ZTS assembly tarballs
+#3221 Removing ETag for getTransportPolicySnapshot api
+#3223 Bump multer from 2.1.0 to 2.1.1 in /ui
+#3224 add option to delete old versions when storing identity in gcp secret manager
+#3227 [skip ci] Doc: Typo fixed in OIDC AWS EKS
+#3228 [skip ci] Docfix: Clarify partial scope behavior for ID-JAG token exchange in zts_token_exchange_requirements.md
+#3230 add support for principal_issuer claim in id/access tokens
+#3234 allow domain admins to enable/disable domains
+#3235 support multiple dn and key values for principal issuers json
+#3236 expose oidc key type argument for sia github
+#3237 update go/java/nodejs dependencies to their latest releases
+
 Athenz v1.12.35 Release / Feb 27, 2026
 --------------------------------------
 
