@@ -4,6 +4,7 @@
 package usercert
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
@@ -96,33 +97,39 @@ func registerHandlers(mux *http.ServeMux, code chan<- string) {
 }
 
 func getAuthCodeFromCallbackHandler(port string, timeoutSeconds int, verbose bool) <-chan authResult {
-	result := make(chan authResult)
-	code := make(chan string)
+	result := make(chan authResult, 1)
+	code := make(chan string, 1)
+
+	mux := http.NewServeMux()
+	registerHandlers(mux, code)
+
+	if verbose {
+		log.Printf("Starting callback server on port %s", port)
+	}
+	server := &http.Server{
+		Addr:         fmt.Sprintf("localhost:%s", port),
+		Handler:      mux,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
 
 	go func() {
-		mux := http.NewServeMux()
-		registerHandlers(mux, code)
-
-		if verbose {
-			log.Printf("Starting callback server on port %s", port)
-		}
-		server := &http.Server{
-			Addr:         fmt.Sprintf("localhost:%s", port),
-			Handler:      mux,
-			ReadTimeout:  30 * time.Second,
-			WriteTimeout: 30 * time.Second,
-			IdleTimeout:  120 * time.Second,
-		}
-
-		err := server.ListenAndServe()
-		if err != nil {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Printf("Callback server could not be started: %v", err)
 			result <- authResult{Error: err}
-			return
 		}
 	}()
 
 	go func() {
+		defer func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := server.Shutdown(ctx); err != nil && verbose {
+				log.Printf("Callback server shutdown error: %v", err)
+			}
+		}()
+
 		select {
 		case c := <-code:
 			result <- authResult{Code: c}

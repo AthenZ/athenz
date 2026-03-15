@@ -303,7 +303,7 @@ public class UserCertificateProvider implements InstanceProvider {
             }
             int responseCode = conn.getResponseCode();
             if (responseCode != HttpURLConnection.HTTP_OK) {
-                LOGGER.error("IdP token endpoint returned error: responseCode={}", conn.getResponseMessage());
+                LOGGER.error("IdP token endpoint returned error: responseMessage={}", conn.getResponseMessage());
                 throw forbiddenError("IdP token endpoint returned error: " + responseCode);
             }
 
