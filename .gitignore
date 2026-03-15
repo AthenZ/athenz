@@ -135,6 +135,7 @@ utils/zts-accesstoken/zts-accesstoken
 utils/zts-rolecert/zts-rolecert
 utils/zts-roletoken/zts-roletoken
 utils/zts-svccert/zts-svccert
+utils/zts-usercert/zts-usercert
 libs/go/ztsclientutil/bin/
 libs/go/ztsclientutil/pkg/
 libs/go/ztsclientutil/src/
