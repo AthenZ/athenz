@@ -88,7 +88,7 @@ func TestNewNonceIsValidBase64URL(t *testing.T) {
 // --- getIdpAuthURL tests ---
 
 func TestGetIdpAuthURL(t *testing.T) {
-	authURL, err := getIdpAuthURL("https://idp.example.com/oauth2/authorize", "my-client", "test-nonce", "3222")
+	authURL, err := getIdpAuthURL("https://idp.example.com/oauth2/authorize", "my-client", "test-nonce", "9213")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -109,8 +109,8 @@ func TestGetIdpAuthURL(t *testing.T) {
 	if q.Get("client_id") != "my-client" {
 		t.Errorf("expected client_id=my-client, got %s", q.Get("client_id"))
 	}
-	if q.Get("redirect_uri") != "http://localhost:3222/oauth2/callback" {
-		t.Errorf("expected redirect_uri with port 3222, got %s", q.Get("redirect_uri"))
+	if q.Get("redirect_uri") != "http://localhost:9213/oauth2/callback" {
+		t.Errorf("expected redirect_uri with port 9213, got %s", q.Get("redirect_uri"))
 	}
 	if q.Get("response_type") != "code" {
 		t.Errorf("expected response_type=code, got %s", q.Get("response_type"))
@@ -148,14 +148,14 @@ func TestGetIdpAuthURLDifferentPorts(t *testing.T) {
 }
 
 func TestGetIdpAuthURLInvalidEndpoint(t *testing.T) {
-	_, err := getIdpAuthURL("://invalid", "client", "nonce", "3222")
+	_, err := getIdpAuthURL("://invalid", "client", "nonce", "9213")
 	if err == nil {
 		t.Fatal("expected error for invalid endpoint")
 	}
 }
 
 func TestGetIdpAuthURLPreservesExistingQueryParams(t *testing.T) {
-	authURL, err := getIdpAuthURL("https://idp.example.com/auth?scope=openid", "client", "nonce", "3222")
+	authURL, err := getIdpAuthURL("https://idp.example.com/auth?scope=openid", "client", "nonce", "9213")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

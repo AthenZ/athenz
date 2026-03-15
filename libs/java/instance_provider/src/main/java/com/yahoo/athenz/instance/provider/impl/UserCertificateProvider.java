@@ -59,9 +59,8 @@ public class UserCertificateProvider implements InstanceProvider {
     static final String USER_CERT_PROP_CLIENT_SECRET_KEYNAME  = "athenz.zts.user_cert.idp_client_secret_keyname";
 
     static final String CODE_PREFIX = "code=";
-    static final String FIELD_ACCESS_TOKEN = "access_token";
 
-    static final String DEFAULT_REDIRECT_URI = "http://localhost:3222/oauth2/callback";
+    static final String DEFAULT_REDIRECT_URI = "http://localhost:9213/oauth2/callback";
 
     String tokenEndpoint;
     String clientId;
@@ -136,7 +135,7 @@ public class UserCertificateProvider implements InstanceProvider {
         connectTimeout = Integer.parseInt(System.getProperty(USER_CERT_PROP_CONNECT_TIMEOUT, "10000"));
         readTimeout = Integer.parseInt(System.getProperty(USER_CERT_PROP_READ_TIMEOUT, "15000"));
 
-        // extract user name claim. by default, use the subject claim
+        // extract user name claim. by default, use the subject claim,
         // but it's possible that the IdP uses a different claim for the user name
         // in that case, the user can configure the claim name here
         
@@ -219,7 +218,7 @@ public class UserCertificateProvider implements InstanceProvider {
 
     boolean validateTokenSubject(final AccessToken accessToken, final String domainName, final String userName) {
 
-        // when validing the token identity, we need to consider two cases:
+        // when validating the token identity, we need to consider two cases:
         // 1. the token subject is the same as the requested user name without the domain prefix
         // 2. the token subject is the same as the requested user name with the domain prefix
 

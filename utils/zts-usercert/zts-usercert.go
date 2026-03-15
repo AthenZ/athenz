@@ -25,7 +25,7 @@ var (
 )
 
 const (
-	DefaultCallbackPort    = "3222"
+	DefaultCallbackPort    = "9213"
 	DefaultCallbackTimeout = 45
 	DefaultSubjectOrgUnit  = "Athenz"
 )

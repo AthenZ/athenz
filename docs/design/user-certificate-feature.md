@@ -59,7 +59,7 @@ The User Certificate feature allows human users to obtain X.509 TLS client certi
 ### 3.1 End-to-End Sequence
 
 ```
-     User              Browser          zts-usercert CLI       localhost:3222        IdP              ZTS Server
+     User              Browser          zts-usercert CLI       localhost:9213        IdP              ZTS Server
       │                   │                    │                     │                 │                   │
       │  run CLI          │                    │                     │                 │                   │
       ├──────────────────►│                    │                     │                 │                   │
@@ -75,7 +75,7 @@ The User Certificate feature allows human users to obtain X.509 TLS client certi
       │                   ├────────────────────┼─────────────────────┼────────────────►│                   │
       │                   │                    │                     │  ?client_id=    │                   │
       │                   │                    │                     │  &redirect_uri= │                   │
-      │                   │                    │                     │  localhost:3222 │                   │
+      │                   │                    │                     │  localhost:9213 │                   │
       │                   │                    │                     │  &response_type=│                   │
       │                   │                    │                     │  code           │                   │
       │                   │                    │                     │  &nonce=...     │                   │
@@ -87,7 +87,7 @@ The User Certificate feature allows human users to obtain X.509 TLS client certi
       │                   │                    │                     │                 │                   │
       │                   │   7. IdP redirects to callback           │                 │                   │
       │                   │◄─────────────────────────────────────────┼─────────────────┤                   │
-      │                   │  302 → localhost:3222/oauth2/callback    │                 │                   │
+      │                   │  302 → localhost:9213/oauth2/callback    │                 │                   │
       │                   │        ?code=AUTH_CODE&state=NONCE       │                 │                   │
       │                   │                    │                     │                 │                   │
       │                   ├────────────────────┼────────────────────►│                 │                   │
@@ -285,7 +285,7 @@ The CLI is a thin wrapper that parses command-line flags and delegates to `userc
 - `--cert-file` — Output certificate file (default: stdout)
 - `--subj-c`, `--subj-o`, `--subj-ou` — CSR subject fields (OU defaults to "Athenz")
 - `--spiffe-trust-domain` — SPIFFE trust domain for URI SAN
-- `--callback-port` — Local port for OAuth2 callback (default: 3222)
+- `--callback-port` — Local port for OAuth2 callback (default: 9213)
 - `--callback-timeout` — Timeout in seconds for IdP auth flow (default: 45s)
 - `--expiry-time` — Certificate expiry in minutes (0 = server default)
 - `--cacert` — CA certificate file for ZTS TLS verification
@@ -394,20 +394,20 @@ The provider implements the `InstanceProvider` interface and performs the server
 
 On startup, the provider configures itself from system properties:
 
-| Property | Required | Default | Description |
-|---|---|---|---|
-| `athenz.zts.user_cert.idp_config_endpoint` | No | — | OpenID Connect discovery endpoint (auto-discovers token + JWKS endpoints) |
-| `athenz.zts.user_cert.idp_token_endpoint` | Yes* | — | IdP token endpoint (*auto-discovered if config endpoint is set) |
-| `athenz.zts.user_cert.idp_jwks_endpoint` | Yes* | — | IdP JWKS endpoint (*auto-discovered if config endpoint is set) |
-| `athenz.zts.user_cert.idp_client_id` | Yes | — | OAuth2 client ID |
-| `athenz.zts.user_cert.idp_redirect_uri` | No | `http://localhost:3222/oauth2/callback` | OAuth2 redirect URI |
-| `athenz.zts.user_cert.idp_audience` | No | — | Expected audience claim in access token |
-| `athenz.zts.user_cert.connect_timeout` | No | 10000 ms | Connection timeout for IdP requests |
-| `athenz.zts.user_cert.read_timeout` | No | 15000 ms | Read timeout for IdP requests |
-| `athenz.zts.user_cert.user_name_claim` | No | — | Custom claim name for user identity (fallback if `sub` doesn't match) |
-| `athenz.zts.user_cert.idp_client_secret_app` | No | — | App name for secret store lookup |
-| `athenz.zts.user_cert.idp_client_secret_keygroup` | No | — | Key group for secret store lookup |
-| `athenz.zts.user_cert.idp_client_secret_keyname` | No | — | Key name for secret store lookup |
+| Property | Required | Default                                 | Description |
+|---|---|-----------------------------------------|---|
+| `athenz.zts.user_cert.idp_config_endpoint` | No | —                                       | OpenID Connect discovery endpoint (auto-discovers token + JWKS endpoints) |
+| `athenz.zts.user_cert.idp_token_endpoint` | Yes* | —                                       | IdP token endpoint (*auto-discovered if config endpoint is set) |
+| `athenz.zts.user_cert.idp_jwks_endpoint` | Yes* | —                                       | IdP JWKS endpoint (*auto-discovered if config endpoint is set) |
+| `athenz.zts.user_cert.idp_client_id` | Yes | —                                       | OAuth2 client ID |
+| `athenz.zts.user_cert.idp_redirect_uri` | No | `http://localhost:9213/oauth2/callback` | OAuth2 redirect URI |
+| `athenz.zts.user_cert.idp_audience` | No | —                                       | Expected audience claim in access token |
+| `athenz.zts.user_cert.connect_timeout` | No | 10000 ms                                | Connection timeout for IdP requests |
+| `athenz.zts.user_cert.read_timeout` | No | 15000 ms                                | Read timeout for IdP requests |
+| `athenz.zts.user_cert.user_name_claim` | No | —                                       | Custom claim name for user identity (fallback if `sub` doesn't match) |
+| `athenz.zts.user_cert.idp_client_secret_app` | No | —                                       | App name for secret store lookup |
+| `athenz.zts.user_cert.idp_client_secret_keygroup` | No | —                                       | Key group for secret store lookup |
+| `athenz.zts.user_cert.idp_client_secret_keyname` | No | —                                       | Key name for secret store lookup |
 
 The JWKS signing key resolver is initialized to fetch and cache the IdP's public signing keys.
 
@@ -543,10 +543,9 @@ The authentication chain provides defense in depth:
 
 #### 5.2.8 Local Callback Port Hijacking
 
-**Threat:** A malicious local process binds to port 3222 before the CLI starts.
+**Threat:** A malicious local process binds to port 9213 before the CLI starts.
 
 **Mitigations:**
-- The callback port is configurable (`--callback-port`), allowing the user to choose an alternative port.
 - The timeout mechanism (default 45s) ensures the CLI doesn't hang indefinitely if the callback never arrives.
 - The CLI process would receive a "port already in use" error, preventing the flow from proceeding.
 
@@ -575,7 +574,7 @@ athenz.zts.user_cert_default_timeout=60
 # IdP Configuration (UserCertificateProvider)
 athenz.zts.user_cert.idp_config_endpoint=https://idp.example.com/.well-known/openid-configuration
 athenz.zts.user_cert.idp_client_id=athenz-user-cert
-athenz.zts.user_cert.idp_redirect_uri=http://localhost:3222/oauth2/callback
+athenz.zts.user_cert.idp_redirect_uri=http://localhost:9213/oauth2/callback
 athenz.zts.user_cert.idp_audience=athenz-user-cert
 
 # Client secret (fetched from PrivateKeyStore)
