@@ -10,6 +10,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 
 	"github.com/AthenZ/athenz/libs/go/usercert"
@@ -23,6 +24,12 @@ var (
 	BUILD_DATE string
 )
 
+const (
+	DefaultCallbackPort    = "3222"
+	DefaultCallbackTimeout = 45
+	DefaultSubjectOrgUnit  = "Athenz"
+)
+
 func versionString() string {
 	if VERSION == "" {
 		return "zts-usercert (development version)"
@@ -31,7 +38,57 @@ func versionString() string {
 }
 
 func main() {
-	usercert.Run(usercert.Options{
-		Version: versionString(),
-	})
+
+	var ztsURL, privateKeyFile, userName, certFile string
+	var idpEndpoint, idpClientId, caCertFile string
+	var subjC, subjO, subjOU, spiffeTrustDomain string
+	var callbackPort string
+	var callbackTimeout, expiryTime int
+	var proxy, verbose, showVersion bool
+
+	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
+	flag.StringVar(&privateKeyFile, "private-key", "", "private key file")
+	flag.StringVar(&userName, "user", "", "user name without domain prefix")
+	flag.StringVar(&idpEndpoint, "idp-endpoint", "", "IdP OAuth2 endpoint URL")
+	flag.StringVar(&idpClientId, "idp-client-id", "", "IdP OAuth2 client ID")
+	flag.StringVar(&certFile, "cert-file", "", "output certificate file")
+	flag.StringVar(&subjC, "subj-c", "", "Subject C/Country field")
+	flag.StringVar(&subjO, "subj-o", "", "Subject O/Organization field")
+	flag.StringVar(&subjOU, "subj-ou", DefaultSubjectOrgUnit, "Subject OU/OrganizationalUnit field")
+	flag.StringVar(&spiffeTrustDomain, "spiffe-trust-domain", "", "trust domain value for SPIFFE URI")
+	flag.StringVar(&callbackPort, "callback-port", DefaultCallbackPort, "local port for IdP OAuth2 callback")
+	flag.IntVar(&callbackTimeout, "callback-timeout", DefaultCallbackTimeout, "timeout in seconds for IdP auth flow")
+	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes for the certificate")
+	flag.StringVar(&caCertFile, "cacert", "", "CA certificate file")
+	flag.BoolVar(&proxy, "proxy", true, "enable proxy mode for request")
+	flag.BoolVar(&verbose, "verbose", false, "enable verbose logging")
+	flag.BoolVar(&showVersion, "version", false, "show version")
+	flag.Parse()
+
+	if showVersion {
+		fmt.Println(versionString())
+		return
+	}
+
+	// generate our options object
+	opts := usercert.Options{
+		ZtsURL:            ztsURL,
+		PrivateKeyFile:    privateKeyFile,
+		UserName:          userName,
+		IdpEndpoint:       idpEndpoint,
+		IdpClientId:       idpClientId,
+		CertFile:          certFile,
+		SubjectCountry:    subjC,
+		SubjectOrg:        subjO,
+		SubjectOrgUnit:    subjOU,
+		SpiffeTrustDomain: spiffeTrustDomain,
+		CallbackPort:      callbackPort,
+		CallbackTimeout:   callbackTimeout,
+		ExpiryTime:        expiryTime,
+		CACertFile:        caCertFile,
+		Proxy:             proxy,
+		Verbose:           verbose,
+	}
+
+	usercert.Run(opts)
 }

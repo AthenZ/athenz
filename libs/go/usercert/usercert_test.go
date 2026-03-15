@@ -4,7 +4,6 @@
 package usercert
 
 import (
-	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -12,7 +11,6 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"flag"
 	"fmt"
 	"math/big"
 	"net/http"
@@ -439,214 +437,6 @@ func TestRequestCertificateInvalidCACertFile(t *testing.T) {
 	}
 }
 
-// --- parseFlags tests ---
-
-func TestParseFlagsDefaults(t *testing.T) {
-	resetFlags()
-	os.Args = []string{"test"}
-	opts := Options{}
-	showVersion := parseFlags(&opts)
-
-	if showVersion {
-		t.Error("expected showVersion=false")
-	}
-	if opts.SubjectOrgUnit != DefaultSubjectOrgUnit {
-		t.Errorf("expected default org unit %s, got %s", DefaultSubjectOrgUnit, opts.SubjectOrgUnit)
-	}
-	if opts.CallbackPort != DefaultCallbackPort {
-		t.Errorf("expected default callback port %s, got %s", DefaultCallbackPort, opts.CallbackPort)
-	}
-}
-
-func TestParseFlagsVersion(t *testing.T) {
-	resetFlags()
-	os.Args = []string{"test", "-version"}
-	opts := Options{}
-	showVersion := parseFlags(&opts)
-	if !showVersion {
-		t.Error("expected showVersion=true")
-	}
-}
-
-func TestParseFlagsWithValues(t *testing.T) {
-	resetFlags()
-	os.Args = []string{
-		"test",
-		"-zts", "https://zts.example.com",
-		"-private-key", "/path/to/key.pem",
-		"-user", "johndoe",
-		"-idp-endpoint", "https://idp.example.com/auth",
-		"-idp-client-id", "test-client",
-		"-cert-file", "/path/to/cert.pem",
-		"-subj-c", "DE",
-		"-subj-o", "TestOrg",
-		"-subj-ou", "TestOU",
-		"-spiffe-trust-domain", "athenz.io",
-		"-callback-port", "9999",
-		"-callback-timeout", "30",
-		"-expiry-time", "120",
-		"-cacert", "/path/to/ca.pem",
-		"-verbose",
-	}
-	opts := Options{}
-	parseFlags(&opts)
-
-	if opts.ZtsURL != "https://zts.example.com" {
-		t.Errorf("expected ZtsURL=https://zts.example.com, got %s", opts.ZtsURL)
-	}
-	if opts.PrivateKeyFile != "/path/to/key.pem" {
-		t.Errorf("expected PrivateKeyFile=/path/to/key.pem, got %s", opts.PrivateKeyFile)
-	}
-	if opts.UserName != "johndoe" {
-		t.Errorf("expected UserName=johndoe, got %s", opts.UserName)
-	}
-	if opts.IdpEndpoint != "https://idp.example.com/auth" {
-		t.Errorf("expected IdpEndpoint, got %s", opts.IdpEndpoint)
-	}
-	if opts.IdpClientId != "test-client" {
-		t.Errorf("expected IdpClientId=test-client, got %s", opts.IdpClientId)
-	}
-	if opts.CertFile != "/path/to/cert.pem" {
-		t.Errorf("expected CertFile=/path/to/cert.pem, got %s", opts.CertFile)
-	}
-	if opts.SubjectCountry != "DE" {
-		t.Errorf("expected SubjectCountry=DE, got %s", opts.SubjectCountry)
-	}
-	if opts.SubjectOrg != "TestOrg" {
-		t.Errorf("expected SubjectOrg=TestOrg, got %s", opts.SubjectOrg)
-	}
-	if opts.SubjectOrgUnit != "TestOU" {
-		t.Errorf("expected SubjectOrgUnit=TestOU, got %s", opts.SubjectOrgUnit)
-	}
-	if opts.SpiffeTrustDomain != "athenz.io" {
-		t.Errorf("expected SpiffeTrustDomain=athenz.io, got %s", opts.SpiffeTrustDomain)
-	}
-	if opts.CallbackPort != "9999" {
-		t.Errorf("expected CallbackPort=9999, got %s", opts.CallbackPort)
-	}
-	if opts.CallbackTimeout != 30 {
-		t.Errorf("expected CallbackTimeout=30, got %d", opts.CallbackTimeout)
-	}
-	if opts.ExpiryTime != 120 {
-		t.Errorf("expected ExpiryTime=120, got %d", opts.ExpiryTime)
-	}
-	if opts.CACertFile != "/path/to/ca.pem" {
-		t.Errorf("expected CACertFile=/path/to/ca.pem, got %s", opts.CACertFile)
-	}
-	if !opts.Verbose {
-		t.Error("expected Verbose=true")
-	}
-}
-
-func TestParseFlagsHardCodedValuesNotOverridden(t *testing.T) {
-	resetFlags()
-	os.Args = []string{
-		"test",
-		"-zts", "https://from-flag.example.com",
-		"-user", "from-flag",
-		"-subj-c", "GB",
-		"-callback-port", "5555",
-	}
-	opts := Options{
-		ZtsURL:         "https://hardcoded.example.com",
-		UserName:       "hardcoded-user",
-		SubjectCountry: "JP",
-		CallbackPort:   "7777",
-	}
-	parseFlags(&opts)
-
-	if opts.ZtsURL != "https://hardcoded.example.com" {
-		t.Errorf("hardcoded ZtsURL should not be overridden, got %s", opts.ZtsURL)
-	}
-	if opts.UserName != "hardcoded-user" {
-		t.Errorf("hardcoded UserName should not be overridden, got %s", opts.UserName)
-	}
-	if opts.SubjectCountry != "JP" {
-		t.Errorf("hardcoded SubjectCountry should not be overridden, got %s", opts.SubjectCountry)
-	}
-	if opts.CallbackPort != "7777" {
-		t.Errorf("hardcoded CallbackPort should not be overridden, got %s", opts.CallbackPort)
-	}
-}
-
-func TestParseFlagsBooleanHardCodedTrue(t *testing.T) {
-	resetFlags()
-	os.Args = []string{"test"}
-	opts := Options{
-		Proxy:   true,
-		Verbose: true,
-	}
-	parseFlags(&opts)
-	if !opts.Proxy {
-		t.Error("hardcoded Proxy=true should not be overridden")
-	}
-	if !opts.Verbose {
-		t.Error("hardcoded Verbose=true should not be overridden")
-	}
-}
-
-func TestParseFlagsProxyDefaultTrue(t *testing.T) {
-	resetFlags()
-	os.Args = []string{"test"}
-	opts := Options{}
-	parseFlags(&opts)
-	// proxy flag defaults to true
-	if !opts.Proxy {
-		t.Error("expected Proxy=true by default from flag")
-	}
-}
-
-func resetFlags() {
-	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
-}
-
-// --- Run tests (version path only, since other paths call os.Exit/log.Fatalf) ---
-
-func TestRunVersionWithVersionString(t *testing.T) {
-	resetFlags()
-	os.Args = []string{"test", "-version"}
-
-	// Capture stdout
-	old := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	Run(Options{Version: "test-version 1.0.0"})
-
-	w.Close()
-	os.Stdout = old
-
-	var buf bytes.Buffer
-	buf.ReadFrom(r)
-	output := buf.String()
-
-	if !strings.Contains(output, "test-version 1.0.0") {
-		t.Errorf("expected version output, got %s", output)
-	}
-}
-
-func TestRunVersionWithoutVersionString(t *testing.T) {
-	resetFlags()
-	os.Args = []string{"test", "-version"}
-
-	old := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	Run(Options{})
-
-	w.Close()
-	os.Stdout = old
-
-	var buf bytes.Buffer
-	buf.ReadFrom(r)
-	output := buf.String()
-
-	if !strings.Contains(output, "(development version)") {
-		t.Errorf("expected development version output, got %s", output)
-	}
-}
-
 // --- RequestCertificate verbose path tests ---
 
 func TestRequestCertificateVerboseMode(t *testing.T) {
@@ -716,20 +506,6 @@ func TestRequestCertificateWithSpiffeDomain(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatal("expected error")
-	}
-}
-
-// --- Constants tests ---
-
-func TestDefaultConstants(t *testing.T) {
-	if DefaultCallbackPort != "3222" {
-		t.Errorf("expected DefaultCallbackPort=3222, got %s", DefaultCallbackPort)
-	}
-	if DefaultCallbackTimeout != 45 {
-		t.Errorf("expected DefaultCallbackTimeout=45, got %d", DefaultCallbackTimeout)
-	}
-	if DefaultSubjectOrgUnit != "Athenz" {
-		t.Errorf("expected DefaultSubjectOrgUnit=Athenz, got %s", DefaultSubjectOrgUnit)
 	}
 }
 

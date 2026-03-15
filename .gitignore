@@ -60,6 +60,9 @@ libs/go/zmssvctoken/src/
 libs/go/athenzconf/src/
 libs/go/athenzconf/bin/
 libs/go/athenzconf/pkg/
+libs/go/usercert/src/
+libs/go/usercert/bin/
+libs/go/usercert/pkg/
 libs/java/client_common/bin/
 libs/java/server_common/bin/
 libs/java/auth_core/bin/
@@ -124,6 +127,9 @@ utils/zts-rolecert/src/
 utils/zts-svctoken/bin/
 utils/zts-svctoken/pkg/
 utils/zts-svctoken/src/
+utils/zts-usercert/src/
+utils/zts-usercert/bin/
+utils/zts-usercert/pkg/
 utils/msd-agent/pkg/
 utils/zts-accesstoken/zts-accesstoken
 utils/zts-rolecert/zts-rolecert

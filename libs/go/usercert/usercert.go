@@ -27,7 +27,6 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -36,12 +35,6 @@ import (
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/athenzutils"
-)
-
-const (
-	DefaultCallbackPort    = "3222"
-	DefaultCallbackTimeout = 45
-	DefaultSubjectOrgUnit  = "Athenz"
 )
 
 // Options configures the user certificate request flow.
@@ -64,7 +57,6 @@ type Options struct {
 	ExpiryTime        int    // certificate expiry in minutes (0 = server default)
 	Proxy             bool   // use HTTP proxy from environment
 	Verbose           bool   // enable verbose logging
-	Version           string // version string; if set, -version flag prints it and exits
 }
 
 type signer struct {
@@ -147,16 +139,6 @@ func RequestCertificate(opts Options) (string, error) {
 // It writes the certificate to CertFile (or stdout) and calls
 // log.Fatalf on fatal errors.
 func Run(opts Options) {
-	showVersion := parseFlags(&opts)
-
-	if showVersion {
-		if opts.Version != "" {
-			fmt.Println(opts.Version)
-		} else {
-			fmt.Println("(development version)")
-		}
-		return
-	}
 
 	if opts.PrivateKeyFile == "" || opts.UserName == "" {
 		log.Println("Error: missing required attributes. Run with -help for command line arguments")
@@ -190,90 +172,6 @@ func Run(opts Options) {
 	} else {
 		fmt.Println(cert)
 	}
-}
-
-// parseFlags registers and parses command-line flags, only setting
-// fields in opts that are still at their zero value. This allows
-// callers to hard-code values that cannot be overridden from the CLI.
-// Returns true if -version was requested.
-func parseFlags(opts *Options) bool {
-	var ztsURL, privateKeyFile, userName, certFile string
-	var idpEndpoint, idpClientId, caCertFile string
-	var subjC, subjO, subjOU, spiffeTrustDomain string
-	var callbackPort string
-	var callbackTimeout, expiryTime int
-	var proxy, verbose, showVersion bool
-
-	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
-	flag.StringVar(&privateKeyFile, "private-key", "", "private key file")
-	flag.StringVar(&userName, "user", "", "user name without domain prefix")
-	flag.StringVar(&idpEndpoint, "idp-endpoint", "", "IdP OAuth2 endpoint URL")
-	flag.StringVar(&idpClientId, "idp-client-id", "", "IdP OAuth2 client ID")
-	flag.StringVar(&certFile, "cert-file", "", "output certificate file")
-	flag.StringVar(&subjC, "subj-c", "", "Subject C/Country field")
-	flag.StringVar(&subjO, "subj-o", "", "Subject O/Organization field")
-	flag.StringVar(&subjOU, "subj-ou", DefaultSubjectOrgUnit, "Subject OU/OrganizationalUnit field")
-	flag.StringVar(&spiffeTrustDomain, "spiffe-trust-domain", "", "trust domain value for SPIFFE URI")
-	flag.StringVar(&callbackPort, "callback-port", DefaultCallbackPort, "local port for IdP OAuth2 callback")
-	flag.IntVar(&callbackTimeout, "callback-timeout", DefaultCallbackTimeout, "timeout in seconds for IdP auth flow")
-	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes for the certificate")
-	flag.StringVar(&caCertFile, "cacert", "", "CA certificate file")
-	flag.BoolVar(&proxy, "proxy", true, "enable proxy mode for request")
-	flag.BoolVar(&verbose, "verbose", false, "enable verbose logging")
-	flag.BoolVar(&showVersion, "version", false, "show version")
-	flag.Parse()
-
-	if opts.ZtsURL == "" {
-		opts.ZtsURL = ztsURL
-	}
-	if opts.PrivateKeyFile == "" {
-		opts.PrivateKeyFile = privateKeyFile
-	}
-	if opts.UserName == "" {
-		opts.UserName = userName
-	}
-	if opts.IdpEndpoint == "" {
-		opts.IdpEndpoint = idpEndpoint
-	}
-	if opts.IdpClientId == "" {
-		opts.IdpClientId = idpClientId
-	}
-	if opts.CertFile == "" {
-		opts.CertFile = certFile
-	}
-	if opts.SubjectCountry == "" {
-		opts.SubjectCountry = subjC
-	}
-	if opts.SubjectOrg == "" {
-		opts.SubjectOrg = subjO
-	}
-	if opts.SubjectOrgUnit == "" {
-		opts.SubjectOrgUnit = subjOU
-	}
-	if opts.SpiffeTrustDomain == "" {
-		opts.SpiffeTrustDomain = spiffeTrustDomain
-	}
-	if opts.CallbackPort == "" {
-		opts.CallbackPort = callbackPort
-	}
-	if opts.CallbackTimeout == 0 {
-		opts.CallbackTimeout = callbackTimeout
-	}
-	if opts.ExpiryTime == 0 {
-		opts.ExpiryTime = expiryTime
-	}
-	if opts.CACertFile == "" {
-		opts.CACertFile = caCertFile
-	}
-	// booleans: only override if not already set to true
-	if !opts.Proxy {
-		opts.Proxy = proxy
-	}
-	if !opts.Verbose {
-		opts.Verbose = verbose
-	}
-
-	return showVersion
 }
 
 func generateCSR(keySigner *signer, principalName, subjC, subjO, subjOU, spiffeTrustDomain string) (string, error) {
