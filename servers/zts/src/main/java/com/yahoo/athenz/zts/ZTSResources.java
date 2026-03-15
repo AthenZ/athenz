@@ -1256,7 +1256,6 @@ public class ZTSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "postUserCertificateRequest");
-            context.authenticate();
             return this.delegate.postUserCertificateRequest(context, req);
         } catch (ResourceException e) {
             code = e.getCode();

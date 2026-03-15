@@ -1289,9 +1289,6 @@ public class ZTSRDLGeneratedClient {
             .setUri(uriBuilder.build())
             .setEntity(httpEntity)
             .build();
-        if (credsHeader != null) {
-            httpUriRequest.addHeader(credsHeader, credsToken);
-        }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
             int code = httpResponse.getCode();

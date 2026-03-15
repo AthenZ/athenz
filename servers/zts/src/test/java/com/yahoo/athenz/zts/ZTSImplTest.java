@@ -5006,7 +5006,7 @@ public class ZTSImplTest {
                 .setAttributes(attrs);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
 
@@ -5069,7 +5069,7 @@ public class ZTSImplTest {
                 .setAttributes(attrs);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
 
@@ -5165,7 +5165,7 @@ public class ZTSImplTest {
         Mockito.when(resolver.isValidHostname("host1.athenz.cloud")).thenReturn(false);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider("athenz.provider", resolver)).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider("athenz.provider", resolver, null)).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
 
@@ -5228,7 +5228,7 @@ public class ZTSImplTest {
                 .setAttributes(attrs);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
 
@@ -5302,7 +5302,7 @@ public class ZTSImplTest {
                 .setAttributes(attrs);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider("athenz.provider", resolver)).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider("athenz.provider", resolver, ztsImpl.privateKeyStore)).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
 
@@ -5326,8 +5326,6 @@ public class ZTSImplTest {
                 .setHostCnames(cnames);
 
         ResourceContext context = createResourceContext(null);
-
-
 
         Response response = ztsImpl.postInstanceRegisterInformation(context, info);
         assertEquals(response.getStatus(), 201);
@@ -5366,7 +5364,7 @@ public class ZTSImplTest {
                 .setAttributes(attrs);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
 
@@ -5431,7 +5429,7 @@ public class ZTSImplTest {
                 .setAttributes(attrs);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
         Mockito.doThrow(new ResourceException(500, "Invalid SSH")).when(instanceManager)
@@ -5497,7 +5495,7 @@ public class ZTSImplTest {
                 .setAttributes(attrs);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
         Mockito.when(instanceManager.generateSSHIdentity(Mockito.any(), Mockito.any(), Mockito.any(),
@@ -5569,7 +5567,7 @@ public class ZTSImplTest {
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
 
@@ -5637,7 +5635,7 @@ public class ZTSImplTest {
                 .setProvider("athenz.provider").setAttributes(attrs);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
 
@@ -5699,7 +5697,7 @@ public class ZTSImplTest {
                 .setAttributes(instanceAttrs);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
 
@@ -5794,7 +5792,7 @@ public class ZTSImplTest {
         confirmation.setAttributes(confirmAttrs);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
 
@@ -5843,7 +5841,7 @@ public class ZTSImplTest {
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(null);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(null);
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
 
@@ -5885,7 +5883,7 @@ public class ZTSImplTest {
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
         Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenThrow(new ResourceException(400));
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
@@ -5928,7 +5926,7 @@ public class ZTSImplTest {
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
         Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any()))
                 .thenThrow(new ProviderResourceException(504, "Connect Timeout"))
                 .thenThrow(new ProviderResourceException(403, "Instance Revoked"));
@@ -6120,7 +6118,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
 
@@ -6170,7 +6168,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
 
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
@@ -6222,7 +6220,7 @@ public class ZTSImplTest {
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
 
@@ -6279,7 +6277,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(false);
 
@@ -6334,7 +6332,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         X509CertRecord certRecord = new X509CertRecord();
@@ -6416,7 +6414,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         X509CertRecord certRecord = new X509CertRecord();
@@ -6513,7 +6511,7 @@ public class ZTSImplTest {
                 .setDomain("athenz").setService("production").setProvider("athenz.provider");
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider("athenz.provider", resolver)).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider("athenz.provider", resolver, ztsImpl.privateKeyStore)).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
         Mockito.when(instanceManager.insertX509CertRecord(Mockito.any())).thenReturn(true);
 
@@ -6691,7 +6689,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production"))
@@ -6752,7 +6750,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         X509CertRecord certRecord = new X509CertRecord();
@@ -6834,7 +6832,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         X509CertRecord certRecord = new X509CertRecord();
@@ -6935,7 +6933,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any()))
                 .thenThrow(new ProviderResourceException(403, "Forbidden"))
                 .thenThrow(new ProviderResourceException(504, "Connect Timeout"))
@@ -7030,7 +7028,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenThrow(new ProviderResourceException(404, "Not Found"));
 
         X509CertRecord certRecord = new X509CertRecord();
@@ -7100,7 +7098,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         X509CertRecord certRecord = new X509CertRecord();
@@ -7169,7 +7167,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         X509CertRecord certRecord = new X509CertRecord();
@@ -7323,7 +7321,7 @@ public class ZTSImplTest {
         certRecord.setPrevSerial("16503746516960996918");
         Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -7392,7 +7390,7 @@ public class ZTSImplTest {
         certRecord.setPrevSerial("16503746516960996918");
         Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(certRecord);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         path = Paths.get("src/test/resources/valid_cn_x509.cert");
@@ -7454,7 +7452,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         Mockito.when(instanceManager.getX509CertRecord("athenz.provider", "1001", "athenz.production")).thenReturn(null);
@@ -7518,7 +7516,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         X509CertRecord certRecord = new X509CertRecord();
@@ -7589,7 +7587,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         X509CertRecord certRecord = new X509CertRecord();
@@ -7660,7 +7658,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         X509CertRecord certRecord = new X509CertRecord();
@@ -7727,7 +7725,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         X509CertRecord certRecord = new X509CertRecord();
@@ -7796,7 +7794,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         X509CertRecord certRecord = new X509CertRecord();
@@ -7999,7 +7997,7 @@ public class ZTSImplTest {
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
 
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(null);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(null);
         Mockito.when(providerClient.refreshInstance(Mockito.any())).thenReturn(confirmation);
 
         X509CertRecord certRecord = new X509CertRecord();
@@ -11829,7 +11827,7 @@ public class ZTSImplTest {
                 .setService("production").setAttestationData("jwt");
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider(eq("sys.auth.zts"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("sys.auth.zts"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.getInstanceRegisterToken(Mockito.any())).thenReturn(token);
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
@@ -11879,7 +11877,7 @@ public class ZTSImplTest {
                 .setService("production").setAttestationData("jwt");
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.getInstanceRegisterToken(Mockito.any())).thenReturn(token);
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
@@ -11920,7 +11918,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(null);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(null);
 
         ztsImpl.instanceProviderManager = instanceProviderManager;
         ztsImpl.instanceCertManager = instanceManager;
@@ -11964,7 +11962,7 @@ public class ZTSImplTest {
         ResourceContext context = createResourceContext(principal);
 
         InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
-        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
         Mockito.when(providerClient.getInstanceRegisterToken(Mockito.any()))
                 .thenThrow(new ProviderResourceException(400, "Bad Request"));
 

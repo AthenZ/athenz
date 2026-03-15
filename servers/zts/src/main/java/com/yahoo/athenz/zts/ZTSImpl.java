@@ -653,13 +653,13 @@ public class ZTSImpl implements ZTSHandler {
         idTokenDefaultTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_DEFAULT_TIMEOUT, Long.toString(timeout)));
 
-        // default (1hr) and max (12hrs) user cert timeouts
+        // default and max (1hr) for user cert timeouts
 
-        timeout = TimeUnit.SECONDS.convert(12, TimeUnit.HOURS);
+        timeout = TimeUnit.MINUTES.convert(1, TimeUnit.HOURS);
         userCertMaxTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT, Long.toString(timeout)));
 
-        timeout = TimeUnit.SECONDS.convert(1, TimeUnit.HOURS);
+        timeout = TimeUnit.MINUTES.convert(1, TimeUnit.HOURS);
         userCertDefaultTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT, Long.toString(timeout)));
 
@@ -4570,7 +4570,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // validate the provider is correct
 
-        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider, hostnameResolver);
+        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider, hostnameResolver, privateKeyStore);
         if (instanceProvider == null) {
             throw requestError("unable to get instance for provider: " + provider,
                     caller, domain, principalDomain);
@@ -4743,8 +4743,8 @@ public class ZTSImpl implements ZTSHandler {
         // make sure to close our provider when its no longer needed
         // and the method will do that for us
 
-        instance = validateConfirmationData(ctx, instance, instanceProvider, provider, domain,
-                principalDomain, info.getHostname(), caller);
+        instance = validateConfirmationData(ctx, instance, instanceProvider, domain, principalDomain,
+             info.getHostname(), caller);
 
         // determine what type of certificate the provider is authorizing
         // this instance to get - possible values are: server, client or
@@ -4953,8 +4953,8 @@ public class ZTSImpl implements ZTSHandler {
         // make sure to close our provider when its no longer needed
         // and the method will do that for us
 
-        validateConfirmationData(ctx, instance, instanceProvider, provider, domain,
-                principalDomain, info.getHostname(), caller);
+        validateConfirmationData(ctx, instance, instanceProvider, domain, principalDomain,
+             info.getHostname(), caller);
 
         // set the required attributes in the identity object
 
@@ -5005,12 +5005,15 @@ public class ZTSImpl implements ZTSHandler {
     }
 
     InstanceConfirmation validateConfirmationData(ResourceContext ctx, InstanceConfirmation instance,
-                InstanceProvider instanceProvider, final String provider, final String domain,
-                final String principalDomain, final String hostname, final String caller) {
+                InstanceProvider instanceProvider, final String domain, final String principalDomain,
+                final String hostname, final String caller) {
 
         // make sure to close our provider when its no longer needed
+        // we keep our provider service name here since instance object
+        // can be returned as null from the validation
 
-        Object timerProviderMetric = metric.startTiming("providerregister_timing", provider, null,
+        final String providerService = instance.getProvider();
+        Object timerProviderMetric = metric.startTiming("providerregister_timing", providerService, null,
                 null, null, Metric.TimerMetricType.PROVIDER_LATENCY);
         int providerStatusCode = ResourceException.OK;
 
@@ -5020,7 +5023,7 @@ public class ZTSImpl implements ZTSHandler {
 
         } catch (ProviderResourceException ex) {
 
-            metric.increment("providerconfirm_failure", domain, provider);
+            metric.increment("providerconfirm_failure", domain, providerService);
             providerStatusCode = (ex.getCode() == ProviderResourceException.GATEWAY_TIMEOUT) ?
                     ResourceException.GATEWAY_TIMEOUT : ResourceException.FORBIDDEN;
             throw error(providerStatusCode, getExceptionMsg("unable to verify attestation data: ", ctx,
@@ -5028,25 +5031,25 @@ public class ZTSImpl implements ZTSHandler {
 
         } catch (Exception ex) {
 
-            metric.increment("providerconfirm_failure", domain, provider);
+            metric.increment("providerconfirm_failure", domain, providerService);
             providerStatusCode = ResourceException.FORBIDDEN;
             throw forbiddenError(getExceptionMsg("unable to verify attestation data: ", ctx, ex, hostname),
                     caller, domain, principalDomain);
 
         } finally {
 
-            metric.stopTiming(timerProviderMetric, provider, null, null, providerStatusCode, null);
+            metric.stopTiming(timerProviderMetric, providerService, null, null, providerStatusCode, null);
             closeInstanceProvider(instanceProvider);
         }
 
-        metric.increment("providerconfirm_success", domain, provider);
+        metric.increment("providerconfirm_success", domain, providerService);
         return instance;
     }
 
     InstanceProvider getInstanceProvider(final String providerName, InstanceProvider.SVIDType providerType,
             final String domainName, final String principalDomain, final String caller) {
 
-        InstanceProvider instanceProvider = instanceProviderManager.getProvider(providerName, hostnameResolver);
+        InstanceProvider instanceProvider = instanceProviderManager.getProvider(providerName, hostnameResolver, privateKeyStore);
         if (instanceProvider == null) {
             throw requestError("unable to get instance for provider: " + providerName,
                     caller, domainName, principalDomain);
@@ -5468,7 +5471,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // validate attestation data is included in the request
 
-        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider, hostnameResolver);
+        InstanceProvider instanceProvider = instanceProviderManager.getProvider(provider, hostnameResolver, privateKeyStore);
         if (instanceProvider == null) {
             throw requestError("unable to get instance for provider: " + provider,
                     caller, domain, principalDomain);
@@ -6555,13 +6558,8 @@ public class ZTSImpl implements ZTSHandler {
         // make sure we have a valid user name
 
         final String principalName = req.getName();
-        if (StringUtil.isEmpty(principalName)) {
-            throw requestError("User name is required", caller, userDomain, userDomain);
-        }
-
-        if (userAuthority.getUserType(principalName) != Authority.UserType.USER_ACTIVE) {
-            LOGGER.error("User {} is not valid", principalName);
-            throw requestError("User is not valid", caller, userDomain, userDomain);
+        if (!validateUserPrincipalForCert(principalName)) {
+            throw requestError("User name is not valid for certificate request", caller, userDomain, userDomain);
         }
 
         // parse our request object
@@ -6583,7 +6581,8 @@ public class ZTSImpl implements ZTSHandler {
 
         // validate request/csr details
 
-        if (!certReq.validate(userDomain, principalName, validCertSubjectOrgValues)) {
+        final String userName = principalName.substring(userDomainPrefix.length());
+        if (!certReq.validate(userDomain, userName, validCertSubjectOrgValues)) {
             throw requestError("Unable to validate cert request", caller, userDomain, userDomain);
         }
 
@@ -6595,13 +6594,13 @@ public class ZTSImpl implements ZTSHandler {
         
         InstanceConfirmation instance = new InstanceConfirmation()
             .setAttestationData(req.getAttestationData())
-            .setDomain(userDomain).setService(principalName).setProvider(userCertProvider);
+            .setDomain(userDomain).setService(userName).setProvider(userCertProvider);
 
         // make sure to close our provider when its no longer needed
         // and the method will do that for us
 
-        instance = validateConfirmationData(ctx, instance, instanceProvider, userCertProvider, userDomain,
-                userDomain, principalName, caller);
+        instance = validateConfirmationData(ctx, instance, instanceProvider, userDomain, userDomain,
+             ctx.request().getRemoteAddr(), caller);
 
         // determine the expiry time for the certificate
 
@@ -6627,6 +6626,28 @@ public class ZTSImpl implements ZTSHandler {
 
         instanceCertManager.logX509Cert(null, ctx.request().getRemoteAddr(), ZTSConsts.ZTS_SERVICE, principalName, userCert);
         return new UserCertificate().setX509Certificate(x509Cert);
+    }
+
+    boolean validateUserPrincipalForCert(final String principalName) {
+        if (StringUtil.isEmpty(principalName)) {
+            LOGGER.error("User name for certificate request is empty");
+            return false;
+        }
+        // the principal name cannot include wild cards
+        if (principalName.contains("*")) {
+            LOGGER.error("User name for certificate request cannot include wild cards");
+            return false;
+        }
+        // it must start with the user domain prefix
+        if (!principalName.startsWith(userDomainPrefix)) {
+            LOGGER.error("User name {} for certificate request must start with the user domain prefix", principalName);
+            return false;
+        }
+        if (userAuthority.getUserType(principalName) != Authority.UserType.USER_ACTIVE) {
+            LOGGER.error("User {} is not valid", principalName);
+            return false;
+        }
+        return true;
     }
 
     String getUserX509KeySignerId(final String principalName, final String requestSignerKeyId) {

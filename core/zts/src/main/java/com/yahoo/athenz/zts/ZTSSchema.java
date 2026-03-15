@@ -1277,7 +1277,6 @@ public class ZTSSchema {
         sb.resource("UserCertificateRequest", "POST", "/usercert")
             .comment("Return a TLS certificate for the given principal user")
             .input("req", "UserCertificateRequest", "csr request")
-            .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 

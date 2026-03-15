@@ -18,7 +18,6 @@ type UserCertificateRequest Struct {
 //Return a TLS certificate for the given principal user
 resource UserCertificate POST "/usercert" {
     UserCertificateRequest req; //csr request
-    authenticate;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError FORBIDDEN;

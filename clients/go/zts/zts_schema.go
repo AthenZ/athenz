@@ -1224,7 +1224,6 @@ func init() {
 	mPostUserCertificateRequest := rdl.NewResourceBuilder("UserCertificate", "POST", "/usercert")
 	mPostUserCertificateRequest.Comment("Return a TLS certificate for the given principal user")
 	mPostUserCertificateRequest.Input("req", "UserCertificateRequest", false, "", "", false, nil, "csr request")
-	mPostUserCertificateRequest.Auth("", "", true, "")
 	mPostUserCertificateRequest.Exception("BAD_REQUEST", "ResourceError", "")
 	mPostUserCertificateRequest.Exception("FORBIDDEN", "ResourceError", "")
 	mPostUserCertificateRequest.Exception("NOT_FOUND", "ResourceError", "")
