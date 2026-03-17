@@ -53,10 +53,10 @@ public class S3ChangeLogStore implements ChangeLogStore {
     long lastModTime;
     S3Client awsS3Client = null;
 
-    private String s3BucketName;
-    private String awsRegion;
-    private ObjectMapper jsonMapper;
-    private boolean jwsDomainSupport;
+    protected String s3BucketName;
+    protected String awsRegion;
+    protected ObjectMapper jsonMapper;
+    protected boolean jwsDomainSupport;
 
     private static final String NUMBER_OF_THREADS = "athenz.zts.bucket.threads";
     private static final String DEFAULT_TIMEOUT_SECONDS = "athenz.zts.bucket.threads.timeout";
@@ -255,6 +255,19 @@ public class S3ChangeLogStore implements ChangeLogStore {
      * @param modTime only include domains newer than this timestamp
      */
     void listObjects(S3Client s3, Collection<String> domains, long modTime) {
+        listObjects(s3, domains, modTime, null);
+    }
+
+    /**
+     * list the objects in the zts bucket. If the mod time is specified as 0
+     * then we want to list all objects otherwise, we only list objects
+     * that are newer than the specified timestamp
+     * @param s3 AWS S3 client object
+     * @param domains collection to be updated to include domain names
+     * @param modTime only include domains newer than this timestamp
+     * @param domainFilter the domain filter to use
+     */
+    void listObjects(S3Client s3, Collection<String> domains, long modTime, Set<String> domainFilter) {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("listObjects: Retrieving domains from {} with mod time > {}",
@@ -293,6 +306,11 @@ public class S3ChangeLogStore implements ChangeLogStore {
                 if (objectName.charAt(0) == '.') {
                     continue;
                 }
+
+                if (domainFilter != null && !domainFilter.contains(objectName)) {
+                    continue;
+                }
+
                 domains.add(objectName);
             }
 
