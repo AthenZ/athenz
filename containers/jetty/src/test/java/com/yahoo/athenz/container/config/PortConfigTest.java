@@ -34,6 +34,8 @@ public class PortConfigTest {
         assertFalse(config.isMtlsRequired());
         assertNull(config.getDescription());
         assertNull(config.getAllowedEndpoints());
+        assertFalse(config.isSniRequired());
+        assertFalse(config.isSniHostCheck());
 
         // Test setters and getters
         config.setPort(8443);
@@ -41,6 +43,12 @@ public class PortConfigTest {
 
         config.setMtlsRequired(true);
         assertTrue(config.isMtlsRequired());
+
+        config.setSniRequired(true);
+        assertTrue(config.isSniRequired());
+
+        config.setSniHostCheck(true);
+        assertTrue(config.isSniHostCheck());
 
         config.setDescription("Main HTTPS port");
         assertEquals(config.getDescription(), "Main HTTPS port");

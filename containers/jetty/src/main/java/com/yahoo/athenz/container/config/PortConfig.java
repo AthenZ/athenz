@@ -24,9 +24,17 @@ import java.util.List;
 public class PortConfig {
 
     private int port;
+    private String description;
+
     @JsonProperty("mtls_required")
     private boolean mtlsRequired;
-    private String description;
+
+    @JsonProperty("sni_required")
+    private boolean sniRequired;
+
+    @JsonProperty("sni_host_check")
+    private boolean sniHostCheck;
+
     @JsonProperty("allowed_endpoints")
     private List<EndpointConfig> allowedEndpoints;
 
@@ -60,5 +68,21 @@ public class PortConfig {
 
     public void setAllowedEndpoints(List<EndpointConfig> allowedEndpoints) {
         this.allowedEndpoints = allowedEndpoints;
+    }
+
+    public boolean isSniRequired() {
+        return sniRequired;
+    }
+
+    public void setSniRequired(boolean sniRequired) {
+        this.sniRequired = sniRequired;
+    }
+
+    public boolean isSniHostCheck() {
+        return sniHostCheck;
+    }
+
+    public void setSniHostCheck(boolean sniHostCheck) {
+        this.sniHostCheck = sniHostCheck;
     }
 }

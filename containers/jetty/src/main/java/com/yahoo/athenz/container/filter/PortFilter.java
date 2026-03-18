@@ -121,7 +121,7 @@ public class PortFilter implements jakarta.servlet.Filter {
         return endpoint.allowsMethod(method);
     }
 
-    private boolean pathMatches(String requestUri, EndpointConfig endpoint) {
+    protected boolean pathMatches(String requestUri, EndpointConfig endpoint) {
         String path = endpoint.getPath();
         if (path != null && !path.isEmpty()) {
             return path.equals(requestUri);
@@ -140,7 +140,7 @@ public class PortFilter implements jakarta.servlet.Filter {
         return true;
     }
 
-    private String getMatchDescription(EndpointConfig endpoint) {
+    protected String getMatchDescription(EndpointConfig endpoint) {
         if (endpoint.getPath() != null && !endpoint.getPath().isEmpty()) {
             return "path " + endpoint.getPath();
         }

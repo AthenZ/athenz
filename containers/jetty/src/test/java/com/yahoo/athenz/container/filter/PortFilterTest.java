@@ -16,6 +16,7 @@
 package com.yahoo.athenz.container.filter;
 
 import com.yahoo.athenz.container.AthenzConsts;
+import com.yahoo.athenz.container.config.EndpointConfig;
 import com.yahoo.athenz.container.config.PortUriConfigurationManager;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -535,6 +536,293 @@ public class PortFilterTest {
             portFilterLogger.setLevel(savedLevel);
             PortUriConfigurationManager.resetForTesting();
         }
+    }
+
+    // --- pathMatches unit tests ---
+
+    @Test
+    public void testPathMatchesExactPathMatch() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPath("/zts/v1/instance");
+
+        assertTrue(filter.pathMatches("/zts/v1/instance", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesExactPathNoMatch() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPath("/zts/v1/instance");
+
+        assertFalse(filter.pathMatches("/zts/v1/status", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesExactPathSubstringNoMatch() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPath("/zts/v1/instance");
+
+        assertFalse(filter.pathMatches("/zts/v1/instance/extra", endpoint));
+        assertFalse(filter.pathMatches("/zts/v1/instanc", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesPathEmptyString() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPath("");
+        endpoint.setPathStartsWith("/zts/v1/");
+
+        assertTrue(filter.pathMatches("/zts/v1/anything", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesPathNullFallsThrough() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathStartsWith("/api/");
+
+        assertTrue(filter.pathMatches("/api/users", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesStartsWithOnly() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathStartsWith("/zts/v1/");
+
+        assertTrue(filter.pathMatches("/zts/v1/instance", endpoint));
+        assertTrue(filter.pathMatches("/zts/v1/status", endpoint));
+        assertTrue(filter.pathMatches("/zts/v1/", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesStartsWithNoMatch() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathStartsWith("/zts/v1/");
+
+        assertFalse(filter.pathMatches("/zms/v1/domain", endpoint));
+        assertFalse(filter.pathMatches("/other/path", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesEndsWithOnly() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathEndsWith("/keys");
+
+        assertTrue(filter.pathMatches("/zts/v1/oauth2/keys", endpoint));
+        assertTrue(filter.pathMatches("/any/path/keys", endpoint));
+        assertTrue(filter.pathMatches("/keys", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesEndsWithNoMatch() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathEndsWith("/keys");
+
+        assertFalse(filter.pathMatches("/zts/v1/oauth2/tokens", endpoint));
+        assertFalse(filter.pathMatches("/keys/extra", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesBothStartsWithAndEndsWith() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathStartsWith("/zts/v1/");
+        endpoint.setPathEndsWith("/status");
+
+        assertTrue(filter.pathMatches("/zts/v1/status", endpoint));
+        assertTrue(filter.pathMatches("/zts/v1/deep/nested/status", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesBothStartsWithMatchesEndsWithFails() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathStartsWith("/zts/v1/");
+        endpoint.setPathEndsWith("/status");
+
+        assertFalse(filter.pathMatches("/zts/v1/instance", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesBothStartsWithFailsEndsWithMatches() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathStartsWith("/zts/v1/");
+        endpoint.setPathEndsWith("/status");
+
+        assertFalse(filter.pathMatches("/other/status", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesBothStartsWithAndEndsWithFail() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathStartsWith("/zts/v1/");
+        endpoint.setPathEndsWith("/status");
+
+        assertFalse(filter.pathMatches("/other/path", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesNoPathNoStartsWithNoEndsWith() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+
+        assertFalse(filter.pathMatches("/any/path", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesAllFieldsEmpty() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPath("");
+        endpoint.setPathStartsWith("");
+        endpoint.setPathEndsWith("");
+
+        assertFalse(filter.pathMatches("/any/path", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesStartsWithEmptyEndsWithNull() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathStartsWith("");
+
+        assertFalse(filter.pathMatches("/any/path", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesStartsWithNullEndsWithEmpty() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathEndsWith("");
+
+        assertFalse(filter.pathMatches("/any/path", endpoint));
+    }
+
+    @Test
+    public void testPathMatchesExactPathPreventsStartsWithFallthrough() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPath("/exact/path");
+        endpoint.setPathStartsWith("/exact");
+
+        assertTrue(filter.pathMatches("/exact/path", endpoint));
+        assertFalse(filter.pathMatches("/exact/other", endpoint));
+    }
+
+    // --- getMatchDescription unit tests ---
+
+    @Test
+    public void testGetMatchDescriptionWithPath() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPath("/zts/v1/instance");
+
+        assertEquals(filter.getMatchDescription(endpoint), "path /zts/v1/instance");
+    }
+
+    @Test
+    public void testGetMatchDescriptionWithStartsWithOnly() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathStartsWith("/zts/v1/");
+
+        assertEquals(filter.getMatchDescription(endpoint), "path_starts_with /zts/v1/");
+    }
+
+    @Test
+    public void testGetMatchDescriptionWithEndsWithOnly() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathEndsWith("/keys");
+
+        assertEquals(filter.getMatchDescription(endpoint), "path_ends_with /keys");
+    }
+
+    @Test
+    public void testGetMatchDescriptionWithStartsWithAndEndsWith() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathStartsWith("/zts/v1/");
+        endpoint.setPathEndsWith("/status");
+
+        assertEquals(filter.getMatchDescription(endpoint),
+                "path_starts_with /zts/v1/, path_ends_with /status");
+    }
+
+    @Test
+    public void testGetMatchDescriptionWithNothingSet() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+
+        assertEquals(filter.getMatchDescription(endpoint), "endpoint");
+    }
+
+    @Test
+    public void testGetMatchDescriptionWithEmptyPath() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPath("");
+
+        assertEquals(filter.getMatchDescription(endpoint), "endpoint");
+    }
+
+    @Test
+    public void testGetMatchDescriptionWithEmptyStartsWithAndEndsWith() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathStartsWith("");
+        endpoint.setPathEndsWith("");
+
+        assertEquals(filter.getMatchDescription(endpoint), "endpoint");
+    }
+
+    @Test
+    public void testGetMatchDescriptionWithEmptyStartsWithAndValidEndsWith() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathStartsWith("");
+        endpoint.setPathEndsWith("/status");
+
+        assertEquals(filter.getMatchDescription(endpoint), "path_ends_with /status");
+    }
+
+    @Test
+    public void testGetMatchDescriptionWithValidStartsWithAndEmptyEndsWith() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathStartsWith("/zts/v1/");
+        endpoint.setPathEndsWith("");
+
+        assertEquals(filter.getMatchDescription(endpoint), "path_starts_with /zts/v1/");
+    }
+
+    @Test
+    public void testGetMatchDescriptionPathTakesPrecedence() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPath("/zts/v1/instance");
+        endpoint.setPathStartsWith("/zts/v1/");
+        endpoint.setPathEndsWith("/instance");
+
+        assertEquals(filter.getMatchDescription(endpoint), "path /zts/v1/instance");
+    }
+
+    @Test
+    public void testGetMatchDescriptionWithNullStartsWithAndValidEndsWith() {
+        PortFilter filter = new PortFilter();
+        EndpointConfig endpoint = new EndpointConfig();
+        endpoint.setPathEndsWith("/keys");
+
+        assertEquals(filter.getMatchDescription(endpoint), "path_ends_with /keys");
     }
 
 }
