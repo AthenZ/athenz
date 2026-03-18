@@ -111,13 +111,10 @@ public class S3ChangeLogStore implements ChangeLogStore {
             // generate a list of domains to filter. the value is a comma separated list
             // of domains to filter.
 
-            domainFilter = new HashSet<>();
-            for (String domain : domainFilterValue.split(",")) {
-                final String trimmedDomain = domain.trim();
-                if (!trimmedDomain.isEmpty()) {
-                    domainFilter.add(trimmedDomain);
-                }
-            }
+            domainFilter = java.util.Arrays.stream(domainFilterValue.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(java.util.stream.Collectors.toSet());
 
             if (domainFilter.isEmpty()) {
                 LOGGER.error("S3ChangeLogStore: domain filter configuration is empty, no domains will be filtered");
