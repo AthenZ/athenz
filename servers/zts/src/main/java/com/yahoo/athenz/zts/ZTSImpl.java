@@ -3061,6 +3061,9 @@ public class ZTSImpl implements ZTSHandler {
 
         final String spiffeId = extractSpiffeIdFromToken(subjectToken);
         if (spiffeId != null) {
+            // If we're copying SPIFFE claim into the requested ID token, verify it maps
+            // to the authenticated principal to prevent mismatched SPIFFE identities.
+            verifySpiffeIdMatchesAthenzPrincipal(spiffeId, principalName, caller, domainName, principalDomain);
             idToken.setSpiffe(spiffeId);
         }
 
@@ -3077,6 +3080,35 @@ public class ZTSImpl implements ZTSHandler {
 
         return new AccessTokenResponse().setId_token(signedIdToken).setToken_type(OAUTH_BEARER_TOKEN)
                 .setIssued_token_type(ZTSConsts.OAUTH_TOKEN_TYPE_ID).setExpires_in(tokenTimeout);
+    }
+
+    void verifySpiffeIdMatchesAthenzPrincipal(final String spiffeId, final String principalName,
+            final String caller, final String domainName, final String principalDomain) {
+
+        if (StringUtil.isEmpty(spiffeId) || StringUtil.isEmpty(principalName)) {
+            return;
+        }
+
+        // if the principal itself is a spiffe uri (jwt-svid spiffe-subject) then it must match exactly
+        if (principalName.startsWith(ZTSConsts.ZTS_CERT_SPIFFE_URI)) {
+            if (!spiffeId.equals(principalName)) {
+                throw requestError("SPIFFE ID does not match authenticated principal",
+                        caller, domainName, principalDomain);
+            }
+            return;
+        }
+
+        final String principalSpiffeDomain = AthenzUtils.extractPrincipalDomainName(principalName);
+        final String principalSpiffeService = AthenzUtils.extractPrincipalServiceName(principalName);
+        if (principalSpiffeDomain == null || principalSpiffeService == null) {
+            throw requestError("Invalid principal name for SPIFFE validation: " + principalName,
+                    caller, domainName, principalDomain);
+        }
+
+        if (!spiffeUriManager.validateServiceCertUri(spiffeId, principalSpiffeDomain, principalSpiffeService, null)) {
+            throw requestError("SPIFFE ID does not match authenticated principal",
+                    caller, domainName, principalDomain);
+        }
     }
 
     AccessTokenResponse processJAGTokenIssueRequest(ResourceContext ctx, Principal principal,
