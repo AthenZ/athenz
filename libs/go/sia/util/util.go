@@ -1464,6 +1464,9 @@ func GetRoleCertificate(athenzDomain, athenzService, instanceId, athenzProvider,
 		return nil, err
 	}
 	tlsCertificate, err := tls.X509KeyPair([]byte(roleCertificate.X509Certificate), []byte(svcTLSCert.PrivateKeyPem))
+	if err != nil {
+		return nil, err
+	}
 	x509Certificate, err := ParseCertificate(roleCertificate.X509Certificate)
 	if err != nil {
 		return nil, err
