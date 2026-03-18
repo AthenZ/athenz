@@ -196,6 +196,8 @@ public class ZTSImpl implements ZTSHandler {
     protected IssuerResolver issuerResolver;
     protected boolean instanceRegisterTokenTypeJWT = false;
     protected PrincipalIdentityIssuer principalIdentityIssuer;
+    protected String ztsMetricCounterName;
+    protected String ztsMetricLatencyName;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -837,6 +839,11 @@ public class ZTSImpl implements ZTSHandler {
     }
 
     void loadMetricObject() {
+
+        // determine our metric name
+
+        ztsMetricCounterName = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_NAME, "zts_api");
+        ztsMetricLatencyName = ztsMetricCounterName + "_latency";
 
         final String metricFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_METRIC_FACTORY_CLASS,
                 ServerCommonConsts.METRIC_DEFAULT_FACTORY_CLASS);
@@ -6704,7 +6711,8 @@ public class ZTSImpl implements ZTSHandler {
     public ResourceContext newResourceContext(ServletContext servletContext, HttpServletRequest request,
             HttpServletResponse response, String apiName) {
 
-        Object timerMetric = metric.startTiming("zts_api_latency", null, null, request.getMethod(), apiName.toLowerCase());
+        Object timerMetric = metric.startTiming(ztsMetricLatencyName, null, null, request.getMethod(),
+                apiName.toLowerCase());
 
         // check to see if we want to allow this URI to be available
         // with optional authentication support
@@ -6786,7 +6794,7 @@ public class ZTSImpl implements ZTSHandler {
         final String httpMethod = (ctx != null) ? ctx.getHttpMethod() : null;
         final String apiName = (ctx != null) ? ctx.getApiName() : null;
         final String timerName = (apiName != null) ? apiName + "_timing" : null;
-        metric.increment("zts_api", domainName, principalDomainName, httpMethod, httpStatus, apiName);
+        metric.increment(ztsMetricCounterName, domainName, principalDomainName, httpMethod, httpStatus, apiName);
         metric.stopTiming(timerMetric, domainName, principalDomainName, httpMethod, httpStatus, timerName);
     }
 

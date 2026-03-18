@@ -38,6 +38,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_HOSTNAME      = "athenz.zms.hostname";
     public static final String ZMS_PROP_DOMAIN_ADMIN  = "athenz.zms.domain_admin";
     public static final String ZMS_PROP_FILE_NAME     = "athenz.zms.prop_file";
+    public static final String ZMS_PROP_METRIC_NAME   = "athenz.zms.metric_name";
 
     public static final String ZMS_PROP_VIRTUAL_DOMAIN       = "athenz.zms.virtual_domain_support";
     public static final String ZMS_PROP_VIRTUAL_DOMAIN_LIMIT = "athenz.zms.virtual_domain_limit";

@@ -26,6 +26,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_HTTPS_PORT        = "athenz.tls_port";
     public static final String ZTS_PROP_OIDC_PORT         = "athenz.oidc_port";
     public static final String ZTS_PROP_STATUS_PORT       = "athenz.status_port";
+    public static final String ZTS_PROP_METRIC_NAME       = "athenz.zts.metric_name";
 
     public static final String ZTS_PROP_ROOT_DIR = "athenz.zts.root_dir";
     public static final String ZTS_PROP_HOSTNAME = "athenz.zts.hostname";
