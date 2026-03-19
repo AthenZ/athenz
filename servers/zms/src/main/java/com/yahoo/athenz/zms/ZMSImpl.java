@@ -241,6 +241,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected boolean allowUserDomains = true;
     protected NotificationObjectStore notificationObjectStore = null;
     protected boolean autoDeleteTenantAssumeRoleAssertions = false;
+    protected String zmsMetricCounterName;
+    protected String zmsMetricLatencyName;
 
     // enum to represent our access response since in some cases we want to
     // handle domain not founds differently instead of just returning failure
@@ -1088,6 +1090,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void loadMetricObject() {
+
+        // determine our metric name
+
+        zmsMetricCounterName = System.getProperty(ZMSConsts.ZMS_PROP_METRIC_NAME, "zms_api");
+        zmsMetricLatencyName = zmsMetricCounterName + "_latency";
 
         String metricFactoryClass = System.getProperty(ZMSConsts.ZMS_PROP_METRIC_FACTORY_CLASS,
                 METRIC_DEFAULT_FACTORY_CLASS);
@@ -10297,7 +10304,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     public ResourceContext newResourceContext(ServletContext servletContext, HttpServletRequest request,
             HttpServletResponse response, String apiName) {
 
-        Object timerMetric = metric.startTiming("zms_api_latency", null, null, request.getMethod(), apiName.toLowerCase());
+        Object timerMetric = metric.startTiming(zmsMetricLatencyName, null, null, request.getMethod(),
+                apiName.toLowerCase());
 
         // check to see if we want to allow this URI to be available
         // with optional authentication support
@@ -12984,7 +12992,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             final String httpMethod = (ctx != null) ? ctx.getHttpMethod() : null;
             final String apiName = (ctx != null) ? ctx.getApiName() : null;
             final String timerName = (apiName != null) ? apiName + "_timing" : null;
-            metric.increment("zms_api", domainName, principalDomainName, httpMethod, httpStatus, apiName);
+            metric.increment(zmsMetricCounterName, domainName, principalDomainName, httpMethod, httpStatus, apiName);
             metric.stopTiming(timerMetric, domainName, principalDomainName, httpMethod, httpStatus, timerName);
         } catch (Exception ex) {
             LOG.error("Got exception during recordMetrics", ex);
