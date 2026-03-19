@@ -57,11 +57,13 @@ public class S3ChangeLogStore implements ChangeLogStore {
     private String awsRegion;
     private ObjectMapper jsonMapper;
     private boolean jwsDomainSupport;
+    private Set<String> domainFilter;
 
     private static final String NUMBER_OF_THREADS = "athenz.zts.bucket.threads";
     private static final String DEFAULT_TIMEOUT_SECONDS = "athenz.zts.bucket.threads.timeout";
     private static final String ZTS_PROP_AWS_S3_ENDPOINT = "athenz.zts.aws_s3_endpoint";
     private static final String ZTS_PROP_AWS_S3_CA_CERT = "athenz.zts.aws_s3_ca_cert";
+    private static final String ZTS_PROP_S3_CHANGE_LOG_STORE_FILTER = "athenz.zts.s3_change_log_store_domain_filter";
     private final int nThreads = Integer.parseInt(System.getProperty(NUMBER_OF_THREADS, "10"));
     private final int defaultTimeoutSeconds = Integer.parseInt(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
     protected Map<String, SignedDomain> tempSignedDomainMap = new ConcurrentHashMap<>();
@@ -92,6 +94,33 @@ public class S3ChangeLogStore implements ChangeLogStore {
 
         jsonMapper = new ObjectMapper();
         jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        // check to see if we have domain filter configuration.  This is useful
+        // when the ZTS is only deployed to issue user certificates and not to store
+        // any data in the datastore. This is useful to reduce the load on the ZTS and
+        // the datastore. With the user certificate support, the datastore is only used
+        // to store the details about the provider service in the configured domain so
+        // there is no need to monitor and load data for all domains. This, of course,
+        // depends on the deployment configuration and the use case. With this setting,
+        // the ZTS instance can be deployed to only issue user certificates and not to
+        // issue any oauth2 access tokens nor service x.509 identity certificates.
+
+        final String domainFilterValue = System.getProperty(ZTS_PROP_S3_CHANGE_LOG_STORE_FILTER);
+        if (domainFilterValue != null) {
+
+            // generate a list of domains to filter. the value is a comma separated list
+            // of domains to filter.
+
+            domainFilter = java.util.Arrays.stream(domainFilterValue.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(java.util.stream.Collectors.toSet());
+
+            if (domainFilter.isEmpty()) {
+                LOGGER.error("S3ChangeLogStore: domain filter configuration is empty, no domains will be filtered");
+                domainFilter = null;
+            }
+        }
     }
 
     void initAwsRegion() {
@@ -293,6 +322,14 @@ public class S3ChangeLogStore implements ChangeLogStore {
                 if (objectName.charAt(0) == '.') {
                     continue;
                 }
+
+                // if we have a domain filter and the domain is not in the filter, skip it
+
+
+                if (domainFilter != null && !domainFilter.contains(objectName)) {
+                    continue;
+                }
+
                 domains.add(objectName);
             }
 
