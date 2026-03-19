@@ -3944,6 +3944,21 @@ public class ZTSClient implements Closeable {
         return "https://" + service + "." + dashDomain + "." + uriSuffix;
     }
 
+    /**
+     * For the specified user return the corresponding User Certificate
+     * @param req User Certificate Request (csr)
+     * @return UserCertificate that includes client x509 user certificate
+     */
+    public UserCertificate postUserCertificateRequest(UserCertificateRequest req) {
+        try {
+            return ztsClient.postUserCertificateRequest(req);
+        } catch (ClientResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getMessage());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
     static class ClientKeyRefresherListener implements KeyRefresherListener {
 
         long lastCertRefreshTime = 0;

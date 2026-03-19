@@ -17,6 +17,7 @@ package com.yahoo.athenz.instance.provider;
 
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.KeyStore;
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.key.PubKeysProvider;
@@ -168,6 +169,14 @@ public interface InstanceProvider {
      * @param authorizer authorizer object
      */
     default void setAuthorizer(Authorizer authorizer) {
+    }
+
+    /**
+     * Set the private keys store for the provider in case the provider
+     * needs to extract any secrets
+     * @param privateKeyStore private key store object
+     */
+    default void setPrivateKeyStore(PrivateKeyStore privateKeyStore) {
     }
 
     /**

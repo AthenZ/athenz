@@ -1281,6 +1281,32 @@ public class ZTSRDLGeneratedClient {
         }
     }
 
+    public UserCertificate postUserCertificateRequest(UserCertificateRequest req) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/usercert");
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(req), ContentType.APPLICATION_JSON);
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), UserCertificate.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
     public Schema getRdlSchema() throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/schema");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());

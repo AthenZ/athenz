@@ -479,7 +479,7 @@ public class ZTSImplPostInstanceJWTRegisterTest {
         // Replace the provider manager's getProvider to return our custom provider
         InstanceProviderManager originalManager = zts.instanceProviderManager;
         InstanceProviderManager mockManager = Mockito.mock(InstanceProviderManager.class);
-        Mockito.when(mockManager.getProvider(Mockito.eq("athenz.provider"), Mockito.any())).thenReturn(testProvider);
+        Mockito.when(mockManager.getProvider(Mockito.eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(testProvider);
         zts.instanceProviderManager = mockManager;
 
         CertificateAuthority certAuthority = new CertificateAuthority();

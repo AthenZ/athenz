@@ -25,6 +25,12 @@ public class OpenIdConfigurationTest {
     public void testOpenIdConfiguration() {
 
         OpenIdConfiguration config = new OpenIdConfiguration();
+        assertEquals(config.getTokenEndpoint(), null);
+        assertEquals(config.getJwksUri(), null);
+
+        config.setTokenEndpoint("https://localhost:4443/ouath2/token");
+        assertEquals(config.getTokenEndpoint(), "https://localhost:4443/ouath2/token");
+
         config.setJwksUri("https://localhost:4443/ouath2/keys");
         assertEquals(config.getJwksUri(), "https://localhost:4443/ouath2/keys");
     }

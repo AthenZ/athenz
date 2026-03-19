@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.KeyStore;
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.impl.InstanceHttpProvider;
 import com.yahoo.athenz.zts.cache.DataCache;
@@ -85,7 +86,7 @@ public class InstanceProviderManager {
         }
     }
     
-    InstanceProvider getProvider(String provider, HostnameResolver hostnameResolver) {
+    InstanceProvider getProvider(String provider, HostnameResolver hostnameResolver, PrivateKeyStore privateKeyStore) {
         int idx = provider.lastIndexOf('.');
         if (idx == -1) {
             LOGGER.error("Invalid provider service name: {}", provider);
@@ -157,7 +158,8 @@ public class InstanceProviderManager {
             }
             break;
         case CLASS:
-            instanceProvider = getClassProvider(uri.getHost(), provider, getSSLContext(useClientSSLContext), hostnameResolver);
+            instanceProvider = getClassProvider(uri.getHost(), provider, getSSLContext(useClientSSLContext),
+                hostnameResolver, privateKeyStore);
             break;
         default:
             break;
@@ -166,7 +168,9 @@ public class InstanceProviderManager {
         return instanceProvider;
     }
 
-    InstanceProvider getClassProvider(String className, String providerName, SSLContext context, HostnameResolver hostnameResolver) {
+    InstanceProvider getClassProvider(String className, String providerName, SSLContext context, HostnameResolver hostnameResolver,
+            PrivateKeyStore privateKeyStore) {
+
         final String classKey = className + "-" + providerName;
         InstanceProvider provider = providerMap.get(classKey);
         if (provider != null) {
@@ -185,6 +189,7 @@ public class InstanceProviderManager {
         provider.setExternalCredentialsProvider(new InstanceExternalCredentialsProvider(providerName, ztsHandler));
         provider.setAuthorizer(authorizer);
         provider.setPubKeysProvider(dataStore);
+        provider.setPrivateKeyStore(privateKeyStore);
         if (ZTS_PROVIDER.equals(providerName)) {
             provider.setPrivateKey(serverPrivateKey.getKey(), serverPrivateKey.getId(), serverPrivateKey.getAlgorithm());
         }

@@ -56,6 +56,7 @@ public class S3ChangeLogStoreTest {
     public void setup() {
         System.setProperty(ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
         System.setProperty(ZTS_PROP_AWS_REGION_NAME, "test-region");
+        System.clearProperty("athenz.zts.s3_change_log_store_domain_filter");
     }
 
     @Test
@@ -1018,6 +1019,225 @@ public class S3ChangeLogStoreTest {
 
         is1.close();
         is2.close();
+    }
+
+    @Test
+    public void testInitDomainFilter() {
+        System.setProperty("athenz.zts.s3_change_log_store_domain_filter", "athenz,sports,media");
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+
+            ListObjectsV2Response mockListObjectsV2Response = mock(ListObjectsV2Response.class);
+            ArrayList<S3Object> objectList = new ArrayList<>();
+            objectList.add(S3Object.builder().key("athenz").build());
+            objectList.add(S3Object.builder().key("sports").build());
+            objectList.add(S3Object.builder().key("media").build());
+            objectList.add(S3Object.builder().key("finance").build());
+            objectList.add(S3Object.builder().key("weather").build());
+
+            when(mockListObjectsV2Response.contents()).thenReturn(objectList);
+            when(mockListObjectsV2Response.isTruncated()).thenReturn(false);
+            when(store.awsS3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(mockListObjectsV2Response);
+
+            ArrayList<String> domains = new ArrayList<>();
+            store.listObjects(store.awsS3Client, domains, 0);
+
+            assertEquals(domains.size(), 3);
+            assertTrue(domains.contains("athenz"));
+            assertTrue(domains.contains("sports"));
+            assertTrue(domains.contains("media"));
+            assertFalse(domains.contains("finance"));
+            assertFalse(domains.contains("weather"));
+        } finally {
+            System.clearProperty("athenz.zts.s3_change_log_store_domain_filter");
+        }
+    }
+
+    @Test
+    public void testInitDomainFilterWithSpaces() {
+        System.setProperty("athenz.zts.s3_change_log_store_domain_filter", " athenz , sports , media ");
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+
+            ListObjectsV2Response mockListObjectsV2Response = mock(ListObjectsV2Response.class);
+            ArrayList<S3Object> objectList = new ArrayList<>();
+            objectList.add(S3Object.builder().key("athenz").build());
+            objectList.add(S3Object.builder().key("sports").build());
+            objectList.add(S3Object.builder().key("finance").build());
+
+            when(mockListObjectsV2Response.contents()).thenReturn(objectList);
+            when(mockListObjectsV2Response.isTruncated()).thenReturn(false);
+            when(store.awsS3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(mockListObjectsV2Response);
+
+            ArrayList<String> domains = new ArrayList<>();
+            store.listObjects(store.awsS3Client, domains, 0);
+
+            assertEquals(domains.size(), 2);
+            assertTrue(domains.contains("athenz"));
+            assertTrue(domains.contains("sports"));
+            assertFalse(domains.contains("finance"));
+        } finally {
+            System.clearProperty("athenz.zts.s3_change_log_store_domain_filter");
+        }
+    }
+
+    @Test
+    public void testInitDomainFilterEmpty() {
+        System.setProperty("athenz.zts.s3_change_log_store_domain_filter", " , , ");
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+
+            ListObjectsV2Response mockListObjectsV2Response = mock(ListObjectsV2Response.class);
+            ArrayList<S3Object> objectList = new ArrayList<>();
+            objectList.add(S3Object.builder().key("athenz").build());
+            objectList.add(S3Object.builder().key("sports").build());
+
+            when(mockListObjectsV2Response.contents()).thenReturn(objectList);
+            when(mockListObjectsV2Response.isTruncated()).thenReturn(false);
+            when(store.awsS3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(mockListObjectsV2Response);
+
+            // since all filter entries are empty/whitespace, domainFilter is null
+            // and all domains should be returned
+
+            ArrayList<String> domains = new ArrayList<>();
+            store.listObjects(store.awsS3Client, domains, 0);
+
+            assertEquals(domains.size(), 2);
+            assertTrue(domains.contains("athenz"));
+            assertTrue(domains.contains("sports"));
+        } finally {
+            System.clearProperty("athenz.zts.s3_change_log_store_domain_filter");
+        }
+    }
+
+    @Test
+    public void testInitDomainFilterSingleDomain() {
+        System.setProperty("athenz.zts.s3_change_log_store_domain_filter", "athenz");
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+
+            ListObjectsV2Response mockListObjectsV2Response = mock(ListObjectsV2Response.class);
+            ArrayList<S3Object> objectList = new ArrayList<>();
+            objectList.add(S3Object.builder().key("athenz").build());
+            objectList.add(S3Object.builder().key("sports").build());
+            objectList.add(S3Object.builder().key("media").build());
+
+            when(mockListObjectsV2Response.contents()).thenReturn(objectList);
+            when(mockListObjectsV2Response.isTruncated()).thenReturn(false);
+            when(store.awsS3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(mockListObjectsV2Response);
+
+            ArrayList<String> domains = new ArrayList<>();
+            store.listObjects(store.awsS3Client, domains, 0);
+
+            assertEquals(domains.size(), 1);
+            assertTrue(domains.contains("athenz"));
+        } finally {
+            System.clearProperty("athenz.zts.s3_change_log_store_domain_filter");
+        }
+    }
+
+    @Test
+    public void testListObjectsWithDomainFilterAndModTime() {
+        System.setProperty("athenz.zts.s3_change_log_store_domain_filter", "athenz,sports");
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+
+            ListObjectsV2Response mockListObjectsV2Response = mock(ListObjectsV2Response.class);
+            ArrayList<S3Object> objectList = new ArrayList<>();
+            objectList.add(S3Object.builder().key("athenz").lastModified((new Date(100)).toInstant()).build());
+            objectList.add(S3Object.builder().key("sports").lastModified((new Date(200)).toInstant()).build());
+            objectList.add(S3Object.builder().key("media").lastModified((new Date(200)).toInstant()).build());
+            objectList.add(S3Object.builder().key("finance").lastModified((new Date(200)).toInstant()).build());
+
+            when(mockListObjectsV2Response.contents()).thenReturn(objectList);
+            when(mockListObjectsV2Response.isTruncated()).thenReturn(false);
+            when(store.awsS3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(mockListObjectsV2Response);
+
+            ArrayList<String> domains = new ArrayList<>();
+            store.listObjects(store.awsS3Client, domains, (new Date(150)).getTime());
+
+            // only "sports" should be returned: it's in the filter AND has modTime > 150
+            // "athenz" is in the filter but modTime 100 <= 150
+            // "media" and "finance" have modTime > 150 but are not in the filter
+
+            assertEquals(domains.size(), 1);
+            assertTrue(domains.contains("sports"));
+        } finally {
+            System.clearProperty("athenz.zts.s3_change_log_store_domain_filter");
+        }
+    }
+
+    @Test
+    public void testListObjectsWithDomainFilterAndHiddenObjects() {
+        System.setProperty("athenz.zts.s3_change_log_store_domain_filter", "athenz,.hidden");
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+
+            ListObjectsV2Response mockListObjectsV2Response = mock(ListObjectsV2Response.class);
+            ArrayList<S3Object> objectList = new ArrayList<>();
+            objectList.add(S3Object.builder().key("athenz").build());
+            objectList.add(S3Object.builder().key(".hidden").build());
+            objectList.add(S3Object.builder().key("sports").build());
+
+            when(mockListObjectsV2Response.contents()).thenReturn(objectList);
+            when(mockListObjectsV2Response.isTruncated()).thenReturn(false);
+            when(store.awsS3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(mockListObjectsV2Response);
+
+            ArrayList<String> domains = new ArrayList<>();
+            store.listObjects(store.awsS3Client, domains, 0);
+
+            // ".hidden" is skipped because it starts with '.' (checked before domain filter)
+
+            assertEquals(domains.size(), 1);
+            assertTrue(domains.contains("athenz"));
+        } finally {
+            System.clearProperty("athenz.zts.s3_change_log_store_domain_filter");
+        }
+    }
+
+    @Test
+    public void testListObjectsWithDomainFilterMultiplePages() {
+        System.setProperty("athenz.zts.s3_change_log_store_domain_filter", "iaas,cd.docker,platforms");
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore();
+
+            ListObjectsV2Response mockListObjectsV2Response = mock(ListObjectsV2Response.class);
+
+            ArrayList<S3Object> objectList1 = new ArrayList<>();
+            objectList1.add(S3Object.builder().key("iaas").build());
+            objectList1.add(S3Object.builder().key("iaas.athenz").build());
+
+            ArrayList<S3Object> objectList2 = new ArrayList<>();
+            objectList2.add(S3Object.builder().key("cd").build());
+            objectList2.add(S3Object.builder().key("cd.docker").build());
+
+            ArrayList<S3Object> objectList3 = new ArrayList<>();
+            objectList3.add(S3Object.builder().key("platforms").build());
+            objectList3.add(S3Object.builder().key("platforms.mh2").build());
+
+            when(mockListObjectsV2Response.contents())
+                    .thenReturn(objectList1)
+                    .thenReturn(objectList2)
+                    .thenReturn(objectList3);
+            when(mockListObjectsV2Response.isTruncated())
+                    .thenReturn(true)
+                    .thenReturn(true)
+                    .thenReturn(false);
+            when(store.awsS3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(mockListObjectsV2Response);
+
+            ArrayList<String> domains = new ArrayList<>();
+            store.listObjects(store.awsS3Client, domains, 0);
+
+            assertEquals(domains.size(), 3);
+            assertTrue(domains.contains("iaas"));
+            assertTrue(domains.contains("cd.docker"));
+            assertTrue(domains.contains("platforms"));
+            assertFalse(domains.contains("iaas.athenz"));
+            assertFalse(domains.contains("cd"));
+            assertFalse(domains.contains("platforms.mh2"));
+        } finally {
+            System.clearProperty("athenz.zts.s3_change_log_store_domain_filter");
+        }
     }
 
     @Test

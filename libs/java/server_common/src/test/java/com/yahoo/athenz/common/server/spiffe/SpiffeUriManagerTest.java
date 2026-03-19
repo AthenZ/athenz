@@ -16,7 +16,6 @@
 
 package com.yahoo.athenz.common.server.spiffe;
 
-import com.yahoo.athenz.common.server.spiffe.impl.SpiffeUriTrustDomain;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -35,6 +34,8 @@ public class SpiffeUriManagerTest {
         System.clearProperty("athenz.zts.spiffe_uri_validator_classes");
         SpiffeUriManager manager = new SpiffeUriManager();
 
+        assertEquals(manager.getDefaultUserNamespace(), "default");
+
         assertTrue(manager.validateServiceCertUri("spiffe://athenz/sa/api", "athenz", "api", null));
         assertTrue(manager.validateServiceCertUri("spiffe://athenz/sa/api", "athenz", "api", "default"));
 
@@ -50,6 +51,16 @@ public class SpiffeUriManagerTest {
         assertFalse(manager.validateServiceCertUri("spiffe://spiffe.athenz.io/ns/prod/sa/athenz.api", "athenz.prod", "api", "prod"));
 
         assertFalse(manager.validateServiceCertUri("spiffe://athenz.io/ns/prod/sa/athenz.api", "athenz", "api", "prod"));
+    }
+
+    @Test
+    public void testValidateServiceCertUriDefaultUserNamespace() {
+
+        System.setProperty("athenz.zts.spiffe_default_user_namespace", "prod");
+        SpiffeUriManager manager = new SpiffeUriManager();
+
+        assertEquals(manager.getDefaultUserNamespace(), "prod");
+        System.clearProperty("athenz.zts.spiffe_default_user_namespace");
     }
 
     @Test

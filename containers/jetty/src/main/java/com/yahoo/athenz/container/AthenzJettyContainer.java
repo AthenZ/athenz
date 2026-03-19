@@ -548,12 +548,12 @@ public class AthenzJettyContainer {
                 System.getProperty(AthenzConsts.ATHENZ_PROP_SNI_HOSTCHECK, "true"));
 
         // Use port-uri.json for connectors if configured; otherwise use properties
-        PortUriConfigurationManager configManager = PortUriConfigurationManager.getInstance();
 
+        PortUriConfigurationManager configManager = PortUriConfigurationManager.getInstance();
         if (configManager.isPortListConfigured()) {
             LOG.info("Creating HTTP/HTTPS connectors based on port-uri.json configuration");
             addConnectorsFromPortConfig(configManager.getConfiguration(), httpConfig,
-                    proxyProtocol, listenHost, idleTimeout, sniRequired, sniHostCheck, connectionLogger);
+                    proxyProtocol, listenHost, idleTimeout, connectionLogger);
         } else {
             LOG.info("Creating HTTP/HTTPS connectors based on properties configuration");
             addConnectorsFromProperties(httpConfig, httpPort, httpsPort, oidcPort, statusPort,
@@ -565,8 +565,7 @@ public class AthenzJettyContainer {
      * Add HTTP/HTTPS connectors based on port-uri.json configuration
      */
     private void addConnectorsFromPortConfig(PortUriConfiguration config, HttpConfiguration httpConfig,
-                                             boolean proxyProtocol, String listenHost, int idleTimeout, boolean sniRequired,
-                                             boolean sniHostCheck, JettyConnectionLogger connectionLogger) {
+            boolean proxyProtocol, String listenHost, int idleTimeout, JettyConnectionLogger connectionLogger) {
 
         for (PortConfig portConfig : config.getPorts()) {
             int port = portConfig.getPort();
@@ -576,12 +575,15 @@ public class AthenzJettyContainer {
             }
 
             // Determine if this port needs client authentication (mTLS)
+
             boolean needClientAuth = portConfig.isMtlsRequired();
 
             // Create HTTPS connector for this port
-            HttpConfiguration httpsConfig = getHttpsConfig(httpConfig, port, sniRequired, sniHostCheck);
-            addHTTPSConnector(httpsConfig, port, proxyProtocol, listenHost,
-                    idleTimeout, needClientAuth, connectionLogger);
+
+            HttpConfiguration httpsConfig = getHttpsConfig(httpConfig, port, portConfig.isSniRequired(),
+                    portConfig.isSniHostCheck());
+            addHTTPSConnector(httpsConfig, port, proxyProtocol, listenHost, idleTimeout,
+                    needClientAuth, connectionLogger);
 
             LOG.info("Added connector for port {} (mTLS: {}, description: {})",
                     port, needClientAuth, portConfig.getDescription());
