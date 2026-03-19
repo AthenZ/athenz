@@ -61,11 +61,11 @@ public class InstanceSpaceliftProvider implements InstanceProvider {
     static final String SPACELIFT_PROP_ISSUER              = "athenz.zts.spacelift.issuer";
     static final String SPACELIFT_PROP_JWKS_URI            = "athenz.zts.spacelift.jwks_uri";
 
-    public static final String CLAIM_SPACE_ID    = "spaceId";
-    public static final String CLAIM_CALLER_TYPE = "callerType";
-    public static final String CLAIM_CALLER_ID   = "callerId";
-    public static final String CLAIM_RUN_TYPE    = "runType";
-    public static final String CLAIM_RUN_ID      = "runId";
+    private static final String CLAIM_SPACE_ID    = "spaceId";
+    private static final String CLAIM_CALLER_TYPE = "callerType";
+    private static final String CLAIM_CALLER_ID   = "callerId";
+    private static final String CLAIM_RUN_TYPE    = "runType";
+    private static final String CLAIM_RUN_ID      = "runId";
 
     Set<String> dnsSuffixes = null;
     String spaceliftIssuer = null;
