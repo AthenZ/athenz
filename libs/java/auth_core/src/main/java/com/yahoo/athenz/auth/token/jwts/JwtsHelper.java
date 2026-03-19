@@ -96,7 +96,7 @@ public class JwtsHelper {
         return extractJwksUri(openIdConfigUri, sslContext, null);
     }
 
-    public String extractJwksUri(final String openIdConfigUri, final SSLContext sslContext, final String proxyUrl) {
+    public OpenIdConfiguration extractOpenIdConfiguration(final String openIdConfigUri, final SSLContext sslContext, final String proxyUrl) {
 
         final String opendIdConfigData = getHttpData(openIdConfigUri, sslContext, proxyUrl);
         if (opendIdConfigData == null) {
@@ -104,18 +104,26 @@ public class JwtsHelper {
         }
 
         try {
-            OpenIdConfiguration openIdConfig = JSON_MAPPER.readValue(opendIdConfigData, OpenIdConfiguration.class);
-            return openIdConfig.getJwksUri();
+            return JSON_MAPPER.readValue(opendIdConfigData, OpenIdConfiguration.class);
         } catch (Exception ex) {
-            LOGGER.error("Unable to extract jwks uri", ex);
+            LOGGER.error("Unable to parse open id configuration: {}", ex.getMessage());
         }
-
         return null;
+    }
+
+    public String extractJwksUri(final String openIdConfigUri, final SSLContext sslContext, final String proxyUrl) {
+
+        OpenIdConfiguration openIdConfig = extractOpenIdConfiguration(openIdConfigUri, sslContext, proxyUrl);
+        if (openIdConfig == null) {
+            return null;
+        }
+        return openIdConfig.getJwksUri();
     }
 
     String getHttpData(final String serverUri, final SSLContext sslContext, final String proxyUrl) {
 
         if (serverUri == null || serverUri.isEmpty()) {
+            LOGGER.error("Server URI is null or empty");
             return null;
         }
 

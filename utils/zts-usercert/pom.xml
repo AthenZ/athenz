@@ -20,13 +20,13 @@
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
     <version>1.12.37-SNAPSHOT</version>
-    <relativePath>../../../pom.xml</relativePath>
+    <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>ztsroletoken</artifactId>
+  <artifactId>zts-usercert</artifactId>
   <packaging>jar</packaging>
-  <name>ztsroletoken</name>
-  <description>ZTS RoleToken Library</description>
+  <name>zts-usercert</name>
+  <description>ZTS User Certificate Utility</description>
 
   <properties>
     <maven.install.skip>true</maven.install.skip>
@@ -50,6 +50,7 @@
         <configuration>
           <executable>make</executable>
           <arguments>
+            <argument>PKG_VERSION=${project.parent.version}</argument>
             <argument>clean</argument>
             <argument>all</argument>
           </arguments>

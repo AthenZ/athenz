@@ -27,11 +27,22 @@ public class OpenIdConfiguration {
     @JsonProperty("jwks_uri")
     private String jwksUri;
 
+    @JsonProperty("token_endpoint")
+    private String tokenEndpoint;
+
     public String getJwksUri() {
         return jwksUri;
     }
 
     public void setJwksUri(String jwksUri) {
         this.jwksUri = jwksUri;
+    }
+
+    public String getTokenEndpoint() {
+        return tokenEndpoint;
+    }
+
+    public void setTokenEndpoint(String tokenEndpoint) {
+        this.tokenEndpoint = tokenEndpoint;
     }
 }

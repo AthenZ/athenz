@@ -243,4 +243,15 @@ public interface Authority {
     default String getUserManager(final String username) {
         return null;
     }
+
+    /**
+     * Return the signer key id for the user if the authority is handling user
+     * principals and needs to determine the signer key id for the user that
+     * is requesting the certificate.
+     * @param username user's name or id
+     * @return signer key id or null if not available
+     */
+    default String getSignerKeyId(final String username) {
+        return null;
+    }
 }

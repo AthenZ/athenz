@@ -23,10 +23,10 @@
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>ztsroletoken</artifactId>
+  <artifactId>usercert</artifactId>
   <packaging>jar</packaging>
-  <name>ztsroletoken</name>
-  <description>ZTS RoleToken Library</description>
+  <name>usercert</name>
+  <description>ZTS User Certificate Library</description>
 
   <properties>
     <maven.install.skip>true</maven.install.skip>

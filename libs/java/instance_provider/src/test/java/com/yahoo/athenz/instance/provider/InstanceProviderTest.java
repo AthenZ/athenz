@@ -50,6 +50,8 @@ public class InstanceProviderTest {
         provider.setRolesProvider(null);
         provider.setExternalCredentialsProvider(null);
         provider.setPubKeysProvider(null);
+        provider.setPrivateKeyStore(null);
+        provider.setAuthorizer(null);
 
         assertEquals(provider.getProviderScheme(), InstanceProvider.Scheme.UNKNOWN);
         assertEquals(provider.getSVIDType(), InstanceProvider.SVIDType.X509);

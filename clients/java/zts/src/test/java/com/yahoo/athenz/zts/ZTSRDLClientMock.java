@@ -694,4 +694,14 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         openIDConfig.setId_token_signing_alg_values_supported(Collections.singletonList("RS256"));
         return openIDConfig;
     }
+
+    @Override
+    public UserCertificate postUserCertificateRequest(UserCertificateRequest req) {
+        if (req.getAttestationData().equals("exc")) {
+            throw new IllegalArgumentException();
+        } if (req.getAttestationData().equals("forbidden")) {
+            throw new ClientResourceException(403, "Forbidden");
+        }
+        return new UserCertificate().setX509Certificate("x509cert");
+    }
 }

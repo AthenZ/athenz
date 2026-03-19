@@ -4625,3 +4625,138 @@ func (self *DomainDetails) Validate() error {
 	}
 	return nil
 }
+
+// UserCertificate - Copyright The Athenz Authors Licensed under the terms of
+// the Apache version 2.0 license. See LICENSE file for terms. UserCertificate -
+// a user certificate
+type UserCertificate struct {
+	X509Certificate string `json:"x509Certificate"`
+}
+
+// NewUserCertificate - creates an initialized UserCertificate instance, returns a pointer to it
+func NewUserCertificate(init ...*UserCertificate) *UserCertificate {
+	var o *UserCertificate
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(UserCertificate)
+	}
+	return o
+}
+
+type rawUserCertificate UserCertificate
+
+// UnmarshalJSON is defined for proper JSON decoding of a UserCertificate
+func (self *UserCertificate) UnmarshalJSON(b []byte) error {
+	var m rawUserCertificate
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := UserCertificate(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *UserCertificate) Validate() error {
+	if self.X509Certificate == "" {
+		return fmt.Errorf("UserCertificate.x509Certificate is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.X509Certificate)
+		if !val.Valid {
+			return fmt.Errorf("UserCertificate.x509Certificate does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// UserCertificateRequest - UserCertificateRequest - a certificate signing
+// request
+type UserCertificateRequest struct {
+
+	//
+	// name of the user
+	//
+	Name string `json:"name"`
+
+	//
+	// user certificate singing request
+	//
+	Csr string `json:"csr"`
+
+	//
+	// identity attestation data
+	//
+	AttestationData string `json:"attestationData"`
+
+	//
+	// expiry time in minutes for the certificate (server enforces max expiry)
+	//
+	ExpiryTime *int32 `json:"expiryTime,omitempty" rdl:"optional"`
+
+	//
+	// requested x509 cert signer key id
+	//
+	X509CertSignerKeyId SimpleName `json:"x509CertSignerKeyId,omitempty" rdl:"optional"`
+}
+
+// NewUserCertificateRequest - creates an initialized UserCertificateRequest instance, returns a pointer to it
+func NewUserCertificateRequest(init ...*UserCertificateRequest) *UserCertificateRequest {
+	var o *UserCertificateRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(UserCertificateRequest)
+	}
+	return o
+}
+
+type rawUserCertificateRequest UserCertificateRequest
+
+// UnmarshalJSON is defined for proper JSON decoding of a UserCertificateRequest
+func (self *UserCertificateRequest) UnmarshalJSON(b []byte) error {
+	var m rawUserCertificateRequest
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := UserCertificateRequest(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *UserCertificateRequest) Validate() error {
+	if self.Name == "" {
+		return fmt.Errorf("UserCertificateRequest.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("UserCertificateRequest.name does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Csr == "" {
+		return fmt.Errorf("UserCertificateRequest.csr is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Csr)
+		if !val.Valid {
+			return fmt.Errorf("UserCertificateRequest.csr does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AttestationData == "" {
+		return fmt.Errorf("UserCertificateRequest.attestationData is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.AttestationData)
+		if !val.Valid {
+			return fmt.Errorf("UserCertificateRequest.attestationData does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.X509CertSignerKeyId != "" {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.X509CertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("UserCertificateRequest.x509CertSignerKeyId does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	return nil
+}
