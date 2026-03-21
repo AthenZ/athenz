@@ -170,7 +170,7 @@ func TestGetIdpAuthURLPreservesExistingQueryParams(t *testing.T) {
 
 // --- registerHandlers tests ---
 
-func TestRegisterHandlersCallback(t *testing.T) {
+func TestRegisterHandlersCallbackRedirect(t *testing.T) {
 	mux := http.NewServeMux()
 	codeChan := make(chan string, 1)
 	registerHandlers(mux, codeChan)
@@ -211,6 +211,42 @@ func TestRegisterHandlersCallback(t *testing.T) {
 	location := resp.Header.Get("Location")
 	if location != "/close" {
 		t.Errorf("expected redirect to /close, got %s", location)
+	}
+}
+
+func TestRegisterHandlersCallbackFollowRedirect(t *testing.T) {
+	mux := http.NewServeMux()
+	codeChan := make(chan string, 1)
+	registerHandlers(mux, codeChan)
+
+	listener, err := net.Listen("tcp", "localhost:0")
+	if err != nil {
+		t.Fatalf("failed to get free port: %v", err)
+	}
+	port := listener.Addr().(*net.TCPAddr).Port
+	listener.Close()
+
+	server := &http.Server{
+		Addr:    fmt.Sprintf("localhost:%d", port),
+		Handler: mux,
+	}
+	go server.ListenAndServe()
+	defer server.Close()
+
+	time.Sleep(100 * time.Millisecond)
+
+	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/oauth2/callback?code=test123&state=nonce", port))
+	if err != nil {
+		t.Fatalf("failed to call callback: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("expected 200, got %d", resp.StatusCode)
+	}
+	contentType := resp.Header.Get("Content-Type")
+	if !strings.Contains(contentType, "text/html") {
+		t.Errorf("expected text/html content type, got %s", contentType)
 	}
 
 	select {
@@ -293,12 +329,7 @@ func TestGetAuthCodeFromCallbackHandlerSuccess(t *testing.T) {
 	time.Sleep(200 * time.Millisecond)
 
 	// Simulate the IdP callback
-	client := &http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	}
-	resp, err := client.Get(fmt.Sprintf("http://localhost:%s/oauth2/callback?code=auth-code-123&state=nonce", port))
+	resp, err := http.Get(fmt.Sprintf("http://localhost:%s/oauth2/callback?code=auth-code-123&state=nonce", port))
 	if err != nil {
 		t.Fatalf("failed to call callback: %v", err)
 	}
