@@ -37,6 +37,7 @@ func TestExtractServicePrincipalInValid(test *testing.T) {
 	}{
 		{"nocn", "data/no_cn_x509.cert"},
 		{"multiplemeail", "data/multiple_email_x509.cert"},
+		{"invalidemail", "data/invalid_email_x509.cert"},
 		{"noemail", "data/no_email_x509.cert"},
 	}
 	for _, tt := range tests {
