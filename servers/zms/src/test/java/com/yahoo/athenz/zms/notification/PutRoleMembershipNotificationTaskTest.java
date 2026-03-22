@@ -47,8 +47,7 @@ public class PutRoleMembershipNotificationTaskTest {
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
         Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
-        NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
-        notificationManager.shutdown();
+
         Map<String, String> details = new HashMap<>();
         details.put("domain", "testdomain1");
         details.put("role", "role1");
@@ -97,6 +96,11 @@ public class PutRoleMembershipNotificationTaskTest {
         Mockito.when(dbsvc.getRole("sys.auth.audit.domain", "testdomain1", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
                 .thenReturn(domainRole);
 
+        Mockito.when(dbsvc.getPendingMembershipApproverRoles(1)).thenReturn(Collections.emptySet());
+
+        NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
+        notificationManager.shutdown();
+
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
         Role notifyRole = new Role().setAuditEnabled(true).setSelfServe(false);
@@ -144,8 +148,7 @@ public class PutRoleMembershipNotificationTaskTest {
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
         Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
-        NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
-        notificationManager.shutdown();
+
         Map<String, String> details = new HashMap<>();
         details.put("domain", "testdomain1");
         details.put("role", "role1");
@@ -171,6 +174,11 @@ public class PutRoleMembershipNotificationTaskTest {
         Mockito.when(dbsvc.getRolesByDomain("sys.auth.audit.org")).thenReturn(athenzDomain.getRoles());
         Mockito.when(dbsvc.getRole("sys.auth.audit.org", "neworg", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
                 .thenReturn(orgRole);
+
+        Mockito.when(dbsvc.getPendingMembershipApproverRoles(1)).thenReturn(Collections.emptySet());
+
+        NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
+        notificationManager.shutdown();
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
@@ -217,8 +225,7 @@ public class PutRoleMembershipNotificationTaskTest {
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
         Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
-        NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
-        notificationManager.shutdown();
+
         Map<String, String> details = new HashMap<>();
         details.put("domain", "testdomain1");
         details.put("role", "role1");
@@ -244,6 +251,11 @@ public class PutRoleMembershipNotificationTaskTest {
         Mockito.when(dbsvc.getRolesByDomain("sys.auth.audit.domain")).thenReturn(athenzDomain.getRoles());
         Mockito.when(dbsvc.getRole("sys.auth.audit.domain", "testdomain1", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
                 .thenReturn(domainRole);
+
+        Mockito.when(dbsvc.getPendingMembershipApproverRoles(1)).thenReturn(Collections.emptySet());
+
+        NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
+        notificationManager.shutdown();
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
@@ -290,8 +302,7 @@ public class PutRoleMembershipNotificationTaskTest {
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
         Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
-        NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
-        notificationManager.shutdown();
+
         Map<String, String> details = new HashMap<>();
         details.put("domain", "testdomain1");
         details.put("role", "role1");
@@ -320,6 +331,11 @@ public class PutRoleMembershipNotificationTaskTest {
         Mockito.when(dbsvc.getRolesByDomain("testdomain1")).thenReturn(athenzDomain.getRoles());
         Mockito.when(dbsvc.getRole("testdomain1", "admin", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
                 .thenReturn(adminRole);
+
+        Mockito.when(dbsvc.getPendingMembershipApproverRoles(1)).thenReturn(Collections.emptySet());
+
+        NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
+        notificationManager.shutdown();
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
@@ -366,8 +382,7 @@ public class PutRoleMembershipNotificationTaskTest {
         NotificationService mockNotificationService =  Mockito.mock(NotificationService.class);
         NotificationServiceFactory testfact = Mockito.mock(NotificationServiceFactory.class);
         Mockito.when(testfact.create(any())).thenReturn(mockNotificationService);
-        NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
-        notificationManager.shutdown();
+
         Map<String, String> details = new HashMap<>();
         details.put("domain", "testdomain1");
         details.put("role", "role1");
@@ -415,6 +430,11 @@ public class PutRoleMembershipNotificationTaskTest {
         Mockito.when(dbsvc.getRolesByDomain("athenz")).thenReturn(athenzDomain2.getRoles());
         Mockito.when(dbsvc.getRole("athenz", "approvers", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
                 .thenReturn(domainRole);
+
+        Mockito.when(dbsvc.getPendingMembershipApproverRoles(1)).thenReturn(Collections.emptySet());
+
+        NotificationManager notificationManager = getNotificationManager(dbsvc, testfact);
+        notificationManager.shutdown();
 
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
 
