@@ -636,16 +636,16 @@ public class ZTSImplIDTokenTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);
 
-        addIdTokenExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+        addIdTokenExchangePolicy("coretech", "coretech.weather", "writers");
 
         PrivateKey ecPrivateKey = loadECPrivateKey();
         long expiryTime = System.currentTimeMillis() / 1000 + 3600;
         final String spiffeId = "spiffe://athenz.io/ns/default/sa/coretech.weather";
         String subjectToken = createIdToken(ecPrivateKey, "0", "user_domain.user",
-                "user_domain.proxy-user1", expiryTime, null, spiffeId);
+                "coretech.weather", expiryTime, null, spiffeId);
 
-        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
-                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        Principal principal = SimplePrincipal.create("coretech", "weather",
+                "v=S1;d=coretech;n=weather;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal);
 
         String tokenRequest = buildIdTokenExchangeRequest(subjectToken, "coretech.storage",
