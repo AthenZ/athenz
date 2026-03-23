@@ -233,7 +233,18 @@ func TestRegisterHandlersCallbackFollowRedirect(t *testing.T) {
 	go server.ListenAndServe()
 	defer server.Close()
 
-	time.Sleep(100 * time.Millisecond)
+	// Wait for server to start by polling
+	for i := 0; i < 20; i++ { // poll for up to 1 second
+		conn, err := net.DialTimeout("tcp", server.Addr, 50*time.Millisecond)
+		if err == nil {
+			conn.Close()
+			break
+		}
+		time.Sleep(50 * time.Millisecond)
+		if i == 19 {
+			t.Fatalf("server did not start in time")
+		}
+	}
 
 	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/oauth2/callback?code=test123&state=nonce", port))
 	if err != nil {
