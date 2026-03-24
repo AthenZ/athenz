@@ -5634,7 +5634,8 @@ public class DBServiceTest {
                 .setGcpProject("gcp")
                 .setGcpProjectNumber("1234")
                 .setProductId("abcd-1234")
-                .setFeatureFlags(3);
+                .setFeatureFlags(3)
+                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator");
         zms.dbService.updateSystemMetaFields(domain, "account", true, meta);
         assertEquals(domain.getAccount(), "acct");
         assertEquals(domain.getAwsAccountName(), "aws-acct-name");
@@ -5654,6 +5655,8 @@ public class DBServiceTest {
         assertEquals(domain.getBusinessService(), "123:business service");
         zms.dbService.updateSystemMetaFields(domain, "featureflags", true, meta);
         assertEquals(domain.getFeatureFlags().intValue(), 3);
+        zms.dbService.updateSystemMetaFields(domain, "externalmembervalidator", true, meta);
+        assertEquals(domain.getExternalMemberValidator(), "com.yahoo.athenz.auth.impl.TestValidator");
         try {
             zms.dbService.updateSystemMetaFields(domain, "unknown", true, meta);
             fail();
@@ -5674,7 +5677,8 @@ public class DBServiceTest {
                 .setBusinessService("123:business service")
                 .setGcpProject("gcp")
                 .setGcpProjectNumber("1235")
-                .setFeatureFlags(3);
+                .setFeatureFlags(3)
+                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator");
         zms.dbService.updateSystemMetaFields(domain1, "account", false, meta1);
         assertEquals(domain1.getAccount(), "acct");
         zms.dbService.updateSystemMetaFields(domain1, "productid", false, meta1);
@@ -5692,6 +5696,8 @@ public class DBServiceTest {
         assertEquals(domain1.getBusinessService(), "123:business service");
         zms.dbService.updateSystemMetaFields(domain, "featureflags", false, meta);
         assertEquals(domain.getFeatureFlags().intValue(), 3);
+        zms.dbService.updateSystemMetaFields(domain1, "externalmembervalidator", false, meta1);
+        assertEquals(domain1.getExternalMemberValidator(), "com.yahoo.athenz.auth.impl.TestValidator");
 
         // setting from set values should be all rejected
 
@@ -5705,7 +5711,8 @@ public class DBServiceTest {
                 .setBusinessService("123:business service")
                 .setGcpProject("gcp")
                 .setGcpProjectNumber("1236")
-                .setFeatureFlags(3);
+                .setFeatureFlags(3)
+                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator");
         DomainMeta meta2 = new DomainMeta()
                 .setAccount("acct-new")
                 .setYpmId(1235)
@@ -5716,7 +5723,8 @@ public class DBServiceTest {
                 .setBusinessService("1234:business service2")
                 .setGcpProject("gcp.new")
                 .setGcpProjectNumber("1237")
-                .setFeatureFlags(4);
+                .setFeatureFlags(4)
+                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.NewValidator");
 
         // setting from the old value to new value with
         // no delete flag should be rejected
@@ -5770,6 +5778,13 @@ public class DBServiceTest {
             assertTrue(ex.getMessage().contains("reset system meta attribute"));
         }
 
+        try {
+            zms.dbService.updateSystemMetaFields(domain2, "externalmembervalidator", false, meta2);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("reset system meta attribute"));
+        }
+
         // setting from set value to the same value should be allowed
 
         Domain domain3 = new Domain()
@@ -5782,7 +5797,8 @@ public class DBServiceTest {
                 .setBusinessService("123:business service")
                 .setGcpProject("gcp")
                 .setGcpProjectNumber("1237")
-                .setFeatureFlags(3);
+                .setFeatureFlags(3)
+                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator");
         DomainMeta meta3 = new DomainMeta()
                 .setAccount("acct")
                 .setYpmId(1234)
@@ -5793,7 +5809,8 @@ public class DBServiceTest {
                 .setBusinessService("123:business service")
                 .setGcpProject("gcp")
                 .setGcpProjectNumber("1237")
-                .setFeatureFlags(3);
+                .setFeatureFlags(3)
+                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator");
         zms.dbService.updateSystemMetaFields(domain3, "account", false, meta3);
         assertEquals(domain3.getAccount(), "acct");
         zms.dbService.updateSystemMetaFields(domain3, "productid", false, meta3);
@@ -5808,6 +5825,8 @@ public class DBServiceTest {
         assertEquals(domain3.getBusinessService(), "123:business service");
         zms.dbService.updateSystemMetaFields(domain3, "featureflags", false, meta3);
         assertEquals(domain3.getFeatureFlags().intValue(), 3);
+        zms.dbService.updateSystemMetaFields(domain3, "externalmembervalidator", false, meta3);
+        assertEquals(domain3.getExternalMemberValidator(), "com.yahoo.athenz.auth.impl.TestValidator");
     }
 
     @Test

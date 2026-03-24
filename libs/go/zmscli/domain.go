@@ -1349,6 +1349,23 @@ func (cli Zms) SetDomainCertDnsDomain(dn string, dnsDomain string) (*string, err
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
+func (cli Zms) SetDomainExternalMemberValidator(dn string, validator string) (*string, error) {
+	meta := zms.DomainMeta{
+		ExternalMemberValidator: validator,
+	}
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "externalmembervalidator", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " external-member-validator successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) SetDefaultAdmins(dn string, admins []string) (*string, error) {
 	validatedAdmins := cli.createResourceList(cli.validatedUsers(admins, false))
 	defaultAdmins := zms.DefaultAdmins{Admins: validatedAdmins}

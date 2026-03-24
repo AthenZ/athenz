@@ -119,6 +119,9 @@ public class UserDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean autoDeleteTenantAssumeRoleAssertions;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String externalMemberValidator;
     public String name;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -369,6 +372,13 @@ public class UserDomain {
     public Boolean getAutoDeleteTenantAssumeRoleAssertions() {
         return autoDeleteTenantAssumeRoleAssertions;
     }
+    public UserDomain setExternalMemberValidator(String externalMemberValidator) {
+        this.externalMemberValidator = externalMemberValidator;
+        return this;
+    }
+    public String getExternalMemberValidator() {
+        return externalMemberValidator;
+    }
     public UserDomain setName(String name) {
         this.name = name;
         return this;
@@ -494,6 +504,9 @@ public class UserDomain {
                 return false;
             }
             if (autoDeleteTenantAssumeRoleAssertions == null ? a.autoDeleteTenantAssumeRoleAssertions != null : !autoDeleteTenantAssumeRoleAssertions.equals(a.autoDeleteTenantAssumeRoleAssertions)) {
+                return false;
+            }
+            if (externalMemberValidator == null ? a.externalMemberValidator != null : !externalMemberValidator.equals(a.externalMemberValidator)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

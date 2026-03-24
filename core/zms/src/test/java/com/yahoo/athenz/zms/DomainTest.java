@@ -88,7 +88,8 @@ public class DomainTest {
                 .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true);
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
+                .setExternalMemberValidator("ext-validator");
 
         Validator.Result result = validator.validate(dm, "DomainMeta");
         assertTrue(result.valid);
@@ -129,6 +130,7 @@ public class DomainTest {
         assertEquals(dm.getSlackChannel(), "slack");
         assertEquals(dm.getOnCall(), "oncall");
         assertTrue(dm.getAutoDeleteTenantAssumeRoleAssertions());
+        assertEquals(dm.getExternalMemberValidator(), "ext-validator");
 
         DomainMeta dm2 = new DomainMeta().init();
         dm2.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
@@ -143,10 +145,18 @@ public class DomainTest {
                 .setFeatureFlags(3).setContacts(Map.of("pe-owner", "user.test")).setEnvironment("production")
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true);
+                .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
+                .setExternalMemberValidator("ext-validator");
 
         assertEquals(dm, dm2);
         assertEquals(dm, dm);
+
+        dm2.setExternalMemberValidator("ext-validator2");
+        assertNotEquals(dm, dm2);
+        dm2.setExternalMemberValidator(null);
+        assertNotEquals(dm, dm2);
+        dm2.setExternalMemberValidator("ext-validator");
+        assertEquals(dm, dm2);
 
         dm2.setX509CertSignerKeyId("x509-keyid2");
         assertNotEquals(dm, dm2);
@@ -406,7 +416,7 @@ public class DomainTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
 
         result = validator.validate(tld, "TopLevelDomain");
         assertTrue(result.valid);
@@ -450,6 +460,7 @@ public class DomainTest {
         assertEquals(tld.getSlackChannel(), "slack");
         assertEquals(tld.getOnCall(), "oncall");
         assertTrue(tld.getAutoDeleteTenantAssumeRoleAssertions());
+        assertEquals(tld.getExternalMemberValidator(), "ext-validator");
 
         TopLevelDomain tld2 = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
@@ -464,10 +475,17 @@ public class DomainTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
 
         assertEquals(tld, tld2);
         assertEquals(tld, tld);
+
+        tld2.setExternalMemberValidator("ext-validator2");
+        assertNotEquals(tld, tld2);
+        tld2.setExternalMemberValidator(null);
+        assertNotEquals(tld, tld2);
+        tld2.setExternalMemberValidator("ext-validator");
+        assertEquals(tld, tld2);
 
         tld2.setEnvironment("staging");
         assertNotEquals(tld, tld2);
@@ -713,7 +731,7 @@ public class DomainTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
 
         Validator.Result result = validator.validate(sd, "SubDomain");
         assertTrue(result.valid, result.error);
@@ -758,6 +776,7 @@ public class DomainTest {
         assertEquals(sd.getSlackChannel(), "slack");
         assertEquals(sd.getOnCall(), "oncall");
         assertTrue(sd.getAutoDeleteTenantAssumeRoleAssertions());
+        assertEquals(sd.getExternalMemberValidator(), "ext-validator");
 
         SubDomain sd2 = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
@@ -774,11 +793,18 @@ public class DomainTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
 
         assertEquals(sd, sd2);
         assertEquals(sd, sd);
         assertNotEquals(schema, sd);
+
+        sd2.setExternalMemberValidator("ext-validator2");
+        assertNotEquals(sd, sd2);
+        sd2.setExternalMemberValidator(null);
+        assertNotEquals(sd, sd2);
+        sd2.setExternalMemberValidator("ext-validator");
+        assertEquals(sd, sd2);
 
         sd2.setEnvironment("staging");
         assertNotEquals(sd, sd2);
@@ -1022,7 +1048,7 @@ public class DomainTest {
                 .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
 
         Validator.Result result = validator.validate(ud, "UserDomain");
         assertTrue(result.valid);
@@ -1065,6 +1091,7 @@ public class DomainTest {
         assertEquals(ud.getSlackChannel(), "slack");
         assertEquals(ud.getOnCall(), "oncall");
         assertTrue(ud.getAutoDeleteTenantAssumeRoleAssertions());
+        assertEquals(ud.getExternalMemberValidator(), "ext-validator");
 
         UserDomain ud2 = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testuser")
@@ -1080,10 +1107,17 @@ public class DomainTest {
                 .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
 
         assertEquals(ud, ud2);
         assertEquals(ud, ud);
+
+        ud2.setExternalMemberValidator("ext-validator2");
+        assertNotEquals(ud, ud2);
+        ud2.setExternalMemberValidator(null);
+        assertNotEquals(ud, ud2);
+        ud2.setExternalMemberValidator("ext-validator");
+        assertEquals(ud, ud2);
 
         ud2.setEnvironment("staging");
         assertNotEquals(ud, ud2);
@@ -1347,7 +1381,7 @@ public class DomainTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
 
         Validator.Result result = validator.validate(d, "Domain");
         assertTrue(result.valid);
@@ -1391,6 +1425,7 @@ public class DomainTest {
         assertEquals(d.getSlackChannel(), "slack");
         assertEquals(d.getOnCall(), "oncall");
         assertTrue(d.getAutoDeleteTenantAssumeRoleAssertions());
+        assertEquals(d.getExternalMemberValidator(), "ext-validator");
 
         Domain d2 = new Domain();
         d2.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
@@ -1407,10 +1442,17 @@ public class DomainTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
 
         assertEquals(d, d2);
         assertEquals(d, d);
+
+        d2.setExternalMemberValidator("ext-validator2");
+        assertNotEquals(d, d2);
+        d2.setExternalMemberValidator(null);
+        assertNotEquals(d, d2);
+        d2.setExternalMemberValidator("ext-validator");
+        assertEquals(d, d2);
 
         d2.setEnvironment("staging");
         assertNotEquals(d, d2);

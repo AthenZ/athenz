@@ -7547,6 +7547,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     }
                     signedDomain.getDomain().setBusinessService(businessService);
                     break;
+                case ZMSConsts.SYSTEM_META_EXTERNAL_MEMBER_VALIDATOR:
+                    final String externalMemberValidator = domain.getExternalMemberValidator();
+                    if (externalMemberValidator == null) {
+                        return null;
+                    }
+                    signedDomain.getDomain().setExternalMemberValidator(externalMemberValidator);
+                    break;
                 case ZMSConsts.SYSTEM_META_ATTR_ALL:
                     setDomainDataAttributes(signedDomain.getDomain(), domain);
                     break;
@@ -7586,6 +7593,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setOnCall(domain.getOnCall());
         domainData.setX509CertSignerKeyId(domain.getX509CertSignerKeyId());
         domainData.setSshCertSignerKeyId(domain.getSshCertSignerKeyId());
+        domainData.setExternalMemberValidator(domain.getExternalMemberValidator());
     }
 
     SignedDomain retrieveSignedDomain(Domain domain, final String metaAttr, boolean setMetaDataOnly, boolean masterCopy, boolean includeConditions) {

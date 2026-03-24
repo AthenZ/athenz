@@ -397,6 +397,11 @@ type DomainMeta struct {
 	// role
 	//
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// class name responsible for validating external members
+	//
+	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewDomainMeta - creates an initialized DomainMeta instance, returns a pointer to it
@@ -561,6 +566,12 @@ func (self *DomainMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.OnCall)
 		if !val.Valid {
 			return fmt.Errorf("DomainMeta.onCall does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ExternalMemberValidator != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ExternalMemberValidator)
+		if !val.Valid {
+			return fmt.Errorf("DomainMeta.externalMemberValidator does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -758,6 +769,11 @@ type Domain struct {
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// class name responsible for validating external members
+	//
+	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// the common name to be referred to, the symbolic id. It is immutable
 	//
 	Name DomainName `json:"name"`
@@ -935,6 +951,12 @@ func (self *Domain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.OnCall)
 		if !val.Valid {
 			return fmt.Errorf("Domain.onCall does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ExternalMemberValidator != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ExternalMemberValidator)
+		if !val.Valid {
+			return fmt.Errorf("Domain.externalMemberValidator does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -5524,6 +5546,11 @@ type TopLevelDomain struct {
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// class name responsible for validating external members
+	//
+	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -5704,6 +5731,12 @@ func (self *TopLevelDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.OnCall)
 		if !val.Valid {
 			return fmt.Errorf("TopLevelDomain.onCall does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ExternalMemberValidator != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ExternalMemberValidator)
+		if !val.Valid {
+			return fmt.Errorf("TopLevelDomain.externalMemberValidator does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -5907,6 +5940,11 @@ type SubDomain struct {
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// class name responsible for validating external members
+	//
+	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -6092,6 +6130,12 @@ func (self *SubDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.OnCall)
 		if !val.Valid {
 			return fmt.Errorf("SubDomain.onCall does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ExternalMemberValidator != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ExternalMemberValidator)
+		if !val.Valid {
+			return fmt.Errorf("SubDomain.externalMemberValidator does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -6304,6 +6348,11 @@ type UserDomain struct {
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// class name responsible for validating external members
+	//
+	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// user id which will be the domain name
 	//
 	Name SimpleName `json:"name"`
@@ -6476,6 +6525,12 @@ func (self *UserDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.OnCall)
 		if !val.Valid {
 			return fmt.Errorf("UserDomain.onCall does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ExternalMemberValidator != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ExternalMemberValidator)
+		if !val.Valid {
+			return fmt.Errorf("UserDomain.externalMemberValidator does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -7974,6 +8029,11 @@ type DomainData struct {
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// class name responsible for validating external members
+	//
+	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name DomainName `json:"name"`
@@ -8186,6 +8246,12 @@ func (self *DomainData) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.OnCall)
 		if !val.Valid {
 			return fmt.Errorf("DomainData.onCall does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ExternalMemberValidator != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ExternalMemberValidator)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.externalMemberValidator does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
