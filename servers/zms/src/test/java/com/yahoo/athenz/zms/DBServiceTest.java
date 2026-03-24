@@ -14666,4 +14666,52 @@ public class DBServiceTest {
         Group templateGroup = zms.dbService.updateTemplateGroup(group, "my-domain", List.of(param));
         assertThat(templateGroup.getGroupMembers(), hasItems(groupMember1, groupMember));
     }
+
+    @Test
+    public void testGetDomainsWithExternalMemberValidator() {
+
+        Map<String, String> result = zms.dbService.getDomainsWithExternalMemberValidator();
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void testGetDomainsWithExternalMemberValidatorException() throws ServerResourceException {
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        Mockito.when(mockJdbcConn.listDomainsWithExternalMemberValidator())
+                .thenThrow(new ServerResourceException(500, "DB Error"));
+
+        try {
+            zms.dbService.getDomainsWithExternalMemberValidator();
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 500);
+        }
+
+        zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testGetDomainsWithExternalMemberValidatorWithData() throws ServerResourceException {
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        Map<String, String> mockResult = new HashMap<>();
+        mockResult.put("domain1", "com.yahoo.athenz.Validator1");
+        mockResult.put("domain2", "com.yahoo.athenz.Validator2");
+
+        Mockito.when(mockJdbcConn.listDomainsWithExternalMemberValidator()).thenReturn(mockResult);
+
+        Map<String, String> result = zms.dbService.getDomainsWithExternalMemberValidator();
+        assertNotNull(result);
+        assertEquals(result.size(), 2);
+        assertEquals(result.get("domain1"), "com.yahoo.athenz.Validator1");
+        assertEquals(result.get("domain2"), "com.yahoo.athenz.Validator2");
+
+        zms.dbService.store = saveStore;
+    }
 }

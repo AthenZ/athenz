@@ -20,6 +20,7 @@ import com.yahoo.athenz.zms.*;
 import com.yahoo.rdl.Timestamp;
 
 import java.io.Closeable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,6 +57,9 @@ public interface ObjectStoreConnection extends Closeable {
     AthenzDomain getAthenzDomain(String domainName) throws ServerResourceException;
     DomainMetaList listModifiedDomains(long modifiedSince) throws ServerResourceException;
     void setDomainOptions(DomainOptions domainOptions) throws ServerResourceException;
+    default Map<String, String> listDomainsWithExternalMemberValidator() throws ServerResourceException {
+        return Collections.emptyMap();
+    }
 
     // Domain tags
 

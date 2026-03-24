@@ -254,6 +254,9 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_SERVICE_PROVIDER_MANAGER_ROLE = "athenz.zms.service_provider_manager_role";
     public static final String ZMS_PROP_SERVICE_PROVIDER_MANAGER_ROLE_DEFAULT = "service_providers";
 
+    public static final String ZMS_PROP_EXTERNAL_MEMBER_VALIDATOR_FREQUENCY_HOURS = "athenz.zms.external_member_validator_frequency_hours";
+    public static final String ZMS_PROP_EXTERNAL_MEMBER_VALIDATOR_FREQUENCY_HOURS_DEFAULT = "1";
+
     public static final String ZMS_PROP_QUOTA_ASSERTION_CONDITIONS = "athenz.zms.quota_assertion_conditions";
 
     public static final String ZMS_PROP_MAX_POLICY_VERSIONS_DEFAULT = "3";
