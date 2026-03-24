@@ -145,7 +145,7 @@ export class AddRuleForRoleForm extends React.Component {
             );
         }
         let roleSection = null;
-        if (this.props.role) {
+        if (this.props.role && this.props.domain) {
             const roleDisplayName = NameUtils.getRoleAssertionName(
                 this.props.role,
                 this.props.domain
