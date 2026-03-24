@@ -90,6 +90,7 @@ export class AddPolicyToRole extends React.Component {
                 sections={
                     <AddRuleForRoleForm
                         domain={this.props.domain}
+                        role={this.props.role}
                         onChange={this.onChange}
                         isPolicy={true}
                     />
