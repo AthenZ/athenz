@@ -1423,6 +1423,76 @@ public class ZMSMetaAttributeTest {
     }
 
     @Test
+    public void testPutDomainSystemMetaExternalMemberValidator() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "athenz-domain-with-ext-member-validator";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
+        Domain domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertNull(domain.getExternalMemberValidator());
+
+        // set the external member validator
+
+        DomainMeta dm = new DomainMeta().setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "externalmembervalidator", auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getExternalMemberValidator(), "com.yahoo.athenz.auth.impl.TestValidator");
+
+        // update the external member validator
+        // first we're going to be rejected with invalid authorization
+
+        dm.setExternalMemberValidator("com.yahoo.athenz.auth.impl.NewValidator");
+        try {
+            zmsImpl.putDomainSystemMeta(ctx, domainName, "externalmembervalidator", auditRef, dm);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("unauthorized to reset system meta attribute: externalmembervalidator"));
+        }
+
+        // let's create the role and policy to allow this operation
+
+        Role role1 = zmsTestInitializer.createRoleObject("sys.auth", "meta-ext-member-validator", null, "user.user1",
+                zmsTestInitializer.getAdminUser());
+        zmsImpl.putRole(ctx, "sys.auth", "meta-ext-member-validator", auditRef, false, null, role1);
+
+        Policy policy1 = zmsTestInitializer.createPolicyObject("sys.auth", "meta-ext-member-validator",
+                "meta-ext-member-validator", "delete", "sys.auth:meta.domain.externalmembervalidator.*",
+                AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, "sys.auth", "meta-ext-member-validator", auditRef, false, null, policy1);
+
+        // now our operation should succeed
+
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "externalmembervalidator", auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getExternalMemberValidator(), "com.yahoo.athenz.auth.impl.NewValidator");
+
+        // remove the external member validator
+
+        dm = new DomainMeta().setExternalMemberValidator("");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "externalmembervalidator", auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertNull(domain.getExternalMemberValidator());
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testSubDomainSignerKeyIdInherit() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();

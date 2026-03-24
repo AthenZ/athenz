@@ -119,6 +119,9 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean autoDeleteTenantAssumeRoleAssertions;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String externalMemberValidator;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -365,6 +368,13 @@ public class DomainMeta {
     public Boolean getAutoDeleteTenantAssumeRoleAssertions() {
         return autoDeleteTenantAssumeRoleAssertions;
     }
+    public DomainMeta setExternalMemberValidator(String externalMemberValidator) {
+        this.externalMemberValidator = externalMemberValidator;
+        return this;
+    }
+    public String getExternalMemberValidator() {
+        return externalMemberValidator;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -476,6 +486,9 @@ public class DomainMeta {
                 return false;
             }
             if (autoDeleteTenantAssumeRoleAssertions == null ? a.autoDeleteTenantAssumeRoleAssertions != null : !autoDeleteTenantAssumeRoleAssertions.equals(a.autoDeleteTenantAssumeRoleAssertions)) {
+                return false;
+            }
+            if (externalMemberValidator == null ? a.externalMemberValidator != null : !externalMemberValidator.equals(a.externalMemberValidator)) {
                 return false;
             }
         }

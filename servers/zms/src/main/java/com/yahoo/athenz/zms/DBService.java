@@ -4485,7 +4485,8 @@ public class DBService implements RolesProvider, DomainProvider {
                         .setSshCertSignerKeyId(domain.getSshCertSignerKeyId())
                         .setSlackChannel(domain.getSlackChannel())
                         .setOnCall(domain.getOnCall())
-                        .setAutoDeleteTenantAssumeRoleAssertions(domain.getAutoDeleteTenantAssumeRoleAssertions());
+                        .setAutoDeleteTenantAssumeRoleAssertions(domain.getAutoDeleteTenantAssumeRoleAssertions())
+                        .setExternalMemberValidator(domain.getExternalMemberValidator());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -4991,6 +4992,12 @@ public class DBService implements RolesProvider, DomainProvider {
                 break;
             case ZMSConsts.SYSTEM_META_FEATURE_FLAGS:
                 domain.setFeatureFlags(meta.getFeatureFlags());
+                break;
+            case ZMSConsts.SYSTEM_META_EXTERNAL_MEMBER_VALIDATOR:
+                if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getExternalMemberValidator(), meta.getExternalMemberValidator())) {
+                    throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
+                }
+                domain.setExternalMemberValidator(meta.getExternalMemberValidator());
                 break;
             default:
                 throw ZMSUtils.requestError("unknown system meta attribute: " + attribute, caller);
@@ -6590,7 +6597,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 .append("\", \"azureClient\": \"").append(domain.getAzureClient())
                 .append("\", \"environment\": \"").append(domain.getEnvironment())
                 .append("\", \"memberPurgeExpiryDays\": \"").append(domain.getMemberPurgeExpiryDays())
-                .append("\", \"featureFlags\": \"").append(domain.getFeatureFlags()).append("\"");
+                .append("\", \"featureFlags\": \"").append(domain.getFeatureFlags())
+                .append("\", \"externalMemberValidator\": \"").append(domain.getExternalMemberValidator()).append("\"");
         auditLogTags(auditDetails, domain.getTags());
         auditLogDomainContacts(auditDetails, domain.getContacts());
         auditDetails.append("}");

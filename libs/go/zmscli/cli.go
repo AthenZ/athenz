@@ -1039,6 +1039,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.SetDomainOrgName(dn, args[0])
 			}
+		case "set-external-member-validator":
+			if argc == 1 {
+				return cli.SetDomainExternalMemberValidator(dn, args[0])
+			}
 		case "set-domain-template":
 			if argc >= 1 {
 				return cli.SetDomainTemplate(dn, args[0:])
@@ -1851,6 +1855,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   org-name      : set the org name for audit approvers\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-org-name ads\n")
+	case "set-external-member-validator":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] " + domainParam + " set-external-member-validator [validator]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   validator     : external member validator for the domain (empty to reset)\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-external-member-validator ext.validator\n")
 	case "import-domain":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] import-domain domain [file.yaml [admin ...]] - no file means stdin\n")
@@ -3757,6 +3771,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-application-id application-id\n")
 	buf.WriteString("   set-business-service business-service\n")
 	buf.WriteString("   set-org-name org-name\n")
+	buf.WriteString("   set-external-member-validator validator\n")
 	buf.WriteString("   set-cert-dns-domain cert-dns-domain\n")
 	buf.WriteString("   set-domain-member-expiry-days user-member-expiry-days\n")
 	buf.WriteString("   set-domain-member-purge-expiry-days member-purge-expiry-days\n")

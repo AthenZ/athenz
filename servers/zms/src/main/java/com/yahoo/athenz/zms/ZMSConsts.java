@@ -212,6 +212,7 @@ public final class ZMSConsts {
     public static final String SYSTEM_META_FEATURE_FLAGS      = "featureflags";
     public static final String SYSTEM_META_ATTR_ALL           = "all";
     public static final String SYSTEM_META_CLIENT_ID          = "clientid";
+    public static final String SYSTEM_META_EXTERNAL_MEMBER_VALIDATOR = "externalmembervalidator";
 
     public static final String SYSTEM_META_X509_CERT_SIGNER_KEYID = "x509certsignerkeyid";
     public static final String SYSTEM_META_SSH_CERT_SIGNER_KEYID  = "sshcertsignerkeyid";

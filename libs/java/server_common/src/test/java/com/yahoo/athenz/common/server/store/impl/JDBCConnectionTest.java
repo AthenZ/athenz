@@ -100,6 +100,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID);
         Mockito.doReturn("athenz").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL);
         Mockito.doReturn("athenz-oncall").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_ON_CALL);
+        Mockito.doReturn("ext.validator.Class").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_EXTERNAL_MEMBER_VALIDATOR);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Domain domain = jdbcConn.getDomain("my-domain");
@@ -123,6 +124,7 @@ public class JDBCConnectionTest {
         assertEquals(domain.getOnCall(), "athenz-oncall");
         assertEquals(domain.getAccount(), "12345");
         assertNull(domain.getAwsAccountName());
+        assertEquals(domain.getExternalMemberValidator(), "ext.validator.Class");
         jdbcConn.close();
     }
 
@@ -159,6 +161,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID);
         Mockito.doReturn("athenz").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL);
         Mockito.doReturn("athenz-oncall").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_ON_CALL);
+        Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_EXTERNAL_MEMBER_VALIDATOR);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Domain domain = jdbcConn.getDomain("my-domain");
@@ -178,6 +181,7 @@ public class JDBCConnectionTest {
         assertEquals(domain.getOnCall(), "athenz-oncall");
         assertEquals(domain.getAccount(), "12345");
         assertNull(domain.getAwsAccountName());
+        assertNull(domain.getExternalMemberValidator());
         jdbcConn.close();
     }
 
@@ -455,6 +459,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("athenz").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL);
         Mockito.doReturn("athenz-oncall").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_ON_CALL);
         Mockito.doReturn(1).when(mockResultSet).getInt(JDBCConsts.DB_COLUMN_FEATURE_FLAGS);
+        Mockito.doReturn("ext.validator.Class").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_EXTERNAL_MEMBER_VALIDATOR);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Domain domain = jdbcConn.getDomain("my-domain");
@@ -476,6 +481,7 @@ public class JDBCConnectionTest {
         assertEquals(domain.getOnCall(), "athenz-oncall");
         assertEquals(domain.getAccount(), "12345");
         assertEquals(domain.getAwsAccountName(), "aws-12345");
+        assertEquals(domain.getExternalMemberValidator(), "ext.validator.Class");
         jdbcConn.close();
     }
 
@@ -704,7 +710,8 @@ public class JDBCConnectionTest {
                 .setX509CertSignerKeyId("x509")
                 .setSlackChannel("athenz")
                 .setOnCall("athenz-oncall")
-                .setAutoDeleteTenantAssumeRoleAssertions(true);
+                .setAutoDeleteTenantAssumeRoleAssertions(true)
+                .setExternalMemberValidator("ext.validator.Class");
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         boolean requestSuccess = jdbcConn.updateDomain(domain);
@@ -743,7 +750,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(31, "athenz-oncall");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(32, true);
         Mockito.verify(mockPrepStmt, times(1)).setString(33, "aws-123456789");
-        Mockito.verify(mockPrepStmt, times(1)).setString(34, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(34, "ext.validator.Class");
+        Mockito.verify(mockPrepStmt, times(1)).setString(35, "my-domain");
         jdbcConn.close();
     }
 
@@ -793,7 +801,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(31, "");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(32, false);
         Mockito.verify(mockPrepStmt, times(1)).setString(33, "");
-        Mockito.verify(mockPrepStmt, times(1)).setString(34, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(34, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(35, "my-domain");
         jdbcConn.close();
     }
 
@@ -6737,6 +6746,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID)).thenReturn("");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL)).thenReturn("");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_ON_CALL)).thenReturn("");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_EXTERNAL_MEMBER_VALIDATOR)).thenReturn("");
 
         DomainMetaList list = jdbcConn.listModifiedDomains(1454358900);
 
@@ -6904,6 +6914,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID)).thenReturn("");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL)).thenReturn("athenz");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_ON_CALL)).thenReturn("athenz-oncall");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_EXTERNAL_MEMBER_VALIDATOR)).thenReturn("");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_CREDS)).thenReturn("");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_CLIENT_ID)).thenReturn("");
 

@@ -170,3 +170,4 @@ pids
 .node_repl_history
 
 .vscode/
+.cursor/
