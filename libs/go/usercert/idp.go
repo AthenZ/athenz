@@ -84,15 +84,22 @@ func openIdpAuthURL(endPoint, clientId, nonce, callbackPort string, verbose bool
 }
 
 func registerHandlers(mux *http.ServeMux, code chan<- string) {
+	authCode := make(chan string, 1)
+
 	mux.Handle("/oauth2/callback", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		code <- r.URL.RawQuery
-		close(code)
+		authCode <- r.URL.RawQuery
 		http.Redirect(w, r, "/close", http.StatusSeeOther)
 	}))
 
 	mux.Handle("/close", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		fmt.Fprint(w, closeWindowHTML)
+		select {
+		case c := <-authCode:
+			code <- c
+			close(code)
+		default:
+		}
 	}))
 }
 
