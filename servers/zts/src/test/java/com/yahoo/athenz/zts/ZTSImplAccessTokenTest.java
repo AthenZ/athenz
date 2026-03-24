@@ -3995,6 +3995,13 @@ public class ZTSImplAccessTokenTest {
     private String createAccessToken(PrivateKey privateKey, final String keyId, final String subject,
                 final String audience, List<String> roles, final String mayActSubject, final String actSubject,
                 long expiryTime) {
+        return createAccessToken(privateKey, keyId, subject, audience, roles, mayActSubject, actSubject,
+                expiryTime, null);
+    }
+
+    private String createAccessToken(PrivateKey privateKey, final String keyId, final String subject,
+                final String audience, List<String> roles, final String mayActSubject, final String actSubject,
+                long expiryTime, final String spiffe) {
         try {
             AccessToken accessToken = new AccessToken();
             accessToken.setVersion(1);
@@ -4014,6 +4021,9 @@ public class ZTSImplAccessTokenTest {
             }
             if (actSubject != null) {
                 accessToken.setActEntry("sub", actSubject);
+            }
+            if (spiffe != null) {
+                accessToken.setCustomClaim("spiffe", spiffe);
             }
 
             ServerPrivateKey serverPrivateKey = new ServerPrivateKey(privateKey, keyId);
@@ -4128,6 +4138,9 @@ public class ZTSImplAccessTokenTest {
         SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
         store.processSignedDomain(targetDomain, false);
 
+        // Add token source exchange policy
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+
         // Add token target exchange policy
         addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
 
@@ -4218,6 +4231,9 @@ public class ZTSImplAccessTokenTest {
         SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
         store.processSignedDomain(targetDomain, false);
 
+        // Add token source exchange policy
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+
         // Add token target exchange policy
         addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
 
@@ -4296,6 +4312,100 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
+    public void testProcessAccessTokenExchangeDelegationRequestSuccessWithSpiffeClaim() throws JOSEException {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        // Create source domain
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        // Create target domain
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        // Add token source exchange policy
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+
+        // Add token target exchange policy
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        // Load EC private key for creating tokens
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        // Create subject token (AccessToken) with roles in source domain
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        final String spiffeId = "spiffe://athenz.io/ns/default/sa/sourcedomain.weather";
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user",
+                "sourcedomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime, spiffeId);
+
+        // Create actor token (OAuth2Token)
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1",
+                "targetdomain", expiryTime);
+
+        // Create principal for proxy-user1 who will request the token exchange
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        ztsImpl.tokenConfigOptions = tokenConfigOptions;
+
+        final String requestBody = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                        + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                        + "&subject_token=" + subjectTokenStr
+                        + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                        + "&actor_token=" + actorTokenStr
+                        + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                        + "&audience=targetdomain"
+                        + "&scope=targetdomain:role.writers";
+
+        AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, requestBody);
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+        assertEquals(response.getToken_type(), "Bearer");
+        assertTrue(response.getExpires_in() > 0);
+        assertEquals(response.getScope(), "targetdomain:role.writers");
+
+        // Verify the access token
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertNotNull(claimSet);
+            assertNotNull(claimSet.getJWTID());
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "targetdomain");
+            assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
+            assertEquals(claimSet.getStringClaim("spiffe"), spiffeId);
+
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
     public void testProcessAccessTokenExchangeDelegationRequestSuccessMultipleActors() throws JOSEException {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -4311,6 +4421,9 @@ public class ZTSImplAccessTokenTest {
         // Create target domain
         SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
         store.processSignedDomain(targetDomain, false);
+
+        // Add token source exchange policy
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
 
         // Add token target exchange policy
         addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
@@ -4715,6 +4828,9 @@ public class ZTSImplAccessTokenTest {
         SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
         store.processSignedDomain(targetDomain, false);
 
+        // Add token source exchange policy
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+
         // Don't add token target exchange policy - principal won't be authorized
 
         final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
@@ -4774,6 +4890,9 @@ public class ZTSImplAccessTokenTest {
 
         SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
         store.processSignedDomain(targetDomain, false);
+
+        // Add token source exchange policy
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
 
         addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
         addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "readers");
@@ -4860,6 +4979,9 @@ public class ZTSImplAccessTokenTest {
         SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
         store.processSignedDomain(targetDomain, false);
 
+        // Add token source exchange policy
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+
         addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
 
         final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
@@ -4918,6 +5040,9 @@ public class ZTSImplAccessTokenTest {
 
         SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
         store.processSignedDomain(targetDomain, false);
+
+        // Add token source exchange policy
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
 
         addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
 
@@ -5012,6 +5137,9 @@ public class ZTSImplAccessTokenTest {
 
         SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
         store.processSignedDomain(targetDomain, false);
+
+        // Add token source exchange policy
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
 
         addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
 

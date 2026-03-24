@@ -15017,4 +15017,22 @@ public class ZTSImplTest {
         long authTime = claimsSet.getLongClaim("auth_time");
         assertEquals(iat, authTime);
     }
+
+    @Test
+    public void testVerifySpiffeIdMatchesAthenzPrincipalSuccess() {
+        zts.verifySpiffeIdMatchesAthenzPrincipal("spiffe://athenz/sa/production", "athenz.production",
+                "caller", "athenz", "sys.auth");
+    }
+
+    @Test
+    public void testVerifySpiffeIdMatchesAthenzPrincipalMismatch() {
+        try {
+            zts.verifySpiffeIdMatchesAthenzPrincipal("spiffe://athenz/sa/other", "athenz.production",
+                    "caller", "athenz", "sys.auth");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("SPIFFE ID does not match authenticated principal"));
+        }
+    }
 }
