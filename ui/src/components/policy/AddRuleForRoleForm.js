@@ -23,6 +23,7 @@ import Color from '../denali/Color';
 import CheckBox from '../denali/CheckBox';
 import { connect } from 'react-redux';
 import { selectRoles } from '../../redux/selectors/roles';
+import NameUtils from '../utils/NameUtils';
 
 const SectionsDiv = styled.div`
     width: 100%;
@@ -123,7 +124,7 @@ export class AddRuleForRoleForm extends React.Component {
         let resourceChanged = this.inputChanged.bind(this, 'resource');
         let actionChanged = this.inputChanged.bind(this, 'action');
         let caseChanged = this.inputChanged.bind(this, 'case');
-        let policy = ``;
+        let policy = null;
         let id = this.props.isPolicy ? 'new-policy' : this.props.id;
         if (this.props.isPolicy) {
             policy = (
@@ -143,6 +144,28 @@ export class AddRuleForRoleForm extends React.Component {
                 </SectionDiv>
             );
         }
+        let roleSection = null;
+        if (this.props.role && this.props.domain) {
+            const roleDisplayName = NameUtils.getRoleAssertionName(
+                this.props.role,
+                this.props.domain
+            );
+            roleSection = (
+                <SectionDiv>
+                    <StyledInputLabel htmlFor='policy-role-readonly'>
+                        Role
+                    </StyledInputLabel>
+                    <ContentDiv>
+                        <StyledInput
+                            id='policy-role-readonly'
+                            name='policy-role-readonly'
+                            value={roleDisplayName}
+                            disabled
+                        />
+                    </ContentDiv>
+                </SectionDiv>
+            );
+        }
         return (
             <SectionsDiv autoComplete={'off'} data-testid='add-rule-form'>
                 {this.state.errorMessage && (
@@ -151,6 +174,7 @@ export class AddRuleForRoleForm extends React.Component {
                     </ErrorDiv>
                 )}
                 {policy}
+                {roleSection}
                 <SectionDiv>
                     <StyledInputLabel htmlFor='rule-effect'>
                         Rule Effect
