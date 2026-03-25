@@ -18002,4 +18002,58 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).executeUpdate();
         jdbcConn.close();
     }
+
+    @Test
+    public void testListDomainsWithExternalMemberValidator() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next())
+                .thenReturn(true)
+                .thenReturn(true)
+                .thenReturn(false);
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_NAME))
+                .thenReturn("domain1")
+                .thenReturn("domain2");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_EXTERNAL_MEMBER_VALIDATOR))
+                .thenReturn("com.yahoo.athenz.ValidatorA")
+                .thenReturn("com.yahoo.athenz.ValidatorB");
+
+        Map<String, String> domains = jdbcConn.listDomainsWithExternalMemberValidator();
+        assertEquals(domains.size(), 2);
+        assertEquals(domains.get("domain1"), "com.yahoo.athenz.ValidatorA");
+        assertEquals(domains.get("domain2"), "com.yahoo.athenz.ValidatorB");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListDomainsWithExternalMemberValidatorEmpty() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+
+        Map<String, String> domains = jdbcConn.listDomainsWithExternalMemberValidator();
+        assertTrue(domains.isEmpty());
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListDomainsWithExternalMemberValidatorException() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("sql error"));
+
+        try {
+            jdbcConn.listDomainsWithExternalMemberValidator();
+            fail();
+        } catch (ServerResourceException ex) {
+            assertTrue(ex.getMessage().contains("sql error"));
+        }
+
+        jdbcConn.close();
+    }
 }

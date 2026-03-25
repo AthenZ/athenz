@@ -87,6 +87,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_WITH_YPM_ID = "SELECT name FROM domain WHERE ypm_id=?;";
     private static final String SQL_GET_DOMAIN_WITH_PRODUCT_ID = "SELECT name FROM domain WHERE product_id=?;";
     private static final String SQL_LIST_DOMAIN_WITH_BUSINESS_SERVICE = "SELECT name FROM domain WHERE business_service=?;";
+    private static final String SQL_LIST_DOMAINS_WITH_EXTERNAL_MEMBER_VALIDATOR = "SELECT name, external_member_validator FROM domain WHERE external_member_validator!='';";
     private static final String SQL_INSERT_DOMAIN = "INSERT INTO domain "
             + "(name, description, org, uuid, enabled, audit_enabled, account, ypm_id, application_id, cert_dns_domain,"
             + " member_expiry_days, token_expiry_mins, service_cert_expiry_mins, role_cert_expiry_mins, sign_algorithm,"
@@ -1487,6 +1488,24 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
 
+        return domains;
+    }
+
+    @Override
+    public Map<String, String> listDomainsWithExternalMemberValidator() throws ServerResourceException {
+
+        final String caller = "listDomainsWithExternalMemberValidator";
+        Map<String, String> domains = new HashMap<>();
+        try (PreparedStatement ps = con.prepareStatement(SQL_LIST_DOMAINS_WITH_EXTERNAL_MEMBER_VALIDATOR)) {
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    domains.put(rs.getString(JDBCConsts.DB_COLUMN_NAME),
+                            rs.getString(JDBCConsts.DB_COLUMN_EXTERNAL_MEMBER_VALIDATOR));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
         return domains;
     }
 

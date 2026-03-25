@@ -3586,6 +3586,14 @@ public class DBService implements RolesProvider, DomainProvider {
         return domList;
     }
 
+    Map<String, String> getDomainsWithExternalMemberValidator() {
+        try (ObjectStoreConnection con = store.getConnection(true, true)) {
+            return con.listDomainsWithExternalMemberValidator();
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
+    }
+
     List<String> listRoles(String domainName) {
         return listRoles(domainName, false);
     }
