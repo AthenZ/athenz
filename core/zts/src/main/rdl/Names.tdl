@@ -60,3 +60,11 @@ type CertType Enum {
     SSH_HOST, // SSH Host certificate
     SSH_USER  // SSH User certificate
 }
+
+//External Member name. Even though the pattern is open to
+//support all possible external members, the server will
+//validate that it does not include * character
+type ExternalMemberName String (pattern="{DomainName}:ext\\..+");
+
+//A principal name for role/group membership queries
+type PrincipalName String (pattern="{ResourceName}|{ExternalMemberName}");

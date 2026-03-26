@@ -138,6 +138,14 @@ func (e *CertType) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// ExternalMemberName - External Member name. Even though the pattern is open
+// to support all possible external members, the server will validate that it
+// does not include * character
+type ExternalMemberName string
+
+// PrincipalName - A principal name for role/group membership queries
+type PrincipalName string
+
 // ResourceAccess - ResourceAccess can be checked and returned as this
 // resource. (same as ZMS.Access)
 type ResourceAccess struct {

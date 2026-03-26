@@ -20,7 +20,6 @@ import com.google.common.primitives.Bytes;
 import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.impl.CertificateAuthority;
 import com.yahoo.athenz.auth.impl.PrincipalIdentityIssuer;
-import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.*;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsResolver;
@@ -54,6 +53,7 @@ import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
+import com.yahoo.athenz.common.server.util.PrincipalUtils;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
@@ -207,6 +207,7 @@ public class ZTSImpl implements ZTSHandler {
     private static final String TYPE_ENTITY_NAME = "EntityName";
     private static final String TYPE_ENTITY_LIST = "EntityList";
     private static final String TYPE_SERVICE_NAME = "ServiceName";
+    private static final String TYPE_PRINCIPAL_NAME = "PrincipalName";
     private static final String TYPE_INSTANCE_REGISTER_INFO = "InstanceRegisterInformation";
     private static final String TYPE_INSTANCE_REFRESH_INFO = "InstanceRefreshInformation";
     private static final String TYPE_INSTANCE_REFRESH_REQUEST = "InstanceRefreshRequest";
@@ -3032,7 +3033,7 @@ public class ZTSImpl implements ZTSHandler {
         // make sure our principal is authorized to request a jag token
         // exchange for the given roles
 
-        Principal subjectPrincipal = createPrincipalForName(subjectIdentity);
+        Principal subjectPrincipal = createPrincipalForName(subjectIdentity, principalDomain, caller);
         for (String idTokenGroup : idTokenGroups) {
             if (!authorizer.access(ZTSConsts.ZTS_ACTION_ID_TOKEN_EXCHANGE, idTokenGroup, subjectPrincipal, null)) {
                 LOGGER.error("access check failure:({}, {}, {})", ZTSConsts.ZTS_ACTION_ID_TOKEN_EXCHANGE,
@@ -3704,7 +3705,7 @@ public class ZTSImpl implements ZTSHandler {
 
         validateRequest(ctx.request(), principalDomain, caller);
         validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
-        validate(principal, TYPE_ENTITY_NAME, principalDomain, caller);
+        validate(principal, TYPE_PRINCIPAL_NAME, principalDomain, caller);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server
@@ -4208,7 +4209,6 @@ public class ZTSImpl implements ZTSHandler {
         }
         validate(principal, TYPE_ENTITY_NAME, principalDomain, caller);
 
-
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZTS Server
         // saves all of its object names in lower case
@@ -4594,7 +4594,7 @@ public class ZTSImpl implements ZTSHandler {
         // authorized to launch instances in Athenz and the service has
         // authorized this provider to launch its instances
 
-        Principal providerService = createPrincipalForName(provider);
+        Principal providerService = createPrincipalForName(provider, principalDomain, caller);
         StringBuilder errorMsg = new StringBuilder(256);
 
         if (!instanceCertManager.authorizeLaunch(providerService, domain, service, errorMsg)) {
@@ -4701,7 +4701,7 @@ public class ZTSImpl implements ZTSHandler {
         // authorized to launch instances in Athenz and the service has
         // authorized this provider to launch its instances
 
-        Principal providerService = createPrincipalForName(provider);
+        Principal providerService = createPrincipalForName(provider, principalDomain, caller);
         StringBuilder errorMsg = new StringBuilder(256);
 
         if (!instanceCertManager.authorizeLaunch(providerService, domain, service, errorMsg)) {
@@ -5423,7 +5423,7 @@ public class ZTSImpl implements ZTSHandler {
         // first we need to make sure that the provider has been
         // authorized in Athenz to bootstrap/launch instances
 
-        Principal providerService = createPrincipalForName(provider);
+        Principal providerService = createPrincipalForName(provider, principalDomain, caller);
         StringBuilder errorMsg = new StringBuilder(256);
 
         if (!instanceCertManager.authorizeLaunch(providerService, domain, service, errorMsg)) {
@@ -6312,27 +6312,12 @@ public class ZTSImpl implements ZTSHandler {
         return requestedValue;
     }
 
-    Principal createPrincipalForName(String principalName) {
-
-        String domain;
-        String name;
-
-        // if we have no . in the principal name we're going to default
-        // to our configured user domain
-
-        int idx = principalName.lastIndexOf('.');
-        if (idx == -1) {
-            domain = userDomain;
-            name = principalName;
-        } else {
-            domain = principalName.substring(0, idx);
-            if (userDomainAlias != null && userDomainAlias.equals(domain)) {
-                domain = userDomain;
-            }
-            name = principalName.substring(idx + 1);
+    Principal createPrincipalForName(String principalName, final String principalDomain, final String caller) {
+        Principal principal = PrincipalUtils.createPrincipalForName(principalName, userDomain, userDomainAlias);
+        if (principal == null) {
+            throw requestError("Invalid principal name: " + principalName, caller, principalDomain, principalDomain);
         }
-
-        return SimplePrincipal.create(domain, name, (String) null);
+        return principal;
     }
 
     @Override
@@ -6346,7 +6331,7 @@ public class ZTSImpl implements ZTSHandler {
         validate(action, TYPE_COMPOUND_NAME, principalDomain, caller);
 
         return getResourceAccessCheck(ctx, ((RsrcCtxWrapper) ctx).principal(), action, resource,
-                trustDomain, checkPrincipal);
+                trustDomain, checkPrincipal, caller);
     }
 
     @Override
@@ -6361,11 +6346,11 @@ public class ZTSImpl implements ZTSHandler {
         validate(resource, TYPE_RESOURCE_NAME, principalDomain, caller);
 
         return getResourceAccessCheck(ctx, ((RsrcCtxWrapper) ctx).principal(), action, resource,
-                trustDomain, checkPrincipal);
+                trustDomain, checkPrincipal, caller);
     }
 
     ResourceAccess getResourceAccessCheck(ResourceContext ctx, Principal principal, String action, String resource,
-            String trustDomain, String checkPrincipal) {
+            String trustDomain, String checkPrincipal, final String caller) {
 
         final String domainName = principal.getDomain();
         setRequestDomain(ctx, domainName);
@@ -6374,7 +6359,7 @@ public class ZTSImpl implements ZTSHandler {
         // check against that principal
 
         if (checkPrincipal != null) {
-            principal = createPrincipalForName(checkPrincipal.toLowerCase());
+            principal = createPrincipalForName(checkPrincipal.toLowerCase(), domainName, caller);
         }
 
         // create our response object and set the flag whether
@@ -6396,7 +6381,7 @@ public class ZTSImpl implements ZTSHandler {
         validateRequest(ctx.request(), principalDomain, caller);
         validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
         validate(roleName, TYPE_ENTITY_NAME, principalDomain, caller);
-        validate(principal, TYPE_ENTITY_NAME, principalDomain, caller);
+        validate(principal, TYPE_PRINCIPAL_NAME, principalDomain, caller);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZMS Server

@@ -124,6 +124,7 @@ public class PrincipalTest {
         assertEquals(Principal.Type.getType(2), Principal.Type.SERVICE);
         assertEquals(Principal.Type.getType(3), Principal.Type.GROUP);
         assertEquals(Principal.Type.getType(4), Principal.Type.USER_HEADLESS);
-        assertEquals(Principal.Type.getType(5), Principal.Type.UNKNOWN);
+        assertEquals(Principal.Type.getType(5), Principal.Type.EXTERNAL);
+        assertEquals(Principal.Type.getType(6), Principal.Type.UNKNOWN);
     }
 }

@@ -64,9 +64,8 @@ public class ZMSTagTest {
     }
 
     @AfterMethod
-    public void clearConnections() {
-        zmsTestInitializer.clearConnections();
-        deleteAllCreatedPolicies();
+    public void shutDown() throws Exception {
+        zmsTestInitializer.shutDown();
     }
 
     void deleteAllCreatedPolicies() {

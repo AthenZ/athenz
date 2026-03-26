@@ -45,8 +45,8 @@ public class ZMSAuditGroupTest {
     }
 
     @AfterMethod
-    public void clearConnections() {
-        zmsTestInitializer.clearConnections();
+    public void shutDown() {
+        zmsTestInitializer.shutDown();
     }
 
     @Test

@@ -47,8 +47,8 @@ public class ZMSAuthHistoryTest {
     }
 
     @AfterMethod
-    public void clearConnections() {
-        zmsTestInitializer.clearConnections();
+    public void shutDown() throws Exception {
+        zmsTestInitializer.shutDown();
     }
 
     @Test

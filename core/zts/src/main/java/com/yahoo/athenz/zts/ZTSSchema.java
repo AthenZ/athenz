@@ -76,6 +76,14 @@ public class ZTSSchema {
             .element("SSH_HOST")
             .element("SSH_USER");
 
+        sb.stringType("ExternalMemberName")
+            .comment("External Member name. Even though the pattern is open to support all possible external members, the server will validate that it does not include * character")
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:ext\\..+");
+
+        sb.stringType("PrincipalName")
+            .comment("A principal name for role/group membership queries")
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:ext\\..+");
+
         sb.structType("ResourceAccess")
             .comment("ResourceAccess can be checked and returned as this resource. (same as ZMS.Access)")
             .field("granted", "Bool", false, "true (allowed) or false (denied)");
@@ -705,7 +713,7 @@ public class ZTSSchema {
             .pathParam("action", "ActionName", "action as specified in the policy assertion, i.e. update or read")
             .pathParam("resource", "ResourceName", "the resource to check access against, i.e. \"media.news:articles\"")
             .queryParam("domain", "domain", "DomainName", null, "usually null. If present, it specifies an alternate domain for cross-domain trust relation")
-            .queryParam("principal", "checkPrincipal", "EntityName", null, "usually null. If present, carry out the access check for this principal")
+            .queryParam("principal", "checkPrincipal", "PrincipalName", null, "usually null. If present, carry out the access check for this principal")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -725,7 +733,7 @@ public class ZTSSchema {
             .pathParam("action", "ActionName", "action as specified in the policy assertion, i.e. update or read")
             .queryParam("resource", "resource", "String", null, "the resource to check access against, i.e. \"media.news:articles\"")
             .queryParam("domain", "domain", "DomainName", null, "usually null. If present, it specifies an alternate domain for cross-domain trust relation")
-            .queryParam("principal", "checkPrincipal", "EntityName", null, "usually null. If present, carry out the access check for this principal")
+            .queryParam("principal", "checkPrincipal", "PrincipalName", null, "usually null. If present, carry out the access check for this principal")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -870,7 +878,7 @@ public class ZTSSchema {
         sb.resource("Access", "GET", "/access/domain/{domainName}/role/{roleName}/principal/{principal}")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("roleName", "EntityName", "name of the role to check access for")
-            .pathParam("principal", "EntityName", "carry out the access check for this principal")
+            .pathParam("principal", "PrincipalName", "carry out the access check for this principal")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -886,7 +894,7 @@ public class ZTSSchema {
 
         sb.resource("RoleAccess", "GET", "/access/domain/{domainName}/principal/{principal}")
             .pathParam("domainName", "DomainName", "name of the domain")
-            .pathParam("principal", "EntityName", "carry out the role access lookup for this principal")
+            .pathParam("principal", "PrincipalName", "carry out the role access lookup for this principal")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

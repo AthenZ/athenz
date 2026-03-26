@@ -35,6 +35,7 @@ import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogger;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.rest.ServerResourceContext;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.zms.provider.ServiceProviderManager;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
 import jakarta.servlet.ServletContext;
@@ -120,6 +121,10 @@ public class ZMSTestInitializer {
         }
     }
 
+    public void refreshExternalMemberValidators() {
+        zms.externalMemberValidatorManager.refreshValidators();
+    }
+
     public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
 
@@ -167,10 +172,26 @@ public class ZMSTestInitializer {
         initializeZms();
     }
 
-    public void clearConnections() {
-        if (zms != null && zms.objectStore != null) {
+    public void shutDown() {
+        if (zms == null) {
+            return;
+        }
+        if (zms.objectStore != null) {
             zms.objectStore.clearConnections();
         }
+        if (zms.externalMemberValidatorManager != null) {
+            zms.externalMemberValidatorManager.shutdown();
+        }
+
+        ServiceProviderManager.getInstance(zms.dbService, zms).shutdown();
+        try {
+            Field instance = ServiceProviderManager.class.getDeclaredField("instance");
+            instance.setAccessible(true);
+            instance.set(null, null);
+        } catch (Exception ignored) {
+        }
+
+        System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS);
     }
 
     public com.yahoo.athenz.zms.ResourceContext createResourceContext(Principal prince) {

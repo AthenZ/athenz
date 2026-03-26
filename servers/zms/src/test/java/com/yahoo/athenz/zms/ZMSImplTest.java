@@ -52,7 +52,6 @@ import com.yahoo.athenz.zms.assertion.ResourceUpdaterManager;
 import com.yahoo.athenz.zms.config.MemberDueDays;
 import com.yahoo.athenz.zms.notification.PutRoleMembershipDecisionNotificationTask;
 import com.yahoo.athenz.zms.notification.PutRoleMembershipNotificationTask;
-import com.yahoo.athenz.zms.provider.ServiceProviderManager;
 import com.yahoo.athenz.zms.status.MockStatusCheckerNoException;
 import com.yahoo.athenz.zms.status.MockStatusCheckerThrowException;
 import com.yahoo.athenz.common.server.store.AthenzDomain;
@@ -73,7 +72,6 @@ import org.mockito.Mockito;
 import org.testng.annotations.*;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
@@ -116,15 +114,8 @@ public class ZMSImplTest {
     }
 
     @AfterMethod
-    public void clearConnections() throws Exception {
-        zmsTestInitializer.clearConnections();
-        System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS);
-        // Reset ServiceProviderManager Singleton
-        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        ServiceProviderManager.getInstance(zmsImpl.dbService, zmsImpl).shutdown();
-        Field instance = ServiceProviderManager.class.getDeclaredField("instance");
-        instance.setAccessible(true);
-        instance.set(null, null);
+    public void shutDown() {
+        zmsTestInitializer.shutDown();
     }
 
     static class TestAuditLogger implements AuditLogger {

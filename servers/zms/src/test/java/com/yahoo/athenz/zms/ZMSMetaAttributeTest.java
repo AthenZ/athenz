@@ -22,6 +22,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -55,6 +56,11 @@ public class ZMSMetaAttributeTest {
         zmsTestInitializer.setUp();
     }
 
+    @AfterMethod
+    public void shutDown() {
+        zmsTestInitializer.shutDown();
+    }
+    
     @Test
     public void testPutDomainMetaBusinessService() {
 

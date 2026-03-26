@@ -21,7 +21,7 @@ import org.testng.annotations.Test;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.*;
 
 public class PrincipalUtilsTest {
 
@@ -41,6 +41,8 @@ public class PrincipalUtilsTest {
                 addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.GROUP);
         assertEquals(PrincipalUtils.principalType(topLevelDomain + groupSep + ".test-group", userDomain,
                 addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.GROUP);
+        assertEquals(PrincipalUtils.principalType(topLevelDomain + ":group.test:ext.test-group", userDomain,
+                addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.GROUP);
         // USER
         assertEquals(PrincipalUtils.principalType(userDomain + ".joe", userDomain, addlUserCheckDomainPrefixList,
                 headlessDomain), Principal.Type.USER);
@@ -54,6 +56,13 @@ public class PrincipalUtilsTest {
                 addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.SERVICE);
         assertEquals(PrincipalUtils.principalType(homeDomain + ".joe" + ".test-service", userDomain,
                 addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.SERVICE);
+        // EXTERNAL
+        assertEquals(PrincipalUtils.principalType(topLevelDomain + ":ext.oidc-user", userDomain,
+                addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.EXTERNAL);
+        assertEquals(PrincipalUtils.principalType(homeDomain + ".joe:ext.github-identity", userDomain,
+                addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.EXTERNAL);
+        assertEquals(PrincipalUtils.principalType("sports:ext.test:group.entry", userDomain,
+                addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.EXTERNAL);
 
         // Set same strings between user and home domain.
         userDomain = "personal";
@@ -77,5 +86,103 @@ public class PrincipalUtilsTest {
                 addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.SERVICE);
         assertEquals(PrincipalUtils.principalType(homeDomain + ".joe" + ".test-service", userDomain,
                 addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.SERVICE);
+        // EXTERNAL
+        assertEquals(PrincipalUtils.principalType(topLevelDomain + ":ext.oidc-user", userDomain,
+                addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.EXTERNAL);
+        assertEquals(PrincipalUtils.principalType(homeDomain + ".joe:ext.github-identity", userDomain,
+                addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.EXTERNAL);
+        assertEquals(PrincipalUtils.principalType("sports:ext.test:group.entry", userDomain,
+                addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.EXTERNAL);
+    }
+
+    @Test
+    public void testCreatePrincipalForNameGroupPrincipal() {
+        assertNull(PrincipalUtils.createPrincipalForName("athenz:group.dev-team", "user", null));
+        assertNull(PrincipalUtils.createPrincipalForName("home.joe:group.readers", "user", "home"));
+        assertNull(PrincipalUtils.createPrincipalForName("sports:group.writers", "user", "alias"));
+    }
+
+    @Test
+    public void testCreatePrincipalForNameExternalPrincipal() {
+        Principal principal = PrincipalUtils.createPrincipalForName("athenz:ext.oidc-user", "user", null);
+        assertNotNull(principal);
+        assertEquals(principal.getDomain(), "athenz");
+        assertEquals(principal.getFullName(), "athenz:ext.oidc-user");
+
+        principal = PrincipalUtils.createPrincipalForName("home.joe:ext.github-identity", "user", null);
+        assertNotNull(principal);
+        assertEquals(principal.getDomain(), "home.joe");
+        assertEquals(principal.getFullName(), "home.joe:ext.github-identity");
+    }
+
+    @Test
+    public void testCreatePrincipalForNameExternalWithGroupInName() {
+        Principal principal = PrincipalUtils.createPrincipalForName("sports:ext.test:group.entry", "user", null);
+        assertNotNull(principal);
+        assertEquals(principal.getDomain(), "sports");
+        assertEquals(principal.getFullName(), "sports:ext.test:group.entry");
+    }
+
+    @Test
+    public void testCreatePrincipalForNameSimpleUser() {
+        Principal principal = PrincipalUtils.createPrincipalForName("joe", "user", null);
+        assertNotNull(principal);
+        assertEquals(principal.getDomain(), "user");
+        assertEquals(principal.getName(), "joe");
+        assertEquals(principal.getFullName(), "user.joe");
+    }
+
+    @Test
+    public void testCreatePrincipalForNameUserWithDomain() {
+        Principal principal = PrincipalUtils.createPrincipalForName("user.joe", "user", null);
+        assertNotNull(principal);
+        assertEquals(principal.getDomain(), "user");
+        assertEquals(principal.getName(), "joe");
+        assertEquals(principal.getFullName(), "user.joe");
+    }
+
+    @Test
+    public void testCreatePrincipalForNameServicePrincipal() {
+        Principal principal = PrincipalUtils.createPrincipalForName("athenz.api", "user", null);
+        assertNotNull(principal);
+        assertEquals(principal.getDomain(), "athenz");
+        assertEquals(principal.getName(), "api");
+        assertEquals(principal.getFullName(), "athenz.api");
+    }
+
+    @Test
+    public void testCreatePrincipalForNameSubdomainService() {
+        Principal principal = PrincipalUtils.createPrincipalForName("home.joe.storage", "user", null);
+        assertNotNull(principal);
+        assertEquals(principal.getDomain(), "home.joe");
+        assertEquals(principal.getName(), "storage");
+        assertEquals(principal.getFullName(), "home.joe.storage");
+    }
+
+    @Test
+    public void testCreatePrincipalForNameUserDomainAlias() {
+        Principal principal = PrincipalUtils.createPrincipalForName("alias.joe", "user", "alias");
+        assertNotNull(principal);
+        assertEquals(principal.getDomain(), "user");
+        assertEquals(principal.getName(), "joe");
+        assertEquals(principal.getFullName(), "user.joe");
+    }
+
+    @Test
+    public void testCreatePrincipalForNameUserDomainAliasNoMatch() {
+        Principal principal = PrincipalUtils.createPrincipalForName("other.joe", "user", "alias");
+        assertNotNull(principal);
+        assertEquals(principal.getDomain(), "other");
+        assertEquals(principal.getName(), "joe");
+        assertEquals(principal.getFullName(), "other.joe");
+    }
+
+    @Test
+    public void testCreatePrincipalForNameNullAlias() {
+        Principal principal = PrincipalUtils.createPrincipalForName("home.joe", "user", null);
+        assertNotNull(principal);
+        assertEquals(principal.getDomain(), "home");
+        assertEquals(principal.getName(), "joe");
+        assertEquals(principal.getFullName(), "home.joe");
     }
 }

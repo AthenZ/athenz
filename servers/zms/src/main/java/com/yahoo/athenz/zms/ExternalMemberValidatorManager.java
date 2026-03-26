@@ -48,11 +48,11 @@ public class ExternalMemberValidatorManager {
 
     private void init() {
         scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
-        long frequencyHours = Long.parseLong(
-                System.getProperty(ZMS_PROP_EXTERNAL_MEMBER_VALIDATOR_FREQUENCY_HOURS,
-                        ZMS_PROP_EXTERNAL_MEMBER_VALIDATOR_FREQUENCY_HOURS_DEFAULT));
-        scheduledExecutor.scheduleAtFixedRate(this::refreshValidators, frequencyHours,
-                frequencyHours, TimeUnit.HOURS);
+        long frequencyMinutes = Long.parseLong(
+                System.getProperty(ZMS_PROP_EXTERNAL_MEMBER_VALIDATOR_FREQUENCY_MINUTES,
+                        ZMS_PROP_EXTERNAL_MEMBER_VALIDATOR_FREQUENCY_DEFAULT));
+        scheduledExecutor.scheduleAtFixedRate(this::refreshValidators, frequencyMinutes,
+            frequencyMinutes, TimeUnit.MINUTES);
     }
 
     public void shutdown() {
@@ -61,7 +61,7 @@ public class ExternalMemberValidatorManager {
         }
     }
 
-    void refreshValidators() {
+    public void refreshValidators() {
 
         LOGGER.info("Refreshing external member validators from datastore");
 
