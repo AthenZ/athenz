@@ -7,10 +7,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
-	"github.com/AthenZ/athenz/libs/go/sia/verify"
 	"os"
 	"time"
+
+	"github.com/AthenZ/athenz/libs/go/athenz-common/log"
+	"github.com/AthenZ/athenz/libs/go/sia/verify"
 )
 
 func Update(fileName string, contents []byte, uid, gid int, perm os.FileMode, vfn verify.VerifyFn) error {
@@ -40,6 +41,9 @@ func Update(fileName string, contents []byte, uid, gid int, perm os.FileMode, vf
 	} else {
 		// Skip updating file if it's identical to the existing file
 		oldBytes, err := os.ReadFile(fileName)
+		if err != nil {
+			return err
+		}
 		if bytes.Equal(oldBytes, contents) {
 			log.Printf("File contents hasn't changed. Skipping writing to file %s\n", fileName)
 			// Change permissions only if needed (minimizing mtime / ctime changes in the file)
@@ -51,7 +55,7 @@ func Update(fileName string, contents []byte, uid, gid int, perm os.FileMode, vf
 				}
 			}
 		} else {
-			err = overrideFile(fileName, err, contents, perm, vfn)
+			err = overrideFile(fileName, contents, perm, vfn)
 			if err != nil {
 				return err
 			}
@@ -71,12 +75,12 @@ func Update(fileName string, contents []byte, uid, gid int, perm os.FileMode, vf
 }
 
 // overrideFile replaces existing file with new content (after verifying the content is valid)
-func overrideFile(fileName string, err error, contents []byte, perm os.FileMode, vfn verify.VerifyFn) error {
+func overrideFile(fileName string, contents []byte, perm os.FileMode, vfn verify.VerifyFn) error {
 	timeNano := time.Now().UnixNano()
 	// write the new contents to a temporary file
 	newFileName := fmt.Sprintf("%s.tmp%d", fileName, timeNano)
 	log.Printf("Writing contents to temporary file %s...\n", newFileName)
-	err = os.WriteFile(newFileName, contents, perm)
+	err := os.WriteFile(newFileName, contents, perm)
 	if err != nil {
 		log.Printf("Unable to write new file %s, err: %v\n", newFileName, err)
 		return err
