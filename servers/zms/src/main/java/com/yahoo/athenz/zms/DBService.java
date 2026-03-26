@@ -7707,6 +7707,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 case SERVICE:
                 case USER_HEADLESS:
+                case EXTERNAL:
 
                     if (isEarlierDueDate(serviceExpiryMillis, expiration)) {
                         expirationSetter.accept(member, serviceExpiration);
@@ -7716,6 +7717,8 @@ public class DBService implements RolesProvider, DomainProvider {
                         reviewReminderSetter.accept(member, serviceReview);
                         dueDateUpdated = true;
                     }
+                    break;
+                default:
                     break;
             }
 
@@ -8813,10 +8816,13 @@ public class DBService implements RolesProvider, DomainProvider {
                 break;
             case SERVICE:
             case USER_HEADLESS:
+            case EXTERNAL:
                 dueDateMills = memberDueDays.getServiceDueDateMillis();
                 break;
             case GROUP:
                 dueDateMills = memberDueDays.getGroupDueDateMillis();
+                break;
+            default:
                 break;
         }
         return dueDateMills != 0;

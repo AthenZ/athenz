@@ -28,7 +28,6 @@ import com.yahoo.athenz.zms.provider.ServiceProviderManager;
 import org.mockito.Mockito;
 import org.testng.annotations.*;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 import static com.yahoo.athenz.zms.ZMSConsts.*;
@@ -58,15 +57,8 @@ public class ZMSDeleteDomainTest {
     }
 
     @AfterMethod
-    public void clearConnections() throws Exception {
-        zmsTestInitializer.clearConnections();
-        System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS);
-        // Reset ServiceProviderManager Singleton
-        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        ServiceProviderManager.getInstance(zmsImpl.dbService, zmsImpl).shutdown();
-        Field instance = ServiceProviderManager.class.getDeclaredField("instance");
-        instance.setAccessible(true);
-        instance.set(null, null);
+    public void shutDown() throws Exception {
+        zmsTestInitializer.shutDown();
     }
 
     @Test

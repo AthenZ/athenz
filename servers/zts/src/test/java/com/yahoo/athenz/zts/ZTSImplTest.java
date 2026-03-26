@@ -3905,13 +3905,25 @@ public class ZTSImplTest {
         ResourceAccess access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, null);
         assertTrue(access.getGranted());
 
+        access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, principal.getFullName().replace(":", "."));
+        assertTrue(access.getGranted());
+
         access = zts.getResourceAccessExt(ctx, "update", domainName + ":table1", null, null);
+        assertTrue(access.getGranted());
+
+        access = zts.getResourceAccessExt(ctx, "update", domainName + ":table1", null, principal.getFullName());
         assertTrue(access.getGranted());
 
         access = zts.getResourceAccess(ctx, "update", domainName + ":table2", null, null);
         assertFalse(access.getGranted());
 
+        access = zts.getResourceAccess(ctx, "update", domainName + ":table2", null, principal.getFullName());
+        assertFalse(access.getGranted());
+
         access = zts.getResourceAccessExt(ctx, "update", domainName + ":table2", null, null);
+        assertFalse(access.getGranted());
+
+        access = zts.getResourceAccessExt(ctx, "update", domainName + ":table2", null, principal.getFullName());
         assertFalse(access.getGranted());
 
         access = zts.getResourceAccess(ctx, "delete", domainName + ":table1", null, null);
@@ -8354,58 +8366,94 @@ public class ZTSImplTest {
 
     @Test
     public void testCreatePrincipalForName() {
-        Principal principal = zts.createPrincipalForName("athenz.provider");
+
+        final String principalDomain = "athenz";
+        final String caller = "test";
+
+        Principal principal = zts.createPrincipalForName("athenz.provider", principalDomain, caller);
         assertEquals(principal.getDomain(), "athenz");
         assertEquals(principal.getName(), "provider");
 
-        principal = zts.createPrincipalForName("athenz.subdomain.provider");
+        principal = zts.createPrincipalForName("athenz.subdomain.provider", principalDomain, caller);
         assertEquals(principal.getDomain(), "athenz.subdomain");
         assertEquals(principal.getName(), "provider");
 
-        principal = zts.createPrincipalForName("provider");
+        principal = zts.createPrincipalForName("provider", principalDomain, caller);
         assertEquals(principal.getDomain(), zts.userDomain);
         assertEquals(principal.getName(), "provider");
 
         zts.userDomain = "user";
         zts.userDomainAlias = null;
 
-        principal = zts.createPrincipalForName("joe");
+        principal = zts.createPrincipalForName("joe", principalDomain, caller);
         assertEquals(principal.getFullName(), "user.joe");
 
-        principal = zts.createPrincipalForName("joe-smith");
+        principal = zts.createPrincipalForName("joe-smith", principalDomain, caller);
         assertEquals(principal.getFullName(), "user.joe-smith");
 
-        principal = zts.createPrincipalForName("user.joe");
+        principal = zts.createPrincipalForName("user.joe", principalDomain, caller);
         assertEquals(principal.getFullName(), "user.joe");
 
-        principal = zts.createPrincipalForName("user.joe.storage");
+        principal = zts.createPrincipalForName("user.joe.storage", principalDomain, caller);
         assertEquals(principal.getFullName(), "user.joe.storage");
 
-        principal = zts.createPrincipalForName("alias.joe");
+        principal = zts.createPrincipalForName("alias.joe", principalDomain, caller);
         assertEquals(principal.getFullName(), "alias.joe");
 
-        principal = zts.createPrincipalForName("alias.joe.storage");
+        principal = zts.createPrincipalForName("alias.joe.storage", principalDomain, caller);
         assertEquals(principal.getFullName(), "alias.joe.storage");
 
         zts.userDomainAlias = "alias";
 
-        principal = zts.createPrincipalForName("joe");
+        principal = zts.createPrincipalForName("joe", principalDomain, caller);
         assertEquals(principal.getFullName(), "user.joe");
 
-        principal = zts.createPrincipalForName("joe-smith");
+        principal = zts.createPrincipalForName("joe-smith", principalDomain, caller);
         assertEquals(principal.getFullName(), "user.joe-smith");
 
-        principal = zts.createPrincipalForName("user.joe");
+        principal = zts.createPrincipalForName("user.joe", principalDomain, caller);
         assertEquals(principal.getFullName(), "user.joe");
 
-        principal = zts.createPrincipalForName("user.joe.storage");
+        principal = zts.createPrincipalForName("user.joe.storage", principalDomain, caller);
         assertEquals(principal.getFullName(), "user.joe.storage");
 
-        principal = zts.createPrincipalForName("alias.joe");
+        principal = zts.createPrincipalForName("alias.joe", principalDomain, caller);
         assertEquals(principal.getFullName(), "user.joe");
 
-        principal = zts.createPrincipalForName("alias.joe.storage");
+        principal = zts.createPrincipalForName("alias.joe.storage", principalDomain, caller);
         assertEquals(principal.getFullName(), "alias.joe.storage");
+
+        // valid external members
+
+        principal = zts.createPrincipalForName("athenz:ext.oidc", principalDomain, caller);
+        assertEquals(principal.getDomain(), "athenz");
+        assertEquals(principal.getFullName(), "athenz:ext.oidc");
+
+        principal = zts.createPrincipalForName("athenz.subdomain:ext.provider", principalDomain, caller);
+        assertEquals(principal.getDomain(), "athenz.subdomain");
+        assertEquals(principal.getFullName(), "athenz.subdomain:ext.provider");
+
+        principal = zts.createPrincipalForName("media:ext.github", principalDomain, caller);
+        assertEquals(principal.getDomain(), "media");
+        assertEquals(principal.getFullName(), "media:ext.github");
+
+        // invalid principal values - group principals are not allowed
+
+        try {
+            zts.createPrincipalForName("athenz:group.dev-team", principalDomain, caller);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Invalid principal name"));
+        }
+
+        try {
+            zts.createPrincipalForName("athenz.domain:group.admin", principalDomain, caller);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Invalid principal name"));
+        }
     }
 
     @Test

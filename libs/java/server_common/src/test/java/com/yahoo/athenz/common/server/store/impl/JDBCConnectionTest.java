@@ -7055,6 +7055,8 @@ public class JDBCConnectionTest {
         assertFalse(jdbcConn.validatePrincipalDomain(".coretech"));
         assertFalse(jdbcConn.validatePrincipalDomain("coretech."));
         assertFalse(jdbcConn.validatePrincipalDomain("coretech.test."));
+        assertFalse(jdbcConn.validatePrincipalDomain(":ext.data"));
+        assertFalse(jdbcConn.validatePrincipalDomain(":group.data"));
         jdbcConn.close();
     }
 
@@ -7073,13 +7075,50 @@ public class JDBCConnectionTest {
     public void testValidatePrincipalDomain() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
-        Mockito.when(mockResultSet.next()).thenReturn(true);
+
+        final String[] queriedDomain = new String[1];
+        Mockito.doAnswer(invocation -> {
+            queriedDomain[0] = invocation.getArgument(1);
+            return null;
+        }).when(mockPrepStmt).setString(ArgumentMatchers.eq(1), ArgumentMatchers.isA(String.class));
+
+        Mockito.doAnswer(invocation -> "coretech".equals(queriedDomain[0]))
+                .when(mockResultSet).next();
         Mockito.when(mockResultSet.getInt(1)).thenReturn(5);
 
         assertTrue(jdbcConn.validatePrincipalDomain("coretech.storage"));
-        assertTrue(jdbcConn.validatePrincipalDomain("coretech.storage.db"));
+        assertFalse(jdbcConn.validatePrincipalDomain("coretech.storage.db"));
+        assertFalse(jdbcConn.validatePrincipalDomain("user.user1"));
+        assertTrue(jdbcConn.validatePrincipalDomain("*"));
+        assertTrue(jdbcConn.validatePrincipalDomain("coretech:ext.external-user"));
+        assertTrue(jdbcConn.validatePrincipalDomain("coretech:ext.some.external.id"));
+        assertTrue(jdbcConn.validatePrincipalDomain("coretech:group.group-name"));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testValidateUserPrincipalDomain() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, false);
+
+        final String[] queriedDomain = new String[1];
+        Mockito.doAnswer(invocation -> {
+            queriedDomain[0] = invocation.getArgument(1);
+            return null;
+        }).when(mockPrepStmt).setString(ArgumentMatchers.eq(1), ArgumentMatchers.isA(String.class));
+
+        Mockito.doAnswer(invocation -> "user".equals(queriedDomain[0]))
+                .when(mockResultSet).next();
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5);
+
+        assertFalse(jdbcConn.validatePrincipalDomain("coretech.storage"));
+        assertFalse(jdbcConn.validatePrincipalDomain("coretech.storage.db"));
         assertTrue(jdbcConn.validatePrincipalDomain("user.user1"));
         assertTrue(jdbcConn.validatePrincipalDomain("*"));
+        assertFalse(jdbcConn.validatePrincipalDomain("coretech:ext.external-user"));
+        assertFalse(jdbcConn.validatePrincipalDomain("coretech:ext.some.external.id"));
+        assertFalse(jdbcConn.validatePrincipalDomain("coretech:group.group-name"));
+        assertFalse(jdbcConn.validatePrincipalDomain("coretech:test.group-name"));
 
         jdbcConn.close();
     }

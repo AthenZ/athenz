@@ -129,6 +129,16 @@ public class SimplePrincipal implements Principal {
         return new SimplePrincipal(null, appId, creds, 0, authority);
     }
     
+    /**
+     * Create a Principal for the given external member
+     * @param domain Domain name of the external member
+     * @param fullName Full name of the external member
+     * @return a Principal for the given external member
+     */
+    public static Principal create(String domain, String fullName) {
+        return new SimplePrincipal(domain, fullName);
+    }
+
     private SimplePrincipal(String domain, String name, String creds, long issueTime, Authority authority) {
         this.domain = domain;
         this.name = name;
@@ -143,6 +153,11 @@ public class SimplePrincipal implements Principal {
         this.roles = roles;
         this.authority = authority;
         this.rolePrincipalName = rolePrincipalName;
+    }
+
+    private SimplePrincipal(String domain, String fullName) {
+        this.domain = domain;
+        this.fullName = fullName;
     }
 
     public void setUnsignedCreds(String unsignedCreds) {

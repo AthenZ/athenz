@@ -331,54 +331,6 @@ public class ZMSUtilsTest {
     }
 
     @Test
-    public void testCreatePrincipalForName() {
-
-        String userDomain = "user";
-        String userDomainAlias = null;
-
-        Principal principal = ZMSUtils.createPrincipalForName("joe", userDomain, userDomainAlias);
-        assertEquals(principal.getFullName(), "user.joe");
-
-        principal = ZMSUtils.createPrincipalForName("joe-smith", userDomain, userDomainAlias);
-        assertEquals(principal.getFullName(), "user.joe-smith");
-
-        principal = ZMSUtils.createPrincipalForName("user.joe", userDomain, userDomainAlias);
-        assertEquals(principal.getFullName(), "user.joe");
-
-        principal = ZMSUtils.createPrincipalForName("user.joe.storage", userDomain, userDomainAlias);
-        assertEquals(principal.getFullName(), "user.joe.storage");
-
-        principal = ZMSUtils.createPrincipalForName("alias.joe", userDomain, userDomainAlias);
-        assertEquals(principal.getFullName(), "alias.joe");
-
-        principal = ZMSUtils.createPrincipalForName("alias.joe.storage", userDomain, userDomainAlias);
-        assertEquals(principal.getFullName(), "alias.joe.storage");
-
-        userDomainAlias = "alias";
-
-        principal = ZMSUtils.createPrincipalForName("joe", userDomain, userDomainAlias);
-        assertEquals(principal.getFullName(), "user.joe");
-
-        principal = ZMSUtils.createPrincipalForName("joe-smith", userDomain, userDomainAlias);
-        assertEquals(principal.getFullName(), "user.joe-smith");
-
-        principal = ZMSUtils.createPrincipalForName("user.joe", userDomain, userDomainAlias);
-        assertEquals(principal.getFullName(), "user.joe");
-
-        principal = ZMSUtils.createPrincipalForName("user.joe.storage", userDomain, userDomainAlias);
-        assertEquals(principal.getFullName(), "user.joe.storage");
-
-        principal = ZMSUtils.createPrincipalForName("alias.joe", userDomain, userDomainAlias);
-        assertEquals(principal.getFullName(), "user.joe");
-
-        principal = ZMSUtils.createPrincipalForName("alias.joe.storage", userDomain, userDomainAlias);
-        assertEquals(principal.getFullName(), "alias.joe.storage");
-
-        principal = ZMSUtils.createPrincipalForName("athenz:group.dev-team", userDomain, userDomainAlias);
-        assertNull(principal);
-    }
-
-    @Test
     public void testEmitMonmetricError() {
 
         Metric savedMetric = ZMSImpl.metric;

@@ -58,16 +58,8 @@ public class DomainDependencyTest {
     }
 
     @AfterMethod
-    public void clearConnections() throws Exception {
-
-        zmsTestInitializer.clearConnections();
-
-        // Reset ServiceProviderManager Singleton
-        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        ServiceProviderManager.getInstance(zmsImpl.dbService, zmsImpl).shutdown();
-        resetServiceProviderManager();
-
-        System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_FREQUENCY_SECONDS);
+    public void shutDown() throws Exception {
+        zmsTestInitializer.shutDown();
     }
 
     void resetServiceProviderManager() throws Exception {

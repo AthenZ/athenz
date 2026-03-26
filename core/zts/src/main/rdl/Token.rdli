@@ -64,7 +64,7 @@ type Access Struct {
 resource Access GET "/access/domain/{domainName}/role/{roleName}/principal/{principal}" {
     DomainName domainName; //name of the domain
     EntityName roleName; //name of the role to check access for
-    EntityName principal; //carry out the access check for this principal
+    PrincipalName principal; //carry out the access check for this principal
     authenticate;
     expected OK;
     exceptions {
@@ -78,7 +78,7 @@ resource Access GET "/access/domain/{domainName}/role/{roleName}/principal/{prin
 
 resource RoleAccess GET "/access/domain/{domainName}/principal/{principal}" {
     DomainName domainName; //name of the domain
-    EntityName principal; //carry out the role access lookup for this principal
+    PrincipalName principal; //carry out the role access lookup for this principal
     authenticate;
     expected OK;
     exceptions {

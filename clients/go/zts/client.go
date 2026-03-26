@@ -292,7 +292,7 @@ func encodeParams(objs ...string) string {
 	return "?" + s[1:]
 }
 
-func (client ZTSClient) GetResourceAccess(action ActionName, resource ResourceName, domain DomainName, checkPrincipal EntityName) (*ResourceAccess, error) {
+func (client ZTSClient) GetResourceAccess(action ActionName, resource ResourceName, domain DomainName, checkPrincipal PrincipalName) (*ResourceAccess, error) {
 	var data *ResourceAccess
 	url := client.URL + "/access/" + fmt.Sprint(action) + "/" + fmt.Sprint(resource) + encodeParams(encodeStringParam("domain", string(domain), ""), encodeStringParam("principal", string(checkPrincipal), ""))
 	resp, err := client.httpGet(url, nil)
@@ -324,7 +324,7 @@ func (client ZTSClient) GetResourceAccess(action ActionName, resource ResourceNa
 	}
 }
 
-func (client ZTSClient) GetResourceAccessExt(action ActionName, resource string, domain DomainName, checkPrincipal EntityName) (*ResourceAccess, error) {
+func (client ZTSClient) GetResourceAccessExt(action ActionName, resource string, domain DomainName, checkPrincipal PrincipalName) (*ResourceAccess, error) {
 	var data *ResourceAccess
 	url := client.URL + "/access/" + fmt.Sprint(action) + encodeParams(encodeStringParam("resource", string(resource), ""), encodeStringParam("domain", string(domain), ""), encodeStringParam("principal", string(checkPrincipal), ""))
 	resp, err := client.httpGet(url, nil)
@@ -632,7 +632,7 @@ func (client ZTSClient) PostRoleCertificateRequest(domainName DomainName, roleNa
 	}
 }
 
-func (client ZTSClient) GetAccess(domainName DomainName, roleName EntityName, principal EntityName) (*Access, error) {
+func (client ZTSClient) GetAccess(domainName DomainName, roleName EntityName, principal PrincipalName) (*Access, error) {
 	var data *Access
 	url := client.URL + "/access/domain/" + fmt.Sprint(domainName) + "/role/" + fmt.Sprint(roleName) + "/principal/" + fmt.Sprint(principal)
 	resp, err := client.httpGet(url, nil)
@@ -664,7 +664,7 @@ func (client ZTSClient) GetAccess(domainName DomainName, roleName EntityName, pr
 	}
 }
 
-func (client ZTSClient) GetRoleAccess(domainName DomainName, principal EntityName) (*RoleAccess, error) {
+func (client ZTSClient) GetRoleAccess(domainName DomainName, principal PrincipalName) (*RoleAccess, error) {
 	var data *RoleAccess
 	url := client.URL + "/access/domain/" + fmt.Sprint(domainName) + "/principal/" + fmt.Sprint(principal)
 	resp, err := client.httpGet(url, nil)

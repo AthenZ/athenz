@@ -21,7 +21,7 @@ resource Access GET "/access/{action}/{resource}?domain={domain}&principal={chec
     ActionName action; //action as specified in the policy assertion, i.e. update or read
     ResourceName resource; //the resource to check access against, i.e. "media.news:articles"
     DomainName domain (optional); //usually null. If present, it specifies an alternate domain for cross-domain trust relation
-    EntityName checkPrincipal (optional); //usually null. If present, carry out the access check for this principal
+    PrincipalName checkPrincipal (optional); //usually null. If present, carry out the access check for this principal
     authenticate;
     expected OK;
     exceptions {
@@ -40,7 +40,7 @@ resource Access GET "/access/{action}?resource={resource}&domain={domain}&princi
     ActionName action; //action as specified in the policy assertion, i.e. update or read
     String resource; //the resource to check access against, i.e. "media.news:articles"
     DomainName domain (optional); //usually null. If present, it specifies an alternate domain for cross-domain trust relation
-    EntityName checkPrincipal (optional); //usually null. If present, carry out the access check for this principal
+    PrincipalName checkPrincipal (optional); //usually null. If present, carry out the access check for this principal
     authenticate;
     expected OK;
     exceptions {
@@ -64,7 +64,7 @@ type ResourceAccessList Struct {
 //Return list of resources that the given principal has access to. Even
 //though the principal is marked as optional, it must be specified
 resource ResourceAccessList GET "/resource?principal={principal}&action={action}&filter={filter}" {
-    ResourceName principal (optional); //specifies principal to query the resource list for
+    PrincipalName principal (optional); //specifies principal to query the resource list for
     ActionName action (optional); //action as specified in the policy assertion
     String filter (optional); //resource filter for specific subset of resources
     authenticate;

@@ -55,8 +55,8 @@ public class ZMSSuspendedUsersTest {
     }
 
     @AfterMethod
-    public void clearConnections() {
-        zmsTestInitializer.clearConnections();
+    public void shutDown() throws Exception {
+        zmsTestInitializer.shutDown();
     }
 
     @Test

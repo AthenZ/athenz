@@ -2207,6 +2207,137 @@ public class ZMSCoreTest {
     }
 
     @Test
+    public void testExternalMemberNames() {
+
+        String[] goodNames = {
+                "athenz:ext.user",
+                "athenz:ext.user@test.example.com",
+                "athenz:ext.oidc/group/my-group",
+                "athenz.sub:ext.test",
+                "athenz.sub.domain:ext.a",
+                "my_domain:ext.123",
+                "a:ext.x",
+        };
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        for (String s : goodNames) {
+            Result result = validator.validate(s, "ExternalMemberName");
+            assertTrue(result.valid, s);
+        }
+
+        String[] badNames = {
+                "athenz:ext.",
+                "athenz:notext.user",
+                "athenz:Ext.user",
+                ":ext.user",
+                "athenz:ext",
+                "athenz.ext.user",
+                "*:ext.user",
+                "ext.user",
+                "athenz:group.name",
+        };
+
+        for (String s : badNames) {
+            Result result = validator.validate(s, "ExternalMemberName");
+            assertFalse(result.valid, s);
+        }
+    }
+
+    @Test
+    public void testGroupMemberNames() {
+
+        String[] goodNames = {
+                "user.joe",
+                "user.joe-smith",
+                "athenz.storage",
+                "athenz.storage.service1",
+                "athenz:ext.user",
+                "athenz:ext.user@test.example.com",
+                "athenz.sub:ext.test",
+                "my_domain:ext.123",
+                "a",
+                "a1",
+        };
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        for (String s : goodNames) {
+            Result result = validator.validate(s, "GroupMemberName");
+            assertTrue(result.valid, s);
+        }
+
+        String[] badNames = {
+                "",
+                "*",
+                "user.*",
+                "athenz:ext.",
+                "athenz:group.name",
+                "-invalid",
+                ".invalid",
+                ":ext.user",
+        };
+
+        for (String s : badNames) {
+            Result result = validator.validate(s, "GroupMemberName");
+            assertFalse(result.valid, s);
+        }
+    }
+
+    @Test
+    public void testPrincipalNames() {
+
+        String[] goodNames = {
+                "user.joe",
+                "user.joe-smith",
+                "athenz",
+                "athenz.storage",
+                "athenz.storage.service1",
+                "athenz:service",
+                "athenz:role.admin",
+                "athenz.sub.domain:entity.name",
+                "a",
+                "a1",
+                "a:b",
+                "athenz:ext.user",
+                "athenz:ext.user@test.example.com",
+                "athenz:ext.oidc/group/my-group",
+                "athenz.sub:ext.test",
+                "athenz.sub.domain:ext.a",
+                "my_domain:ext.123",
+                "a:ext.x",
+        };
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        for (String s : goodNames) {
+            Result result = validator.validate(s, "PrincipalName");
+            assertTrue(result.valid, s);
+        }
+
+        String[] badNames = {
+                "",
+                "*",
+                "user.*",
+                "-invalid",
+                ".invalid",
+                ":entity",
+                "athenz:",
+                "athenz:ext.",
+                ":ext.user",
+                "athenz:group.name:extra",
+        };
+
+        for (String s : badNames) {
+            Result result = validator.validate(s, "PrincipalName");
+            assertFalse(result.valid, s);
+        }
+    }
+
+    @Test
     public void testMemberNames() {
         String[] goodMemberNames = {
                 "user.joe",
@@ -2217,7 +2348,15 @@ public class ZMSCoreTest {
                 "athenz.great-service",
                 "athenz.great-service*",
                 "test.joe*",
-                "*"
+                "*",
+                "athenz:group.readers",
+                "athenz.sub:group.writers",
+                "athenz.sub.domain:group.my-group",
+                "athenz:group.group1.group2",
+                "athenz:ext.user",
+                "athenz:ext.user@test.example.com",
+                "athenz.sub:ext.oidc/group/my-group",
+                "my_domain:ext.123",
         };
 
         Schema schema = ZMSSchema.instance();
@@ -2232,7 +2371,13 @@ public class ZMSCoreTest {
                 "user.*joe",
                 "*test",
                 "user.joe*test",
-                "test.joe**"
+                "test.joe**",
+                "athenz:ext.",
+                ":group.name",
+                "athenz:group.",
+                ":ext.user",
+                "",
+                "athenz:notgroup.name",
         };
 
         for (String s : badMemberNames) {

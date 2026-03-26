@@ -24,14 +24,15 @@ import java.util.List;
 public interface Principal {
 
     /**
-     * Principal type - user, service, group or unknown
+     * Principal type - user, service, group, external or unknown
      */
     enum Type {
         UNKNOWN(0),
         USER(1),
         SERVICE(2),
         GROUP(3),
-        USER_HEADLESS(4);
+        USER_HEADLESS(4),
+        EXTERNAL(5);
 
         private final int principalType;
         Type(int type) {
