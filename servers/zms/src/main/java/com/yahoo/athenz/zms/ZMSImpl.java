@@ -3779,7 +3779,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (checkPrincipal != null) {
             principal = PrincipalUtils.createPrincipalForName(checkPrincipal, userDomain, userDomainAlias);
             if (principal == null) {
-                throw ZMSUtils.unauthorizedError("getAccessCheck: Invalid check principal value specified", caller);
+                throw ZMSUtils.requestError("getAccessCheck: Invalid check principal value specified", caller);
             }
         }
 
