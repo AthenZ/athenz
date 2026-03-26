@@ -124,6 +124,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_COMPOUND_NAME = "CompoundName";
     private static final String TYPE_RESOURCE_NAME = "ResourceName";
     private static final String TYPE_SERVICE_NAME = "ServiceName";
+    private static final String TYPE_PRINCIPAL_NAME = "PrincipalName";
     private static final String TYPE_ROLE = "Role";
     private static final String TYPE_POLICY = "Policy";
     private static final String TYPE_ASSERTION = "Assertion";
@@ -229,6 +230,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected List<ChangePublisher<DomainChangeMessage>> domainChangePublishers = new ArrayList<>();
     protected ServiceProviderManager serviceProviderManager;
     protected ServiceProviderClient serviceProviderClient;
+    protected ExternalMemberValidatorManager externalMemberValidatorManager;
     protected Info serverInfo = null;
     protected Set<String> domainContactTypes = new HashSet<>();
     protected Set<String> domainEnvironments = new HashSet<>();
@@ -700,6 +702,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         initializeServiceProviderManager();
 
+        // Initialize External Member Validator Manager
+
+        initializeExternalMemberValidatorManager();
+
         // load the domain change publisher
 
         loadDomainChangePublisher();
@@ -768,6 +774,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         } catch (KeyRefresherException | IOException | InterruptedException e) {
             throw new RuntimeException("Failed to initialize service provider manager: " + e.getMessage());
         }
+    }
+
+    private void initializeExternalMemberValidatorManager() {
+        externalMemberValidatorManager = new ExternalMemberValidatorManager(dbService);
     }
 
     private void setNotificationManager() {
@@ -3698,6 +3708,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller);
         validate(action, TYPE_COMPOUND_NAME, caller);
+        if (!StringUtil.isEmpty(checkPrincipal)) {
+            validate(checkPrincipal, TYPE_PRINCIPAL_NAME, caller);
+        }
 
         return getAccessCheck(((RsrcCtxWrapper) ctx).principal(), action, resource,
                 trustDomain, checkPrincipal, ctx);
@@ -3713,6 +3726,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateRequest(ctx.request(), caller);
         validate(action, TYPE_COMPOUND_NAME, caller);
         validate(resource, TYPE_RESOURCE_NAME, caller);
+        if (!StringUtil.isEmpty(checkPrincipal)) {
+            validate(checkPrincipal, TYPE_PRINCIPAL_NAME, caller);
+        }
 
         return getAccessCheck(((RsrcCtxWrapper) ctx).principal(), action, resource,
                 trustDomain, checkPrincipal, ctx);
@@ -3767,7 +3783,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // check against that principal
 
         if (checkPrincipal != null) {
-            principal = ZMSUtils.createPrincipalForName(checkPrincipal, userDomain, userDomainAlias);
+            principal = PrincipalUtils.createPrincipalForName(checkPrincipal, userDomain, userDomainAlias);
             if (principal == null) {
                 throw ZMSUtils.unauthorizedError("getAccessCheck: Invalid check principal value specified", caller);
             }
@@ -4194,7 +4210,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             principal = ((RsrcCtxWrapper) context).principal().getFullName();
         }
         validateRequest(context.request(), caller);
-        validate(principal, TYPE_RESOURCE_NAME, caller);
+        validate(principal, TYPE_PRINCIPAL_NAME, caller);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
@@ -4883,6 +4899,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 validateGroupPrincipal(memberName, userAuthorityFilterSet, userAuthorityExpiration,
                         roleAuditEnabled, caller);
                 break;
+
+            case EXTERNAL:
+
+                validateExternalMember(domainName, memberName, caller);
+                break;
         }
 
         return userType;
@@ -4931,9 +4952,30 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
                 validateServicePrincipal(memberName, caller);
                 break;
+
+            case EXTERNAL:
+
+                validateExternalMember(domainName, memberName, caller);
+                break;
         }
 
         return userType;
+    }
+
+    void validateExternalMember(final String domainName, final String memberName, final String caller) {
+
+        // before calling our external member validator, we're going to make sure
+        // that if the member name contains a wildcard character then it must be
+        // the last character in the member name and it must be a prefix match
+
+        int idx = memberName.indexOf('*');
+        if (idx != -1 && idx != memberName.length() - 1) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
+        }
+
+        // call the configured external member validator to validate the member
+
+        externalMemberValidatorManager.validateMember(domainName, memberName, caller);
     }
 
     @Override
@@ -5144,6 +5186,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     break;
                 case SERVICE:
                 case USER_HEADLESS:
+                case EXTERNAL:
                     if (cfgServiceMemberDueDateMillis != 0) {
                         Timestamp newDueDate = getMemberDueDate(cfgServiceMemberDueDateMillis, currentDueDate);
                         dueDateSetter.accept(member, newDueDate);
@@ -5334,6 +5377,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             case SERVICE:
             case USER_HEADLESS:
+            case EXTERNAL:
 
                 roleMember.setExpiration(getMemberDueDate(memberExpiryDueDays.getServiceDueDateMillis(), membership.getExpiration()));
                 break;
@@ -5356,6 +5400,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             case SERVICE:
             case USER_HEADLESS:
+            case EXTERNAL:
                 roleMember.setReviewReminder(getMemberDueDate(memberReminderDueDays.getServiceDueDateMillis(), membership.getReviewReminder()));
                 break;
 
@@ -10191,7 +10236,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.debug("getResourceAccessList:({}, {}, {}, {})", ctxPrincipal, principal, action, filter);
         }
 
-        validate(principal, TYPE_RESOURCE_NAME, caller);
+        validate(principal, TYPE_PRINCIPAL_NAME, caller);
         principal = normalizeDomainAliasUser(principal.toLowerCase());
 
         if (action != null) {
@@ -11746,6 +11791,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             case SERVICE:
             case USER_HEADLESS:
+            case EXTERNAL:
 
                 groupMember.setExpiration(getMemberDueDate(memberExpiryDueDays.getServiceDueDateMillis(), membership.getExpiration()));
                 break;
@@ -12098,7 +12144,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
         }
         validateRequest(ctx.request(), caller);
-        validate(principal, TYPE_ENTITY_NAME, caller);
+        validate(principal, TYPE_PRINCIPAL_NAME, caller);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
@@ -13140,7 +13186,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // all incoming object values into lower case
 
         principalName = principalName.toLowerCase();
-        Principal statePrincipal = ZMSUtils.createPrincipalForName(principalName, userDomain, userDomainAlias);
+        Principal statePrincipal = PrincipalUtils.createPrincipalForName(principalName, userDomain, userDomainAlias);
         if (statePrincipal == null) {
             throw ZMSUtils.requestError("Invalid principal name: " + principalName, caller);
         }
@@ -13155,7 +13201,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.notFoundError("Domain not found: " + statePrincipal.getDomain(), caller);
         }
 
-        if (!isAllowedToUpdatePrincipalState(principal, domain, statePrincipal.getDomain(), statePrincipal.getName())) {
+        if (!isAllowedToUpdatePrincipalState(principal, domain, statePrincipal)) {
             throw ZMSUtils.forbiddenError("Unauthorized to update principal state", caller);
         }
 
@@ -13163,22 +13209,35 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 principalState, auditRef, caller);
     }
 
-    boolean isAllowedToUpdatePrincipalState(Principal principal, AthenzDomain domain, final String domainName,
-            final String serviceName) {
+    boolean isAllowedToUpdatePrincipalState(Principal principal, AthenzDomain domain, Principal statePrincipal) {
 
         // The required authorization includes the following two options:
-        // 1. ("update", "{domainName}:service.{serviceName}") for the domain administrators
+        // 1. ("update", "{domainName}:[service|ext].{serviceName}") for the domain administrators
         // 2. ("update", "sys.auth:state.{domainName}.{serviceName}") for the Athenz administrators
 
         // first we're going to check the domain level authorization
 
-        if (hasAccess(domain, "update", domainName + ":service." + serviceName, principal, null) == AccessStatus.ALLOWED) {
+        String resource;
+        if (statePrincipal.getName() != null) {
+            resource = statePrincipal.getDomain() + ":service." + statePrincipal.getName();
+        } else {
+            resource = statePrincipal.getFullName();
+        }
+
+        if (hasAccess(domain, "update", resource, principal, null) == AccessStatus.ALLOWED) {
             return true;
         }
 
-        // let's check the system level authorization
+        // let's check the system level authorization. If we're dealing with an external
+        // member we'll replace the : with . in the resource name
 
-        return isAllowedSystemAccess(principal, "update", SYS_AUTH + ":state." + domainName + "." + serviceName);
+        if (statePrincipal.getName() != null) {
+            resource = statePrincipal.getDomain() + "." + statePrincipal.getName();
+        } else {
+            resource = statePrincipal.getFullName().replaceFirst(":", ".");
+        }
+
+        return isAllowedSystemAccess(principal, "update", SYS_AUTH + ":state." + resource);
     }
 
     boolean isAllowedSystemAccess(Principal principal, final String action, final String resource) {

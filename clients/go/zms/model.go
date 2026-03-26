@@ -65,11 +65,21 @@ type AuthorityName string
 // roles and : for IPv6 addresses
 type SignedToken string
 
+// ExternalMemberName - External Member name. Even though the pattern is open
+// to support all possible external members, the server still requires that
+// wildcard can only be provided as the last character to support prefix matches
+// only and not just any wildcard support. The check for this will be handled
+// within external member validation logic in ZMS
+type ExternalMemberName string
+
 // GroupName - A group name
 type GroupName string
 
 // GroupMemberName - A group member name
 type GroupMemberName string
+
+// PrincipalName - A principal name for role/group membership queries
+type PrincipalName string
 
 // MemberName - Role Member name - could be one of four values: *, DomainName.*
 // or ServiceName[*], or GroupNames
@@ -1394,8 +1404,8 @@ type RoleMember struct {
 	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// server use only - principal type: unknown(0), user(1), service(2), or
-	// group(3)
+	// server use only - principal type: unknown(0), user(1), service(2),
+	// group(3), headless(4), or external(5)
 	//
 	PrincipalType *int32 `json:"principalType,omitempty" rdl:"optional" yaml:",omitempty"`
 
@@ -3960,7 +3970,8 @@ type GroupMember struct {
 	SystemDisabled *int32 `json:"systemDisabled,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
-	// server use only - principal type: unknown(0), user(1) or service(2)
+	// server use only - principal type: unknown(0), user(1), service(2),
+	// headless(4), or external(5)
 	//
 	PrincipalType *int32 `json:"principalType,omitempty" rdl:"optional" yaml:",omitempty"`
 

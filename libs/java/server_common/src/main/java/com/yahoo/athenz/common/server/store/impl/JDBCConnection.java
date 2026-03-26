@@ -4729,7 +4729,14 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (ALL_PRINCIPALS.equals(principal)) {
             return true;
         }
-        int idx = principal.indexOf(AuthorityConsts.GROUP_SEP);
+        // special handling for group and external principals
+        int idx = principal.indexOf(AuthorityConsts.ATHENZ_PRINCIPAL_ENTITY_CHAR);
+        if (idx != -1) {
+            if (!principal.regionMatches(idx, AuthorityConsts.GROUP_SEP, 0, AuthorityConsts.GROUP_SEP.length()) &&
+                !principal.regionMatches(idx, AuthorityConsts.EXT_SEP, 0, AuthorityConsts.EXT_SEP.length())) {
+                idx = -1;
+            }
+        }
         if (idx == -1) {
             idx = principal.lastIndexOf('.');
             if (idx == -1 || idx == 0 || idx == principal.length() - 1) {

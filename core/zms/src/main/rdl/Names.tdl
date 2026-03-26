@@ -56,15 +56,26 @@ type AuthorityName String (pattern="{CompoundName}"); //i.e. "user"
 //and , to separate roles and : for IPv6 addresses
 type SignedToken String (pattern="[a-zA-Z0-9\\._%=:;,-]*");
 
+//External Member name. Even though the pattern is open to
+//support all possible external members, the server still
+//requires that wildcard can only be provided as the last
+//character to support prefix matches only and not just
+//any wildcard support. The check for this will be handled
+//within external member validation logic in ZMS
+type ExternalMemberName String (pattern="{DomainName}:ext\\..+");
+
 //A group name
 type GroupName String (pattern="{DomainName}:group\\.{EntityName}");
 
 //A group member name
-type GroupMemberName String (pattern="{CompoundName}");
+type GroupMemberName String (pattern="{CompoundName}|{ExternalMemberName}");
+
+//A principal name for role/group membership queries
+type PrincipalName String (pattern="{ResourceName}|{ExternalMemberName}");
 
 //Role Member name - could be one of four values: *,
 //DomainName.* or ServiceName[*], or GroupNames
-type MemberName String (pattern="\\*|{DomainName}\\.\\*|{ServiceName}(\\*)?|{GroupName}");
+type MemberName String (pattern="\\*|{DomainName}\\.\\*|{ServiceName}(\\*)?|{GroupName}|{ExternalMemberName}");
 
 //A comma separated list of authority keywords
 type AuthorityKeyword String (pattern="{SimpleName}");

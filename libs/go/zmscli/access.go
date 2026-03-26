@@ -49,7 +49,7 @@ func (cli Zms) ShowAccess(dn string, action string, resource string, altIdent *s
 	if err != nil {
 		return nil, err
 	}
-	access, err := cli.Zms.GetAccess(zms.ActionName(action), zms.ResourceName(fullResourceName), zms.DomainName(trustDomain), zms.EntityName(altPrincipal))
+	access, err := cli.Zms.GetAccess(zms.ActionName(action), zms.ResourceName(fullResourceName), zms.DomainName(trustDomain), zms.PrincipalName(altPrincipal))
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (cli Zms) ShowAccessExt(dn string, action string, resource string, altIdent
 	if err != nil {
 		return nil, err
 	}
-	access, err := cli.Zms.GetAccessExt(zms.ActionName(action), fullResourceName, zms.DomainName(trustDomain), zms.EntityName(altPrincipal))
+	access, err := cli.Zms.GetAccessExt(zms.ActionName(action), fullResourceName, zms.DomainName(trustDomain), zms.PrincipalName(altPrincipal))
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (cli Zms) ShowAccessExt(dn string, action string, resource string, altIdent
 }
 
 func (cli Zms) ShowResourceAccess(principal, action, filter string) (*string, error) {
-	rsrcAccessList, err := cli.Zms.GetResourceAccessList(zms.ResourceName(principal), zms.ActionName(action), filter)
+	rsrcAccessList, err := cli.Zms.GetResourceAccessList(zms.PrincipalName(principal), zms.ActionName(action), filter)
 	if err != nil {
 		return nil, err
 	}

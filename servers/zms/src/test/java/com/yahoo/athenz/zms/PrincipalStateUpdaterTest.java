@@ -22,14 +22,13 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.store.ObjectStore;
+import com.yahoo.athenz.zms.provider.ServiceProviderManager;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 import static com.yahoo.athenz.zms.ZMSConsts.ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER;
@@ -58,6 +57,18 @@ public class PrincipalStateUpdaterTest {
     public void setUpMethod() throws Exception {
         Mockito.reset(dbsvc, authority);
         zmsTestInitializer.setUp();
+    }
+
+    @AfterMethod
+    public void clearConnections() throws Exception {
+        zmsTestInitializer.clearConnections();
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        if (zmsImpl != null) {
+            ServiceProviderManager.getInstance(zmsImpl.dbService, zmsImpl).shutdown();
+            Field instance = ServiceProviderManager.class.getDeclaredField("instance");
+            instance.setAccessible(true);
+            instance.set(null, null);
+        }
     }
 
     @Test
@@ -497,5 +508,572 @@ public class PrincipalStateUpdaterTest {
             }
         }
 
+    }
+
+    private void setupExternalMemberValidator(final String domainName) {
+
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zms,
+                ctx.principal().getFullName(), auditRef);
+
+        DomainMeta dm = new DomainMeta().setExternalMemberValidator(
+                "com.yahoo.athenz.zms.TestExternalMemberValidator");
+        zms.putDomainSystemMeta(ctx, domainName, "externalmembervalidator", auditRef, dm);
+        zms.externalMemberValidatorManager.refreshValidators();
+    }
+
+    private void addExternalMemberToRole(final String domainName, final String roleName,
+            final String externalMember) {
+
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        Membership mbr = zmsTestInitializer.generateMembership(roleName, externalMember);
+        zms.putMembership(ctx, domainName, roleName, externalMember, auditRef, false, null, mbr);
+    }
+
+    private void addExternalMemberToGroup(final String domainName, final String groupName,
+            final String externalMember) {
+
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        GroupMembership gmbr = zmsTestInitializer.generateGroupMembership(groupName, externalMember);
+        zms.putGroupMembership(ctx, domainName, groupName, externalMember, auditRef, false, null, gmbr);
+    }
+
+    @Test
+    public void testPutPrincipalStateExternalMember() {
+
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "ext-state-basic";
+        final String externalMember = domainName + ":ext.partner-user";
+
+        TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain", "testOrg", zmsTestInitializer.getAdminUser(),
+                ctx.principal().getFullName());
+        zms.postTopLevelDomain(ctx, auditRef, null, dom);
+
+        setupExternalMemberValidator(domainName);
+
+        Role role = zmsTestInitializer.createRoleObject(domainName, "role1", null,
+                "user.joe", null);
+        zms.putRole(ctx, domainName, "role1", auditRef, false, null, role);
+
+        addExternalMemberToRole(domainName, "role1", externalMember);
+
+        // set up system-level state-admin authorization
+
+        setupUserAdminForStateChanges("user.user1");
+
+        // suspend the external member and verify the state
+
+        zms.putPrincipalState(ctx, externalMember, auditRef, new PrincipalState().setSuspended(true));
+
+        PrincipalMember pm = zms.dbService.getPrincipal(externalMember);
+        assertNotNull(pm);
+        assertEquals(pm.getPrincipalName(), externalMember);
+        assertEquals(pm.getSuspendedState(), Principal.State.ATHENZ_SYSTEM_DISABLED.getValue());
+
+        // unsuspend the external member and verify the state is cleared
+
+        zms.putPrincipalState(ctx, externalMember, auditRef, new PrincipalState().setSuspended(false));
+
+        pm = zms.dbService.getPrincipal(externalMember);
+        assertEquals(pm.getPrincipalName(), externalMember);
+        assertEquals(pm.getSuspendedState(), 0);
+
+        zms.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        cleanUpUserAdminAuthz();
+    }
+
+    @Test
+    public void testPutPrincipalStateExternalMemberDomainAdmin() {
+
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "ext-state-domain-admin";
+        final String externalMember = domainName + ":ext.partner-user";
+
+        TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain", "testOrg", zmsTestInitializer.getAdminUser(),
+                ctx.principal().getFullName());
+        zms.postTopLevelDomain(ctx, auditRef, null, dom);
+
+        setupExternalMemberValidator(domainName);
+
+        Role role = zmsTestInitializer.createRoleObject(domainName, "role1", null,
+                "user.joe", null);
+        zms.putRole(ctx, domainName, "role1", auditRef, false, null, role);
+
+        addExternalMemberToRole(domainName, "role1", externalMember);
+
+        // the caller (user.user1) is a domain admin, so they should be
+        // authorized to update the external member state without any
+        // system-level state-admin authorization
+
+        zms.putPrincipalState(ctx, externalMember, auditRef, new PrincipalState().setSuspended(true));
+
+        PrincipalMember pm = zms.dbService.getPrincipal(externalMember);
+        assertNotNull(pm);
+        assertEquals(pm.getPrincipalName(), externalMember);
+        assertEquals(pm.getSuspendedState(), Principal.State.ATHENZ_SYSTEM_DISABLED.getValue());
+
+        // unsuspend via domain admin authorization
+
+        zms.putPrincipalState(ctx, externalMember, auditRef, new PrincipalState().setSuspended(false));
+
+        pm = zms.dbService.getPrincipal(externalMember);
+        assertEquals(pm.getSuspendedState(), 0);
+
+        zms.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutPrincipalStateExternalMemberWithRolesAndGroups() {
+
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "ext-state-roles-groups";
+        final String externalMember = domainName + ":ext.partner-user";
+
+        TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain", "testOrg", zmsTestInitializer.getAdminUser(),
+                ctx.principal().getFullName());
+        zms.postTopLevelDomain(ctx, auditRef, null, dom);
+
+        setupExternalMemberValidator(domainName);
+
+        // create roles with external member
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
+                "user.joe", null);
+        zms.putRole(ctx, domainName, "role1", auditRef, false, null, role1);
+        addExternalMemberToRole(domainName, "role1", externalMember);
+
+        Role role2 = zmsTestInitializer.createRoleObject(domainName, "role2", null,
+                "user.jane", null);
+        zms.putRole(ctx, domainName, "role2", auditRef, false, null, role2);
+        addExternalMemberToRole(domainName, "role2", externalMember);
+
+        // create groups with external member
+
+        Group group1 = zmsTestInitializer.createGroupObject(domainName, "group1",
+                "user.joe", null);
+        zms.putGroup(ctx, domainName, "group1", auditRef, false, null, group1);
+        addExternalMemberToGroup(domainName, "group1", externalMember);
+
+        Group group2 = zmsTestInitializer.createGroupObject(domainName, "group2",
+                "user.jane", null);
+        zms.putGroup(ctx, domainName, "group2", auditRef, false, null, group2);
+        addExternalMemberToGroup(domainName, "group2", externalMember);
+
+        setupUserAdminForStateChanges("user.user1");
+
+        // suspend the external member
+
+        zms.putPrincipalState(ctx, externalMember, auditRef, new PrincipalState().setSuspended(true));
+
+        // verify systemDisabled is set on all role memberships for the external member
+
+        Role role = zms.getRole(ctx, domainName, "role1", false, false, false);
+        assertEquals(role.getRoleMembers().size(), 2);
+        for (RoleMember member : role.getRoleMembers()) {
+            if (member.getMemberName().equals("user.joe")) {
+                assertNull(member.getSystemDisabled());
+            } else if (member.getMemberName().equals(externalMember)) {
+                assertEquals(member.getSystemDisabled(), 4);
+            } else {
+                fail();
+            }
+        }
+
+        role = zms.getRole(ctx, domainName, "role2", false, false, false);
+        assertEquals(role.getRoleMembers().size(), 2);
+        for (RoleMember member : role.getRoleMembers()) {
+            if (member.getMemberName().equals("user.jane")) {
+                assertNull(member.getSystemDisabled());
+            } else if (member.getMemberName().equals(externalMember)) {
+                assertEquals(member.getSystemDisabled(), 4);
+            } else {
+                fail();
+            }
+        }
+
+        // verify systemDisabled is set on all group memberships for the external member
+
+        Group group = zms.getGroup(ctx, domainName, "group1", false, false);
+        assertEquals(group.getGroupMembers().size(), 2);
+        for (GroupMember member : group.getGroupMembers()) {
+            if (member.getMemberName().equals("user.joe")) {
+                assertNull(member.getSystemDisabled());
+            } else if (member.getMemberName().equals(externalMember)) {
+                assertEquals(member.getSystemDisabled(), 4);
+            } else {
+                fail();
+            }
+        }
+
+        group = zms.getGroup(ctx, domainName, "group2", false, false);
+        assertEquals(group.getGroupMembers().size(), 2);
+        for (GroupMember member : group.getGroupMembers()) {
+            if (member.getMemberName().equals("user.jane")) {
+                assertNull(member.getSystemDisabled());
+            } else if (member.getMemberName().equals(externalMember)) {
+                assertEquals(member.getSystemDisabled(), 4);
+            } else {
+                fail();
+            }
+        }
+
+        // unsuspend the external member
+
+        zms.putPrincipalState(ctx, externalMember, auditRef, new PrincipalState().setSuspended(false));
+
+        // verify systemDisabled is cleared on all role memberships
+
+        role = zms.getRole(ctx, domainName, "role1", false, false, false);
+        assertEquals(role.getRoleMembers().size(), 2);
+        for (RoleMember member : role.getRoleMembers()) {
+            assertNull(member.getSystemDisabled());
+        }
+
+        role = zms.getRole(ctx, domainName, "role2", false, false, false);
+        assertEquals(role.getRoleMembers().size(), 2);
+        for (RoleMember member : role.getRoleMembers()) {
+            assertNull(member.getSystemDisabled());
+        }
+
+        // verify systemDisabled is cleared on all group memberships
+
+        group = zms.getGroup(ctx, domainName, "group1", false, false);
+        assertEquals(group.getGroupMembers().size(), 2);
+        for (GroupMember member : group.getGroupMembers()) {
+            assertNull(member.getSystemDisabled());
+        }
+
+        group = zms.getGroup(ctx, domainName, "group2", false, false);
+        assertEquals(group.getGroupMembers().size(), 2);
+        for (GroupMember member : group.getGroupMembers()) {
+            assertNull(member.getSystemDisabled());
+        }
+
+        zms.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        cleanUpUserAdminAuthz();
+    }
+
+    @Test
+    public void testPutPrincipalStateExternalMemberMixedWithRegular() {
+
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "ext-state-mixed";
+        final String externalMember = domainName + ":ext.partner-user";
+
+        TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain", "testOrg", zmsTestInitializer.getAdminUser(),
+                ctx.principal().getFullName());
+        zms.postTopLevelDomain(ctx, auditRef, null, dom);
+
+        setupExternalMemberValidator(domainName);
+
+        // create a role with both regular and external members
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null,
+                "user.joe", "user.jane");
+        zms.putRole(ctx, domainName, "role1", auditRef, false, null, role1);
+        addExternalMemberToRole(domainName, "role1", externalMember);
+
+        // create a group with both regular and external members
+
+        Group group1 = zmsTestInitializer.createGroupObject(domainName, "group1",
+                "user.joe", "user.jane");
+        zms.putGroup(ctx, domainName, "group1", auditRef, false, null, group1);
+        addExternalMemberToGroup(domainName, "group1", externalMember);
+
+        setupUserAdminForStateChanges("user.user1");
+
+        // suspend only the external member
+
+        zms.putPrincipalState(ctx, externalMember, auditRef, new PrincipalState().setSuspended(true));
+
+        // verify only the external member is suspended in the role, regular members unaffected
+
+        Role role = zms.getRole(ctx, domainName, "role1", false, false, false);
+        assertEquals(role.getRoleMembers().size(), 3);
+        for (RoleMember member : role.getRoleMembers()) {
+            if (member.getMemberName().equals("user.joe")) {
+                assertNull(member.getSystemDisabled());
+            } else if (member.getMemberName().equals("user.jane")) {
+                assertNull(member.getSystemDisabled());
+            } else if (member.getMemberName().equals(externalMember)) {
+                assertEquals(member.getSystemDisabled(), 4);
+            } else {
+                fail();
+            }
+        }
+
+        // verify only the external member is suspended in the group
+
+        Group group = zms.getGroup(ctx, domainName, "group1", false, false);
+        assertEquals(group.getGroupMembers().size(), 3);
+        for (GroupMember member : group.getGroupMembers()) {
+            if (member.getMemberName().equals("user.joe")) {
+                assertNull(member.getSystemDisabled());
+            } else if (member.getMemberName().equals("user.jane")) {
+                assertNull(member.getSystemDisabled());
+            } else if (member.getMemberName().equals(externalMember)) {
+                assertEquals(member.getSystemDisabled(), 4);
+            } else {
+                fail();
+            }
+        }
+
+        // unsuspend the external member
+
+        zms.putPrincipalState(ctx, externalMember, auditRef, new PrincipalState().setSuspended(false));
+
+        // now suspend a regular member and verify external member is NOT affected
+
+        zms.putPrincipalState(ctx, "user.joe", auditRef, new PrincipalState().setSuspended(true));
+
+        role = zms.getRole(ctx, domainName, "role1", false, false, false);
+        assertEquals(role.getRoleMembers().size(), 3);
+        for (RoleMember member : role.getRoleMembers()) {
+            if (member.getMemberName().equals("user.joe")) {
+                assertEquals(member.getSystemDisabled(), 4);
+            } else if (member.getMemberName().equals("user.jane")) {
+                assertNull(member.getSystemDisabled());
+            } else if (member.getMemberName().equals(externalMember)) {
+                assertNull(member.getSystemDisabled());
+            } else {
+                fail();
+            }
+        }
+
+        group = zms.getGroup(ctx, domainName, "group1", false, false);
+        assertEquals(group.getGroupMembers().size(), 3);
+        for (GroupMember member : group.getGroupMembers()) {
+            if (member.getMemberName().equals("user.joe")) {
+                assertEquals(member.getSystemDisabled(), 4);
+            } else if (member.getMemberName().equals("user.jane")) {
+                assertNull(member.getSystemDisabled());
+            } else if (member.getMemberName().equals(externalMember)) {
+                assertNull(member.getSystemDisabled());
+            } else {
+                fail();
+            }
+        }
+
+        // clean up the regular user suspension
+
+        zms.putPrincipalState(ctx, "user.joe", auditRef, new PrincipalState().setSuspended(false));
+
+        zms.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        cleanUpUserAdminAuthz();
+    }
+
+    @Test
+    public void testPutPrincipalStateExternalMemberUnauthorized() {
+
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "ext-state-unauth";
+        final String externalMember = domainName + ":ext.partner-user";
+
+        TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain", "testOrg", zmsTestInitializer.getAdminUser(),
+                ctx.principal().getFullName());
+        zms.postTopLevelDomain(ctx, auditRef, null, dom);
+
+        setupExternalMemberValidator(domainName);
+
+        Role role = zmsTestInitializer.createRoleObject(domainName, "role1", null,
+                "user.joe", null);
+        zms.putRole(ctx, domainName, "role1", auditRef, false, null, role);
+        addExternalMemberToRole(domainName, "role1", externalMember);
+
+        // create a second domain where the caller is NOT an admin
+        // and try to update an external member in that domain
+
+        final String otherDomainName = "ext-state-unauth-other";
+        final String otherExternalMember = otherDomainName + ":ext.partner-user";
+
+        TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject(otherDomainName,
+                "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser(),
+                ctx.principal().getFullName());
+        zms.postTopLevelDomain(ctx, auditRef, null, dom2);
+
+        setupExternalMemberValidator(otherDomainName);
+
+        Role role2 = zmsTestInitializer.createRoleObject(otherDomainName, "role1", null,
+                "user.joe", null);
+        zms.putRole(ctx, otherDomainName, "role1", auditRef, false, null, role2);
+        addExternalMemberToRole(otherDomainName, "role1", otherExternalMember);
+
+        // remove the caller from the admin role in the other domain
+
+        zms.deleteMembership(ctx, otherDomainName, "admin",
+                ctx.principal().getFullName(), auditRef, null);
+
+        // try to suspend the external member in the other domain
+        // without system-level auth - should fail with 403
+
+        try {
+            zms.putPrincipalState(ctx, otherExternalMember, auditRef,
+                    new PrincipalState().setSuspended(true));
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Unauthorized to update principal state"));
+        }
+
+        zms.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        zms.deleteTopLevelDomain(ctx, otherDomainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutPrincipalStateExternalMemberNotFound() {
+
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "ext-state-not-found";
+        final String externalMember = domainName + ":ext.unknown-user";
+
+        TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain", "testOrg", zmsTestInitializer.getAdminUser(),
+                ctx.principal().getFullName());
+        zms.postTopLevelDomain(ctx, auditRef, null, dom);
+
+        // the domain exists and the caller is a domain admin, so
+        // authorization passes but the external member is not in the DB
+
+        try {
+            zms.putPrincipalState(ctx, externalMember, auditRef,
+                    new PrincipalState().setSuspended(true));
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("Principal not found"));
+        }
+
+        zms.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutPrincipalStateExternalMemberInvalidCases() {
+
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "ext-state-invalid";
+
+        TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain", "testOrg", zmsTestInitializer.getAdminUser(),
+                ctx.principal().getFullName());
+        zms.postTopLevelDomain(ctx, auditRef, null, dom);
+
+        final String externalMember = domainName + ":ext.partner-user";
+
+        // try without audit reference
+
+        try {
+            zms.putPrincipalState(ctx, externalMember, null,
+                    new PrincipalState().setSuspended(true));
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Audit reference is required"));
+        }
+
+        // try with empty audit reference
+
+        try {
+            zms.putPrincipalState(ctx, externalMember, "",
+                    new PrincipalState().setSuspended(true));
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Audit reference is required"));
+        }
+
+        // try with an external member in a non-existing domain
+
+        try {
+            zms.putPrincipalState(ctx, "unknown-ext-domain:ext.partner-user", auditRef,
+                    new PrincipalState().setSuspended(true));
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+            assertTrue(ex.getMessage().contains("Domain not found"));
+        }
+
+        zms.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutPrincipalStateExternalMemberConnectionFailure() throws ServerResourceException {
+
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "ext-state-conn-fail";
+        final String externalMember = domainName + ":ext.partner-user";
+
+        TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain", "testOrg", zmsTestInitializer.getAdminUser(),
+                ctx.principal().getFullName());
+        zms.postTopLevelDomain(ctx, auditRef, null, dom);
+
+        setupExternalMemberValidator(domainName);
+
+        Role role = zmsTestInitializer.createRoleObject(domainName, "role1", null,
+                "user.joe", null);
+        zms.putRole(ctx, domainName, "role1", auditRef, false, null, role);
+        addExternalMemberToRole(domainName, "role1", externalMember);
+
+        // mock a connection failure
+
+        ObjectStore mockObjStore = Mockito.mock(ObjectStore.class);
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean()))
+                .thenThrow(new ServerResourceException(500, "DB Error"));
+
+        try {
+            zms.dbService.executePutPrincipalState(ctx, domainName, externalMember,
+                    new PrincipalState().setSuspended(true), auditRef, "putPrincipalState");
+            fail();
+        } catch (ResourceException e) {
+            assertEquals(e.getCode(), 500);
+        }
+
+        zms.dbService.store = saveStore;
+        zms.dbService.defaultRetryCount = saveRetryCount;
+
+        zms.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 }

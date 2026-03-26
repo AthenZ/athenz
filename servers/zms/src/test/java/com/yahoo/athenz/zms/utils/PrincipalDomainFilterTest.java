@@ -132,6 +132,17 @@ public class PrincipalDomainFilterTest {
                 { "+sports,-sports.prod", "sports.prod.west2.api", Principal.Type.SERVICE, false },
                 { "+sports,-sports.prod", "weather.api", Principal.Type.SERVICE, false },
                 { "+sports,-sports.prod", "athenz:group.dev-team", Principal.Type.GROUP, false },
+                { "user", "sports:ext.partner", Principal.Type.EXTERNAL, false },
+                { "+sports", "sports:ext.partner", Principal.Type.EXTERNAL, true },
+                { "+sports", "weather:ext.partner", Principal.Type.EXTERNAL, false },
+                { "-sports", "sports:ext.partner", Principal.Type.EXTERNAL, false },
+                { "-sports", "weather:ext.partner", Principal.Type.EXTERNAL, true },
+                { "user,+sports,-sports.prod", "sports:ext.partner", Principal.Type.EXTERNAL, true },
+                { "user,+sports,-sports.prod", "sports.prod:ext.partner", Principal.Type.EXTERNAL, false },
+                { "user,+sports,-sports.prod", "weather:ext.partner", Principal.Type.EXTERNAL, false },
+                { "+sports,-sports.prod", "sports:ext.partner", Principal.Type.EXTERNAL, true },
+                { "+sports,-sports.prod", "sports.dev:ext.partner", Principal.Type.EXTERNAL, true },
+                { "+sports,-sports.prod", "sports.prod:ext.partner", Principal.Type.EXTERNAL, false },
         };
     }
     @Test(dataProvider = "DomainFilterData")
@@ -444,6 +455,112 @@ public class PrincipalDomainFilterTest {
             assertEquals(ex.getCode(), 400);
             assertEquals(ex.getMessage().contains("Principal sports.prod.api is not allowed for the group"), true);
         }
+
+        zmsImpl.deleteSubDomain(ctx, "sports", "dev", auditRef, null);
+        zmsImpl.deleteSubDomain(ctx, "sports", "prod", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, "sports", auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutRoleWithDomainFilterExternalMembers() throws Exception {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "role-ext-mbr-domain-filter";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(),
+                ctx.principal().getFullName());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        // configure the external member validator on the domain
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl,
+                ctx.principal().getFullName(), auditRef);
+
+        DomainMeta dm = new DomainMeta().setExternalMemberValidator(
+                "com.yahoo.athenz.zms.TestExternalMemberValidator");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "externalmembervalidator", auditRef, dm);
+
+        zmsTestInitializer.refreshExternalMemberValidators();
+
+        // set up the sports domain with subdomains
+
+        TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject("sports",
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom2);
+
+        SubDomain subDom1 = zmsTestInitializer.createSubDomainObject("prod", "sports", "Test Domain1",
+                "testOrg", "user.user1");
+        zmsImpl.postSubDomain(ctx, "sports", auditRef, null, subDom1);
+
+        SubDomain subDom2 = zmsTestInitializer.createSubDomainObject("dev", "sports", "Test Domain1",
+                "testOrg", "user.user1");
+        zmsImpl.postSubDomain(ctx, "sports", auditRef, null, subDom2);
+
+        // create a role with domain filter and allowed external members
+
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.user1"));
+        roleMembers.add(new RoleMember().setMemberName(domainName + ":ext.partner-user"));
+
+        final String roleName1 = "filter-role-ext1";
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, roleName1, null, roleMembers);
+        role1.setPrincipalDomainFilter("user," + domainName);
+        zmsImpl.putRole(ctx, domainName, roleName1, auditRef, false, null, role1);
+
+        // now try with filter that allows sports subdomains but disallows sports.prod
+        // and include an external member from the role's own domain which should be allowed
+
+        roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.user1"));
+        roleMembers.add(new RoleMember().setMemberName(domainName + ":ext.partner-user"));
+
+        final String roleName2 = "filter-role-ext2";
+        Role role2 = zmsTestInitializer.createRoleObject(domainName, roleName2, null, roleMembers);
+        role2.setPrincipalDomainFilter("user," + domainName + ",+sports,-sports.prod");
+        zmsImpl.putRole(ctx, domainName, roleName2, auditRef, false, null, role2);
+
+        // try to add an allowed external member via putMembership
+
+        Membership membership = new Membership().setMemberName(domainName + ":ext.another-user");
+        zmsImpl.putMembership(ctx, domainName, roleName2, domainName + ":ext.another-user",
+                auditRef, false, null, membership);
+
+        // try to add an external member whose domain matches the disallowed filter
+        // via putRole - sports.prod:ext.blocked-user should be rejected
+
+        roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.user1"));
+        roleMembers.add(new RoleMember().setMemberName(domainName + ":ext.partner-user"));
+        roleMembers.add(new RoleMember().setMemberName("sports.prod:ext.blocked-user"));
+
+        Role role3 = zmsTestInitializer.createRoleObject(domainName, roleName2, null, roleMembers);
+        role3.setPrincipalDomainFilter("user," + domainName + ",+sports,-sports.prod");
+
+        try {
+            zmsImpl.putRole(ctx, domainName, roleName2, auditRef, false, null, role3);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Principal sports.prod:ext.blocked-user is not allowed for the role"));
+        }
+
+        // try to add a disallowed external member via putMembership
+
+        membership = new Membership().setMemberName("sports.prod:ext.blocked-user");
+        try {
+            zmsImpl.putMembership(ctx, domainName, roleName2, "sports.prod:ext.blocked-user",
+                    auditRef, false, null, membership);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Principal sports.prod:ext.blocked-user is not allowed for the role"));
+        }
+
+        // clean up
 
         zmsImpl.deleteSubDomain(ctx, "sports", "dev", auditRef, null);
         zmsImpl.deleteSubDomain(ctx, "sports", "prod", auditRef, null);

@@ -1333,7 +1333,7 @@ func (client ZMSClient) GetDomainRoleMembers(domainName DomainName) (*DomainRole
 	}
 }
 
-func (client ZMSClient) GetPrincipalRoles(principal ResourceName, domainName DomainName, expand *bool) (*DomainRoleMember, error) {
+func (client ZMSClient) GetPrincipalRoles(principal PrincipalName, domainName DomainName, expand *bool) (*DomainRoleMember, error) {
 	var data *DomainRoleMember
 	url := client.URL + "/role" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("domain", string(domainName), ""), encodeOptionalBoolParam("expand", expand))
 	resp, err := client.httpGet(url, nil)
@@ -1853,7 +1853,7 @@ func (client ZMSClient) GetGroupMembership(domainName DomainName, groupName Enti
 	}
 }
 
-func (client ZMSClient) GetPrincipalGroups(principal EntityName, domainName DomainName) (*DomainGroupMember, error) {
+func (client ZMSClient) GetPrincipalGroups(principal PrincipalName, domainName DomainName) (*DomainGroupMember, error) {
 	var data *DomainGroupMember
 	url := client.URL + "/group" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("domain", string(domainName), ""))
 	resp, err := client.httpGet(url, nil)
@@ -3659,7 +3659,7 @@ func (client ZMSClient) DeleteProviderResourceGroupRoles(tenantDomain DomainName
 	}
 }
 
-func (client ZMSClient) GetAccess(action ActionName, resource ResourceName, domain DomainName, checkPrincipal EntityName) (*Access, error) {
+func (client ZMSClient) GetAccess(action ActionName, resource ResourceName, domain DomainName, checkPrincipal PrincipalName) (*Access, error) {
 	var data *Access
 	url := client.URL + "/access/" + fmt.Sprint(action) + "/" + fmt.Sprint(resource) + encodeParams(encodeStringParam("domain", string(domain), ""), encodeStringParam("principal", string(checkPrincipal), ""))
 	resp, err := client.httpGet(url, nil)
@@ -3691,7 +3691,7 @@ func (client ZMSClient) GetAccess(action ActionName, resource ResourceName, doma
 	}
 }
 
-func (client ZMSClient) GetAccessExt(action ActionName, resource string, domain DomainName, checkPrincipal EntityName) (*Access, error) {
+func (client ZMSClient) GetAccessExt(action ActionName, resource string, domain DomainName, checkPrincipal PrincipalName) (*Access, error) {
 	var data *Access
 	url := client.URL + "/access/" + fmt.Sprint(action) + encodeParams(encodeStringParam("resource", string(resource), ""), encodeStringParam("domain", string(domain), ""), encodeStringParam("principal", string(checkPrincipal), ""))
 	resp, err := client.httpGet(url, nil)
@@ -3723,7 +3723,7 @@ func (client ZMSClient) GetAccessExt(action ActionName, resource string, domain 
 	}
 }
 
-func (client ZMSClient) GetResourceAccessList(principal ResourceName, action ActionName, filter string) (*ResourceAccessList, error) {
+func (client ZMSClient) GetResourceAccessList(principal PrincipalName, action ActionName, filter string) (*ResourceAccessList, error) {
 	var data *ResourceAccessList
 	url := client.URL + "/resource" + encodeParams(encodeStringParam("principal", string(principal), ""), encodeStringParam("action", string(action), ""), encodeStringParam("filter", string(filter), ""))
 	resp, err := client.httpGet(url, nil)

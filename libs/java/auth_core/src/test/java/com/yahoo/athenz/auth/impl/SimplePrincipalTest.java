@@ -244,6 +244,59 @@ public class SimplePrincipalTest {
     }
 
     @Test
+    public void testSimplePrincipalExternalMember() {
+
+        Principal p = SimplePrincipal.create("external", "external:member1");
+        assertNotNull(p);
+
+        assertEquals(p.getFullName(), "external:member1");
+        assertEquals(p.getDomain(), "external");
+        assertNull(p.getName());
+        assertNull(p.getCredentials());
+        assertNull(p.getUnsignedCredentials());
+        assertNull(p.getAuthority());
+        assertNull(p.getRoles());
+        assertNull(p.getApplicationId());
+        assertNull(p.getAuthorizedService());
+        assertNull(p.getX509Certificate());
+        assertNull(p.getIP());
+        assertNull(p.getOriginalRequestor());
+        assertNull(p.getKeyService());
+        assertNull(p.getKeyId());
+        assertNull(p.getRolePrincipalName());
+        assertNull(p.getIssuerIdentity());
+        assertFalse(p.getMtlsRestricted());
+        assertEquals(p.getState(), Principal.State.ACTIVE);
+        assertEquals(p.getIssueTime(), 0);
+    }
+
+    @Test
+    public void testSimplePrincipalExternalMemberEquals() {
+
+        Principal p1 = SimplePrincipal.create("external", "external:member1");
+        Principal p2 = SimplePrincipal.create("external", "external:member1");
+        Principal p3 = SimplePrincipal.create("external", "external:member2");
+
+        assertTrue(p1.equals(p1));
+        assertTrue(p1.equals(p2));
+        assertFalse(p1.equals(p3));
+        assertFalse(p1.equals(null));
+
+        assertEquals(p1.hashCode(), p2.hashCode());
+        assertNotEquals(p1.hashCode(), p3.hashCode());
+    }
+
+    @Test
+    public void testSimplePrincipalExternalMemberEqualsRegularPrincipal() {
+
+        Principal extPrincipal = SimplePrincipal.create("user", "user.jdoe");
+        Principal regPrincipal = SimplePrincipal.create("user", "jdoe", fakeCreds, null);
+
+        assertEquals(extPrincipal.getFullName(), regPrincipal.getFullName());
+        assertTrue(extPrincipal.equals(regPrincipal));
+    }
+
+    @Test
     public void testSimplePrincipalAuthorityCreate() {
         Authority hoge = Mockito.mock(Authority.class);
         

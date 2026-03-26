@@ -70,17 +70,25 @@ public class ZMSSchema {
             .comment("A signed assertion if identity. i.e. the user cookie value. This token will only make sense to the authority that generated it, so it is beneficial to have something in the value that is cheaply recognized to quickly reject if it belongs to another authority. In addition to the YEncoded set our token includes ; to separate components and , to separate roles and : for IPv6 addresses")
             .pattern("[a-zA-Z0-9\\._%=:;,-]*");
 
+        sb.stringType("ExternalMemberName")
+            .comment("External Member name. Even though the pattern is open to support all possible external members, the server still requires that wildcard can only be provided as the last character to support prefix matches only and not just any wildcard support. The check for this will be handled within external member validation logic in ZMS")
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:ext\\..+");
+
         sb.stringType("GroupName")
             .comment("A group name")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:group\\.([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
 
         sb.stringType("GroupMemberName")
             .comment("A group member name")
-            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:ext\\..+");
+
+        sb.stringType("PrincipalName")
+            .comment("A principal name for role/group membership queries")
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:ext\\..+");
 
         sb.stringType("MemberName")
             .comment("Role Member name - could be one of four values: *, DomainName.* or ServiceName[*], or GroupNames")
-            .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(\\*)?|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:group\\.([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+            .pattern("\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*\\.\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(\\*)?|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:group\\.([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:ext\\..+");
 
         sb.stringType("AuthorityKeyword")
             .comment("A comma separated list of authority keywords")
@@ -213,7 +221,7 @@ public class ZMSSchema {
             .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change")
             .field("reviewLastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent (for file store)")
             .field("systemDisabled", "Int32", true, "user disabled by system based on configured role setting")
-            .field("principalType", "Int32", true, "server use only - principal type: unknown(0), user(1), service(2), or group(3)")
+            .field("principalType", "Int32", true, "server use only - principal type: unknown(0), user(1), service(2), group(3), headless(4), or external(5)")
             .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete");
 
         sb.structType("ResourceRoleOwnership")
@@ -439,7 +447,7 @@ public class ZMSSchema {
             .field("requestPrincipal", "ResourceName", true, "pending members only - name of the principal requesting the change")
             .field("reviewLastNotifiedTime", "Timestamp", true, "for pending membership requests, time when last notification was sent (for file store)")
             .field("systemDisabled", "Int32", true, "user disabled by system based on configured group setting")
-            .field("principalType", "Int32", true, "server use only - principal type: unknown(0), user(1) or service(2)")
+            .field("principalType", "Int32", true, "server use only - principal type: unknown(0), user(1), service(2), headless(4), or external(5)")
             .field("pendingState", "String", true, "for pending membership requests, the request state - e.g. add, delete")
             .field("notifyRoles", "String", true, "list of roles whose members should be notified for member review/approval/expiry")
             .field("notifyDetails", "String", true, "additional details included in the notifications");
@@ -1573,7 +1581,7 @@ public class ZMSSchema {
         sb.resource("DomainRoleMember", "GET", "/role")
             .comment("Fetch all the roles across domains by either calling or specified principal The optional expand argument will include all direct and indirect roles, however, it will force authorization that you must be either the principal or for service accounts have update access to the service identity: 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.role.lookup\") 3. service admin (\"update\", \"{principal}\") 4. domain authorized (\"access\", \"{domainName}:meta.role.lookup\") if domainName is provided")
             .name("getPrincipalRoles")
-            .queryParam("principal", "principal", "ResourceName", null, "If not present, will return roles for the user making the call")
+            .queryParam("principal", "principal", "PrincipalName", null, "If not present, will return roles for the user making the call")
             .queryParam("domain", "domainName", "DomainName", null, "If not present, will return roles from all domains")
             .queryParam("expand", "expand", "Bool", false, "expand to include group and delegated trust role membership")
             .auth("", "", true)
@@ -1887,7 +1895,7 @@ public class ZMSSchema {
         sb.resource("DomainGroupMember", "GET", "/group")
             .comment("Fetch all the groups across domains by either calling or specified principal")
             .name("getPrincipalGroups")
-            .queryParam("principal", "principal", "EntityName", null, "If not present, will return groups for the user making the call")
+            .queryParam("principal", "principal", "PrincipalName", null, "If not present, will return groups for the user making the call")
             .queryParam("domain", "domainName", "DomainName", null, "If not present, will return groups from all domains")
             .auth("", "", true)
             .expected("OK")
@@ -2994,7 +3002,7 @@ public class ZMSSchema {
             .pathParam("action", "ActionName", "action as specified in the policy assertion, i.e. update or read")
             .pathParam("resource", "ResourceName", "the resource to check access against, i.e. \"media.news:articles\"")
             .queryParam("domain", "domain", "DomainName", null, "usually null. If present, it specifies an alternate domain for cross-domain trust relation")
-            .queryParam("principal", "checkPrincipal", "EntityName", null, "usually null. If present, carry out the access check for this principal")
+            .queryParam("principal", "checkPrincipal", "PrincipalName", null, "usually null. If present, carry out the access check for this principal")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -3014,7 +3022,7 @@ public class ZMSSchema {
             .pathParam("action", "ActionName", "action as specified in the policy assertion, i.e. update or read")
             .queryParam("resource", "resource", "String", null, "the resource to check access against, i.e. \"media.news:articles\"")
             .queryParam("domain", "domain", "DomainName", null, "usually null. If present, it specifies an alternate domain for cross-domain trust relation")
-            .queryParam("principal", "checkPrincipal", "EntityName", null, "usually null. If present, carry out the access check for this principal")
+            .queryParam("principal", "checkPrincipal", "PrincipalName", null, "usually null. If present, carry out the access check for this principal")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -3030,7 +3038,7 @@ public class ZMSSchema {
 
         sb.resource("ResourceAccessList", "GET", "/resource")
             .comment("Return list of resources that the given principal has access to. Even though the principal is marked as optional, it must be specified")
-            .queryParam("principal", "principal", "ResourceName", null, "specifies principal to query the resource list for")
+            .queryParam("principal", "principal", "PrincipalName", null, "specifies principal to query the resource list for")
             .queryParam("action", "action", "ActionName", null, "action as specified in the policy assertion")
             .queryParam("filter", "filter", "String", null, "resource filter for specific subset of resources")
             .auth("", "", true)

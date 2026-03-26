@@ -143,7 +143,7 @@ resource DomainRoleMembers GET "/domain/{domainName}/member" {
 // 3. service admin ("update", "{principal}")
 // 4. domain authorized ("access", "{domainName}:meta.role.lookup") if domainName is provided
 resource DomainRoleMember GET "/role?principal={principal}&domain={domainName}&expand={expand}" (name=getPrincipalRoles) {
-    ResourceName principal (optional); //If not present, will return roles for the user making the call
+    PrincipalName principal (optional); //If not present, will return roles for the user making the call
     DomainName domainName (optional); //If not present, will return roles from all domains
     Bool expand (optional, default=false); //expand to include group and delegated trust role membership
     authenticate;

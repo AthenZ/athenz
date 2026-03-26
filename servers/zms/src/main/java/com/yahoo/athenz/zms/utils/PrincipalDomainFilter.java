@@ -131,6 +131,8 @@ public class PrincipalDomainFilter {
         int idx;
         if (type == Principal.Type.GROUP) {
             idx = principalName.indexOf(AuthorityConsts.GROUP_SEP);
+        } else if (type == Principal.Type.EXTERNAL) {
+            idx = principalName.indexOf(AuthorityConsts.EXT_SEP);
         } else {
             idx = principalName.lastIndexOf('.');
         }

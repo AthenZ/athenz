@@ -18,7 +18,6 @@ package com.yahoo.athenz.zms.utils;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.Principal;
-import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.StringUtils;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
@@ -411,36 +410,6 @@ public class ZMSUtils {
         }
 
         return false;
-    }
-
-    public static Principal createPrincipalForName(final String principalName, final String userDomain,
-            final String userDomainAlias) {
-
-        String domain;
-        String name;
-
-        // make sure we're not dealing with group principals
-
-        if (principalName.contains(AuthorityConsts.GROUP_SEP)) {
-            return null;
-        }
-
-        // if we have no . in the principal name we're going to default
-        // to our configured user domain
-
-        int idx = principalName.lastIndexOf('.');
-        if (idx == -1) {
-            domain = userDomain;
-            name = principalName;
-        } else {
-            domain = principalName.substring(0, idx);
-            if (userDomainAlias != null && userDomainAlias.equals(domain)) {
-                domain = userDomain;
-            }
-            name = principalName.substring(idx + 1);
-        }
-
-        return SimplePrincipal.create(domain, name, (String) null);
     }
 
     public static boolean metaValueChanged(Object domainValue, Object metaValue) {

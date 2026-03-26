@@ -95,7 +95,7 @@ resource GroupMembership GET "/domain/{domainName}/group/{groupName}/member/{mem
 
 // Fetch all the groups across domains by either calling or specified principal
 resource DomainGroupMember GET "/group?principal={principal}&domain={domainName}" (name=getPrincipalGroups) {
-    EntityName principal (optional); //If not present, will return groups for the user making the call
+    PrincipalName principal (optional); //If not present, will return groups for the user making the call
     DomainName domainName (optional); //If not present, will return groups from all domains
     authenticate;
     exceptions {

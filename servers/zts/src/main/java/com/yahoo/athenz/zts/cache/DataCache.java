@@ -215,8 +215,11 @@ public class DataCache {
         }
 
         for (RoleMember roleMember : roleMembers) {
-            if (roleMember.getMemberName().contains(AuthorityConsts.GROUP_SEP)) {
-                roleMember.setPrincipalType(Principal.Type.GROUP.getValue());
+            int idx = roleMember.getMemberName().indexOf(AuthorityConsts.ATHENZ_PRINCIPAL_ENTITY_CHAR);
+            if (idx != -1) {
+                if (roleMember.getMemberName().regionMatches(idx, AuthorityConsts.GROUP_SEP, 0, AuthorityConsts.GROUP_SEP.length())) {
+                    roleMember.setPrincipalType(Principal.Type.GROUP.getValue());
+                }
             }
         }
     }

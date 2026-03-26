@@ -120,6 +120,10 @@ public class ZMSTestInitializer {
         }
     }
 
+    public void refreshExternalMemberValidators() {
+        zms.externalMemberValidatorManager.refreshValidators();
+    }
+
     public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
 

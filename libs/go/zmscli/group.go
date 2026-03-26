@@ -351,7 +351,7 @@ func (cli Zms) CheckActiveGroupMember(dn string, group string, mbr string) (*str
 }
 
 func (cli Zms) ShowGroupsPrincipal(principal string, dn string) (*string, error) {
-	domainGroupMember, err := cli.Zms.GetPrincipalGroups(zms.EntityName(principal), zms.DomainName(dn))
+	domainGroupMember, err := cli.Zms.GetPrincipalGroups(zms.PrincipalName(principal), zms.DomainName(dn))
 	if err != nil {
 		return nil, err
 	}
