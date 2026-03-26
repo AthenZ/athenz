@@ -64,6 +64,7 @@ public class PrincipalStateUpdaterTest {
         zmsTestInitializer.clearConnections();
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         if (zmsImpl != null) {
+            zmsImpl.externalMemberValidatorManager.shutdown();
             ServiceProviderManager.getInstance(zmsImpl.dbService, zmsImpl).shutdown();
             Field instance = ServiceProviderManager.class.getDeclaredField("instance");
             instance.setAccessible(true);
