@@ -1,3 +1,24 @@
+Athenz v1.12.37 Release / Mar 26, 2026
+--------------------------------------
+
+#3225 Feat: support downscoping for ID-JAG assertions
+#3239 user certificate support in zts
+#3241 domain filter support in S3 ChangeLogStore
+#3243 libs/go/sia/util: fix dropped error
+#3244 support sni_host_check and sni_required flags within port-uri json
+#3246 make zms/zts metric name configurable
+#3251 handle http server close gracefully in idp
+#3253 re-add invalid email cert test cases
+#3256 add new external member validator attribute for domains
+#3257 UI: show the role when trying to create a policy from the role page
+#3258 support for external member validator manager
+#3259 libs/go/sia/file: error handling
+#3263 support external members in roles and groups
+#3264 update go/java/npm dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20260323.sql
+
 Athenz v1.12.36 Release / Mar 12, 2026
 --------------------------------------
 
