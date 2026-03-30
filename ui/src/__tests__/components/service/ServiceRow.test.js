@@ -165,6 +165,8 @@ describe('ServiceRow', () => {
                         modified={modified}
                         newService={newService}
                         timeZone={timeZone}
+                        featureFlag={true}
+                        showProviders={true}
                     />
                 </tbody>
             </table>,

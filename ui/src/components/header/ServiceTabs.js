@@ -16,12 +16,17 @@
 import React from 'react';
 import TabGroup from '../denali/TabGroup';
 import { withRouter } from 'next/router';
+import { connect } from 'react-redux';
 import {
     SERVICE_TABS,
     SERVICE_TYPE_DYNAMIC,
     SERVICE_TYPE_MICROSEGMENTATION,
     SERVICE_TYPE_STATIC,
 } from '../constants/constants';
+import {
+    selectShowInstances,
+    selectShowMicrosegmentation,
+} from '../../redux/selectors/domains';
 
 class ServiceTabs extends React.Component {
     constructor(props) {
@@ -64,10 +69,25 @@ class ServiceTabs extends React.Component {
     }
 
     render() {
-        let shouldShowAllServiceTabs = this.props.featureFlag;
-        let serviceTabs = shouldShowAllServiceTabs
+        let serviceTabs = this.props.featureFlag
             ? SERVICE_TABS
             : SERVICE_TABS.filter((tab) => tab.name === 'tags');
+        if (this.props.featureFlag) {
+            serviceTabs = serviceTabs.filter((tab) => {
+                if (
+                    (tab.name === SERVICE_TYPE_STATIC ||
+                        tab.name === SERVICE_TYPE_DYNAMIC) &&
+                    !this.props.showInstances
+                )
+                    return false;
+                if (
+                    tab.name === SERVICE_TYPE_MICROSEGMENTATION &&
+                    !this.props.showMicrosegmentation
+                )
+                    return false;
+                return true;
+            });
+        }
         return (
             <TabGroup
                 tabs={serviceTabs}
@@ -78,4 +98,11 @@ class ServiceTabs extends React.Component {
         );
     }
 }
-export default withRouter(ServiceTabs);
+
+const mapStateToProps = (state, props) => ({
+    ...props,
+    showInstances: selectShowInstances(state),
+    showMicrosegmentation: selectShowMicrosegmentation(state),
+});
+
+export default connect(mapStateToProps)(withRouter(ServiceTabs));

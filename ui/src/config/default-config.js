@@ -110,6 +110,8 @@ const config = {
             },
             keyCreationMessage:
                 'Instances bootstrapped using Athenz Identity Providers can get Service Identity X.509 certificates automatically.',
+            showInstances: true,
+            showProviders: true,
         },
         cookieName: 'Athenz-Principal-Auth',
         cookieMaxAge: 60 * 60 * 1000,
@@ -151,6 +153,7 @@ const config = {
         ],
         statusPath: process.env.UI_SESSION_SECRET_PATH || 'keys/cookie-session',
         featureFlag: true,
+        showMicrosegmentation: true,
         pageFeatureFlag: {
             microsegmentation: {
                 policyValidation: true,

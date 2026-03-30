@@ -76,7 +76,27 @@ export const selectProductMasterLink = (state) => {
 };
 
 export const selectFeatureFlag = (state) => {
-    return state.domains.featureFlag ? state.domains.featureFlag : false;
+    const ff = state.domains.featureFlag;
+    if (ff && typeof ff === 'object') return ff.enabled;
+    return ff ? ff : false;
+};
+
+export const selectShowInstances = (state) => {
+    const ff = state.domains.featureFlag;
+    if (ff && typeof ff === 'object') return ff.showInstances !== false;
+    return true;
+};
+
+export const selectShowProviders = (state) => {
+    const ff = state.domains.featureFlag;
+    if (ff && typeof ff === 'object') return ff.showProviders !== false;
+    return true;
+};
+
+export const selectShowMicrosegmentation = (state) => {
+    const ff = state.domains.featureFlag;
+    if (ff && typeof ff === 'object') return ff.showMicrosegmentation !== false;
+    return true;
 };
 export const selectAuthorityAttributes = (state) => {
     return state.domains.authorityAttributes

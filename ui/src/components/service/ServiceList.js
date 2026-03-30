@@ -31,6 +31,9 @@ import { selectIsLoading } from '../../redux/selectors/loading';
 import {
     selectTimeZone,
     selectFeatureFlag,
+    selectShowInstances,
+    selectShowProviders,
+    selectShowMicrosegmentation,
 } from '../../redux/selectors/domains';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 
@@ -143,6 +146,11 @@ class ServiceList extends React.Component {
                           key={item.name}
                           timeZone={this.props.timeZone}
                           featureFlag={this.props.featureFlag}
+                          showInstances={this.props.showInstances}
+                          showProviders={this.props.showProviders}
+                          showMicrosegmentation={
+                              this.props.showMicrosegmentation
+                          }
                           _csrf={this.props._csrf}
                           onClickDeleteService={onClickDeleteService}
                       />
@@ -232,7 +240,8 @@ class ServiceList extends React.Component {
                             <TableHeadStyled align={left}>
                                 Modified Date
                             </TableHeadStyled>
-                            {this.props.featureFlag ? (
+                            {this.props.featureFlag &&
+                            this.props.showInstances ? (
                                 <TableHeadStyled align={center}>
                                     Instances
                                 </TableHeadStyled>
@@ -243,12 +252,18 @@ class ServiceList extends React.Component {
                             <TableHeadStyled align={center}>
                                 Tags
                             </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                MSD Policies
-                            </TableHeadStyled>
-                            <TableHeadStyled align={center}>
-                                Providers
-                            </TableHeadStyled>
+                            {this.props.featureFlag &&
+                            this.props.showMicrosegmentation ? (
+                                <TableHeadStyled align={center}>
+                                    MSD Policies
+                                </TableHeadStyled>
+                            ) : null}
+                            {this.props.featureFlag &&
+                            this.props.showProviders ? (
+                                <TableHeadStyled align={center}>
+                                    Providers
+                                </TableHeadStyled>
+                            ) : null}
                             <TableHeadStyled align={center}>
                                 Delete
                             </TableHeadStyled>
@@ -287,6 +302,9 @@ const mapStateToProps = (state, props) => {
         isLoading: selectIsLoading(state),
         services: selectServices(state),
         featureFlag: selectFeatureFlag(state),
+        showInstances: selectShowInstances(state),
+        showProviders: selectShowProviders(state),
+        showMicrosegmentation: selectShowMicrosegmentation(state),
         timeZone: selectTimeZone(state),
     };
 };
