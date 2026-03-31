@@ -285,7 +285,7 @@ public class ZMSExternalMemberTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
-            assertTrue(ex.getMessage().contains("Member ext-mbr-role-validator:ext.invalid-user is not valid according to the external member validator for domain ext-mbr-role-validator"));
+            assertTrue(ex.getMessage().contains("Member invalid-user is not valid according to the external member validator for domain ext-mbr-role-validator"));
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -571,7 +571,7 @@ public class ZMSExternalMemberTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
-            assertTrue(ex.getMessage().contains("Member ext-mbr-group-validator:ext.invalid-user is not valid according to the external member validator for domain ext-mbr-group-validator"));
+            assertTrue(ex.getMessage().contains("Member invalid-user is not valid according to the external member validator for domain ext-mbr-group-validator"));
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -911,5 +911,101 @@ public class ZMSExternalMemberTest {
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName1, auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, domainName2, auditRef, null);
+    }
+
+    @Test
+    public void testValidateExternalMemberNoSeparator() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        try {
+            zmsImpl.validateExternalMember("domain1", "member-without-separator", "testCaller");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Principal member-without-separator is not valid"));
+        }
+    }
+
+    @Test
+    public void testValidateExternalMemberEmptyName() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        try {
+            zmsImpl.validateExternalMember("domain1", "", "testCaller");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Principal  is not valid"));
+        }
+    }
+
+    @Test
+    public void testValidateExternalMemberPlainUser() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        try {
+            zmsImpl.validateExternalMember("domain1", "user.joe", "testCaller");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Principal user.joe is not valid"));
+        }
+    }
+
+    @Test
+    public void testValidateExternalMemberPartialSeparator() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // "ext." without the leading colon is not a valid separator
+        try {
+            zmsImpl.validateExternalMember("domain1", "ext.partner-user", "testCaller");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Principal ext.partner-user is not valid"));
+        }
+
+        // colon without "ext." suffix is not a valid separator
+        try {
+            zmsImpl.validateExternalMember("domain1", "domain1:partner-user", "testCaller");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Principal domain1:partner-user is not valid"));
+        }
+    }
+
+    @Test
+    public void testValidateExternalMemberWithValidSeparator() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "ext-validate-sep";
+
+        TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain", "testOrg", zmsTestInitializer.getAdminUser(),
+                ctx.principal().getFullName());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl,
+                ctx.principal().getFullName(), auditRef);
+
+        DomainMeta dm = new DomainMeta().setExternalMemberValidator(
+                "com.yahoo.athenz.zms.TestExternalMemberValidator");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "externalmembervalidator", auditRef, dm);
+        zmsImpl.externalMemberValidatorManager.refreshValidators();
+
+        // valid separator present - should not throw since the member name
+        // does not contain "invalid"
+
+        zmsImpl.validateExternalMember(domainName, domainName + ":ext.partner-user", "testCaller");
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 }

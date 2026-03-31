@@ -23,6 +23,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A sample external member validator that validates email addresses.
  * It doesn't verify the strict rules for email addresses (for example,
@@ -45,12 +48,15 @@ import java.util.regex.Pattern;
  */
 public class ExternalEmailMemberValidator implements ExternalMemberValidator {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ExternalEmailMemberValidator.class);
+
     public static final String PROP_VALID_EMAIL_DOMAINS = "athenz.external_member.valid_email_domains";
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
             "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
 
     private final Set<String> validEmailDomains;
+
 
     public ExternalEmailMemberValidator() {
         validEmailDomains = parseEmailDomains(System.getProperty(PROP_VALID_EMAIL_DOMAINS));
@@ -74,10 +80,12 @@ public class ExternalEmailMemberValidator implements ExternalMemberValidator {
     public boolean validateMember(final String domainName, final String memberName) {
 
         if (memberName == null || memberName.isEmpty()) {
+            LOG.error("Member name is null or empty");
             return false;
         }
 
         if (!EMAIL_PATTERN.matcher(memberName).matches()) {
+            LOG.error("Member name is not a valid email address: {}", memberName);
             return false;
         }
 
