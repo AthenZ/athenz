@@ -1301,18 +1301,23 @@ Fetchr.registerService({
                     { domainName, groupName },
                     (err, data) => {
                         if (err) {
-                            reject(err);
+                            if (err.status === 404) {
+                                resolve();
+                            } else {
+                                reject(err);
+                            }
+                        } else {
+                            if (data && data.groupMembers) {
+                                roleMember.groupMembers = data.groupMembers;
+                                roleMember.groupMembers.forEach((member) => {
+                                    member.memberFullName =
+                                        userService.getUserFullName(
+                                            member.memberName
+                                        );
+                                });
+                            }
+                            resolve();
                         }
-                        if (data && data.groupMembers) {
-                            roleMember.groupMembers = data.groupMembers;
-                            roleMember.groupMembers.forEach((member) => {
-                                member.memberFullName =
-                                    userService.getUserFullName(
-                                        member.memberName
-                                    );
-                            });
-                        }
-                        resolve();
                     }
                 );
             });
@@ -1446,18 +1451,23 @@ Fetchr.registerService({
                     { domainName, groupName },
                     (err, data) => {
                         if (err) {
-                            reject(err);
+                            if (err.status === 404) {
+                                resolve();
+                            } else {
+                                reject(err);
+                            }
+                        } else {
+                            if (data && data.groupMembers) {
+                                roleMember.groupMembers = data.groupMembers;
+                                roleMember.groupMembers.forEach((member) => {
+                                    member.memberFullName =
+                                        userService.getUserFullName(
+                                            member.memberName
+                                        );
+                                });
+                            }
+                            resolve();
                         }
-                        if (data && data.groupMembers) {
-                            roleMember.groupMembers = data.groupMembers;
-                            roleMember.groupMembers.forEach((member) => {
-                                member.memberFullName =
-                                    userService.getUserFullName(
-                                        member.memberName
-                                    );
-                            });
-                        }
-                        resolve();
                     }
                 );
             });
@@ -1528,18 +1538,23 @@ Fetchr.registerService({
                     { domainName, groupName },
                     (err, data) => {
                         if (err) {
-                            reject(err);
+                            if (err.status === 404) {
+                                resolve();
+                            } else {
+                                reject(err);
+                            }
+                        } else {
+                            if (data && data.groupMembers) {
+                                roleMember.groupMembers = data.groupMembers;
+                                roleMember.groupMembers.forEach((member) => {
+                                    member.memberFullName =
+                                        userService.getUserFullName(
+                                            member.memberName
+                                        );
+                                });
+                            }
+                            resolve();
                         }
-                        if (data && data.groupMembers) {
-                            roleMember.groupMembers = data.groupMembers;
-                            roleMember.groupMembers.forEach((member) => {
-                                member.memberFullName =
-                                    userService.getUserFullName(
-                                        member.memberName
-                                    );
-                            });
-                        }
-                        resolve();
                     }
                 );
             });
@@ -2331,20 +2346,25 @@ Fetchr.registerService({
                             { domainName, groupName },
                             (err, data) => {
                                 if (err) {
-                                    reject(err);
+                                    if (err.status === 404) {
+                                        resolve();
+                                    } else {
+                                        reject(err);
+                                    }
+                                } else {
+                                    if (data && data.groupMembers) {
+                                        roleMember.groupMembers = data.groupMembers;
+                                        roleMember.groupMembers.forEach(
+                                            (member) => {
+                                                member.memberFullName =
+                                                    userService.getUserFullName(
+                                                        member.memberName
+                                                    );
+                                            }
+                                        );
+                                    }
+                                    resolve();
                                 }
-                                if (data && data.groupMembers) {
-                                    roleMember.groupMembers = data.groupMembers;
-                                    roleMember.groupMembers.forEach(
-                                        (member) => {
-                                            member.memberFullName =
-                                                userService.getUserFullName(
-                                                    member.memberName
-                                                );
-                                        }
-                                    );
-                                }
-                                resolve();
                             }
                         );
                     });
@@ -2426,20 +2446,25 @@ Fetchr.registerService({
                             { domainName, groupName },
                             (err, data) => {
                                 if (err) {
-                                    reject(err);
+                                    if (err.status === 404) {
+                                        resolve();
+                                    } else {
+                                        reject(err);
+                                    }
+                                } else {
+                                    if (data && data.groupMembers) {
+                                        roleMember.groupMembers = data.groupMembers;
+                                        roleMember.groupMembers.forEach(
+                                            (member) => {
+                                                member.memberFullName =
+                                                    userService.getUserFullName(
+                                                        member.memberName
+                                                    );
+                                            }
+                                        );
+                                    }
+                                    resolve();
                                 }
-                                if (data && data.groupMembers) {
-                                    roleMember.groupMembers = data.groupMembers;
-                                    roleMember.groupMembers.forEach(
-                                        (member) => {
-                                            member.memberFullName =
-                                                userService.getUserFullName(
-                                                    member.memberName
-                                                );
-                                        }
-                                    );
-                                }
-                                resolve();
                             }
                         );
                     });
