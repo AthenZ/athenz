@@ -79,7 +79,7 @@ public class ZMSTestUtils {
     }
 
     public static String getMySQLImage() {
-        String image = System.getenv("ZMS_TEST_MYSQL_IMAGE");
+        String image = System.getenv(MYSQL_IMAGE_ENV_VAR);
         if (image == null || image.isBlank()) {
             image = DEFAULT_MYSQL_IMAGE; // fallback to default if no image specified
         }
