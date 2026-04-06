@@ -2353,7 +2353,8 @@ Fetchr.registerService({
                                     }
                                 } else {
                                     if (data && data.groupMembers) {
-                                        roleMember.groupMembers = data.groupMembers;
+                                        roleMember.groupMembers =
+                                            data.groupMembers;
                                         roleMember.groupMembers.forEach(
                                             (member) => {
                                                 member.memberFullName =
@@ -2453,7 +2454,8 @@ Fetchr.registerService({
                                     }
                                 } else {
                                     if (data && data.groupMembers) {
-                                        roleMember.groupMembers = data.groupMembers;
+                                        roleMember.groupMembers =
+                                            data.groupMembers;
                                         roleMember.groupMembers.forEach(
                                             (member) => {
                                                 member.memberFullName =
