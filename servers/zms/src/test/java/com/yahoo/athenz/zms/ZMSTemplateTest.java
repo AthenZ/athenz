@@ -18,6 +18,7 @@
 
 package com.yahoo.athenz.zms;
 
+import com.yahoo.athenz.common.server.util.ResourceUtils;
 import org.testng.annotations.*;
 
 import java.util.ArrayList;
@@ -1041,5 +1042,103 @@ public class ZMSTemplateTest {
 
         zmsImpl.putDomainTemplateExt(ctx, domainName, templateName, auditRef, templateList);
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testDeleteDomainTemplateWithGroupNoExternalRef() {
+
+        String domainName = "templatelist-delgroup-noref";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        // apply template_with_group which has a group named _domain_:group.tmpl_test_group
+
+        DomainTemplate domTemplate = new DomainTemplate();
+        List<String> templates = new ArrayList<>();
+        templates.add("template_with_group");
+        domTemplate.setTemplateNames(templates);
+        zmsImpl.putDomainTemplate(ctx, domainName, auditRef, domTemplate);
+
+        // add the template group as a member to a role in the same domain only
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "role1", null, "user.john",
+                ResourceUtils.groupResourceName(domainName, "tmpl_test_group"));
+        zmsImpl.putRole(ctx, domainName, "role1", auditRef, false, null, role1);
+
+        // delete the template - should succeed since the group is only
+        // referenced by roles in the same domain
+
+        zmsImpl.deleteDomainTemplate(ctx, domainName, "template_with_group", auditRef);
+
+        // verify the template has been removed
+
+        DomainTemplateList domainTemplateList = zmsImpl.getDomainTemplateList(ctx, domainName);
+        assertTrue(domainTemplateList.getTemplateNames().isEmpty());
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testDeleteDomainTemplateWithGroupExternalRef() {
+
+        String domainName1 = "templatelist-delgroup-extref1";
+        String domainName2 = "templatelist-delgroup-extref2";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName1,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject(domainName2,
+                "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom2);
+
+        // apply template_with_group which has a group named _domain_:group.tmpl_test_group
+
+        DomainTemplate domTemplate = new DomainTemplate();
+        List<String> templates = new ArrayList<>();
+        templates.add("template_with_group");
+        domTemplate.setTemplateNames(templates);
+        zmsImpl.putDomainTemplate(ctx, domainName1, auditRef, domTemplate);
+
+        // add the template group as a member to a role in a different domain
+
+        Role role2 = zmsTestInitializer.createRoleObject(domainName2, "role2", null, "user.john",
+                ResourceUtils.groupResourceName(domainName1, "tmpl_test_group"));
+        zmsImpl.putRole(ctx, domainName2, "role2", auditRef, false, null, role2);
+
+        // delete the template - should fail since the group is
+        // referenced by a role in another domain
+
+        try {
+            zmsImpl.deleteDomainTemplate(ctx, domainName1, "template_with_group", auditRef);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains(ResourceUtils.roleResourceName(domainName2, "role2")));
+        }
+
+        // remove the cross-domain reference and try again
+
+        zmsImpl.deleteRole(ctx, domainName2, "role2", auditRef, null);
+
+        // now the deletion should succeed
+
+        zmsImpl.deleteDomainTemplate(ctx, domainName1, "template_with_group", auditRef);
+
+        DomainTemplateList domainTemplateList = zmsImpl.getDomainTemplateList(ctx, domainName1);
+        assertTrue(domainTemplateList.getTemplateNames().isEmpty());
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName2, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName1, auditRef, null);
     }
 }
