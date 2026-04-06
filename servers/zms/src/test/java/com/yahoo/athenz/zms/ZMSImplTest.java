@@ -23321,7 +23321,7 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
 
         DomainTemplateDetailsList serverTemplateDetailsList = zmsImpl.getServerTemplateDetailsList(ctx);
-        assertEquals(serverTemplateDetailsList.getMetaData().size(), 17);
+        assertEquals(serverTemplateDetailsList.getMetaData().size(), 18);
         TemplateMetaData vipTemplateMetaData = null;
         for (TemplateMetaData templateMetaData : serverTemplateDetailsList.getMetaData()) {
             if (templateMetaData.getTemplateName().equals("vipng")) {
@@ -23340,7 +23340,7 @@ public class ZMSImplTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
 
         DomainTemplateDetailsList serverTemplateDetailsList = zmsImpl.getServerTemplateDetailsList(ctx);
-        assertEquals(serverTemplateDetailsList.getMetaData().size(), 17);
+        assertEquals(serverTemplateDetailsList.getMetaData().size(), 18);
         List<TemplateMetaData> templates = serverTemplateDetailsList.getMetaData();
 
         String previousTemplateName = "";
