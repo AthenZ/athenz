@@ -39,9 +39,13 @@ public class ZMSTestUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZMSTestUtils.class);
 
+    private static final String MYSQL_IMAGE_ENV_VAR = "ZMS_TEST_MYSQL_IMAGE";
+    private static final String DEFAULT_MYSQL_IMAGE = "mysql/mysql-server:8.0";
+
     public static MySQLContainer startMemoryMySQL(final String userName, final String password) {
 
         System.out.println("Starting MySQL server using testcontainers...");
+        final String mysqlImage = getMySQLImage();
         MySQLContainer<?> mysql = null;
         try {
 
@@ -50,7 +54,7 @@ public class ZMSTestUtils {
             FileUtils.copyFile(new File(externalInitScriptPath), destinationInitScript);
             LOG.info("Copied {} to {}", externalInitScriptPath, destinationInitScript.getAbsolutePath());
 
-            mysql = new MySQLContainer<>(DockerImageName.parse("mysql/mysql-server:8.0").asCompatibleSubstituteFor("mysql"))
+            mysql = new MySQLContainer<>(DockerImageName.parse(mysqlImage).asCompatibleSubstituteFor("mysql"))
                     .withDatabaseName("zms_server")
                     .withUsername(userName)
                     .withPassword(password)
@@ -72,6 +76,14 @@ public class ZMSTestUtils {
     public static void stopMemoryMySQL(MySQLContainer<?> mysqld) {
         System.out.println("Stopping testcontainers MySQL server...");
         mysqld.stop();
+    }
+
+    public static String getMySQLImage() {
+        String image = System.getenv("ZMS_TEST_MYSQL_IMAGE");
+        if (image == null || image.isBlank()) {
+            image = DEFAULT_MYSQL_IMAGE; // fallback to default if no image specified
+        }
+        return image;
     }
 
     public static void setDatabaseReadOnlyMode(MySQLContainer<?> mysqld, boolean readOnly,
