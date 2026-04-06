@@ -3250,6 +3250,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         templateNames.add(templateName);
         validateSolutionTemplates(templateNames, caller);
 
+        // before deleting the template, verify that template groups are not
+        // referenced by roles in other domains
+
+        Template template = serverSolutionTemplates.get(templateName);
+        if (template != null && template.getGroups() != null) {
+            for (Group group : template.getGroups()) {
+                String groupName = group.getName().replace("_domain_", domainName);
+                groupMemberConsistencyCheck(domainName, groupName, true, caller);
+            }
+        }
+
         dbService.executeDeleteDomainTemplate(ctx, domainName, templateName, auditRef, caller);
     }
 
