@@ -14,27 +14,19 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 import ServiceTabs from '../../../components/header/ServiceTabs';
+import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 
 describe('Service Tabs', () => {
     it('should render with feature flag turned on', () => {
-        const api = {
-            getStatus() {
-                return new Promise((resolve, reject) => {
-                    resolve([]);
-                });
-            },
-        };
-
         let domain = 'home.user2';
         let service = 'openstack';
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <ServiceTabs
                 domain={domain}
                 service={service}
                 selectedName='dynamic'
-                api={api}
                 featureFlag={true}
             />
         );
@@ -46,28 +38,45 @@ describe('Service Tabs', () => {
     });
 
     it('should render only one tab without feature flag', () => {
-        const api = {
-            getStatus() {
-                return new Promise((resolve, reject) => {
-                    resolve([]);
-                });
-            },
-        };
-
         let domain = 'home.user1';
         let service = 'openstack';
-        const { getByTestId } = render(
+        const { getByTestId } = renderWithRedux(
             <ServiceTabs
                 domain={domain}
                 service={service}
                 selectedName='dynamic'
-                api={api}
                 featureFlag={false}
             />
         );
         const tabs = getByTestId('tabgroup');
         const tab = tabs.querySelectorAll('.denali-tab');
         fireEvent.click(tab[0]);
+        expect(tabs).toMatchSnapshot();
+    });
+
+    it('should hide instances and microsegmentation tabs when disabled', () => {
+        let domain = 'home.user3';
+        let service = 'openstack';
+        const { getByTestId } = renderWithRedux(
+            <ServiceTabs
+                domain={domain}
+                service={service}
+                selectedName='tags'
+                featureFlag={true}
+            />,
+            {
+                domains: {
+                    featureFlag: {
+                        enabled: true,
+                        showInstances: false,
+                        showMicrosegmentation: false,
+                    },
+                },
+            }
+        );
+        const tabs = getByTestId('tabgroup');
+        const tab = tabs.querySelectorAll('.denali-tab');
+        expect(tab.length).toBe(1);
         expect(tabs).toMatchSnapshot();
     });
 });

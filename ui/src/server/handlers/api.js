@@ -2620,7 +2620,12 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'feature-flag',
     read(req, resource, params, config, callback) {
-        callback(null, appConfig.featureFlag);
+        callback(null, {
+            enabled: appConfig.featureFlag,
+            showInstances: appConfig.servicePageConfig?.showInstances !== false,
+            showProviders: appConfig.servicePageConfig?.showProviders !== false,
+            showMicrosegmentation: appConfig.showMicrosegmentation !== false,
+        });
     },
 });
 

@@ -17,7 +17,10 @@ import React from 'react';
 import TabGroup from '../denali/TabGroup';
 import { withRouter } from 'next/router';
 import { connect } from 'react-redux';
-import { selectFeatureFlag } from '../../redux/selectors/domains';
+import {
+    selectFeatureFlag,
+    selectShowMicrosegmentation,
+} from '../../redux/selectors/domains';
 
 class Tabs extends React.Component {
     constructor(props) {
@@ -130,17 +133,19 @@ class Tabs extends React.Component {
     }
 
     render() {
-        let microSeg = {
-            label: 'Microsegmentation',
-            name: 'microsegmentation',
-        };
-
-        if (this.props.featureFlag) {
-            this.TABS.push(microSeg);
-        }
+        const tabs =
+            this.props.featureFlag && this.props.showMicrosegmentation
+                ? [
+                      ...this.TABS,
+                      {
+                          label: 'Microsegmentation',
+                          name: 'microsegmentation',
+                      },
+                  ]
+                : this.TABS;
         return (
             <TabGroup
-                tabs={this.TABS}
+                tabs={tabs}
                 selectedName={this.props.selectedName}
                 onClick={this.tabClicked}
                 noanim
@@ -153,6 +158,7 @@ const mapStateToProps = (state, props) => {
     return {
         ...props,
         featureFlag: selectFeatureFlag(state),
+        showMicrosegmentation: selectShowMicrosegmentation(state),
     };
 };
 

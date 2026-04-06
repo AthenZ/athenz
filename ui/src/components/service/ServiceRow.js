@@ -129,7 +129,7 @@ class ServiceRow extends React.Component {
                         this.props.timeZone
                     )}
                 </TdStyled>
-                {this.props.featureFlag ? (
+                {this.props.featureFlag && this.props.showInstances ? (
                     <TdStyled color={color} align={center}>
                         <Icon
                             id={'view-instances-' + this.props.serviceName}
@@ -162,27 +162,31 @@ class ServiceRow extends React.Component {
                         verticalAlign={'text-bottom'}
                     />
                 </TdStyled>
-                <TdStyled color={color} align={center}>
-                    <Icon
-                        icon={'list-check'}
-                        onClick={this.clickMicrosegmentation}
-                        color={colors.icons}
-                        isLink
-                        size={'1.25em'}
-                        verticalAlign={'text-bottom'}
-                    />
-                </TdStyled>
-                <TdStyled color={color} align={center}>
-                    <Icon
-                        id={this.props.serviceName + '-providers'}
-                        icon={'cloud'}
-                        onClick={this.toggleProviders}
-                        color={colors.icons}
-                        isLink
-                        size={'1.25em'}
-                        verticalAlign={'text-bottom'}
-                    />
-                </TdStyled>
+                {this.props.featureFlag && this.props.showMicrosegmentation ? (
+                    <TdStyled color={color} align={center}>
+                        <Icon
+                            icon={'list-check'}
+                            onClick={this.clickMicrosegmentation}
+                            color={colors.icons}
+                            isLink
+                            size={'1.25em'}
+                            verticalAlign={'text-bottom'}
+                        />
+                    </TdStyled>
+                ) : null}
+                {this.props.featureFlag && this.props.showProviders ? (
+                    <TdStyled color={color} align={center}>
+                        <Icon
+                            id={this.props.serviceName + '-providers'}
+                            icon={'cloud'}
+                            onClick={this.toggleProviders}
+                            color={colors.icons}
+                            isLink
+                            size={'1.25em'}
+                            verticalAlign={'text-bottom'}
+                        />
+                    </TdStyled>
+                ) : null}
                 <TdStyled color={color} align={center}>
                     <Icon
                         id={'delete-service-' + this.props.serviceName}
