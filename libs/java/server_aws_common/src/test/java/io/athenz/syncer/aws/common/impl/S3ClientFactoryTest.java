@@ -252,6 +252,7 @@ public class S3ClientFactoryTest {
     public void testGetRegionDefaultsToUsWest2OnError() throws Exception {
         // Setup configuration with no region specified
         System.setProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ROOT_PATH, TestUtils.TESTROOT);
+        System.setProperty("aws.disableEc2Metadata", "true"); // Disable EC2 metadata to force provider chain failure
         Config.getInstance().loadProperties();
 
         try (MockedStatic<DefaultAwsRegionProviderChain> mockedChain = mockStatic(DefaultAwsRegionProviderChain.class)) {
@@ -274,6 +275,7 @@ public class S3ClientFactoryTest {
         } finally {
             // Cleanup
             System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ROOT_PATH);
+            System.clearProperty("aws.disableEc2Metadata");
         }
     }
 
