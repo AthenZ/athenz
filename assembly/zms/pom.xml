@@ -83,5 +83,16 @@
       </plugin>
     </plugins>
   </build>
-
+  <profiles>
+    <profile>
+      <id>k8s</id>
+      <dependencies>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>athenz-server-k8s-common</artifactId>
+          <version>${project.parent.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 </project>
