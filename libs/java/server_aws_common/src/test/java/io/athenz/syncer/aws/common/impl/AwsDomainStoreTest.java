@@ -52,8 +52,9 @@ public class AwsDomainStoreTest {
 
         try {
             new AwsDomainStore();
+            fail("Expected exception was not thrown");
         } catch (Exception exc) {
-            System.out.println("testCloudInitBadRegion: AwsSyncer throws=" + exc);
+            System.out.println("testAwsSyncerInitBadRegion: AwsSyncer throws=" + exc);
             assertTrue(exc instanceof SdkClientException || exc instanceof AwsServiceException,
                     "Expected SdkClientException or AwsServiceException, got: " + exc.getClass().getName());
         } finally {
