@@ -52,15 +52,17 @@ public class AwsDomainStoreTest {
 
         try {
             new AwsDomainStore();
+            fail("Expected exception was not thrown");
         } catch (Exception exc) {
-            System.out.println("testCloudInitBadRegion: AwsSyncer throws=" + exc);
-            assertTrue(exc instanceof SdkClientException);
+            System.out.println("testAwsSyncerInitBadRegion: AwsSyncer throws=" + exc);
+            assertTrue(exc instanceof SdkClientException || exc instanceof AwsServiceException,
+                    "Expected SdkClientException or AwsServiceException, got: " + exc.getClass().getName());
+        } finally {
+            System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ROOT_PATH);
+            System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_AWS_ACCESS_KEY);
+            System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_AWS_KEY_ID);
+            System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_AWS_S3_REGION);
         }
-
-        System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ROOT_PATH);
-        System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_AWS_ACCESS_KEY);
-        System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_AWS_KEY_ID);
-        System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_AWS_S3_REGION);
     }
 
     @Test
