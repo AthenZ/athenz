@@ -255,6 +255,8 @@ public class S3ClientFactoryTest {
         Config.getInstance().loadProperties();
 
         try (MockedStatic<DefaultAwsRegionProviderChain> mockedChain = mockStatic(DefaultAwsRegionProviderChain.class)) {
+            System.setProperty("aws.disableEc2Metadata", "true"); // Disable EC2 metadata to avoid IMDS calls
+
             // Mock the chain builder to return a chain that throws exception
             DefaultAwsRegionProviderChain mockProvider = mock(DefaultAwsRegionProviderChain.class);
             when(mockProvider.getRegion()).thenThrow(new RuntimeException("Test exception"));
@@ -274,6 +276,7 @@ public class S3ClientFactoryTest {
         } finally {
             // Cleanup
             System.clearProperty(Config.PROP_PREFIX + Config.SYNC_CFG_PARAM_ROOT_PATH);
+            System.clearProperty("aws.disableEc2Metadata");
         }
     }
 
