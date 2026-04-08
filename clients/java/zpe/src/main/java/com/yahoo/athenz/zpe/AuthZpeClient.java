@@ -67,6 +67,7 @@ public class AuthZpeClient {
 
     private static int allowedOffset = 300;
     private static JwtsSigningKeyResolver accessSignKeyResolver = null;
+    private static boolean tokenSignKeyResolverInitialized = false;
 
     private static ZpeClient zpeClt = null;
     private static PublicKeyStore publicKeyStore = null;
@@ -175,19 +176,25 @@ public class AuthZpeClient {
         // load the x509 issuers
         
         setX509CAIssuers(System.getProperty(ZpeConsts.ZPE_PROP_X509_CA_ISSUERS));
+
+        // initialize the access token signing key resolver
+
+        initializeAccessTokenSignKeyResolver(false);
+
+        // save the last zts api call time, and the allowed interval between api calls
+        if (tokenSignKeyResolverInitialized) {
+            setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Long.toString(30 * 1000 * 60))));
+        }
     }
 
     public static void init() {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Init: load the ZPE");
         }
-        // initialize the access token signing key resolver
-
-        initializeAccessTokenSignKeyResolver();
-
-        // save the last zts api call time, and the allowed interval between api calls
-
-        setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Long.toString(30 * 1000 * 60))));
+        if (!tokenSignKeyResolverInitialized) {
+            initializeAccessTokenSignKeyResolver(true);
+            setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Long.toString(30 * 1000 * 60))));
+        }
     }
 
     public static void close() {
@@ -197,10 +204,13 @@ public class AuthZpeClient {
         zpeClt.close();
     }
 
-    public static void initializeAccessTokenSignKeyResolver() {
+    public static void initializeAccessTokenSignKeyResolver(boolean throwOnMissingUrl) {
         String serverUrl = System.getProperty(ZpeConsts.ZPE_PROP_JWK_URI);
         if (serverUrl == null || serverUrl.isEmpty()) {
-            throw new IllegalArgumentException("Missing required property: " + ZpeConsts.ZPE_PROP_JWK_URI);
+            if (throwOnMissingUrl) {
+                throw new IllegalArgumentException("Missing required property: " + ZpeConsts.ZPE_PROP_JWK_URI);
+            }
+            return;
         }
         String proxyUrl = System.getProperty(ZpeConsts.ZPE_PROP_JWK_PROXY_URI);
 
@@ -218,6 +228,7 @@ public class AuthZpeClient {
             }
         }
         setAccessTokenSignKeyResolver(serverUrl, sslContext, proxyUrl);
+        tokenSignKeyResolverInitialized = true;
     }
 
     /**

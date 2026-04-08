@@ -1537,7 +1537,7 @@ public class TestAuthZpe {
     public void testInitializeAccessTokenSignKeyResolver() throws IOException {
         final String originalJwkValue = System.clearProperty(ZpeConsts.ZPE_PROP_JWK_URI);
         try {
-            AuthZpeClient.initializeAccessTokenSignKeyResolver();
+            AuthZpeClient.initializeAccessTokenSignKeyResolver(true);
             fail();
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("Missing required property"));
@@ -1545,7 +1545,7 @@ public class TestAuthZpe {
 
         System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, "");
         try {
-            AuthZpeClient.initializeAccessTokenSignKeyResolver();
+            AuthZpeClient.initializeAccessTokenSignKeyResolver(true);
             fail();
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("Missing required property"));
@@ -1557,7 +1557,7 @@ public class TestAuthZpe {
         System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, "file://" + jwkUri);
         System.setProperty(ZpeConsts.ZPE_PROP_JWK_PRIVATE_KEY_PATH, "src/test/resources/jwk/athenz_private.pem");
         System.setProperty(ZpeConsts.ZPE_PROP_JWK_X509_CERT_PATH, "src/test/resources/jwk/athenz_x509.pem");
-        AuthZpeClient.initializeAccessTokenSignKeyResolver();
+        AuthZpeClient.initializeAccessTokenSignKeyResolver(true);
 
         // try with valid paths
 
@@ -1565,7 +1565,7 @@ public class TestAuthZpe {
         String certPath = new File("src/test/resources/ec_public_x509.cert").getCanonicalPath();
         System.setProperty(ZpeConsts.ZPE_PROP_JWK_PRIVATE_KEY_PATH, keyPath);
         System.setProperty(ZpeConsts.ZPE_PROP_JWK_X509_CERT_PATH, certPath);
-        AuthZpeClient.initializeAccessTokenSignKeyResolver();
+        AuthZpeClient.initializeAccessTokenSignKeyResolver(true);
 
         // reset the original state
 
