@@ -230,7 +230,7 @@ public class ExternalMemberValidatorManagerTest {
 
         ExternalMemberValidatorManager manager = new ExternalMemberValidatorManager(dbService);
 
-        manager.validateMember("domain1", "user.validuser", "putMembership");
+        manager.validateMember("domain1", "domain1:ext.user.validuser", "putMembership");
 
         manager.shutdown();
     }
@@ -246,7 +246,7 @@ public class ExternalMemberValidatorManagerTest {
         ExternalMemberValidatorManager manager = new ExternalMemberValidatorManager(dbService);
 
         try {
-            manager.validateMember("domain1", "user.invalid-member", "putMembership");
+            manager.validateMember("domain1", "domain1:ext.user.invalid-member", "putMembership");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -266,7 +266,7 @@ public class ExternalMemberValidatorManagerTest {
         ExternalMemberValidatorManager manager = new ExternalMemberValidatorManager(dbService);
 
         try {
-            manager.validateMember("domain-without-validator", "user.anyuser", "putMembership");
+            manager.validateMember("domain1", "domain-without-validator:ext.user.anyuser", "putMembership");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -481,10 +481,10 @@ public class ExternalMemberValidatorManagerTest {
 
         manager.getValidators().put("domain1", mockValidator);
 
-        manager.validateMember("domain1", "user.gooduser", "putMembership");
+        manager.validateMember("domain1", "domain1:ext.user.gooduser", "putMembership");
 
         try {
-            manager.validateMember("domain1", "user.baduser", "putMembership");
+            manager.validateMember("domain1", "domain1:ext.user.baduser", "putMembership");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
