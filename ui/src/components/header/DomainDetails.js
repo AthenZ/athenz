@@ -37,6 +37,7 @@ import {
 import {
     selectProductMasterLink,
     selectTimeZone,
+    selectShowCloudAccountDetails,
 } from '../../redux/selectors/domains';
 import { makeRolesExpires } from '../../redux/actions/roles';
 import { makePoliciesExpires } from '../../redux/actions/policies';
@@ -548,22 +549,26 @@ class DomainDetails extends React.Component {
                         </ValueDiv>
                         <LabelDiv>AUDIT ENABLED</LabelDiv>
                     </SectionDiv>
-                    <SectionDiv>
-                        <ValueDiv>
-                            {this.props.domainDetails.account
-                                ? this.props.domainDetails.account
-                                : 'N/A'}
-                        </ValueDiv>
-                        <LabelDiv>AWS ACCOUNT ID</LabelDiv>
-                    </SectionDiv>
-                    <SectionDiv>
-                        <ValueDiv>
-                            {this.props.domainDetails.gcpProject
-                                ? this.props.domainDetails.gcpProject
-                                : 'N/A'}
-                        </ValueDiv>
-                        <LabelDiv>GCP PROJECT ID</LabelDiv>
-                    </SectionDiv>
+                    {this.props.showCloudAccountDetails && (
+                        <React.Fragment>
+                            <SectionDiv>
+                                <ValueDiv>
+                                    {this.props.domainDetails.account
+                                        ? this.props.domainDetails.account
+                                        : 'N/A'}
+                                </ValueDiv>
+                                <LabelDiv>AWS ACCOUNT ID</LabelDiv>
+                            </SectionDiv>
+                            <SectionDiv>
+                                <ValueDiv>
+                                    {this.props.domainDetails.gcpProject
+                                        ? this.props.domainDetails.gcpProject
+                                        : 'N/A'}
+                                </ValueDiv>
+                                <LabelDiv>GCP PROJECT ID</LabelDiv>
+                            </SectionDiv>
+                        </React.Fragment>
+                    )}
                     <ValueDiv>More Details</ValueDiv>
                     <IconContainer>
                         <Icon
@@ -579,7 +584,7 @@ class DomainDetails extends React.Component {
                             verticalAlign={'text-bottom'}
                         />
                     </IconContainer>
-                    {showOnBoardToAWS && (
+                    {this.props.showCloudAccountDetails && showOnBoardToAWS ? (
                         <SectionDiv>
                             <Button
                                 secondary
@@ -588,8 +593,9 @@ class DomainDetails extends React.Component {
                                 Onboard to AWS
                             </Button>
                         </SectionDiv>
-                    )}
-                    {this.state.showOnBoardToAWSModal ? (
+                    ) : null}
+                    {this.props.showCloudAccountDetails &&
+                    this.state.showOnBoardToAWSModal ? (
                         <AddModal
                             isOpen={this.state.showOnBoardToAWSModal}
                             cancel={this.toggleOnboardToAWSModal}
@@ -729,6 +735,7 @@ const mapStateToProps = (state, props) => {
         auditEnabled: selectDomainAuditEnabled(state),
         timeZone: selectTimeZone(state),
         userList: selectAllUsers(state),
+        showCloudAccountDetails: selectShowCloudAccountDetails(state),
     };
 };
 

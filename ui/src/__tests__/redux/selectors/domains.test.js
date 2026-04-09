@@ -24,6 +24,7 @@ import {
     selectShowInstances,
     selectShowProviders,
     selectShowMicrosegmentation,
+    selectShowCloudAccountDetails,
     selectUserLink,
     selectHeaderDetails,
     selectProductMasterLink,
@@ -190,6 +191,30 @@ describe('test domains selectors', () => {
                 },
             };
             expect(selectShowMicrosegmentation(state)).toEqual(false);
+        });
+    });
+    describe('test selectShowCloudAccountDetails selector', () => {
+        it('should return true by default', () => {
+            expect(selectShowCloudAccountDetails(stateWithDomainsData)).toEqual(
+                true
+            );
+        });
+        it('should return false when explicitly disabled', () => {
+            const state = {
+                domains: {
+                    featureFlag: {
+                        enabled: true,
+                        showCloudAccountDetails: false,
+                    },
+                },
+            };
+            expect(selectShowCloudAccountDetails(state)).toEqual(false);
+        });
+        it('should return true when not set in object', () => {
+            const state = {
+                domains: { featureFlag: { enabled: true } },
+            };
+            expect(selectShowCloudAccountDetails(state)).toEqual(true);
         });
     });
     describe('test selectUserLink selector', () => {
