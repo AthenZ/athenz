@@ -549,26 +549,26 @@ class DomainDetails extends React.Component {
                         </ValueDiv>
                         <LabelDiv>AUDIT ENABLED</LabelDiv>
                     </SectionDiv>
-                    {this.props.showCloudAccountDetails ? (
-                        <SectionDiv>
-                            <ValueDiv>
-                                {this.props.domainDetails.account
-                                    ? this.props.domainDetails.account
-                                    : 'N/A'}
-                            </ValueDiv>
-                            <LabelDiv>AWS ACCOUNT ID</LabelDiv>
-                        </SectionDiv>
-                    ) : null}
-                    {this.props.showCloudAccountDetails ? (
-                        <SectionDiv>
-                            <ValueDiv>
-                                {this.props.domainDetails.gcpProject
-                                    ? this.props.domainDetails.gcpProject
-                                    : 'N/A'}
-                            </ValueDiv>
-                            <LabelDiv>GCP PROJECT ID</LabelDiv>
-                        </SectionDiv>
-                    ) : null}
+                    {this.props.showCloudAccountDetails && (
+                        <React.Fragment>
+                            <SectionDiv>
+                                <ValueDiv>
+                                    {this.props.domainDetails.account
+                                        ? this.props.domainDetails.account
+                                        : 'N/A'}
+                                </ValueDiv>
+                                <LabelDiv>AWS ACCOUNT ID</LabelDiv>
+                            </SectionDiv>
+                            <SectionDiv>
+                                <ValueDiv>
+                                    {this.props.domainDetails.gcpProject
+                                        ? this.props.domainDetails.gcpProject
+                                        : 'N/A'}
+                                </ValueDiv>
+                                <LabelDiv>GCP PROJECT ID</LabelDiv>
+                            </SectionDiv>
+                        </React.Fragment>
+                    )}
                     <ValueDiv>More Details</ValueDiv>
                     <IconContainer>
                         <Icon
