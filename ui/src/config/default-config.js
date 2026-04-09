@@ -154,6 +154,8 @@ const config = {
         statusPath: process.env.UI_SESSION_SECRET_PATH || 'keys/cookie-session',
         featureFlag: true,
         showMicrosegmentation: true,
+        showCloudAccountDetails: true,
+        useSignedDomainsForAdminDomains: true,
         pageFeatureFlag: {
             microsegmentation: {
                 policyValidation: true,

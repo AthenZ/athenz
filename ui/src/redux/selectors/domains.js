@@ -98,6 +98,14 @@ export const selectShowMicrosegmentation = (state) => {
     if (ff && typeof ff === 'object') return ff.showMicrosegmentation !== false;
     return true;
 };
+
+export const selectShowCloudAccountDetails = (state) => {
+    const ff = state.domains.featureFlag;
+    if (ff && typeof ff === 'object')
+        return ff.showCloudAccountDetails !== false;
+    return true;
+};
+
 export const selectAuthorityAttributes = (state) => {
     return state.domains.authorityAttributes
         ? state.domains.authorityAttributes
