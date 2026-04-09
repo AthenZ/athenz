@@ -83,7 +83,7 @@
         "denali-css": "2.5.1",
         "downshift": "6.1.9",
         "emotion": "11.0.0",
-        "express": "4.21.2",
+        "express": "4.22.1",
         "fetchr": "0.5.45",
         "flatpickr": "4.6.13",
         "helmet": "6.0.0",
