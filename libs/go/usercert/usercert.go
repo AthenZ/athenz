@@ -52,6 +52,7 @@ type Options struct {
 	SubjectOrg        string // CSR subject Organization field
 	SubjectOrgUnit    string // CSR subject OrganizationalUnit field
 	SpiffeTrustDomain string // SPIFFE trust domain for URI SAN
+	Scope             string // OIDC scope parameter (default: "openid")
 	CallbackPort      string // local port for OAuth2 callback server
 	CallbackTimeout   int    // seconds to wait for IdP callback
 	ExpiryTime        int    // certificate expiry in minutes (0 = server default)
@@ -90,7 +91,11 @@ func RequestCertificate(opts Options) (string, error) {
 		log.Printf("Starting IdP authentication flow against %s\n", opts.IdpEndpoint)
 	}
 
-	authCode, err := GetAuthCode(opts.IdpEndpoint, opts.IdpClientId, opts.CallbackPort,
+	scope := opts.Scope
+	if scope == "" {
+		scope = "openid"
+	}
+	authCode, err := GetAuthCode(opts.IdpEndpoint, opts.IdpClientId, scope, opts.CallbackPort,
 		opts.CallbackTimeout, opts.Verbose)
 	if err != nil {
 		return "", fmt.Errorf("failed to obtain IdP auth code: %v", err)

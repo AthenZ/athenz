@@ -33,7 +33,7 @@ func newNonce() (string, error) {
 	return encode(n), nil
 }
 
-func getIdpAuthURL(endPoint, clientId, nonce, callbackPort string) (string, error) {
+func getIdpAuthURL(endPoint, clientId, scope, nonce, callbackPort string) (string, error) {
 	u, err := url.Parse(endPoint)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse auth endpoint: %v", err)
@@ -45,6 +45,7 @@ func getIdpAuthURL(endPoint, clientId, nonce, callbackPort string) (string, erro
 	query.Set("client_id", clientId)
 	query.Set("redirect_uri", redirectURL)
 	query.Set("response_type", "code")
+	query.Set("scope", scope)
 	query.Set("nonce", nonce)
 	query.Set("state", nonce)
 
@@ -66,8 +67,8 @@ func openBrowser(url string) error {
 	return cmd.Run()
 }
 
-func openIdpAuthURL(endPoint, clientId, nonce, callbackPort string, verbose bool) error {
-	authURL, err := getIdpAuthURL(endPoint, clientId, nonce, callbackPort)
+func openIdpAuthURL(endPoint, clientId, scope, nonce, callbackPort string, verbose bool) error {
+	authURL, err := getIdpAuthURL(endPoint, clientId, scope, nonce, callbackPort)
 	if err != nil {
 		return err
 	}
@@ -152,7 +153,7 @@ func getAuthCodeFromCallbackHandler(port string, timeoutSeconds int, verbose boo
 // to receive the IdP callback, opens the IdP authorization URL in the browser,
 // and waits for the authentication code or a timeout. Returns the raw query string
 // containing the code and state, or an error if the process fails.
-func GetAuthCode(endPoint, clientId, callbackPort string, timeoutSeconds int, verbose bool) (string, error) {
+func GetAuthCode(endPoint, clientId, scope, callbackPort string, timeoutSeconds int, verbose bool) (string, error) {
 	result := getAuthCodeFromCallbackHandler(callbackPort, timeoutSeconds, verbose)
 
 	nonce, err := newNonce()
@@ -160,7 +161,7 @@ func GetAuthCode(endPoint, clientId, callbackPort string, timeoutSeconds int, ve
 		return "", err
 	}
 
-	err = openIdpAuthURL(endPoint, clientId, nonce, callbackPort, verbose)
+	err = openIdpAuthURL(endPoint, clientId, scope, nonce, callbackPort, verbose)
 	if err != nil {
 		return "", err
 	}

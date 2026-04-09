@@ -42,7 +42,7 @@ func main() {
 	var ztsURL, privateKeyFile, userName, certFile string
 	var idpEndpoint, idpClientId, caCertFile string
 	var subjC, subjO, subjOU, spiffeTrustDomain string
-	var callbackPort string
+	var scope, callbackPort string
 	var callbackTimeout, expiryTime int
 	var proxy, verbose, showVersion bool
 
@@ -56,6 +56,7 @@ func main() {
 	flag.StringVar(&subjO, "subj-o", "", "Subject O/Organization field")
 	flag.StringVar(&subjOU, "subj-ou", DefaultSubjectOrgUnit, "Subject OU/OrganizationalUnit field")
 	flag.StringVar(&spiffeTrustDomain, "spiffe-trust-domain", "", "trust domain value for SPIFFE URI")
+	flag.StringVar(&scope, "scope", "openid", "OIDC scope parameter")
 	flag.StringVar(&callbackPort, "callback-port", DefaultCallbackPort, "local port for IdP OAuth2 callback")
 	flag.IntVar(&callbackTimeout, "callback-timeout", DefaultCallbackTimeout, "timeout in seconds for IdP auth flow")
 	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes for the certificate")
@@ -82,6 +83,7 @@ func main() {
 		SubjectOrg:        subjO,
 		SubjectOrgUnit:    subjOU,
 		SpiffeTrustDomain: spiffeTrustDomain,
+		Scope:             scope,
 		CallbackPort:      callbackPort,
 		CallbackTimeout:   callbackTimeout,
 		ExpiryTime:        expiryTime,
