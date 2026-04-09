@@ -584,8 +584,7 @@ class DomainDetails extends React.Component {
                             verticalAlign={'text-bottom'}
                         />
                     </IconContainer>
-                    {this.props.showCloudAccountDetails &&
-                    showOnBoardToAWS ? (
+                    {this.props.showCloudAccountDetails && showOnBoardToAWS ? (
                         <SectionDiv>
                             <Button
                                 secondary

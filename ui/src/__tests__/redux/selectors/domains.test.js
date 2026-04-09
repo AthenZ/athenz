@@ -195,9 +195,9 @@ describe('test domains selectors', () => {
     });
     describe('test selectShowCloudAccountDetails selector', () => {
         it('should return true by default', () => {
-            expect(
-                selectShowCloudAccountDetails(stateWithDomainsData)
-            ).toEqual(true);
+            expect(selectShowCloudAccountDetails(stateWithDomainsData)).toEqual(
+                true
+            );
         });
         it('should return false when explicitly disabled', () => {
             const state = {
