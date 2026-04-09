@@ -123,6 +123,60 @@ describe('DomainDetails', () => {
         expect(screen.getByText(organization)).toBeInTheDocument();
     });
 
+    it('should hide cloud account details when showCloudAccountDetails is false', () => {
+        const domainMetadata = {
+            modified: '2020-02-12T21:44:37.792Z',
+            ypmId: 'test',
+            org: 'test',
+            auditEnabled: true,
+            account: 'aws-account-123',
+            gcpProject: 'gcp-project-456',
+            environment: 'qa',
+        };
+        const domainData = buildDomainDataForState(domainMetadata);
+        const state = {
+            ...getStateWithDomainData(domainData),
+            domains: {
+                featureFlag: {
+                    enabled: true,
+                    showCloudAccountDetails: false,
+                },
+            },
+        };
+
+        renderWithRedux(<DomainDetails />, state);
+
+        expect(screen.queryByText('AWS ACCOUNT ID')).toBeNull();
+        expect(screen.queryByText('GCP PROJECT ID')).toBeNull();
+        expect(screen.queryByText('Onboard to AWS')).toBeNull();
+    });
+
+    it('should show cloud account details when showCloudAccountDetails is true', () => {
+        const domainMetadata = {
+            modified: '2020-02-12T21:44:37.792Z',
+            ypmId: 'test',
+            org: 'test',
+            auditEnabled: true,
+            account: 'aws-account-123',
+            environment: 'qa',
+        };
+        const domainData = buildDomainDataForState(domainMetadata);
+        const state = {
+            ...getStateWithDomainData(domainData),
+            domains: {
+                featureFlag: {
+                    enabled: true,
+                    showCloudAccountDetails: true,
+                },
+            },
+        };
+
+        renderWithRedux(<DomainDetails />, state);
+
+        expect(screen.getByText('AWS ACCOUNT ID')).toBeInTheDocument();
+        expect(screen.getByText('GCP PROJECT ID')).toBeInTheDocument();
+    });
+
     it('shows N/A when organization is empty and orgDomain is empty', () => {
         const organization = '';
         const orgDomain = '';
