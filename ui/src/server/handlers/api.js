@@ -3492,6 +3492,8 @@ module.exports.load = function (config, secrets) {
         zmsLoginUrl: config.zmsLoginUrl,
         timeZone: config.timeZone,
         featureFlag: config.featureFlag,
+        showMicrosegmentation: config.showMicrosegmentation,
+        showCloudAccountDetails: config.showCloudAccountDetails,
         pageFeatureFlag: config.pageFeatureFlag,
         serviceHeaderLinks: config.serviceHeaderLinks,
         templates: config.templates,
