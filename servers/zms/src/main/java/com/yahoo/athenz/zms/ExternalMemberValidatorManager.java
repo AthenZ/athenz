@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.ExternalMemberValidator;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
 import org.slf4j.Logger;
@@ -124,13 +125,27 @@ public class ExternalMemberValidatorManager {
      * @param caller the caller method name for error reporting
      */
     public void validateMember(final String domainName, final String memberName, final String caller) {
-        ExternalMemberValidator validator = validators.get(domainName);
+
+        // we need to separate the external member prefix from the member name
+        // and only pass the member name to the external resource validator
+        // we'll check for the missing separator though we should never get there
+        // since the server has already validated the format of the external member name
+
+        int sepIdx = memberName.indexOf(AuthorityConsts.EXT_SEP);
+        if (sepIdx == -1) {
+            throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
+        }
+
+        final String extDomainName = memberName.substring(0, sepIdx);
+        final String extMemberName = memberName.substring(sepIdx + AuthorityConsts.EXT_SEP.length());
+
+        ExternalMemberValidator validator = validators.get(extDomainName);
         if (validator == null) {
             throw ZMSUtils.requestError("External member validator for domain "
-                    + domainName + " is not available", caller);
+                    + extDomainName + " is not available", caller);
         }
-        if (!validator.validateMember(domainName, memberName)) {
-            throw ZMSUtils.requestError("Member " + memberName
+        if (!validator.validateMember(domainName, extMemberName)) {
+            throw ZMSUtils.requestError("Member " + extMemberName
                     + " is not valid according to the external member validator for domain "
                     + domainName, caller);
         }

@@ -367,7 +367,7 @@ public class ZMSExternalMemberTest {
         zmsImpl.putDomainSystemMeta(ctx, domainName, "externalmembervalidator", auditRef, dm);
         zmsImpl.externalMemberValidatorManager.refreshValidators();
 
-        zmsImpl.externalMemberValidatorManager.validateMember(domainName, "*", "testCaller");
+        zmsImpl.externalMemberValidatorManager.validateMember(domainName, domainName + ":ext.*", "testCaller");
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
@@ -395,7 +395,7 @@ public class ZMSExternalMemberTest {
         zmsImpl.externalMemberValidatorManager.refreshValidators();
 
         zmsImpl.externalMemberValidatorManager.validateMember(domainName, domainName + ":ext.part*ner", "testCaller");
-        zmsImpl.externalMemberValidatorManager.validateMember(domainName, "*partner-user", "testCaller");
+        zmsImpl.externalMemberValidatorManager.validateMember(domainName, domainName + ":ext.*:partner-user", "testCaller");
         zmsImpl.externalMemberValidatorManager.validateMember(domainName, domainName + ":ext.*partner*", "testCaller");
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -604,6 +604,113 @@ public class ZMSExternalMemberTest {
         DomainMeta dm = new DomainMeta().setExternalMemberValidator(
                 "com.yahoo.athenz.zms.TestExternalMemberValidator");
         zmsImpl.putDomainSystemMeta(ctx, domainName1, "externalmembervalidator", auditRef, dm);
+        zmsImpl.externalMemberValidatorManager.refreshValidators();
+
+        // create two roles in domain1 with the external member
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName1, "role1", null,
+                "user.joe", null);
+        zmsImpl.putRole(ctx, domainName1, "role1", auditRef, false, null, role1);
+
+        Membership extMbr = zmsTestInitializer.generateMembership("role1", externalMember);
+        zmsImpl.putMembership(ctx, domainName1, "role1", externalMember,
+                auditRef, false, null, extMbr);
+
+        Role role2 = zmsTestInitializer.createRoleObject(domainName1, "role2", null,
+                "user.jane", null);
+        zmsImpl.putRole(ctx, domainName1, "role2", auditRef, false, null, role2);
+
+        extMbr = zmsTestInitializer.generateMembership("role2", externalMember);
+        zmsImpl.putMembership(ctx, domainName1, "role2", externalMember,
+                auditRef, false, null, extMbr);
+
+        // create a role in domain2 without the external member
+
+        Role role3 = zmsTestInitializer.createRoleObject(domainName2, "role1", null,
+                "user.joe", null);
+        zmsImpl.putRole(ctx, domainName2, "role1", auditRef, false, null, role3);
+
+        // get all roles for the external member across all domains
+
+        DomainRoleMember domainRoleMember = zmsImpl.getPrincipalRoles(ctx, externalMember, null, null);
+        assertNotNull(domainRoleMember);
+        assertEquals(domainRoleMember.getMemberName(), externalMember);
+        List<MemberRole> memberRoles = domainRoleMember.getMemberRoles();
+        assertEquals(memberRoles.size(), 2);
+
+        boolean foundRole1 = false;
+        boolean foundRole2 = false;
+        for (MemberRole memberRole : memberRoles) {
+            assertEquals(memberRole.getDomainName(), domainName1);
+            if ("role1".equals(memberRole.getRoleName())) {
+                foundRole1 = true;
+            } else if ("role2".equals(memberRole.getRoleName())) {
+                foundRole2 = true;
+            }
+        }
+        assertTrue(foundRole1);
+        assertTrue(foundRole2);
+
+        // get roles filtered by domain1 only
+
+        domainRoleMember = zmsImpl.getPrincipalRoles(ctx, externalMember, domainName1, null);
+        assertNotNull(domainRoleMember);
+        assertEquals(domainRoleMember.getMemberName(), externalMember);
+        assertEquals(domainRoleMember.getMemberRoles().size(), 2);
+
+        // get roles filtered by domain2 - external member is not in any role there
+
+        domainRoleMember = zmsImpl.getPrincipalRoles(ctx, externalMember, domainName2, null);
+        assertNotNull(domainRoleMember);
+        assertEquals(domainRoleMember.getMemberName(), externalMember);
+        assertTrue(domainRoleMember.getMemberRoles().isEmpty());
+
+        // remove the external member from role1 and verify updated results
+
+        zmsImpl.deleteMembership(ctx, domainName1, "role1", externalMember, auditRef, null);
+
+        domainRoleMember = zmsImpl.getPrincipalRoles(ctx, externalMember, null, null);
+        assertNotNull(domainRoleMember);
+        assertEquals(domainRoleMember.getMemberRoles().size(), 1);
+        assertEquals(domainRoleMember.getMemberRoles().get(0).getRoleName(), "role2");
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName1, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName2, auditRef, null);
+    }
+
+    @Test
+    public void testGetPrincipalRolesWithExternalMemberDifferentDomains() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName1 = "ext-mbr-princ-roles1";
+        final String domainName2 = "ext-mbr-princ-roles2";
+        final String extDomainName = "ext-mbr-princ-roles";
+        final String externalMember = extDomainName + ":ext.partner-user";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName1,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser(),
+                ctx.principal().getFullName());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        TopLevelDomain dom2 = zmsTestInitializer.createTopLevelDomainObject(domainName2,
+                "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser(),
+                ctx.principal().getFullName());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom2);
+
+        TopLevelDomain extDom = zmsTestInitializer.createTopLevelDomainObject(extDomainName,
+            "External Domain", "testOrg", zmsTestInitializer.getAdminUser(),
+            ctx.principal().getFullName());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, extDom);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl,
+                ctx.principal().getFullName(), auditRef);
+
+        DomainMeta dm = new DomainMeta().setExternalMemberValidator(
+                "com.yahoo.athenz.zms.TestExternalMemberValidator");
+        zmsImpl.putDomainSystemMeta(ctx, extDomainName, "externalmembervalidator", auditRef, dm);
         zmsImpl.externalMemberValidatorManager.refreshValidators();
 
         // create two roles in domain1 with the external member
@@ -919,7 +1026,7 @@ public class ZMSExternalMemberTest {
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
 
         try {
-            zmsImpl.validateExternalMember("domain1", "member-without-separator", "testCaller");
+            zmsImpl.externalMemberValidatorManager.validateMember("domain1", "member-without-separator", "testCaller");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -933,7 +1040,7 @@ public class ZMSExternalMemberTest {
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
 
         try {
-            zmsImpl.validateExternalMember("domain1", "", "testCaller");
+            zmsImpl.externalMemberValidatorManager.validateMember("domain1", "", "testCaller");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -947,7 +1054,7 @@ public class ZMSExternalMemberTest {
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
 
         try {
-            zmsImpl.validateExternalMember("domain1", "user.joe", "testCaller");
+            zmsImpl.externalMemberValidatorManager.validateMember("domain1", "user.joe", "testCaller");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -962,7 +1069,7 @@ public class ZMSExternalMemberTest {
 
         // "ext." without the leading colon is not a valid separator
         try {
-            zmsImpl.validateExternalMember("domain1", "ext.partner-user", "testCaller");
+            zmsImpl.externalMemberValidatorManager.validateMember("domain1", "ext.partner-user", "testCaller");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -971,7 +1078,7 @@ public class ZMSExternalMemberTest {
 
         // colon without "ext." suffix is not a valid separator
         try {
-            zmsImpl.validateExternalMember("domain1", "domain1:partner-user", "testCaller");
+            zmsImpl.externalMemberValidatorManager.validateMember("domain1", "domain1:partner-user", "testCaller");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
@@ -1004,7 +1111,7 @@ public class ZMSExternalMemberTest {
         // valid separator present - should not throw since the member name
         // does not contain "invalid"
 
-        zmsImpl.validateExternalMember(domainName, domainName + ":ext.partner-user", "testCaller");
+        zmsImpl.externalMemberValidatorManager.validateMember(domainName, domainName + ":ext.partner-user", "testCaller");
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
