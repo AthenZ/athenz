@@ -88,7 +88,7 @@ func TestNewNonceIsValidBase64URL(t *testing.T) {
 // --- getIdpAuthURL tests ---
 
 func TestGetIdpAuthURL(t *testing.T) {
-	authURL, err := getIdpAuthURL("https://idp.example.com/oauth2/authorize", "my-client", "test-nonce", "9213")
+	authURL, err := getIdpAuthURL("https://idp.example.com/oauth2/authorize", "my-client", "openid", "test-nonce", "9213")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -121,6 +121,9 @@ func TestGetIdpAuthURL(t *testing.T) {
 	if q.Get("state") != "test-nonce" {
 		t.Errorf("expected state=test-nonce, got %s", q.Get("state"))
 	}
+	if q.Get("scope") != "openid" {
+		t.Errorf("expected scope=openid, got %s", q.Get("scope"))
+	}
 }
 
 func TestGetIdpAuthURLDifferentPorts(t *testing.T) {
@@ -135,7 +138,7 @@ func TestGetIdpAuthURLDifferentPorts(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run("port-"+tt.port, func(t *testing.T) {
-			authURL, err := getIdpAuthURL("https://idp.example.com/auth", "client", "nonce", tt.port)
+			authURL, err := getIdpAuthURL("https://idp.example.com/auth", "client", "openid", "nonce", tt.port)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -148,23 +151,34 @@ func TestGetIdpAuthURLDifferentPorts(t *testing.T) {
 }
 
 func TestGetIdpAuthURLInvalidEndpoint(t *testing.T) {
-	_, err := getIdpAuthURL("://invalid", "client", "nonce", "9213")
+	_, err := getIdpAuthURL("://invalid", "client", "openid", "nonce", "9213")
 	if err == nil {
 		t.Fatal("expected error for invalid endpoint")
 	}
 }
 
 func TestGetIdpAuthURLPreservesExistingQueryParams(t *testing.T) {
-	authURL, err := getIdpAuthURL("https://idp.example.com/auth?scope=openid", "client", "nonce", "9213")
+	authURL, err := getIdpAuthURL("https://idp.example.com/auth?extra=value", "client", "openid", "nonce", "9213")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	u, _ := url.Parse(authURL)
-	if u.Query().Get("scope") != "openid" {
-		t.Error("existing query parameter 'scope' was lost")
+	if u.Query().Get("extra") != "value" {
+		t.Error("existing query parameter 'extra' was lost")
 	}
 	if u.Query().Get("client_id") != "client" {
 		t.Error("client_id not set")
+	}
+}
+
+func TestGetIdpAuthURLCustomScope(t *testing.T) {
+	authURL, err := getIdpAuthURL("https://idp.example.com/auth", "client", "openid profile email", "nonce", "9213")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	u, _ := url.Parse(authURL)
+	if u.Query().Get("scope") != "openid profile email" {
+		t.Errorf("expected scope=openid profile email, got %s", u.Query().Get("scope"))
 	}
 }
 
