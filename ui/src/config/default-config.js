@@ -155,7 +155,6 @@ const config = {
         featureFlag: true,
         showMicrosegmentation: true,
         showCloudAccountDetails: true,
-        useSignedDomainsForAdminDomains: true,
         pageFeatureFlag: {
             microsegmentation: {
                 policyValidation: true,

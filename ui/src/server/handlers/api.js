@@ -467,44 +467,21 @@ Fetchr.registerService({
             username = req.session.shortId;
         }
         const adminReqParams = { roleMember: username, roleName: 'admin' };
-        const useSignedDomains =
-            appConfig.useSignedDomainsForAdminDomains !== false;
-        const getDomainListPromise = new Promise((resolve, reject) => {
-            req.clients.zms.getDomainList(
-                adminReqParams,
-                function (err, json) {
-                    if (err) {
-                        return reject(err);
-                    }
-                    if (!err && Array.isArray(json.names)) {
-                        return resolve(json.names);
-                    }
-                    return resolve([]);
-                }
-            );
-        });
-        if (!useSignedDomains) {
-            getDomainListPromise
-                .then((names) => {
-                    let adminDomains = names
-                        .sort()
-                        .map((name) => ({ domain: { name } }));
-                    callback(null, adminDomains);
-                })
-                .catch((err) => {
-                    debug(
-                        `principal: ${req.session.shortId} rid: ${
-                            req.headers.rid
-                        } Error from ZMS while calling getDomainList API for managedDomains : ${JSON.stringify(
-                            errorHandler.fetcherError(err)
-                        )}`
-                    );
-                    return callback(errorHandler.fetcherError(err));
-                });
-            return;
-        }
         Promise.all([
-            getDomainListPromise,
+            new Promise((resolve, reject) => {
+                req.clients.zms.getDomainList(
+                    adminReqParams,
+                    function (err, json) {
+                        if (err) {
+                            return reject(err);
+                        }
+                        if (!err && Array.isArray(json.names)) {
+                            return resolve(json.names);
+                        }
+                        return resolve([]);
+                    }
+                );
+            }),
             new Promise((resolve, reject) => {
                 req.clients.zms.getSignedDomains(
                     { metaOnly: 'true', metaAttr: 'all' },
