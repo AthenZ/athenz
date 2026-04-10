@@ -282,10 +282,13 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public TransportPolicyRules getTransportPolicyRulesByDomain(String domainName, String matchingTag, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
+    public TransportPolicyRules getTransportPolicyRulesByDomain(String domainName, Boolean includeExternalMembers, String matchingTag, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/transportpolicies")
             .resolveTemplate("domainName", domainName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        if (includeExternalMembers != null) {
+            uriBuilder.setParameter("includeExternalMembers", String.valueOf(includeExternalMembers));
+        }
         ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
@@ -363,11 +366,14 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public TransportPolicyRules getTransportPolicyRulesByService(String domainName, String serviceName, String matchingTag, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
+    public TransportPolicyRules getTransportPolicyRulesByService(String domainName, String serviceName, Boolean includeExternalMembers, String matchingTag, java.util.Map<String, java.util.List<String>> headers) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/transportpolicies")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        if (includeExternalMembers != null) {
+            uriBuilder.setParameter("includeExternalMembers", String.valueOf(includeExternalMembers));
+        }
         ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())
             .build();
