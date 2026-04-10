@@ -434,12 +434,12 @@ func (client MSDClient) GetTransportPolicyValidationStatus(domainName DomainName
 	}
 }
 
-func (client MSDClient) GetTransportPolicyRulesByDomain(domainName DomainName, matchingTag string) (*TransportPolicyRules, string, error) {
+func (client MSDClient) GetTransportPolicyRulesByDomain(domainName DomainName, includeExternalMembers *bool, matchingTag string) (*TransportPolicyRules, string, error) {
 	var data *TransportPolicyRules
 	headers := map[string]string{
 		"If-None-Match": matchingTag,
 	}
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/transportpolicies"
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/transportpolicies" + encodeParams(encodeOptionalBoolParam("includeExternalMembers", includeExternalMembers))
 	resp, err := client.httpGet(url, headers)
 	if err != nil {
 		return nil, "", err
@@ -514,12 +514,12 @@ func (client MSDClient) PutTransportPolicy(domainName DomainName, serviceName En
 	}
 }
 
-func (client MSDClient) GetTransportPolicyRulesByService(domainName DomainName, serviceName EntityName, matchingTag string) (*TransportPolicyRules, string, error) {
+func (client MSDClient) GetTransportPolicyRulesByService(domainName DomainName, serviceName EntityName, includeExternalMembers *bool, matchingTag string) (*TransportPolicyRules, string, error) {
 	var data *TransportPolicyRules
 	headers := map[string]string{
 		"If-None-Match": matchingTag,
 	}
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/transportpolicies"
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/transportpolicies" + encodeParams(encodeOptionalBoolParam("includeExternalMembers", includeExternalMembers))
 	resp, err := client.httpGet(url, headers)
 	if err != nil {
 		return nil, "", err
