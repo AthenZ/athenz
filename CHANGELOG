@@ -1,3 +1,22 @@
+Athenz v1.12.38 Release / Apr 10, 2026
+--------------------------------------
+
+#3268 extract the external domain prefix before calling validatMember method
+#3269 Bump path-to-regexp and express in /ui
+#3274 Handle missing group gracefully in role page
+#3275 Add group consistency check to domain template deletion
+#3278 Make service page Instances, Providers, and Microsegmentation configurable
+#3280 Allow MySQL test image to be configured via env var
+#3281 include k8s server common in assembly
+#3283 S3ClientFactoryTest unit test fails to receive default us-west-2
+#3284 Bump lodash from 4.17.23 to 4.18.1 in /ui
+#3287 fix AwsDomainStoreTest test exception, aws.disableEc2Metadata true
+#3291 Add scope parameter to zts-usercert OIDC authorization request
+#3294 Configurable domain page details
+#3295 wrong domain name used for external member validation check
+#3297 API changes to support external FQDN in MSD
+#3299 update go/java/npm dependencies to their latest releases
+
 Athenz v1.12.37 Release / Mar 26, 2026
 --------------------------------------
 
