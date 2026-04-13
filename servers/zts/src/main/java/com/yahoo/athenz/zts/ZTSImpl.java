@@ -4207,7 +4207,7 @@ public class ZTSImpl implements ZTSHandler {
         if (StringUtil.isEmpty(principal)) {
             principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
         }
-        validate(principal, TYPE_ENTITY_NAME, principalDomain, caller);
+        validate(principal, TYPE_PRINCIPAL_NAME, principalDomain, caller);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case since ZTS Server
@@ -6799,7 +6799,7 @@ public class ZTSImpl implements ZTSHandler {
         final String principalName = ((RsrcCtxWrapper) ctx).logPrincipal();
         final String principalDomain = ((RsrcCtxWrapper) ctx).getPrincipalDomain();
         if (principalName != null) {
-            validate(principalName, TYPE_SERVICE_NAME, "logPrincipal", principalDomain);
+            validate(principalName, TYPE_PRINCIPAL_NAME, "logPrincipal", principalDomain);
         }
         return principalDomain;
     }
