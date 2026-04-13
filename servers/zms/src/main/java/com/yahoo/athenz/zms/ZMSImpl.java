@@ -10339,7 +10339,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         final String principalName = ((RsrcCtxWrapper) ctx).logPrincipal();
         if (principalName != null) {
-            validate(principalName, TYPE_SERVICE_NAME, "logPrincipal");
+            validate(principalName, TYPE_PRINCIPAL_NAME, "logPrincipal");
         }
     }
 
@@ -11065,7 +11065,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         String checkPrincipal = null;
         if (!StringUtil.isEmpty(principal)) {
-            validate(principal, TYPE_ENTITY_NAME, caller);
+            validate(principal, TYPE_PRINCIPAL_NAME, caller);
             checkPrincipal = normalizeDomainAliasUser(principal.toLowerCase());
         } else if (StringUtil.isEmpty(checkDomainName)) {
             checkPrincipal = ctxPrincipal.getFullName();
@@ -12503,7 +12503,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         String checkPrincipal = null;
         if (!StringUtil.isEmpty(principal)) {
-            validate(principal, TYPE_ENTITY_NAME, caller);
+            validate(principal, TYPE_PRINCIPAL_NAME, caller);
             checkPrincipal = normalizeDomainAliasUser(principal.toLowerCase());
         } else if (StringUtil.isEmpty(checkDomainName)) {
             checkPrincipal = ctxPrincipal.getFullName();
@@ -13092,7 +13092,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
         }
         validateRequest(ctx.request(), caller);
-        validate(principal, TYPE_RESOURCE_NAME, caller);
+        validate(principal, TYPE_PRINCIPAL_NAME, caller);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case
@@ -13119,7 +13119,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
         }
         validateRequest(ctx.request(), caller);
-        validate(principal, TYPE_RESOURCE_NAME, caller);
+        validate(principal, TYPE_PRINCIPAL_NAME, caller);
 
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case
@@ -13165,7 +13165,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         validateRequest(ctx.request(), caller);
-        validate(principalName, TYPE_MEMBER_NAME, caller);
+        validate(principalName, TYPE_PRINCIPAL_NAME, caller);
 
         if (StringUtil.isEmpty(auditRef)) {
             throw ZMSUtils.requestError("Audit reference is required for this operation", caller);
