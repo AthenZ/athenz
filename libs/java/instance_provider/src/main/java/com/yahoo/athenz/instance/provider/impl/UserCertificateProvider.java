@@ -60,7 +60,6 @@ public class UserCertificateProvider implements InstanceProvider {
     static final String USER_CERT_PROP_CLIENT_SECRET_KEYNAME  = "athenz.zts.user_cert.idp_client_secret_keyname";
 
     static final String CODE_PREFIX = "code=";
-    static final String STATE_PREFIX = "state=";
     static final String CODE_VERIFIER_PREFIX = "code_verifier=";
 
     static final String DEFAULT_REDIRECT_URI = "http://localhost:9213/oauth2/callback";
@@ -260,7 +259,6 @@ public class UserCertificateProvider implements InstanceProvider {
     String generateAccessTokenRequestBody(final String attestationData) throws ProviderResourceException {
 
         String code = null;
-        String state = null;
         String codeVerifier = null;
 
         String requestBody = "grant_type=authorization_code"
@@ -271,8 +269,6 @@ public class UserCertificateProvider implements InstanceProvider {
         for (String param : params) {
             if (param.startsWith(CODE_PREFIX)) {
                 code = URLDecoder.decode(param.substring(CODE_PREFIX.length()), StandardCharsets.UTF_8);
-            } else if (param.startsWith(STATE_PREFIX)) {
-                state = URLDecoder.decode(param.substring(STATE_PREFIX.length()), StandardCharsets.UTF_8);
             } else if (param.startsWith(CODE_VERIFIER_PREFIX)) {
                 codeVerifier = URLDecoder.decode(param.substring(CODE_VERIFIER_PREFIX.length()), StandardCharsets.UTF_8);
             }
@@ -295,13 +291,10 @@ public class UserCertificateProvider implements InstanceProvider {
             requestBody += "&client_secret=" + URLEncoder.encode(clientSecret, StandardCharsets.UTF_8);
         }
 
-        // otherwise, return the code, state, and code verifier
+        // otherwise, return the code and code verifier
         // encoded and concatenated with the appropriate ampersands
 
         requestBody += "&" + CODE_PREFIX + URLEncoder.encode(code, StandardCharsets.UTF_8);
-        if (!StringUtil.isEmpty(state)) {
-            requestBody += "&" + STATE_PREFIX + URLEncoder.encode(state, StandardCharsets.UTF_8);
-        }
         if (!StringUtil.isEmpty(codeVerifier)) {
             requestBody += "&" + CODE_VERIFIER_PREFIX + URLEncoder.encode(codeVerifier, StandardCharsets.UTF_8);
         }

@@ -373,7 +373,7 @@ public class UserCertificateProviderTest {
         confirmation.setDomain("user");
         confirmation.setService("johndoe");
         confirmation.setProvider("sys.auth.user_cert");
-        confirmation.setAttestationData("code=test-auth-code&state=test-state");
+        confirmation.setAttestationData("code=test-auth-code");
 
         InstanceConfirmation result = spyProvider.confirmInstance(confirmation);
         assertNotNull(result);
@@ -465,7 +465,7 @@ public class UserCertificateProviderTest {
         confirmation.setDomain("user");
         confirmation.setService("johndoe");
         confirmation.setProvider("sys.auth.user_cert");
-        confirmation.setAttestationData("code=test-auth-code&state=test-state");
+        confirmation.setAttestationData("code=test-auth-code");
 
         try {
             spyProvider.confirmInstance(confirmation);
@@ -562,7 +562,7 @@ public class UserCertificateProviderTest {
         confirmation.setDomain("user");
         confirmation.setService("johndoe");
         confirmation.setProvider("sys.auth.user_cert");
-        confirmation.setAttestationData("code=invalid-code&state=test-state");
+        confirmation.setAttestationData("code=invalid-code");
 
         try {
             spyProvider.confirmInstance(confirmation);
@@ -895,7 +895,6 @@ public class UserCertificateProviderTest {
         assertTrue(body.contains("redirect_uri="));
         assertTrue(body.contains("client_secret="));
         assertTrue(body.contains("code=my-auth-code"));
-        assertFalse(body.contains("state="));
         assertFalse(body.contains("code_verifier="));
     }
 
@@ -908,7 +907,6 @@ public class UserCertificateProviderTest {
         assertTrue(body.contains("grant_type=authorization_code"));
         assertTrue(body.contains("client_secret="));
         assertTrue(body.contains("code=my-code"));
-        assertTrue(body.contains("state=my-state"));
         assertTrue(body.contains("code_verifier=my-verifier"));
     }
 

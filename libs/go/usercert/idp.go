@@ -25,8 +25,8 @@ type authResult struct {
 
 func encode(b []byte) string { return base64.RawURLEncoding.EncodeToString(b) }
 
-// newCodeVerifier generates a PKCE code verifier per RFC 7636 Section 4.1.
-// It produces a 43-character base64url-encoded string (32 random bytes).
+// newCodeVerifier generates a random base64url-encoded string of the given size in bytes.
+// It is used for PKCE code verifiers, nonces, and state values.
 func newCodeVerifier(size int) (string, error) {
 	b := make([]byte, size)
 	_, err := io.ReadFull(rand.Reader, b)
