@@ -6,6 +6,7 @@ package usercert
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -24,16 +25,25 @@ type authResult struct {
 
 func encode(b []byte) string { return base64.RawURLEncoding.EncodeToString(b) }
 
-func newNonce() (string, error) {
-	n := make([]byte, 24)
-	_, err := io.ReadFull(rand.Reader, n)
+// newCodeVerifier generates a PKCE code verifier per RFC 7636 Section 4.1.
+// It produces a 43-character base64url-encoded string (32 random bytes).
+func newCodeVerifier(size int) (string, error) {
+	b := make([]byte, size)
+	_, err := io.ReadFull(rand.Reader, b)
 	if err != nil {
 		return "", fmt.Errorf("rand read: %w", err)
 	}
-	return encode(n), nil
+	return encode(b), nil
 }
 
-func getIdpAuthURL(endPoint, clientId, scope, nonce, callbackPort string) (string, error) {
+// computeCodeChallenge computes the S256 code challenge per RFC 7636 Section 4.2:
+// BASE64URL(SHA256(code_verifier))
+func computeCodeChallenge(verifier string) string {
+	h := sha256.Sum256([]byte(verifier))
+	return encode(h[:])
+}
+
+func getIdpAuthURL(endPoint, clientId, scope, nonce, state, callbackPort, codeChallenge string) (string, error) {
 	u, err := url.Parse(endPoint)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse auth endpoint: %v", err)
@@ -47,12 +57,18 @@ func getIdpAuthURL(endPoint, clientId, scope, nonce, callbackPort string) (strin
 	query.Set("response_type", "code")
 	query.Set("scope", scope)
 	query.Set("nonce", nonce)
-	query.Set("state", nonce)
+	query.Set("state", state)
+	if codeChallenge != "" {
+		query.Set("code_challenge", codeChallenge)
+		query.Set("code_challenge_method", "S256")
+	}
 
 	u.RawQuery = query.Encode()
 
 	return u.String(), nil
 }
+
+var browserOpen = openBrowser
 
 func openBrowser(url string) error {
 	var cmd *exec.Cmd
@@ -67,8 +83,8 @@ func openBrowser(url string) error {
 	return cmd.Run()
 }
 
-func openIdpAuthURL(endPoint, clientId, scope, nonce, callbackPort string, verbose bool) error {
-	authURL, err := getIdpAuthURL(endPoint, clientId, scope, nonce, callbackPort)
+func openIdpAuthURL(endPoint, clientId, scope, nonce, state, callbackPort, codeChallenge string, verbose bool) error {
+	authURL, err := getIdpAuthURL(endPoint, clientId, scope, nonce, state, callbackPort, codeChallenge)
 	if err != nil {
 		return err
 	}
@@ -77,7 +93,7 @@ func openIdpAuthURL(endPoint, clientId, scope, nonce, callbackPort string, verbo
 		log.Printf("Opening IdP auth URL: %v", authURL)
 	}
 
-	err = openBrowser(authURL)
+	err = browserOpen(authURL)
 	if err != nil {
 		return fmt.Errorf("failed to open authorize URL: %v", err)
 	}
@@ -151,19 +167,37 @@ func getAuthCodeFromCallbackHandler(port string, timeoutSeconds int, verbose boo
 
 // GetAuthCode initiates the IdP authentication flow. It starts a local HTTP server
 // to receive the IdP callback, opens the IdP authorization URL in the browser,
-// and waits for the authentication code or a timeout. Returns the raw query string
-// containing the code and state, or an error if the process fails.
-func GetAuthCode(endPoint, clientId, scope, callbackPort string, timeoutSeconds int, verbose bool) (string, error) {
+// and waits for the authentication code or a timeout.
+// When pkce is true, PKCE (RFC 7636) support is enabled: a code verifier/challenge
+// pair is generated, the challenge is sent with the authorization request, and the
+// verifier is returned so the caller can include it in the token exchange.
+// Returns the raw query string containing the code and state, the PKCE code
+// verifier (empty when pkce is false), or an error if the process fails.
+func GetAuthCode(endPoint, clientId, scope, callbackPort string, timeoutSeconds int, pkce, verbose bool) (string, string, error) {
 	result := getAuthCodeFromCallbackHandler(callbackPort, timeoutSeconds, verbose)
 
-	nonce, err := newNonce()
+	nonce, err := newCodeVerifier(24)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	err = openIdpAuthURL(endPoint, clientId, scope, nonce, callbackPort, verbose)
+	state, err := newCodeVerifier(24)
 	if err != nil {
-		return "", err
+		return "", "", err
+	}
+
+	var codeVerifier, codeChallenge string
+	if pkce {
+		codeVerifier, err = newCodeVerifier(32)
+		if err != nil {
+			return "", "", err
+		}
+		codeChallenge = computeCodeChallenge(codeVerifier)
+	}
+
+	err = openIdpAuthURL(endPoint, clientId, scope, nonce, state, callbackPort, codeChallenge, verbose)
+	if err != nil {
+		return "", "", err
 	}
 
 	authResult := <-result
@@ -171,8 +205,16 @@ func GetAuthCode(endPoint, clientId, scope, callbackPort string, timeoutSeconds 
 		log.Printf("Received auth result, error: %v", authResult.Error)
 	}
 	if authResult.Error != nil {
-		return "", fmt.Errorf("error receiving auth code: %v", authResult.Error)
+		return "", "", fmt.Errorf("error receiving auth code: %v", authResult.Error)
 	}
 
-	return authResult.Code, nil
+	query, err := url.ParseQuery(authResult.Code)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to parse auth code: %v", err)
+	}
+	if query.Get("state") != state {
+		return "", "", fmt.Errorf("state mismatch: expected %s, got %s", state, query.Get("state"))
+	}
+
+	return authResult.Code, codeVerifier, nil
 }

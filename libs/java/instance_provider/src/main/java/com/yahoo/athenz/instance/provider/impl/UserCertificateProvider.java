@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
@@ -59,6 +60,8 @@ public class UserCertificateProvider implements InstanceProvider {
     static final String USER_CERT_PROP_CLIENT_SECRET_KEYNAME  = "athenz.zts.user_cert.idp_client_secret_keyname";
 
     static final String CODE_PREFIX = "code=";
+    static final String STATE_PREFIX = "state=";
+    static final String CODE_VERIFIER_PREFIX = "code_verifier=";
 
     static final String DEFAULT_REDIRECT_URI = "http://localhost:9213/oauth2/callback";
 
@@ -108,6 +111,11 @@ public class UserCertificateProvider implements InstanceProvider {
             }
         }
 
+        if (!tokenEndpoint.toLowerCase().startsWith("https://")) {
+            throw new ProviderResourceException(ProviderResourceException.INTERNAL_SERVER_ERROR,
+                    "IdP token endpoint must be an https url");
+        }
+
         if (StringUtil.isEmpty(jwksEndpoint)) {
             jwksEndpoint = System.getProperty(USER_CERT_PROP_JWKS_ENDPOINT);
             if (StringUtil.isEmpty(jwksEndpoint)) {
@@ -115,6 +123,12 @@ public class UserCertificateProvider implements InstanceProvider {
                         "IdP jwks endpoint not configured");
             }
         }
+
+        if (!jwksEndpoint.toLowerCase().startsWith("https://")) {
+            throw new ProviderResourceException(ProviderResourceException.INTERNAL_SERVER_ERROR,
+                    "IdP jwks endpoint must be an https url");
+        }
+
         signingKeyResolver = new JwtsSigningKeyResolver(jwksEndpoint, null);
 
         clientId = System.getProperty(USER_CERT_PROP_CLIENT_ID);
@@ -126,9 +140,13 @@ public class UserCertificateProvider implements InstanceProvider {
         clientSecret = getClientSecret();
         redirectUri = System.getProperty(USER_CERT_PROP_REDIRECT_URI, DEFAULT_REDIRECT_URI);
 
-        // extract audience. if specified, the value must match the audience in the token
+        // extract audience. the value must match the audience in the token, otherwise the token is invalid.
         
         audience = System.getProperty(USER_CERT_PROP_AUDIENCE);
+        if (StringUtil.isEmpty(audience)) {
+            throw new ProviderResourceException(ProviderResourceException.INTERNAL_SERVER_ERROR,
+                    "IdP audience not configured");
+        }
 
         // extract connection and read timeouts
         
@@ -173,18 +191,10 @@ public class UserCertificateProvider implements InstanceProvider {
             throw forbiddenError("User name not provided in confirmation");
         }
 
-        // the attestation data is the callback query string from the OAuth2 flow
-        // which contains code and state parameters - extract the code
-
-        final String authCode = extractAuthCode(attestationData);
-        if (StringUtil.isEmpty(authCode)) {
-            throw forbiddenError("Unable to extract authorization code from attestation data");
-        }
-
         // exchange the authorization code with the IdP token endpoint
 
         AccessToken accessTokenObject;
-        final String accessTokenString = exchangeAuthCodeForAccessToken(authCode);
+        final String accessTokenString = exchangeAuthCodeForAccessToken(attestationData);
         try {
             accessTokenObject = new AccessToken(accessTokenString, signingKeyResolver);
         } catch (Exception ex) {
@@ -200,7 +210,7 @@ public class UserCertificateProvider implements InstanceProvider {
 
         // verify that the audience in the token matches the configured audience
 
-        if (!StringUtil.isEmpty(audience) && !audience.equals(accessTokenObject.getAudience())) {
+        if (!audience.equals(accessTokenObject.getAudience())) {
             LOGGER.error("Audience mismatch: token-audience={} vs. configured-audience={}",
                     accessTokenObject.getAudience(), audience);
             throw forbiddenError("Token audience mismatch");
@@ -247,35 +257,61 @@ public class UserCertificateProvider implements InstanceProvider {
         return false;
     }
 
-    String extractAuthCode(final String attestationData) {
+    String generateAccessTokenRequestBody(final String attestationData) throws ProviderResourceException {
 
-        // the attestation data could be:
-        // 1. a query string from the OAuth2 callback (code=...&state=...)
-        // 2. just the raw authorization code
+        String code = null;
+        String state = null;
+        String codeVerifier = null;
 
-        if (attestationData.contains(CODE_PREFIX)) {
-            String[] params = attestationData.split("&");
-            for (String param : params) {
-                if (param.startsWith(CODE_PREFIX)) {
-                    return param.substring(CODE_PREFIX.length());
-                }
+        String requestBody = "grant_type=authorization_code"
+            + "&client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
+            + "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8);
+
+        String[] params = attestationData.split("&");
+        for (String param : params) {
+            if (param.startsWith(CODE_PREFIX)) {
+                code = URLDecoder.decode(param.substring(CODE_PREFIX.length()), StandardCharsets.UTF_8);
+            } else if (param.startsWith(STATE_PREFIX)) {
+                state = URLDecoder.decode(param.substring(STATE_PREFIX.length()), StandardCharsets.UTF_8);
+            } else if (param.startsWith(CODE_VERIFIER_PREFIX)) {
+                codeVerifier = URLDecoder.decode(param.substring(CODE_VERIFIER_PREFIX.length()), StandardCharsets.UTF_8);
             }
-            return null;
         }
 
-        return attestationData;
+        // make sure we have valid code specified in our attestation data
+
+        if (StringUtil.isEmpty(code)) {
+            throw forbiddenError("Code not provided in attestation data");
+        }
+
+        // if our secret is not configured then pkce is required and as such
+        // the code verifier must be specified in the attestation data
+
+        if (StringUtil.isEmpty(clientSecret)) {
+            if (StringUtil.isEmpty(codeVerifier)) {
+                throw forbiddenError("PKCE is required but code verifier not provided");
+            }
+        } else {
+            requestBody += "&client_secret=" + URLEncoder.encode(clientSecret, StandardCharsets.UTF_8);
+        }
+
+        // otherwise, return the code, state, and code verifier
+        // encoded and concatenated with the appropriate ampersands
+
+        requestBody += "&" + CODE_PREFIX + URLEncoder.encode(code, StandardCharsets.UTF_8);
+        if (!StringUtil.isEmpty(state)) {
+            requestBody += "&" + STATE_PREFIX + URLEncoder.encode(state, StandardCharsets.UTF_8);
+        }
+        if (!StringUtil.isEmpty(codeVerifier)) {
+            requestBody += "&" + CODE_VERIFIER_PREFIX + URLEncoder.encode(codeVerifier, StandardCharsets.UTF_8);
+        }
+
+        return requestBody;
     }
 
-    String exchangeAuthCodeForAccessToken(final String authCode) throws ProviderResourceException {
+    String exchangeAuthCodeForAccessToken(final String attestationData) throws ProviderResourceException {
 
-        final String requestBody = "grant_type=authorization_code"
-                + "&code=" + URLEncoder.encode(authCode, StandardCharsets.UTF_8)
-                + "&client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
-                + "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8)
-                + (StringUtil.isEmpty(clientSecret) ? "" :
-                    "&client_secret=" + URLEncoder.encode(clientSecret, StandardCharsets.UTF_8));
-
-        AccessTokenResponse accessTokenResponse = postTokenRequest(requestBody);
+        AccessTokenResponse accessTokenResponse = postTokenRequest(generateAccessTokenRequestBody(attestationData));
 
         final String accessToken = accessTokenResponse.getAccess_token();
         if (StringUtil.isEmpty(accessToken)) {

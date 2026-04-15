@@ -77,6 +77,7 @@ public class UserCertificateProviderTest {
         System.setProperty(UserCertificateProvider.USER_CERT_PROP_TOKEN_ENDPOINT, "https://idp.example.com/oauth2/v1/token");
         System.setProperty(UserCertificateProvider.USER_CERT_PROP_JWKS_ENDPOINT, "https://idp.example.com/oauth2/v1/keys");
         System.setProperty(UserCertificateProvider.USER_CERT_PROP_CLIENT_ID, "test-client-id");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_AUDIENCE, "test-audience");
         System.setProperty(UserCertificateProvider.USER_CERT_PROP_CLIENT_SECRET_KEYNAME, "test-secret-key");
 
         PrivateKeyStore keyStore = Mockito.mock(PrivateKeyStore.class);
@@ -92,6 +93,7 @@ public class UserCertificateProviderTest {
         assertEquals(provider.clientId, "test-client-id");
         assertEquals(provider.clientSecret, "test-secret");
         assertEquals(provider.redirectUri, UserCertificateProvider.DEFAULT_REDIRECT_URI);
+        assertEquals(provider.audience, "test-audience");
         assertEquals(provider.connectTimeout, 10000);
         assertEquals(provider.readTimeout, 15000);
         assertNotNull(provider.signingKeyResolver);
@@ -133,6 +135,7 @@ public class UserCertificateProviderTest {
     public void testInitializeWithConfigEndpoint() throws ProviderResourceException {
         System.setProperty(UserCertificateProvider.USER_CERT_PROP_CONFIG_ENDPOINT, "https://idp.example.com/.well-known/openid-configuration");
         System.setProperty(UserCertificateProvider.USER_CERT_PROP_CLIENT_ID, "test-client-id");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_AUDIENCE, "test-audience");
 
         OpenIdConfiguration openIdConfig = new OpenIdConfiguration();
         openIdConfig.setTokenEndpoint("https://idp.example.com/oauth2/token");
@@ -157,6 +160,7 @@ public class UserCertificateProviderTest {
         System.setProperty(UserCertificateProvider.USER_CERT_PROP_TOKEN_ENDPOINT, "https://idp.example.com/token");
         System.setProperty(UserCertificateProvider.USER_CERT_PROP_JWKS_ENDPOINT, "https://idp.example.com/keys");
         System.setProperty(UserCertificateProvider.USER_CERT_PROP_CLIENT_ID, "test-client-id");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_AUDIENCE, "test-audience");
 
         try (MockedConstruction<JwtsHelper> mocked = Mockito.mockConstruction(JwtsHelper.class,
                 (mock, context) -> Mockito.when(mock.extractOpenIdConfiguration(
@@ -199,6 +203,90 @@ public class UserCertificateProviderTest {
     }
 
     @Test
+    public void testInitializeTokenEndpointNotHttps() {
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_TOKEN_ENDPOINT, "http://idp.example.com/token");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_JWKS_ENDPOINT, "https://idp.example.com/keys");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_CLIENT_ID, "test-client-id");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_AUDIENCE, "test-audience");
+
+        UserCertificateProvider provider = new UserCertificateProvider();
+        try {
+            provider.initialize("sys.auth.user_cert", null, null, null);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), ProviderResourceException.INTERNAL_SERVER_ERROR);
+            assertTrue(ex.getMessage().contains("IdP token endpoint must be an https url"));
+        }
+    }
+
+    @Test
+    public void testInitializeJwksEndpointNotHttps() {
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_TOKEN_ENDPOINT, "https://idp.example.com/token");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_JWKS_ENDPOINT, "http://idp.example.com/keys");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_CLIENT_ID, "test-client-id");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_AUDIENCE, "test-audience");
+
+        UserCertificateProvider provider = new UserCertificateProvider();
+        try {
+            provider.initialize("sys.auth.user_cert", null, null, null);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), ProviderResourceException.INTERNAL_SERVER_ERROR);
+            assertTrue(ex.getMessage().contains("IdP jwks endpoint must be an https url"));
+        }
+    }
+
+    @Test
+    public void testInitializeConfigEndpointTokenNotHttps() throws ProviderResourceException {
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_CONFIG_ENDPOINT, "https://idp.example.com/.well-known/openid-configuration");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_CLIENT_ID, "test-client-id");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_AUDIENCE, "test-audience");
+
+        OpenIdConfiguration openIdConfig = new OpenIdConfiguration();
+        openIdConfig.setTokenEndpoint("http://idp.example.com/oauth2/token");
+        openIdConfig.setJwksUri("https://idp.example.com/oauth2/keys");
+
+        try (MockedConstruction<JwtsHelper> mocked = Mockito.mockConstruction(JwtsHelper.class,
+                (mock, context) -> Mockito.when(mock.extractOpenIdConfiguration(
+                        Mockito.anyString(), Mockito.any(), Mockito.any())).thenReturn(openIdConfig))) {
+
+            UserCertificateProvider provider = new UserCertificateProvider();
+            try {
+                provider.initialize("sys.auth.user_cert", null, null, null);
+                fail();
+            } catch (ProviderResourceException ex) {
+                assertEquals(ex.getCode(), ProviderResourceException.INTERNAL_SERVER_ERROR);
+                assertTrue(ex.getMessage().contains("IdP token endpoint must be an https url"));
+            }
+        }
+    }
+
+    @Test
+    public void testInitializeConfigEndpointJwksNotHttps() throws ProviderResourceException {
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_CONFIG_ENDPOINT, "https://idp.example.com/.well-known/openid-configuration");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_CLIENT_ID, "test-client-id");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_AUDIENCE, "test-audience");
+
+        OpenIdConfiguration openIdConfig = new OpenIdConfiguration();
+        openIdConfig.setTokenEndpoint("https://idp.example.com/oauth2/token");
+        openIdConfig.setJwksUri("http://idp.example.com/oauth2/keys");
+
+        try (MockedConstruction<JwtsHelper> mocked = Mockito.mockConstruction(JwtsHelper.class,
+                (mock, context) -> Mockito.when(mock.extractOpenIdConfiguration(
+                        Mockito.anyString(), Mockito.any(), Mockito.any())).thenReturn(openIdConfig))) {
+
+            UserCertificateProvider provider = new UserCertificateProvider();
+            try {
+                provider.initialize("sys.auth.user_cert", null, null, null);
+                fail();
+            } catch (ProviderResourceException ex) {
+                assertEquals(ex.getCode(), ProviderResourceException.INTERNAL_SERVER_ERROR);
+                assertTrue(ex.getMessage().contains("IdP jwks endpoint must be an https url"));
+            }
+        }
+    }
+
+    @Test
     public void testInitializeMissingClientId() {
         System.setProperty(UserCertificateProvider.USER_CERT_PROP_TOKEN_ENDPOINT, "https://idp.example.com/token");
         System.setProperty(UserCertificateProvider.USER_CERT_PROP_JWKS_ENDPOINT, "https://idp.example.com/keys");
@@ -210,6 +298,22 @@ public class UserCertificateProviderTest {
         } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), ProviderResourceException.INTERNAL_SERVER_ERROR);
             assertTrue(ex.getMessage().contains("IdP client id not configured"));
+        }
+    }
+
+    @Test
+    public void testInitializeMissingAudience() {
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_TOKEN_ENDPOINT, "https://idp.example.com/token");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_JWKS_ENDPOINT, "https://idp.example.com/keys");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_CLIENT_ID, "test-client-id");
+
+        UserCertificateProvider provider = new UserCertificateProvider();
+        try {
+            provider.initialize("sys.auth.user_cert", null, null, null);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), ProviderResourceException.INTERNAL_SERVER_ERROR);
+            assertTrue(ex.getMessage().contains("IdP audience not configured"));
         }
     }
 
@@ -255,36 +359,10 @@ public class UserCertificateProviderTest {
     }
 
     @Test
-    public void testExtractAuthCodeFromQueryString() {
-        UserCertificateProvider provider = new UserCertificateProvider();
-        assertEquals(provider.extractAuthCode("code=abc123&state=xyz"), "abc123");
-        assertEquals(provider.extractAuthCode("state=xyz&code=def456"), "def456");
-    }
-
-    @Test
-    public void testExtractAuthCodeRawValue() {
-        UserCertificateProvider provider = new UserCertificateProvider();
-        assertEquals(provider.extractAuthCode("raw-auth-code"), "raw-auth-code");
-        assertEquals(provider.extractAuthCode("some-random-string"), "some-random-string");
-    }
-
-    @Test
-    public void testExtractAuthCodeEmptyCode() {
-        UserCertificateProvider provider = new UserCertificateProvider();
-        assertEquals(provider.extractAuthCode("code=&state=xyz"), "");
-    }
-
-    @Test
-    public void testExtractAuthCodeNoCodeParam() {
-        UserCertificateProvider provider = new UserCertificateProvider();
-        assertNull(provider.extractAuthCode("mycode=abc&state=xyz"));
-    }
-
-    @Test
     public void testConfirmInstanceSuccess() throws Exception {
         UserCertificateProvider provider = createTestProvider();
 
-        String accessToken = generateMockAccessToken("johndoe", null, null);
+        String accessToken = generateMockAccessToken("johndoe", "test-audience", null);
         AccessTokenResponse tokenResponse = new AccessTokenResponse();
         tokenResponse.setAccess_token(accessToken);
 
@@ -302,15 +380,8 @@ public class UserCertificateProviderTest {
     }
 
     @Test
-    public void testConfirmInstanceWithRawAuthCode() throws Exception {
+    public void testConfirmInstanceWithRawAuthCode() {
         UserCertificateProvider provider = createTestProvider();
-
-        String accessToken = generateMockAccessToken("johndoe", null, null);
-        AccessTokenResponse tokenResponse = new AccessTokenResponse();
-        tokenResponse.setAccess_token(accessToken);
-
-        UserCertificateProvider spyProvider = Mockito.spy(provider);
-        Mockito.doReturn(tokenResponse).when(spyProvider).postTokenRequest(Mockito.anyString());
 
         InstanceConfirmation confirmation = new InstanceConfirmation();
         confirmation.setDomain("user");
@@ -318,8 +389,13 @@ public class UserCertificateProviderTest {
         confirmation.setProvider("sys.auth.user_cert");
         confirmation.setAttestationData("raw-auth-code-value");
 
-        InstanceConfirmation result = spyProvider.confirmInstance(confirmation);
-        assertNotNull(result);
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("Code not provided in attestation data"));
+        }
     }
 
     @Test
@@ -375,29 +451,10 @@ public class UserCertificateProviderTest {
     }
 
     @Test
-    public void testConfirmInstanceEmptyAuthCode() {
-        UserCertificateProvider provider = createTestProvider();
-
-        InstanceConfirmation confirmation = new InstanceConfirmation();
-        confirmation.setDomain("user");
-        confirmation.setService("johndoe");
-        confirmation.setProvider("sys.auth.user_cert");
-        confirmation.setAttestationData("mycode=abc&state=xyz");
-
-        try {
-            provider.confirmInstance(confirmation);
-            fail();
-        } catch (ProviderResourceException ex) {
-            assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
-            assertTrue(ex.getMessage().contains("Unable to extract authorization code"));
-        }
-    }
-
-    @Test
     public void testConfirmInstanceSubjectMismatch() throws Exception {
         UserCertificateProvider provider = createTestProvider();
 
-        String accessToken = generateMockAccessToken("different-user", null, null);
+        String accessToken = generateMockAccessToken("different-user", "test-audience", null);
         AccessTokenResponse tokenResponse = new AccessTokenResponse();
         tokenResponse.setAccess_token(accessToken);
 
@@ -569,7 +626,7 @@ public class UserCertificateProviderTest {
         UserCertificateProvider provider = createTestProvider();
         provider.clientSecret = "";
 
-        String accessToken = generateMockAccessToken("johndoe", null, null);
+        String accessToken = generateMockAccessToken("johndoe", "test-audience", null);
         AccessTokenResponse tokenResponse = new AccessTokenResponse();
         tokenResponse.setAccess_token(accessToken);
 
@@ -580,7 +637,7 @@ public class UserCertificateProviderTest {
         confirmation.setDomain("user");
         confirmation.setService("johndoe");
         confirmation.setProvider("sys.auth.user_cert");
-        confirmation.setAttestationData("code=test-auth-code");
+        confirmation.setAttestationData("code=test-auth-code&code_verifier=test-verifier");
 
         InstanceConfirmation result = spyProvider.confirmInstance(confirmation);
         assertNotNull(result);
@@ -677,7 +734,7 @@ public class UserCertificateProviderTest {
         HttpURLConnection mockConn = createMockConnection(200, tokenResponseJson);
         Mockito.doReturn(mockConn).when(spyProvider).createTokenEndpointConnection();
 
-        String result = spyProvider.exchangeAuthCodeForAccessToken("test-code");
+        String result = spyProvider.exchangeAuthCodeForAccessToken("code=test-code");
         assertEquals(result, accessTokenJwt);
     }
 
@@ -693,7 +750,7 @@ public class UserCertificateProviderTest {
         HttpURLConnection mockConn = createMockConnection(200, tokenResponseJson);
         Mockito.doReturn(mockConn).when(spyProvider).createTokenEndpointConnection();
 
-        String result = spyProvider.exchangeAuthCodeForAccessToken("test-code");
+        String result = spyProvider.exchangeAuthCodeForAccessToken("code=test-code&code_verifier=test-verifier");
         assertEquals(result, accessTokenJwt);
     }
 
@@ -708,7 +765,7 @@ public class UserCertificateProviderTest {
         Mockito.doReturn(mockConn).when(spyProvider).createTokenEndpointConnection();
 
         try {
-            spyProvider.exchangeAuthCodeForAccessToken("test-code");
+            spyProvider.exchangeAuthCodeForAccessToken("code=test-code");
             fail();
         } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
@@ -773,7 +830,7 @@ public class UserCertificateProviderTest {
 
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("preferred_username", "johndoe");
-        String accessToken = generateMockAccessToken("uid-12345", null, extraClaims);
+        String accessToken = generateMockAccessToken("uid-12345", "test-audience", extraClaims);
         AccessTokenResponse tokenResponse = new AccessTokenResponse();
         tokenResponse.setAccess_token(accessToken);
 
@@ -828,6 +885,92 @@ public class UserCertificateProviderTest {
         conn.disconnect();
     }
 
+    @Test
+    public void testGenerateAccessTokenRequestBodyCodeOnly() throws ProviderResourceException {
+        UserCertificateProvider provider = createTestProvider();
+
+        String body = provider.generateAccessTokenRequestBody("code=my-auth-code");
+        assertTrue(body.contains("grant_type=authorization_code"));
+        assertTrue(body.contains("client_id="));
+        assertTrue(body.contains("redirect_uri="));
+        assertTrue(body.contains("client_secret="));
+        assertTrue(body.contains("code=my-auth-code"));
+        assertFalse(body.contains("state="));
+        assertFalse(body.contains("code_verifier="));
+    }
+
+    @Test
+    public void testGenerateAccessTokenRequestBodyWithAllParams() throws ProviderResourceException {
+        UserCertificateProvider provider = createTestProvider();
+
+        String body = provider.generateAccessTokenRequestBody(
+                "code=my-code&state=my-state&code_verifier=my-verifier");
+        assertTrue(body.contains("grant_type=authorization_code"));
+        assertTrue(body.contains("client_secret="));
+        assertTrue(body.contains("code=my-code"));
+        assertTrue(body.contains("state=my-state"));
+        assertTrue(body.contains("code_verifier=my-verifier"));
+    }
+
+    @Test
+    public void testGenerateAccessTokenRequestBodyMissingCode() {
+        UserCertificateProvider provider = createTestProvider();
+
+        try {
+            provider.generateAccessTokenRequestBody("state=some-state&code_verifier=some-verifier");
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("Code not provided in attestation data"));
+        }
+    }
+
+    @Test
+    public void testGenerateAccessTokenRequestBodyPkceRequiredNoVerifier() {
+        UserCertificateProvider provider = createTestProvider();
+        provider.clientSecret = "";
+
+        try {
+            provider.generateAccessTokenRequestBody("code=my-code");
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("PKCE is required but code verifier not provided"));
+        }
+    }
+
+    @Test
+    public void testGenerateAccessTokenRequestBodyPkceWithVerifier() throws ProviderResourceException {
+        UserCertificateProvider provider = createTestProvider();
+        provider.clientSecret = "";
+
+        String body = provider.generateAccessTokenRequestBody("code=my-code&code_verifier=my-verifier");
+        assertTrue(body.contains("grant_type=authorization_code"));
+        assertFalse(body.contains("client_secret="));
+        assertTrue(body.contains("code=my-code"));
+        assertTrue(body.contains("code_verifier=my-verifier"));
+    }
+
+    @Test
+    public void testConfirmInstancePkceRequiredNoVerifier() {
+        UserCertificateProvider provider = createTestProvider();
+        provider.clientSecret = "";
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setDomain("user");
+        confirmation.setService("johndoe");
+        confirmation.setProvider("sys.auth.user_cert");
+        confirmation.setAttestationData("code=test-auth-code");
+
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("PKCE is required but code verifier not provided"));
+        }
+    }
+
     // --- helpers ---
 
     private UserCertificateProvider createTestProvider() {
@@ -836,6 +979,7 @@ public class UserCertificateProviderTest {
         provider.clientId = "test-client-id";
         provider.clientSecret = "test-secret";
         provider.redirectUri = UserCertificateProvider.DEFAULT_REDIRECT_URI;
+        provider.audience = "test-audience";
         provider.connectTimeout = 10000;
         provider.readTimeout = 15000;
         return provider;
