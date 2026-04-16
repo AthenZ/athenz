@@ -44,7 +44,7 @@ func main() {
 	var subjC, subjO, subjOU, spiffeTrustDomain string
 	var scope, callbackPort string
 	var callbackTimeout, expiryTime int
-	var proxy, verbose, showVersion bool
+	var pkce, proxy, verbose, showVersion bool
 
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
 	flag.StringVar(&privateKeyFile, "private-key", "", "private key file")
@@ -61,6 +61,7 @@ func main() {
 	flag.IntVar(&callbackTimeout, "callback-timeout", DefaultCallbackTimeout, "timeout in seconds for IdP auth flow")
 	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes for the certificate")
 	flag.StringVar(&caCertFile, "cacert", "", "CA certificate file")
+	flag.BoolVar(&pkce, "pkce", true, "enable PKCE for IdP auth flow")
 	flag.BoolVar(&proxy, "proxy", true, "enable proxy mode for request")
 	flag.BoolVar(&verbose, "verbose", false, "enable verbose logging")
 	flag.BoolVar(&showVersion, "version", false, "show version")
@@ -88,6 +89,7 @@ func main() {
 		CallbackTimeout:   callbackTimeout,
 		ExpiryTime:        expiryTime,
 		CACertFile:        caCertFile,
+		PKCE:              pkce,
 		Proxy:             proxy,
 		Verbose:           verbose,
 	}

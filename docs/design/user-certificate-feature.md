@@ -60,81 +60,88 @@ The User Certificate feature allows human users to obtain X.509 TLS client certi
 
 ```
      User              Browser          zts-usercert CLI       localhost:9213        IdP              ZTS Server
-      │                   │                    │                     │                 │                   │
-      │  run CLI          │                    │                     │                 │                   │
-      ├──────────────────►│                    │                     │                 │                   │
-      │                   │                    │                     │                 │                   │
-      │                   │   1. Read private key from file          │                 │                   │
-      │                   │   2. Generate CSR (CN=userName)          │                 │                   │
-      │                   │   3. Generate nonce (24 bytes)           │                 │                   │
-      │                   │   4. Start callback HTTP server          │                 │                   │
-      │                   │                    │◄────────────────────┤                 │                   │
-      │                   │                    │   (listening)       │                 │                   │
-      │                   │                    │                     │                 │                   │
-      │                   │   5. Open browser to IdP /authorize      │                 │                   │
-      │                   ├────────────────────┼─────────────────────┼────────────────►│                   │
-      │                   │                    │                     │  ?client_id=    │                   │
-      │                   │                    │                     │  &redirect_uri= │                   │
-      │                   │                    │                     │  localhost:9213 │                   │
-      │                   │                    │                     │  &response_type=│                   │
-      │                   │                    │                     │  code           │                   │
-      │                   │                    │                     │  &nonce=...     │                   │
-      │                   │                    │                     │  &state=...     │                   │
-      │  6. User          │                    │                     │                 │                   │
-      │  authenticates    │                    │                     │                 │                   │
-      │  with IdP         │                    │                     │                 │                   │
-      │  (login/MFA)      │                    │                     │                 │                   │
-      │                   │                    │                     │                 │                   │
-      │                   │   7. IdP redirects to callback           │                 │                   │
-      │                   │◄─────────────────────────────────────────┼─────────────────┤                   │
-      │                   │  302 → localhost:9213/oauth2/callback    │                 │                   │
-      │                   │        ?code=AUTH_CODE&state=NONCE       │                 │                   │
-      │                   │                    │                     │                 │                   │
-      │                   ├────────────────────┼────────────────────►│                 │                   │
-      │                   │                    │   GET /oauth2/      │                 │                   │
-      │                   │                    │   callback?code=... │                 │                   │
-      │                   │                    │                     │                 │                   │
-      │                   │                    │◄────────────────────┤                 │                   │
-      │                   │                    │  8. Extract raw     │                 │                   │
-      │                   │                    │  query string       │                 │                   │
-      │                   │                    │  (code=...&state=.) │                 │                   │
-      │                   │                    │                     │                 │                   │
-      │                   │   9. Redirect browser to /close page     │                 │                   │
-      │                   │◄───────────────────┼─────────────────────┤                 │                   │
-      │                   │  "Authentication    │  10. Shutdown      │                 │                   │
-      │                   │   successful"       │  callback server   │                 │                   │
-      │                   │                    │                     │                 │                   │
-      │                   │   11. POST /usercert to ZTS              │                 │                   │
-      │                   │                    ├─────────────────────┼─────────────────┼──────────────────►│
-      │                   │                    │                     │                 │   JSON body:      │
-      │                   │                    │                     │                 │   { name,         │
-      │                   │                    │                     │                 │     csr,          │
-      │                   │                    │                     │                 │     attestation   │
-      │                   │                    │                     │                 │     Data }        │
-      │                   │                    │                     │                 │                   │
-      │                   │                    │                     │                 │ 12. ZTS validates │
-      │                   │                    │                     │                 │ request, calls    │
-      │                   │                    │                     │                 │ provider          │
-      │                   │                    │                     │                 │                   │
-      │                   │                    │                     │                 │  13. Provider     │
-      │                   │                    │                     │                 │◄──────────────────│
-      │                   │                    │                     │                 │  exchanges code   │
-      │                   │                    │                     │                 │  for access token │
-      │                   │                    │                     │                 │  POST /token      │
-      │                   │                    │                     │                 │──────────────────►│
-      │                   │                    │                     │                 │                   │
-      │                   │                    │                     │                 │  14. Validate     │
-      │                   │                    │                     │                 │  JWT signature    │
-      │                   │                    │                     │                 │  + subject match  │
-      │                   │                    │                     │                 │  + audience match │
-      │                   │                    │                     │                 │                   │
-      │                   │                    │                     │                 │ 15. Sign CSR,     │
-      │                   │                    │                     │                 │ return X.509 cert │
-      │                   │                    │◄────────────────────┼─────────────────┼───────────────────│
-      │                   │                    │                     │                 │                   │
-      │                   │   16. Write cert   │                     │                 │                   │
-      │                   │   to file or stdout│                     │                 │                   │
-      │                   │                    │                     │                 │                   │
+      │                   │                    │                     │                    │                   │
+      │  run CLI          │                    │                     │                    │                   │
+      ├──────────────────►│                    │                     │                    │                   │
+      │                   │                    │                     │                    │                   │
+      │                   │   1. Read private key from file          │                    │                   │
+      │                   │   2. Generate CSR (CN=userName)          │                    │                   │
+      │                   │   3. Generate nonce + state (24 B each)  │                    │                   │
+      │                   │      Generate PKCE verifier (if enabled) │                    │                   │
+      │                   │   4. Start callback HTTP server          │                    │                   │
+      │                   │                    │◄────────────────────┤                    │                   │
+      │                   │                    │   (listening)       │                    │                   │
+      │                   │                    │                     │                    │                   │
+      │                   │   5. Open browser to IdP /authorize      │                    │                   │
+      │                   ├────────────────────┼─────────────────────┼───────────────────►│                   │
+      │                   │                    │                     │  ?client_id=       │                   │
+      │                   │                    │                     │  &redirect_uri=    │                   │
+      │                   │                    │                     │  localhost:9213    │                   │
+      │                   │                    │                     │  &response_type=   │                   │
+      │                   │                    │                     │  code              │                   │
+      │                   │                    │                     │  &scope=openid     │                   │
+      │                   │                    │                     │  &nonce=...        │                   │
+      │                   │                    │                     │  &state=...        │                   │
+      │                   │                    │                     │  &code_challenge=..│                   │
+      │                   │                    │                     │  &code_challenge_  │                   │
+      │                   │                    │                     │   method=S256      │                   │
+      │  6. User          │                    │                     │                    │                   │
+      │  authenticates    │                    │                     │                    │                   │
+      │  with IdP         │                    │                     │                    │                   │
+      │  (login/MFA)      │                    │                     │                    │                   │
+      │                   │                    │                     │                    │                   │
+      │                   │   7. IdP redirects to callback           │                    │                   │
+      │                   │◄─────────────────────────────────────────┼────────────────────┤                   │
+      │                   │  302 → localhost:9213/oauth2/callback    │                    │                   │
+      │                   │        ?code=AUTH_CODE&state=NONCE       │                    │                   │
+      │                   │                    │                     │                    │                   │
+      │                   ├────────────────────┼────────────────────►│                    │                   │
+      │                   │                    │   GET /oauth2/      │                    │                   │
+      │                   │                    │   callback?code=... │                    │                   │
+      │                   │                    │                     │                    │                   │
+      │                   │                    │◄────────────────────┤                    │                   │
+      │                   │                    │  8. Extract raw     │                    │                   │
+      │                   │                    │  query string       │                    │                   │
+      │                   │                    │  (code=...&state=.) │                    │                   │
+      │                   │                    │  Validate state     │                    │                   │
+      │                   │                    │                     │                    │                   │
+      │                   │   9. Redirect browser to /close page     │                    │                   │
+      │                   │◄───────────────────┼─────────────────────┤                    │                   │
+      │                   │  "Authentication   │  10. Shutdown       │                    │                   │
+      │                   │   successful"      │  callback server    │                    │                   │
+      │                   │                    │                     │                    │                   │
+      │                   │   11. POST /usercert to ZTS              │                    │                   │
+      │                   │                    ├─────────────────────┼────────────────────┼──────────────────►│
+      │                   │                    │                     │                    │   JSON body:      │
+      │                   │                    │                     │                    │   { name,         │
+      │                   │                    │                     │                    │     csr,          │
+      │                   │                    │                     │                    │     attestation   │
+      │                   │                    │                     │                    │     Data (code +  │
+      │                   │                    │                     │                    │     verifier) }   │
+      │                   │                    │                     │                    │                   │
+      │                   │                    │                     │                    │ 12. ZTS validates │
+      │                   │                    │                     │                    │ request, calls    │
+      │                   │                    │                     │                    │ provider          │
+      │                   │                    │                     │                    │                   │
+      │                   │                    │                     │                    │  13. Provider     │
+      │                   │                    │                     │                    │◄──────────────────│
+      │                   │                    │                     │                    │  exchanges code   │
+      │                   │                    │                     │                    │  for access token │
+      │                   │                    │                     │                    │  POST /token      │
+      │                   │                    │                     │                    │──────────────────►│
+      │                   │                    │                     │                    │                   │
+      │                   │                    │                     │                    │  14. Validate     │
+      │                   │                    │                     │                    │  JWT signature    │
+      │                   │                    │                     │                    │  + subject match  │
+      │                   │                    │                     │                    │  + audience match │
+      │                   │                    │                     │                    │                   │
+      │                   │                    │                     │                    │ 15. Sign CSR,     │
+      │                   │                    │                     │                    │ return X.509 cert │
+      │                   │                    │◄────────────────────┼────────────────────┼───────────────────│
+      │                   │                    │                     │                    │                   │
+      │                   │   16. Write cert   │                     │                    │                   │
+      │                   │   to file or stdout│                     │                    │                   │
+      │                   │                    │                     │                    │                   │
 ```
 
 ### 3.2 Server-Side Processing Flow (ZTS + Provider)
@@ -221,8 +228,12 @@ The User Certificate feature allows human users to obtain X.509 TLS client certi
           │  │ code=AUTH_CODE         │  │    │ /token  │
           │  │ client_id=...          │  │    │         │
           │  │ redirect_uri=...       │  │    └────┬────┘
-          │  │ client_secret=...      │  │         │
+          │  │ client_secret=... (*)  │  │         │
+          │  │ code_verifier=.. (**)  │  │         │
           │  └───────────┬────────────┘  │         │
+          │  (*) if configured           │         │
+          │  (**) if present; required   │         │
+          │       when no client_secret  │         │
           │              │◄──────────────┼─────────┘
           │              │ access_token  │
           │              ▼               │
@@ -233,7 +244,6 @@ The User Certificate feature allows human users to obtain X.509 TLS client certi
           │  │ • Verify subject      │   │
           │  │   matches userName    │   │
           │  │ • Verify audience     │   │
-          │  │   (if configured)     │   │
           │  └───────────┬───────────┘   │
           │              │               │
           │              ▼               │
@@ -285,11 +295,15 @@ The CLI is a thin wrapper that parses command-line flags and delegates to `userc
 - `--cert-file` — Output certificate file (default: stdout)
 - `--subj-c`, `--subj-o`, `--subj-ou` — CSR subject fields (OU defaults to "Athenz")
 - `--spiffe-trust-domain` — SPIFFE trust domain for URI SAN
+- `--scope` — OIDC scope parameter (default: "openid")
 - `--callback-port` — Local port for OAuth2 callback (default: 9213)
 - `--callback-timeout` — Timeout in seconds for IdP auth flow (default: 45s)
 - `--expiry-time` — Certificate expiry in minutes (0 = server default)
 - `--cacert` — CA certificate file for ZTS TLS verification
+- `--pkce` — Enable PKCE (RFC 7636) for the IdP auth flow (default: true)
 - `--proxy` — Enable HTTP proxy (default: true)
+- `--verbose` — Enable verbose logging
+- `--version` — Show version information and exit
 
 #### 4.1.2 Core Library (`libs/go/usercert/usercert.go`)
 
@@ -300,8 +314,8 @@ The CLI is a thin wrapper that parses command-line flags and delegates to `userc
    - `CN = userName` (without domain prefix)
    - Optional Subject fields: Country, Organization, OrganizationalUnit
    - Optional SPIFFE URI SAN: `spiffe://<trustDomain>/ns/default/sa/<userName>`
-3. **Run IdP OAuth2 flow** via `GetAuthCode()` (see Section 4.1.3).
-4. **Build `UserCertificateRequest`** with `name`, `csr`, `attestationData` (raw query string from callback), and optional `expiryTime`.
+3. **Run IdP OAuth2 flow** via `GetAuthCode()` (see Section 4.1.3). The OIDC `scope` parameter (default: "openid") is passed to the authorization request.
+4. **Build `UserCertificateRequest`** with `name`, `csr`, `attestationData`, and optional `expiryTime`. The attestation data is the raw query string from the callback; when PKCE is enabled, the code verifier is appended (e.g., `code=AUTH_CODE&state=STATE&code_verifier=VERIFIER`).
 5. **POST to ZTS** `/usercert` endpoint via the generated ZTS Go client.
 6. **Return** the X.509 certificate PEM string.
 
@@ -312,16 +326,19 @@ The CLI is a thin wrapper that parses command-line flags and delegates to `userc
 1. **Start a local HTTP server** on `localhost:<callbackPort>` with two routes:
    - `GET /oauth2/callback` — Receives the IdP redirect, captures `code` and `state` from the query string, redirects to `/close`.
    - `GET /close` — Renders a static HTML page ("Authentication successful. You may close this window.").
-2. **Generate a cryptographic nonce** (24 random bytes, base64url-encoded) used as both `nonce` and `state` parameters.
-3. **Open the system browser** to the IdP authorization URL:
+2. **Generate cryptographic nonce and state** — Two independent random values (24 bytes each, base64url-encoded) are generated for the `nonce` and `state` parameters respectively.
+3. **Generate PKCE code verifier and challenge** (when PKCE is enabled) — A code verifier (32 random bytes, base64url-encoded) is generated per RFC 7636. The code challenge is computed as `BASE64URL(SHA256(code_verifier))` using the S256 method.
+4. **Open the system browser** to the IdP authorization URL:
    ```
-   <idpEndpoint>?client_id=<clientId>&redirect_uri=http://localhost:<port>/oauth2/callback&response_type=code&nonce=<nonce>&state=<nonce>
+   <idpEndpoint>?client_id=<clientId>&redirect_uri=http://localhost:<port>/oauth2/callback&response_type=code&scope=<scope>&nonce=<nonce>&state=<state>&code_challenge=<challenge>&code_challenge_method=S256
    ```
-4. **Wait** for either:
+   The `code_challenge` and `code_challenge_method` parameters are only included when PKCE is enabled.
+5. **Wait** for either:
    - The callback to deliver the authorization code (success), or
    - A timeout (default 45 seconds).
-5. **Shut down** the local HTTP server gracefully.
-6. **Return** the raw query string (e.g., `code=AUTH_CODE&state=NONCE`).
+6. **Validate state** — The `state` parameter returned in the callback is compared against the original value. A mismatch aborts the flow with an error.
+7. **Shut down** the local HTTP server gracefully.
+8. **Return** the raw query string (e.g., `code=AUTH_CODE&state=STATE`) and the PKCE code verifier (empty string when PKCE is disabled).
 
 **Security properties of the local server:**
 - Binds to `localhost` only (not `0.0.0.0`).
@@ -397,11 +414,11 @@ On startup, the provider configures itself from system properties:
 | Property | Required | Default                                 | Description |
 |---|---|-----------------------------------------|---|
 | `athenz.zts.user_cert.idp_config_endpoint` | No | —                                       | OpenID Connect discovery endpoint (auto-discovers token + JWKS endpoints) |
-| `athenz.zts.user_cert.idp_token_endpoint` | Yes* | —                                       | IdP token endpoint (*auto-discovered if config endpoint is set) |
-| `athenz.zts.user_cert.idp_jwks_endpoint` | Yes* | —                                       | IdP JWKS endpoint (*auto-discovered if config endpoint is set) |
+| `athenz.zts.user_cert.idp_token_endpoint` | Yes* | —                                       | IdP token endpoint (*auto-discovered if config endpoint is set). Must be an HTTPS URL. |
+| `athenz.zts.user_cert.idp_jwks_endpoint` | Yes* | —                                       | IdP JWKS endpoint (*auto-discovered if config endpoint is set). Must be an HTTPS URL. |
 | `athenz.zts.user_cert.idp_client_id` | Yes | —                                       | OAuth2 client ID |
 | `athenz.zts.user_cert.idp_redirect_uri` | No | `http://localhost:9213/oauth2/callback` | OAuth2 redirect URI |
-| `athenz.zts.user_cert.idp_audience` | No | —                                       | Expected audience claim in access token |
+| `athenz.zts.user_cert.idp_audience` | Yes | —                                       | Expected audience claim in access token |
 | `athenz.zts.user_cert.connect_timeout` | No | 10000 ms                                | Connection timeout for IdP requests |
 | `athenz.zts.user_cert.read_timeout` | No | 15000 ms                                | Read timeout for IdP requests |
 | `athenz.zts.user_cert.user_name_claim` | No | —                                       | Custom claim name for user identity (fallback if `sub` doesn't match) |
@@ -409,13 +426,16 @@ On startup, the provider configures itself from system properties:
 | `athenz.zts.user_cert.idp_client_secret_keygroup` | No | —                                       | Key group for secret store lookup |
 | `athenz.zts.user_cert.idp_client_secret_keyname` | No | —                                       | Key name for secret store lookup |
 
+Both the token and JWKS endpoints are validated during initialization to ensure they use HTTPS. The provider will fail to start if either endpoint uses a non-HTTPS URL, whether configured explicitly or auto-discovered via the OpenID Connect configuration endpoint.
+
 The JWKS signing key resolver is initialized to fetch and cache the IdP's public signing keys.
 
 #### 4.3.2 `confirmInstance()` — Attestation Verification
 
-1. **Extract authorization code** from `attestationData`:
-   - If the data contains `code=`, parse as query string and extract the `code` parameter.
-   - Otherwise, treat the entire string as a raw authorization code.
+1. **Extract authorization code and code verifier** from `attestationData`:
+   - The attestation data is parsed as an `&`-delimited string of key=value pairs.
+   - The `code=` parameter is extracted and URL-decoded. If no `code=` parameter is present, the request is rejected.
+   - The `code_verifier=` parameter, if present, is extracted and URL-decoded (used for PKCE).
 
 2. **Exchange auth code for access token** — POST to IdP token endpoint:
    ```
@@ -423,11 +443,14 @@ The JWKS signing key resolver is initialized to fetch and cache the IdP's public
    Content-Type: application/x-www-form-urlencoded
 
    grant_type=authorization_code
-   &code=<authCode>
    &client_id=<clientId>
    &redirect_uri=<redirectUri>
    &client_secret=<clientSecret>   (if configured)
+   &code=<authCode>
+   &code_verifier=<codeVerifier>   (if present)
    ```
+   - When `client_secret` is not configured, PKCE is required: the `code_verifier` must be present in the attestation data or the request is rejected.
+   - When `client_secret` is configured, `code_verifier` is optional but included when present.
    - Parse response as `AccessTokenResponse`.
    - Extract `access_token` field.
 
@@ -441,8 +464,8 @@ The JWKS signing key resolver is initialized to fetch and cache the IdP's public
    - If `userNameClaim` is configured, check if that custom claim equals `userName` or the full principal name.
    - If none match, reject with "Subject token does not match."
 
-5. **Validate audience** (if configured):
-   - If `audience` is configured, the token's `aud` claim must match exactly.
+5. **Validate audience**:
+   - The token's `aud` claim must match the configured `audience` value exactly.
 
 #### 4.3.3 `refreshInstance()` — Explicitly Forbidden
 
@@ -466,7 +489,7 @@ The authentication chain provides defense in depth:
 
 1. **IdP authenticates the user** — The IdP performs the actual identity verification (password, MFA, etc.).
 2. **Auth code is single-use** — The IdP authorization code can only be exchanged once for a token.
-3. **Server-side code exchange** — The auth code is exchanged for a token on the ZTS server, not the client, when a client secret is configured.
+3. **Server-side code exchange** — The auth code is exchanged for a token on the ZTS server, not the client. The exchange is protected by either a client secret (when configured) or PKCE (required when no client secret is configured).
 4. **JWT signature verification** — The access token's signature is verified against the IdP's JWKS keys.
 5. **Subject binding** — The token's subject must match the requested user name.
 6. **Certificate constraints** — The issued certificate is client-only, short-lived, and cannot be refreshed.
@@ -481,6 +504,7 @@ The authentication chain provides defense in depth:
 - The callback server binds to `localhost` only, limiting interception to local processes.
 - The auth code is single-use — the legitimate code exchange by ZTS will invalidate it.
 - When `client_secret` is configured, the attacker also needs the server-side secret.
+- When PKCE is enabled (default), the auth code is bound to the code verifier via the S256 challenge. An attacker who intercepts the code cannot exchange it without the verifier, which never leaves the client-to-ZTS path.
 - The callback server shuts down immediately after receiving the code.
 
 #### 5.2.2 Phishing / Redirect URI Manipulation
@@ -506,8 +530,8 @@ The authentication chain provides defense in depth:
 **Threat:** An attacker intercepts communication between ZTS and the IdP.
 
 **Mitigations:**
-- Token endpoint communication uses HTTPS.
-- JWKS keys are fetched over HTTPS.
+- Token endpoint communication uses HTTPS — enforced at provider initialization (non-HTTPS URLs are rejected).
+- JWKS keys are fetched over HTTPS — also enforced at provider initialization.
 - Connection and read timeouts prevent indefinite hanging (10s connect, 15s read).
 
 #### 5.2.5 CSR Manipulation
@@ -617,29 +641,40 @@ The OAuth2 Authorization Code flow was chosen because:
 - It leverages the user's browser for IdP authentication, supporting MFA and SSO.
 - The authorization code is single-use and short-lived.
 
-### 7.2 Attestation Data = Raw Query String
+### 7.2 PKCE Support (RFC 7636)
 
-The attestation data sent to ZTS is the raw query string from the OAuth2 callback (e.g., `code=AUTH_CODE&state=NONCE`). The provider extracts the code from this string. This design:
-- Keeps the client simple — it forwards the callback data as-is.
-- Allows the provider to be extended to validate the `state` parameter if needed.
-- Supports both query-string format and raw code values.
+The implementation supports Proof Key for Code Exchange (PKCE) per RFC 7636 with the S256 challenge method. When PKCE is enabled on the client:
 
-### 7.3 No Certificate Refresh
+1. The CLI generates a random code verifier (32 bytes, base64url-encoded) and computes the S256 challenge.
+2. The code challenge is sent with the authorization request to the IdP.
+3. The code verifier is included in the attestation data sent to ZTS.
+4. The provider forwards the code verifier to the IdP token endpoint during the code exchange.
+
+PKCE is required on the server side when no client secret is configured, ensuring that the authorization code cannot be exchanged without proof of possession. This is the recommended configuration for public/native clients where a client secret cannot be securely stored.
+
+### 7.3 Attestation Data = Raw Query String
+
+The attestation data sent to ZTS is the raw query string from the OAuth2 callback (e.g., `code=AUTH_CODE&state=STATE`), with the PKCE code verifier appended when PKCE is enabled (e.g., `code=AUTH_CODE&state=STATE&code_verifier=VERIFIER`). The provider parses this as `&`-delimited key=value pairs to extract the `code` and optional `code_verifier`. This design:
+- Keeps the client simple — it forwards the callback data with minimal transformation.
+- Allows the provider to be extended to validate additional parameters if needed.
+- Supports PKCE by carrying the code verifier alongside the authorization code in a single string.
+
+### 7.4 No Certificate Refresh
 
 User certificates explicitly cannot be refreshed. Each new certificate requires a fresh IdP authentication. This ensures:
 - Revoked/disabled users cannot continue using existing certificates after their current one expires.
 - The user's active status is re-verified with each certificate issuance.
 - Short lifetimes (max 60 minutes default) limit exposure of compromised certificates.
 
-### 7.4 Client-Only Certificate Usage
+### 7.5 Client-Only Certificate Usage
 
 Certificates are issued with `client` usage only. This prevents a user certificate from being used as a server certificate, limiting its utility in case of compromise.
 
-### 7.5 SPIFFE URI Support
+### 7.6 SPIFFE URI Support
 
 The CSR can optionally include a SPIFFE URI SAN (`spiffe://<trustDomain>/ns/default/sa/<userName>`). This enables integration with SPIFFE-aware systems while being validated against the server's configured SPIFFE URI validators.
 
-### 7.6 Audit Support
+### 7.7 Audit Support
 
 Certificate issuance is logged via `instanceCertManager.logX509Cert()`. The log includes the remote address, service name, principal name, and certificate details. This provides an audit trail for all issued user certificates.
 
@@ -647,6 +682,6 @@ Certificate issuance is logged via `instanceCertManager.logX509Cert()`. The log 
 
 ## 8. Other Considerations
 
-1. **Client secret requirement** — The client secret is optional. When not configured, the code exchange relies solely on the redirect URI validation by the IdP. For production deployments, configuring a client secret is recommended.
+1. **Client secret and PKCE** — The client secret is optional. When not configured, PKCE (RFC 7636) is required: the client must include a `code_verifier` in the attestation data, and the provider will reject requests without one. When a client secret is configured, PKCE is optional but supported — the code verifier is forwarded to the IdP when present. The CLI enables PKCE by default (`--pkce=true`).
 
 2. **Rate limiting** — The ZTS API endpoint returns `TOO_MANY_REQUESTS` (429) as a possible error code, but the rate limiting implementation is outside this feature's scope. Deployers should consider rate limiting to prevent abuse.

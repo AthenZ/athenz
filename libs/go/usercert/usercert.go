@@ -56,6 +56,7 @@ type Options struct {
 	CallbackPort      string // local port for OAuth2 callback server
 	CallbackTimeout   int    // seconds to wait for IdP callback
 	ExpiryTime        int    // certificate expiry in minutes (0 = server default)
+	PKCE              bool   // enable PKCE for IdP auth flow
 	Proxy             bool   // use HTTP proxy from environment
 	Verbose           bool   // enable verbose logging
 }
@@ -95,8 +96,8 @@ func RequestCertificate(opts Options) (string, error) {
 	if scope == "" {
 		scope = "openid"
 	}
-	authCode, err := GetAuthCode(opts.IdpEndpoint, opts.IdpClientId, scope, opts.CallbackPort,
-		opts.CallbackTimeout, opts.Verbose)
+	authCode, codeVerifier, err := GetAuthCode(opts.IdpEndpoint, opts.IdpClientId, scope, opts.CallbackPort,
+		opts.CallbackTimeout, opts.PKCE, opts.Verbose)
 	if err != nil {
 		return "", fmt.Errorf("failed to obtain IdP auth code: %v", err)
 	}
@@ -117,10 +118,14 @@ func RequestCertificate(opts Options) (string, error) {
 	}
 	client := zts.NewClient(opts.ZtsURL, transport)
 
+	attestationData := authCode
+	if codeVerifier != "" {
+		attestationData = fmt.Sprintf("%s&code_verifier=%s", authCode, codeVerifier)
+	}
 	req := &zts.UserCertificateRequest{
 		Name:            opts.UserName,
 		Csr:             csrData,
-		AttestationData: authCode,
+		AttestationData: attestationData,
 	}
 	if opts.ExpiryTime > 0 {
 		expiry := int32(opts.ExpiryTime)
@@ -167,7 +172,7 @@ func Run(opts Options) {
 	}
 
 	if opts.CertFile != "" {
-		err = os.WriteFile(opts.CertFile, []byte(cert), 0644)
+		err = os.WriteFile(opts.CertFile, []byte(cert), 0600)
 		if err != nil {
 			log.Fatalf("Unable to save user certificate to %s: %v\n", opts.CertFile, err)
 		}
