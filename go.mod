@@ -1,4 +1,4 @@
-go 1.25.0
+go 1.26.2
 
 module github.com/AthenZ/athenz
 
