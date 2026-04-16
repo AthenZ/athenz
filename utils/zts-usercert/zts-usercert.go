@@ -12,6 +12,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 
 	"github.com/AthenZ/athenz/libs/go/usercert"
 )
@@ -94,5 +95,14 @@ func main() {
 		Verbose:           verbose,
 	}
 
-	usercert.Run(opts)
+	cert, err := usercert.Run(opts)
+	if err != nil {
+		log.Fatalf("Error: %v\n", err)
+	}
+
+	if opts.CertFile == "" {
+		fmt.Println(cert)
+	} else if opts.Verbose {
+		log.Printf("User certificate saved to %s\n", opts.CertFile)
+	}
 }

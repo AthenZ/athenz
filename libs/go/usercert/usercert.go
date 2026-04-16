@@ -144,15 +144,13 @@ func RequestCertificate(opts Options) (string, error) {
 	return userCert.X509Certificate, nil
 }
 
-// Run executes the full user certificate request flow. Any zero-value
-// fields in opts are populated from command-line flags before execution.
-// It writes the certificate to CertFile (or stdout) and calls
-// log.Fatalf on fatal errors.
-func Run(opts Options) {
+// Run executes the full user certificate request flow.
+// It writes the certificate to CertFile and returns
+// the certificate string and any errors that occur.
+func Run(opts Options) (string, error) {
 
 	if opts.PrivateKeyFile == "" || opts.UserName == "" {
-		log.Println("Error: missing required attributes. Run with -help for command line arguments")
-		os.Exit(1)
+		return "", fmt.Errorf("missing required Private Key File or User Name")
 	}
 
 	if opts.ZtsURL == "" || opts.IdpEndpoint == "" || opts.IdpClientId == "" {
@@ -161,27 +159,22 @@ func Run(opts Options) {
 			opts.ZtsURL = defaultConfig.Zts
 		}
 		if opts.ZtsURL == "" || opts.IdpEndpoint == "" || opts.IdpClientId == "" {
-			log.Println("Error: missing required attributes. Run with -help for command line arguments")
-			os.Exit(1)
+			return "", fmt.Errorf("missing required ZTS URL, IdP Endpoint, or IdP Client ID")
 		}
 	}
 
 	cert, err := RequestCertificate(opts)
 	if err != nil {
-		log.Fatalf("%v\n", err)
+		return "", fmt.Errorf("RequestCertificate failed: %v", err)
 	}
 
 	if opts.CertFile != "" {
 		err = os.WriteFile(opts.CertFile, []byte(cert), 0600)
 		if err != nil {
-			log.Fatalf("Unable to save user certificate to %s: %v\n", opts.CertFile, err)
+			return "", fmt.Errorf("Unable to save user certificate to %s: %v", opts.CertFile, err)
 		}
-		if opts.Verbose {
-			log.Printf("User certificate saved to %s\n", opts.CertFile)
-		}
-	} else {
-		fmt.Println(cert)
 	}
+	return cert, nil
 }
 
 func generateCSR(keySigner *signer, principalName, subjC, subjO, subjOU, spiffeTrustDomain string) (string, error) {
