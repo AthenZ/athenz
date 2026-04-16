@@ -1,17 +1,24 @@
 SCRIPT:=sia.py
+VENV:=.venv
+PYTHON:=$(VENV)/bin/python3
+PIP:=$(VENV)/bin/pip
 
 all: lint test
 
-lint:
-	@echo "Checking syntax..."
-	python3 -m py_compile $(SCRIPT)
+$(VENV):
+	python3 -m venv $(VENV)
+	$(PIP) install --quiet pytest cryptography PyJWT requests
 
-test:
+lint: $(VENV)
+	@echo "Checking syntax..."
+	$(PYTHON) -m py_compile $(SCRIPT)
+
+test: $(VENV)
 	@echo "Running tests..."
-	python3 -m pytest -v sia_test.py
+	$(PYTHON) -m pytest -v sia_test.py
 
 clean:
-	rm -rf __pycache__ .pytest_cache *.pyc
+	rm -rf __pycache__ .pytest_cache *.pyc $(VENV)
 
 ubuntu:
 	sed -i.bak s/SIA_PACKAGE_VERSION/$(PACKAGE_VERSION)/g debian/sia/DEBIAN/control
