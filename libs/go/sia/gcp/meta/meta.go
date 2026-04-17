@@ -42,7 +42,9 @@ func GetData(base, path string) ([]byte, error) {
 			return nil, lastErr
 		}
 		log.Printf("Transient error fetching metadata %s/%s (attempt %d/10): %v", base, path, i+1, lastErr)
-		time.Sleep(time.Second)
+		if i < 9 {
+			time.Sleep(time.Second * time.Duration(i+1))
+		}
 	}
 	return nil, lastErr
 }
