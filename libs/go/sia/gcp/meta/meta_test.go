@@ -21,6 +21,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 )
 
@@ -53,7 +54,11 @@ func TestGetRegion(test *testing.T) {
 	metaServer := httptest.NewServer(router)
 	defer metaServer.Close()
 
-	region := GetRegion(metaServer.URL)
+	region, err := GetRegion(metaServer.URL)
+	if err != nil {
+		test.Errorf("Unable to get region: %v", err)
+		return
+	}
 	if region != "us-west2" {
 		test.Errorf("Unable to match expected region: %s", region)
 	}
@@ -70,7 +75,11 @@ func TestGetZone(test *testing.T) {
 	metaServer := httptest.NewServer(router)
 	defer metaServer.Close()
 
-	zone := GetZone(metaServer.URL)
+	zone, err := GetZone(metaServer.URL)
+	if err != nil {
+		test.Errorf("Unable to get zone: %v", err)
+		return
+	}
 	if zone != "us-west2-a" {
 		test.Errorf("Unable to match expected zone: %s", zone)
 	}
@@ -209,5 +218,375 @@ func TestGetInstanceName(test *testing.T) {
 	instanceName, _ := GetInstanceName(metaServer.URL)
 	if instanceName != "my-vm" {
 		test.Errorf("want instanceName=my-vm got instanceName=%s", instanceName)
+	}
+}
+
+func TestGetServiceAccountInfo(test *testing.T) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "my-sa@my-gcp-project.iam.gserviceaccount.com")
+	})
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	serviceName, servicePostfix, err := GetServiceAccountInfo(metaServer.URL)
+	if err != nil {
+		test.Errorf("Unexpected error: %v", err)
+		return
+	}
+	if serviceName != "my-sa" {
+		test.Errorf("want serviceName=my-sa got serviceName=%s", serviceName)
+	}
+	if servicePostfix != "@my-gcp-project.iam.gserviceaccount.com" {
+		test.Errorf("want servicePostfix=@my-gcp-project.iam.gserviceaccount.com got servicePostfix=%s", servicePostfix)
+	}
+}
+
+func TestGetServiceAccountInfoError(test *testing.T) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	})
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, _, err := GetServiceAccountInfo(metaServer.URL)
+	if err == nil {
+		test.Error("Expected error for failed metadata fetch")
+	}
+}
+
+func TestGetServiceAccountInfoNoAtSign(test *testing.T) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "invalid-service-account")
+	})
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, _, err := GetServiceAccountInfo(metaServer.URL)
+	if err == nil {
+		test.Error("Expected error for service account without @")
+	}
+}
+
+func TestGetInstanceAttributeValue(test *testing.T) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/attributes/my-key", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "my-value")
+	})
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	value, err := GetInstanceAttributeValue(metaServer.URL, "my-key")
+	if err != nil {
+		test.Errorf("Unexpected error: %v", err)
+		return
+	}
+	if value != "my-value" {
+		test.Errorf("want value=my-value got value=%s", value)
+	}
+}
+
+func TestGetInstanceAttributeValueError(test *testing.T) {
+	router := http.NewServeMux()
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, err := GetInstanceAttributeValue(metaServer.URL, "nonexistent-key")
+	if err == nil {
+		test.Error("Expected error for missing attribute")
+	}
+}
+
+func TestGetRegionError(test *testing.T) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/zone", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	})
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, err := GetRegion(metaServer.URL)
+	if err == nil {
+		test.Error("Expected error when zone fetch fails")
+	}
+}
+
+func TestGetRegionBadZoneFormat(test *testing.T) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/zone", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "projects/123/zones/uswest2a")
+	})
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, err := GetRegion(metaServer.URL)
+	if err == nil {
+		test.Error("Expected error when zone has no dash separator")
+	}
+}
+
+func TestGetZoneError(test *testing.T) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/zone", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	})
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, err := GetZone(metaServer.URL)
+	if err == nil {
+		test.Error("Expected error when zone fetch fails")
+	}
+}
+
+func TestGetZoneNoSlashInResponse(test *testing.T) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/zone", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "us-west2-a")
+	})
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	zone, err := GetZone(metaServer.URL)
+	if err != nil {
+		test.Errorf("Unexpected error: %v", err)
+		return
+	}
+	if zone != "" {
+		test.Errorf("Expected empty zone when no slash in response, got: %s", zone)
+	}
+}
+
+func TestGetServiceNoAtSign(test *testing.T) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "invalid-service-account")
+	})
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, err := GetService(metaServer.URL)
+	if err == nil {
+		test.Error("Expected error for service account without @")
+	}
+}
+
+func TestGetServiceError(test *testing.T) {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/service-accounts/default/email", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	})
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, err := GetService(metaServer.URL)
+	if err == nil {
+		test.Error("Expected error for failed metadata fetch")
+	}
+}
+
+func TestGetDomainError(test *testing.T) {
+	router := http.NewServeMux()
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, err := GetDomain(metaServer.URL)
+	if err == nil {
+		test.Error("Expected error for failed metadata fetch")
+	}
+}
+
+func TestGetProjectError(test *testing.T) {
+	router := http.NewServeMux()
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, err := GetProject(metaServer.URL)
+	if err == nil {
+		test.Error("Expected error for failed metadata fetch")
+	}
+}
+
+func TestGetProfileError(test *testing.T) {
+	router := http.NewServeMux()
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, err := GetProfile(metaServer.URL)
+	if err == nil {
+		test.Error("Expected error for failed metadata fetch")
+	}
+}
+
+func TestGetInstanceIdError(test *testing.T) {
+	router := http.NewServeMux()
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, err := GetInstanceId(metaServer.URL)
+	if err == nil {
+		test.Error("Expected error for failed metadata fetch")
+	}
+}
+
+func TestGetInstancePrivateIpError(test *testing.T) {
+	router := http.NewServeMux()
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, err := GetInstancePrivateIp(metaServer.URL)
+	if err == nil {
+		test.Error("Expected error for failed metadata fetch")
+	}
+}
+
+func TestGetInstancePublicIpError(test *testing.T) {
+	router := http.NewServeMux()
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, err := GetInstancePublicIp(metaServer.URL)
+	if err == nil {
+		test.Error("Expected error for failed metadata fetch")
+	}
+}
+
+func TestGetInstanceNameError(test *testing.T) {
+	router := http.NewServeMux()
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, err := GetInstanceName(metaServer.URL)
+	if err == nil {
+		test.Error("Expected error for failed metadata fetch")
+	}
+}
+
+func TestGetDataConnectionRefused(test *testing.T) {
+	metaServer := httptest.NewServer(http.NewServeMux())
+	url := metaServer.URL
+	metaServer.Close()
+
+	_, err := GetData(url, "/computeMetadata/v1/instance/zone")
+	if err == nil {
+		test.Error("Expected error for closed server")
+	}
+}
+
+func TestIsTransientError(test *testing.T) {
+	tests := []struct {
+		name       string
+		statusCode int
+		want       bool
+	}{
+		{"zero status is transient", 0, true},
+		{"429 Too Many Requests is transient", http.StatusTooManyRequests, true},
+		{"500 Internal Server Error is transient", http.StatusInternalServerError, true},
+		{"502 Bad Gateway is transient", http.StatusBadGateway, true},
+		{"503 Service Unavailable is transient", http.StatusServiceUnavailable, true},
+		{"504 Gateway Timeout is transient", http.StatusGatewayTimeout, true},
+		{"400 Bad Request is not transient", http.StatusBadRequest, false},
+		{"401 Unauthorized is not transient", http.StatusUnauthorized, false},
+		{"403 Forbidden is not transient", http.StatusForbidden, false},
+		{"404 Not Found is not transient", http.StatusNotFound, false},
+		{"200 OK is not transient", http.StatusOK, false},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			got := isTransientError(tt.statusCode)
+			if got != tt.want {
+				t.Errorf("isTransientError(%d) = %v, want %v", tt.statusCode, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetDataRetryOnTransientError(test *testing.T) {
+	var callCount int32
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/zone", func(w http.ResponseWriter, r *http.Request) {
+		count := atomic.AddInt32(&callCount, 1)
+		if count <= 3 {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+		io.WriteString(w, "projects/123/zones/us-west1-a")
+	})
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	data, err := GetData(metaServer.URL, "/computeMetadata/v1/instance/zone")
+	if err != nil {
+		test.Errorf("Expected success after transient errors, got: %v", err)
+		return
+	}
+	if string(data) != "projects/123/zones/us-west1-a" {
+		test.Errorf("Unexpected data: %s", string(data))
+	}
+	if atomic.LoadInt32(&callCount) != 4 {
+		test.Errorf("Expected 4 calls, got %d", atomic.LoadInt32(&callCount))
+	}
+}
+
+func TestGetDataNoRetryOnNonTransientError(test *testing.T) {
+	var callCount int32
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/zone", func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&callCount, 1)
+		w.WriteHeader(http.StatusNotFound)
+	})
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, err := GetData(metaServer.URL, "/computeMetadata/v1/instance/zone")
+	if err == nil {
+		test.Error("Expected error for 404 response")
+		return
+	}
+	if atomic.LoadInt32(&callCount) != 1 {
+		test.Errorf("Expected 1 call (no retries for 404), got %d", atomic.LoadInt32(&callCount))
+	}
+}
+
+func TestGetDataExhaustsRetries(test *testing.T) {
+	var callCount int32
+	router := http.NewServeMux()
+	router.HandleFunc("GET /computeMetadata/v1/instance/zone", func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&callCount, 1)
+		w.WriteHeader(http.StatusInternalServerError)
+	})
+
+	metaServer := httptest.NewServer(router)
+	defer metaServer.Close()
+
+	_, err := GetData(metaServer.URL, "/computeMetadata/v1/instance/zone")
+	if err == nil {
+		test.Error("Expected error after exhausting retries")
+		return
+	}
+	if atomic.LoadInt32(&callCount) != 10 {
+		test.Errorf("Expected 10 calls (all retries exhausted), got %d", atomic.LoadInt32(&callCount))
 	}
 }

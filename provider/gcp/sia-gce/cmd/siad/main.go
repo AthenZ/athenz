@@ -89,7 +89,10 @@ func main() {
 	}
 
 	log.Printf("SIA-GCE version: %s \n", Version)
-	region := meta.GetRegion(*gceMetaEndPoint)
+	region, err := meta.GetRegion(*gceMetaEndPoint)
+	if err != nil {
+		log.Fatalf("Unable to get region, error: %v\n", err)
+	}
 
 	provider := sia.GCEProvider{
 		Name: fmt.Sprintf("%s.%s", *providerPrefix, region),

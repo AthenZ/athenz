@@ -74,7 +74,10 @@ func main() {
 	}
 
 	log.Printf("SIA-GKE version: %s \n", Version)
-	region := meta.GetRegion(*gkeMetaEndPoint)
+	region, err := meta.GetRegion(*gkeMetaEndPoint)
+	if err != nil {
+		log.Fatalf("Unable to get region, error: %v\n", err)
+	}
 
 	provider := sia.GKEProvider{
 		Name: fmt.Sprintf("%s.%s", *providerPrefix, region),
