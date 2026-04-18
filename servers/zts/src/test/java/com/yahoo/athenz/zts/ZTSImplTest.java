@@ -265,6 +265,8 @@ public class ZTSImplTest {
         // enable openid scope
 
         AccessTokenScope.setSupportOpenIdScope(true);
+        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.add(".instanceid.athenz.zts.athenz.cloud");
+        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.add(".instanceid.athenz.ostk.athenz.cloud");
     }
 
     @AfterMethod
@@ -273,6 +275,8 @@ public class ZTSImplTest {
         ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
         System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT);
         System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT);
+        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.remove(".instanceid.athenz.zts.athenz.cloud");
+        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.remove(".instanceid.athenz.ostk.athenz.cloud");
     }
 
     private ResourceContext createResourceContext(Principal principal) {

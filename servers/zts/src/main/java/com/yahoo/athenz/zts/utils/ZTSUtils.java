@@ -19,6 +19,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.Utils;
@@ -61,6 +62,10 @@ public class ZTSUtils {
     static final String ZTS_DEFAULT_EXCLUDED_PROTOCOLS = "SSLv2,SSLv3";
     public static final List<String> ZTS_CERT_DNS_SUFFIX = Arrays.asList(
             System.getProperty(ZTSConsts.ZTS_PROP_CERT_DNS_SUFFIX, ZTSConsts.ZTS_CERT_DNS_SUFFIX).split(","));
+    // generate a list of instance id dns names which based on ZTS_CERT_DNS_SUFFIX values with .instanceid.athenz. prefix
+    public static final List<String> ZTS_CERT_INSTANCE_ID_DNS_NAMES = ZTS_CERT_DNS_SUFFIX.stream()
+            .map(suffix -> ".instanceid.athenz" + suffix)
+            .collect(Collectors.toList());
 
     public static final long CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY = Long.parseLong(System.getProperty(
             ZTSConsts.ZTS_PROP_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY, ZTSConsts.ZTS_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY_DEFAULT));
@@ -248,15 +253,15 @@ public class ZTSUtils {
         }
         
         // the only two formats we're allowed to have in the CSR are:
-        // 1) <service>.<domain-with-dashes>.<provider-dns-suffix>
-        // 2) <service>.<domain-with-dashes>.instanceid.athenz.<provider-dns-suffix>
+        // 1) <service>.<domain-with-dashes>.[<components>.]<provider-dns-suffix>
+        // 2) <instance-id>.instanceid.athenz.<provider-dns-suffix>
         
         final String prefix = service + "." + domain.replace('.', '-') + ".";
         for (String dnsName : dnsNames) {
             if (dnsName.startsWith(prefix) && valueEndsWith(dnsName, ZTS_CERT_DNS_SUFFIX)) {
                 continue;
             }
-            if (dnsName.contains(ZTSConsts.ZTS_CERT_INSTANCE_ID_DNS)) {
+            if (valueEndsWith(dnsName, ZTS_CERT_INSTANCE_ID_DNS_NAMES)) {
                 continue;
             }
             LOGGER.error("validateServiceCertReqDNSNames - Invalid dnsName SAN entry: {}", dnsName);
