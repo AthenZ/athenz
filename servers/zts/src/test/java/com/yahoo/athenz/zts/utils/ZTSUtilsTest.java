@@ -211,7 +211,7 @@ public class ZTSUtilsTest {
 
         result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production");
         assertFalse(result);
-        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.remove(".instanceid.athenz.athenz.cloud");
+        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.remove(".instanceid.athenz.ostk.athenz.cloud");
     }
     
     @Test
@@ -238,7 +238,7 @@ public class ZTSUtilsTest {
 
         result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production");
         assertFalse(result);
-        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.remove(".instanceid.athenz.athenz.cloud");
+        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.remove(".instanceid.athenz.ostk.athenz.cloud");
     }
     
     @Test
@@ -263,7 +263,7 @@ public class ZTSUtilsTest {
 
         result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "productio2");
         assertFalse(result);
-        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.remove(".instanceid.athenz.athenz.cloud");
+        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.remove(".instanceid.athenz.ostk.athenz.cloud");
 
     }
     
