@@ -6400,6 +6400,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.forbiddenError("deleteAssertion: principal is not authorized to delete assertions", caller);
         }
 
+        // verify resource ownership for the request
+
+        Policy policy = dbService.getPolicy(domainName, policyName, version);
+        if (policy == null) {
+            throw ZMSUtils.notFoundError("Policy does not exist", caller);
+        }
+
+        try {
+            ResourceOwnership.verifyPolicyAssertionsDeleteResourceOwnership(policy, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
+
         dbService.executeDeleteAssertion(ctx, domainName, policyName, version, assertionId, auditRef, caller);
     }
 
@@ -7332,6 +7345,24 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify that request is properly authenticated for this request
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        // quick check to see if we have a valid service
+
+        ServiceIdentity service = dbService.getServiceIdentity(domainName, serviceName, true);
+        if (service == null) {
+            throw ZMSUtils.notFoundError("deletePublicKeyEntry: Unable to retrieve service: " +
+                    ResourceUtils.serviceResourceName(domainName, serviceName), caller);
+         }
+
+        // verify resource ownership for the request
+
+        try {
+            ResourceOwnership.verifyServicePublicKeysResourceOwnership(service, resourceOwner, caller);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
+
+        // now delete the public key entry
 
         dbService.executeDeletePublicKeyEntry(ctx, domainName, serviceName, keyId, auditRef, caller);
     }
