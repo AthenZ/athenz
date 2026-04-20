@@ -181,10 +181,6 @@ public class AuthZpeClient {
 
         initializeAccessTokenSignKeyResolver(false);
 
-        // save the last zts api call time, and the allowed interval between api calls
-        if (tokenSignKeyResolverInitialized) {
-            setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Long.toString(30 * 1000 * 60))));
-        }
     }
 
     public static void init() {
@@ -193,7 +189,6 @@ public class AuthZpeClient {
         }
         if (!tokenSignKeyResolverInitialized) {
             initializeAccessTokenSignKeyResolver(true);
-            setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Long.toString(30 * 1000 * 60))));
         }
     }
 
@@ -229,6 +224,7 @@ public class AuthZpeClient {
         }
         setAccessTokenSignKeyResolver(serverUrl, sslContext, proxyUrl);
         tokenSignKeyResolverInitialized = true;
+        setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Long.toString(30 * 1000 * 60))));
     }
 
     /**
