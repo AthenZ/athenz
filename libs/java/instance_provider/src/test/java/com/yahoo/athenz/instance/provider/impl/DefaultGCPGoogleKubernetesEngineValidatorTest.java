@@ -281,7 +281,7 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
         IdToken idToken = validator.validateIdToken("https://container.googleapis.com/v1/projects/my-project/zones/us-east1-a/clusters/my-cluster",
                 attestationData, errMsg);
         assertNull(idToken);
-        assertTrue(errMsg.toString().contains("unable to get signing key resolver for issuer"));
+        assertTrue(errMsg.toString().contains("id_token issuer does not have valid jwks uri"));
         validator.jwtsHelper = new JwtsHelper();
     }
 
