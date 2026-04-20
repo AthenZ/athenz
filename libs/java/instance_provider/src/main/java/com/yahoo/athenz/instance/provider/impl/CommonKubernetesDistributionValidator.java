@@ -101,6 +101,10 @@ public abstract class CommonKubernetesDistributionValidator implements Kubernete
 
     IdToken validateIdToken(final String issuer, IdTokenAttestationData attestationData, StringBuilder errMsg) {
         JwtsSigningKeyResolver signingKeyResolver = getSigningKeyResolverForIssuer(issuer, errMsg);
+        if (signingKeyResolver == null) {
+            errMsg.append("unable to get signing key resolver for issuer");
+            return null;
+        }
         IdToken idToken = null;
         try {
             idToken = new IdToken(attestationData.getIdentityToken(), signingKeyResolver);

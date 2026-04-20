@@ -76,6 +76,24 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
     }
 
     @Test
+    public void testValidateIssuerProjectPrefixMismatch() {
+        DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
+        try {
+            IdTokenAttestationData attestationData = new IdTokenAttestationData();
+            attestationData.setIdentityToken(createToken());
+            InstanceConfirmation confirmation = new InstanceConfirmation();
+            confirmation.setAttributes(new HashMap<>());
+            confirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_GCP_PROJECT, "my-proj");
+            StringBuilder errMsg = new StringBuilder();
+            String issuer = validator.validateIssuer(confirmation, attestationData, errMsg);
+            assertNull(issuer);
+            assertTrue(errMsg.toString().contains("Issuer is not present in the GCP project associated with the domain"));
+        } catch (Exception re){
+            fail();
+        }
+    }
+
+    @Test
     public void testValidateIssuerNoIssuerInToken() {
         DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
         try {
@@ -245,6 +263,25 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
                 attestationData, new StringBuilder());
         assertNotNull(idToken);
         removeOpenIdConfigFile(configFile, jwksUri);
+        validator.jwtsHelper = new JwtsHelper();
+    }
+
+    @Test
+    public void testValidateIdTokenSigningKeyResolverNull() {
+        DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
+        validator.issuersMap.clear();
+        validator.jwtsHelper = Mockito.mock(JwtsHelper.class);
+        when(validator.jwtsHelper.extractJwksUri(any(), any())).thenReturn("");
+
+        String testToken = IdTokenTestsHelper.createToken();
+        IdTokenAttestationData attestationData = new IdTokenAttestationData();
+        attestationData.setIdentityToken(testToken);
+
+        StringBuilder errMsg = new StringBuilder();
+        IdToken idToken = validator.validateIdToken("https://container.googleapis.com/v1/projects/my-project/zones/us-east1-a/clusters/my-cluster",
+                attestationData, errMsg);
+        assertNull(idToken);
+        assertTrue(errMsg.toString().contains("unable to get signing key resolver for issuer"));
         validator.jwtsHelper = new JwtsHelper();
     }
 
