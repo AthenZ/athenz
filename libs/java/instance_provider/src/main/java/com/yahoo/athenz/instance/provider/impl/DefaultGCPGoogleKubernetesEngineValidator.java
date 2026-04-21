@@ -91,7 +91,7 @@ public class DefaultGCPGoogleKubernetesEngineValidator extends CommonKubernetesD
             return null;
         }
         String gcpProject = confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_GCP_PROJECT);
-        if (!issuer.startsWith(GCP_OIDC_ISSUER_PREFIX + gcpProject)) {
+        if (!issuer.startsWith(GCP_OIDC_ISSUER_PREFIX + gcpProject + "/")) {
             // could be a multi-tenant setup where the issuer is not present in the identity's GCP project
             if (attrValidator != null) {
                 confirmation.getAttributes().put(ZTS_INSTANCE_UNATTESTED_ISSUER, issuer);

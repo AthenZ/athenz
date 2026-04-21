@@ -90,7 +90,7 @@ public abstract class CommonKubernetesDistributionValidator implements Kubernete
             String openIdConfigUri = idTokenIssuer + "/.well-known/openid-configuration";
             String oidcProviderJwksUri = this.jwtsHelper.extractJwksUri(openIdConfigUri, null);
             if (StringUtil.isEmpty(oidcProviderJwksUri)) {
-                errMsg.append("id_token issuer does not have valid jwks uri.");
+                errMsg.append("id_token issuer does not have valid jwks uri");
                 return null;
             }
             signingKeyResolver = new JwtsSigningKeyResolver(oidcProviderJwksUri, null, true);
@@ -101,6 +101,9 @@ public abstract class CommonKubernetesDistributionValidator implements Kubernete
 
     IdToken validateIdToken(final String issuer, IdTokenAttestationData attestationData, StringBuilder errMsg) {
         JwtsSigningKeyResolver signingKeyResolver = getSigningKeyResolverForIssuer(issuer, errMsg);
+        if (signingKeyResolver == null) {
+            return null;
+        }
         IdToken idToken = null;
         try {
             idToken = new IdToken(attestationData.getIdentityToken(), signingKeyResolver);
