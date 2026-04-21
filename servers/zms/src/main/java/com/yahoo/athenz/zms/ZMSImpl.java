@@ -24,6 +24,7 @@ import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsField;
 import com.yahoo.athenz.common.messaging.ChangePublisher;
@@ -6916,7 +6917,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // services with underscores
 
         if (allowUnderscoreInServiceNames.get() == Boolean.FALSE && serviceName.indexOf('_') != -1) {
-            if ((!isDomainFeatureFlagEnabled(domainName, ZMSConsts.ZMS_FEATURE_ALLOW_SERVICE_UNDERSCORE)) &&
+            if ((!isDomainFeatureFlagEnabled(domainName, ServerCommonConsts.ZMS_DOMAIN_FEATURE_ALLOW_SERVICE_UNDERSCORE)) &&
                     dbService.getServiceIdentity(domainName, serviceName, true) == null) {
                 errorMessage.append("service name with underscore not allowed");
                 return false;

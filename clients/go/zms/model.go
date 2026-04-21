@@ -3515,6 +3515,11 @@ type ServiceIdentity struct {
 	// the OAuth2 client id for the service (system attribute)
 	//
 	ClientId string `json:"clientId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// features enabled per service (system attribute)
+	//
+	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewServiceIdentity - creates an initialized ServiceIdentity instance, returns a pointer to it
@@ -3753,6 +3758,11 @@ type ServiceIdentitySystemMeta struct {
 	// the OAuth2 client id for the service
 	//
 	ClientId string `json:"clientId" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// features enabled per service
+	//
+	FeatureFlags *int32 `json:"featureFlags,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewServiceIdentitySystemMeta - creates an initialized ServiceIdentitySystemMeta instance, returns a pointer to it

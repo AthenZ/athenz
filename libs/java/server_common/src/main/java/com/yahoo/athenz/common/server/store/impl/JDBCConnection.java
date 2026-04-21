@@ -254,10 +254,10 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain.domain_id=service.domain_id WHERE domain.name=? AND service.name=?;";
     private static final String SQL_INSERT_SERVICE = "INSERT INTO service "
             + "(name, description, provider_endpoint, executable, svc_user, svc_group, domain_id, "
-            + "x509_cert_signer_keyid, ssh_cert_signer_keyid, client_id) VALUES (?,?,?,?,?,?,?,?,?,?);";
+            + "x509_cert_signer_keyid, ssh_cert_signer_keyid, client_id, feature_flags) VALUES (?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_SERVICE = "UPDATE service SET modified=CURRENT_TIMESTAMP(3), "
             + "description=?, provider_endpoint=?, executable=?, svc_user=?, svc_group=?, "
-            + "x509_cert_signer_keyid=?, ssh_cert_signer_keyid=?, creds=?, client_id=? WHERE service_id=?;";
+            + "x509_cert_signer_keyid=?, ssh_cert_signer_keyid=?, creds=?, client_id=?, feature_flags=? WHERE service_id=?;";
     private static final String SQL_UPDATE_SERVICE_MOD_TIMESTAMP = "UPDATE service "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE service_id=?;";
     private static final String SQL_DELETE_SERVICE = "DELETE FROM service WHERE domain_id=? AND name=?;";
@@ -3650,6 +3650,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setSshCertSignerKeyId(saveValue(rs.getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID)))
                 .setCreds(saveValue(rs.getString(JDBCConsts.DB_COLUMN_CREDS)))
                 .setClientId(saveValue(rs.getString(JDBCConsts.DB_COLUMN_CLIENT_ID)))
+                .setFeatureFlags(nullIfDefaultValue(rs.getInt(JDBCConsts.DB_COLUMN_FEATURE_FLAGS), 0))
                 .setResourceOwnership(ResourceOwnership.getResourceServiceOwnership(rs.getString(JDBCConsts.DB_COLUMN_RESOURCE_OWNER)));
     }
 
@@ -3700,6 +3701,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(8, processInsertValue(service.getX509CertSignerKeyId()));
             ps.setString(9, processInsertValue(service.getSshCertSignerKeyId()));
             ps.setString(10, processInsertValue(service.getClientId()));
+            ps.setInt(11, processInsertValue(service.getFeatureFlags()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -3737,7 +3739,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(7, processInsertValue(service.getSshCertSignerKeyId()));
             ps.setString(8, processInsertValue(service.getCreds()));
             ps.setString(9, processInsertValue(service.getClientId()));
-            ps.setInt(10, serviceId);
+            ps.setInt(10, processInsertValue(service.getFeatureFlags()));
+            ps.setInt(11, serviceId);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

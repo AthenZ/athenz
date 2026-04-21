@@ -3862,6 +3862,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_CREDS);
         Mockito.doReturn("").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_CLIENT_ID);
+        Mockito.doReturn(0).when(mockResultSet).getInt(JDBCConsts.DB_COLUMN_FEATURE_FLAGS);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         ServiceIdentity service = jdbcConn.getServiceIdentity("my-domain", "service1");
@@ -3875,6 +3876,7 @@ public class JDBCConnectionTest {
         assertNull(service.getSshCertSignerKeyId());
         assertNull(service.getCreds());
         assertNull(service.getClientId());
+        assertNull(service.getFeatureFlags());
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "service1");
@@ -3909,6 +3911,7 @@ public class JDBCConnectionTest {
         Mockito.doReturn("ssh-keyid").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SSH_CERT_SIGNER_KEYID);
         Mockito.doReturn("creds").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_CREDS);
         Mockito.doReturn("client_id").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_CLIENT_ID);
+        Mockito.doReturn(7).when(mockResultSet).getInt(JDBCConsts.DB_COLUMN_FEATURE_FLAGS);
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         ServiceIdentity service = jdbcConn.getServiceIdentity("my-domain", "service1");
@@ -3922,6 +3925,7 @@ public class JDBCConnectionTest {
         assertEquals(service.getSshCertSignerKeyId(), "ssh-keyid");
         assertEquals(service.getCreds(), "creds");
         assertEquals(service.getClientId(), "client_id");
+        assertEquals(service.getFeatureFlags(), Integer.valueOf(7));
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "my-domain");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "service1");
@@ -4020,7 +4024,8 @@ public class JDBCConnectionTest {
                 .setUser("root")
                 .setProviderEndpoint("https://server.athenzcompany.com")
                 .setX509CertSignerKeyId("x509-keyid")
-                .setSshCertSignerKeyId("ssh-keyid");
+                .setSshCertSignerKeyId("ssh-keyid")
+                .setFeatureFlags(5);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -4041,6 +4046,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setInt(7, 5);
         Mockito.verify(mockPrepStmt, times(1)).setString(8, "x509-keyid");
         Mockito.verify(mockPrepStmt, times(1)).setString(9, "ssh-keyid");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(11, 5);
         jdbcConn.close();
     }
 
@@ -4095,7 +4101,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(7, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(8, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(9, "");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(10, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(10, 0);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(11, 4);
         jdbcConn.close();
     }
 
@@ -4175,7 +4182,8 @@ public class JDBCConnectionTest {
                 .setX509CertSignerKeyId("x509-keyid")
                 .setSshCertSignerKeyId("ssh-keyid")
                 .setCreds("creds")
-                .setClientId("client-id");
+                .setClientId("client-id")
+                .setFeatureFlags(3);
 
         Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
         Mockito.when(mockResultSet.next()).thenReturn(true);
@@ -4200,7 +4208,8 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(7, "ssh-keyid");
         Mockito.verify(mockPrepStmt, times(1)).setString(8, "creds");
         Mockito.verify(mockPrepStmt, times(1)).setString(9, "client-id");
-        Mockito.verify(mockPrepStmt, times(1)).setInt(10, 4);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(10, 3);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(11, 4);
         jdbcConn.close();
     }
 

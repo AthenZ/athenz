@@ -25,6 +25,9 @@ public class ServiceIdentitySystemMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String clientId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer featureFlags;
 
     public ServiceIdentitySystemMeta setProviderEndpoint(String providerEndpoint) {
         this.providerEndpoint = providerEndpoint;
@@ -54,6 +57,13 @@ public class ServiceIdentitySystemMeta {
     public String getClientId() {
         return clientId;
     }
+    public ServiceIdentitySystemMeta setFeatureFlags(Integer featureFlags) {
+        this.featureFlags = featureFlags;
+        return this;
+    }
+    public Integer getFeatureFlags() {
+        return featureFlags;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -72,6 +82,9 @@ public class ServiceIdentitySystemMeta {
                 return false;
             }
             if (clientId == null ? a.clientId != null : !clientId.equals(a.clientId)) {
+                return false;
+            }
+            if (featureFlags == null ? a.featureFlags != null : !featureFlags.equals(a.featureFlags)) {
                 return false;
             }
         }

@@ -50,7 +50,7 @@ public class ServiceIdentityTest {
                 .setTags(tags)
                 .setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setCreds("creds").setClientId("client-id");
+                .setCreds("creds").setClientId("client-id").setFeatureFlags(7);
 
         Validator.Result result = validator.validate(si, "ServiceIdentity");
         assertTrue(result.valid);
@@ -70,6 +70,7 @@ public class ServiceIdentityTest {
         assertEquals(si.getSshCertSignerKeyId(), "ssh-keyid");
         assertEquals(si.getCreds(), "creds");
         assertEquals(si.getClientId(), "client-id");
+        assertEquals(si.getFeatureFlags(), Integer.valueOf(7));
 
         ServiceIdentity si2 = new ServiceIdentity().setName("test.service").setPublicKeys(pkel)
                 .setProviderEndpoint("http://test.endpoint").setModified(Timestamp.fromMillis(123456789123L))
@@ -78,7 +79,7 @@ public class ServiceIdentityTest {
                 .setTags(tags)
                 .setResourceOwnership(new ResourceServiceIdentityOwnership().setObjectOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
-                .setCreds("creds").setClientId("client-id");
+                .setCreds("creds").setClientId("client-id").setFeatureFlags(7);
 
         assertTrue(si2.equals(si));
         assertTrue(si.equals(si));
@@ -188,6 +189,13 @@ public class ServiceIdentityTest {
         si2.setClientId("client-id");
         assertEquals(si2, si);
 
+        si2.setFeatureFlags(9);
+        assertNotEquals(si2, si);
+        si2.setFeatureFlags(null);
+        assertNotEquals(si2, si);
+        si2.setFeatureFlags(7);
+        assertEquals(si2, si);
+
         assertFalse(si.equals(new String()));
     }
 
@@ -219,7 +227,8 @@ public class ServiceIdentityTest {
                 .setProviderEndpoint("https://host:443/endpoint")
                 .setX509CertSignerKeyId("x509-keyid")
                 .setSshCertSignerKeyId("ssh-keyid")
-                .setClientId("client-id");
+                .setClientId("client-id")
+                .setFeatureFlags(7);
         assertTrue(meta.equals(meta));
 
         Validator.Result result = validator.validate(meta, "ServiceIdentitySystemMeta");
@@ -229,12 +238,14 @@ public class ServiceIdentityTest {
         assertEquals(meta.getX509CertSignerKeyId(), "x509-keyid");
         assertEquals(meta.getSshCertSignerKeyId(), "ssh-keyid");
         assertEquals(meta.getClientId(), "client-id");
+        assertEquals(meta.getFeatureFlags(), Integer.valueOf(7));
 
         ServiceIdentitySystemMeta meta2 = new ServiceIdentitySystemMeta()
                 .setProviderEndpoint("https://host:443/endpoint")
                 .setX509CertSignerKeyId("x509-keyid")
                 .setSshCertSignerKeyId("ssh-keyid")
-                .setClientId("client-id");
+                .setClientId("client-id")
+                .setFeatureFlags(7);
         assertEquals(meta, meta2);
 
         meta2.setProviderEndpoint("https://host:443/endpoint2");
@@ -263,6 +274,13 @@ public class ServiceIdentityTest {
         meta2.setClientId(null);
         assertNotEquals(meta, meta2);
         meta2.setClientId("client-id");
+        assertEquals(meta, meta2);
+
+        meta2.setFeatureFlags(9);
+        assertNotEquals(meta, meta2);
+        meta2.setFeatureFlags(null);
+        assertNotEquals(meta, meta2);
+        meta2.setFeatureFlags(7);
         assertEquals(meta, meta2);
 
         assertFalse(meta2.equals(null));

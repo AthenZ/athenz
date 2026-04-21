@@ -286,7 +286,7 @@ public class InstanceGCPProvider implements InstanceProvider {
         // validate the attestation data
 
         validateAttestationData(confirmation, attestationData, derivedAttestationData, gcpProject,
-                instanceId.toString(), true, errMsg);
+                instanceId.toString(), InstanceUtils.shouldCheckBootTime(instanceAttributes), errMsg);
 
         // if we're given an instance name uri in the csr, then we should
         // validate that as well

@@ -65,4 +65,11 @@ public final class ServerCommonConsts {
 
     // for tests
     public static final String ZTS_PROP_AWS_PUBLIC_CERT = "athenz.zts.aws_public_cert";
+
+    // ZMS domain object feature flag bits
+    public static final int ZMS_DOMAIN_FEATURE_ALLOW_SERVICE_UNDERSCORE  = 0x01;
+    public static final int ZMS_DOMAIN_FEATURE_SKIP_BOOT_TIME_VALIDATION = 0x02;
+
+    // ZMS service object feature flag bits
+    public static final int ZMS_SERVICE_FEATURE_SKIP_BOOT_TIME_VALIDATION = 0x01;
 }

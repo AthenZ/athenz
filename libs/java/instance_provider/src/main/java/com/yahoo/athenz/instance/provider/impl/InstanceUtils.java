@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.common.server.util.IPBlock;
@@ -454,6 +455,37 @@ public class InstanceUtils {
 
             throw error("Certificate IP address validation failed for: " + ipAddress);
         }
+    }
+
+    public static boolean shouldCheckBootTime(final Map<String, String> instanceAttributes) {
+
+        final String domainFeatureFlags = getInstanceProperty(instanceAttributes,
+                InstanceProvider.ZTS_INSTANCE_DOMAIN_FEATURE_FLAGS);
+        if (domainFeatureFlags != null) {
+            try {
+                if ((Integer.parseInt(domainFeatureFlags) &
+                        ServerCommonConsts.ZMS_DOMAIN_FEATURE_SKIP_BOOT_TIME_VALIDATION) != 0) {
+                    LOGGER.info("Boot time validation skipped based on domain feature flags");
+                    return false;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        final String serviceFeatureFlags = getInstanceProperty(instanceAttributes,
+                InstanceProvider.ZTS_INSTANCE_SERVICE_FEATURE_FLAGS);
+        if (serviceFeatureFlags != null) {
+            try {
+                if ((Integer.parseInt(serviceFeatureFlags) &
+                        ServerCommonConsts.ZMS_SERVICE_FEATURE_SKIP_BOOT_TIME_VALIDATION) != 0) {
+                    LOGGER.info("Boot time validation skipped based on service feature flags");
+                    return false;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        return true;
     }
 
     public static ProviderResourceException error(String message) {

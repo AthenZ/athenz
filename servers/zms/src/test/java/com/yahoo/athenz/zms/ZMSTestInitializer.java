@@ -102,10 +102,11 @@ public class ZMSTestInitializer {
     public static synchronized int getRandomProductId() {
         return BASE_PRODUCT_ID + domainProductId.nextInt(99999999);
     }
-    private MySQLContainer<?> mysqld;
+    private static MySQLContainer<?> mysqld;
 
     public void startMemoryMySQL() {
         mysqld = ZMSTestUtils.startMemoryMySQL(DB_USER, DB_PASS);
+        ZMSTestUtils.clearDatabase(mysqld, DB_PASS);
     }
 
     public void stopMemoryMySQL() {
