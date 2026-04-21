@@ -63,7 +63,8 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
 
-        assertTrue(certReq.validate("sports.api", null, orgValues));
+        assertTrue(certReq.validate("sports.api", null, orgValues, false));
+        assertTrue(certReq.validate("sports.api", null, orgValues, true));
     }
 
     @Test
@@ -151,7 +152,7 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
 
-        assertFalse(certReq.validate("sports.api", "proxy.user", orgValues));
+        assertFalse(certReq.validate("sports.api", "proxy.user", orgValues, false));
     }
 
     @Test
@@ -165,7 +166,7 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
 
-        assertFalse(certReq.validate("athenz.production", "proxy.user", orgValues));
+        assertFalse(certReq.validate("athenz.production", "proxy.user", orgValues, false));
     }
 
     @Test
@@ -179,7 +180,7 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
 
-        assertFalse(certReq.validate("sports.api", "proxy.user", orgValues));
+        assertFalse(certReq.validate("sports.api", "proxy.user", orgValues, false));
     }
 
     @Test
@@ -194,10 +195,10 @@ public class X509RoleCertRequestTest {
         orgValues.add("Athenz");
 
         // valid proxy user
-        assertTrue(certReq.validate("sports.api", "proxy.user", orgValues));
+        assertTrue(certReq.validate("sports.api", "proxy.user", orgValues, false));
 
         // mismatch proxy user
-        assertFalse(certReq.validate("sports.api", "proxy2.user", orgValues));
+        assertFalse(certReq.validate("sports.api", "proxy2.user", orgValues, false));
     }
 
     @Test
@@ -207,8 +208,8 @@ public class X509RoleCertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
-        assertTrue(certReq.validate("athenz.production", null, null));
-        assertFalse(certReq.validate("athenz.api", null, null));
+        assertTrue(certReq.validate("athenz.production", null, null, false));
+        assertFalse(certReq.validate("athenz.api", null, null, false));
     }
 
     @Test
@@ -218,8 +219,8 @@ public class X509RoleCertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
-        assertTrue(certReq.validate("athenz.production", null, null));
-        assertFalse(certReq.validate("athenz.api", null, null));
+        assertTrue(certReq.validate("athenz.production", null, null, false));
+        assertFalse(certReq.validate("athenz.api", null, null, false));
     }
 
     @Test
@@ -229,8 +230,8 @@ public class X509RoleCertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
-        assertFalse(certReq.validate("athenz.production", null, null));
-        assertFalse(certReq.validate("athenz.api", null, null));
+        assertFalse(certReq.validate("athenz.production", null, null, false));
+        assertFalse(certReq.validate("athenz.api", null, null, false));
     }
 
     @Test
@@ -254,5 +255,220 @@ public class X509RoleCertRequestTest {
         assertTrue(certReq.validateSpiffeURI("coretech", "api"));
         assertFalse(certReq.validateSpiffeURI("coretech", "backend"));
     }
-}
 
+    @Test
+    public void testValidateDnsNamesEmptyDnsNames() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        assertTrue(certReq.validateDnsNames("sports.api", false));
+    }
+
+    @Test
+    public void testValidateDnsNamesInvalidPrincipalNoDot() throws IOException {
+
+        Path path = Paths.get("src/test/resources/role_single_ip.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        assertFalse(certReq.validateDnsNames("nodotprincipal", false));
+    }
+
+    @Test
+    public void testValidateDnsNamesValidationOffValidDns() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        certReq.dnsNames = Collections.singletonList("api.sports.athenz.cloud");
+
+        assertTrue(certReq.validateDnsNames("sports.api", false));
+    }
+
+    @Test
+    public void testValidateDnsNamesValidationOffInvalidDns() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        certReq.dnsNames = Collections.singletonList("invalid.dns.name");
+
+        assertTrue(certReq.validateDnsNames("sports.api", false));
+    }
+
+    @Test
+    public void testValidateDnsNamesValidationOffMultipleInvalidDns() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        certReq.dnsNames = Arrays.asList("invalid1.dns.name", "invalid2.dns.name");
+
+        assertTrue(certReq.validateDnsNames("sports.api", false));
+    }
+
+    @Test
+    public void testValidateDnsNamesValidationOffMixedDns() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        certReq.dnsNames = Arrays.asList("api.sports.athenz.cloud", "invalid.dns.name");
+
+        assertTrue(certReq.validateDnsNames("sports.api", false));
+    }
+
+    @Test
+    public void testValidateDnsNamesValidationOnSingleValidDns() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        certReq.dnsNames = Collections.singletonList("api.sports.athenz.cloud");
+
+        assertTrue(certReq.validateDnsNames("sports.api", true));
+    }
+
+    @Test
+    public void testValidateDnsNamesValidationOnSingleInvalidDns() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        certReq.dnsNames = Collections.singletonList("invalid.dns.name");
+
+        assertFalse(certReq.validateDnsNames("sports.api", true));
+    }
+
+    @Test
+    public void testValidateDnsNamesValidationOnMultipleDns() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        certReq.dnsNames = Arrays.asList("api.sports.athenz.cloud", "extra.dns.athenz.cloud");
+
+        assertFalse(certReq.validateDnsNames("sports.api", true));
+    }
+
+    @Test
+    public void testValidateDnsNamesValidationOnMultipleValidDns() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        certReq.dnsNames = Arrays.asList("api.sports.athenz.cloud", "api.sports.athenz.cloud");
+
+        assertFalse(certReq.validateDnsNames("sports.api", true));
+    }
+
+    @Test
+    public void testValidateDnsNamesSubdomainPrincipal() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        certReq.dnsNames = Collections.singletonList("api.athenz-sub.athenz.cloud");
+
+        assertTrue(certReq.validateDnsNames("athenz.sub.api", true));
+    }
+
+    @Test
+    public void testValidateDnsNamesSubdomainPrincipalMismatch() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        certReq.dnsNames = Collections.singletonList("api.athenz-wrong.athenz.cloud");
+
+        assertFalse(certReq.validateDnsNames("athenz.sub.api", true));
+    }
+
+    @Test
+    public void testValidateDnsNamesWithExistingCsrDnsNames() throws IOException {
+
+        Path path = Paths.get("src/test/resources/role_single_ip.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+
+        // role_single_ip.csr has DNS names that don't match the default suffix pattern
+        // with validation off, should still return true
+        assertTrue(certReq.validateDnsNames("athenz.production", false));
+    }
+
+    @Test
+    public void testValidateDnsNamesWithExistingCsrDnsNamesValidationOn() throws IOException {
+
+        Path path = Paths.get("src/test/resources/role_single_ip.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+
+        // role_single_ip.csr has 2 DNS names, with validation on and size != 1, should fail
+        assertFalse(certReq.validateDnsNames("athenz.production", true));
+    }
+
+    @Test
+    public void testValidateDnsNamesWrongSuffix() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        certReq.dnsNames = Collections.singletonList("api.sports.wrong.suffix");
+
+        assertFalse(certReq.validateDnsNames("sports.api", true));
+    }
+
+    @Test
+    public void testValidateDnsNamesWrongServiceInDns() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        certReq.dnsNames = Collections.singletonList("wrongservice.sports.athenz.cloud");
+
+        assertFalse(certReq.validateDnsNames("sports.api", true));
+    }
+
+    @Test
+    public void testValidateDnsNamesWrongDomainInDns() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        certReq.dnsNames = Collections.singletonList("api.wrongdomain.athenz.cloud");
+
+        assertFalse(certReq.validateDnsNames("sports.api", true));
+    }
+
+    @Test
+    public void testValidateFailsDnsNames() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        certReq.dnsNames = Collections.singletonList("invalid.dns.name");
+
+        Set<String> orgValues = new HashSet<>();
+        orgValues.add("Athenz");
+
+        assertFalse(certReq.validate("sports.api", null, orgValues, true));
+    }
+}
