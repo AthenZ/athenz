@@ -63,7 +63,8 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
 
-        assertTrue(certReq.validate("sports.api", null, orgValues));
+        assertTrue(certReq.validate("sports.api", null, orgValues, false));
+        assertTrue(certReq.validate("sports.api", null, orgValues, true));
     }
 
     @Test
@@ -151,7 +152,7 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
 
-        assertFalse(certReq.validate("sports.api", "proxy.user", orgValues));
+        assertFalse(certReq.validate("sports.api", "proxy.user", orgValues, false));
     }
 
     @Test
@@ -165,7 +166,7 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
 
-        assertFalse(certReq.validate("athenz.production", "proxy.user", orgValues));
+        assertFalse(certReq.validate("athenz.production", "proxy.user", orgValues, false));
     }
 
     @Test
@@ -179,7 +180,7 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
 
-        assertFalse(certReq.validate("sports.api", "proxy.user", orgValues));
+        assertFalse(certReq.validate("sports.api", "proxy.user", orgValues, false));
     }
 
     @Test
@@ -194,10 +195,10 @@ public class X509RoleCertRequestTest {
         orgValues.add("Athenz");
 
         // valid proxy user
-        assertTrue(certReq.validate("sports.api", "proxy.user", orgValues));
+        assertTrue(certReq.validate("sports.api", "proxy.user", orgValues, false));
 
         // mismatch proxy user
-        assertFalse(certReq.validate("sports.api", "proxy2.user", orgValues));
+        assertFalse(certReq.validate("sports.api", "proxy2.user", orgValues, false));
     }
 
     @Test
@@ -207,8 +208,8 @@ public class X509RoleCertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
-        assertTrue(certReq.validate("athenz.production", null, null));
-        assertFalse(certReq.validate("athenz.api", null, null));
+        assertTrue(certReq.validate("athenz.production", null, null, false));
+        assertFalse(certReq.validate("athenz.api", null, null, false));
     }
 
     @Test
@@ -218,8 +219,8 @@ public class X509RoleCertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
-        assertTrue(certReq.validate("athenz.production", null, null));
-        assertFalse(certReq.validate("athenz.api", null, null));
+        assertTrue(certReq.validate("athenz.production", null, null, false));
+        assertFalse(certReq.validate("athenz.api", null, null, false));
     }
 
     @Test
@@ -229,8 +230,8 @@ public class X509RoleCertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
-        assertFalse(certReq.validate("athenz.production", null, null));
-        assertFalse(certReq.validate("athenz.api", null, null));
+        assertFalse(certReq.validate("athenz.production", null, null, false));
+        assertFalse(certReq.validate("athenz.api", null, null, false));
     }
 
     @Test
@@ -262,7 +263,7 @@ public class X509RoleCertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
-        assertTrue(certReq.validateDnsNames("sports.api"));
+        assertTrue(certReq.validateDnsNames("sports.api", false));
     }
 
     @Test
@@ -272,7 +273,7 @@ public class X509RoleCertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
-        assertFalse(certReq.validateDnsNames("nodotprincipal"));
+        assertFalse(certReq.validateDnsNames("nodotprincipal", false));
     }
 
     @Test
@@ -284,12 +285,7 @@ public class X509RoleCertRequestTest {
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         certReq.dnsNames = Collections.singletonList("api.sports.athenz.cloud");
 
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        try {
-            assertTrue(certReq.validateDnsNames("sports.api"));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertTrue(certReq.validateDnsNames("sports.api", false));
     }
 
     @Test
@@ -301,12 +297,7 @@ public class X509RoleCertRequestTest {
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         certReq.dnsNames = Collections.singletonList("invalid.dns.name");
 
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        try {
-            assertTrue(certReq.validateDnsNames("sports.api"));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertTrue(certReq.validateDnsNames("sports.api", false));
     }
 
     @Test
@@ -318,12 +309,7 @@ public class X509RoleCertRequestTest {
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         certReq.dnsNames = Arrays.asList("invalid1.dns.name", "invalid2.dns.name");
 
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        try {
-            assertTrue(certReq.validateDnsNames("sports.api"));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertTrue(certReq.validateDnsNames("sports.api", false));
     }
 
     @Test
@@ -335,12 +321,7 @@ public class X509RoleCertRequestTest {
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         certReq.dnsNames = Arrays.asList("api.sports.athenz.cloud", "invalid.dns.name");
 
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        try {
-            assertTrue(certReq.validateDnsNames("sports.api"));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertTrue(certReq.validateDnsNames("sports.api", false));
     }
 
     @Test
@@ -352,12 +333,7 @@ public class X509RoleCertRequestTest {
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         certReq.dnsNames = Collections.singletonList("api.sports.athenz.cloud");
 
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = true;
-        try {
-            assertTrue(certReq.validateDnsNames("sports.api"));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertTrue(certReq.validateDnsNames("sports.api", true));
     }
 
     @Test
@@ -369,12 +345,7 @@ public class X509RoleCertRequestTest {
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         certReq.dnsNames = Collections.singletonList("invalid.dns.name");
 
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = true;
-        try {
-            assertFalse(certReq.validateDnsNames("sports.api"));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertFalse(certReq.validateDnsNames("sports.api", true));
     }
 
     @Test
@@ -386,12 +357,7 @@ public class X509RoleCertRequestTest {
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         certReq.dnsNames = Arrays.asList("api.sports.athenz.cloud", "extra.dns.athenz.cloud");
 
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = true;
-        try {
-            assertFalse(certReq.validateDnsNames("sports.api"));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertFalse(certReq.validateDnsNames("sports.api", true));
     }
 
     @Test
@@ -403,12 +369,7 @@ public class X509RoleCertRequestTest {
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         certReq.dnsNames = Arrays.asList("api.sports.athenz.cloud", "api.sports.athenz.cloud");
 
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = true;
-        try {
-            assertFalse(certReq.validateDnsNames("sports.api"));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertFalse(certReq.validateDnsNames("sports.api", true));
     }
 
     @Test
@@ -420,12 +381,7 @@ public class X509RoleCertRequestTest {
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         certReq.dnsNames = Collections.singletonList("api.athenz-sub.athenz.cloud");
 
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = true;
-        try {
-            assertTrue(certReq.validateDnsNames("athenz.sub.api"));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertTrue(certReq.validateDnsNames("athenz.sub.api", true));
     }
 
     @Test
@@ -437,12 +393,7 @@ public class X509RoleCertRequestTest {
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         certReq.dnsNames = Collections.singletonList("api.athenz-wrong.athenz.cloud");
 
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = true;
-        try {
-            assertFalse(certReq.validateDnsNames("athenz.sub.api"));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertFalse(certReq.validateDnsNames("athenz.sub.api", true));
     }
 
     @Test
@@ -455,12 +406,7 @@ public class X509RoleCertRequestTest {
 
         // role_single_ip.csr has DNS names that don't match the default suffix pattern
         // with validation off, should still return true
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        try {
-            assertTrue(certReq.validateDnsNames("athenz.production"));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertTrue(certReq.validateDnsNames("athenz.production", false));
     }
 
     @Test
@@ -472,12 +418,7 @@ public class X509RoleCertRequestTest {
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
 
         // role_single_ip.csr has 2 DNS names, with validation on and size != 1, should fail
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = true;
-        try {
-            assertFalse(certReq.validateDnsNames("athenz.production"));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertFalse(certReq.validateDnsNames("athenz.production", true));
     }
 
     @Test
@@ -489,12 +430,7 @@ public class X509RoleCertRequestTest {
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         certReq.dnsNames = Collections.singletonList("api.sports.wrong.suffix");
 
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = true;
-        try {
-            assertFalse(certReq.validateDnsNames("sports.api"));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertFalse(certReq.validateDnsNames("sports.api", true));
     }
 
     @Test
@@ -506,12 +442,7 @@ public class X509RoleCertRequestTest {
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         certReq.dnsNames = Collections.singletonList("wrongservice.sports.athenz.cloud");
 
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = true;
-        try {
-            assertFalse(certReq.validateDnsNames("sports.api"));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertFalse(certReq.validateDnsNames("sports.api", true));
     }
 
     @Test
@@ -523,12 +454,7 @@ public class X509RoleCertRequestTest {
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
         certReq.dnsNames = Collections.singletonList("api.wrongdomain.athenz.cloud");
 
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = true;
-        try {
-            assertFalse(certReq.validateDnsNames("sports.api"));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertFalse(certReq.validateDnsNames("sports.api", true));
     }
 
     @Test
@@ -543,12 +469,6 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
 
-        X509RoleCertRequest.VALIDATE_DNS_NAMES = true;
-        try {
-            assertFalse(certReq.validate("sports.api", null, orgValues));
-        } finally {
-            X509RoleCertRequest.VALIDATE_DNS_NAMES = false;
-        }
+        assertFalse(certReq.validate("sports.api", null, orgValues, true));
     }
 }
-

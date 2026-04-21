@@ -33,9 +33,6 @@ public class X509RoleCertRequest extends X509CertRequest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(X509RoleCertRequest.class);
 
-    // default to false to maintain backward compatibility
-    static boolean VALIDATE_DNS_NAMES = Boolean.parseBoolean(System.getProperty(
-        ZTSConsts.ZTS_PROP_VALIDATE_ROLE_CERT_DNS_NAMES, "false"));
 
     protected String reqRoleName;
     protected String reqRoleDomain;
@@ -171,7 +168,8 @@ public class X509RoleCertRequest extends X509CertRequest {
         return true;
     }
 
-    public boolean validate(final String principal, final String proxyUser, Set<String> validCertSubjectOrgValues) {
+    public boolean validate(final String principal, final String proxyUser, Set<String> validCertSubjectOrgValues,
+            boolean validateRoleCertDnsNames) {
 
         // now let's check if we have a valid role principal
 
@@ -182,7 +180,7 @@ public class X509RoleCertRequest extends X509CertRequest {
         // validate that the dnsSuffix used in the dnsName attribute has
             // been authorized to be used by the given provider
 
-        if (!validateDnsNames(principal)) {
+        if (!validateDnsNames(principal, validateRoleCertDnsNames)) {
             return false;
         }
 
@@ -203,7 +201,7 @@ public class X509RoleCertRequest extends X509CertRequest {
         return validateSpiffeURI(reqRoleDomain, reqRoleName);
     }
 
-    boolean validateDnsNames(final String principal) {
+    boolean validateDnsNames(final String principal, boolean validateRoleCertDnsNames) {
 
         // if no dns names in the CSR then we're ok
 
@@ -224,7 +222,7 @@ public class X509RoleCertRequest extends X509CertRequest {
         // so we'll check if we have exactly one dns name if
         // we're configured to validate dns names
 
-        if (VALIDATE_DNS_NAMES && dnsNames.size() != 1) {
+        if (validateRoleCertDnsNames && dnsNames.size() != 1) {
             LOGGER.error("csr has incorrect number of dns names: {}/{}",
                 dnsNames.size(), String.join(", ", dnsNames));
             return false;
@@ -236,16 +234,23 @@ public class X509RoleCertRequest extends X509CertRequest {
         final String prefix = service + "." + domain.replace('.', '-');
         for (String dnsName : dnsNames) {
 
+            boolean match = false;
             for (String suffix : ZTSUtils.ZTS_CERT_DNS_SUFFIX) {
                 if (dnsName.equals(prefix + suffix)) {
-                    if (VALIDATE_DNS_NAMES) {
-                        return true;
-                    }
+                    match = true;
+                    break;
                 }
             }
 
+            if (match) {
+                if (validateRoleCertDnsNames) {
+                    return true;
+                }
+                continue;
+            }
+
             LOGGER.error("Role Certificate sanDNS Validation - invalid entry: {}", dnsName);
-            if (VALIDATE_DNS_NAMES) {
+            if (validateRoleCertDnsNames) {
                 return false;
             }
         }

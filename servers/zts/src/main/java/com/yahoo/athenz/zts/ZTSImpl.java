@@ -201,6 +201,7 @@ public class ZTSImpl implements ZTSHandler {
     protected String ztsMetricCounterName;
     protected String ztsMetricLatencyName;
     protected String userCertProvider;
+    protected boolean validateRoleCertDnsNames = false;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -807,6 +808,11 @@ public class ZTSImpl implements ZTSHandler {
         // check if we should use the user cert provider
 
         userCertProvider = System.getProperty(ZTSConsts.ZTS_PROP_USER_CERT_PROVIDER);
+
+        // default to false to maintain backward compatibility
+
+        validateRoleCertDnsNames = Boolean.parseBoolean(
+            System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_ROLE_CERT_DNS_NAMES, "false"));
     }
 
     static String getServerHostName() {
@@ -4065,7 +4071,7 @@ public class ZTSImpl implements ZTSHandler {
     boolean validateRoleCertificateRequest(X509RoleCertRequest certReq, final String principal,
             final String proxyUser, X509Certificate cert, final String ip) {
 
-        if (!certReq.validate(principal, proxyUser, validCertSubjectOrgValues)) {
+        if (!certReq.validate(principal, proxyUser, validCertSubjectOrgValues, validateRoleCertDnsNames)) {
             return false;
         }
 
