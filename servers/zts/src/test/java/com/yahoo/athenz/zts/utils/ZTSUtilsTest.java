@@ -203,6 +203,7 @@ public class ZTSUtilsTest {
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
+        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.add(".instanceid.athenz.ostk.athenz.cloud");
 
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production");
@@ -210,6 +211,7 @@ public class ZTSUtilsTest {
 
         result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production");
         assertFalse(result);
+        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.remove(".instanceid.athenz.ostk.athenz.cloud");
     }
     
     @Test
@@ -228,6 +230,7 @@ public class ZTSUtilsTest {
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
+        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.add(".instanceid.athenz.ostk.athenz.cloud");
 
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
         boolean result = ZTSUtils.verifyCertificateRequest(certReq, "athenz", "production");
@@ -235,6 +238,7 @@ public class ZTSUtilsTest {
 
         result = ZTSUtils.verifyCertificateRequest(certReq, "athenz2", "production");
         assertFalse(result);
+        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.remove(".instanceid.athenz.ostk.athenz.cloud");
     }
     
     @Test
@@ -243,7 +247,15 @@ public class ZTSUtilsTest {
         String csr = new String(Files.readAllBytes(path));
 
         PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+
+        // first without the expected instance id dns name
         boolean result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production");
+        assertFalse(result);
+
+        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.add(".instanceid.athenz.ostk.athenz.cloud");
+
+        // now it should be valid
+        result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz", "production");
         assertTrue(result);
 
         result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "production");
@@ -251,6 +263,8 @@ public class ZTSUtilsTest {
 
         result = ZTSUtils.validateCertReqDNSNames(certReq, "athenz2", "productio2");
         assertFalse(result);
+        ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.remove(".instanceid.athenz.ostk.athenz.cloud");
+
     }
     
     @Test
