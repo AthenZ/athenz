@@ -29,6 +29,7 @@ import org.testng.Assert;
 import org.testng.annotations.*;
 
 import javax.security.auth.x500.X500Principal;
+import java.lang.reflect.Field;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -1537,19 +1538,25 @@ public class TestAuthZpe {
     public void testInitializeAccessTokenSignKeyResolver() throws IOException {
         final String originalJwkValue = System.clearProperty(ZpeConsts.ZPE_PROP_JWK_URI);
         try {
-            AuthZpeClient.initializeAccessTokenSignKeyResolver();
+            AuthZpeClient.initializeAccessTokenSignKeyResolver(true);
             fail();
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("Missing required property"));
         }
 
+        // optional initialization mode must not throw when uri is missing
+        AuthZpeClient.initializeAccessTokenSignKeyResolver(false);
+
         System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, "");
         try {
-            AuthZpeClient.initializeAccessTokenSignKeyResolver();
+            AuthZpeClient.initializeAccessTokenSignKeyResolver(true);
             fail();
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("Missing required property"));
         }
+
+        // optional initialization mode must not throw when uri is empty
+        AuthZpeClient.initializeAccessTokenSignKeyResolver(false);
 
         // try with unknown file paths - we'll be successful without any errors
 
@@ -1557,7 +1564,7 @@ public class TestAuthZpe {
         System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, "file://" + jwkUri);
         System.setProperty(ZpeConsts.ZPE_PROP_JWK_PRIVATE_KEY_PATH, "src/test/resources/jwk/athenz_private.pem");
         System.setProperty(ZpeConsts.ZPE_PROP_JWK_X509_CERT_PATH, "src/test/resources/jwk/athenz_x509.pem");
-        AuthZpeClient.initializeAccessTokenSignKeyResolver();
+        AuthZpeClient.initializeAccessTokenSignKeyResolver(true);
 
         // try with valid paths
 
@@ -1565,12 +1572,88 @@ public class TestAuthZpe {
         String certPath = new File("src/test/resources/ec_public_x509.cert").getCanonicalPath();
         System.setProperty(ZpeConsts.ZPE_PROP_JWK_PRIVATE_KEY_PATH, keyPath);
         System.setProperty(ZpeConsts.ZPE_PROP_JWK_X509_CERT_PATH, certPath);
-        AuthZpeClient.initializeAccessTokenSignKeyResolver();
+        AuthZpeClient.initializeAccessTokenSignKeyResolver(true);
 
         // reset the original state
 
-        System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, originalJwkValue);
+        if (originalJwkValue == null) {
+            System.clearProperty(ZpeConsts.ZPE_PROP_JWK_URI);
+        } else {
+            System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, originalJwkValue);
+        }
         System.clearProperty(ZpeConsts.ZPE_PROP_JWK_PRIVATE_KEY_PATH);
         System.clearProperty(ZpeConsts.ZPE_PROP_JWK_X509_CERT_PATH);
+    }
+
+    private boolean getTokenSignKeyResolverInitialized() throws Exception {
+        Field field = AuthZpeClient.class.getDeclaredField("tokenSignKeyResolverInitialized");
+        field.setAccessible(true);
+        return field.getBoolean(null);
+    }
+
+    private void setTokenSignKeyResolverInitialized(boolean value) throws Exception {
+        Field field = AuthZpeClient.class.getDeclaredField("tokenSignKeyResolverInitialized");
+        field.setAccessible(true);
+        field.setBoolean(null, value);
+    }
+
+    @Test
+    public void testInitRequiresJwkUriWhenResolverNotInitialized() throws Exception {
+        final String originalJwkValue = System.clearProperty(ZpeConsts.ZPE_PROP_JWK_URI);
+        final boolean originalInitialized = getTokenSignKeyResolverInitialized();
+        try {
+            setTokenSignKeyResolverInitialized(false);
+            try {
+                AuthZpeClient.init();
+                fail();
+            } catch (IllegalArgumentException ex) {
+                assertTrue(ex.getMessage().contains("Missing required property"));
+            }
+        } finally {
+            if (originalJwkValue == null) {
+                System.clearProperty(ZpeConsts.ZPE_PROP_JWK_URI);
+            } else {
+                System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, originalJwkValue);
+            }
+            setTokenSignKeyResolverInitialized(originalInitialized);
+        }
+    }
+
+    @Test
+    public void testInitSkipsResolverWhenAlreadyInitialized() throws Exception {
+        final String originalJwkValue = System.clearProperty(ZpeConsts.ZPE_PROP_JWK_URI);
+        final boolean originalInitialized = getTokenSignKeyResolverInitialized();
+        try {
+            setTokenSignKeyResolverInitialized(true);
+            AuthZpeClient.init();
+        } finally {
+            if (originalJwkValue == null) {
+                System.clearProperty(ZpeConsts.ZPE_PROP_JWK_URI);
+            } else {
+                System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, originalJwkValue);
+            }
+            setTokenSignKeyResolverInitialized(originalInitialized);
+        }
+    }
+
+    @Test
+    public void testInitInitializesResolverWhenUriPresent() throws Exception {
+        final String originalJwkValue = System.getProperty(ZpeConsts.ZPE_PROP_JWK_URI);
+        final boolean originalInitialized = getTokenSignKeyResolverInitialized();
+        try {
+            final String jwkUri = new File("src/test/resources/jwk/athenz_jwks.json").getCanonicalPath();
+            System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, "file://" + jwkUri);
+            setTokenSignKeyResolverInitialized(false);
+
+            AuthZpeClient.init();
+            assertTrue(getTokenSignKeyResolverInitialized());
+        } finally {
+            if (originalJwkValue == null) {
+                System.clearProperty(ZpeConsts.ZPE_PROP_JWK_URI);
+            } else {
+                System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, originalJwkValue);
+            }
+            setTokenSignKeyResolverInitialized(originalInitialized);
+        }
     }
 }

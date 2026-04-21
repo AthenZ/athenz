@@ -67,6 +67,7 @@ public class AuthZpeClient {
 
     private static int allowedOffset = 300;
     private static JwtsSigningKeyResolver accessSignKeyResolver = null;
+    private static boolean tokenSignKeyResolverInitialized = false;
 
     private static ZpeClient zpeClt = null;
     private static PublicKeyStore publicKeyStore = null;
@@ -155,7 +156,7 @@ public class AuthZpeClient {
     }
     
     static {
-
+        
         // load public keys
 
         setPublicKeyStoreFactoryClass(System.getProperty(ZpeConsts.ZPE_PROP_PUBLIC_KEY_CLASS, ZPE_PKEY_CLASS));
@@ -178,16 +179,16 @@ public class AuthZpeClient {
 
         // initialize the access token signing key resolver
 
-        initializeAccessTokenSignKeyResolver();
+        initializeAccessTokenSignKeyResolver(false);
 
-        // save the last zts api call time, and the allowed interval between api calls
-
-        setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Long.toString(30 * 1000 * 60))));
     }
 
     public static void init() {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Init: load the ZPE");
+        }
+        if (!tokenSignKeyResolverInitialized) {
+            initializeAccessTokenSignKeyResolver(true);
         }
     }
 
@@ -198,11 +199,15 @@ public class AuthZpeClient {
         zpeClt.close();
     }
 
-    public static void initializeAccessTokenSignKeyResolver() {
+    public static void initializeAccessTokenSignKeyResolver(boolean throwOnMissingUrl) {
         String serverUrl = System.getProperty(ZpeConsts.ZPE_PROP_JWK_URI);
         if (serverUrl == null || serverUrl.isEmpty()) {
-            throw new IllegalArgumentException("Missing required property: " + ZpeConsts.ZPE_PROP_JWK_URI);
+            if (throwOnMissingUrl) {
+                throw new IllegalArgumentException("Missing required property: " + ZpeConsts.ZPE_PROP_JWK_URI);
+            }
+            return;
         }
+        String proxyUrl = System.getProperty(ZpeConsts.ZPE_PROP_JWK_PROXY_URI);
 
         final String keyPath = System.getProperty(ZpeConsts.ZPE_PROP_JWK_PRIVATE_KEY_PATH);
         final String certPath = System.getProperty(ZpeConsts.ZPE_PROP_JWK_X509_CERT_PATH);
@@ -217,7 +222,9 @@ public class AuthZpeClient {
                 LOG.error("Unable to initialize key refresher: {}", ex.getMessage());
             }
         }
-        setAccessTokenSignKeyResolver(serverUrl, sslContext);
+        setAccessTokenSignKeyResolver(serverUrl, sslContext, proxyUrl);
+        tokenSignKeyResolverInitialized = true;
+        setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Long.toString(30 * 1000 * 60))));
     }
 
     /**
