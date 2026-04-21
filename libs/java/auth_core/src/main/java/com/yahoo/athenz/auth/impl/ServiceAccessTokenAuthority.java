@@ -22,6 +22,24 @@ import com.yahoo.athenz.auth.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Authority that validates Athenz-issued OAuth2 access tokens (JWTs) presented
+ * in the {@code Authorization: Bearer} header and creates the corresponding
+ * Athenz principal.
+ *
+ * <p><b>Coexistence with other Bearer-token authorities.</b> This authority
+ * can be registered alongside other authorities that also consume the
+ * {@code Authorization: Bearer} header (for example {@link OIDCAuthority},
+ * which validates external OIDC ID tokens). Athenz dispatches credentials to
+ * each configured authority in order and uses the first non-null principal;
+ * each authority is expected to return {@code null} for tokens it does not
+ * recognise. When coexistence is needed, authorities downstream of this one
+ * should pre-check the JWT {@code iss} claim before consulting their JWKS
+ * source so that tokens issued by other providers bail out cheaply;
+ * {@link OIDCAuthority} implements that pattern.
+ *
+ * @see OIDCAuthority
+ */
 public class ServiceAccessTokenAuthority implements Authority, AuthorityKeyStore {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServiceAccessTokenAuthority.class);
