@@ -322,9 +322,6 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_USER_AUTHORITY_FILTER_DOC_URL = "athenz.zms.user_authority_filter_documentation_url";
     public static final String ZMS_PROP_AUTO_DELETE_TENANT_ASSUME_ROLE_ASSERTIONS = "athenz.zms.auto_delete_tenant_assume_role_assertions";
 
-    // ZMS feature flag bits
-    public static final int ZMS_FEATURE_ALLOW_SERVICE_UNDERSCORE = 0x01;
-
     // Specials Tags used by ZMS itself
     public static final String ZMS_TAG_DELETE_SKIP_SERVICE_PROVIDER_CHECK = "zms.DeleteSkipServiceProviderCheck";
 

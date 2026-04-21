@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.util.IPBlock;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
@@ -517,7 +518,7 @@ public class InstanceUtilsTest {
             assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
         }
 
-        // there are 2 IP addresses in the attributes, one of them is valid
+        // there are 2 IP addresses in the attributes, one of them is valid.
         // first use case: the private IP match, no match for the 2nd IP in the IPBlocks
 
         attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_IP, "10.11.11.11,12.12.12.12");
@@ -539,5 +540,121 @@ public class InstanceUtilsTest {
             assertTrue(ex.getMessage().contains("Certificate IP address validation failed for: 12.12.12.12"));
             assertEquals(ex.getCode(), ProviderResourceException.FORBIDDEN);
         }
+    }
+
+    @Test
+    public void testShouldCheckBootTimeNullAttributes() {
+        assertTrue(InstanceUtils.shouldCheckBootTime(null));
+    }
+
+    @Test
+    public void testShouldCheckBootTimeEmptyAttributes() {
+        Map<String, String> attributes = new HashMap<>();
+        assertTrue(InstanceUtils.shouldCheckBootTime(attributes));
+    }
+
+    @Test
+    public void testShouldCheckBootTimeNoFeatureFlags() {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put("someKey", "someValue");
+        assertTrue(InstanceUtils.shouldCheckBootTime(attributes));
+    }
+
+    @Test
+    public void testShouldCheckBootTimeDomainFlagSkipSet() {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_DOMAIN_FEATURE_FLAGS,
+                Integer.toString(ServerCommonConsts.ZMS_DOMAIN_FEATURE_SKIP_BOOT_TIME_VALIDATION));
+        assertFalse(InstanceUtils.shouldCheckBootTime(attributes));
+    }
+
+    @Test
+    public void testShouldCheckBootTimeServiceFlagSkipSet() {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SERVICE_FEATURE_FLAGS,
+                Integer.toString(ServerCommonConsts.ZMS_SERVICE_FEATURE_SKIP_BOOT_TIME_VALIDATION));
+        assertFalse(InstanceUtils.shouldCheckBootTime(attributes));
+    }
+
+    @Test
+    public void testShouldCheckBootTimeBothFlagsSkipSet() {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_DOMAIN_FEATURE_FLAGS,
+                Integer.toString(ServerCommonConsts.ZMS_DOMAIN_FEATURE_SKIP_BOOT_TIME_VALIDATION));
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SERVICE_FEATURE_FLAGS,
+                Integer.toString(ServerCommonConsts.ZMS_SERVICE_FEATURE_SKIP_BOOT_TIME_VALIDATION));
+        assertFalse(InstanceUtils.shouldCheckBootTime(attributes));
+    }
+
+    @Test
+    public void testShouldCheckBootTimeDomainFlagNotSkip() {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_DOMAIN_FEATURE_FLAGS,
+                Integer.toString(ServerCommonConsts.ZMS_DOMAIN_FEATURE_ALLOW_SERVICE_UNDERSCORE));
+        assertTrue(InstanceUtils.shouldCheckBootTime(attributes));
+    }
+
+    @Test
+    public void testShouldCheckBootTimeDomainFlagMultipleBitsWithSkip() {
+        Map<String, String> attributes = new HashMap<>();
+        int flags = ServerCommonConsts.ZMS_DOMAIN_FEATURE_ALLOW_SERVICE_UNDERSCORE |
+                ServerCommonConsts.ZMS_DOMAIN_FEATURE_SKIP_BOOT_TIME_VALIDATION;
+        attributes.put(InstanceProvider.ZTS_INSTANCE_DOMAIN_FEATURE_FLAGS, Integer.toString(flags));
+        assertFalse(InstanceUtils.shouldCheckBootTime(attributes));
+    }
+
+    @Test
+    public void testShouldCheckBootTimeDomainFlagZero() {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_DOMAIN_FEATURE_FLAGS, "0");
+        assertTrue(InstanceUtils.shouldCheckBootTime(attributes));
+    }
+
+    @Test
+    public void testShouldCheckBootTimeServiceFlagZero() {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SERVICE_FEATURE_FLAGS, "0");
+        assertTrue(InstanceUtils.shouldCheckBootTime(attributes));
+    }
+
+    @Test
+    public void testShouldCheckBootTimeDomainFlagInvalidValue() {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_DOMAIN_FEATURE_FLAGS, "invalid");
+        assertTrue(InstanceUtils.shouldCheckBootTime(attributes));
+    }
+
+    @Test
+    public void testShouldCheckBootTimeServiceFlagInvalidValue() {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SERVICE_FEATURE_FLAGS, "not-a-number");
+        assertTrue(InstanceUtils.shouldCheckBootTime(attributes));
+    }
+
+    @Test
+    public void testShouldCheckBootTimeDomainInvalidServiceSkipSet() {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_DOMAIN_FEATURE_FLAGS, "invalid");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SERVICE_FEATURE_FLAGS,
+                Integer.toString(ServerCommonConsts.ZMS_SERVICE_FEATURE_SKIP_BOOT_TIME_VALIDATION));
+        assertFalse(InstanceUtils.shouldCheckBootTime(attributes));
+    }
+
+    @Test
+    public void testShouldCheckBootTimeDomainSkipSetServiceInvalid() {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_DOMAIN_FEATURE_FLAGS,
+                Integer.toString(ServerCommonConsts.ZMS_DOMAIN_FEATURE_SKIP_BOOT_TIME_VALIDATION));
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SERVICE_FEATURE_FLAGS, "invalid");
+        assertFalse(InstanceUtils.shouldCheckBootTime(attributes));
+    }
+
+    @Test
+    public void testShouldCheckBootTimeDomainNoSkipServiceNoSkip() {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_DOMAIN_FEATURE_FLAGS,
+                Integer.toString(ServerCommonConsts.ZMS_DOMAIN_FEATURE_ALLOW_SERVICE_UNDERSCORE));
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SERVICE_FEATURE_FLAGS, "0");
+        assertTrue(InstanceUtils.shouldCheckBootTime(attributes));
     }
 }

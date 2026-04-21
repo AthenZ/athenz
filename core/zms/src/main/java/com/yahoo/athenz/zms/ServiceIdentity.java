@@ -57,6 +57,9 @@ public class ServiceIdentity {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String clientId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Integer featureFlags;
 
     public ServiceIdentity setName(String name) {
         this.name = name;
@@ -163,6 +166,13 @@ public class ServiceIdentity {
     public String getClientId() {
         return clientId;
     }
+    public ServiceIdentity setFeatureFlags(Integer featureFlags) {
+        this.featureFlags = featureFlags;
+        return this;
+    }
+    public Integer getFeatureFlags() {
+        return featureFlags;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -214,6 +224,9 @@ public class ServiceIdentity {
                 return false;
             }
             if (clientId == null ? a.clientId != null : !clientId.equals(a.clientId)) {
+                return false;
+            }
+            if (featureFlags == null ? a.featureFlags != null : !featureFlags.equals(a.featureFlags)) {
                 return false;
             }
         }

@@ -41,8 +41,17 @@ public class ZMSTestUtils {
 
     private static final String MYSQL_IMAGE_ENV_VAR = "ZMS_TEST_MYSQL_IMAGE";
     private static final String DEFAULT_MYSQL_IMAGE = "mysql/mysql-server:8.0";
+    private static final String DB_USER = "admin";
 
-    public static MySQLContainer startMemoryMySQL(final String userName, final String password) {
+    private static MySQLContainer<?> sharedMysqld;
+    private static boolean shutdownHookRegistered = false;
+
+    public static synchronized MySQLContainer startMemoryMySQL(final String userName, final String password) {
+
+        if (sharedMysqld != null && sharedMysqld.isRunning()) {
+            System.out.println("Reusing existing testcontainers MySQL server...");
+            return sharedMysqld;
+        }
 
         System.out.println("Starting MySQL server using testcontainers...");
         final String mysqlImage = getMySQLImage();
@@ -66,16 +75,72 @@ public class ZMSTestUtils {
                             "/athenz-mysql-scripts/");
             mysql.start();
             mysql.followOutput(new Slf4jLogConsumer(LOG));
+            mysql.execInContainer("mysql", "-u", "root", "-p" + password, "-e",
+                    "SET GLOBAL max_connections = 500;");
         } catch (Throwable t) {
             LOG.error("Unable to start MySQL server using testcontainers", t);
+        }
+
+        sharedMysqld = mysql;
+        if (!shutdownHookRegistered) {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                if (sharedMysqld != null && sharedMysqld.isRunning()) {
+                    System.out.println("Stopping testcontainers MySQL server via shutdown hook...");
+                    sharedMysqld.stop();
+                }
+            }));
+            shutdownHookRegistered = true;
         }
 
         return mysql;
     }
 
     public static void stopMemoryMySQL(MySQLContainer<?> mysqld) {
-        System.out.println("Stopping testcontainers MySQL server...");
-        mysqld.stop();
+    }
+
+    public static void clearDatabase(MySQLContainer<?> mysqld, final String password) {
+        try {
+            // Kill all existing user connections to free up connection slots.
+            // pool.clear() in AthenzDataSource only evicts idle connections;
+            // active/borrowed connections survive and accumulate across test classes.
+            mysqld.execInContainer("bash", "-c",
+                    "mysql -u root -p" + password + " -N -e " +
+                    "\"SELECT id FROM information_schema.processlist WHERE user='" + DB_USER + "'\" " +
+                    "| while read id; do mysql -u root -p" + password + " -e \"KILL $id\" 2>/dev/null; done");
+
+            String sql = "SET FOREIGN_KEY_CHECKS=0; " +
+                    "TRUNCATE TABLE assertion_condition; " +
+                    "TRUNCATE TABLE role_tags; " +
+                    "TRUNCATE TABLE domain_tags; " +
+                    "TRUNCATE TABLE group_tags; " +
+                    "TRUNCATE TABLE policy_tags; " +
+                    "TRUNCATE TABLE service_tags; " +
+                    "TRUNCATE TABLE domain_contacts; " +
+                    "TRUNCATE TABLE service_domain_dependency; " +
+                    "TRUNCATE TABLE role_audit_log; " +
+                    "TRUNCATE TABLE principal_group_audit_log; " +
+                    "TRUNCATE TABLE pending_role_member; " +
+                    "TRUNCATE TABLE pending_principal_group_member; " +
+                    "TRUNCATE TABLE role_member; " +
+                    "TRUNCATE TABLE principal_group_member; " +
+                    "TRUNCATE TABLE domain_template; " +
+                    "TRUNCATE TABLE quota; " +
+                    "TRUNCATE TABLE public_key; " +
+                    "TRUNCATE TABLE service_host; " +
+                    "TRUNCATE TABLE assertion; " +
+                    "TRUNCATE TABLE entity; " +
+                    "TRUNCATE TABLE host; " +
+                    "TRUNCATE TABLE service; " +
+                    "TRUNCATE TABLE policy; " +
+                    "TRUNCATE TABLE role; " +
+                    "TRUNCATE TABLE principal_group; " +
+                    "TRUNCATE TABLE principal; " +
+                    "TRUNCATE TABLE domain; " +
+                    "SET FOREIGN_KEY_CHECKS=1;";
+            mysqld.execInContainer("mysql", "-u", "root", "-p" + password, "zms_server", "-e", sql);
+        } catch (Throwable t) {
+            LOG.error("Unable to clear database in testcontainers mysql container", t);
+        }
     }
 
     public static String getMySQLImage() {

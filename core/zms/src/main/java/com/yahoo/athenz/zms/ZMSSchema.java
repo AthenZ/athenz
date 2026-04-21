@@ -407,7 +407,8 @@ public class ZMSSchema {
             .field("x509CertSignerKeyId", "String", true, "requested x509 cert signer key id (system attribute)")
             .field("sshCertSignerKeyId", "String", true, "requested ssh cert signer key id (system attribute)")
             .field("creds", "String", true, "the credentials for the service")
-            .field("clientId", "String", true, "the OAuth2 client id for the service (system attribute)");
+            .field("clientId", "String", true, "the OAuth2 client id for the service (system attribute)")
+            .field("featureFlags", "Int32", true, "features enabled per service (system attribute)");
 
         sb.structType("ServiceIdentities")
             .comment("The representation of list of services")
@@ -424,7 +425,8 @@ public class ZMSSchema {
             .field("providerEndpoint", "String", true, "provider callback endpoint")
             .field("x509CertSignerKeyId", "String", true, "requested x509 cert signer key id")
             .field("sshCertSignerKeyId", "String", true, "requested ssh cert signer key id")
-            .field("clientId", "String", true, "the OAuth2 client id for the service");
+            .field("clientId", "String", true, "the OAuth2 client id for the service")
+            .field("featureFlags", "Int32", true, "features enabled per service");
 
         sb.structType("GroupAuditLog")
             .comment("An audit log entry for group membership change.")

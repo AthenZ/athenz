@@ -1271,6 +1271,7 @@ public class DBService implements RolesProvider, DomainProvider {
             service.setSshCertSignerKeyId(null);
             service.setClientId(null);
             service.setCreds(null);
+            service.setFeatureFlags(null);
             requestSuccess = con.insertServiceIdentity(domainName, service);
         } else {
             // carrying over system attributes from original service
@@ -1279,6 +1280,7 @@ public class DBService implements RolesProvider, DomainProvider {
             service.setSshCertSignerKeyId(originalService.getSshCertSignerKeyId());
             service.setCreds(originalService.getCreds());
             service.setClientId(originalService.getClientId());
+            service.setFeatureFlags(originalService.getFeatureFlags());
             requestSuccess = con.updateServiceIdentity(domainName, service);
         }
 
@@ -5076,6 +5078,8 @@ public class DBService implements RolesProvider, DomainProvider {
             service.setSshCertSignerKeyId(meta.getSshCertSignerKeyId());
         } else if (ZMSConsts.SYSTEM_META_CLIENT_ID.equals(attribute)) {
             service.setClientId(meta.getClientId());
+        } else if (ZMSConsts.SYSTEM_META_FEATURE_FLAGS.equals(attribute)) {
+            service.setFeatureFlags(meta.getFeatureFlags());
         } else {
             throw ZMSUtils.requestError("unknown service system meta attribute: " + attribute, caller);
         }
@@ -6641,6 +6645,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 .append("\", \"providerEndpoint\": \"").append(service.getProviderEndpoint())
                 .append("\", \"x509CertSignerKeyId\": \"").append(service.getX509CertSignerKeyId())
                 .append("\", \"sshCertSignerKeyId\": \"").append(service.getSshCertSignerKeyId())
+                .append("\", \"clientId\": \"").append(service.getClientId())
+                .append("\", \"featureFlags\": \"").append(service.getFeatureFlags())
                 .append("\"}");
     }
 

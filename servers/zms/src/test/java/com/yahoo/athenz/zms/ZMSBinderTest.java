@@ -16,6 +16,7 @@ public class ZMSBinderTest {
     @BeforeClass
     public void setUp() {
         mysqld = ZMSTestUtils.startMemoryMySQL(DB_USER, DB_PASS);
+        ZMSTestUtils.clearDatabase(mysqld, DB_PASS);
 
         System.setProperty(ZMSConsts.ZMS_PROP_OBJECT_STORE_FACTORY_CLASS, "com.yahoo.athenz.common.server.store.impl.JDBCObjectStoreFactory");
         System.setProperty(ZMSConsts.ZMS_PROP_JDBC_RW_STORE, mysqld.getJdbcUrl());

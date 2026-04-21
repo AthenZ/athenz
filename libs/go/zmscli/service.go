@@ -415,6 +415,24 @@ func (cli Zms) SetServiceSshCertSignerKeyId(dn string, sn string, keyId string) 
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
+func (cli Zms) SetServiceFeatureFlags(dn string, sn string, flags int32) (*string, error) {
+	shortName := shortname(dn, sn)
+	meta := zms.ServiceIdentitySystemMeta{
+		FeatureFlags: &flags,
+	}
+	err := cli.Zms.PutServiceIdentitySystemMeta(zms.DomainName(dn), zms.SimpleName(shortName), "featureflags", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " service " + sn + " feature-flags successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) SetServiceExe(dn string, sn string, exe string, user string, group string) (*string, error) {
 	shortName := shortname(dn, sn)
 	service, err := cli.Zms.GetServiceIdentity(zms.DomainName(dn), zms.SimpleName(shortName))

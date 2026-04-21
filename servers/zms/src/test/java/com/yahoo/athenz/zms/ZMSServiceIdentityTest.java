@@ -935,6 +935,7 @@ public class ZMSServiceIdentityTest {
         service.setX509CertSignerKeyId("x509-keyid");
         service.setSshCertSignerKeyId("ssh-keyid");
         service.setClientId("client-id");
+        service.setFeatureFlags(7);
 
         zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
 
@@ -945,12 +946,13 @@ public class ZMSServiceIdentityTest {
         assertEquals(serviceRes.getGroup(), "users");
         assertEquals(serviceRes.getUser(), "root");
 
-        // provider endpoint, key ids and client-id are system meta attributes, so we shouldn't save it
+        // provider endpoint, key ids, client-id and feature flags are system meta attributes, so we shouldn't save it
 
         assertNull(serviceRes.getProviderEndpoint());
         assertNull(serviceRes.getSshCertSignerKeyId());
         assertNull(serviceRes.getX509CertSignerKeyId());
         assertNull(serviceRes.getClientId());
+        assertNull(serviceRes.getFeatureFlags());
 
         // now let's set the meta attribute
 
@@ -1060,6 +1062,28 @@ public class ZMSServiceIdentityTest {
         assertEquals(serviceRes.getSshCertSignerKeyId(), "ssh-keyid2");
         assertEquals(serviceRes.getClientId(), "client-id2");
 
+        // now let's set the feature flags
+
+        meta.setFeatureFlags(7);
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "featureflags", auditRef, meta);
+
+        serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
+        assertEquals(serviceRes.getX509CertSignerKeyId(), "x509-keyid2");
+        assertEquals(serviceRes.getSshCertSignerKeyId(), "ssh-keyid2");
+        assertEquals(serviceRes.getClientId(), "client-id2");
+        assertEquals(serviceRes.getFeatureFlags(), Integer.valueOf(7));
+
+        meta.setFeatureFlags(9);
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "featureflags", auditRef, meta);
+
+        serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertEquals(serviceRes.getProviderEndpoint(), "https://localhost");
+        assertEquals(serviceRes.getX509CertSignerKeyId(), "x509-keyid2");
+        assertEquals(serviceRes.getSshCertSignerKeyId(), "ssh-keyid2");
+        assertEquals(serviceRes.getClientId(), "client-id2");
+        assertEquals(serviceRes.getFeatureFlags(), Integer.valueOf(9));
+
         // reset all values
 
         meta = new ServiceIdentitySystemMeta();
@@ -1067,6 +1091,7 @@ public class ZMSServiceIdentityTest {
         zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "x509certsignerkeyid", auditRef, meta);
         zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "sshcertsignerkeyid", auditRef, meta);
         zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "clientid", auditRef, meta);
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "featureflags", auditRef, meta);
 
         serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
         assertEquals(serviceRes.getName(), domainName + "." + serviceName);
@@ -1074,6 +1099,7 @@ public class ZMSServiceIdentityTest {
         assertNull(serviceRes.getSshCertSignerKeyId());
         assertNull(serviceRes.getX509CertSignerKeyId());
         assertNull(serviceRes.getClientId());
+        assertNull(serviceRes.getFeatureFlags());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }

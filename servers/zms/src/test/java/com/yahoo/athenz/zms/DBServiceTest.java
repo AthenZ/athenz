@@ -109,6 +109,7 @@ public class DBServiceTest {
 
         MockitoAnnotations.openMocks(this);
         mysqld = ZMSTestUtils.startMemoryMySQL(DB_USER, DB_PASS);
+        ZMSTestUtils.clearDatabase(mysqld, DB_PASS);
         System.setProperty(ZMSTestInitializer.ZMS_PROP_PUBLIC_KEY, "src/test/resources/zms_public.pem");
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zms_private.pem");
         System.setProperty(ZMSConsts.ZMS_PROP_DOMAIN_ADMIN, "user.testadminuser");
@@ -5891,7 +5892,8 @@ public class DBServiceTest {
                 .setProviderEndpoint("https://localhost")
                 .setSshCertSignerKeyId("ssh-signer-key-id")
                 .setClientId("client-id")
-                .setX509CertSignerKeyId("x509-signer-key-id");
+                .setX509CertSignerKeyId("x509-signer-key-id")
+                .setFeatureFlags(5);
         zms.dbService.updateServiceIdentitySystemMetaFields(service, "providerendpoint", meta, "unit-test");
         assertEquals(service.getProviderEndpoint(), "https://localhost");
         zms.dbService.updateServiceIdentitySystemMetaFields(service, "sshcertsignerkeyid", meta, "unit-test");
@@ -5900,6 +5902,8 @@ public class DBServiceTest {
         assertEquals(service.getClientId(), "client-id");
         zms.dbService.updateServiceIdentitySystemMetaFields(service, "x509certsignerkeyid", meta, "unit-test");
         assertEquals(service.getX509CertSignerKeyId(), "x509-signer-key-id");
+        zms.dbService.updateServiceIdentitySystemMetaFields(service, "featureflags", meta, "unit-test");
+        assertEquals(service.getFeatureFlags(), Integer.valueOf(5));
         try {
             zms.dbService.updateServiceIdentitySystemMetaFields(service, "unknown", meta, "unit-test");
             fail();
@@ -6258,6 +6262,23 @@ public class DBServiceTest {
         Role role = new Role().setName("dom1:role.role1").setAuditEnabled(true);
         zms.dbService.auditLogRoleSystemMeta(auditDetails, role, "role1");
         assertEquals(auditDetails.toString(), "{\"name\": \"role1\", \"auditEnabled\": \"true\"}");
+    }
+
+    @Test
+    public void testAuditLogServiceIdentitySystemMeta() {
+        StringBuilder auditDetails = new StringBuilder();
+        ServiceIdentity service = new ServiceIdentity()
+                .setName("dom1.service1")
+                .setProviderEndpoint("https://localhost")
+                .setX509CertSignerKeyId("x509-keyid")
+                .setSshCertSignerKeyId("ssh-keyid")
+                .setClientId("client-id")
+                .setFeatureFlags(7);
+        zms.dbService.auditLogServiceIdentitySystemMeta(auditDetails, service, "service1");
+        assertEquals(auditDetails.toString(),
+                "{\"name\": \"service1\", \"providerEndpoint\": \"https://localhost\"" +
+                ", \"x509CertSignerKeyId\": \"x509-keyid\", \"sshCertSignerKeyId\": \"ssh-keyid\"" +
+                ", \"clientId\": \"client-id\", \"featureFlags\": \"7\"}");
     }
 
     @Test

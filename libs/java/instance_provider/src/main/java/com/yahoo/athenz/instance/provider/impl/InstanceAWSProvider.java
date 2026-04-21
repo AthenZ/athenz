@@ -302,7 +302,8 @@ public class InstanceAWSProvider implements InstanceProvider {
         if (instanceDocumentCreds) {
             StringBuilder errMsg = new StringBuilder(256);
             if (!validateAWSDocument(confirmation.getProvider(), info, awsAccount,
-                    instanceId.toString(), true, privateIp, errMsg)) {
+                    instanceId.toString(), InstanceUtils.shouldCheckBootTime(instanceAttributes),
+                    privateIp, errMsg)) {
                 throw error("Unable to validate AWS document: " + errMsg);
             }
         }

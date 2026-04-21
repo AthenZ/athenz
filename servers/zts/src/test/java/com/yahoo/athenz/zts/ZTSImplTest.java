@@ -13540,7 +13540,8 @@ public class ZTSImplTest {
                 "athenz-example1.host.com",
                 certRequest,
                 InstanceProvider.Scheme.CLASS,
-                "aws"
+                "aws",
+                3, 5
         );
 
         assertNotNull(confirmation);
@@ -13550,6 +13551,8 @@ public class ZTSImplTest {
         assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_AZURE_SUBSCRIPTION), "12345");
         assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_AZURE_TENANT), "33333");
         assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_AZURE_CLIENT), "54321");
+        assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_DOMAIN_FEATURE_FLAGS), "3");
+        assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_SERVICE_FEATURE_FLAGS), "5");
 
         // Ensure the cert issuer/key modulus/subject attributes are empty, when the context doesn't have certificates
         // Mocking is set up to return null for certs on a second call
@@ -13562,12 +13565,15 @@ public class ZTSImplTest {
                 "athenz-example1.host.com",
                 certRequest,
                 InstanceProvider.Scheme.CLASS,
-                "aws"
+                "aws",
+                null, null
         );
         assertNotNull(confirmation);
         assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN));
         assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN));
         assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_RSA_MOD_HASH));
+        assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_DOMAIN_FEATURE_FLAGS));
+        assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_SERVICE_FEATURE_FLAGS));
     }
 
     @Test

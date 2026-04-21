@@ -4765,7 +4765,9 @@ public class ZTSImpl implements ZTSHandler {
 
         InstanceConfirmation instance = newInstanceConfirmationForRegister(ctx, provider, domain,
                 service, info.getAttestationData(), certReqInstanceId, info.getHostname(),
-                certReq, instanceProvider.getProviderScheme(), info.getCloud());
+                certReq, instanceProvider.getProviderScheme(), info.getCloud(),
+                domainData.getFeatureFlags(),
+                serviceIdentity != null ? serviceIdentity.getFeatureFlags() : null);
 
         // Store sanIP from CSR in a variable since instance attributes go through bunch of manipulations.
         // This is used to derive workload information from identity
@@ -4981,7 +4983,9 @@ public class ZTSImpl implements ZTSHandler {
 
         InstanceConfirmation instance = newInstanceConfirmationForRegister(ctx, provider, domain,
                 service, info.getAttestationData(), jwtReqInstanceId, info.getHostname(),
-                null, instanceProvider.getProviderScheme(), info.getCloud());
+                null, instanceProvider.getProviderScheme(), info.getCloud(),
+                domainData.getFeatureFlags(),
+                serviceIdentity != null ? serviceIdentity.getFeatureFlags() : null);
 
         // make sure to close our provider when its no longer needed
         // and the method will do that for us
@@ -5225,7 +5229,8 @@ public class ZTSImpl implements ZTSHandler {
     InstanceConfirmation generateInstanceConfirmObject(ResourceContext ctx, final String provider,
             final String domain, final String service, final String attestationData,
             final String instanceId, final String instanceHostname, final String certHostname, X509CertRequest certReq,
-            InstanceProvider.Scheme providerScheme, final String cloud) {
+            InstanceProvider.Scheme providerScheme, final String cloud, final Integer domainFeatureFlags,
+            final Integer serviceFeatureFlags) {
 
         InstanceConfirmation instance = new InstanceConfirmation()
                 .setAttestationData(attestationData)
@@ -5279,6 +5284,16 @@ public class ZTSImpl implements ZTSHandler {
             attributes.put(InstanceProvider.ZTS_INSTANCE_CLOUD, cloud);
         }
 
+        // include the service and domain feature flags if available
+
+        if (serviceFeatureFlags != null) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_SERVICE_FEATURE_FLAGS, Integer.toString(serviceFeatureFlags));
+        }
+
+        if (domainFeatureFlags != null) {
+            attributes.put(InstanceProvider.ZTS_INSTANCE_DOMAIN_FEATURE_FLAGS, Integer.toString(domainFeatureFlags));
+        }
+
         // include all the attribute if the certificate request is provided
         // this will help the provider to make more informed decisions
         // certificate request could be null if the request is for jwt svid
@@ -5318,11 +5333,13 @@ public class ZTSImpl implements ZTSHandler {
     InstanceConfirmation newInstanceConfirmationForRegister(ResourceContext ctx, final String provider,
             final String domain, final String service, final String attestationData,
             final String instanceId, final String instanceHostname, X509CertRequest certReq,
-            InstanceProvider.Scheme providerScheme, final String cloud) {
+            InstanceProvider.Scheme providerScheme, final String cloud,
+            final Integer domainFeatureFlags, final Integer serviceFeatureFlags) {
 
         InstanceConfirmation instanceConfirmation = generateInstanceConfirmObject(ctx, provider,
                 domain, service, attestationData, instanceId,
-                instanceHostname, null, certReq, providerScheme, cloud
+                instanceHostname, null, certReq, providerScheme, cloud,
+                domainFeatureFlags, serviceFeatureFlags
         );
 
         // include the request cert attributes, if available
@@ -5512,7 +5529,9 @@ public class ZTSImpl implements ZTSHandler {
 
         InstanceConfirmation instance = generateInstanceConfirmObject(ctx, provider,
                 domain, service, info.getAttestationData(), instanceId, info.getHostname(), certHostname,
-                certReq, instanceProvider.getProviderScheme(), info.getCloud());
+                certReq, instanceProvider.getProviderScheme(), info.getCloud(),
+                domainData.getFeatureFlags(),
+                serviceIdentity != null ? serviceIdentity.getFeatureFlags() : null);
 
         // Store sanIP from CSR in a variable since instance attributes go through bunch of manipulations.
         // This is used to derive workload information from identity

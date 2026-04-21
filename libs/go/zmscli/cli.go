@@ -749,6 +749,14 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 2 {
 				return cli.SetServiceSshCertSignerKeyId(dn, args[0], args[1])
 			}
+		case "set-service-feature-flags":
+			if argc == 2 {
+				flags, err := cli.getInt32(args[1])
+				if err != nil {
+					return nil, err
+				}
+				return cli.SetServiceFeatureFlags(dn, args[0], flags)
+			}
 		case "set-service-exe":
 			if argc == 4 {
 				return cli.SetServiceExe(dn, args[0], args[1], args[2], args[3])
@@ -2681,6 +2689,17 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("            : To remove the key id pass \"\" as its value\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-service-ssh-cert-signer-keyid storage ssh-keyid-1\n")
+	case "set-service-feature-flags":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-service-feature-flags service flags\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain   : name of the domain that service belongs to\n")
+		}
+		buf.WriteString("   service  : name of the service to set feature flags\n")
+		buf.WriteString("   flags    : optional features enabled for this service\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-service-feature-flags storage 3\n")
 	case "set-service-exe":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " set-service-exe service executable user group\n")
@@ -3924,6 +3943,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-service-client-id service client-id\n")
 	buf.WriteString("   set-service-x509-cert-signer-keyid service keyid\n")
 	buf.WriteString("   set-service-ssh-cert-signer-keyid service keyid\n")
+	buf.WriteString("   set-service-feature-flags service flags\n")
 	buf.WriteString("   set-service-exe service executable user group\n")
 	buf.WriteString("   set-service-creds service credentials\n")
 	buf.WriteString("   add-service-host service host [host ...]\n")
