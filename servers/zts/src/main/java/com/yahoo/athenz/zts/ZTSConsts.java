@@ -199,6 +199,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_VALIDATE_SERVICE_IDENTITY        = "athenz.zts.validate_service_identity";
     public static final String ZTS_PROP_MAX_AUTHZ_DETAILS_LENGTH         = "athenz.zts.max_authz_details_length";
     public static final String ZTS_PROP_ROLE_BASED_AUTHZ_SUPPORT         = "athenz.zts.role_based_authz_support";
+    public static final String ZTS_PROP_VALIDATE_ROLE_CERT_DNS_NAMES     = "athenz.zts.validate_role_cert_dns_names";
     public static final String ZTS_PROP_WORKLOAD_RECORD_STORE_FACTORY_CLASS   = "athenz.zts.workload_record_store_factory_class";
 
     public static final String ZTS_CHANGE_LOG_STORE_FACTORY_CLASS  = "com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStoreFactory";

@@ -33,6 +33,10 @@ public class X509RoleCertRequest extends X509CertRequest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(X509RoleCertRequest.class);
 
+    // default to false to maintain backward compatibility
+    static boolean VALIDATE_DNS_NAMES = Boolean.parseBoolean(System.getProperty(
+        ZTSConsts.ZTS_PROP_VALIDATE_ROLE_CERT_DNS_NAMES, "false"));
+
     protected String reqRoleName;
     protected String reqRoleDomain;
     protected String rolePrincipal;
@@ -86,6 +90,9 @@ public class X509RoleCertRequest extends X509CertRequest {
         for (String uri : uris) {
 
             if (!uri.toLowerCase().startsWith(ZTSConsts.ZTS_CERT_PROXY_USER_URI)) {
+                // at some point we should reject the request if it has unknown
+                // URI values but for now we'll just log the error and continue
+                LOGGER.error("Invalid ProxyUser URI in the Role Certificate CSR: {}", uri);
                 continue;
             }
 
@@ -172,6 +179,13 @@ public class X509RoleCertRequest extends X509CertRequest {
             return false;
         }
 
+        // validate that the dnsSuffix used in the dnsName attribute has
+            // been authorized to be used by the given provider
+
+        if (!validateDnsNames(principal)) {
+            return false;
+        }
+
         // let's check if we have a uri for the proxy user
 
         if (proxyUser != null && !validateProxyUserUri(proxyUser)) {
@@ -187,6 +201,60 @@ public class X509RoleCertRequest extends X509CertRequest {
         // validate spiffe uri if one is provided
 
         return validateSpiffeURI(reqRoleDomain, reqRoleName);
+    }
+
+    boolean validateDnsNames(final String principal) {
+
+        // if no dns names in the CSR then we're ok
+
+        if (dnsNames.isEmpty()) {
+            return true;
+        }
+
+        int idx = principal.lastIndexOf(AuthorityConsts.ATHENZ_PRINCIPAL_DELIMITER_CHAR);
+        if (idx == -1) {
+            LOGGER.error("unable to validate dns names - invalid principal: {}", principal);
+            return false;
+        }
+        final String domain = principal.substring(0, idx);
+        final String service = principal.substring(idx + 1);
+
+        // the only format we're allowed to have in the CSR is:
+        // <service>.<domain-with-dashes>.<provider-dns-suffix>
+        // so we'll check if we have exactly one dns name if
+        // we're configured to validate dns names
+
+        if (VALIDATE_DNS_NAMES && dnsNames.size() != 1) {
+            LOGGER.error("csr has incorrect number of dns names: {}/{}",
+                dnsNames.size(), String.join(", ", dnsNames));
+            return false;
+        }
+
+        // otherwise we'll go through and report any invalid dns names
+        // our dns suffix names already start with . so we don't need to add it again
+
+        final String prefix = service + "." + domain.replace('.', '-');
+        for (String dnsName : dnsNames) {
+
+            for (String suffix : ZTSUtils.ZTS_CERT_DNS_SUFFIX) {
+                if (dnsName.equals(prefix + suffix)) {
+                    if (VALIDATE_DNS_NAMES) {
+                        return true;
+                    }
+                }
+            }
+
+            LOGGER.error("Role Certificate sanDNS Validation - invalid entry: {}", dnsName);
+            if (VALIDATE_DNS_NAMES) {
+                return false;
+            }
+        }
+
+        // if our validation was turned on, then we would have
+        // already returned so at this point we're assuming the
+        // validation was turned off so we'll return true
+
+        return true;
     }
 
     public boolean validateIPAddress(X509Certificate cert, final String ip) {
