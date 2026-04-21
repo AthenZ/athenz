@@ -2247,6 +2247,140 @@ public class ServerResourceOwnershipTest {
     }
 
     @Test
+    public void testResourcePolicyOwnershipAssertionsPolicyVersion() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "policy-ownership-assertions-version";
+        final String roleName = "role1";
+        final String policyName = "policy1";
+        final String version = "ver1";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, roleName, null, null);
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, role1);
+
+        // create a policy and then a new version
+
+        Policy policy1 = zmsTestInitializer.createPolicyObject(domainName, policyName);
+        zmsImpl.putPolicy(ctx, domainName, policyName, auditRef, false, null, policy1);
+
+        PolicyOptions policyOptions = new PolicyOptions();
+        policyOptions.setVersion(version);
+        policyOptions.setFromVersion("0");
+        zmsImpl.putPolicyVersion(ctx, domainName, policyName, policyOptions, auditRef, false, null);
+
+        // add an assertion with ownership to the versioned policy
+
+        Assertion assertion = new Assertion().setAction("read").setResource(domainName + ":resource1")
+                .setRole(role1.getName());
+        Assertion assertion1 = zmsImpl.putAssertionPolicyVersion(ctx, domainName, policyName,
+                version, auditRef, "TF1", assertion);
+
+        Policy policy = zmsImpl.getPolicyVersion(ctx, domainName, policyName, version);
+        ResourcePolicyOwnership resourceOwnership = policy.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getAssertionsOwner(), "TF1");
+
+        // delete the assertion with different ownership and it should be rejected
+
+        try {
+            zmsImpl.deleteAssertionPolicyVersion(ctx, domainName, policyName, version,
+                    assertion1.getId(), auditRef, "TF2");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
+        }
+
+        // delete the assertion with null ownership and it should be rejected
+
+        try {
+            zmsImpl.deleteAssertionPolicyVersion(ctx, domainName, policyName, version,
+                    assertion1.getId(), auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
+        }
+
+        // delete the assertion with same ownership and it should be ok
+
+        try {
+            zmsImpl.deleteAssertionPolicyVersion(ctx, domainName, policyName, version,
+                    assertion1.getId(), auditRef, "TF1");
+        } catch (ResourceException ex) {
+            fail();
+        }
+
+        // add the assertion again with resource owner TF1
+
+        assertion1 = zmsImpl.putAssertionPolicyVersion(ctx, domainName, policyName,
+                version, auditRef, "TF1", assertion);
+        policy = zmsImpl.getPolicyVersion(ctx, domainName, policyName, version);
+        resourceOwnership = policy.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getAssertionsOwner(), "TF1");
+
+        // delete the assertion with the ignore ownership flag which should be ok
+
+        zmsImpl.deleteAssertionPolicyVersion(ctx, domainName, policyName, version,
+                assertion1.getId(), auditRef, "ignore");
+        policy = zmsImpl.getPolicyVersion(ctx, domainName, policyName, version);
+        resourceOwnership = policy.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getAssertionsOwner(), "TF1");
+
+        // add the assertion again with resource owner TF2 using force override
+
+        assertion1 = zmsImpl.putAssertionPolicyVersion(ctx, domainName, policyName,
+                version, auditRef, "TF2:force", assertion);
+        policy = zmsImpl.getPolicyVersion(ctx, domainName, policyName, version);
+        resourceOwnership = policy.getResourceOwnership();
+        assertNotNull(resourceOwnership);
+        assertEquals(resourceOwnership.getAssertionsOwner(), "TF2");
+
+        // delete the assertion with the original ownership should be rejected
+
+        try {
+            zmsImpl.deleteAssertionPolicyVersion(ctx, domainName, policyName, version,
+                    assertion1.getId(), auditRef, "TF1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
+        }
+
+        // delete the assertion with the correct ownership should succeed
+
+        zmsImpl.deleteAssertionPolicyVersion(ctx, domainName, policyName, version,
+                assertion1.getId(), auditRef, "TF2");
+
+        // verify the policy does not exist should throw not found
+
+        try {
+            zmsImpl.deleteAssertionPolicyVersion(ctx, domainName, "nonexistent", version,
+                    101L, auditRef, "TF1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        // verify admin policy cannot be modified
+
+        try {
+            zmsImpl.deleteAssertionPolicyVersion(ctx, domainName, "admin", version,
+                    101L, auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testResourceServiceOwnership() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
@@ -2576,6 +2710,82 @@ public class ServerResourceOwnershipTest {
         assertEquals(resourceOwnership.getObjectOwner(), "TF2");
         assertEquals(resourceOwnership.getHostsOwner(), "TF2");
         assertEquals(resourceOwnership.getPublicKeysOwner(), "TF3");
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testResourceServiceOwnershipDeletePublicKeys() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "service-ownership-delete-public-keys";
+        final String serviceName = "service1";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        // create a service without any ownership details and add public keys
+
+        ServiceIdentity service1 = zmsTestInitializer.createServiceObject(domainName, serviceName,
+                "http://localhost", "/usr/bin/athenz", "user1", "group1", null);
+        service1.setPublicKeys(null);
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service1);
+
+        PublicKeyEntry publicKey1 = new PublicKeyEntry().setId("key1").setKey(zmsTestInitializer.getPubKeyK1());
+        zmsImpl.putPublicKeyEntry(ctx, domainName, serviceName, "key1", auditRef, null, publicKey1);
+
+        // deleting the public key without ownership when none is set should succeed
+
+        zmsImpl.deletePublicKeyEntry(ctx, domainName, serviceName, "key1", auditRef, null);
+
+        // add public keys with ownership set
+
+        PublicKeyEntry publicKey2 = new PublicKeyEntry().setId("key2").setKey(zmsTestInitializer.getPubKeyK1());
+        zmsImpl.putPublicKeyEntry(ctx, domainName, serviceName, "key2", auditRef, "TF1", publicKey2);
+
+        PublicKeyEntry publicKey3 = new PublicKeyEntry().setId("key3").setKey(zmsTestInitializer.getPubKeyK1());
+        zmsImpl.putPublicKeyEntry(ctx, domainName, serviceName, "key3", auditRef, "TF1", publicKey3);
+
+        PublicKeyEntry publicKey4 = new PublicKeyEntry().setId("key4").setKey(zmsTestInitializer.getPubKeyK1());
+        zmsImpl.putPublicKeyEntry(ctx, domainName, serviceName, "key4", auditRef, "TF1", publicKey4);
+
+        // deleting a public key without ownership when ownership is set should fail
+
+        try {
+            zmsImpl.deletePublicKeyEntry(ctx, domainName, serviceName, "key2", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
+        }
+
+        // deleting a public key with a different ownership should fail
+
+        try {
+            zmsImpl.deletePublicKeyEntry(ctx, domainName, serviceName, "key2", auditRef, "TF2");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
+        }
+
+        // deleting a public key with the correct ownership should succeed
+
+        zmsImpl.deletePublicKeyEntry(ctx, domainName, serviceName, "key2", auditRef, "TF1");
+
+        // deleting a public key with the ignore flag should succeed
+
+        zmsImpl.deletePublicKeyEntry(ctx, domainName, serviceName, "key3", auditRef, "ignore");
+
+        // deleting a public key for a non-existent service should fail with not found
+
+        try {
+            zmsImpl.deletePublicKeyEntry(ctx, domainName, "non-existent-service", "key1", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
