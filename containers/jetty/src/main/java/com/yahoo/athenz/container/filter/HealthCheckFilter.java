@@ -67,7 +67,7 @@ public class HealthCheckFilter implements jakarta.servlet.Filter {
         String[] uris = list.split(",");
         for (String uri : uris) {
             final String trimmedUri = uri.trim();
-            final String filename = (trimmedUri.charAt(0) == '/') ? trimmedUri.substring(1) : trimmedUri;
+final String filename = trimmedUri.startsWith("/") ? trimmedUri.substring(1) : trimmedUri;
             File uriFile = new File(filterPath, filename);
             uriList.put(trimmedUri, uriFile);
         }
