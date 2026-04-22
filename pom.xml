@@ -85,7 +85,7 @@
     <commons.io.version>2.21.0</commons.io.version>
     <commons.logging.version>1.3.6</commons.logging.version>
     <commons.pool2.version>2.13.1</commons.pool2.version>
-    <ehcache.version>3.12.0</ehcache.version>
+    <ehcache.version>3.11.1</ehcache.version>
     <freemarker.version>2.3.34</freemarker.version>
     <gcp.api-client.version>2.9.0</gcp.api-client.version>
     <gcp.bom.version>26.80.0</gcp.bom.version>
