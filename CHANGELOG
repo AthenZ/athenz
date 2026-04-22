@@ -1,3 +1,28 @@
+Athenz v1.12.39 Release / Apr 21, 2026
+--------------------------------------
+
+#3198 Allow wrapper-controlled init to fix jwk_uri backward compatibility
+#3247 feat: add Spacelift OIDC inbound provider for service identity authentication
+#3300 Bump axios from 1.12.0 to 1.15.0 in /clients/nodejs/zts
+#3302 consistent use of TYPE_PRINCIPAL_NAME type when validating principal names
+#3303 Bump follow-redirects from 1.15.6 to 1.16.0 in /ui
+#3304 support pkce when fetching user certificates
+#3305 make usercert.Run to return error so it can be used as library call
+#3306 update "go" version to 1.26.2
+#3307 introduce retry logic when reading gcp metadata
+#3310 strict validation for instance id san dns name in certs
+#3312 fix token validation for k8s provider
+#3313 missing resource ownership checks for delete public keys and assertions with policy version
+#3314 Add OIDCAuthority for authenticating end users via external OIDC ID tokens
+#3315 enforce role cert san dns validation
+#3317 Provide per-service/domain capability to skip boot start time check for AWS and GCP Providers
+#3319 fix healthcheck filter when path starts with /
+#3320 enforce tls 1.2 for our go client connections
+#3321 update go/java/nodejs dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20260421.sql
+
 Athenz v1.12.38 Release / Apr 10, 2026
 --------------------------------------
 
