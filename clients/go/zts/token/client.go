@@ -176,6 +176,8 @@ func createTLSConfig(certPath, keyPath string) (*tls.Config, error) {
 		return nil, fmt.Errorf("failed to load client certificate and key: %v", err)
 	}
 	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+		SessionTicketsDisabled: true,
 		Certificates: []tls.Certificate{cert},
 	}
 	return tlsConfig, nil

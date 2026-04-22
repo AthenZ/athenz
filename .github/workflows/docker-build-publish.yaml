@@ -5,6 +5,19 @@ on:
     tags:
       - '*'
 
+permissions:
+  actions: none
+  checks: none
+  contents: read
+  deployments: none
+  issues: none
+  discussions: none
+  packages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
 env:
   DOCKER_BUILDX_PLATFORM: linux/amd64,linux/arm64
   DOCKER_REGISTRY_OWNER: athenz

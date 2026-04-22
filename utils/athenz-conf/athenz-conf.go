@@ -20,6 +20,7 @@ import (
 	"golang.org/x/net/proxy"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/AthenZ/athenz/libs/go/tls/config"
 )
 
 var (
@@ -344,7 +345,7 @@ func GetTLSConfigFromFiles(certFile, keyFile, caCertFile *string) (*tls.Config, 
 }
 
 func GetTLSConfig(certPem, keyPem, caCertPem []byte) (*tls.Config, error) {
-	config := &tls.Config{}
+	config := config.ClientTLSConfig()
 	if keyPem != nil {
 		clientCert, err := tls.X509KeyPair(certPem, keyPem)
 		if err != nil {

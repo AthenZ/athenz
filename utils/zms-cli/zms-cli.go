@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
@@ -25,6 +24,7 @@ import (
 	"golang.org/x/net/proxy"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/AthenZ/athenz/libs/go/tls/config"
 	"github.com/AthenZ/athenz/libs/go/zmscli"
 )
 
@@ -384,7 +384,7 @@ func getHttpTransport(socksProxy, caCertFile *string, skipVerify bool) *http.Tra
 		}
 	}
 	if caCertFile != nil || skipVerify {
-		config := &tls.Config{}
+		config := config.ClientTLSConfig()
 		if caCertFile != nil {
 			capem, err := os.ReadFile(*caCertFile)
 			if err != nil {

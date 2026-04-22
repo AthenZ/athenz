@@ -466,7 +466,7 @@ func ntokenClient(ztsURL, ntoken, caCertFile, hdr string) (*zts.ZTSClient, error
 		ResponseHeaderTimeout: 30 * time.Second,
 	}
 	if caCertFile != "" {
-		config := &tls.Config{}
+		config := config.ClientTLSConfig()
 		certPool := x509.NewCertPool()
 		caCert, err := os.ReadFile(caCertFile)
 		if err != nil {
