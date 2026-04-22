@@ -35,6 +35,7 @@ import (
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/athenzutils"
+	"github.com/AthenZ/athenz/libs/go/tls/config"
 )
 
 // Options configures the user certificate request flow.
@@ -229,7 +230,7 @@ func newSigner(privateKeyPEM []byte) (*signer, error) {
 }
 
 func tlsConfigFromPEM(cacertFile string) (*tls.Config, error) {
-	config := &tls.Config{}
+	config := config.ClientTLSConfig()
 	if cacertFile == "" {
 		return config, nil
 	}

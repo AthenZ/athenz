@@ -17,7 +17,7 @@ func GetTLSConfigFromFiles(certFile, keyFile string) (*tls.Config, error) {
 }
 
 func ClientTLSConfigFromPEM(keypem, certpem, cacertpem []byte) (*tls.Config, error) {
-	config := &tls.Config{}
+	config := ClientTLSConfig()
 	if certpem != nil && keypem != nil {
 		mycert, err := tls.X509KeyPair(certpem, keypem)
 		if err != nil {
