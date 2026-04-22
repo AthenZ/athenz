@@ -466,15 +466,17 @@ func ntokenClient(ztsURL, ntoken, caCertFile, hdr string) (*zts.ZTSClient, error
 		ResponseHeaderTimeout: 30 * time.Second,
 	}
 	if caCertFile != "" {
-		config := config.ClientTLSConfig()
+		tlsConfig := config.ClientTLSConfig()
 		certPool := x509.NewCertPool()
 		caCert, err := os.ReadFile(caCertFile)
 		if err != nil {
 			return nil, err
 		}
 		certPool.AppendCertsFromPEM(caCert)
-		config.RootCAs = certPool
-		transport.TLSClientConfig = config
+		tlsConfig.RootCAs = certPool
+		transport.TLSClientConfig = tlsConfig
+	} else {
+		transport.TLSClientConfig = config.ClientTLSConfig()
 	}
 	// use the ntoken to talk to Athenz
 	client := zts.NewClient(ztsURL, transport)

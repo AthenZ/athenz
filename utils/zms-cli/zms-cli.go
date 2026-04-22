@@ -384,7 +384,7 @@ func getHttpTransport(socksProxy, caCertFile *string, skipVerify bool) *http.Tra
 		}
 	}
 	if caCertFile != nil || skipVerify {
-		config := config.ClientTLSConfig()
+		tlsConfig := config.ClientTLSConfig()
 		if caCertFile != nil {
 			capem, err := os.ReadFile(*caCertFile)
 			if err != nil {
@@ -394,12 +394,14 @@ func getHttpTransport(socksProxy, caCertFile *string, skipVerify bool) *http.Tra
 			if !certPool.AppendCertsFromPEM(capem) {
 				log.Fatalf("Unable to append CA Certificate to pool")
 			}
-			config.RootCAs = certPool
+			tlsConfig.RootCAs = certPool
 		}
 		if skipVerify {
-			config.InsecureSkipVerify = skipVerify
+			tlsConfig.InsecureSkipVerify = skipVerify
 		}
-		tr.TLSClientConfig = config
+		tr.TLSClientConfig = tlsConfig
+	} else {
+		tr.TLSClientConfig = config.ClientTLSConfig()
 	}
 	return &tr
 }
