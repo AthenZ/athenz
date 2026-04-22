@@ -192,6 +192,37 @@ public class HealthCheckFilterTest {
         filter.destroy();
     }
     
+    @Test
+    public void testCheckUriStartingWithSlash() {
+
+        HealthCheckFilter filter = new HealthCheckFilter();
+        assertNotNull(filter);
+
+        System.setProperty(AthenzConsts.ATHENZ_PROP_HEALTH_CHECK_URI_LIST, " /health.html ");
+
+        filter.init(filterConfig);
+
+        createFile("/tmp/var/athenz_test/health.html");
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setMethod("GET");
+        request.setRequestURI("/health.html");
+
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        HealthcheckFilterChain chain = new HealthcheckFilterChain();
+
+        try {
+            filter.doFilter(request, response, chain);
+        } catch (IOException | ServletException e) {
+            fail();
+        }
+        assertEquals(response.getStatus(), 200);
+
+        filter.destroy();
+        deleteFile("/tmp/var/athenz_test/health.html");
+    }
+
     private void createFile(String filename) {
         try {
             Path pathToFile = Paths.get(filename);
