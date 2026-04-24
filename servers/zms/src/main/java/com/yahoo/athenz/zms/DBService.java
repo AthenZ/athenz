@@ -7714,6 +7714,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 case SERVICE:
                 case USER_HEADLESS:
                 case EXTERNAL:
+                case ALL:
 
                     if (isEarlierDueDate(serviceExpiryMillis, expiration)) {
                         expirationSetter.accept(member, serviceExpiration);

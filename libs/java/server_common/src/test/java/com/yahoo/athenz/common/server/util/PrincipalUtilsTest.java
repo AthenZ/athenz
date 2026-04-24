@@ -36,6 +36,9 @@ public class PrincipalUtilsTest {
         String groupSep = ":group";
         List<String> addlUserCheckDomainPrefixList = Arrays.asList(userDomain2);
 
+        // ALL
+        assertEquals(PrincipalUtils.principalType("*", userDomain, addlUserCheckDomainPrefixList,
+            headlessDomain), Principal.Type.ALL);
         // GROUP
         assertEquals(PrincipalUtils.principalType(homeDomain + ".joe" + groupSep + ".test-group", userDomain,
                 addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.GROUP);
@@ -68,6 +71,9 @@ public class PrincipalUtilsTest {
         userDomain = "personal";
         homeDomain = userDomain;
 
+        // ALL
+        assertEquals(PrincipalUtils.principalType("*", userDomain, addlUserCheckDomainPrefixList,
+            headlessDomain), Principal.Type.ALL);
         // GROUP
         assertEquals(PrincipalUtils.principalType(homeDomain + ".joe" + groupSep + ".test-group", userDomain,
                 addlUserCheckDomainPrefixList, headlessDomain), Principal.Type.GROUP);

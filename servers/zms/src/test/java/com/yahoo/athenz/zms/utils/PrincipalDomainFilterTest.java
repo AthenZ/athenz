@@ -63,6 +63,7 @@ public class PrincipalDomainFilterTest {
         assertNull(filter.allowedSubDomains);
         assertTrue(filter.validate(null, Principal.Type.USER));
         assertTrue(filter.validate(null, Principal.Type.GROUP));
+        assertTrue(filter.validate(null, Principal.Type.ALL));
 
         filter = new PrincipalDomainFilter(null);
         assertNull(filter.allowedDomains);
@@ -70,6 +71,7 @@ public class PrincipalDomainFilterTest {
         assertNull(filter.allowedSubDomains);
         assertTrue(filter.validate(null, Principal.Type.USER));
         assertTrue(filter.validate(null, Principal.Type.GROUP));
+        assertTrue(filter.validate(null, Principal.Type.ALL));
 
         // now let's test some valid filters
 
@@ -149,6 +151,13 @@ public class PrincipalDomainFilterTest {
                 { "+sports,-sports.prod", "sports:ext.partner", Principal.Type.EXTERNAL, true },
                 { "+sports,-sports.prod", "sports.dev:ext.partner", Principal.Type.EXTERNAL, true },
                 { "+sports,-sports.prod", "sports.prod:ext.partner", Principal.Type.EXTERNAL, false },
+                { "user", "*", Principal.Type.ALL, false },
+                { "+sports", "*", Principal.Type.ALL, false },
+                { "-home", "*", Principal.Type.ALL, false },
+                { "+sports,-sports.prod", "*", Principal.Type.ALL, false },
+                { "user,+sports", "*", Principal.Type.ALL, false },
+                { "user,-home", "*", Principal.Type.ALL, false },
+                { "user,+sports,-sports.prod", "*", Principal.Type.ALL, false },
         };
     }
     @Test(dataProvider = "DomainFilterData")
@@ -209,7 +218,22 @@ public class PrincipalDomainFilterTest {
         role1.setPrincipalDomainFilter("user,+sports,-sports.prod");
         zmsImpl.putRole(ctx, domainName, roleName1, auditRef, false, null, role1);
 
-        // add a role with the domain filter and no allowed members
+        // wildcard * member should be rejected when domain filter is set
+
+        roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.user1"));
+        roleMembers.add(new RoleMember().setMemberName("*"));
+        role1.setRoleMembers(roleMembers);
+
+        try {
+            zmsImpl.putRole(ctx, domainName, roleName1, auditRef, false, null, role1);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Principal * is not allowed for the role"));
+        }
+
+        // add a role with the domain filter and disallowed members
 
         roleMembers = new ArrayList<>();
         roleMembers.add(new RoleMember().setMemberName("user.user1"));
@@ -313,6 +337,17 @@ public class PrincipalDomainFilterTest {
             assertEquals(ex.getMessage().contains("Principal sports.prod.api is not allowed for the role"), true);
         }
 
+        // wildcard * member should be rejected when domain filter is set
+
+        membership = new Membership().setMemberName("*");
+        try {
+            zmsImpl.putMembership(ctx, domainName, roleName1, "*", auditRef, false, null, membership);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Principal * is not allowed for the role"));
+        }
+
         zmsImpl.deleteSubDomain(ctx, "sports", "dev", auditRef, null);
         zmsImpl.deleteSubDomain(ctx, "sports", "prod", auditRef, null);
         zmsImpl.deleteMembership(ctx, domainName, roleName1, "sports:group.group1", auditRef, null);
@@ -368,7 +403,7 @@ public class PrincipalDomainFilterTest {
         group1.setPrincipalDomainFilter("user,+sports,-sports.prod");
         zmsImpl.putGroup(ctx, domainName, groupName1, auditRef, false, null, group1);
 
-        // add a group with the domain filter and no allowed members
+        // add a group with the domain filter and disallowed members
 
         groupMembers = new ArrayList<>();
         groupMembers.add(new GroupMember().setMemberName("user.user1"));

@@ -24,7 +24,7 @@ import java.util.List;
 public interface Principal {
 
     /**
-     * Principal type - user, service, group, external or unknown
+     * Principal type - user, service, group, external, all or unknown
      */
     enum Type {
         UNKNOWN(0),
@@ -32,7 +32,8 @@ public interface Principal {
         SERVICE(2),
         GROUP(3),
         USER_HEADLESS(4),
-        EXTERNAL(5);
+        EXTERNAL(5),
+        ALL(6);
 
         private final int principalType;
         Type(int type) {
