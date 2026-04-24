@@ -119,12 +119,19 @@ public class PrincipalTest {
         type = Principal.Type.USER_HEADLESS;
         assertEquals(type.getValue(), 4);
 
+        type = Principal.Type.EXTERNAL;
+        assertEquals(type.getValue(), 5);
+
+        type = Principal.Type.ALL;
+        assertEquals(type.getValue(), 6);
+
         assertEquals(Principal.Type.getType(0), Principal.Type.UNKNOWN);
         assertEquals(Principal.Type.getType(1), Principal.Type.USER);
         assertEquals(Principal.Type.getType(2), Principal.Type.SERVICE);
         assertEquals(Principal.Type.getType(3), Principal.Type.GROUP);
         assertEquals(Principal.Type.getType(4), Principal.Type.USER_HEADLESS);
         assertEquals(Principal.Type.getType(5), Principal.Type.EXTERNAL);
-        assertEquals(Principal.Type.getType(6), Principal.Type.UNKNOWN);
+        assertEquals(Principal.Type.getType(6), Principal.Type.ALL);
+        assertEquals(Principal.Type.getType(7), Principal.Type.UNKNOWN);
     }
 }

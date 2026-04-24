@@ -345,4 +345,21 @@ public class AthenzDomainTest {
         assertEquals(athenzDomain.getRoles().get(0).getRoleMembers().get(0).getPrincipalType(), 
                 Principal.Type.GROUP.getValue());
     }
+
+    @Test
+    public void testSetRoleMemberPrincipalTypesAllType() {
+        AthenzDomain athenzDomain = new AthenzDomain("test-domain");
+        List<Role> roles = new ArrayList<>();
+        Role role = new Role().setName("role1");
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("*"));
+        role.setRoleMembers(roleMembers);
+        roles.add(role);
+        athenzDomain.setRoles(roles);
+
+        athenzDomain.setRoleMemberPrincipalTypes("user", null, "headless");
+
+        assertEquals(athenzDomain.getRoles().get(0).getRoleMembers().get(0).getPrincipalType(),
+                Principal.Type.ALL.getValue());
+    }
 }

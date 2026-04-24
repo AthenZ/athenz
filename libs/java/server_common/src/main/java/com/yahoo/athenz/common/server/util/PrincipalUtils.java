@@ -27,6 +27,10 @@ public class PrincipalUtils {
     public static Principal.Type principalType(final String memberName, final String userDomainPrefix,
             final List<String> addlUserCheckDomainPrefixList, final String headlessUserDomainPrefix) {
 
+        if ("*".equals(memberName)) {
+            return Principal.Type.ALL;
+        }
+
         if (isUserDomainPrincipal(memberName, userDomainPrefix, addlUserCheckDomainPrefixList)) {
             return Principal.Type.USER;
         } else if (isHeadlessUserDomainPrincipal(memberName, headlessUserDomainPrefix)) {

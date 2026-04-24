@@ -21776,6 +21776,83 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testValidateRoleMemberPrincipalAll() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        Authority savedAuthority = zmsImpl.userAuthority;
+        DynamicConfigBoolean savedValidateUserRoleMembers = zmsImpl.validateUserRoleMembers;
+
+        // case 1: userAuthority is null - wildcard member should be accepted
+
+        zmsImpl.userAuthority = null;
+        zmsImpl.validateUserRoleMembers = new DynamicConfigBoolean(true);
+
+        zmsImpl.validateRoleMemberPrincipal("athenz", "role1", "*", Principal.Type.ALL.getValue(), null, null,
+                null, null, false, "unittest");
+
+        // case 2: userAuthority is set but validateUserRoleMembers is false
+
+        zmsImpl.userAuthority = new TestUserPrincipalAuthority();
+        zmsImpl.validateUserRoleMembers = new DynamicConfigBoolean(false);
+
+        zmsImpl.validateRoleMemberPrincipal("athenz", "role1", "*", Principal.Type.ALL.getValue(),
+                Set.of("employee"), null, null, null, false, "unittest");
+
+        // case 3: userAuthority is set, validateUserRoleMembers is true,
+        // but both filterSet and expiration are null - should succeed
+
+        zmsImpl.validateUserRoleMembers = new DynamicConfigBoolean(true);
+
+        zmsImpl.validateRoleMemberPrincipal("athenz", "role1", "*", Principal.Type.ALL.getValue(), null, null,
+                null, null, false, "unittest");
+
+        // also with empty string expiration - should succeed
+
+        zmsImpl.validateRoleMemberPrincipal("athenz", "role1", "*", Principal.Type.ALL.getValue(), null, "",
+                null, null, false, "unittest");
+
+        // case 4: userAuthority is set, validateUserRoleMembers is true,
+        // userAuthorityFilterSet is not null - should throw
+
+        try {
+            zmsImpl.validateRoleMemberPrincipal("athenz", "role1", "*", Principal.Type.ALL.getValue(),
+                    Set.of("employee"), null, null, null, false, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Wildcard member is not allowed"));
+        }
+
+        // case 5: userAuthority is set, validateUserRoleMembers is true,
+        // userAuthorityExpiration is not empty - should throw
+
+        try {
+            zmsImpl.validateRoleMemberPrincipal("athenz", "role1", "*", Principal.Type.ALL.getValue(),
+                    null, "expiry", null, null, false, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Wildcard member is not allowed"));
+        }
+
+        // case 6: userAuthority is set, validateUserRoleMembers is true,
+        // both filterSet and expiration are set - should throw
+
+        try {
+            zmsImpl.validateRoleMemberPrincipal("athenz", "role1", "*", Principal.Type.ALL.getValue(),
+                    Set.of("contractor"), "expiry", null, null, false, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Wildcard member is not allowed"));
+        }
+
+        zmsImpl.userAuthority = savedAuthority;
+        zmsImpl.validateUserRoleMembers = savedValidateUserRoleMembers;
+    }
+
+    @Test
     public void testValidateRoleMemberPrincipalService() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
@@ -21913,6 +21990,14 @@ public class ZMSImplTest {
 
         try {
             zmsImpl.validateGroupMemberPrincipal("athenz", "group1", "*", Principal.Type.SERVICE.getValue(), null,
+                    null, "unittest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+
+        try {
+            zmsImpl.validateGroupMemberPrincipal("athenz", "group1", "*", Principal.Type.ALL.getValue(), null,
                     null, "unittest");
             fail();
         } catch (ResourceException ex) {

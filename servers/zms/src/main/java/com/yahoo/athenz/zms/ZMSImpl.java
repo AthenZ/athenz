@@ -4910,6 +4910,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
                 externalMemberValidatorManager.validateMember(domainName, memberName, caller);
                 break;
+
+            case ALL:
+
+                // if we have a full wildcard member then we're going to allow it
+                // as long as there are no other user filtering rules in place
+
+                if (userAuthority != null && validateUserRoleMembers.get()
+                        && (userAuthorityFilterSet != null || !StringUtil.isEmpty(userAuthorityExpiration))) {
+                    throw ZMSUtils.requestError("Wildcard member is not allowed with user authority filter or expiration", caller);
+                }
+
+                break;
+
+            default:
+                break;
         }
 
         return userType;
@@ -4922,9 +4937,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Authority.UserType userType = Authority.UserType.USER_ACTIVE;
         Principal.Type type = Principal.Type.getType(principalType);
 
-        // we do not support group members and any type of wildcards in group members
+        // we do not support group members, all/wildcard members, and any type of wildcards in group members
 
-        if (type == Principal.Type.UNKNOWN || type == Principal.Type.GROUP || memberName.indexOf('*') != -1) {
+        if (type == Principal.Type.UNKNOWN || type == Principal.Type.GROUP || type == Principal.Type.ALL
+                || memberName.indexOf('*') != -1) {
             throw ZMSUtils.requestError("Principal " + memberName + " is not valid", caller);
         }
 
@@ -4961,8 +4977,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             case EXTERNAL:
 
-            externalMemberValidatorManager.validateMember(domainName, memberName, caller);
-            break;
+                externalMemberValidatorManager.validateMember(domainName, memberName, caller);
+                break;
+
+            default:
+                break;
         }
 
         return userType;
@@ -5177,6 +5196,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 case SERVICE:
                 case USER_HEADLESS:
                 case EXTERNAL:
+                case ALL:
                     if (cfgServiceMemberDueDateMillis != 0) {
                         Timestamp newDueDate = getMemberDueDate(cfgServiceMemberDueDateMillis, currentDueDate);
                         dueDateSetter.accept(member, newDueDate);
@@ -5187,6 +5207,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         Timestamp newDueDate = getMemberDueDate(cfgGroupMemberDueDateMillis, currentDueDate);
                         dueDateSetter.accept(member, newDueDate);
                     }
+                    break;
+                default:
                     break;
             }
         }
@@ -5368,6 +5390,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             case SERVICE:
             case USER_HEADLESS:
             case EXTERNAL:
+            case ALL:
 
                 roleMember.setExpiration(getMemberDueDate(memberExpiryDueDays.getServiceDueDateMillis(), membership.getExpiration()));
                 break;
@@ -5375,6 +5398,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             case GROUP:
 
                 roleMember.setExpiration(getMemberDueDate(memberExpiryDueDays.getGroupDueDateMillis(), membership.getExpiration()));
+                break;
+
+            default:
                 break;
         }
     }
@@ -5391,11 +5417,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             case SERVICE:
             case USER_HEADLESS:
             case EXTERNAL:
+            case ALL:
                 roleMember.setReviewReminder(getMemberDueDate(memberReminderDueDays.getServiceDueDateMillis(), membership.getReviewReminder()));
                 break;
 
             case GROUP:
                 roleMember.setReviewReminder(getMemberDueDate(memberReminderDueDays.getGroupDueDateMillis(), membership.getReviewReminder()));
+                break;
+
+            default:
                 break;
         }
     }
@@ -11819,6 +11849,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             case GROUP:
                 throw ZMSUtils.requestError("Group member can't be of type group", caller);
+
+            case ALL:
+                throw ZMSUtils.requestError("Group member can't be of type all", caller);
+
+            default:
+                break;
         }
     }
 

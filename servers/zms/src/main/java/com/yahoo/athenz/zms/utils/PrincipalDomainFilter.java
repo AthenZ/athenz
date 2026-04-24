@@ -71,6 +71,14 @@ public class PrincipalDomainFilter {
             return true;
         }
 
+        // the ALL type represents the wildcard "*" member which applies
+        // to all principals - so if we have any type of filtering enabled
+        // then having an ALL type is not allowed
+
+        if (type == Principal.Type.ALL) {
+            return false;
+        }
+
         // let's first extract our domain name: special handling
         // for groups while all other types are standard service names
         // since we're given the principal type, it's already been
