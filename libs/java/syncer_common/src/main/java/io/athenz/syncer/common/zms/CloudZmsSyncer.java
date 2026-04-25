@@ -362,6 +362,8 @@ public class CloudZmsSyncer {
                     updateExecutor.shutdown();
                     refreshExecutor.shutdown();
                 }
+                awaitTermination(updateExecutor);
+                awaitTermination(refreshExecutor);
             }
 
         } catch (Exception ex) {
@@ -393,6 +395,19 @@ public class CloudZmsSyncer {
                 " : number-domain-deleted-failures: " + getNumDomainsDeletedFailed();
         LOG.info(sb);
         return retStatus;
+    }
+
+    static void awaitTermination(ExecutorService executor) {
+        try {
+            if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+                LOG.warn("executor did not terminate within timeout, forcing shutdown");
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            LOG.warn("interrupted while awaiting executor termination");
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     static ThreadFactory newNamedThreadFactory(String prefix) {
