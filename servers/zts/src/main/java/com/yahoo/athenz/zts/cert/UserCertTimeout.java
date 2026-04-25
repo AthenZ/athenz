@@ -82,9 +82,13 @@ public class UserCertTimeout implements Closeable {
                 System.getProperty(ZTSConsts.ZTS_PROP_USER_CERT_TIMEOUT_REFRESH_INTERVAL,
                         Long.toString(DEFAULT_REFRESH_INTERVAL_MINS)));
 
-        refreshTimeoutMap();
+        refreshTimeoutMap(null);
 
-        scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "UserCertTimeout-Refresh");
+            t.setDaemon(true);
+            return t;
+        });
         scheduledExecutor.scheduleAtFixedRate(this::refreshIfModified,
                 refreshIntervalMins, refreshIntervalMins, TimeUnit.MINUTES);
     }
@@ -93,25 +97,28 @@ public class UserCertTimeout implements Closeable {
         try {
             DomainData domainData = dataStore.getDomainData(userDomain);
             if (domainData == null) {
-                LOGGER.warn("Unable to retrieve domain data for: {}", userDomain);
+                LOGGER.error("Unable to retrieve domain data for: {}", userDomain);
                 return;
             }
 
             long modifiedMillis = domainData.getModified() != null ? domainData.getModified().millis() : 0;
             if (modifiedMillis > lastModifiedMillis) {
-                refreshTimeoutMap();
+                LOGGER.info("Refreshing user cert timeout map...");
+                refreshTimeoutMap(domainData);
             }
         } catch (Exception ex) {
             LOGGER.error("Unable to refresh user cert timeout map", ex);
         }
     }
 
-    void refreshTimeoutMap() {
+    void refreshTimeoutMap(DomainData domainData) {
 
-        DomainData domainData = dataStore.getDomainData(userDomain);
         if (domainData == null) {
-            LOGGER.warn("Unable to retrieve domain data for: {}", userDomain);
-            return;
+            domainData = dataStore.getDomainData(userDomain);
+            if (domainData == null) {
+                LOGGER.error("Unable to retrieve domain data for: {}", userDomain);
+                return;
+            }
         }
 
         List<Role> roles = domainData.getRoles();
@@ -151,7 +158,7 @@ public class UserCertTimeout implements Closeable {
         }
 
         try {
-            return Integer.parseInt(tagValueList.getList().get(0));
+            return Integer.parseInt(tagValueList.getList().get(0).trim());
         } catch (NumberFormatException ex) {
             LOGGER.error("Invalid timeout value for role {}: {}", role.getName(),
                     tagValueList.getList().get(0));

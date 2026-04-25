@@ -554,7 +554,7 @@ public class UserCertTimeoutTest {
 
         // directly call refreshTimeoutMap with null domain
 
-        userCertTimeout.refreshTimeoutMap();
+        userCertTimeout.refreshTimeoutMap(null);
 
         assertTrue(userCertTimeout.getTimeoutMap().isEmpty());
     }
