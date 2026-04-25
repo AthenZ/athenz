@@ -137,8 +137,6 @@ public class ZTSImpl implements ZTSHandler {
     protected int roleTokenMaxTimeout;
     protected int idTokenMaxTimeout;
     protected int idTokenDefaultTimeout;
-    protected int userCertMaxTimeout;
-    protected int userCertDefaultTimeout;
     protected DynamicConfigLong x509CertRefreshResetTime;
     protected long signedPolicyTimeout;
     protected static String serverHostName = null;
@@ -202,6 +200,7 @@ public class ZTSImpl implements ZTSHandler {
     protected String ztsMetricLatencyName;
     protected String userCertProvider;
     protected boolean validateRoleCertDnsNames = false;
+    private UserCertTimeout userCertTimeoutManager;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -425,6 +424,10 @@ public class ZTSImpl implements ZTSHandler {
         // load our principal identity issuer
 
         principalIdentityIssuer = new PrincipalIdentityIssuer(System.getProperty(ZTSConsts.ZTS_PROP_PRINCIPAL_IDENTITY_ISSUER_MAP_FNAME));
+
+        // load our user cert timeout manager
+
+        userCertTimeoutManager = new UserCertTimeout(dataStore, userDomain);
     }
 
     void loadExternalProviderConfigManager() {
@@ -656,16 +659,6 @@ public class ZTSImpl implements ZTSHandler {
         timeout = TimeUnit.SECONDS.convert(1, TimeUnit.HOURS);
         idTokenDefaultTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_DEFAULT_TIMEOUT, Long.toString(timeout)));
-
-        // default and max (1hr) for user cert timeouts
-
-        timeout = TimeUnit.MINUTES.convert(1, TimeUnit.HOURS);
-        userCertMaxTimeout = Integer.parseInt(
-                System.getProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT, Long.toString(timeout)));
-
-        timeout = TimeUnit.MINUTES.convert(1, TimeUnit.HOURS);
-        userCertDefaultTimeout = Integer.parseInt(
-                System.getProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT, Long.toString(timeout)));
 
         // signedPolicyTimeout is in milliseconds but the config setting should be in seconds
         // to be consistent with other configuration properties
@@ -6647,7 +6640,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // determine the expiry time for the certificate
 
-        int expiryTime = determineUserCertTimeout(req.getExpiryTime());
+        int expiryTime = userCertTimeoutManager.getUserCertTimeout(principalName, req.getExpiryTime());
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("User Certificate for {} expiryTime: {}", principalName, expiryTime);
@@ -6696,13 +6689,6 @@ public class ZTSImpl implements ZTSHandler {
     String getUserX509KeySignerId(final String principalName, final String requestSignerKeyId) {
         final String authoritySignerKeyId = userAuthority.getSignerKeyId(principalName);
         return StringUtil.isEmpty(authoritySignerKeyId) ? requestSignerKeyId : authoritySignerKeyId;
-    }
-
-    int determineUserCertTimeout(Integer expiryTime) {
-        if (expiryTime == null || expiryTime <= 0) {
-            return userCertDefaultTimeout;
-        }
-        return (expiryTime > userCertMaxTimeout) ? userCertMaxTimeout : expiryTime;
     }
 
     synchronized void fetchInfoFromManifest(ServletContext servletContext) {

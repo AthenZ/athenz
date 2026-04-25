@@ -659,40 +659,40 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
         return true;
     }
 
-boolean loadJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys, JWKList jwkList, JWKList jwkListStrictRFC) {
-    final List<JWK> tmpJwkList = new ArrayList<>();
-    final List<JWK> tmpJwkListStrictRFC = new ArrayList<>();
-    for (com.yahoo.athenz.zms.PublicKeyEntry publicKey : keys) {
-        final String id = publicKey.getId();
-        final String key = publicKey.getKey();
-        if (key == null || id == null) {
-            LOGGER.error("Missing required public key attributes: {}/{}", id, key);
-            continue;
+    boolean loadJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys, JWKList jwkList, JWKList jwkListStrictRFC) {
+        final List<JWK> tmpJwkList = new ArrayList<>();
+        final List<JWK> tmpJwkListStrictRFC = new ArrayList<>();
+        for (com.yahoo.athenz.zms.PublicKeyEntry publicKey : keys) {
+            final String id = publicKey.getId();
+            final String key = publicKey.getKey();
+            if (key == null || id == null) {
+                LOGGER.error("Missing required public key attributes: {}/{}", id, key);
+                continue;
+            }
+            final JWK jwk = getJWK(key, id, false);
+            if (jwk != null) {
+                tmpJwkList.add(jwk);
+            }
+            final JWK jwkRfc = getJWK(key, id, true);
+            if (jwkRfc != null) {
+                tmpJwkListStrictRFC.add(jwkRfc);
+            }
         }
-        final JWK jwk = getJWK(key, id, false);
-        if (jwk != null) {
-            tmpJwkList.add(jwk);
+        if (tmpJwkList.isEmpty() || tmpJwkListStrictRFC.isEmpty()) {
+            return false;
         }
-        final JWK jwkRfc = getJWK(key, id, true);
-        if (jwkRfc != null) {
-            tmpJwkListStrictRFC.add(jwkRfc);
-        }
+        jwkList.setKeys(tmpJwkList);
+        jwkListStrictRFC.setKeys(tmpJwkListStrictRFC);
+        return true;
     }
-    if (tmpJwkList.isEmpty() || tmpJwkListStrictRFC.isEmpty()) {
-        return false;
+
+    boolean loadZmsJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys) {
+        return loadJwk(keys, zmsJWKList, zmsJWKListStrictRFC);
     }
-    jwkList.setKeys(tmpJwkList);
-    jwkListStrictRFC.setKeys(tmpJwkListStrictRFC);
-    return true;
-}
 
-boolean loadZmsJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys) {
-    return loadJwk(keys, zmsJWKList, zmsJWKListStrictRFC);
-}
-
-boolean loadZtsJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys) {
-    return loadJwk(keys, ztsJWKList, ztsJWKListStrictRFC);
-}
+    boolean loadZtsJwk(ArrayList<com.yahoo.athenz.zms.PublicKeyEntry> keys) {
+        return loadJwk(keys, ztsJWKList, ztsJWKListStrictRFC);
+    }
 
     @SuppressWarnings("rawtypes")
     String getCurveName(org.bouncycastle.jce.spec.ECParameterSpec ecParameterSpec, boolean rfc) {

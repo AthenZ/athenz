@@ -105,6 +105,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_USER_CERT_MAX_TIMEOUT      = "athenz.zts.user_cert_max_timeout";
     public static final String ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT  = "athenz.zts.user_cert_default_timeout";
     public static final String ZTS_PROP_USER_CERT_PROVIDER         = "athenz.zts.user_cert_provider";
+    public static final String ZTS_PROP_USER_CERT_TIMEOUT_REFRESH_INTERVAL = "athenz.zts.user_cert_timeout_refresh_interval";
 
     public static final String ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME    = "athenz.zts.self_signer_private_key_fname";
     public static final String ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD = "athenz.zts.self_signer_private_key_password";
@@ -220,8 +221,11 @@ public final class ZTSConsts {
 
     public static final String ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS = "athenz.zts.status_checker_factory_class";
     public static final String ZTS_PROP_USER_AUTHORITY_CLASS = "athenz.zts.user_authority_class";
+
+    // tag values used by zts server
     public static final String ZTS_ISSUE_ROLE_CERT_TAG = "zts.IssueRoleCerts";
     public static final String ZTS_ROLE_CERT_USE_DOMAIN_SIGNER_KEY_ID_TAG = "zts.RoleCertUseDomainSignerKeyId";
+    public static final String ZTS_USER_CERT_TIMEOUT_TAG = "zts.UserCertTimeout";
 
     public static final String ZTS_PROP_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY = "athenz.zts.cert_priority_min_percent_low_priority";
     public static final String ZTS_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY_DEFAULT = "75";

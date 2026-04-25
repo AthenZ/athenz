@@ -176,47 +176,6 @@ public class ZTSImplUserCertTest {
     }
 
     // -----------------------------------------------------------------------
-    // determineUserCertTimeout tests
-    // -----------------------------------------------------------------------
-
-    @Test
-    public void testDetermineUserCertTimeoutNull() {
-        assertEquals(zts.determineUserCertTimeout(null), zts.userCertDefaultTimeout);
-    }
-
-    @Test
-    public void testDetermineUserCertTimeoutZero() {
-        assertEquals(zts.determineUserCertTimeout(0), zts.userCertDefaultTimeout);
-    }
-
-    @Test
-    public void testDetermineUserCertTimeoutNegative() {
-        assertEquals(zts.determineUserCertTimeout(-100), zts.userCertDefaultTimeout);
-    }
-
-    @Test
-    public void testDetermineUserCertTimeoutWithinMax() {
-        int requested = zts.userCertMaxTimeout - 10;
-        assertEquals(zts.determineUserCertTimeout(requested), requested);
-    }
-
-    @Test
-    public void testDetermineUserCertTimeoutExceedsMax() {
-        int requested = zts.userCertMaxTimeout + 10;
-        assertEquals(zts.determineUserCertTimeout(requested), zts.userCertMaxTimeout);
-    }
-
-    @Test
-    public void testDetermineUserCertTimeoutExactlyMax() {
-        assertEquals(zts.determineUserCertTimeout(zts.userCertMaxTimeout), zts.userCertMaxTimeout);
-    }
-
-    @Test
-    public void testDetermineUserCertTimeoutSmallPositive() {
-        assertEquals(zts.determineUserCertTimeout(1), 1);
-    }
-
-    // -----------------------------------------------------------------------
     // getUserX509KeySignerId tests
     // -----------------------------------------------------------------------
 
@@ -926,7 +885,7 @@ public class ZTSImplUserCertTest {
         InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
         when(certManager.generateX509Certificate(eq("test.provider"), Mockito.any(),
                 eq(csr), eq(InstanceProvider.ZTS_CERT_USAGE_CLIENT),
-                eq(zts.userCertDefaultTimeout), Mockito.any(),
+                Mockito.anyInt(), Mockito.any(),
                 Mockito.any())).thenReturn(pemCert);
         Mockito.doNothing().when(certManager).logX509Cert(Mockito.any(), Mockito.anyString(),
                 Mockito.anyString(), Mockito.anyString(), Mockito.any());
