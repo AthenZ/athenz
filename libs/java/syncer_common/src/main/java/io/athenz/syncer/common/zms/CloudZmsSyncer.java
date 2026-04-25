@@ -345,8 +345,10 @@ public class CloudZmsSyncer {
             LOG.info("processing domain updates with {} thread(s), count: {}", domainUpdateFetchThreads, updateDomains.size());
             LOG.info("processing domain refreshes with {} thread(s), count: {}", domainRefreshFetchThreads, refreshDomains.size());
 
-            ExecutorService updateExecutor = Executors.newFixedThreadPool(domainUpdateFetchThreads);
-            ExecutorService refreshExecutor = Executors.newFixedThreadPool(domainRefreshFetchThreads);
+            ExecutorService updateExecutor = Executors.newFixedThreadPool(domainUpdateFetchThreads,
+                    newNamedThreadFactory("domain-update"));
+            ExecutorService refreshExecutor = Executors.newFixedThreadPool(domainRefreshFetchThreads,
+                    newNamedThreadFactory("domain-refresh"));
             try {
                 List<DomainUploadTask> updateTasks = submitUploadTasks(updateExecutor, updateDomains);
                 List<DomainUploadTask> refreshTasks = submitUploadTasks(refreshExecutor, refreshDomains);
@@ -391,6 +393,16 @@ public class CloudZmsSyncer {
                 " : number-domain-deleted-failures: " + getNumDomainsDeletedFailed();
         LOG.info(sb);
         return retStatus;
+    }
+
+    static ThreadFactory newNamedThreadFactory(String prefix) {
+        AtomicInteger counter = new AtomicInteger(0);
+        return r -> {
+            Thread t = new Thread(r);
+            t.setName(prefix + "-" + counter.incrementAndGet());
+            t.setDaemon(true);
+            return t;
+        };
     }
 
     List<DomainUploadTask> submitUploadTasks(ExecutorService executor, List<String> domainNames) {
