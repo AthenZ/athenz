@@ -26,6 +26,7 @@ The User Certificate feature allows human users to obtain X.509 TLS client certi
 | `zts-usercert` | Go | `utils/zts-usercert/` | CLI tool that orchestrates the end-to-end flow |
 | `usercert` library | Go | `libs/go/usercert/` | Reusable library: IdP auth, CSR generation, ZTS API call |
 | ZTS Server | Java | `servers/zts/` | `postUserCertificateRequest` handler: validates request, delegates to provider, issues certificate |
+| `UserCertTimeout` | Java | `servers/zts/` | Role-based certificate timeout manager: resolves effective timeout from role tags, user request, and server limits |
 | `UserCertificateProvider` | Java | `libs/java/instance_provider/` | Instance provider: exchanges OAuth2 auth code for access token, validates token identity |
 | ZTS Client | Go | `clients/go/zts/` | Generated client with `PostUserCertificateRequest` method |
 
@@ -251,12 +252,21 @@ The User Certificate feature allows human users to obtain X.509 TLS client certi
           └──────────────┬───────────────┘
                          │
                          ▼
-              ┌─────────────────────┐
-              │  Determine expiry:  │
-              │  • Use request val  │
-              │  • Cap at max       │
-              │  • Default if unset │
-              └──────────┬──────────┘
+              ┌─────────────────────────┐
+              │  Determine expiry       │
+              │  (UserCertTimeout):     │
+              │  • Look up user's roles │
+              │    in user domain       │
+              │  • Find max role timeout│
+              │    from zts.UserCert    │
+              │    Timeout role tags    │
+              │  • Use user request if  │
+              │    smaller than role    │
+              │    timeout              │
+              │  • Cap at server max    │
+              │  • Default if no role   │
+              │    timeout is set       │
+              └──────────┬──────────────┘
                          │
                          ▼
               ┌─────────────────────┐
@@ -386,11 +396,14 @@ The CLI is a thin wrapper that parses command-line flags and delegates to `userc
    - **URI constraint** — At most one URI SAN, which must be a valid SPIFFE URI.
    - **Subject O field** — Must be in the server's configured `validCertSubjectOrgValues`.
    - **SPIFFE URI validation** — If a SPIFFE URI is present, it must be valid for the user domain/namespace.
-8. **Provider attestation** — Delegate to `UserCertificateProvider.confirmInstance()` (see Section 4.3).
-9. **Expiry determination** (`determineUserCertTimeout`):
-   - If no expiry requested or <= 0: use `userCertDefaultTimeout` (default: 60 minutes).
-   - If requested expiry > `userCertMaxTimeout` (default: 60 minutes): cap at max.
-   - Otherwise: use requested value.
+8. **Provider attestation** — Delegate to `UserCertificateProvider.confirmInstance()` (see Section 4.4).
+9. **Expiry determination** (`UserCertTimeout.getUserCertTimeout`):
+   - Look up the user domain data cache and determine the user's accessible roles in the user domain.
+   - For each role, check the `zts.UserCertTimeout` role tag to find the maximum configured role-based timeout.
+   - If no role-based timeout is configured for any of the user's roles: use `userCertDefaultTimeout` (default: 60 minutes).
+   - If the user requests a smaller expiry than the role-based timeout, the user's request is honored.
+   - The effective timeout is always capped at `userCertMaxTimeout` (default: 60 minutes).
+   - This allows administrators to grant specific user groups longer certificate lifetimes by tagging roles in the user domain, while users can request shorter lifetimes if desired.
 10. **Certificate signing** — Submit CSR to cert signer with `client` usage, `High` priority.
 11. **Logging** — Log the issued certificate.
 12. **Return** — Return `UserCertificate` with the PEM certificate string.
@@ -400,14 +413,50 @@ The CLI is a thin wrapper that parses command-line flags and delegates to `userc
 | Property | Default | Description |
 |---|---|---|
 | `athenz.zts.user_cert_provider` | (none) | Provider class name |
-| `athenz.zts.user_cert_max_timeout` | 60 min | Maximum certificate lifetime |
-| `athenz.zts.user_cert_default_timeout` | 60 min | Default certificate lifetime |
+| `athenz.zts.user_cert_max_timeout` | 60 min | Maximum certificate lifetime (absolute cap) |
+| `athenz.zts.user_cert_default_timeout` | 60 min | Default certificate lifetime when no request or role timeout is set |
+| `athenz.zts.user_cert_timeout_refresh_interval` | 10 min | Interval for refreshing the role-based timeout map from the user domain |
 
-### 4.3 Server-Side: `UserCertificateProvider`
+**Role Tag:**
+
+| Tag | Scope | Description |
+|---|---|---|
+| `zts.UserCertTimeout` | Role (in user domain) | Specifies the certificate timeout in minutes for members of this role |
+
+### 4.3 Server-Side: `UserCertTimeout` — Role-Based Timeout Manager
+
+The `UserCertTimeout` class (`servers/zts/src/main/java/com/yahoo/athenz/zts/cert/UserCertTimeout.java`) determines the certificate lifetime for a given user by combining the client's requested expiry, role-based timeouts configured in the user domain, and the server's global limits.
+
+#### 4.3.1 Initialization
+
+On startup, `UserCertTimeout` reads the global timeout limits from system properties (`athenz.zts.user_cert_max_timeout` and `athenz.zts.user_cert_default_timeout`) and performs an initial scan of the user domain roles to build a role-name → timeout map.
+
+A background scheduler refreshes the map at a configurable interval (`athenz.zts.user_cert_timeout_refresh_interval`, default: 10 minutes). Refreshes are conditional — the map is only rebuilt when the user domain's `modified` timestamp has advanced, avoiding unnecessary work.
+
+#### 4.3.2 Role-Based Timeout Map
+
+The timeout map is populated by scanning all roles in the user domain (e.g., `user`) for the `zts.UserCertTimeout` role tag. Each tag value is parsed as an integer representing the timeout in minutes. Roles without the tag are ignored.
+
+**Example:** A role `user:role.extended-cert-users` with tag `zts.UserCertTimeout=120` grants its members up to a 120-minute certificate lifetime (subject to the server maximum).
+
+#### 4.3.3 Timeout Resolution (`getUserCertTimeout`)
+
+The timeout for a given user is resolved as follows:
+
+1. Look up the user domain data cache and determine the user's accessible roles.
+2. For each role the user is a member of, check if the role has a timeout entry in the map. Track the **maximum** role-based timeout across all matching roles.
+3. Apply the resolution rules:
+   - If **no** role-based timeout is present → return `userCertDefaultTimeout`.
+   - If the user requests a smaller expiry than the role-based (or default) timeout, the user's request is honored.
+   - The result is always capped at `userCertMaxTimeout`.
+
+This design allows administrators to grant different user groups longer certificate lifetimes without changing global server configuration, while users can request shorter lifetimes if desired. The server maximum remains an absolute cap.
+
+### 4.4 Server-Side: `UserCertificateProvider`
 
 The provider implements the `InstanceProvider` interface and performs the server-side IdP verification.
 
-#### 4.3.1 Initialization
+#### 4.4.1 Initialization
 
 On startup, the provider configures itself from system properties:
 
@@ -430,7 +479,7 @@ Both the token and JWKS endpoints are validated during initialization to ensure 
 
 The JWKS signing key resolver is initialized to fetch and cache the IdP's public signing keys.
 
-#### 4.3.2 `confirmInstance()` — Attestation Verification
+#### 4.4.2 `confirmInstance()` — Attestation Verification
 
 1. **Extract authorization code and code verifier** from `attestationData`:
    - The attestation data is parsed as an `&`-delimited string of key=value pairs.
@@ -467,7 +516,7 @@ The JWKS signing key resolver is initialized to fetch and cache the IdP's public
 5. **Validate audience**:
    - The token's `aud` claim must match the configured `audience` value exactly.
 
-#### 4.3.3 `refreshInstance()` — Explicitly Forbidden
+#### 4.4.3 `refreshInstance()` — Explicitly Forbidden
 
 `refreshInstance()` always throws a `FORBIDDEN` error. User certificates cannot be refreshed; a new IdP authentication is required for each certificate.
 
@@ -552,8 +601,9 @@ The authentication chain provides defense in depth:
 **Threat:** A user requests an excessively long certificate lifetime.
 
 **Mitigations:**
-- Server enforces `userCertMaxTimeout` (default: 60 minutes).
-- Requested expiry is capped at the maximum regardless of the client's request.
+- Server enforces `userCertMaxTimeout` (default: 60 minutes) as an absolute cap.
+- A user's requested expiry can only reduce the effective timeout below the role-based (or default) timeout, never increase it.
+- Role-based timeouts are controlled by administrators through role tags in the user domain, not by end users.
 - Certificates cannot be refreshed — `refreshInstance()` always throws `FORBIDDEN`.
 
 #### 5.2.7 Impersonation via User Name Mismatch
@@ -594,6 +644,9 @@ athenz.zts.user_cert_provider=<provider-class-name>
 # Certificate lifetime limits (in minutes)
 athenz.zts.user_cert_max_timeout=60
 athenz.zts.user_cert_default_timeout=60
+
+# Refresh interval for role-based timeout map (in minutes)
+athenz.zts.user_cert_timeout_refresh_interval=10
 
 # IdP Configuration (UserCertificateProvider)
 athenz.zts.user_cert.idp_config_endpoint=https://idp.example.com/.well-known/openid-configuration
@@ -666,15 +719,23 @@ User certificates explicitly cannot be refreshed. Each new certificate requires 
 - The user's active status is re-verified with each certificate issuance.
 - Short lifetimes (max 60 minutes default) limit exposure of compromised certificates.
 
-### 7.5 Client-Only Certificate Usage
+### 7.5 Role-Based Certificate Timeouts
+
+Certificate lifetimes can be customized per user group through role tags in the user domain. Administrators tag roles with `zts.UserCertTimeout=<minutes>` to allow members of those roles to obtain certificates with longer lifetimes (up to the server maximum). The effective timeout starts with the highest role-based timeout (or the server default if none), and is reduced to the user's requested expiry if smaller. The result is always capped at `userCertMaxTimeout`. This approach:
+- Avoids per-user configuration — timeout policies are managed through standard Athenz role membership.
+- Supports different tiers of users (e.g., on-call engineers may need longer-lived certificates).
+- Maintains the server maximum as an absolute security boundary.
+- Is automatically refreshed on a configurable interval (default: 10 minutes) without server restarts.
+
+### 7.6 Client-Only Certificate Usage
 
 Certificates are issued with `client` usage only. This prevents a user certificate from being used as a server certificate, limiting its utility in case of compromise.
 
-### 7.6 SPIFFE URI Support
+### 7.7 SPIFFE URI Support
 
 The CSR can optionally include a SPIFFE URI SAN (`spiffe://<trustDomain>/ns/default/sa/<userName>`). This enables integration with SPIFFE-aware systems while being validated against the server's configured SPIFFE URI validators.
 
-### 7.7 Audit Support
+### 7.8 Audit Support
 
 Certificate issuance is logged via `instanceCertManager.logX509Cert()`. The log includes the remote address, service name, principal name, and certificate details. This provides an audit trail for all issued user certificates.
 
