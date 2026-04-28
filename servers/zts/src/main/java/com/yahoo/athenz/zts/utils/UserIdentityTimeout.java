@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.cert;
+package com.yahoo.athenz.zts.utils;
 
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.Role;
@@ -31,27 +31,31 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class UserCertTimeout implements Closeable {
+public class UserIdentityTimeout implements Closeable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserCertTimeout.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserIdentityTimeout.class);
 
     static final long DEFAULT_REFRESH_INTERVAL_MINS = 10;
 
     private final DataStore dataStore;
     private final String userDomain;
-    private final Map<String, Integer> roleTimeoutMap;
+    private final Map<String, Integer> roleCertTimeoutMap;
+    private final Map<String, Integer> roleTokenTimeoutMap;
     private final ScheduledExecutorService scheduledExecutor;
 
     private int userCertMaxTimeout;
     private int userCertDefaultTimeout;
+    private int userTokenDefaultTimeout;
+    private int userTokenMaxTimeout;
 
     private long lastModifiedMillis;
 
-    public UserCertTimeout(DataStore dataStore, String userDomain) {
+    public UserIdentityTimeout(DataStore dataStore, String userDomain) {
 
         this.dataStore = dataStore;
         this.userDomain = userDomain;
-        this.roleTimeoutMap = new ConcurrentHashMap<>();
+        this.roleCertTimeoutMap = new ConcurrentHashMap<>();
+        this.roleTokenTimeoutMap = new ConcurrentHashMap<>();
         this.lastModifiedMillis = 0;
 
         // default and max (1hr) for user cert timeouts
@@ -78,14 +82,38 @@ public class UserCertTimeout implements Closeable {
             userCertMaxTimeout = userCertDefaultTimeout;
         }
 
+        // default (1hr) and max (12hrs) id token timeouts
+
+        timeout = TimeUnit.SECONDS.convert(1, TimeUnit.HOURS);
+        userTokenDefaultTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_DEFAULT_TIMEOUT, Long.toString(timeout)));
+
+        timeout = TimeUnit.SECONDS.convert(12, TimeUnit.HOURS);
+        userTokenMaxTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_MAX_TIMEOUT, Long.toString(timeout)));
+
+        if (userTokenDefaultTimeout <= 0) {
+            LOGGER.error("Invalid user token default timeout: {}, using default: {}", userTokenDefaultTimeout, timeout);
+            userTokenDefaultTimeout = (int) timeout;
+        }
+        if (userTokenMaxTimeout <= 0) {
+            LOGGER.error("Invalid user token max timeout: {}, using default: {}", userTokenMaxTimeout, timeout);
+            userTokenMaxTimeout = (int) timeout;
+        }
+        if (userTokenMaxTimeout < userTokenDefaultTimeout) {
+            LOGGER.error("User token max timeout: {} is less than default timeout: {}, setting both to default",
+                    userTokenMaxTimeout, userTokenDefaultTimeout);
+            userTokenMaxTimeout = userTokenDefaultTimeout;
+        }
+
         long refreshIntervalMins = Long.parseLong(
-                System.getProperty(ZTSConsts.ZTS_PROP_USER_CERT_TIMEOUT_REFRESH_INTERVAL,
+                System.getProperty(ZTSConsts.ZTS_PROP_USER_IDENTITY_TIMEOUT_REFRESH_INTERVAL,
                         Long.toString(DEFAULT_REFRESH_INTERVAL_MINS)));
 
         refreshTimeoutMap(null);
 
         scheduledExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "UserCertTimeout-Refresh");
+            Thread t = new Thread(r, "UserIdentityTimeout-Refresh");
             t.setDaemon(true);
             return t;
         });
@@ -123,36 +151,45 @@ public class UserCertTimeout implements Closeable {
 
         List<Role> roles = domainData.getRoles();
         if (roles == null) {
-            roleTimeoutMap.clear();
+            roleCertTimeoutMap.clear();
+            roleTokenTimeoutMap.clear();
             lastModifiedMillis = domainData.getModified() != null ? domainData.getModified().millis() : 0;
             return;
         }
 
-        Set<String> currentRoles = new HashSet<>();
+        Set<String> currentCertRoles = new HashSet<>();
+        Set<String> currentTokenRoles = new HashSet<>();
         for (Role role : roles) {
-            Integer timeout = extractTimeoutFromRole(role);
+            Integer timeout = extractTimeoutFromRole(role, ZTSConsts.ZTS_USER_CERT_TIMEOUT_TAG);
             if (timeout != null) {
-                roleTimeoutMap.put(role.getName(), timeout);
-                currentRoles.add(role.getName());
+                roleCertTimeoutMap.put(role.getName(), timeout);
+                currentCertRoles.add(role.getName());
+            }
+            timeout = extractTimeoutFromRole(role, ZTSConsts.ZTS_USER_TOKEN_TIMEOUT_TAG);
+            if (timeout != null) {
+                roleTokenTimeoutMap.put(role.getName(), timeout);
+                currentTokenRoles.add(role.getName());
             }
         }
 
-        roleTimeoutMap.keySet().retainAll(currentRoles);
+        roleCertTimeoutMap.keySet().retainAll(currentCertRoles);
+        roleTokenTimeoutMap.keySet().retainAll(currentTokenRoles);
 
         lastModifiedMillis = domainData.getModified() != null ? domainData.getModified().millis() : 0;
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Refreshed user cert timeout map with {} entries", roleTimeoutMap.size());
+            LOGGER.debug("Refreshed user cert timeout map with {} entries", roleCertTimeoutMap.size());
+            LOGGER.debug("Refreshed user token timeout map with {} entries", roleTokenTimeoutMap.size());
         }
     }
 
-    Integer extractTimeoutFromRole(Role role) {
+    Integer extractTimeoutFromRole(Role role, final String tagName) {
 
         if (role == null || role.getTags() == null) {
             return null;
         }
 
-        TagValueList tagValueList = role.getTags().get(ZTSConsts.ZTS_USER_CERT_TIMEOUT_TAG);
+        TagValueList tagValueList = role.getTags().get(tagName);
         if (tagValueList == null || tagValueList.getList() == null || tagValueList.getList().isEmpty()) {
             return null;
         }
@@ -166,12 +203,20 @@ public class UserCertTimeout implements Closeable {
         }
     }
 
-    public Integer getTimeout(String roleName) {
-        return roleTimeoutMap.get(roleName);
+    public Integer getCertTimeout(String roleName) {
+        return roleCertTimeoutMap.get(roleName);
     }
 
-    public Map<String, Integer> getTimeoutMap() {
-        return Collections.unmodifiableMap(roleTimeoutMap);
+    public Map<String, Integer> getCertTimeoutMap() {
+        return Collections.unmodifiableMap(roleCertTimeoutMap);
+    }
+
+    public Integer getTokenTimeout(String roleName) {
+        return roleTokenTimeoutMap.get(roleName);
+    }
+
+    public Map<String, Integer> getTokenTimeoutMap() {
+        return Collections.unmodifiableMap(roleTokenTimeoutMap);
     }
 
     /**
@@ -181,7 +226,7 @@ public class UserCertTimeout implements Closeable {
      * @param userName the name of the user
      * @return the maximum timeout for the user's accessible roles
      */
-    int getUserRoleTimeout(final String userName) {
+    int getUserRoleCertTimeout(final String userName) {
 
         // if for some reason the data cache is not available, we'll return the default timeout
 
@@ -197,7 +242,7 @@ public class UserCertTimeout implements Closeable {
 
         int maxRoleTimeout = 0;
         for (String role : roles) {
-            Integer timeout = getTimeout(role);
+            Integer timeout = getCertTimeout(role);
             if (timeout != null && timeout > maxRoleTimeout) {
                 maxRoleTimeout = timeout;
             }
@@ -209,23 +254,70 @@ public class UserCertTimeout implements Closeable {
         return (maxRoleTimeout == 0) ? userCertDefaultTimeout : maxRoleTimeout;
     }
 
+    /**
+     * This method will return the maximum timeout for the user's accessible roles
+     * If the domain does not exist or the user is not part of any roles, we'll
+     * return the default timeout.
+     * @param userName the name of the user
+     * @return the maximum timeout for the user's accessible roles
+     */
+    int getUserRoleTokenTimeout(final String userName) {
+
+        // if for some reason the data cache is not available, we'll return the default timeout
+
+        DataCache data = dataStore.getDataCache(userDomain);
+        if (data == null) {
+            return userTokenDefaultTimeout;
+        }
+
+        // now we'll get the accessible roles for the user
+
+        Set<String> roles = new HashSet<>();
+        dataStore.getAccessibleRoles(data, userDomain, userName, null, false, roles, true);
+
+        int maxRoleTimeout = 0;
+        for (String role : roles) {
+            Integer timeout = getTokenTimeout(role);
+            if (timeout != null && timeout > maxRoleTimeout) {
+                maxRoleTimeout = timeout;
+            }
+        }
+
+        // if the user is not part of any roles or we have no configured role timeouts,
+        // we'll return the expected effective timeout
+
+        return (maxRoleTimeout == 0) ? userTokenDefaultTimeout : maxRoleTimeout;
+    }
+
     public int getUserCertTimeout(final String userName, Integer userExpiryRequested) {
 
         // first we'll get the maximum timeout for the user's accessible roles
+        // and determine the timeout to return
 
-        int certTimeout = getUserRoleTimeout(userName);
+        return getUserIdentityTimeout(getUserRoleCertTimeout(userName), userCertMaxTimeout, userExpiryRequested);
+    }
 
-        // if the user has requested a smaller timeout than the role timeout,
-        // we'll update our cert timeout to the user's requested value
+    public int getUserTokenTimeout(final String userName, Integer userExpiryRequested) {
 
-        if (userExpiryRequested != null && userExpiryRequested > 0 && userExpiryRequested < certTimeout) {
-            certTimeout = userExpiryRequested;
+        // first we'll get the maximum timeout for the user's accessible roles
+        // and determine the timeout to return
+
+        return getUserIdentityTimeout(getUserRoleTokenTimeout(userName), userTokenMaxTimeout, userExpiryRequested);
+    }
+
+    int getUserIdentityTimeout(int timeout, int maxTimetout, Integer userExpiryRequested) {
+
+        // if the user has requested a smaller timeout than the determined timeout,
+        // we'll update our timeout to the user's requested value
+
+        if (userExpiryRequested != null && userExpiryRequested > 0 && userExpiryRequested < timeout) {
+            timeout = userExpiryRequested;
         }
 
-        // finally we'll cap the cert timeout at the server's configured max timeout
+        // finally we'll cap the timeout at the server's configured max timeout
         // and return the result
 
-        return Math.min(certTimeout, userCertMaxTimeout);
+        return Math.min(timeout, maxTimetout);
     }
 
     @Override
