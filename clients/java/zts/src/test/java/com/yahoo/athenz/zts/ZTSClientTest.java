@@ -5577,4 +5577,192 @@ public class ZTSClientTest {
         }
         client.close();
     }
+
+    private static class CountingZTSRDLClientMock extends ZTSRDLClientMock {
+        final java.util.concurrent.atomic.AtomicInteger getRoleTokenCalls = new java.util.concurrent.atomic.AtomicInteger();
+        final java.util.concurrent.atomic.AtomicInteger postAccessTokenCalls = new java.util.concurrent.atomic.AtomicInteger();
+        final java.util.concurrent.atomic.AtomicInteger getOIDCResponseCalls = new java.util.concurrent.atomic.AtomicInteger();
+        final java.util.concurrent.atomic.AtomicInteger getAWSCredsCalls = new java.util.concurrent.atomic.AtomicInteger();
+        final long sleepMs;
+
+        CountingZTSRDLClientMock(long sleepMs) {
+            this.sleepMs = sleepMs;
+        }
+
+        private void sleepQuietly() {
+            try {
+                Thread.sleep(sleepMs);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        @Override
+        public RoleToken getRoleToken(String domainName, String rName, Integer minExpiryTime,
+                Integer maxExpiryTime, String proxyForPrincipal) {
+            getRoleTokenCalls.incrementAndGet();
+            sleepQuietly();
+            return super.getRoleToken(domainName, rName, minExpiryTime, maxExpiryTime, proxyForPrincipal);
+        }
+
+        @Override
+        public AccessTokenResponse postAccessTokenRequest(String request) {
+            postAccessTokenCalls.incrementAndGet();
+            sleepQuietly();
+            return super.postAccessTokenRequest(request);
+        }
+
+        @Override
+        public OIDCResponse getOIDCResponse(String responseType, String clientId, String redirectUri, String scope,
+                String state, String nonce, String keyType, Boolean fullArn, Integer expiryTime,
+                String output, Boolean roleInAudClaim, Boolean allScopePresent, Map<String, List<String>> headers)
+                throws URISyntaxException, IOException {
+            getOIDCResponseCalls.incrementAndGet();
+            sleepQuietly();
+            return super.getOIDCResponse(responseType, clientId, redirectUri, scope, state, nonce, keyType,
+                    fullArn, expiryTime, output, roleInAudClaim, allScopePresent, headers);
+        }
+
+        @Override
+        public AWSTemporaryCredentials getAWSTemporaryCredentials(String domainName, String roleName,
+                Integer durationSeconds, String externalId) {
+            getAWSCredsCalls.incrementAndGet();
+            sleepQuietly();
+            return super.getAWSTemporaryCredentials(domainName, roleName, durationSeconds, externalId);
+        }
+    }
+
+    private static void runConcurrently(int threadCount, Runnable task) throws InterruptedException {
+        java.util.concurrent.CyclicBarrier barrier = new java.util.concurrent.CyclicBarrier(threadCount);
+        java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(threadCount);
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(threadCount);
+        try {
+            for (int i = 0; i < threadCount; i++) {
+                pool.submit(() -> {
+                    try {
+                        barrier.await(5, java.util.concurrent.TimeUnit.SECONDS);
+                        task.run();
+                    } catch (Exception e) {
+                        // ignore
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+            assertTrue(latch.await(15, java.util.concurrent.TimeUnit.SECONDS));
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    private static void clearAllTokenCaches() {
+        ZTSClient.ROLE_TOKEN_CACHE.clear();
+        ZTSClient.ACCESS_TOKEN_CACHE.clear();
+        ZTSClient.AWS_CREDS_CACHE.clear();
+        ZTSClient.ID_TOKEN_CACHE.clear();
+    }
+
+    @Test
+    public void testGetRoleTokenSingleFlight() throws InterruptedException {
+        clearAllTokenCaches();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        CountingZTSRDLClientMock mock = new CountingZTSRDLClientMock(200);
+        mock.setRoleName("role1");
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(mock);
+
+        runConcurrently(10, () -> {
+            RoleToken token = client.getRoleToken("sf-roletoken-domain");
+            assertNotNull(token);
+        });
+
+        assertEquals(mock.getRoleTokenCalls.get(), 1,
+                "Concurrent getRoleToken should collapse into a single upstream call");
+        client.close();
+    }
+
+    @Test
+    public void testGetAccessTokenSingleFlight() throws InterruptedException {
+        clearAllTokenCaches();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        CountingZTSRDLClientMock mock = new CountingZTSRDLClientMock(200);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(mock);
+
+        runConcurrently(10, () -> {
+            AccessTokenResponse response = client.getAccessToken("coretech", null, 3600);
+            assertNotNull(response);
+        });
+
+        assertEquals(mock.postAccessTokenCalls.get(), 1,
+                "Concurrent getAccessToken should collapse into a single upstream call");
+        client.close();
+    }
+
+    @Test
+    public void testGetIDTokenSingleFlight() throws InterruptedException {
+        clearAllTokenCaches();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        CountingZTSRDLClientMock mock = new CountingZTSRDLClientMock(200);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(mock);
+
+        runConcurrently(10, () -> {
+            OIDCResponse response = client.getIDToken("sf-idtoken", "readers", "sys.auth.gcp",
+                    "gcp.athenz.io", true, null);
+            assertNotNull(response);
+        });
+
+        assertEquals(mock.getOIDCResponseCalls.get(), 1,
+                "Concurrent getIDToken should collapse into a single upstream call");
+        client.close();
+    }
+
+    @Test
+    public void testGetAWSCredsSingleFlight() throws InterruptedException {
+        clearAllTokenCaches();
+        Timestamp expiry = Timestamp.fromCurrentTime();
+        CountingZTSRDLClientMock mock = new CountingZTSRDLClientMock(200);
+        mock.setAwsCreds(expiry, "sf-aws-domain", "role", "session", "secret", "keyid");
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(mock);
+
+        runConcurrently(10, () -> {
+            AWSTemporaryCredentials creds = client.getAWSTemporaryCredentials("sf-aws-domain", "role");
+            assertNotNull(creds);
+        });
+
+        assertEquals(mock.getAWSCredsCalls.get(), 1,
+                "Concurrent getAWSTemporaryCredentials should collapse into a single upstream call");
+        client.close();
+    }
+
+    @Test
+    public void testGetRoleTokenSingleFlightDisabledWhenCacheDisabled() throws InterruptedException {
+        clearAllTokenCaches();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "auth_creds", PRINCIPAL_AUTHORITY);
+        CountingZTSRDLClientMock mock = new CountingZTSRDLClientMock(50);
+        mock.setRoleName("role1");
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(mock);
+
+        ZTSClient.setCacheDisable(true);
+        try {
+            runConcurrently(10, () -> {
+                RoleToken token = client.getRoleToken("sf-cachedis-domain");
+                assertNotNull(token);
+            });
+            assertEquals(mock.getRoleTokenCalls.get(), 10,
+                    "With cache disabled each concurrent call must hit ZTS independently");
+        } finally {
+            ZTSClient.setCacheDisable(false);
+            client.close();
+        }
+    }
 }
