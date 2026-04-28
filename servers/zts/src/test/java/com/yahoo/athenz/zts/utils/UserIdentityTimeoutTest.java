@@ -1919,9 +1919,9 @@ public class UserIdentityTimeoutTest {
 
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-            // default was -10 -> reset to 43200 (the timeout variable at that point)
-            // max 43200 >= default 43200 -> ok
-            assertEquals(userIdentityTimeout.getUserTokenTimeout("user.john", null), 43200);
+            // default was -10 -> reset to 3600
+            // max 43200 >= default 3600 -> ok
+            assertEquals(userIdentityTimeout.getUserTokenTimeout("user.john", null), 3600);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_MAX_TIMEOUT);
@@ -1943,8 +1943,8 @@ public class UserIdentityTimeoutTest {
 
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-            // default was 0 -> reset to 43200 (the timeout variable at that point)
-            assertEquals(userIdentityTimeout.getUserTokenTimeout("user.john", null), 43200);
+            // default was 0 -> reset to 3600 (the timeout variable at that point)
+            assertEquals(userIdentityTimeout.getUserTokenTimeout("user.john", null), 3600);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_MAX_TIMEOUT);
@@ -2058,10 +2058,10 @@ public class UserIdentityTimeoutTest {
 
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-            // default was -10 -> reset to 43200 (timeout var holds 43200 at that point)
+            // default was -10 -> reset to 3600
             // max was -20 -> reset to 43200
-            // max (43200) >= default (43200) -> ok
-            assertEquals(userIdentityTimeout.getUserTokenTimeout("user.john", null), 43200);
+            // max (43200) >= default (3600) -> ok
+            assertEquals(userIdentityTimeout.getUserTokenTimeout("user.john", null), 3600);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_MAX_TIMEOUT);
@@ -2345,9 +2345,9 @@ public class UserIdentityTimeoutTest {
 
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-            // default was -5 -> reset to 43200 (timeout var = 43200 at that point)
-            // max 1800 is valid but 1800 < 43200 -> max set to 43200
-            assertEquals(userIdentityTimeout.getUserTokenTimeout("user.john", null), 43200);
+            // default was -5 -> reset to 3600
+            // max 1800 is valid but 1800 < 3600 -> max set to 3600
+            assertEquals(userIdentityTimeout.getUserTokenTimeout("user.john", null), 3600);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_MAX_TIMEOUT);

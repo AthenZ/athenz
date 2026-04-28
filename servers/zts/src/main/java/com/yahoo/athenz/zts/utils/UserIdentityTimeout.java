@@ -63,19 +63,19 @@ public class UserIdentityTimeout implements Closeable {
         long timeout = TimeUnit.MINUTES.convert(1, TimeUnit.HOURS);
         userCertMaxTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT, Long.toString(timeout)));
-
-        timeout = TimeUnit.MINUTES.convert(1, TimeUnit.HOURS);
-        userCertDefaultTimeout = Integer.parseInt(
-                System.getProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT, Long.toString(timeout)));
-
-        if (userCertDefaultTimeout <= 0) {
-            LOGGER.error("Invalid user cert default timeout: {}, using default: {}", userCertDefaultTimeout, timeout);
-            userCertDefaultTimeout = (int) timeout;
-        }
         if (userCertMaxTimeout <= 0) {
             LOGGER.error("Invalid user cert max timeout: {}, using default: {}", userCertMaxTimeout, timeout);
             userCertMaxTimeout = (int) timeout;
         }
+
+        timeout = TimeUnit.MINUTES.convert(1, TimeUnit.HOURS);
+        userCertDefaultTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT, Long.toString(timeout)));
+        if (userCertDefaultTimeout <= 0) {
+            LOGGER.error("Invalid user cert default timeout: {}, using default: {}", userCertDefaultTimeout, timeout);
+            userCertDefaultTimeout = (int) timeout;
+        }
+
         if (userCertMaxTimeout < userCertDefaultTimeout) {
             LOGGER.error("User cert max timeout: {} is less than default timeout: {}, setting both to default",
                     userCertMaxTimeout, userCertDefaultTimeout);
@@ -87,19 +87,19 @@ public class UserIdentityTimeout implements Closeable {
         timeout = TimeUnit.SECONDS.convert(1, TimeUnit.HOURS);
         userTokenDefaultTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_DEFAULT_TIMEOUT, Long.toString(timeout)));
-
-        timeout = TimeUnit.SECONDS.convert(12, TimeUnit.HOURS);
-        userTokenMaxTimeout = Integer.parseInt(
-                System.getProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_MAX_TIMEOUT, Long.toString(timeout)));
-
         if (userTokenDefaultTimeout <= 0) {
             LOGGER.error("Invalid user token default timeout: {}, using default: {}", userTokenDefaultTimeout, timeout);
             userTokenDefaultTimeout = (int) timeout;
         }
+
+        timeout = TimeUnit.SECONDS.convert(12, TimeUnit.HOURS);
+        userTokenMaxTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_MAX_TIMEOUT, Long.toString(timeout)));
         if (userTokenMaxTimeout <= 0) {
             LOGGER.error("Invalid user token max timeout: {}, using default: {}", userTokenMaxTimeout, timeout);
             userTokenMaxTimeout = (int) timeout;
         }
+
         if (userTokenMaxTimeout < userTokenDefaultTimeout) {
             LOGGER.error("User token max timeout: {} is less than default timeout: {}, setting both to default",
                     userTokenMaxTimeout, userTokenDefaultTimeout);
@@ -219,6 +219,16 @@ public class UserIdentityTimeout implements Closeable {
         return Collections.unmodifiableMap(roleTokenTimeoutMap);
     }
 
+    Set<String> getAccessibleRoles(final String userName) {
+        DataCache data = dataStore.getDataCache(userDomain);
+        if (data == null) {
+            return Collections.emptySet();
+        }
+        Set<String> roles = new HashSet<>();
+        dataStore.getAccessibleRoles(data, userDomain, userName, null, false, roles, true);
+        return roles;
+    }
+
     /**
      * This method will return the maximum timeout for the user's accessible roles
      * If the domain does not exist or the user is not part of any roles, we'll
@@ -228,17 +238,9 @@ public class UserIdentityTimeout implements Closeable {
      */
     int getUserRoleCertTimeout(final String userName) {
 
-        // if for some reason the data cache is not available, we'll return the default timeout
-
-        DataCache data = dataStore.getDataCache(userDomain);
-        if (data == null) {
-            return userCertDefaultTimeout;
-        }
-
         // now we'll get the accessible roles for the user
 
-        Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, userDomain, userName, null, false, roles, true);
+        Set<String> roles = getAccessibleRoles(userName);
 
         int maxRoleTimeout = 0;
         for (String role : roles) {
@@ -263,18 +265,10 @@ public class UserIdentityTimeout implements Closeable {
      */
     int getUserRoleTokenTimeout(final String userName) {
 
-        // if for some reason the data cache is not available, we'll return the default timeout
-
-        DataCache data = dataStore.getDataCache(userDomain);
-        if (data == null) {
-            return userTokenDefaultTimeout;
-        }
-
         // now we'll get the accessible roles for the user
 
-        Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, userDomain, userName, null, false, roles, true);
-
+        Set<String> roles = getAccessibleRoles(userName);
+        
         int maxRoleTimeout = 0;
         for (String role : roles) {
             Integer timeout = getTokenTimeout(role);
