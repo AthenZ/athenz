@@ -1262,6 +1262,7 @@ public class Crypto {
     public static long extractX509CertIssueTime(X509Certificate x509Cert) {
         return x509Cert.getNotBefore().getTime() / 1000;
     }
+
     public static String extractX509CertCommonName(X509Certificate x509Cert) {
 
         // in case there are multiple CNs, we're only looking at the first one
@@ -1269,6 +1270,10 @@ public class Crypto {
         // any certificate that has multiple values
 
         return extractX509CertSubjectField(x509Cert, BCStyle.CN);
+    }
+
+    public static String extractX509DNCommonName(final String dn) {
+        return extractX500DnField(dn, BCStyle.CN);
     }
 
     public static String extractX509CertSubjectOUField(X509Certificate x509Cert) {

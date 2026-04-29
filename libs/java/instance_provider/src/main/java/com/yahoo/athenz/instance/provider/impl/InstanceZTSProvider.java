@@ -26,8 +26,11 @@ import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.token.Token;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
+import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
+import com.yahoo.athenz.common.server.util.PrincipalUtils;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
@@ -58,6 +61,7 @@ public class InstanceZTSProvider implements InstanceProvider {
     static final String ZTS_PROP_PRINCIPAL_LIST       = "athenz.zts.provider_service_list";
     static final String ZTS_PROP_PRINCIPAL_ROLE       = "athenz.zts.provider_service_role";
     static final String ZTS_PROP_EXPIRY_TIME          = "athenz.zts.provider_token_expiry_time";
+    static final String ZTS_PROP_USER_CERT_SKIP_SVC   = "athenz.zts.provider_user_cert_skip_service_check";
 
     static final String ZTS_PROVIDER_SERVICE  = "sys.auth.zts";
 
@@ -82,6 +86,8 @@ public class InstanceZTSProvider implements InstanceProvider {
     HostnameResolver hostnameResolver = null;
     ConfigurableJWTProcessor<SecurityContext> jwtProcessor = null;
     int expiryTime;
+    boolean skipServiceCheckForUserCert = false;
+    String userDomainPrefix = null;
 
     @Override
     public Scheme getProviderScheme() {
@@ -132,6 +138,16 @@ public class InstanceZTSProvider implements InstanceProvider {
         final String expiryTimeStr = System.getProperty(ZTS_PROP_EXPIRY_TIME, "30");
         expiryTime = Integer.parseInt(expiryTimeStr);
 
+        // check if we need to skip service check for user certificates
+
+        skipServiceCheckForUserCert = Boolean.parseBoolean(
+                System.getProperty(ZTS_PROP_USER_CERT_SKIP_SVC, "false"));
+        if (skipServiceCheckForUserCert) {
+            final String userDomain = System.getProperty(ServerCommonConsts.PROP_USER_DOMAIN,
+                    ServerCommonConsts.USER_DOMAIN);
+            userDomainPrefix = userDomain + ".";
+        }
+
         // initialize our jwt processor
 
         jwtProcessor = JwtsHelper.getJWTProcessor(new JwtsSigningKeyResolver(System.getProperty(ZTS_PROP_PROVIDER_JKWS_URI), null));
@@ -159,11 +175,18 @@ public class InstanceZTSProvider implements InstanceProvider {
         this.rolesProvider = rolesProvider;
     }
 
-    boolean isServiceAllowedForProvider(final String principal) {
+    boolean isServiceAllowedForProvider(final String principal, final Map<String, String> instanceAttributes) {
 
         // if no configuration is provided, then all services are allowed
 
         if (principals == null && principalRoleDomain == null && principalRoleName == null) {
+            return true;
+        }
+
+        // if configured, check if the request is from a user certificate
+        // and if so, skip the service check
+
+        if (skipServiceCheckForUserCert && isUserCertificateRequest(instanceAttributes)) {
             return true;
         }
 
@@ -203,6 +226,22 @@ public class InstanceZTSProvider implements InstanceProvider {
         return false;
     }
 
+    boolean isUserCertificateRequest(final Map<String, String> instanceAttributes) {
+
+        final String subjectDn = InstanceUtils.getInstanceProperty(instanceAttributes,
+                InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN);
+        if (StringUtil.isEmpty(subjectDn)) {
+            return false;
+        }
+
+        final String cn = Crypto.extractX509DNCommonName(subjectDn);
+        if (StringUtil.isEmpty(cn)) {
+            return false;
+        }
+
+        return PrincipalUtils.isUserDomainPrincipal(cn, userDomainPrefix, null);
+    }
+
     private ProviderResourceException forbiddenError(String message) {
         LOGGER.error(message);
         return new ProviderResourceException(ProviderResourceException.FORBIDDEN, message);
@@ -227,18 +266,19 @@ public class InstanceZTSProvider implements InstanceProvider {
         final String instanceDomain = confirmation.getDomain();
         final String instanceService = confirmation.getService();
 
+        final Map<String, String> instanceAttributes = confirmation.getAttributes();
+
         // make sure this service has been configured to be supported
         // by this zts provider - either in the static list or in the
         // configured role. if neither is configured, then all services
         // are allowed.
 
-        if (!isServiceAllowedForProvider(instanceDomain + "." + instanceService)) {
+        if (!isServiceAllowedForProvider(instanceDomain + "." + instanceService, instanceAttributes)) {
             throw forbiddenError("Service not authorized to be launched by ZTS Provider");
         }
 
         // now we can validate the instance request
 
-        final Map<String, String> instanceAttributes = confirmation.getAttributes();
         final String csrPublicKey = InstanceUtils.getInstanceProperty(instanceAttributes,
                 InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY);
 

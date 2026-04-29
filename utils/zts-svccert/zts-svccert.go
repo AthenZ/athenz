@@ -238,7 +238,16 @@ func main() {
 	var client *zts.ZTSClient
 	var ntoken string
 	if provider != "" {
-		client, err = certClient(ztsURL, nil, "", caCertFile)
+		var svcKeyBytes []byte
+		svcCertFileName := ""
+		if svcKeyFile != "" {
+			svcKeyBytes, err = os.ReadFile(svcKeyFile)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			svcCertFileName = svcCertFile
+		}
+		client, err = certClient(ztsURL, svcKeyBytes, svcCertFileName, caCertFile)
 	} else if serviceCert == "" {
 		ntoken, err = getNToken(domain, service, keyID, keyBytes)
 		if err != nil {

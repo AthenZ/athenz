@@ -25,6 +25,7 @@ import com.nimbusds.jwt.SignedJWT;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
@@ -70,6 +71,8 @@ public class InstanceZTSProviderTest {
 
         System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
         System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
+        System.clearProperty(ServerCommonConsts.PROP_USER_DOMAIN);
     }
 
     @Test
@@ -1178,9 +1181,9 @@ public class InstanceZTSProviderTest {
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
 
-        assertTrue(provider.isServiceAllowedForProvider("sports.api"));
-        assertTrue(provider.isServiceAllowedForProvider("weather.api"));
-        assertFalse(provider.isServiceAllowedForProvider("sports.backend"));
+        assertTrue(provider.isServiceAllowedForProvider("sports.api", null));
+        assertTrue(provider.isServiceAllowedForProvider("weather.api", null));
+        assertFalse(provider.isServiceAllowedForProvider("sports.backend", null));
 
         provider.close();
         System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
@@ -1192,7 +1195,7 @@ public class InstanceZTSProviderTest {
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
 
-        assertTrue(provider.isServiceAllowedForProvider("sports.api"));
+        assertTrue(provider.isServiceAllowedForProvider("sports.api", null));
 
         provider.close();
     }
@@ -1208,7 +1211,7 @@ public class InstanceZTSProviderTest {
         RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
         provider.setRolesProvider(rolesProvider);
 
-        assertFalse(provider.isServiceAllowedForProvider("sports.api"));
+        assertFalse(provider.isServiceAllowedForProvider("sports.api", null));
 
         provider.close();
         System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
@@ -1227,7 +1230,7 @@ public class InstanceZTSProviderTest {
                 .thenReturn(null);
         provider.setRolesProvider(rolesProvider);
 
-        assertFalse(provider.isServiceAllowedForProvider("sports.api"));
+        assertFalse(provider.isServiceAllowedForProvider("sports.api", null));
 
         provider.close();
         System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
@@ -1247,7 +1250,7 @@ public class InstanceZTSProviderTest {
                 .thenReturn(role);
         provider.setRolesProvider(rolesProvider);
 
-        assertFalse(provider.isServiceAllowedForProvider("sports.api"));
+        assertFalse(provider.isServiceAllowedForProvider("sports.api", null));
 
         provider.close();
         System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
@@ -1271,7 +1274,7 @@ public class InstanceZTSProviderTest {
                 .thenReturn(role);
         provider.setRolesProvider(rolesProvider);
 
-        assertFalse(provider.isServiceAllowedForProvider("sports.api"));
+        assertFalse(provider.isServiceAllowedForProvider("sports.api", null));
 
         provider.close();
         System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
@@ -1295,7 +1298,7 @@ public class InstanceZTSProviderTest {
                 .thenReturn(role);
         provider.setRolesProvider(rolesProvider);
 
-        assertTrue(provider.isServiceAllowedForProvider("sports.api"));
+        assertTrue(provider.isServiceAllowedForProvider("sports.api", null));
 
         provider.close();
         System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
@@ -1314,7 +1317,7 @@ public class InstanceZTSProviderTest {
                 .thenThrow(new RuntimeException("db failure"));
         provider.setRolesProvider(rolesProvider);
 
-        assertFalse(provider.isServiceAllowedForProvider("sports.api"));
+        assertFalse(provider.isServiceAllowedForProvider("sports.api", null));
 
         provider.close();
         System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
@@ -1495,5 +1498,329 @@ public class InstanceZTSProviderTest {
         provider.close();
         System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
         System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
+    }
+
+    @Test
+    public void testInitializeWithUserCertSkipServiceCheck() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC, "true");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+        assertTrue(provider.skipServiceCheckForUserCert);
+        assertEquals(provider.userDomainPrefix, "user.");
+        provider.close();
+
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
+    }
+
+    @Test
+    public void testInitializeWithUserCertSkipServiceCheckCustomDomain() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC, "true");
+        System.setProperty(ServerCommonConsts.PROP_USER_DOMAIN, "unix");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+        assertTrue(provider.skipServiceCheckForUserCert);
+        assertEquals(provider.userDomainPrefix, "unix.");
+        provider.close();
+
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
+        System.clearProperty(ServerCommonConsts.PROP_USER_DOMAIN);
+    }
+
+    @Test
+    public void testInitializeWithUserCertSkipServiceCheckDisabled() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC, "false");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+        assertFalse(provider.skipServiceCheckForUserCert);
+        assertNull(provider.userDomainPrefix);
+        provider.close();
+
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
+    }
+
+    @Test
+    public void testIsUserCertificateRequestWithUserCert() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC, "true");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, "CN=user.joe");
+
+        assertTrue(provider.isUserCertificateRequest(attributes));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
+    }
+
+    @Test
+    public void testIsUserCertificateRequestWithServiceCert() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC, "true");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, "CN=sports.api");
+
+        assertFalse(provider.isUserCertificateRequest(attributes));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
+    }
+
+    @Test
+    public void testIsUserCertificateRequestNoSubjectDn() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC, "true");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        Map<String, String> attributes = new HashMap<>();
+        assertFalse(provider.isUserCertificateRequest(attributes));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
+    }
+
+    @Test
+    public void testIsUserCertificateRequestEmptySubjectDn() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC, "true");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, "");
+
+        assertFalse(provider.isUserCertificateRequest(attributes));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
+    }
+
+    @Test
+    public void testIsUserCertificateRequestNullAttributes() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC, "true");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        assertFalse(provider.isUserCertificateRequest(null));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
+    }
+
+    @Test
+    public void testIsUserCertificateRequestNoCnInDn() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC, "true");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, "O=Athenz");
+
+        assertFalse(provider.isUserCertificateRequest(attributes));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
+    }
+
+    @Test
+    public void testIsUserCertificateRequestWithCustomUserDomain() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC, "true");
+        System.setProperty(ServerCommonConsts.PROP_USER_DOMAIN, "unix");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, "CN=unix.joe");
+
+        assertTrue(provider.isUserCertificateRequest(attributes));
+
+        // default user domain should not match
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, "CN=user.joe");
+        assertFalse(provider.isUserCertificateRequest(attributes));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
+        System.clearProperty(ServerCommonConsts.PROP_USER_DOMAIN);
+    }
+
+    @Test
+    public void testIsServiceAllowedForProviderUserCertSkipEnabled() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC, "true");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        // service not in the list but request has user cert - should be allowed
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, "CN=user.joe");
+
+        assertTrue(provider.isServiceAllowedForProvider("sports.backend", attributes));
+
+        // service in the list - should also be allowed
+        assertTrue(provider.isServiceAllowedForProvider("sports.api", attributes));
+
+        // no user cert and not in list - should be denied
+        Map<String, String> noUserAttributes = new HashMap<>();
+        assertFalse(provider.isServiceAllowedForProvider("sports.backend", noUserAttributes));
+
+        // service cert (not user) and not in list - should be denied
+        Map<String, String> serviceCertAttributes = new HashMap<>();
+        serviceCertAttributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, "CN=sports.api");
+        assertFalse(provider.isServiceAllowedForProvider("sports.backend", serviceCertAttributes));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
+    }
+
+    @Test
+    public void testIsServiceAllowedForProviderUserCertSkipDisabled() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        // even with user cert, if feature is disabled, service check should still apply
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, "CN=user.joe");
+
+        assertFalse(provider.isServiceAllowedForProvider("sports.backend", attributes));
+        assertTrue(provider.isServiceAllowedForProvider("sports.api", attributes));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
+    }
+
+    @Test
+    public void testIsServiceAllowedForProviderUserCertWithNullAttributes() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC, "true");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        // null attributes with service not in the list - should be denied
+        assertFalse(provider.isServiceAllowedForProvider("sports.backend", null));
+
+        // null attributes with service in the list - should be allowed
+        assertTrue(provider.isServiceAllowedForProvider("sports.api", null));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
+    }
+
+    @Test
+    public void testConfirmInstanceWithUserCertSkipServiceCheck() throws ProviderResourceException {
+
+        KeyStore keystore = Mockito.mock(KeyStore.class);
+        Mockito.when(keystore.getPublicKey("sports", "backend", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC, "true");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
+
+        PrincipalToken tokenToSign = new PrincipalToken.Builder("S1", "sports", "backend")
+                .keyId("v0").salt("salt").issueTime(System.currentTimeMillis() / 1000)
+                .expirationWindow(3600).build();
+        tokenToSign.sign(servicePrivateKeyStringK0);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setAttestationData(tokenToSign.getSignedToken());
+        confirmation.setDomain("sports");
+        confirmation.setService("backend");
+        confirmation.setProvider("sys.auth.zts");
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "backend.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, "CN=user.joe");
+        confirmation.setAttributes(attributes);
+
+        assertNotNull(provider.confirmInstance(confirmation));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
+    }
+
+    @Test
+    public void testRefreshInstanceWithUserCertSkipServiceCheck() throws ProviderResourceException {
+
+        KeyStore keystore = Mockito.mock(KeyStore.class);
+        Mockito.when(keystore.getPublicKey("sports", "backend", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC, "true");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
+
+        PrincipalToken tokenToSign = new PrincipalToken.Builder("S1", "sports", "backend")
+                .keyId("v0").salt("salt").issueTime(System.currentTimeMillis() / 1000)
+                .expirationWindow(3600).build();
+        tokenToSign.sign(servicePrivateKeyStringK0);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setAttestationData(tokenToSign.getSignedToken());
+        confirmation.setDomain("sports");
+        confirmation.setService("backend");
+        confirmation.setProvider("sys.auth.zts");
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "backend.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, "CN=user.joe");
+        confirmation.setAttributes(attributes);
+
+        assertNotNull(provider.refreshInstance(confirmation));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
+    }
+
+    @Test
+    public void testIsUserCertificateRequestWithFullDn() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC, "true");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, "CN=user.joe,O=Athenz,C=US");
+
+        assertTrue(provider.isUserCertificateRequest(attributes));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_USER_CERT_SKIP_SVC);
     }
 }
