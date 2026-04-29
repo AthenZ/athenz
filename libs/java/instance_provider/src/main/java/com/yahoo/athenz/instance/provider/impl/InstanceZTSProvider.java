@@ -214,7 +214,16 @@ public class InstanceZTSProvider implements InstanceProvider {
             if (roleMembers == null) {
                 return false;
             }
+            long now = System.currentTimeMillis();
             for (RoleMember roleMember : roleMembers) {
+                // skip if the role member is expired
+                if (roleMember.getExpiration() != null && roleMember.getExpiration().millis() < now) {
+                    continue;
+                }
+                // skip if the role member is disabled by the system
+                if (roleMember.getSystemDisabled() != null && roleMember.getSystemDisabled() != 0) {
+                    continue;
+                }
                 if (principal.equals(roleMember.getMemberName())) {
                     return true;
                 }

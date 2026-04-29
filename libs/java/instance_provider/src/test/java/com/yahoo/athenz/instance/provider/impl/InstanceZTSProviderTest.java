@@ -34,6 +34,7 @@ import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zts.InstanceRegisterToken;
+import com.yahoo.rdl.Timestamp;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -1299,6 +1300,55 @@ public class InstanceZTSProviderTest {
         provider.setRolesProvider(rolesProvider);
 
         assertTrue(provider.isServiceAllowedForProvider("sports.api", null));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
+    }
+
+    @Test
+    public void testIsServiceAllowedForProviderExpiredMember() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE, "sys.auth:role.zts-principals");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("sports.api")
+                .setExpiration(Timestamp.fromMillis(System.currentTimeMillis() - 100000)));
+        members.add(new RoleMember().setMemberName("weather.api"));
+
+        Role role = new Role().setRoleMembers(members);
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, false, false))
+                .thenReturn(role);
+        provider.setRolesProvider(rolesProvider);
+
+        assertFalse(provider.isServiceAllowedForProvider("sports.api", null));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
+    }
+
+    @Test
+    public void testIsServiceAllowedForProviderDisabledMember() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE, "sys.auth:role.zts-principals");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("sports.api").setSystemDisabled(1));
+        members.add(new RoleMember().setMemberName("weather.api"));
+
+        Role role = new Role().setRoleMembers(members);
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, false, false))
+                .thenReturn(role);
+        provider.setRolesProvider(rolesProvider);
+
+        assertFalse(provider.isServiceAllowedForProvider("sports.api", null));
 
         provider.close();
         System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
