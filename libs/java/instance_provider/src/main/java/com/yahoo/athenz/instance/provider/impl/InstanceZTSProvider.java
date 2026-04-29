@@ -112,7 +112,7 @@ public class InstanceZTSProvider implements InstanceProvider {
             int idx = principalRole.indexOf(AuthorityConsts.ROLE_SEP);
             if (idx != -1) {
                 principalRoleDomain = principalRole.substring(0, idx);
-                principalRoleName = principalRole.substring(idx + 6);
+                principalRoleName = principalRole.substring(idx + AuthorityConsts.ROLE_SEP.length());
             }
         }
 
@@ -182,7 +182,7 @@ public class InstanceZTSProvider implements InstanceProvider {
 
         try {
             Role role = rolesProvider.getRole(principalRoleDomain, principalRoleName,
-                    false, true, false);
+                    false, false, false);
             if (role == null) {
                 LOGGER.error("Principal role {}/{} not found", principalRoleDomain, principalRoleName);
                 return false;

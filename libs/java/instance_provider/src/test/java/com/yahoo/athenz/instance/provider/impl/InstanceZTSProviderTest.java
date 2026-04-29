@@ -1223,7 +1223,7 @@ public class InstanceZTSProviderTest {
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
 
         RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
-        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, false, false))
                 .thenReturn(null);
         provider.setRolesProvider(rolesProvider);
 
@@ -1243,7 +1243,7 @@ public class InstanceZTSProviderTest {
 
         Role role = new Role();
         RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
-        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, false, false))
                 .thenReturn(role);
         provider.setRolesProvider(rolesProvider);
 
@@ -1267,7 +1267,7 @@ public class InstanceZTSProviderTest {
 
         Role role = new Role().setRoleMembers(members);
         RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
-        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, false, false))
                 .thenReturn(role);
         provider.setRolesProvider(rolesProvider);
 
@@ -1291,7 +1291,7 @@ public class InstanceZTSProviderTest {
 
         Role role = new Role().setRoleMembers(members);
         RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
-        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, false, false))
                 .thenReturn(role);
         provider.setRolesProvider(rolesProvider);
 
@@ -1310,7 +1310,7 @@ public class InstanceZTSProviderTest {
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
 
         RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
-        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, false, false))
                 .thenThrow(new RuntimeException("db failure"));
         provider.setRolesProvider(rolesProvider);
 
@@ -1337,7 +1337,7 @@ public class InstanceZTSProviderTest {
 
         Role role = new Role().setRoleMembers(members);
         RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
-        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, false, false))
                 .thenReturn(role);
         provider.setRolesProvider(rolesProvider);
 
@@ -1381,7 +1381,7 @@ public class InstanceZTSProviderTest {
 
         Role role = new Role().setRoleMembers(members);
         RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
-        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, false, false))
                 .thenReturn(role);
         provider.setRolesProvider(rolesProvider);
 
@@ -1470,7 +1470,7 @@ public class InstanceZTSProviderTest {
 
         Role role = new Role().setRoleMembers(members);
         RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
-        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, false, false))
                 .thenReturn(role);
         provider.setRolesProvider(rolesProvider);
 
