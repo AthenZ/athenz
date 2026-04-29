@@ -40,7 +40,6 @@ import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
-import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
@@ -79,7 +78,6 @@ import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
-import io.swagger.v3.oas.models.security.SecurityScheme;
 import jakarta.servlet.ServletContext;
 import org.eclipse.jetty.http.HttpHeader;
 import org.mockito.ArgumentCaptor;
@@ -2671,12 +2669,12 @@ public class ZTSImplTest {
 
     @Test
     public void testDetermineOIDCIdTokenTimeout() {
-        assertEquals(zts.determineOIDCIdTokenTimeout("athenz", null), zts.idTokenMaxTimeout);
-        assertEquals(zts.determineOIDCIdTokenTimeout("athenz", zts.idTokenMaxTimeout + 1), zts.idTokenMaxTimeout);
-        assertEquals(zts.determineOIDCIdTokenTimeout("athenz", zts.idTokenMaxTimeout - 1), zts.idTokenMaxTimeout - 1);
-        assertEquals(zts.determineOIDCIdTokenTimeout("user", null), zts.idTokenDefaultTimeout);
-        assertEquals(zts.determineOIDCIdTokenTimeout("user", zts.idTokenDefaultTimeout + 1), zts.idTokenDefaultTimeout);
-        assertEquals(zts.determineOIDCIdTokenTimeout("user", zts.idTokenDefaultTimeout - 1), zts.idTokenDefaultTimeout - 1);
+        assertEquals(zts.determineOIDCIdTokenTimeout("athenz", "athenz.api",    null), zts.idTokenMaxTimeout);
+        assertEquals(zts.determineOIDCIdTokenTimeout("athenz", "athenz.api", zts.idTokenMaxTimeout + 1), zts.idTokenMaxTimeout);
+        assertEquals(zts.determineOIDCIdTokenTimeout("athenz", "athenz.api", zts.idTokenMaxTimeout - 1), zts.idTokenMaxTimeout - 1);
+        assertEquals(zts.determineOIDCIdTokenTimeout("user", "user.joe", null), zts.idTokenDefaultTimeout);
+        assertEquals(zts.determineOIDCIdTokenTimeout("user", "user.joe", zts.idTokenDefaultTimeout + 1), zts.idTokenDefaultTimeout);
+        assertEquals(zts.determineOIDCIdTokenTimeout("user", "user.joe", zts.idTokenDefaultTimeout - 1), zts.idTokenDefaultTimeout - 1);
     }
 
     @Test

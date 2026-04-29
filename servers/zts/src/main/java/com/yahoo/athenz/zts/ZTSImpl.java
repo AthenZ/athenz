@@ -77,6 +77,7 @@ import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.token.*;
 import com.yahoo.athenz.zts.transportrules.TransportRulesProcessor;
+import com.yahoo.athenz.zts.utils.UserIdentityTimeout;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.*;
 import com.yahoo.rdl.Validator.Result;
@@ -200,7 +201,7 @@ public class ZTSImpl implements ZTSHandler {
     protected String ztsMetricLatencyName;
     protected String userCertProvider;
     protected boolean validateRoleCertDnsNames = false;
-    private UserCertTimeout userCertTimeoutManager;
+    private UserIdentityTimeout userIdentityTimeoutManager;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
     private static final String TYPE_SIMPLE_NAME = "SimpleName";
@@ -427,7 +428,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // load our user cert timeout manager
 
-        userCertTimeoutManager = new UserCertTimeout(dataStore, userDomain);
+        userIdentityTimeoutManager = new UserIdentityTimeout(dataStore, userDomain);
     }
 
     void loadExternalProviderConfigManager() {
@@ -1618,9 +1619,12 @@ public class ZTSImpl implements ZTSHandler {
         return (tokenTimeout > idTokenMaxTimeout) ? idTokenMaxTimeout : tokenTimeout;
     }
 
-    int determineOIDCIdTokenTimeout(final String domainName, Integer tokenTimeout) {
-        int defaultTimeout = userDomain.equals(domainName) ? idTokenDefaultTimeout : idTokenMaxTimeout;
-        return (tokenTimeout == null || tokenTimeout > defaultTimeout) ? defaultTimeout : tokenTimeout;
+    int determineOIDCIdTokenTimeout(final String principalDomain, final String principalName, Integer tokenTimeout) {
+        if (userDomain.equals(principalDomain)) {
+            return userIdentityTimeoutManager.getUserTokenTimeout(principalName, tokenTimeout);
+        } else {
+            return (tokenTimeout == null || tokenTimeout > idTokenMaxTimeout) ? idTokenMaxTimeout : tokenTimeout;
+        }
     }
 
     int determineTokenTimeout(DataCache data, Set<String> roles, Integer minExpiryTime,
@@ -2082,7 +2086,7 @@ public class ZTSImpl implements ZTSHandler {
         // get our principal's name
 
         final Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        String principalName = principal.getFullName();
+        final String principalName = principal.getFullName();
 
         // verify we have a valid client id
 
@@ -2172,7 +2176,7 @@ public class ZTSImpl implements ZTSHandler {
         // service principals 12 hours as the max timeout, unless the client
         // is explicitly asking for something smaller.
 
-        long expiryTime = iat + determineOIDCIdTokenTimeout(principalDomain, timeout);
+        long expiryTime = iat + determineOIDCIdTokenTimeout(principalDomain, principalName, timeout);
         idToken.setExpiryTime(expiryTime);
 
         ServerPrivateKey signPrivateKey = getSignPrivateKey(keyType);
@@ -3059,7 +3063,7 @@ public class ZTSImpl implements ZTSHandler {
         // service principals 12 hours as the max timeout, unless the client
         // is explicitly asking for something smaller.
 
-        int tokenTimeout = determineOIDCIdTokenTimeout(principalDomain, null);
+        int tokenTimeout = determineOIDCIdTokenTimeout(principalDomain, subjectPrincipal.getFullName(), null);
         idToken.setExpiryTime(iat + tokenTimeout);
 
         ServerPrivateKey signPrivateKey = getSignPrivateKey(null);
@@ -4926,7 +4930,7 @@ public class ZTSImpl implements ZTSHandler {
             // service principals 12 hours as the max timeout, unless the client
             // is explicitly asking for something smaller.
 
-            long expiryTime = iat + determineOIDCIdTokenTimeout(domain, info.getExpiryTime());
+            long expiryTime = iat + determineOIDCIdTokenTimeout(domain, cn, info.getExpiryTime());
             idToken.setExpiryTime(expiryTime);
 
             ServerPrivateKey signPrivateKey = getSignPrivateKey(info.getJwtSVIDKeyType());
@@ -5027,7 +5031,7 @@ public class ZTSImpl implements ZTSHandler {
         // service principals 12 hours as the max timeout, unless the client
         // is explicitly asking for something smaller.
 
-        long expiryTime = iat + determineOIDCIdTokenTimeout(principalDomain, info.getExpiryTime());
+        long expiryTime = iat + determineOIDCIdTokenTimeout(principalDomain, cn, info.getExpiryTime());
         idToken.setExpiryTime(expiryTime);
 
         ServerPrivateKey signPrivateKey = getSignPrivateKey(info.getJwtSVIDKeyType());
@@ -6640,7 +6644,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // determine the expiry time for the certificate
 
-        int expiryTime = userCertTimeoutManager.getUserCertTimeout(principalName, req.getExpiryTime());
+        int expiryTime = userIdentityTimeoutManager.getUserCertTimeout(principalName, req.getExpiryTime());
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("User Certificate for {} expiryTime: {}", principalName, expiryTime);
