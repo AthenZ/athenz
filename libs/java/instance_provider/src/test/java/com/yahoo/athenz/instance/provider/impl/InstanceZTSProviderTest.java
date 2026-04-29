@@ -25,10 +25,13 @@ import com.nimbusds.jwt.SignedJWT;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ProviderResourceException;
+import com.yahoo.athenz.zms.Role;
+import com.yahoo.athenz.zms.RoleMember;
 import com.yahoo.athenz.zts.InstanceRegisterToken;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
@@ -64,6 +67,9 @@ public class InstanceZTSProviderTest {
         ClassLoader classLoader = this.getClass().getClassLoader();
         final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
         System.setProperty(ZTS_PROP_PROVIDER_JKWS_URI, jwksUri);
+
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
     }
 
     @Test
@@ -358,7 +364,7 @@ public class InstanceZTSProviderTest {
             provider.confirmInstance(confirmation);
             fail();
         } catch (ProviderResourceException ex) {
-            assertTrue(ex.getMessage().contains("Service not supported to be launched by ZTS Provider"));
+            assertTrue(ex.getMessage().contains("Service not authorized to be launched by ZTS Provider"));
         }
         provider.close();
         System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
@@ -369,6 +375,8 @@ public class InstanceZTSProviderTest {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
 
         HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
         Mockito.when(hostnameResolver.isValidHostname("hostabc.athenz.com")).thenReturn(true);
@@ -402,6 +410,7 @@ public class InstanceZTSProviderTest {
 
         assertNotNull(provider.confirmInstance(confirmation));
         provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
     }
 
     @Test
@@ -409,6 +418,8 @@ public class InstanceZTSProviderTest {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
 
         HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
         Mockito.when(hostnameResolver.isValidHostname("hostabc.athenz.com")).thenReturn(true);
@@ -442,6 +453,7 @@ public class InstanceZTSProviderTest {
 
         assertNotNull(provider.confirmInstance(confirmation));
         provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
     }
 
     @Test
@@ -449,6 +461,8 @@ public class InstanceZTSProviderTest {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
 
         HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
         Mockito.when(hostnameResolver.isValidHostname("hostabc.athenz.com")).thenReturn(true);
@@ -485,6 +499,7 @@ public class InstanceZTSProviderTest {
             assertTrue(ex.getMessage().contains("validate certificate request hostname"));
         }
         provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
     }
 
     @Test
@@ -492,6 +507,8 @@ public class InstanceZTSProviderTest {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
 
         HostnameResolver hostnameResolver = Mockito.mock(HostnameResolver.class);
         Mockito.when(hostnameResolver.isValidHostname("hostabc.athenz.com")).thenReturn(true);
@@ -529,6 +546,7 @@ public class InstanceZTSProviderTest {
             assertTrue(ex.getMessage().contains("validate certificate request URI hostname"));
         }
         provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
     }
 
     @Test
@@ -536,6 +554,8 @@ public class InstanceZTSProviderTest {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
 
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
@@ -566,6 +586,7 @@ public class InstanceZTSProviderTest {
             assertTrue(ex.getMessage().contains("validate request IP address"));
         }
         provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
     }
 
     @Test
@@ -573,6 +594,8 @@ public class InstanceZTSProviderTest {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
 
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
@@ -603,6 +626,7 @@ public class InstanceZTSProviderTest {
             assertTrue(ex.getMessage().contains("validate certificate request DNS"));
         }
         provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
     }
 
     @Test
@@ -610,6 +634,8 @@ public class InstanceZTSProviderTest {
 
         KeyStore keystore = Mockito.mock(KeyStore.class);
         Mockito.when(keystore.getPublicKey("sports", "api", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
 
         InstanceZTSProvider provider = new InstanceZTSProvider();
         provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
@@ -633,6 +659,7 @@ public class InstanceZTSProviderTest {
             assertTrue(ex.getMessage().contains("validate Certificate Request Auth Token"));
         }
         provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
     }
 
     @Test
@@ -1085,5 +1112,388 @@ public class InstanceZTSProviderTest {
         }
 
         provider.close();
+    }
+
+    @Test
+    public void testInitializeWithPrincipalRole() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE, "sys.auth:role.zts-principals");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+        assertEquals(provider.principalRoleDomain, "sys.auth");
+        assertEquals(provider.principalRoleName, "zts-principals");
+        provider.close();
+
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
+    }
+
+    @Test
+    public void testInitializeWithInvalidPrincipalRole() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE, "invalid-role-format");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+        assertNull(provider.principalRoleDomain);
+        assertNull(provider.principalRoleName);
+        provider.close();
+
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
+    }
+
+    @Test
+    public void testInitializeWithEmptyPrincipalRole() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE, "");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+        assertNull(provider.principalRoleDomain);
+        assertNull(provider.principalRoleName);
+        provider.close();
+
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
+    }
+
+    @Test
+    public void testSetRolesProvider() {
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+        assertNull(provider.rolesProvider);
+
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        provider.setRolesProvider(rolesProvider);
+        assertNotNull(provider.rolesProvider);
+
+        provider.close();
+    }
+
+    @Test
+    public void testIsServiceAllowedForProviderInStaticList() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api,weather.api");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        assertTrue(provider.isServiceAllowedForProvider("sports.api"));
+        assertTrue(provider.isServiceAllowedForProvider("weather.api"));
+        assertFalse(provider.isServiceAllowedForProvider("sports.backend"));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
+    }
+
+    @Test
+    public void testIsServiceAllowedForProviderNoConfig() {
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        assertTrue(provider.isServiceAllowedForProvider("sports.api"));
+
+        provider.close();
+    }
+
+    @Test
+    public void testIsServiceAllowedForProviderNoDomainConfig() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "weather.api");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        provider.setRolesProvider(rolesProvider);
+
+        assertFalse(provider.isServiceAllowedForProvider("sports.api"));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
+    }
+
+    @Test
+    public void testIsServiceAllowedForProviderNullRole() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE, "sys.auth:role.zts-principals");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+                .thenReturn(null);
+        provider.setRolesProvider(rolesProvider);
+
+        assertFalse(provider.isServiceAllowedForProvider("sports.api"));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
+    }
+
+    @Test
+    public void testIsServiceAllowedForProviderNullMembers() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE, "sys.auth:role.zts-principals");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        Role role = new Role();
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+                .thenReturn(role);
+        provider.setRolesProvider(rolesProvider);
+
+        assertFalse(provider.isServiceAllowedForProvider("sports.api"));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
+    }
+
+    @Test
+    public void testIsServiceAllowedForProviderNotMember() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE, "sys.auth:role.zts-principals");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("weather.api"));
+        members.add(new RoleMember().setMemberName("news.frontend"));
+
+        Role role = new Role().setRoleMembers(members);
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+                .thenReturn(role);
+        provider.setRolesProvider(rolesProvider);
+
+        assertFalse(provider.isServiceAllowedForProvider("sports.api"));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
+    }
+
+    @Test
+    public void testIsServiceAllowedForProviderMember() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE, "sys.auth:role.zts-principals");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("sports.api"));
+        members.add(new RoleMember().setMemberName("weather.api"));
+
+        Role role = new Role().setRoleMembers(members);
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+                .thenReturn(role);
+        provider.setRolesProvider(rolesProvider);
+
+        assertTrue(provider.isServiceAllowedForProvider("sports.api"));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
+    }
+
+    @Test
+    public void testIsServiceAllowedForProviderException() {
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE, "sys.auth:role.zts-principals");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, null);
+
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+                .thenThrow(new RuntimeException("db failure"));
+        provider.setRolesProvider(rolesProvider);
+
+        assertFalse(provider.isServiceAllowedForProvider("sports.api"));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
+    }
+
+    @Test
+    public void testConfirmInstanceUnsupportedServiceWithRoleFallback() throws ProviderResourceException {
+
+        KeyStore keystore = Mockito.mock(KeyStore.class);
+        Mockito.when(keystore.getPublicKey("sports", "backend", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE, "sys.auth:role.zts-principals");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
+
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("sports.backend"));
+
+        Role role = new Role().setRoleMembers(members);
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+                .thenReturn(role);
+        provider.setRolesProvider(rolesProvider);
+
+        PrincipalToken tokenToSign = new PrincipalToken.Builder("S1", "sports", "backend")
+                .keyId("v0").salt("salt").issueTime(System.currentTimeMillis() / 1000)
+                .expirationWindow(3600).build();
+        tokenToSign.sign(servicePrivateKeyStringK0);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setAttestationData(tokenToSign.getSignedToken());
+        confirmation.setDomain("sports");
+        confirmation.setService("backend");
+        confirmation.setProvider("sys.auth.zts");
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "backend.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
+        confirmation.setAttributes(attributes);
+
+        assertNotNull(provider.confirmInstance(confirmation));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
+    }
+
+    @Test
+    public void testConfirmInstanceUnsupportedServiceNotInRole() {
+
+        KeyStore keystore = Mockito.mock(KeyStore.class);
+        Mockito.when(keystore.getPublicKey("sports", "backend", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE, "sys.auth:role.zts-principals");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
+
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("weather.api"));
+
+        Role role = new Role().setRoleMembers(members);
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+                .thenReturn(role);
+        provider.setRolesProvider(rolesProvider);
+
+        PrincipalToken tokenToSign = new PrincipalToken.Builder("S1", "sports", "backend")
+                .keyId("v0").salt("salt").issueTime(System.currentTimeMillis() / 1000)
+                .expirationWindow(3600).build();
+        tokenToSign.sign(servicePrivateKeyStringK0);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setAttestationData(tokenToSign.getSignedToken());
+        confirmation.setDomain("sports");
+        confirmation.setService("backend");
+        confirmation.setProvider("sys.auth.zts");
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "backend.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
+        confirmation.setAttributes(attributes);
+
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertTrue(ex.getMessage().contains("Service not authorized to be launched by ZTS Provider"));
+        }
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
+    }
+
+    @Test
+    public void testConfirmInstanceUnsupportedServiceNoRoleProvider() {
+
+        KeyStore keystore = Mockito.mock(KeyStore.class);
+        Mockito.when(keystore.getPublicKey("sports", "backend", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE, "sys.auth:role.zts-principals");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
+
+        PrincipalToken tokenToSign = new PrincipalToken.Builder("S1", "sports", "backend")
+                .keyId("v0").salt("salt").issueTime(System.currentTimeMillis() / 1000)
+                .expirationWindow(3600).build();
+        tokenToSign.sign(servicePrivateKeyStringK0);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setAttestationData(tokenToSign.getSignedToken());
+        confirmation.setDomain("sports");
+        confirmation.setService("backend");
+        confirmation.setProvider("sys.auth.zts");
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "backend.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
+        confirmation.setAttributes(attributes);
+
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertTrue(ex.getMessage().contains("Service not authorized to be launched by ZTS Provider"));
+        }
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
+    }
+
+    @Test
+    public void testRefreshInstanceWithRoleFallback() throws ProviderResourceException {
+
+        KeyStore keystore = Mockito.mock(KeyStore.class);
+        Mockito.when(keystore.getPublicKey("sports", "backend", "v0")).thenReturn(servicePublicKeyStringK0);
+
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST, "sports.api");
+        System.setProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE, "sys.auth:role.zts-principals");
+
+        InstanceZTSProvider provider = new InstanceZTSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceZTSProvider", null, keystore);
+
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("sports.backend"));
+
+        Role role = new Role().setRoleMembers(members);
+        RolesProvider rolesProvider = Mockito.mock(RolesProvider.class);
+        Mockito.when(rolesProvider.getRole("sys.auth", "zts-principals", false, true, false))
+                .thenReturn(role);
+        provider.setRolesProvider(rolesProvider);
+
+        PrincipalToken tokenToSign = new PrincipalToken.Builder("S1", "sports", "backend")
+                .keyId("v0").salt("salt").issueTime(System.currentTimeMillis() / 1000)
+                .expirationWindow(3600).build();
+        tokenToSign.sign(servicePrivateKeyStringK0);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setAttestationData(tokenToSign.getSignedToken());
+        confirmation.setDomain("sports");
+        confirmation.setService("backend");
+        confirmation.setProvider("sys.auth.zts");
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "backend.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CSR_PUBLIC_KEY, servicePublicKeyStringK0);
+        confirmation.setAttributes(attributes);
+
+        assertNotNull(provider.refreshInstance(confirmation));
+
+        provider.close();
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_LIST);
+        System.clearProperty(InstanceZTSProvider.ZTS_PROP_PRINCIPAL_ROLE);
     }
 }
