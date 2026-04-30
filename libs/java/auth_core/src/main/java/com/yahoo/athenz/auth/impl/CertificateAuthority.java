@@ -30,6 +30,24 @@ import com.yahoo.athenz.auth.Principal;
 
 import static com.yahoo.athenz.auth.AuthorityConsts.ATHENZ_PROP_RESTRICTED_OU;
 
+/**
+ * {@link Authority} implementation that authenticates principals using
+ * X.509 client certificates (mutual TLS).
+ *
+ * During {@link #initialize()}, the authority sets up three layers of
+ * certificate processing:
+ *
+ * Principal exclusion – certificates whose principal is in the
+ *       {@code athenz.auth.certificate.excluded_principals} set are rejected.
+ * Role certificate exclusion – when
+ *       {@code athenz.auth.certificate.exclude_role_certificates} is
+ *       {@code true}, role certificates are rejected.
+ * Issuer DN filtering – a {@link CertificateAuthorityValidator}
+ *       optionally restricts which CA issuers are accepted. If the
+ *       {@code athenz.authority.truststore.path} system property is not set,
+ *       the filter is a no-op and certificates from any issuer are
+ *       accepted.
+ */
 public class CertificateAuthority implements Authority {
 
     private static final Logger LOG = LoggerFactory.getLogger(CertificateAuthority.class);
