@@ -325,9 +325,8 @@ func TestRegisterHandlersCloseEndpoint(t *testing.T) {
 // --- getAuthCodeFromCallbackHandler tests ---
 
 func TestGetAuthCodeFromCallbackHandlerTimeout(t *testing.T) {
-	// Use port 0 to let OS pick a free port - but the function takes a string port.
-	// Use a high port that's likely free.
-	result := getAuthCodeFromCallbackHandler(19994, 1, false)
+	// Use port 0 to let OS pick a free port
+	result := getAuthCodeFromCallbackHandler(0, 1, false)
 	select {
 	case r := <-result:
 		if r.Error == nil {
