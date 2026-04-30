@@ -837,6 +837,30 @@ public class CryptoTest {
     }
 
     @Test
+    public void testExtractX509DNCommonName() {
+        assertEquals(Crypto.extractX509DNCommonName("CN=athenz.api"), "athenz.api");
+        assertEquals(Crypto.extractX509DNCommonName("CN=athenz.api,O=Athenz,C=US"), "athenz.api");
+        assertEquals(Crypto.extractX509DNCommonName("OU=Testing,CN=my.service,O=Athenz"), "my.service");
+    }
+
+    @Test
+    public void testExtractX509DNCommonNameNullAndEmpty() {
+        assertNull(Crypto.extractX509DNCommonName(null));
+        assertNull(Crypto.extractX509DNCommonName(""));
+    }
+
+    @Test
+    public void testExtractX509DNCommonNameNoCN() {
+        assertNull(Crypto.extractX509DNCommonName("O=Athenz,C=US"));
+    }
+
+    @Test
+    public void testExtractX509DNCommonNameMultipleCN() {
+        assertThrows(CryptoException.class,
+                () -> Crypto.extractX509DNCommonName("CN=first,CN=second,O=Athenz"));
+    }
+
+    @Test
     public void testIsRestrictedCertificateNotSet() throws Exception {
         GlobStringsMatcher globStringsMatcher = new GlobStringsMatcher(ATHENZ_PROP_RESTRICTED_OU);
 
@@ -1955,6 +1979,350 @@ public class CryptoTest {
         } catch (CryptoException ex) {
             assertTrue(ex.getMessage().contains("AES/Unknown SecretKeyFactory not available"));
         }
+    }
+
+    @Test
+    public void testRandomSalt() {
+        String salt1 = Crypto.randomSalt();
+        assertNotNull(salt1);
+        assertFalse(salt1.isEmpty());
+
+        // verify it's a valid hex string
+        for (char c : salt1.toCharArray()) {
+            assertTrue("0123456789abcdef".indexOf(c) >= 0 || "0123456789ABCDEF".indexOf(c) >= 0);
+        }
+
+        // two calls should produce different values (probabilistically)
+        String salt2 = Crypto.randomSalt();
+        assertNotEquals(salt1, salt2);
+    }
+
+    @Test
+    public void testExtractX509CertIssueTime() throws Exception {
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            long issueTime = Crypto.extractX509CertIssueTime(cert);
+            assertTrue(issueTime > 0);
+            assertEquals(issueTime, cert.getNotBefore().getTime() / 1000);
+        }
+    }
+
+    @Test
+    public void testExtractX509CertEmails() throws Exception {
+
+        // cert with a single email SAN
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_email_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            List<String> emails = Crypto.extractX509CertEmails(cert);
+            assertEquals(emails.size(), 1);
+            assertEquals(emails.get(0), "athens.zts@aws.athenz.cloud");
+        }
+
+        // cert with multiple email SANs
+        try (InputStream inStream = new FileInputStream("src/test/resources/multiple_email_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            List<String> emails = Crypto.extractX509CertEmails(cert);
+            assertEquals(emails.size(), 2);
+            assertEquals(emails.get(0), "athenz.syncer@zts.athenz.cloud");
+            assertEquals(emails.get(1), "athenz.syncer2@zts.athenz.cloud");
+        }
+
+        // cert with no email SANs
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            List<String> emails = Crypto.extractX509CertEmails(cert);
+            assertTrue(emails.isEmpty());
+        }
+    }
+
+    @Test
+    public void testSHA256ByteArray() {
+        byte[] input = "hello world".getBytes(StandardCharsets.UTF_8);
+        byte[] hash1 = Crypto.sha256(input);
+        assertNotNull(hash1);
+        assertEquals(hash1.length, 32);
+
+        // deterministic: same input yields same hash
+        byte[] hash2 = Crypto.sha256(input);
+        assertEquals(hash1, hash2);
+
+        // different input yields different hash
+        byte[] hash3 = Crypto.sha256("different".getBytes(StandardCharsets.UTF_8));
+        assertNotEquals(hash1, hash3);
+    }
+
+    @Test
+    public void testSHA256String() {
+        byte[] hash = Crypto.sha256("test");
+        assertNotNull(hash);
+        assertEquals(hash.length, 32);
+
+        // same string produces same hash
+        assertEquals(Crypto.sha256("test"), hash);
+    }
+
+    @Test
+    public void testHmacDeterministic() {
+        String sig1 = Crypto.hmac("message", "secret");
+        String sig2 = Crypto.hmac("message", "secret");
+        assertEquals(sig1, sig2);
+
+        // different message produces different signature
+        String sig3 = Crypto.hmac("other-message", "secret");
+        assertNotEquals(sig1, sig3);
+
+        // different secret produces different signature
+        String sig4 = Crypto.hmac("message", "other-secret");
+        assertNotEquals(sig1, sig4);
+    }
+
+    @Test
+    public void testYBase64RoundTrip() {
+        String original = "hello world!";
+        byte[] originalBytes = original.getBytes(StandardCharsets.UTF_8);
+
+        String encoded = Crypto.ybase64(originalBytes);
+        assertNotNull(encoded);
+        assertFalse(encoded.isEmpty());
+
+        byte[] decoded = Crypto.ybase64Decode(encoded);
+        assertEquals(decoded, originalBytes);
+
+        String decodedStr = Crypto.ybase64DecodeString(encoded);
+        assertEquals(decodedStr, original);
+    }
+
+    @Test
+    public void testYBase64EncodeDecodeString() {
+        String input = "test-string-with-special-chars!@#$%";
+        String encoded = Crypto.ybase64EncodeString(input);
+        assertNotNull(encoded);
+
+        String decoded = Crypto.ybase64DecodeString(encoded);
+        assertEquals(decoded, input);
+    }
+
+    @Test
+    public void testParseJWSProtectedHeader() {
+        // valid base64url-encoded JSON header
+        String header = java.util.Base64.getUrlEncoder().withoutPadding()
+                .encodeToString("{\"alg\":\"RS256\",\"kid\":\"key1\"}".getBytes(StandardCharsets.UTF_8));
+        Map<String, String> parsed = Crypto.parseJWSProtectedHeader(header);
+        assertNotNull(parsed);
+        assertEquals(parsed.get("alg"), "RS256");
+        assertEquals(parsed.get("kid"), "key1");
+    }
+
+    @Test
+    public void testParseJWSProtectedHeaderInvalid() {
+        // not valid base64
+        assertNull(Crypto.parseJWSProtectedHeader("not-valid!!!"));
+
+        // valid base64 but not JSON
+        String notJson = java.util.Base64.getUrlEncoder().withoutPadding()
+                .encodeToString("not-json".getBytes(StandardCharsets.UTF_8));
+        assertNull(Crypto.parseJWSProtectedHeader(notJson));
+    }
+
+    @Test
+    public void testConvertToPEMFormatPrivateKey() {
+        PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
+        String pem = Crypto.convertToPEMFormat(privateKey);
+        assertNotNull(pem);
+        assertTrue(pem.contains("-----BEGIN RSA PRIVATE KEY-----"));
+        assertTrue(pem.contains("-----END RSA PRIVATE KEY-----"));
+    }
+
+    @Test
+    public void testConvertToPEMFormatPublicKey() {
+        PublicKey publicKey = Crypto.loadPublicKey(rsaPublicKey);
+        String pem = Crypto.convertToPEMFormat(publicKey);
+        assertNotNull(pem);
+        assertTrue(pem.contains("-----BEGIN PUBLIC KEY-----"));
+        assertTrue(pem.contains("-----END PUBLIC KEY-----"));
+    }
+
+    @Test
+    public void testLoadX509CertificateFromReader() throws Exception {
+        Path path = Paths.get("src/test/resources/valid_cn_x509.cert");
+        String pemContent = new String(Files.readAllBytes(path));
+
+        try (StringReader reader = new StringReader(pemContent)) {
+            X509Certificate cert = Crypto.loadX509Certificate(reader);
+            assertNotNull(cert);
+            assertEquals(Crypto.extractX509CertCommonName(cert), "athenz.syncer");
+        }
+    }
+
+    @Test
+    public void testLoadX509CertificateFromString() throws Exception {
+        Path path = Paths.get("src/test/resources/valid_cn_x509.cert");
+        String pemContent = new String(Files.readAllBytes(path));
+
+        X509Certificate cert = Crypto.loadX509Certificate(pemContent);
+        assertNotNull(cert);
+        assertEquals(Crypto.extractX509CertCommonName(cert), "athenz.syncer");
+    }
+
+    @Test
+    public void testLoadX509CertificateFromReaderInvalid() {
+        try (StringReader reader = new StringReader("invalid-pem-content")) {
+            X509Certificate cert = Crypto.loadX509Certificate(reader);
+            assertNull(cert);
+        }
+    }
+
+    @Test
+    public void testExtractX500DnFieldOUAndO() {
+        assertEquals(Crypto.extractX500DnField("CN=athenz.api,OU=Engineering,O=Athenz", BCStyle.OU), "Engineering");
+        assertEquals(Crypto.extractX500DnField("CN=athenz.api,OU=Engineering,O=Athenz", BCStyle.O), "Athenz");
+        assertEquals(Crypto.extractX500DnField("CN=athenz.api,OU=Engineering,O=Athenz,C=US", BCStyle.C), "US");
+    }
+
+    @Test
+    public void testExtractX500DnFieldNullAndEmpty() {
+        assertNull(Crypto.extractX500DnField(null, BCStyle.CN));
+        assertNull(Crypto.extractX500DnField("", BCStyle.CN));
+    }
+
+    @Test
+    public void testExtractX500DnFieldNotPresent() {
+        assertNull(Crypto.extractX500DnField("CN=athenz.api,O=Athenz", BCStyle.OU));
+    }
+
+    @Test
+    public void testExtractX500DnFieldMultipleValues() {
+        assertThrows(CryptoException.class,
+                () -> Crypto.extractX500DnField("OU=first,OU=second,CN=test", BCStyle.OU));
+    }
+
+    @Test
+    public void testExtractX509CertDnsNamesEmpty() throws Exception {
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            List<String> dnsNames = Crypto.extractX509CertDnsNames(cert);
+            assertTrue(dnsNames.isEmpty());
+        }
+    }
+
+    @Test
+    public void testSignWithDefaultDigest() {
+        PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
+        PublicKey publicKey = Crypto.loadPublicKey(rsaPublicKey);
+
+        // sign(message, key) uses SHA256 by default
+        String signature = Crypto.sign(serviceToken, privateKey);
+        assertNotNull(signature);
+
+        // should verify with explicit SHA256
+        assertTrue(Crypto.verify(serviceToken, publicKey, signature, Crypto.SHA256));
+    }
+
+    @Test
+    public void testSignVerifyWithSHA1() {
+        PrivateKey privateKey = Crypto.loadPrivateKey(rsaPrivateKey);
+        PublicKey publicKey = Crypto.loadPublicKey(rsaPublicKey);
+
+        String signature = Crypto.sign(serviceToken, privateKey, Crypto.SHA1);
+        assertNotNull(signature);
+        assertTrue(Crypto.verify(serviceToken, publicKey, signature, Crypto.SHA1));
+
+        // SHA1 signature should not verify as SHA256
+        assertFalse(Crypto.verify(serviceToken, publicKey, signature, Crypto.SHA256));
+    }
+
+    @Test
+    public void testExtractX509CertSubjectFieldMultipleValues() {
+        X509Certificate cert = mock(X509Certificate.class);
+        javax.security.auth.x500.X500Principal principal =
+                new javax.security.auth.x500.X500Principal("CN=first,CN=second,O=Athenz");
+        when(cert.getSubjectX500Principal()).thenReturn(principal);
+
+        assertThrows(CryptoException.class,
+                () -> Crypto.extractX509CertSubjectField(cert, BCStyle.CN));
+    }
+
+    @Test
+    public void testExtractX509CertIssuerDnField() throws Exception {
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            assertEquals(Crypto.extractX509CertIssuerDnField(cert, BCStyle.CN), "athenz.syncer");
+            assertEquals(Crypto.extractX509CertIssuerDnField(cert, BCStyle.O), "My Test Company");
+        }
+    }
+
+    @Test
+    public void testExtractX509CSREmailNoEmails() throws IOException {
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(csr);
+        assertNotNull(certReq);
+
+        assertNull(Crypto.extractX509CSREmail(certReq));
+        assertTrue(Crypto.extractX509CSREmails(certReq).isEmpty());
+    }
+
+    @Test
+    public void testExtractX509CertSANFieldCertParsingException() throws Exception {
+        X509Certificate cert = mock(X509Certificate.class);
+        when(cert.getSubjectAlternativeNames())
+                .thenThrow(new java.security.cert.CertificateParsingException("test"));
+
+        List<String> dnsNames = Crypto.extractX509CertDnsNames(cert);
+        assertTrue(dnsNames.isEmpty());
+
+        List<String> emails = Crypto.extractX509CertEmails(cert);
+        assertTrue(emails.isEmpty());
+
+        List<String> uris = Crypto.extractX509CertURIs(cert);
+        assertTrue(uris.isEmpty());
+
+        List<String> ips = Crypto.extractX509CertIPAddresses(cert);
+        assertTrue(ips.isEmpty());
+    }
+
+    @Test
+    public void testExtractX509CertSpiffeUriNoSpiffe() throws Exception {
+        // cert with non-spiffe URIs only
+        try (InputStream inStream = new FileInputStream("src/test/resources/role_cert_principal_uri_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            assertNull(Crypto.extractX509CertSpiffeUri(cert));
+        }
+    }
+
+    @Test
+    public void testExtractIssuerDnSingleCert() throws Exception {
+        try (InputStream inStream = new FileInputStream("src/test/resources/valid_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            String issuerDn = Crypto.extractIssuerDn(cert);
+            assertNotNull(issuerDn);
+            assertTrue(issuerDn.contains("athenz.syncer"));
+        }
+    }
+
+    @Test
+    public void testExtractIssuerDnBundleNullAndEmpty() {
+        Set<String> result = Crypto.extractIssuerDn((String) null);
+        assertTrue(result.isEmpty());
+
+        result = Crypto.extractIssuerDn("");
+        assertTrue(result.isEmpty());
     }
 
     @Test
