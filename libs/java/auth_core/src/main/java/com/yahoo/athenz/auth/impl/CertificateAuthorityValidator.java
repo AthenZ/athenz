@@ -29,9 +29,8 @@ import java.util.Set;
  * certificate's Issuer DN against a set of allowed DNs extracted from a
  * configured trust store.
  *
- * When no trust store path is provided, or the trust store contains no
- * entries, the filter is effectively a no-op and all certificates are
- * accepted. Callers (e.g. {@link CertificateIdentityParser}) may also
+ * When no trust store path is provided, the filter is effectively a no-op
+ * and all certificates are accepted. Callers (e.g. {@link CertificateIdentityParser}) may also
  * pass a {@code null} validator reference, which has the same effect of
  * accepting certificates from any issuer.
  *
