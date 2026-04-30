@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
+	"github.com/AthenZ/athenz/libs/go/tls/config"
 )
 
 func main() {
@@ -80,9 +81,9 @@ func getTLSConfig(certpem, keypem []byte) (*tls.Config, error) {
 		return nil, fmt.Errorf("unable to formulate clientCert from key and cert bytes, error: %v", err)
 	}
 
-	config := &tls.Config{}
-	config.Certificates = make([]tls.Certificate, 1)
-	config.Certificates[0] = clientCert
+	tlsConfig := config.ClientTLSConfig()
+	tlsConfig.Certificates = make([]tls.Certificate, 1)
+	tlsConfig.Certificates[0] = clientCert
 
-	return config, nil
+	return tlsConfig, nil
 }

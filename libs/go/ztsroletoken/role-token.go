@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/tls/config"
 	"github.com/AthenZ/athenz/libs/go/zmssvctoken"
 )
 
@@ -78,11 +79,11 @@ func getClientTLSConfig(certFile, keyFile string) (*tls.Config, error) {
 		return nil, err
 	}
 
-	config := &tls.Config{}
-	config.Certificates = make([]tls.Certificate, 1)
-	config.Certificates[0] = clientCert
+	tlsConfig := config.ClientTLSConfig()
+	tlsConfig.Certificates = make([]tls.Certificate, 1)
+	tlsConfig.Certificates[0] = clientCert
 
-	return config, nil
+	return tlsConfig, nil
 }
 
 func (r *roleToken) updateRoleToken() (string, error) {

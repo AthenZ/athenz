@@ -214,6 +214,7 @@ library.
 ```go
 import (
     "github.com/AthenZ/athenz/clients/go/zms"
+    "github.com/AthenZ/athenz/libs/go/tls/config"
 )
 ```
 
@@ -269,9 +270,9 @@ Finally, we are going to contact ZMS for the authorization check.
         // for our test example we're just going to skip
         // validating self-signed certificates
         tr := http.Transport{}
-        config := &tls.Config{}
-        config.InsecureSkipVerify = true
-        tr.TLSClientConfig = config
+        tlsConfig := config.ClientTLSConfig()
+        tlsConfig.InsecureSkipVerify = true
+        tr.TLSClientConfig = tlsConfig
         zmsClient := zms.ZMSClient{
                 URL:       zmsUrl,
                 Transport: &tr,
