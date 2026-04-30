@@ -43,13 +43,13 @@ func computeCodeChallenge(verifier string) string {
 	return encode(h[:])
 }
 
-func getIdpAuthURL(endPoint, clientId, scope, nonce, state, callbackPort, codeChallenge string) (string, error) {
+func getIdpAuthURL(endPoint, clientId, scope, nonce, state string, callbackPort int, codeChallenge string) (string, error) {
 	u, err := url.Parse(endPoint)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse auth endpoint: %v", err)
 	}
 
-	redirectURL := fmt.Sprintf("http://localhost:%s/oauth2/callback", callbackPort)
+	redirectURL := fmt.Sprintf("http://127.0.0.1:%d/oauth2/callback", callbackPort)
 
 	query := u.Query()
 	query.Set("client_id", clientId)
@@ -83,7 +83,7 @@ func openBrowser(url string) error {
 	return cmd.Run()
 }
 
-func openIdpAuthURL(endPoint, clientId, scope, nonce, state, callbackPort, codeChallenge string, verbose bool) error {
+func openIdpAuthURL(endPoint, clientId, scope, nonce, state string, callbackPort int, codeChallenge string, verbose bool) error {
 	authURL, err := getIdpAuthURL(endPoint, clientId, scope, nonce, state, callbackPort, codeChallenge)
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func registerHandlers(mux *http.ServeMux, code chan<- string) {
 	}))
 }
 
-func getAuthCodeFromCallbackHandler(port string, timeoutSeconds int, verbose bool) <-chan authResult {
+func getAuthCodeFromCallbackHandler(port, timeoutSeconds int, verbose bool) <-chan authResult {
 	result := make(chan authResult, 1)
 	code := make(chan string, 1)
 
@@ -128,10 +128,10 @@ func getAuthCodeFromCallbackHandler(port string, timeoutSeconds int, verbose boo
 	registerHandlers(mux, code)
 
 	if verbose {
-		log.Printf("Starting callback server on port %s", port)
+		log.Printf("Starting callback server on port %d", port)
 	}
 	server := &http.Server{
-		Addr:         fmt.Sprintf("localhost:%s", port),
+		Addr:         fmt.Sprintf("127.0.0.1:%d", port),
 		Handler:      mux,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
@@ -173,7 +173,7 @@ func getAuthCodeFromCallbackHandler(port string, timeoutSeconds int, verbose boo
 // verifier is returned so the caller can include it in the token exchange.
 // Returns the raw query string containing the code and state, the PKCE code
 // verifier (empty when pkce is false), or an error if the process fails.
-func GetAuthCode(endPoint, clientId, scope, callbackPort string, timeoutSeconds int, pkce, verbose bool) (string, string, error) {
+func GetAuthCode(endPoint, clientId, scope string, callbackPort, timeoutSeconds int, pkce, verbose bool) (string, string, error) {
 	result := getAuthCodeFromCallbackHandler(callbackPort, timeoutSeconds, verbose)
 
 	nonce, err := newCodeVerifier(24)

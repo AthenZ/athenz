@@ -26,7 +26,7 @@ var (
 )
 
 const (
-	DefaultCallbackPort    = "9213"
+	DefaultCallbackPort    = 9213
 	DefaultCallbackTimeout = 45
 	DefaultSubjectOrgUnit  = "Athenz"
 )
@@ -43,8 +43,8 @@ func main() {
 	var ztsURL, privateKeyFile, userName, certFile string
 	var idpEndpoint, idpClientId, caCertFile string
 	var subjC, subjO, subjOU, spiffeTrustDomain string
-	var scope, callbackPort string
-	var callbackTimeout, expiryTime int
+	var scope string
+	var callbackPort, callbackTimeout, expiryTime int
 	var pkce, proxy, verbose, showVersion bool
 
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
@@ -58,7 +58,7 @@ func main() {
 	flag.StringVar(&subjOU, "subj-ou", DefaultSubjectOrgUnit, "Subject OU/OrganizationalUnit field")
 	flag.StringVar(&spiffeTrustDomain, "spiffe-trust-domain", "", "trust domain value for SPIFFE URI")
 	flag.StringVar(&scope, "scope", "openid", "OIDC scope parameter")
-	flag.StringVar(&callbackPort, "callback-port", DefaultCallbackPort, "local port for IdP OAuth2 callback")
+	flag.IntVar(&callbackPort, "callback-port", DefaultCallbackPort, "local port for IdP OAuth2 callback")
 	flag.IntVar(&callbackTimeout, "callback-timeout", DefaultCallbackTimeout, "timeout in seconds for IdP auth flow")
 	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes for the certificate")
 	flag.StringVar(&caCertFile, "cacert", "", "CA certificate file")
