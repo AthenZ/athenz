@@ -49,7 +49,7 @@ func getIdpAuthURL(endPoint, clientId, scope, nonce, state string, callbackPort 
 		return "", fmt.Errorf("failed to parse auth endpoint: %v", err)
 	}
 
-	redirectURL := fmt.Sprintf("http://localhost:%d/oauth2/callback", callbackPort)
+	redirectURL := fmt.Sprintf("http://127.0.0.1:%d/oauth2/callback", callbackPort)
 
 	query := u.Query()
 	query.Set("client_id", clientId)
@@ -131,7 +131,7 @@ func getAuthCodeFromCallbackHandler(port, timeoutSeconds int, verbose bool) <-ch
 		log.Printf("Starting callback server on port %d", port)
 	}
 	server := &http.Server{
-		Addr:         fmt.Sprintf("localhost:%d", port),
+		Addr:         fmt.Sprintf("127.0.0.1:%d", port),
 		Handler:      mux,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,

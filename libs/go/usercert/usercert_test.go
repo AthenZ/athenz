@@ -395,7 +395,7 @@ func TestRequestCertificateWithMockZTS(t *testing.T) {
 		ZtsURL:          server.URL,
 		PrivateKeyFile:  tmpKeyFile,
 		UserName:        "johndoe",
-		IdpEndpoint:     "http://localhost:19999/auth",
+		IdpEndpoint:     "http://127.0.0.1:19999/auth",
 		IdpClientId:     "test-client",
 		SubjectCountry:  "US",
 		SubjectOrg:      "Test",
@@ -424,7 +424,7 @@ func TestRequestCertificateInvalidCACertFile(t *testing.T) {
 	_, err := RequestCertificate(Options{
 		PrivateKeyFile:  tmpKeyFile,
 		UserName:        "johndoe",
-		IdpEndpoint:     "http://localhost:19997/auth",
+		IdpEndpoint:     "http://127.0.0.1:19997/auth",
 		IdpClientId:     "test-client",
 		SubjectCountry:  "US",
 		SubjectOrg:      "Test",
@@ -448,7 +448,7 @@ func TestRequestCertificateVerboseMode(t *testing.T) {
 	_, err := RequestCertificate(Options{
 		PrivateKeyFile:  tmpKeyFile,
 		UserName:        "johndoe",
-		IdpEndpoint:     "http://localhost:19993/auth",
+		IdpEndpoint:     "http://127.0.0.1:19993/auth",
 		IdpClientId:     "test-client",
 		SubjectCountry:  "US",
 		SubjectOrg:      "Test",
@@ -472,7 +472,7 @@ func TestRequestCertificateWithExpiryTime(t *testing.T) {
 	_, err := RequestCertificate(Options{
 		PrivateKeyFile:  tmpKeyFile,
 		UserName:        "johndoe",
-		IdpEndpoint:     "http://localhost:19991/auth",
+		IdpEndpoint:     "http://127.0.0.1:19991/auth",
 		IdpClientId:     "test-client",
 		SubjectCountry:  "US",
 		SubjectOrg:      "Test",
@@ -495,7 +495,7 @@ func TestRequestCertificateWithSpiffeDomain(t *testing.T) {
 	_, err := RequestCertificate(Options{
 		PrivateKeyFile:    tmpKeyFile,
 		UserName:          "johndoe",
-		IdpEndpoint:       "http://localhost:19989/auth",
+		IdpEndpoint:       "http://127.0.0.1:19989/auth",
 		IdpClientId:       "test-client",
 		SubjectCountry:    "US",
 		SubjectOrg:        "Test",
