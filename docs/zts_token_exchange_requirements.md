@@ -73,6 +73,59 @@ Requirements:
 - Validates that the subject identity has access to at least one of the requested roles
   The generated token will only include roles that the subject identity has access to.
 
+## ID Token Exchange
+Specification: https://datatracker.ietf.org/doc/html/rfc8693
+
+The ID token exchange feature in Athenz ZTS allows a service or user to exchange an existing
+ID token for a new ID token with a different audience and a set of groups (roles) that the
+subject identity has access to. This enables scenarios where a service needs to obtain an
+ID token on behalf of a user or another service for a specific target audience. To perform
+this exchange, the requesting principal must be authorized to do so based on policies
+defined in Athenz.
+
+Requirements:
+
+- The token request must have the `grant_type` parameter set to `urn:ietf:params:oauth:grant-type:token-exchange`
+- The token request must have the `requested_token_type` parameter set to `urn:ietf:params:oauth:token-type:id_token`
+- The token request must have a subject_token parameter included with a valid ID token and the `subject_token_type`
+  parameter set to `urn:ietf:params:oauth:token-type:id_token`
+- The token request must have a valid `audience` parameter specified (must be a valid Athenz service name)
+- The token request must have the `scope` parameter set to an OpenID Connect scope. The scope must include
+  `openid` and may optionally include role or group specifications in the format:
+  `openid {domainName}:role.{roleName} ...` or `openid {domainName}:group.{groupName} ...`
+- The requesting principal must not be an authorized service principal or a role identity
+- The requesting principal must be authorized to perform the ID token exchange for the subject
+  identity and the requested roles/groups, with ZTS denying the request entirely if the
+  principal is not authorized.
+
+1. Subject Token Validation
+
+- Checks if the subject token audience matches the principal name
+- If not, retrieves the service client ID assigned to the principal. If an external identity
+  provider is used, it fetches the token audience and validates that the client ID matches the token audience
+
+2. Subject Identity Extraction
+
+- Extracts the subject identity. For ZTS-issued tokens, uses the token's subject directly.
+  For external provider tokens, uses the identity provider's getTokenIdentity() method.
+
+3. Principal Authorization Check
+
+- Validates that the authenticated principal is authorized to perform the ID token exchange
+  for the subject identity. For this authorization the following assertion must be present
+  in the domain:
+    action: `zts.id_token_exchange`
+    resource: `{domainName}:principal.{subjectIdentity}`
+
+4. Role/Group Names Validation
+
+- Extracts the requested roles/groups from the scope (openid scope must be present)
+- Validates that the subject identity has access to the requested roles/groups
+- For each role/group, checks if the subject identity is authorized by verifying the following
+  assertion:
+    action: `zts.id_token_exchange`
+    resource: `{domainName}:role.{roleName}`
+
 ## Access Token Exchange (Impersonation)
 Specification: https://datatracker.ietf.org/doc/html/rfc8693
 
