@@ -54,7 +54,7 @@ type Options struct {
 	SubjectOrgUnit    string // CSR subject OrganizationalUnit field
 	SpiffeTrustDomain string // SPIFFE trust domain for URI SAN
 	Scope             string // OIDC scope parameter (default: "openid")
-	CallbackPort      string // local port for OAuth2 callback server
+	CallbackPort      int    // local port for OAuth2 callback server
 	CallbackTimeout   int    // seconds to wait for IdP callback
 	ExpiryTime        int    // certificate expiry in minutes (0 = server default)
 	PKCE              bool   // enable PKCE for IdP auth flow

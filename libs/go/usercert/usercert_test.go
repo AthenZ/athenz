@@ -400,7 +400,7 @@ func TestRequestCertificateWithMockZTS(t *testing.T) {
 		SubjectCountry:  "US",
 		SubjectOrg:      "Test",
 		SubjectOrgUnit:  "Test",
-		CallbackPort:    "19998",
+		CallbackPort:    19998,
 		CallbackTimeout: 1,
 	})
 	// We expect an error because the IdP auth flow won't complete in a test
@@ -429,7 +429,7 @@ func TestRequestCertificateInvalidCACertFile(t *testing.T) {
 		SubjectCountry:  "US",
 		SubjectOrg:      "Test",
 		SubjectOrgUnit:  "Test",
-		CallbackPort:    "19996",
+		CallbackPort:    19996,
 		CallbackTimeout: 1,
 	})
 	if err == nil {
@@ -453,7 +453,7 @@ func TestRequestCertificateVerboseMode(t *testing.T) {
 		SubjectCountry:  "US",
 		SubjectOrg:      "Test",
 		SubjectOrgUnit:  "Test",
-		CallbackPort:    "19992",
+		CallbackPort:    19992,
 		CallbackTimeout: 1,
 		Verbose:         true,
 	})
@@ -477,7 +477,7 @@ func TestRequestCertificateWithExpiryTime(t *testing.T) {
 		SubjectCountry:  "US",
 		SubjectOrg:      "Test",
 		SubjectOrgUnit:  "Test",
-		CallbackPort:    "19990",
+		CallbackPort:    19990,
 		CallbackTimeout: 1,
 		ExpiryTime:      60,
 	})
@@ -501,7 +501,7 @@ func TestRequestCertificateWithSpiffeDomain(t *testing.T) {
 		SubjectOrg:        "Test",
 		SubjectOrgUnit:    "Test",
 		SpiffeTrustDomain: "athenz.io",
-		CallbackPort:      "19988",
+		CallbackPort:      19988,
 		CallbackTimeout:   1,
 	})
 	if err == nil {

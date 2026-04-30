@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -89,7 +90,7 @@ func TestNewNonceIsValidBase64URL(t *testing.T) {
 // --- getIdpAuthURL tests ---
 
 func TestGetIdpAuthURL(t *testing.T) {
-	authURL, err := getIdpAuthURL("https://idp.example.com/oauth2/authorize", "my-client", "openid", "test-nonce", "test-state", "9213", "")
+	authURL, err := getIdpAuthURL("https://idp.example.com/oauth2/authorize", "my-client", "openid", "test-nonce", "test-state", 9213, "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -129,16 +130,16 @@ func TestGetIdpAuthURL(t *testing.T) {
 
 func TestGetIdpAuthURLDifferentPorts(t *testing.T) {
 	tests := []struct {
-		port        string
+		port        int
 		expectedURI string
 	}{
-		{"8080", "http://localhost:8080/oauth2/callback"},
-		{"3000", "http://localhost:3000/oauth2/callback"},
-		{"443", "http://localhost:443/oauth2/callback"},
+		{8080, "http://localhost:8080/oauth2/callback"},
+		{3000, "http://localhost:3000/oauth2/callback"},
+		{443, "http://localhost:443/oauth2/callback"},
 	}
 
 	for _, tt := range tests {
-		t.Run("port-"+tt.port, func(t *testing.T) {
+		t.Run("port-"+strconv.Itoa(tt.port), func(t *testing.T) {
 			authURL, err := getIdpAuthURL("https://idp.example.com/auth", "client", "openid", "nonce", "test-state", tt.port, "")
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
@@ -152,14 +153,14 @@ func TestGetIdpAuthURLDifferentPorts(t *testing.T) {
 }
 
 func TestGetIdpAuthURLInvalidEndpoint(t *testing.T) {
-	_, err := getIdpAuthURL("://invalid", "client", "openid", "nonce", "test-state", "9213", "")
+	_, err := getIdpAuthURL("://invalid", "client", "openid", "nonce", "test-state", 9213, "")
 	if err == nil {
 		t.Fatal("expected error for invalid endpoint")
 	}
 }
 
 func TestGetIdpAuthURLPreservesExistingQueryParams(t *testing.T) {
-	authURL, err := getIdpAuthURL("https://idp.example.com/auth?extra=value", "client", "openid", "nonce", "test-state", "9213", "")
+	authURL, err := getIdpAuthURL("https://idp.example.com/auth?extra=value", "client", "openid", "nonce", "test-state", 9213, "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -173,7 +174,7 @@ func TestGetIdpAuthURLPreservesExistingQueryParams(t *testing.T) {
 }
 
 func TestGetIdpAuthURLCustomScope(t *testing.T) {
-	authURL, err := getIdpAuthURL("https://idp.example.com/auth", "client", "openid profile email", "nonce", "test-state", "9213", "")
+	authURL, err := getIdpAuthURL("https://idp.example.com/auth", "client", "openid profile email", "nonce", "test-state", 9213, "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -326,7 +327,7 @@ func TestRegisterHandlersCloseEndpoint(t *testing.T) {
 func TestGetAuthCodeFromCallbackHandlerTimeout(t *testing.T) {
 	// Use port 0 to let OS pick a free port - but the function takes a string port.
 	// Use a high port that's likely free.
-	result := getAuthCodeFromCallbackHandler("19994", 1, false)
+	result := getAuthCodeFromCallbackHandler(19994, 1, false)
 	select {
 	case r := <-result:
 		if r.Error == nil {
@@ -346,7 +347,7 @@ func TestGetAuthCodeFromCallbackHandlerSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get free port: %v", err)
 	}
-	port := fmt.Sprintf("%d", listener.Addr().(*net.TCPAddr).Port)
+	port := listener.Addr().(*net.TCPAddr).Port
 	listener.Close()
 
 	result := getAuthCodeFromCallbackHandler(port, 10, false)
@@ -355,7 +356,7 @@ func TestGetAuthCodeFromCallbackHandlerSuccess(t *testing.T) {
 	time.Sleep(200 * time.Millisecond)
 
 	// Simulate the IdP callback
-	resp, err := http.Get(fmt.Sprintf("http://localhost:%s/oauth2/callback?code=auth-code-123&state=nonce", port))
+	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/oauth2/callback?code=auth-code-123&state=nonce", port))
 	if err != nil {
 		t.Fatalf("failed to call callback: %v", err)
 	}
@@ -381,7 +382,7 @@ func TestGetAuthCodeSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get free port: %v", err)
 	}
-	port := fmt.Sprintf("%d", listener.Addr().(*net.TCPAddr).Port)
+	port := listener.Addr().(*net.TCPAddr).Port
 	listener.Close()
 
 	origBrowserOpen := browserOpen
@@ -395,7 +396,7 @@ func TestGetAuthCodeSuccess(t *testing.T) {
 		state := u.Query().Get("state")
 		go func() {
 			time.Sleep(200 * time.Millisecond)
-			resp, err := http.Get(fmt.Sprintf("http://localhost:%s/oauth2/callback?code=test-auth-code&state=%s", port, state))
+			resp, err := http.Get(fmt.Sprintf("http://localhost:%d/oauth2/callback?code=test-auth-code&state=%s", port, state))
 			if err == nil {
 				resp.Body.Close()
 			}
@@ -425,7 +426,7 @@ func TestGetAuthCodeStateMismatch(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get free port: %v", err)
 	}
-	port := fmt.Sprintf("%d", listener.Addr().(*net.TCPAddr).Port)
+	port := listener.Addr().(*net.TCPAddr).Port
 	listener.Close()
 
 	origBrowserOpen := browserOpen
@@ -434,7 +435,7 @@ func TestGetAuthCodeStateMismatch(t *testing.T) {
 	browserOpen = func(authURL string) error {
 		go func() {
 			time.Sleep(200 * time.Millisecond)
-			resp, err := http.Get(fmt.Sprintf("http://localhost:%s/oauth2/callback?code=test-auth-code&state=wrong-state", port))
+			resp, err := http.Get(fmt.Sprintf("http://localhost:%d/oauth2/callback?code=test-auth-code&state=wrong-state", port))
 			if err == nil {
 				resp.Body.Close()
 			}
@@ -456,7 +457,7 @@ func TestGetAuthCodeMissingState(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get free port: %v", err)
 	}
-	port := fmt.Sprintf("%d", listener.Addr().(*net.TCPAddr).Port)
+	port := listener.Addr().(*net.TCPAddr).Port
 	listener.Close()
 
 	origBrowserOpen := browserOpen
@@ -465,7 +466,7 @@ func TestGetAuthCodeMissingState(t *testing.T) {
 	browserOpen = func(authURL string) error {
 		go func() {
 			time.Sleep(200 * time.Millisecond)
-			resp, err := http.Get(fmt.Sprintf("http://localhost:%s/oauth2/callback?code=test-auth-code", port))
+			resp, err := http.Get(fmt.Sprintf("http://localhost:%d/oauth2/callback?code=test-auth-code", port))
 			if err == nil {
 				resp.Body.Close()
 			}
@@ -487,7 +488,7 @@ func TestGetAuthCodeBrowserOpenFailure(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get free port: %v", err)
 	}
-	port := fmt.Sprintf("%d", listener.Addr().(*net.TCPAddr).Port)
+	port := listener.Addr().(*net.TCPAddr).Port
 	listener.Close()
 
 	origBrowserOpen := browserOpen
@@ -514,7 +515,7 @@ func TestGetAuthCodeInvalidEndpoint(t *testing.T) {
 		return nil
 	}
 
-	_, _, err := GetAuthCode("://invalid", "my-client", "openid", "19999", 5, false, false)
+	_, _, err := GetAuthCode("://invalid", "my-client", "openid", 19999, 5, false, false)
 	if err == nil {
 		t.Fatal("expected error for invalid endpoint")
 	}
@@ -626,7 +627,7 @@ func TestComputeCodeChallengeMatchesSHA256(t *testing.T) {
 
 func TestGetIdpAuthURLWithPKCE(t *testing.T) {
 	challenge := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
-	authURL, err := getIdpAuthURL("https://idp.example.com/oauth2/authorize", "my-client", "openid", "test-nonce", "test-state", "9213", challenge)
+	authURL, err := getIdpAuthURL("https://idp.example.com/oauth2/authorize", "my-client", "openid", "test-nonce", "test-state", 9213, challenge)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -646,7 +647,7 @@ func TestGetIdpAuthURLWithPKCE(t *testing.T) {
 }
 
 func TestGetIdpAuthURLWithoutPKCE(t *testing.T) {
-	authURL, err := getIdpAuthURL("https://idp.example.com/oauth2/authorize", "my-client", "openid", "test-nonce", "test-state", "9213", "")
+	authURL, err := getIdpAuthURL("https://idp.example.com/oauth2/authorize", "my-client", "openid", "test-nonce", "test-state", 9213, "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -670,7 +671,7 @@ func TestGetAuthCodeWithPKCESuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get free port: %v", err)
 	}
-	port := fmt.Sprintf("%d", listener.Addr().(*net.TCPAddr).Port)
+	port := listener.Addr().(*net.TCPAddr).Port
 	listener.Close()
 
 	origBrowserOpen := browserOpen
@@ -686,7 +687,7 @@ func TestGetAuthCodeWithPKCESuccess(t *testing.T) {
 		state := u.Query().Get("state")
 		go func() {
 			time.Sleep(200 * time.Millisecond)
-			resp, err := http.Get(fmt.Sprintf("http://localhost:%s/oauth2/callback?code=pkce-code&state=%s", port, state))
+			resp, err := http.Get(fmt.Sprintf("http://localhost:%d/oauth2/callback?code=pkce-code&state=%s", port, state))
 			if err == nil {
 				resp.Body.Close()
 			}
@@ -739,7 +740,7 @@ func TestGetAuthCodeWithPKCEDisabled(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to get free port: %v", err)
 	}
-	port := fmt.Sprintf("%d", listener.Addr().(*net.TCPAddr).Port)
+	port := listener.Addr().(*net.TCPAddr).Port
 	listener.Close()
 
 	origBrowserOpen := browserOpen
@@ -755,7 +756,7 @@ func TestGetAuthCodeWithPKCEDisabled(t *testing.T) {
 		state := u.Query().Get("state")
 		go func() {
 			time.Sleep(200 * time.Millisecond)
-			resp, err := http.Get(fmt.Sprintf("http://localhost:%s/oauth2/callback?code=no-pkce-code&state=%s", port, state))
+			resp, err := http.Get(fmt.Sprintf("http://localhost:%d/oauth2/callback?code=no-pkce-code&state=%s", port, state))
 			if err == nil {
 				resp.Body.Close()
 			}
