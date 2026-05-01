@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const config = require('../../../config/config');
 const {
     navigateAndWait,
     waitAndClick,
@@ -22,6 +23,8 @@ const {
     waitForElementExist,
     beforeEachTest,
 } = require('../libs/helpers');
+
+const testdata = config().testdata;
 
 describe('Home page', () => {
     beforeEach(async () => {
@@ -44,7 +47,7 @@ describe('Home page', () => {
         await authenticateAndWait();
         await navigateAndWait('/');
 
-        let testDomain = await $('a*=athenz.dev.functional-test');
+        let testDomain = await $(`a*=${testdata.functionalTest}`);
         let testRoleName = 'testroleindex';
         await waitAndClick(testDomain);
 

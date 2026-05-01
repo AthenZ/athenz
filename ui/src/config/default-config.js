@@ -28,6 +28,21 @@ const testdata = {
         id: 'unix.user',
         type: 'unix',
     },
+    /**
+     * Athenz domain names and related identifiers for functional *.spec.js tests.
+     */
+    functionalTest: 'functional-test',
+    functionalTestNonAdmin: 'functional-test-non-admin',
+    delegatedParent: 'delegated-parent',
+    auditEnabled: 'audit-enabled',
+    principalFilter: 'principal-filter',
+    principalFilterUser: 'user',
+    microsegPolicyInstanceHost: 'test.test.tst1.com',
+    microsegSourceService: 'domain.source-service',
+    microsegHostEnforce: 'enforce.host.com',
+    microsegHostReport: 'report.host.com',
+    microsegSourceService1: 'domain.source-service-one',
+    microsegSourceService2: 'domain.source-service-two',
 };
 
 const config = {

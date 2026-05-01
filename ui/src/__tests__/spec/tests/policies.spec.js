@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+const config = require('../../../config/config');
 const {
     authenticateAndWait,
     navigateAndWait,
@@ -22,6 +23,8 @@ const {
     waitForElementExist,
     beforeEachTest,
 } = require('../libs/helpers');
+
+const testdata = config().testdata;
 
 const dropdownTestPolicyName = 'policy-dropdown-test';
 const TEST_NAME_ADD_POLICY_TO_ROLE_SHOULD_PRESERVE_INPUT_ON_BLUR =
@@ -37,7 +40,7 @@ describe('Policies Screen', () => {
         currentTest =
             TEST_NAME_ADD_POLICY_TO_ROLE_SHOULD_PRESERVE_INPUT_ON_BLUR;
         await authenticateAndWait();
-        await navigateAndWait(`/domain/athenz.dev.functional-test/policy`);
+        await navigateAndWait(`/domain/${testdata.functionalTest}/policy`);
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
         // click add policy
@@ -163,10 +166,10 @@ describe('Policies Screen', () => {
 
         // verify new rule was added
         let newRuleResource = await waitForElementExist(
-            `td*=athenz.dev.functional-test:${resource}`
+            `td*=${testdata.functionalTest}:${resource}`
         );
         expect(newRuleResource).toHaveText(
-            `athenz.dev.functional-test:${resource}`
+            `${testdata.functionalTest}:${resource}`
         );
     });
 
@@ -179,7 +182,7 @@ describe('Policies Screen', () => {
                 // delete policy created in previous test
                 await authenticateAndWait();
                 await navigateAndWait(
-                    `/domain/athenz.dev.functional-test/policy`
+                    `/domain/${testdata.functionalTest}/policy`
                 );
                 await expect(browser).toHaveUrl(
                     expect.stringContaining('athenz')
