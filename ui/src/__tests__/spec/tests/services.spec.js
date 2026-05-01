@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+const config = require('../../../config/config');
 const {
     authenticateAndWait,
     navigateAndWait,
@@ -23,6 +24,8 @@ const {
     waitForTabToOpenAndSwitch,
     beforeEachTest,
 } = require('../libs/helpers');
+
+const testdata = config().testdata;
 
 const TEST_NAME_TOOLTIP_LINK_OPENS_NEW_TAB =
     'when clicking help tooltip link, it should open a tab with athenz guide';
@@ -42,7 +45,7 @@ describe('services screen tests', () => {
         await authenticateAndWait();
         await navigateAndWait(`/`);
         // select domain
-        let domain = 'athenz.dev.functional-test';
+        const domain = testdata.functionalTest;
         await waitAndClick(`a*=${domain}`);
 
         // open Services
@@ -80,7 +83,9 @@ describe('services screen tests', () => {
     it('when clicking "Allow" button on a provider without having appropriate authorisation, the error should be displayed to the right of the button', async () => {
         // open browser
         await authenticateAndWait();
-        await navigateAndWait(`/domain/athenz.dev.test-non-admin/role`);
+        await navigateAndWait(
+            `/domain/${testdata.functionalTestNonAdmin}/role`
+        );
 
         // open Services
         await waitAndClick('div*=Services');
@@ -113,7 +118,7 @@ describe('services screen tests', () => {
                 await authenticateAndWait();
                 await navigateAndWait(`/`);
                 // select domain
-                let domain = 'athenz.dev.functional-test';
+                const domain = testdata.functionalTest;
                 await waitAndClick(`a*=${domain}`);
 
                 // open Services

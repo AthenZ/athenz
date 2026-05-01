@@ -26,6 +26,7 @@ const testdata = config().testdata;
 
 const userName = testdata.user1.name;
 const userId = testdata.user1.id;
+const TEST_DOMAIN = testdata.functionalTest;
 
 const TEST_ADD_ON_CALL_TEAM =
     'modal to add on call team - should successfully save an on call team and have a redirect link';
@@ -42,7 +43,7 @@ describe('Domain', () => {
 
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
-        await waitAndClick('a*=athenz.dev.functional-test');
+        await waitAndClick(`a*=${TEST_DOMAIN}`);
 
         // test adding poc
         let pocAnchor = await $('a[data-testid="poc-link"]');
@@ -74,7 +75,7 @@ describe('Domain', () => {
         await navigateAndWait('/');
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
-        await waitAndClick('a*=athenz.dev.functional-test');
+        await waitAndClick(`a*=${TEST_DOMAIN}`);
 
         // expand domain details
         await waitAndClick(
@@ -99,7 +100,7 @@ describe('Domain', () => {
         currentTest = TEST_ADD_ON_CALL_TEAM;
 
         await authenticateAndWait();
-        await navigateAndWait(`/domain/athenz.dev.functional-test/role`);
+        await navigateAndWait(`/domain/${TEST_DOMAIN}/role`);
         await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
         const ONCALL_TEAM_NAME = 'team-1';
@@ -167,9 +168,8 @@ describe('Domain', () => {
         await waitAndClick(clearInput);
 
         // type valid input and select item in dropdown
-        const testDomain = 'athenz.dev.functional-test';
-        await waitAndSetValue(input, testDomain);
-        await waitAndClick(`div*=${testDomain}`);
+        await waitAndSetValue(input, TEST_DOMAIN);
+        await waitAndClick(`div*=${TEST_DOMAIN}`);
 
         // verify input contains pes service
         expect(await input.getValue()).toBe(testDomain);
@@ -186,7 +186,7 @@ describe('Domain', () => {
                 await authenticateAndWait();
                 // open domain history page
                 await navigateAndWait(
-                    `/domain/athenz.dev.functional-test/role`
+                    `/domain/${TEST_DOMAIN}/role`
                 );
 
                 await waitAndClick(

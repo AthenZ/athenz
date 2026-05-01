@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+const config = require('../../../config/config');
 const {
     authenticateAndWait,
     navigateAndWait,
@@ -23,6 +24,8 @@ const {
     beforeEachTest,
     closeAlert,
 } = require('../libs/helpers');
+
+const testdata = config().testdata;
 const SERVICE_NAME = 'test-service-search';
 const SERVICE_NAME1 = `${SERVICE_NAME}1`;
 const SERVICE_NAME2 = `${SERVICE_NAME}2`;
@@ -32,7 +35,7 @@ describe('Search functionality tests', () => {
     before(async () => {
         // open browser on services page
         await authenticateAndWait();
-        await navigateAndWait(`/domain/athenz.dev.functional-test/service`);
+        await navigateAndWait(`/domain/${testdata.functionalTest}/service`);
 
         await createService(SERVICE_NAME1);
         await createService(SERVICE_NAME2);
@@ -90,7 +93,7 @@ describe('Search functionality tests', () => {
         await navigateAndWait(`/`);
 
         // search for domain
-        const domainName = 'athenz.dev.functional-test';
+        const domainName = testdata.functionalTest;
         const searchInputDomain = await waitAndSetValue(
             '[name="search-text"]',
             domainName
@@ -146,7 +149,7 @@ describe('Search functionality tests', () => {
     after(async () => {
         // open browser on services page
         await authenticateAndWait();
-        await navigateAndWait(`/domain/athenz.dev.functional-test/service`);
+        await navigateAndWait(`/domain/${testdata.functionalTest}/service`);
 
         // delete both services used in the test
         await deleteServiceIfExists(SERVICE_NAME1);

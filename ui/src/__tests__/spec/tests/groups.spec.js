@@ -37,8 +37,8 @@ const memberExpiryTest = 'member-expiry-test';
 const advancedSettingsTest = 'advanced-settings-test';
 const auditGroupTest = 'audit-group-test';
 
-const TEST_DOMAIN = 'athenz.dev.functional-test';
-const AUDIT_ENABLED_DOMAIN = 'avtest';
+const TEST_DOMAIN = testdata.functionalTest;
+const AUDIT_ENABLED_DOMAIN = testdata.auditEnabled;
 
 const GROUP_URI = `/domain/${TEST_DOMAIN}/group`;
 const AUDIT_ENABLED_GROUP_URI = `/domain/${AUDIT_ENABLED_DOMAIN}/group`;
@@ -318,7 +318,7 @@ describe('group screen tests:', () => {
         const EXPIRY_DAYS = 3;
         const ONE_HOUR_MINS = 60;
         const MAX_MEMBERS = 2;
-        const DOMAIN_FILTER = 'user';
+        const DOMAIN_FILTER = testdata.principalFilterUser;
 
         await authenticateAndWait();
         await navigateAndWait(GROUP_URI);

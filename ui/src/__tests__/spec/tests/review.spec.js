@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
+const config = require('../../../config/config');
 const {
     authenticateAndWait,
     navigateAndWait,
     waitAndSetValue,
     waitAndClick,
+    waitForElementExist,
     beforeEachTest,
 } = require('../libs/helpers');
+
+const testdata = config().testdata;
 
 // TODO leaving the review tests skipped for now as we don't have a consistent way to have a member to review
 describe.skip('Review user journey', () => {
@@ -32,7 +36,7 @@ describe.skip('Review user journey', () => {
         await authenticateAndWait();
         await navigateAndWait(`/`);
 
-        let domain = 'athenz.dev.functional-test';
+        const domain = testdata.functionalTest;
         let testDomain = await $(`a*=${domain}`);
         let testRoleName = 'testrole2';
         await waitAndClick(testDomain);
@@ -80,7 +84,7 @@ describe.skip('Review user journey', () => {
     });
 
     it('should successfully add, review, and delete group', async () => {
-        let domain = 'athenz.dev.functional-test';
+        const domain = testdata.functionalTest;
         let testGroupName = 'testgroup';
         await authenticateAndWait();
         await navigateAndWait(`/domain/${domain}/group`);
