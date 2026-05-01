@@ -30,10 +30,7 @@ const SERVICE_NAME_TWO_HOSTS = 'two-hosts-test-service';
 const TEST_SERVICE = 'test-service';
 const TEST_POLICY = 'test-policy';
 
-const POLICY_INSTANCE_ONE = 'test.test.tst1.com';
-
-const TEST_DOMAIN = 'athenz.dev.functional-test';
-const TEST_DOMAIN_SERVICE_URI = `/domain/${TEST_DOMAIN}/service`;
+const config = require('../../../config/config');
 const {
     authenticateAndWait,
     navigateAndWait,
@@ -42,6 +39,12 @@ const {
     waitForElementExist,
     beforeEachTest,
 } = require('../libs/helpers');
+
+const testdata = config().testdata;
+
+const POLICY_INSTANCE_ONE = testdata.microsegPolicyInstanceHost;
+const TEST_DOMAIN = testdata.functionalTest;
+const TEST_DOMAIN_SERVICE_URI = `/domain/${TEST_DOMAIN}/service`;
 
 describe('Microsegmentation', () => {
     let currentTest;
@@ -55,7 +58,7 @@ describe('Microsegmentation', () => {
             currentTest =
                 TEST_ENFORCE_AND_REPORT_WITH_TWO_HOSTS_STAR_OR_EMPTY_CANNOT_BE_USED_AS_HOST;
             await authenticateAndWait();
-            await navigateAndWait(`/domain/athenz.dev.functional-test/role`);
+            await navigateAndWait(`/domain/${TEST_DOMAIN}/role`);
             await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
 
             // add service before test
@@ -99,7 +102,7 @@ describe('Microsegmentation', () => {
             );
             await waitAndSetValue(
                 'input[data-wdio="source-service"]',
-                'yamas.api'
+                testdata.microsegSourceService
             );
             await waitAndClick('input[name="protocol"]');
             await waitAndClick('//div[contains(text(), "TCP")]');
@@ -156,7 +159,10 @@ describe('Microsegmentation', () => {
 
         await waitAndSetValue('input[data-wdio="destination-port"]', '4443');
 
-        await waitAndSetValue('input[data-wdio="source-service"]', 'yamas.api');
+        await waitAndSetValue(
+            'input[data-wdio="source-service"]',
+            testdata.microsegSourceService
+        );
 
         await waitAndClick('input[name="protocol"]');
         await waitAndClick('//div[contains(text(), "TCP")]');
@@ -214,10 +220,10 @@ describe('Microsegmentation', () => {
                 TEST_ADD_POLICY_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES;
 
             const SERVICE_NAME = 'multi-source-service';
-            const HOST_ENFORCE = 'enforce.host.com';
-            const HOST_REPORT = 'report.host.com';
-            const SOURCE_SERVICE_1 = 'sys.auth.zms';
-            const SOURCE_SERVICE_2 = 'sys.auth.zts';
+            const HOST_ENFORCE = testdata.microsegHostEnforce;
+            const HOST_REPORT = testdata.microsegHostReport;
+            const SOURCE_SERVICE_1 = testdata.microsegSourceService1;
+            const SOURCE_SERVICE_2 = testdata.microsegSourceService2;
 
             // Add service
             await authenticateAndWait();

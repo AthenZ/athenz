@@ -38,7 +38,7 @@ const multipleMemberRole = 'multiple-member-role';
 const historyTestRole = 'history-test-role';
 const multiSelectRole = 'multi-select-role';
 
-const TEST_DOMAIN = 'athenz.dev.functional-test';
+const TEST_DOMAIN = testdata.functionalTest;
 const TEST_DOMAIN_SETTINGS_URI = `/domain/${TEST_DOMAIN}/domain-settings`;
 const TEST_DOMAIN_ROLE_URI = `/domain/${TEST_DOMAIN}/role`;
 
@@ -197,7 +197,7 @@ describe('role screen tests', () => {
 
         // add role info
         await waitAndSetValue('#role-name-input', delegatedRole);
-        await waitAndSetValue('#delegated-to-input', 'athenz.dev');
+        await waitAndSetValue('#delegated-to-input', testdata.delegatedParent);
         // submit role
         await waitAndClick('button*=Submit');
 
@@ -543,7 +543,7 @@ describe('role screen tests', () => {
         let advancedSettingsIcon = await $('#advanced-settings-icon');
         await waitAndClick(advancedSettingsIcon);
         let principalDomainFilter = await $('#setting-principalDomainFilter');
-        await waitAndSetValue(principalDomainFilter, 'athenz');
+        await waitAndSetValue(principalDomainFilter, testdata.principalFilter);
         // attempt to submit a member that doesn't belong to specified domain
         // add user
         await waitAndSetValue('input[name="member-name"]', humanUser);
@@ -561,7 +561,10 @@ describe('role screen tests', () => {
         );
         // change to specified domain
         await principalDomainFilter.clearValue();
-        await waitAndSetValue(principalDomainFilter, 'user');
+        await waitAndSetValue(
+            principalDomainFilter,
+            testdata.principalFilterUser
+        );
         // submit - success
         await waitAndClick(submitButton);
         // view role members
