@@ -5756,4 +5756,224 @@ public class DataStoreTest {
         // Verify client ID is updated
         assertEquals(store.getServiceClientId("coretech", "coretech.storage"), "client-id-2");
     }
+
+    @Test
+    public void testGetRoleAuditLogFlagThrowsException() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        try {
+            store.getRole("coretech", "admin", Boolean.TRUE, null, null);
+            fail();
+        } catch (UnsupportedOperationException ignored) {
+        }
+    }
+
+    @Test
+    public void testGetRoleExpandFlagThrowsException() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        try {
+            store.getRole("coretech", "admin", null, Boolean.TRUE, null);
+            fail();
+        } catch (UnsupportedOperationException ignored) {
+        }
+    }
+
+    @Test
+    public void testGetRolePendingFlagThrowsException() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        try {
+            store.getRole("coretech", "admin", null, null, Boolean.TRUE);
+            fail();
+        } catch (UnsupportedOperationException ignored) {
+        }
+    }
+
+    @Test
+    public void testGetRoleAllUnsupportedFlagsThrowException() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        try {
+            store.getRole("coretech", "admin", Boolean.TRUE, Boolean.TRUE, Boolean.TRUE);
+            fail();
+        } catch (UnsupportedOperationException ignored) {
+        }
+    }
+
+    @Test
+    public void testGetRoleDomainNotFound() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        assertNull(store.getRole("unknownDomain", "admin", null, null, null));
+    }
+
+    @Test
+    public void testGetRoleNullRoles() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        DataCache dataCache = new DataCache();
+        DomainData domainData = new DomainData();
+        domainData.setRoles(null);
+        dataCache.setDomainData(domainData);
+        store.addDomainToCache("coretech", dataCache);
+
+        assertNull(store.getRole("coretech", "admin", null, null, null));
+    }
+
+    @Test
+    public void testGetRoleEmptyRoles() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        DataCache dataCache = new DataCache();
+        DomainData domainData = new DomainData();
+        domainData.setRoles(new ArrayList<>());
+        dataCache.setDomainData(domainData);
+        store.addDomainToCache("coretech", dataCache);
+
+        assertNull(store.getRole("coretech", "admin", null, null, null));
+    }
+
+    @Test
+    public void testGetRoleFound() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        DataCache dataCache = new DataCache();
+
+        Role role = new Role();
+        role.setName("coretech:role.admin");
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(role);
+
+        DomainData domainData = new DomainData();
+        domainData.setRoles(roles);
+        dataCache.setDomainData(domainData);
+        store.addDomainToCache("coretech", dataCache);
+
+        Role fetchedRole = store.getRole("coretech", "admin", null, null, null);
+        assertNotNull(fetchedRole);
+        assertEquals(fetchedRole.getName(), "coretech:role.admin");
+        assertEquals(fetchedRole.getRoleMembers().size(), 1);
+        assertEquals(fetchedRole.getRoleMembers().get(0).getMemberName(), "user_domain.user");
+    }
+
+    @Test
+    public void testGetRoleNotFound() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        DataCache dataCache = new DataCache();
+
+        Role role = new Role();
+        role.setName("coretech:role.admin");
+        List<RoleMember> members = new ArrayList<>();
+        members.add(new RoleMember().setMemberName("user_domain.user"));
+        role.setRoleMembers(members);
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(role);
+
+        DomainData domainData = new DomainData();
+        domainData.setRoles(roles);
+        dataCache.setDomainData(domainData);
+        store.addDomainToCache("coretech", dataCache);
+
+        assertNull(store.getRole("coretech", "writers", null, null, null));
+    }
+
+    @Test
+    public void testGetRoleMultipleRoles() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        DataCache dataCache = new DataCache();
+
+        Role adminRole = new Role();
+        adminRole.setName("coretech:role.admin");
+        List<RoleMember> adminMembers = new ArrayList<>();
+        adminMembers.add(new RoleMember().setMemberName("user_domain.admin"));
+        adminRole.setRoleMembers(adminMembers);
+
+        Role writersRole = new Role();
+        writersRole.setName("coretech:role.writers");
+        List<RoleMember> writersMembers = new ArrayList<>();
+        writersMembers.add(new RoleMember().setMemberName("user_domain.writer1"));
+        writersMembers.add(new RoleMember().setMemberName("user_domain.writer2"));
+        writersRole.setRoleMembers(writersMembers);
+
+        Role readersRole = new Role();
+        readersRole.setName("coretech:role.readers");
+        List<RoleMember> readersMembers = new ArrayList<>();
+        readersMembers.add(new RoleMember().setMemberName("user_domain.reader"));
+        readersRole.setRoleMembers(readersMembers);
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(adminRole);
+        roles.add(writersRole);
+        roles.add(readersRole);
+
+        DomainData domainData = new DomainData();
+        domainData.setRoles(roles);
+        dataCache.setDomainData(domainData);
+        store.addDomainToCache("coretech", dataCache);
+
+        Role fetchedRole = store.getRole("coretech", "writers", null, null, null);
+        assertNotNull(fetchedRole);
+        assertEquals(fetchedRole.getName(), "coretech:role.writers");
+        assertEquals(fetchedRole.getRoleMembers().size(), 2);
+
+        fetchedRole = store.getRole("coretech", "readers", null, null, null);
+        assertNotNull(fetchedRole);
+        assertEquals(fetchedRole.getName(), "coretech:role.readers");
+        assertEquals(fetchedRole.getRoleMembers().size(), 1);
+
+        assertNull(store.getRole("coretech", "unknown", null, null, null));
+    }
+
+    @Test
+    public void testGetRoleWithFalseBooleanFlags() {
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+
+        DataCache dataCache = new DataCache();
+
+        Role role = new Role();
+        role.setName("coretech:role.admin");
+        role.setRoleMembers(new ArrayList<>());
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(role);
+
+        DomainData domainData = new DomainData();
+        domainData.setRoles(roles);
+        dataCache.setDomainData(domainData);
+        store.addDomainToCache("coretech", dataCache);
+
+        Role fetchedRole = store.getRole("coretech", "admin", Boolean.FALSE, Boolean.FALSE, Boolean.FALSE);
+        assertNotNull(fetchedRole);
+        assertEquals(fetchedRole.getName(), "coretech:role.admin");
+    }
 }

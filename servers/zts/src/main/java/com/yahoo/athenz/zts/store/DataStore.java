@@ -2080,6 +2080,35 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
     }
 
     @Override
+    public Role getRole(String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending) {
+
+        // we do not support audit log, expand, and pending flags in the data store
+        // so we'll return unsupported exception if any of those flags are set
+
+        if (auditLog == Boolean.TRUE || expand == Boolean.TRUE || pending == Boolean.TRUE) {
+            throw new UnsupportedOperationException("audit log, expand, and pending flags are not supported in the zts data store");
+        }
+
+        // get the domain data from the cache
+
+        DomainData domainData = getDomainData(domainName);
+        if (domainData == null) {
+            return null;
+        }
+
+        List<Role> roles = domainData.getRoles();
+        if (roles == null || roles.isEmpty()) {
+            return null;
+        }
+
+        final String roleFqn = ResourceUtils.roleResourceName(domainName, roleName);
+        return roles.stream()
+            .filter(role -> role.getName().equals(roleFqn))
+            .findFirst()
+            .orElse(null);
+    }
+
+    @Override
     public List<PublicKeyEntry> getPubKeysByService(String domain, String service) {
         DomainData domainData = getDomainData(domain);
         if (domainData == null) {
