@@ -44,3 +44,11 @@ aws_s3_ca_cert=<path to CA certificate file>
 \# ResponseChecksumValidation.WHEN_REQUIRED for S3 client operations
 \# If not specified, uses SDK default behavior (WHEN_SUPPORTED)
 aws_s3_use_checksum_validation_when_required=<true|false>
+
+\# Number of threads to use for change-based domain updates.
+\# Default = 1
+domain_update_fetch_threads=<number of threads>
+
+\# Number of threads to use for timeout-based domain refreshes.
+\# Default = 1
+domain_refresh_fetch_threads=<number of threads>
