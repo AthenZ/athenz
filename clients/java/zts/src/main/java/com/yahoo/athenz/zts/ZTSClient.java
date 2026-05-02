@@ -115,7 +115,12 @@ public class ZTSClient implements Closeable {
     static private String confZtsUrl = null;
     static private JwtsSigningKeyResolver jwtsSigningKeyResolver = null;
     static private DnsResolver dnsResolver = null;
-    
+
+    static final SingleFlightCache<RoleToken> ROLE_TOKEN_FLIGHT = new SingleFlightCache<>(30000);
+    static final SingleFlightCache<AccessTokenResponse> ACCESS_TOKEN_FLIGHT = new SingleFlightCache<>(30000);
+    static final SingleFlightCache<AWSTemporaryCredentials> AWS_CREDS_FLIGHT = new SingleFlightCache<>(30000);
+    static final SingleFlightCache<OIDCResponse> ID_TOKEN_FLIGHT = new SingleFlightCache<>(30000);
+
     private boolean enablePrefetch = true;
     private boolean ztsClientOverride = false;
 
@@ -136,6 +141,7 @@ public class ZTSClient implements Closeable {
     public static final String ZTS_CLIENT_PROP_X509CSR_DN                = "athenz.zts.client.x509csr_dn";
     public static final String ZTS_CLIENT_PROP_X509CSR_DOMAIN            = "athenz.zts.client.x509csr_domain";
     public static final String ZTS_CLIENT_PROP_DISABLE_CACHE             = "athenz.zts.client.disable_cache";
+    public static final String ZTS_CLIENT_PROP_SINGLE_FLIGHT_TIMEOUT     = "athenz.zts.client.single_flight_timeout";
 
     public static final String ZTS_CLIENT_PROP_CERT_ALIAS                       = "athenz.zts.client.cert_alias";
     
@@ -222,6 +228,10 @@ public class ZTSClient implements Closeable {
         
         setCacheDisable(Boolean.parseBoolean(System.getProperty(ZTS_CLIENT_PROP_DISABLE_CACHE, "false")));
 
+        // set the timeout for single flight token fetch
+
+        setSingleFlightTimeout(Long.parseLong(System.getProperty(ZTS_CLIENT_PROP_SINGLE_FLIGHT_TIMEOUT, "30000")));
+
         // set x509 csr details
         
         setX509CsrDetails(System.getProperty(ZTS_CLIENT_PROP_X509CSR_DN),
@@ -280,6 +290,17 @@ public class ZTSClient implements Closeable {
         cacheDisabled = cacheState;
     }
     
+    /**
+     * Set the timeout for single flight token fetch in milliseconds.
+     * @param timeoutMs timeout in milliseconds
+     */
+    public static void setSingleFlightTimeout(long timeoutMs) {
+        ROLE_TOKEN_FLIGHT.setTimeoutMs(timeoutMs);
+        ACCESS_TOKEN_FLIGHT.setTimeoutMs(timeoutMs);
+        AWS_CREDS_FLIGHT.setTimeoutMs(timeoutMs);
+        ID_TOKEN_FLIGHT.setTimeoutMs(timeoutMs);
+    }
+
     /**
      * Enable prefetch of role tokens
      * @param fetchState state of prefetch
@@ -1176,8 +1197,14 @@ public class ZTSClient implements Closeable {
         
         updateServicePrincipal();
         try {
-            roleToken = ztsClient.getRoleToken(domainName, roleNames,
-                    minExpiryTime, maxExpiryTime, proxyForPrincipal);
+            if (cacheKey != null) {
+                roleToken = ROLE_TOKEN_FLIGHT.execute(cacheKey,
+                        () -> ztsClient.getRoleToken(domainName, roleNames,
+                                minExpiryTime, maxExpiryTime, proxyForPrincipal));
+            } else {
+                roleToken = ztsClient.getRoleToken(domainName, roleNames,
+                        minExpiryTime, maxExpiryTime, proxyForPrincipal);
+            }
         } catch (ClientResourceException ex) {
 
             // if we have an entry in our cache then we'll return that
@@ -1399,7 +1426,12 @@ public class ZTSClient implements Closeable {
                 final String requestBody = generateAccessTokenRequestBody(domainName, roleNames,
                         idTokenServiceName, proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris,
                         clientAssertionType, clientAssertion, expiryTime, openIdIssuer);
-                accessTokenResponse = ztsClient.postAccessTokenRequest(requestBody);
+                if (cacheKey != null) {
+                    accessTokenResponse = ACCESS_TOKEN_FLIGHT.execute(cacheKey,
+                            () -> ztsClient.postAccessTokenRequest(requestBody));
+                } else {
+                    accessTokenResponse = ztsClient.postAccessTokenRequest(requestBody);
+                }
             } catch (ClientResourceException ex) {
                 if (cacheKey != null && !ignoreCache) {
                     accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1);
@@ -3248,8 +3280,14 @@ public class ZTSClient implements Closeable {
         updateServicePrincipal();
 
         try {
-            awsCred = ztsClient.getAWSTemporaryCredentials(domainName, encodeAWSRoleName(roleName),
-                    maxExpiryTime, externalId);
+            if (cacheKey != null) {
+                awsCred = AWS_CREDS_FLIGHT.execute(cacheKey,
+                        () -> ztsClient.getAWSTemporaryCredentials(domainName, encodeAWSRoleName(roleName),
+                                maxExpiryTime, externalId));
+            } else {
+                awsCred = ztsClient.getAWSTemporaryCredentials(domainName, encodeAWSRoleName(roleName),
+                        maxExpiryTime, externalId);
+            }
         } catch (ClientResourceException ex) {
 
             // if we have an entry in our cache then we'll return that
@@ -3735,10 +3773,19 @@ public class ZTSClient implements Closeable {
 
         updateServicePrincipal();
         try {
-            Map<String, List<String>> responseHeaders = new HashMap<>();
-            oidcResponse = ztsClient.getOIDCResponse(responseType, clientId, redirectUri, scope,
-                    state, Crypto.randomSalt(), keyType, fullArn, expiryTime, "json", false,
-                    allRolesPresent, responseHeaders);
+            if (cacheKey != null) {
+                oidcResponse = ID_TOKEN_FLIGHT.execute(cacheKey, () -> {
+                    Map<String, List<String>> responseHeaders = new HashMap<>();
+                    return ztsClient.getOIDCResponse(responseType, clientId, redirectUri, scope,
+                            state, Crypto.randomSalt(), keyType, fullArn, expiryTime, "json", false,
+                            allRolesPresent, responseHeaders);
+                });
+            } else {
+                Map<String, List<String>> responseHeaders = new HashMap<>();
+                oidcResponse = ztsClient.getOIDCResponse(responseType, clientId, redirectUri, scope,
+                        state, Crypto.randomSalt(), keyType, fullArn, expiryTime, "json", false,
+                        allRolesPresent, responseHeaders);
+            }
 
         } catch (ClientResourceException ex) {
 
@@ -3829,10 +3876,21 @@ public class ZTSClient implements Closeable {
 
         updateServicePrincipal();
         try {
-            Map<String, List<String>> responseHeaders = new HashMap<>();
-            oidcResponse = ztsClient.getOIDCResponse(builder.responseType, builder.clientId, builder.redirectUri,
-                    builder.scope, builder.state, builder.salt, builder.keyType, builder.fullArn, builder.expiryTime,
-                    builder.outputType, builder.roleInAudtClaim, builder.allRolesPresent, responseHeaders);
+            if (cacheKey != null) {
+                oidcResponse = ID_TOKEN_FLIGHT.execute(cacheKey, () -> {
+                    Map<String, List<String>> responseHeaders = new HashMap<>();
+                    return ztsClient.getOIDCResponse(builder.responseType, builder.clientId, builder.redirectUri,
+                            builder.scope, builder.state, builder.salt, builder.keyType, builder.fullArn,
+                            builder.expiryTime, builder.outputType, builder.roleInAudtClaim,
+                            builder.allRolesPresent, responseHeaders);
+                });
+            } else {
+                Map<String, List<String>> responseHeaders = new HashMap<>();
+                oidcResponse = ztsClient.getOIDCResponse(builder.responseType, builder.clientId, builder.redirectUri,
+                        builder.scope, builder.state, builder.salt, builder.keyType, builder.fullArn,
+                        builder.expiryTime, builder.outputType, builder.roleInAudtClaim,
+                        builder.allRolesPresent, responseHeaders);
+            }
 
         } catch (ClientResourceException ex) {
 
