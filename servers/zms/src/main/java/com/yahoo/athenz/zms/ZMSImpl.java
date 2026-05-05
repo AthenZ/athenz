@@ -7234,7 +7234,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                         .setSshCertSignerKeyId(service.getSshCertSignerKeyId())
                         .setClientId(service.getClientId())
                         .setTags(service.getTags())
-                        .setResourceOwnership(service.getResourceOwnership());
+                        .setResourceOwnership(service.getResourceOwnership())
+                        .setFeatureFlags(service.getFeatureFlags());
                 if (publicKeys == Boolean.TRUE) {
                     newService.setPublicKeys(service.getPublicKeys());
                 }
@@ -8002,9 +8003,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         // check to see if the principal is authorized to get service creds
-        // if that feature is enabled
+        // if that feature is enabled. by default, we're going to allow it
+        // since if we have a service creds encryption key then we're going
+        // update that value and set it accordingly. But for installations
+        // that don't have a service creds encryption key, we're going to
+        // set it to true since we don't have any service creds to worry about.
 
-        boolean allowedServiceCreds = false;
+        boolean allowedServiceCreds = true;
         if (serviceCredsEncryptionKey != null) {
             Principal principal = ((RsrcCtxWrapper) ctx).principal();
             allowedServiceCreds = isAllowedSystemAccess(principal, "access", SYS_AUTH + ":attribute.creds");

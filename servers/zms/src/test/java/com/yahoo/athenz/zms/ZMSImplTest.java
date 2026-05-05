@@ -23112,6 +23112,111 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testGetJWSDomainServiceFeatureFlags() throws JsonProcessingException, ParseException, JOSEException {
+
+        final String domainName = "jws-domain-svc-feature-flags";
+        final String serviceName = "service1";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        assertNull(zmsImpl.serviceCredsEncryptionKey);
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName,
+                serviceName, "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
+
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta().setFeatureFlags(7);
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "featureflags", auditRef, meta);
+
+        Response response = zmsImpl.getJWSDomain(ctx, domainName, null, null);
+        JWSDomain jwsDomain = (JWSDomain) response.getEntity();
+        DomainData domainData = zmsTestInitializer.getDomainData(jwsDomain);
+
+        assertNotNull(domainData);
+        assertEquals(domainData.getName(), domainName);
+
+        List<ServiceIdentity> services = domainData.getServices();
+        assertNotNull(services);
+
+        boolean serviceFound = false;
+        for (ServiceIdentity svc : services) {
+            if (svc.getName().equals(domainName + "." + serviceName)) {
+                assertEquals(svc.getFeatureFlags(), Integer.valueOf(7));
+                serviceFound = true;
+                break;
+            }
+        }
+        assertTrue(serviceFound);
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testGetJWSDomainServiceFeatureFlagsCredsExcluded() throws JsonProcessingException, ParseException, JOSEException {
+
+        final String domainName = "jws-domain-svc-ff-creds-excl";
+        final String serviceName = "service1";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName,
+                serviceName, "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
+
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta().setFeatureFlags(7);
+        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "featureflags", auditRef, meta);
+
+        // set a non-null encryption key so the creds authorization check is triggered.
+        // the test principal does not have access to sys.auth:attribute.creds so
+        // allowedServiceCreds will be false, causing the service copy path
+        // (excludeServiceCreds=true) to be used
+
+        zmsImpl.serviceCredsEncryptionKey = Crypto.generateAESSecretKey(
+                "test-encryption-key-at-least-32chars".toCharArray(), 32);
+
+        try {
+            Response response = zmsImpl.getJWSDomain(ctx, domainName, null, null);
+            JWSDomain jwsDomain = (JWSDomain) response.getEntity();
+            DomainData domainData = zmsTestInitializer.getDomainData(jwsDomain);
+
+            assertNotNull(domainData);
+            assertEquals(domainData.getName(), domainName);
+
+            List<ServiceIdentity> services = domainData.getServices();
+            assertNotNull(services);
+
+            boolean serviceFound = false;
+            for (ServiceIdentity svc : services) {
+                if (svc.getName().equals(domainName + "." + serviceName)) {
+                    assertEquals(svc.getFeatureFlags(), Integer.valueOf(7));
+                    assertNull(svc.getCreds());
+                    serviceFound = true;
+                    break;
+                }
+            }
+            assertTrue(serviceFound);
+        } finally {
+            zmsImpl.serviceCredsEncryptionKey = null;
+        }
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testValidateIntegerValue() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
