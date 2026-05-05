@@ -1,3 +1,18 @@
+Athenz v1.12.40 Release / May 04, 2026
+
+#3322 Adding property description for athenz.zts.k8s_provider_gcp_attr_validator_factory_class
+#3327 disallow * member in roles if filters are configured
+#3328 extend user-cert support to allow timeout configuration based on role membership
+#3330 add single flight to ZTSClient token fetches
+#3331 support role based configurable timeout for user id tokens
+#3332 extend zts provider to read allowed members from a role
+#3333 update zts token documentation to document id token exchange requirements
+#3334 correct callback port to be int instead of string
+#3335 use of config.ClientTLSConfig for consistent tls config
+#3336 add comments to clarify the use of cert issuer validator
+#3339 implement getRole method for roles provider in zts
+#3341 update java/go/js dependencies to their latest releases
+
 Athenz v1.12.39 Release / Apr 21, 2026
 --------------------------------------
 
