@@ -17,6 +17,7 @@
 package tokens
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -83,6 +84,12 @@ func ToBeRefreshedBasedOnTime(opts *config.TokenOptions, currentTime time.Time) 
 			// if the token is being stored without expiration property (i.e - not AccessTokenResponse
 			// but AccessTokenResponse::Access_token only), we should refresh immediately
 			if opts.StoreOptions != config.ZtsResponse {
+				refresh = append(refresh, t)
+				continue
+			}
+
+			// Empty or whitespace-only files (e.g. failed writes) are unusable; fetch a new token.
+			if len(bytes.TrimSpace(content)) == 0 {
 				refresh = append(refresh, t)
 				continue
 			}
