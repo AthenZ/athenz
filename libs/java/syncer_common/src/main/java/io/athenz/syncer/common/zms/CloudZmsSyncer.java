@@ -355,7 +355,7 @@ public class CloudZmsSyncer {
             try {
                 List<DomainUploadTask> updateTasks = submitUploadTasks(updateExecutor, updateDomains, false);
                 List<DomainUploadTask> refreshTasks = submitUploadTasks(refreshExecutor, refreshDomains, true);
-                retStatus = collectProcessedDomains(updateTasks) && retStatus;
+                retStatus = collectProcessedDomains(updateTasks);
                 retStatus = collectProcessedDomains(refreshTasks) && retStatus;
             } finally {
                 if (Thread.currentThread().isInterrupted()) {
