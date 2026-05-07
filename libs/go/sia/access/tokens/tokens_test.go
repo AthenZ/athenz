@@ -159,29 +159,41 @@ func TestToBeRefreshed(t *testing.T) {
 	assert.Equalf(t, toRefresh[1].FileName, "reader-aged", fmt.Sprintf("second item: %+v should be %q", toRefresh[0], "reader-aged"))
 }
 
-func TestToBeRefreshedEmptyTokenFile(t *testing.T) {
-	tokenDir := t.TempDir()
+func TestToBeRefreshedEmptyOrWhitespaceOnlyTokenFile(t *testing.T) {
 	domain := "athenz.examples"
 	service := "httpd"
 
-	tokens := []config.AccessToken{
-		{FileName: "empty-token", Domain: domain, Service: service},
+	cases := []struct {
+		name    string
+		content []byte
+	}{
+		{"zero_byte_file", nil},
+		{"spaces_tabs_newlines", []byte("  \t \n  \r\n")},
+		{"newlines_only", []byte("\n\n")},
 	}
-	domainDir := filepath.Join(tokenDir, domain)
-	require.NoError(t, os.Mkdir(domainDir, 0755))
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tokenDir := t.TempDir()
+			tokens := []config.AccessToken{
+				{FileName: "token-file", Domain: domain, Service: service},
+			}
+			domainDir := filepath.Join(tokenDir, domain)
+			require.NoError(t, os.Mkdir(domainDir, 0755))
 
-	tpath := filepath.Join(domainDir, "empty-token")
-	require.NoError(t, os.WriteFile(tpath, nil, 0400))
+			tpath := filepath.Join(domainDir, "token-file")
+			require.NoError(t, os.WriteFile(tpath, tc.content, 0400))
 
-	opts := config.TokenOptions{
-		TokenDir:     tokenDir,
-		Tokens:       tokens,
-		StoreOptions: config.ZtsResponse,
+			opts := config.TokenOptions{
+				TokenDir:     tokenDir,
+				Tokens:       tokens,
+				StoreOptions: config.ZtsResponse,
+			}
+			toRefresh, errs := ToBeRefreshedBasedOnTime(&opts, time.Now())
+			assert.Empty(t, errs)
+			require.Len(t, toRefresh, 1)
+			assert.Equal(t, "token-file", toRefresh[0].FileName)
+		})
 	}
-	toRefresh, errs := ToBeRefreshedBasedOnTime(&opts, time.Now())
-	assert.Empty(t, errs)
-	require.Len(t, toRefresh, 1)
-	assert.Equal(t, "empty-token", toRefresh[0].FileName)
 }
 
 func TestToBeRefreshedWithStoreOption(t *testing.T) {
