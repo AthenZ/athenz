@@ -266,7 +266,7 @@ public class CloudZmsSyncerTest {
         StateFileBuilder stateFileBuilder = Mockito.mock(StateFileBuilder.class);
 
         CloudZmsSyncer zmsSyncer = new CloudZmsSyncer(cloudDomainStore, zmsReader, stateFileBuilder);
-        DomainState stateObj = zmsSyncer.uploadDomain("clouds");
+        DomainState stateObj = zmsSyncer.uploadDomain("clouds", false);
         assertNotNull(stateObj);
         assertNotEquals(stateObj.getModified(), "0");
         assertEquals(zmsSyncer.getNumDomainsUploaded(), 1);
@@ -292,7 +292,7 @@ public class CloudZmsSyncerTest {
         StateFileBuilder stateFileBuilder = Mockito.mock(StateFileBuilder.class);
 
         CloudZmsSyncer zmsSyncer = new CloudZmsSyncer(cloudDomainStore, zmsReader, stateFileBuilder);
-        DomainState stateObj = zmsSyncer.uploadDomain("no_such_domain");
+        DomainState stateObj = zmsSyncer.uploadDomain("no_such_domain", false);
         assertNotNull(stateObj);
         assertEquals(stateObj.getModified(), "0");
         assertEquals(zmsSyncer.getNumDomainsUploaded(), 0);
@@ -375,7 +375,7 @@ public class CloudZmsSyncerTest {
         StateFileBuilder stateFileBuilder = Mockito.mock(StateFileBuilder.class);
 
         CloudZmsSyncer zmsSyncer = new CloudZmsSyncer(cloudDomainStore, zmsReader, stateFileBuilder);
-        DomainState stateObj = zmsSyncer.uploadDomain("clouds");
+        DomainState stateObj = zmsSyncer.uploadDomain("clouds", false);
         assertNotNull(stateObj);
         assertEquals(stateObj.getModified(), "0");
         assertEquals(zmsSyncer.getNumDomainsUploaded(), 0);
@@ -839,7 +839,7 @@ public class CloudZmsSyncerTest {
 
         CloudZmsSyncer zmsSyncer = new CloudZmsSyncer(cloudDomainStore, zmsReader, stateFileBuilder) {
             @Override
-            DomainState uploadDomain(final String domainName) {
+            DomainState uploadDomain(final String domainName, boolean isRefresh) {
                 throw new RuntimeException("injected upload failure");
             }
         };

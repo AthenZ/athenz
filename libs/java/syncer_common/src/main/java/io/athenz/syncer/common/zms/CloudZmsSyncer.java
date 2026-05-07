@@ -201,7 +201,7 @@ public class CloudZmsSyncer {
         return numDomainsDeletedFailed.get();
     }
 
-    DomainState uploadDomain(final String domainName) {
+    DomainState uploadDomain(final String domainName, boolean isRefresh) {
 
         // create a new stateObj to return, update the modified field
         // set the "modified" field to "0" if failed, else set it to value from ZMS
@@ -226,7 +226,11 @@ public class CloudZmsSyncer {
 
         try {
             cloudStore.uploadDomain(domainName, JSON.string(jwsDomain));
-            numDomainsUploaded.incrementAndGet();
+            if (isRefresh) {
+                numDomainsRefreshed.incrementAndGet();
+            } else {
+                numDomainsUploaded.incrementAndGet();
+            }
         } catch (Exception exc) {
             LOG.error("cloud sync error domain: {}", domainName, exc);
             modified = LAST_MOD_NO_DATE;
@@ -333,7 +337,6 @@ public class CloudZmsSyncer {
                     updateDomains.add(domainName);
                 } else if (timeToRefresh && refreshDomains.size() < allowedRefreshCount) {
                     refreshDomains.add(domainName);
-                    numDomainsRefreshed.incrementAndGet();
                 } else {
                     // add the old domain state
                     numDomainsNotUploaded.incrementAndGet();
@@ -350,8 +353,8 @@ public class CloudZmsSyncer {
             ExecutorService refreshExecutor = Executors.newFixedThreadPool(domainRefreshFetchThreads,
                     newNamedThreadFactory("domain-refresh"));
             try {
-                List<DomainUploadTask> updateTasks = submitUploadTasks(updateExecutor, updateDomains);
-                List<DomainUploadTask> refreshTasks = submitUploadTasks(refreshExecutor, refreshDomains);
+                List<DomainUploadTask> updateTasks = submitUploadTasks(updateExecutor, updateDomains, false);
+                List<DomainUploadTask> refreshTasks = submitUploadTasks(refreshExecutor, refreshDomains, true);
                 retStatus = collectProcessedDomains(updateTasks) && retStatus;
                 retStatus = collectProcessedDomains(refreshTasks) && retStatus;
             } finally {
@@ -420,10 +423,10 @@ public class CloudZmsSyncer {
         };
     }
 
-    List<DomainUploadTask> submitUploadTasks(ExecutorService executor, List<String> domainNames) {
+    List<DomainUploadTask> submitUploadTasks(ExecutorService executor, List<String> domainNames, boolean isRefresh) {
         List<DomainUploadTask> tasks = new ArrayList<>(domainNames.size());
         for (String domainName : domainNames) {
-            tasks.add(new DomainUploadTask(domainName, executor.submit(() -> uploadDomain(domainName))));
+            tasks.add(new DomainUploadTask(domainName, executor.submit(() -> uploadDomain(domainName, isRefresh))));
         }
         return tasks;
     }
