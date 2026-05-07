@@ -97,16 +97,19 @@ func ToBeRefreshedBasedOnTime(opts *config.TokenOptions, currentTime time.Time) 
 			atr := zts.AccessTokenResponse{}
 			err = json.Unmarshal(content, &atr)
 			if err != nil {
+				refresh = append(refresh, t)
 				errs = append(errs, fmt.Errorf("token: %s not unmarshallable, err: %v", tpath, err))
 				continue
 			}
 			if atr.Expires_in == nil {
+				refresh = append(refresh, t)
 				errs = append(errs, fmt.Errorf("invalid token: %s, expires_in key is not found", tpath))
 				continue
 			}
 			//  Extract expiration claim from token and compare with AccessTokenResponse
 			claims, err := GetClaimsFromAccessTokenUnverified(atr)
 			if err != nil {
+				refresh = append(refresh, t)
 				errs = append(errs, fmt.Errorf("token: %s exists, but failed to extract claims, err: %v", tpath, err))
 				continue
 			}
