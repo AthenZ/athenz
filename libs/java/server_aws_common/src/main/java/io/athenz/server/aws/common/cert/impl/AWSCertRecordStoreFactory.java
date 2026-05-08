@@ -29,8 +29,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
+import com.yahoo.athenz.common.server.cert.impl.JDBCCertRecordStoreFactory;
 import com.yahoo.athenz.common.server.db.DataSourceFactory;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
+import com.yahoo.athenz.common.server.db.SchemaMigrationRunner;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.RdsClient;
@@ -78,7 +80,10 @@ public class AWSCertRecordStoreFactory implements CertRecordStoreFactory {
         mysqlConnectionProperties.setProperty(ServerCommonConsts.DB_PROP_PASSWORD, rdsToken);
         
         PoolableDataSource dataSource = DataSourceFactory.create(jdbcStore, mysqlConnectionProperties);
-        
+
+        SchemaMigrationRunner.migrateIfConfigured(dataSource,
+                JDBCCertRecordStoreFactory.ZTS_PROP_SCHEMA_MIGRATION_DIR, "athenz_schema_migration_zts");
+
         long credsRefreshTime = Integer.parseInt(System.getProperty(ZTS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "300"));
 
         ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(1);

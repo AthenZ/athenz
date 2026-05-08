@@ -34,8 +34,10 @@ import software.amazon.awssdk.services.rds.model.GenerateAuthenticationTokenRequ
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.db.DataSourceFactory;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
+import com.yahoo.athenz.common.server.db.SchemaMigrationRunner;
 import com.yahoo.athenz.common.server.store.ObjectStore;
 import com.yahoo.athenz.common.server.store.ObjectStoreFactory;
+import com.yahoo.athenz.common.server.store.impl.JDBCConsts;
 import com.yahoo.athenz.common.server.store.impl.JDBCObjectStore;
 
 public class AWSObjectStoreFactory implements ObjectStoreFactory {
@@ -91,7 +93,10 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
 
         setConnectionProperties(MYSQL_PRIMARY_CONNECTION_PROPERTIES, rdsPrimaryToken);
         PoolableDataSource dataPrimarySource = DataSourceFactory.create(jdbcPrimaryStore, MYSQL_PRIMARY_CONNECTION_PROPERTIES);
-        
+
+        SchemaMigrationRunner.migrateIfConfigured(dataPrimarySource,
+                JDBCConsts.ZMS_PROP_JDBC_SCHEMA_MIGRATION_DIR, "athenz_schema_migration_zms");
+
         // now check to see if we also have a read-only replica jdbc store configured
 
         PoolableDataSource dataReplicaSource = null;

@@ -16,6 +16,11 @@
 package io.athenz.server.aws.common.cert.impl;
 
 import com.yahoo.athenz.common.server.cert.CertRecordStore;
+import com.yahoo.athenz.common.server.cert.impl.JDBCCertRecordStoreFactory;
+import com.yahoo.athenz.common.server.db.PoolableDataSource;
+import com.yahoo.athenz.common.server.db.SchemaMigrationRunner;
+import org.mockito.Mockito;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
@@ -134,5 +139,27 @@ public class AWSCertRecordStoreFactoryTest {
         System.clearProperty(AWSCertRecordStoreFactory.ZTS_PROP_AWS_RDS_PRIMARY_INSTANCE);
         System.clearProperty(AWSCertRecordStoreFactory.ZTS_PROP_AWS_RDS_USER);
         System.clearProperty(AWSCertRecordStoreFactory.ZTS_PROP_AWS_RDS_CREDS_REFRESH_TIME);
+    }
+
+    @AfterMethod
+    public void tearDown() {
+        System.clearProperty(JDBCCertRecordStoreFactory.ZTS_PROP_SCHEMA_MIGRATION_DIR);
+    }
+
+    @Test
+    public void testSchemaMigrationNotConfigured() {
+        System.clearProperty(JDBCCertRecordStoreFactory.ZTS_PROP_SCHEMA_MIGRATION_DIR);
+        PoolableDataSource mockDs = Mockito.mock(PoolableDataSource.class);
+        SchemaMigrationRunner.migrateIfConfigured(mockDs,
+                JDBCCertRecordStoreFactory.ZTS_PROP_SCHEMA_MIGRATION_DIR, "athenz_schema_migration_zts");
+        Mockito.verifyNoInteractions(mockDs);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testSchemaMigrationInvalidDirectory() {
+        System.setProperty(JDBCCertRecordStoreFactory.ZTS_PROP_SCHEMA_MIGRATION_DIR, "/non/existent/dir");
+        PoolableDataSource mockDs = Mockito.mock(PoolableDataSource.class);
+        SchemaMigrationRunner.migrateIfConfigured(mockDs,
+                JDBCCertRecordStoreFactory.ZTS_PROP_SCHEMA_MIGRATION_DIR, "athenz_schema_migration_zts");
     }
 }

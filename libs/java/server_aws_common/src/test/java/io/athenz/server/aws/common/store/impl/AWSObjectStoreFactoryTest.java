@@ -15,7 +15,12 @@
  */
 package io.athenz.server.aws.common.store.impl;
 
+import com.yahoo.athenz.common.server.db.PoolableDataSource;
+import com.yahoo.athenz.common.server.db.SchemaMigrationRunner;
 import com.yahoo.athenz.common.server.store.ObjectStore;
+import com.yahoo.athenz.common.server.store.impl.JDBCConsts;
+import org.mockito.Mockito;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertNotNull;
@@ -109,5 +114,27 @@ public class AWSObjectStoreFactoryTest {
         System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
         System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_USER);
         System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME);
+    }
+
+    @AfterMethod
+    public void tearDown() {
+        System.clearProperty(JDBCConsts.ZMS_PROP_JDBC_SCHEMA_MIGRATION_DIR);
+    }
+
+    @Test
+    public void testSchemaMigrationNotConfigured() {
+        System.clearProperty(JDBCConsts.ZMS_PROP_JDBC_SCHEMA_MIGRATION_DIR);
+        PoolableDataSource mockDs = Mockito.mock(PoolableDataSource.class);
+        SchemaMigrationRunner.migrateIfConfigured(mockDs,
+                JDBCConsts.ZMS_PROP_JDBC_SCHEMA_MIGRATION_DIR, "athenz_schema_migration_zms");
+        Mockito.verifyNoInteractions(mockDs);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testSchemaMigrationInvalidDirectory() {
+        System.setProperty(JDBCConsts.ZMS_PROP_JDBC_SCHEMA_MIGRATION_DIR, "/non/existent/dir");
+        PoolableDataSource mockDs = Mockito.mock(PoolableDataSource.class);
+        SchemaMigrationRunner.migrateIfConfigured(mockDs,
+                JDBCConsts.ZMS_PROP_JDBC_SCHEMA_MIGRATION_DIR, "athenz_schema_migration_zms");
     }
 }
