@@ -50,6 +50,7 @@ public class SchemaMigrationRunner {
     static final int MYSQL_ER_DUP_KEYNAME = 1061;
     static final int MYSQL_ER_TABLE_EXISTS = 1050;
     static final int MYSQL_ER_DUP_ENTRY = 1062;
+    static final int MYSQL_ER_MULTIPLE_PRI_KEY = 1068;
 
     static final String CREATE_SCHEMA_VERSION_TABLE =
             "CREATE TABLE IF NOT EXISTS `schema_version` (" +
@@ -269,7 +270,8 @@ public class SchemaMigrationRunner {
         return errorCode == MYSQL_ER_DUP_FIELDNAME ||
                errorCode == MYSQL_ER_DUP_KEYNAME ||
                errorCode == MYSQL_ER_TABLE_EXISTS ||
-               errorCode == MYSQL_ER_DUP_ENTRY;
+               errorCode == MYSQL_ER_DUP_ENTRY ||
+               errorCode == MYSQL_ER_MULTIPLE_PRI_KEY;
     }
 
     void acquireLock(Connection conn) throws SQLException {

@@ -160,6 +160,12 @@ public class SchemaMigrationRunnerTest {
     }
 
     @Test
+    public void testIsSafeErrorMultiplePrimaryKey() {
+        SQLException ex = new SQLException("Multiple primary key defined", "HY000", 1068);
+        assertTrue(SchemaMigrationRunner.isSafeError(ex));
+    }
+
+    @Test
     public void testIsSafeErrorUnsafeError() {
         SQLException ex = new SQLException("Syntax error", "HY000", 1064);
         assertFalse(SchemaMigrationRunner.isSafeError(ex));
