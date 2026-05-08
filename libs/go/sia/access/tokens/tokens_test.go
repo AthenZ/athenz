@@ -141,22 +141,25 @@ func TestToBeRefreshed(t *testing.T) {
 	err = os.WriteFile(tpath, []byte(fmt.Sprintf("{%q: %q, %q: %q}", "access_token", "signed-string", "token_type", "Bearer")), 0400)
 	require.Nilf(t, err, fmt.Sprintf("should be able to create token: %s", tpath))
 	opts := config.TokenOptions{
-		TokenDir: tokenDir,
-		Tokens:   tokens,
+		TokenDir:     tokenDir,
+		Tokens:       tokens,
+		StoreOptions: config.ZtsResponse,
 	}
 	// Valid token was issued with 1 hour validity. We will set the current time to a bit less than half an hour in the future so it will still be valid
 	// (hasn't passed "half-life").
 	// "Aged" tokens (passed their "half-life" but hasn't expired) will require refresh
 	currentTime := time.Now().Add(time.Duration(28) * time.Minute)
 	toRefresh, errors := ToBeRefreshedBasedOnTime(&opts, currentTime)
-	assert.True(t, len(errors) == 3, fmt.Sprintf("there shoud be 3 errors in fetching ToBeRefreshedBasedOnTime tokend, err: %v", err))
+	assert.True(t, len(errors) == 3, fmt.Sprintf("there shoud be 3 errors in fetching ToBeRefreshedBasedOnTime tokend, err: %v", errors))
 	log.Printf("errors so far: %+v\n", errors)
 
 	log.Printf("toRefresh: %#v\n", toRefresh)
 	assert.NotNil(t, toRefresh, "list of tokens to be refreshed should not be empty")
-	assert.True(t, len(toRefresh) == 2, fmt.Sprintf("there should be 2 tokens to be refreshed not %d", len(toRefresh)))
-	assert.Equalf(t, toRefresh[0].FileName, "writer", fmt.Sprintf("first item: %+v should be %q", toRefresh[0], "writer"))
-	assert.Equalf(t, toRefresh[1].FileName, "reader-aged", fmt.Sprintf("second item: %+v should be %q", toRefresh[0], "reader-aged"))
+	assert.True(t, len(toRefresh) == 4, fmt.Sprintf("there should be 4 tokens to be refreshed not %d", len(toRefresh)))
+	assert.Equalf(t, "writer", toRefresh[0].FileName, "first item: %+v", toRefresh[0])
+	assert.Equalf(t, "reader-aged", toRefresh[1].FileName, "second item: %+v", toRefresh[1])
+	assert.Equalf(t, "reader-fail2", toRefresh[2].FileName, "third item: %+v", toRefresh[2])
+	assert.Equalf(t, "reader-fail3", toRefresh[3].FileName, "fourth item: %+v", toRefresh[3])
 }
 
 func TestToBeRefreshedEmptyOrWhitespaceOnlyTokenFile(t *testing.T) {
