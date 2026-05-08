@@ -408,6 +408,7 @@ func setUpAttestationRequest(opts *sc.Options, service, ztsUrl string) *provider
 		UseRegionalSTS: opts.UseRegionalSTS,
 		EC2Document:    opts.EC2Document,
 		EC2Signature:   opts.EC2Signature,
+		RolePath:       opts.RolePath,
 	}
 }
 

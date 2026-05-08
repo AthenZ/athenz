@@ -38,6 +38,7 @@ type AttestationRequest struct {
 	Region         string //region name
 	EC2Document    string //EC2 instance identity document (for AWS only)
 	EC2Signature   string //EC2 instance identity document pkcs7 signature (for AWS only)
+	RolePath       string // IAM role path prefix
 }
 
 // Provider is the interface which wraps various Providers known to ZTS

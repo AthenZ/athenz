@@ -113,6 +113,7 @@ type Config struct {
 	RoleCertsRequired bool                     `json:"role_certs_required,omitempty"`        //role certs are required for system operations, fail if not successful
 	OTel              OTel                     `json:"otel"`                                 //OpenTelemetry configuration
 	HttpPort          int                      `json:"http_port,omitempty"`                  //HTTP port for health check
+	RolePath          string                    `json:"role_path,omitempty"`                 //IAM role path prefix
 }
 
 type AccessProfileConfig struct {
@@ -225,6 +226,7 @@ type Options struct {
 	RoleCertsRequired      bool              //role certs are required for system operations, fail if not successful
 	OTel                   OTel              //openTelemetry configuration
 	HttpPort               int               //HTTP port for health check
+	RolePath               string            //IAM role path prefix
 }
 
 // OTel stores the configuration for OpenTelemetry.

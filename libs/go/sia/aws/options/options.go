@@ -398,6 +398,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 	runAfterFailExit := false
 	roleCertsRequired := false
 	httpPort := 0
+	rolePath := ""
 
 	var storeTokenOption *int
 	if config != nil {
@@ -416,6 +417,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		runAfterFailExit = config.RunAfterFailExit
 		roleCertsRequired = config.RoleCertsRequired
 		httpPort = config.HttpPort
+		rolePath = config.RolePath
 
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
@@ -669,6 +671,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		RoleCertsRequired:      roleCertsRequired,
 		OTel:                   oTelCfg,
 		HttpPort:               httpPort,
+		RolePath:               rolePath,
 	}, nil
 }
 
