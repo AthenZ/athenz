@@ -272,6 +272,9 @@ func InitEnvConfig(config *sc.Config) (*sc.Config, *sc.ConfigAccount, error) {
 	if !config.RunAfterFailExit {
 		config.RunAfterFailExit = util.ParseEnvBooleanFlag("ATHENZ_SIA_RUN_AFTER_FAIL_EXIT")
 	}
+    if config.RolePath == "" {
+        config.RolePath = os.Getenv("ATHENZ_SIA_ROLE_PATH")
+    }
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 	if roleArn == "" {
