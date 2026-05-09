@@ -42,7 +42,7 @@ public class UserIdentityTimeout implements Closeable {
 
     private final DataStore dataStore;
     private final String userDomain;
-    private final Map<String, Map<String, Integer>> roleCertTimeoutMap;
+    private volatile Map<String, Map<String, Integer>> roleCertTimeoutMap;
     private final Map<String, Integer> roleTokenTimeoutMap;
     private final ScheduledExecutorService scheduledExecutor;
 
@@ -177,8 +177,7 @@ public class UserIdentityTimeout implements Closeable {
             }
         }
 
-        roleCertTimeoutMap.clear();
-        roleCertTimeoutMap.putAll(newCertMap);
+        roleCertTimeoutMap = newCertMap;
         roleTokenTimeoutMap.keySet().retainAll(currentTokenRoles);
 
         lastModifiedMillis = domainData.getModified() != null ? domainData.getModified().millis() : 0;
