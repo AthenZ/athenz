@@ -150,6 +150,7 @@ public class ZTSImpl implements ZTSHandler {
     protected String userDomainAliasPrefix;
     protected boolean leastPrivilegePrincipal = false;
     protected Set<String> authorizedProxyUsers = null;
+    protected Set<String> validX509CertSignerKeyIds = null;
     protected Set<String> validCertSubjectOrgValues = null;
     protected Set<String> validCertSubjectOrgUnitValues = null;
     protected List<String> validateServiceSkipDomains;
@@ -679,6 +680,13 @@ public class ZTSImpl implements ZTSHandler {
         final String authorizedProxyUserList = System.getProperty(ZTSConsts.ZTS_PROP_AUTHORIZED_PROXY_USERS);
         if (authorizedProxyUserList != null) {
             authorizedProxyUsers = new HashSet<>(Arrays.asList(authorizedProxyUserList.split(",")));
+        }
+
+        final String userCertSignerKeyIdList = System.getProperty(ZTSConsts.ZTS_PROP_USER_CERT_SIGNER_KEY_ID_LIST);
+        if (userCertSignerKeyIdList != null) {
+            validX509CertSignerKeyIds = new HashSet<>(Arrays.asList(userCertSignerKeyIdList.split(",")));
+        } else {
+            validX509CertSignerKeyIds = Collections.emptySet();
         }
 
         userDomain = System.getProperty(ServerCommonConsts.PROP_USER_DOMAIN, ZTSConsts.ATHENZ_USER_DOMAIN);
@@ -6644,7 +6652,8 @@ public class ZTSImpl implements ZTSHandler {
 
         // determine the expiry time for the certificate
 
-        int expiryTime = userIdentityTimeoutManager.getUserCertTimeout(principalName, req.getExpiryTime());
+        final String signerKeyId = getUserX509KeySignerId(principalName, req.getX509CertSignerKeyId());
+        int expiryTime = userIdentityTimeoutManager.getUserCertTimeout(principalName, signerKeyId, req.getExpiryTime());
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("User Certificate for {} expiryTime: {}", principalName, expiryTime);
@@ -6652,8 +6661,7 @@ public class ZTSImpl implements ZTSHandler {
 
         Object timerX509CertMetric = metric.startTiming("certsignx509_timing", userDomain, userDomain);
         final String x509Cert = instanceCertManager.generateX509Certificate(userCertProvider, null, req.getCsr(),
-                InstanceProvider.ZTS_CERT_USAGE_CLIENT, expiryTime, Priority.High,
-                getUserX509KeySignerId(principalName, req.getX509CertSignerKeyId()));
+                InstanceProvider.ZTS_CERT_USAGE_CLIENT, expiryTime, Priority.High, signerKeyId);
         metric.stopTiming(timerX509CertMetric, userDomain, userDomain);
 
         if (StringUtil.isEmpty(x509Cert)) {
@@ -6691,8 +6699,18 @@ public class ZTSImpl implements ZTSHandler {
     }
 
     String getUserX509KeySignerId(final String principalName, final String requestSignerKeyId) {
-        final String authoritySignerKeyId = userAuthority.getSignerKeyId(principalName);
-        return StringUtil.isEmpty(authoritySignerKeyId) ? requestSignerKeyId : authoritySignerKeyId;
+        final String authoritySignerKeyId = userAuthority.getSignerKeyId(principalName, requestSignerKeyId);
+        if (!StringUtil.isEmpty(authoritySignerKeyId)) {
+            return authoritySignerKeyId;
+        }
+        if (StringUtil.isEmpty(requestSignerKeyId)) {
+            return null;
+        }
+        if (!validX509CertSignerKeyIds.contains(requestSignerKeyId)) {
+            LOGGER.error("Request signer key id {} is not in the allowed list", requestSignerKeyId);
+            return null;
+        }
+        return requestSignerKeyId;
     }
 
     synchronized void fetchInfoFromManifest(ServletContext servletContext) {

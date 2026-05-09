@@ -255,8 +255,11 @@ The User Certificate feature allows human users to obtain X.509 TLS client certi
               ┌─────────────────────────┐
               │  Determine expiry       │
               │  (UserCertTimeout):     │
-              │  • Look up user's roles │
-              │    in user domain       │
+              │  • Resolve signer key   │
+              │    ID for user cert     │
+              │  • Look up timeout map  │
+              │    for matching key ID  │
+              │    (or default map)     │
               │  • Find max role timeout│
               │    from zts.UserCert    │
               │    Timeout role tags    │
@@ -398,12 +401,14 @@ The CLI is a thin wrapper that parses command-line flags and delegates to `userc
    - **SPIFFE URI validation** — If a SPIFFE URI is present, it must be valid for the user domain/namespace.
 8. **Provider attestation** — Delegate to `UserCertificateProvider.confirmInstance()` (see Section 4.4).
 9. **Expiry determination** (`UserCertTimeout.getUserCertTimeout`):
+   - Determine the effective signer key ID for the certificate (from the request's `x509CertSignerKeyId` field, falling back to the server default).
+   - Look up the timeout sub-map for the matching signer key ID. If no key-ID-specific map exists, use the default timeout.
    - Look up the user domain data cache and determine the user's accessible roles in the user domain.
-   - For each role, check the `zts.UserCertTimeout` role tag to find the maximum configured role-based timeout.
-   - If no role-based timeout is configured for any of the user's roles: use `userCertDefaultTimeout` (default: 60 minutes).
+   - For each role in the key-ID-specific sub-map, check if the user is a member and find the maximum configured role-based timeout.
+   - If no role-based timeout is configured for any of the user's roles in the matching sub-map: use `userCertDefaultTimeout` (default: 60 minutes).
    - If the user requests a smaller expiry than the role-based timeout, the user's request is honored.
    - The effective timeout is always capped at `userCertMaxTimeout` (default: 60 minutes).
-   - This allows administrators to grant specific user groups longer certificate lifetimes by tagging roles in the user domain, while users can request shorter lifetimes if desired.
+   - This allows administrators to grant specific user groups different certificate lifetimes per signer key ID by tagging roles in the user domain, while users can request shorter lifetimes if desired.
 10. **Certificate signing** — Submit CSR to cert signer with `client` usage, `High` priority.
 11. **Logging** — Log the issued certificate.
 12. **Return** — Return `UserCertificate` with the PEM certificate string.
@@ -417,11 +422,12 @@ The CLI is a thin wrapper that parses command-line flags and delegates to `userc
 | `athenz.zts.user_cert_default_timeout` | 60 min | Default certificate lifetime when no request or role timeout is set |
 | `athenz.zts.user_cert_timeout_refresh_interval` | 10 min | Interval for refreshing the role-based timeout map from the user domain |
 
-**Role Tag:**
+**Role Tags:**
 
 | Tag | Scope | Description |
 |---|---|---|
 | `zts.UserCertTimeout` | Role (in user domain) | Specifies the certificate timeout in minutes for members of this role |
+| `zts.UserCertSignerKeyId` | Role (in user domain) | Associates the role's timeout with a specific cert signer key ID. When absent, the role's timeout applies to the default (unspecified) key ID. |
 
 ### 4.3 Server-Side: `UserCertTimeout` — Role-Based Timeout Manager
 
@@ -435,22 +441,38 @@ A background scheduler refreshes the map at a configurable interval (`athenz.zts
 
 #### 4.3.2 Role-Based Timeout Map
 
-The timeout map is populated by scanning all roles in the user domain (e.g., `user`) for the `zts.UserCertTimeout` role tag. Each tag value is parsed as an integer representing the timeout in minutes. Roles without the tag are ignored.
+The timeout map is a two-level structure: the outer map is keyed by **signer key ID**, and each value is an inner map of **role name → timeout (minutes)**.
 
-**Example:** A role `user:role.extended-cert-users` with tag `zts.UserCertTimeout=120` grants its members up to a 120-minute certificate lifetime (subject to the server maximum).
+When scanning roles in the user domain (e.g., `user`):
+- Each role with the `zts.UserCertTimeout` tag contributes an entry to the inner map.
+- If the role also has a `zts.UserCertSignerKeyId` tag, its timeout entry is placed in the sub-map for that key ID.
+- If the role has no `zts.UserCertSignerKeyId` tag, its timeout entry goes into a special `_default_` sub-map.
+
+Roles without the `zts.UserCertTimeout` tag are ignored regardless of whether they have a signer key ID tag.
+
+**Examples:**
+- A role `user:role.extended-cert-users` with tag `zts.UserCertTimeout=120` (no signer key ID tag) grants its members up to a 120-minute certificate lifetime when the certificate is signed with any key ID that has no explicit configuration (i.e., the default).
+- A role `user:role.key1-long-lived` with tags `zts.UserCertTimeout=240` and `zts.UserCertSignerKeyId=key1` grants its members up to a 240-minute certificate lifetime only when the certificate is signed with signer key ID `key1`.
 
 #### 4.3.3 Timeout Resolution (`getUserCertTimeout`)
 
-The timeout for a given user is resolved as follows:
+The timeout for a given user and signer key ID is resolved as follows:
 
-1. Look up the user domain data cache and determine the user's accessible roles.
-2. For each role the user is a member of, check if the role has a timeout entry in the map. Track the **maximum** role-based timeout across all matching roles.
-3. Apply the resolution rules:
-   - If **no** role-based timeout is present → return `userCertDefaultTimeout`.
+1. Determine the **effective key ID**: if the caller provides a signer key ID (non-null, non-empty), use it; otherwise use the `_default_` key.
+2. Look up the sub-map for the effective key ID. If no sub-map exists for that key ID, return `userCertDefaultTimeout` immediately.
+3. Look up the user domain data cache and determine the user's accessible roles.
+4. For each role the user is a member of, check if the role has a timeout entry in the key-ID-specific sub-map. Track the **maximum** role-based timeout across all matching roles.
+5. Apply the resolution rules:
+   - If **no** role-based timeout is present in the sub-map for the user's roles → return `userCertDefaultTimeout`.
    - If the user requests a smaller expiry than the role-based (or default) timeout, the user's request is honored.
    - The result is always capped at `userCertMaxTimeout`.
 
-This design allows administrators to grant different user groups longer certificate lifetimes without changing global server configuration, while users can request shorter lifetimes if desired. The server maximum remains an absolute cap.
+This design allows administrators to:
+- Grant different user groups longer certificate lifetimes without changing global server configuration.
+- Define **different timeout policies per signer key ID**, enabling use cases where certain signing keys (e.g., for a specific trust domain or CA) have stricter or more relaxed lifetime limits.
+- Maintain the server maximum as an absolute security boundary regardless of key ID.
+
+Users can always request shorter lifetimes if desired.
 
 ### 4.4 Server-Side: `UserCertificateProvider`
 
@@ -721,9 +743,14 @@ User certificates explicitly cannot be refreshed. Each new certificate requires 
 
 ### 7.5 Role-Based Certificate Timeouts
 
-Certificate lifetimes can be customized per user group through role tags in the user domain. Administrators tag roles with `zts.UserCertTimeout=<minutes>` to allow members of those roles to obtain certificates with longer lifetimes (up to the server maximum). The effective timeout starts with the highest role-based timeout (or the server default if none), and is reduced to the user's requested expiry if smaller. The result is always capped at `userCertMaxTimeout`. This approach:
+Certificate lifetimes can be customized per user group through role tags in the user domain. Administrators tag roles with `zts.UserCertTimeout=<minutes>` to allow members of those roles to obtain certificates with longer lifetimes (up to the server maximum). The effective timeout starts with the highest role-based timeout (or the server default if none), and is reduced to the user's requested expiry if smaller. The result is always capped at `userCertMaxTimeout`.
+
+Additionally, timeout policies can be scoped to a **specific cert signer key ID** using the `zts.UserCertSignerKeyId` tag on the same role. When a role has both `zts.UserCertTimeout` and `zts.UserCertSignerKeyId` tags, the timeout applies only when certificates are signed with the specified key ID. Roles without the signer key ID tag contribute to the default timeout map, which is used when the signer key ID is unspecified or has no explicit configuration.
+
+This approach:
 - Avoids per-user configuration — timeout policies are managed through standard Athenz role membership.
 - Supports different tiers of users (e.g., on-call engineers may need longer-lived certificates).
+- Supports **per-signer-key-ID policies** — different signing keys can have different lifetime limits (e.g., a key tied to an internal CA might allow longer lifetimes than a key tied to a public CA).
 - Maintains the server maximum as an absolute security boundary.
 - Is automatically refreshed on a configurable interval (default: 10 minutes) without server restarts.
 

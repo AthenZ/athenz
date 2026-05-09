@@ -81,8 +81,11 @@ public class AuthorityTest {
             }
 
             @Override
-            public String getSignerKeyId(String username) {
-                return "john".equals(username) ? "x509-signer" : null;
+            public String getSignerKeyId(String username, String requestSignerKeyId) {
+                if (!"john".equals(username)) {
+                    return null;
+                }
+                return (requestSignerKeyId != null) ? requestSignerKeyId : "x509-signer";
             }
         };
 
@@ -110,8 +113,14 @@ public class AuthorityTest {
         assertEquals(authority.getUserManager("john"), "john-manager");
         assertEquals(authority.getID(), "Auth-ID");
 
+        // deprecated single-arg delegates to the new two-arg method
         assertEquals(authority.getSignerKeyId("john"), "x509-signer");
         assertNull(authority.getSignerKeyId("joe"));
+
+        // new two-arg method with explicit requestSignerKeyId
+        assertEquals(authority.getSignerKeyId("john", null), "x509-signer");
+        assertEquals(authority.getSignerKeyId("john", "requested-key"), "requested-key");
+        assertNull(authority.getSignerKeyId("joe", "requested-key"));
     }
 
     @Test
@@ -163,5 +172,7 @@ public class AuthorityTest {
         assertTrue(authority.getPrincipals(EnumSet.of(Principal.State.ACTIVE)).isEmpty());
         assertNull(authority.getUserManager("john"));
         assertNull(authority.getSignerKeyId("john"));
+        assertNull(authority.getSignerKeyId("john", null));
+        assertNull(authority.getSignerKeyId("john", "requested-key"));
     }
 }

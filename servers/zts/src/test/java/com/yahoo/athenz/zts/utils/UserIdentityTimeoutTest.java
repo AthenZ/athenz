@@ -45,13 +45,30 @@ public class UserIdentityTimeoutTest {
         }
     }
 
+    private int getCertTimeoutEntryCount(UserIdentityTimeout uit) {
+        int count = 0;
+        for (Map<String, Integer> map : uit.getCertTimeoutMap().values()) {
+            count += map.size();
+        }
+        return count;
+    }
+
     private Role createRoleWithTimeout(String roleName, String timeoutValue) {
+        return createRoleWithTimeout(roleName, timeoutValue, null);
+    }
+
+    private Role createRoleWithTimeout(String roleName, String timeoutValue, String signerKeyId) {
         Role role = new Role().setName(roleName);
         if (timeoutValue != null) {
             Map<String, TagValueList> tags = new HashMap<>();
             TagValueList tagValueList = new TagValueList();
             tagValueList.setList(Collections.singletonList(timeoutValue));
             tags.put(ZTSConsts.ZTS_USER_CERT_TIMEOUT_TAG, tagValueList);
+            if (signerKeyId != null) {
+                TagValueList keyIdTag = new TagValueList();
+                keyIdTag.setList(Collections.singletonList(signerKeyId));
+                tags.put(ZTSConsts.ZTS_USER_CERT_SIGNER_KEY_ID_TAG, keyIdTag);
+            }
             role.setTags(tags);
         }
         return role;
@@ -111,7 +128,7 @@ public class UserIdentityTimeoutTest {
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.admin"), Integer.valueOf(60));
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.developer"), Integer.valueOf(120));
         assertNull(userIdentityTimeout.getCertTimeout("user:role.reader"));
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 2);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 2);
     }
 
     @Test
@@ -122,7 +139,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        assertTrue(userIdentityTimeout.getCertTimeoutMap().isEmpty());
+        assertTrue(getCertTimeoutEntryCount(userIdentityTimeout) == 0);
     }
 
     @Test
@@ -137,7 +154,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        assertTrue(userIdentityTimeout.getCertTimeoutMap().isEmpty());
+        assertTrue(getCertTimeoutEntryCount(userIdentityTimeout) == 0);
     }
 
     @Test
@@ -157,7 +174,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        assertTrue(userIdentityTimeout.getCertTimeoutMap().isEmpty());
+        assertTrue(getCertTimeoutEntryCount(userIdentityTimeout) == 0);
     }
 
     @Test
@@ -294,14 +311,14 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 1);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 1);
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.admin"), Integer.valueOf(60));
 
         // calling refreshIfModified with same timestamp should not change anything
 
         userIdentityTimeout.refreshIfModified();
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 1);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 1);
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.admin"), Integer.valueOf(60));
     }
 
@@ -337,7 +354,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout.refreshIfModified();
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 2);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 2);
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.admin"), Integer.valueOf(90));
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.ops"), Integer.valueOf(30));
     }
@@ -358,7 +375,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 1);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 1);
 
         // domain data becomes null (e.g. domain removed from cache)
 
@@ -368,7 +385,7 @@ public class UserIdentityTimeoutTest {
 
         // map should remain unchanged since we couldn't fetch domain data
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 1);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 1);
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.admin"), Integer.valueOf(60));
     }
 
@@ -389,7 +406,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 2);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 2);
 
         // remove the tag from the developer role
 
@@ -405,7 +422,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout.refreshIfModified();
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 1);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 1);
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.admin"), Integer.valueOf(60));
         assertNull(userIdentityTimeout.getCertTimeout("user:role.developer"));
     }
@@ -427,7 +444,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 2);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 2);
 
         // completely remove the developer role from the domain
 
@@ -442,7 +459,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout.refreshIfModified();
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 1);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 1);
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.admin"), Integer.valueOf(60));
         assertNull(userIdentityTimeout.getCertTimeout("user:role.developer"));
     }
@@ -463,7 +480,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 1);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 1);
 
         // domain now has null roles
 
@@ -474,7 +491,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout.refreshIfModified();
 
-        assertTrue(userIdentityTimeout.getCertTimeoutMap().isEmpty());
+        assertTrue(getCertTimeoutEntryCount(userIdentityTimeout) == 0);
     }
 
     @Test
@@ -492,7 +509,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 1);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 1);
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.admin"), Integer.valueOf(60));
     }
 
@@ -516,7 +533,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout.refreshIfModified();
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 1);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 1);
     }
 
     @Test
@@ -546,9 +563,9 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        Map<String, Integer> timeoutMap = userIdentityTimeout.getCertTimeoutMap();
+        Map<String, Map<String, Integer>> timeoutMap = userIdentityTimeout.getCertTimeoutMap();
         try {
-            timeoutMap.put("user:role.test", 100);
+            timeoutMap.put("newkey", new HashMap<>());
             fail();
         } catch (UnsupportedOperationException ignored) {
         }
@@ -570,7 +587,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout.refreshIfModified();
 
-        assertTrue(userIdentityTimeout.getCertTimeoutMap().isEmpty());
+        assertTrue(getCertTimeoutEntryCount(userIdentityTimeout) == 0);
     }
 
     @Test
@@ -585,7 +602,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout.refreshTimeoutMap(null);
 
-        assertTrue(userIdentityTimeout.getCertTimeoutMap().isEmpty());
+        assertTrue(getCertTimeoutEntryCount(userIdentityTimeout) == 0);
     }
 
     @Test
@@ -608,7 +625,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 3);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 3);
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.short-lived"), Integer.valueOf(15));
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.standard"), Integer.valueOf(60));
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.long-lived"), Integer.valueOf(1440));
@@ -632,7 +649,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 1);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 1);
 
         // add new roles with timeout tags
 
@@ -648,7 +665,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout.refreshIfModified();
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 2);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 2);
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.admin"), Integer.valueOf(60));
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.new-role"), Integer.valueOf(45));
     }
@@ -718,7 +735,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 2);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 2);
 
         // remove all timeout tags from all roles
 
@@ -734,7 +751,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout.refreshIfModified();
 
-        assertTrue(userIdentityTimeout.getCertTimeoutMap().isEmpty());
+        assertTrue(getCertTimeoutEntryCount(userIdentityTimeout) == 0);
     }
 
     private void mockAccessibleRoles(DataStore dataStore, DataCache dataCache, Set<String> returnedRoles) {
@@ -760,7 +777,7 @@ public class UserIdentityTimeoutTest {
 
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null), 60);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 60);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -790,7 +807,7 @@ public class UserIdentityTimeoutTest {
 
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null), 60);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 60);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -813,7 +830,7 @@ public class UserIdentityTimeoutTest {
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
             // user requested 30 < default 60 -> certTimeout=30, min(30, 120) = 30
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", 30), 30);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, 30), 30);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -846,7 +863,7 @@ public class UserIdentityTimeoutTest {
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
             // no user requested, role timeout 90 -> min(90, 120) = 90
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null), 90);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 90);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -881,10 +898,10 @@ public class UserIdentityTimeoutTest {
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
             // user requested 70 < role timeout 80 -> certTimeout=70, min(70, 120) = 70
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", 70), 70);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, 70), 70);
 
             // user requested 100 > role timeout 80 -> certTimeout stays 80, min(80, 120) = 80
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", 100), 80);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, 100), 80);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -917,10 +934,10 @@ public class UserIdentityTimeoutTest {
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
             // role timeout 200, no user request -> certTimeout=200, min(200, 120) = 120
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null), 120);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 120);
 
             // user requested 150 < role timeout 200 -> certTimeout=150, min(150, 120) = 120
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", 150), 120);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, 150), 120);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -943,7 +960,7 @@ public class UserIdentityTimeoutTest {
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
             // user requested 0 is treated as absent, no role timeout -> default
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", 0), 60);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, 0), 60);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -976,7 +993,7 @@ public class UserIdentityTimeoutTest {
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
             // user is member of role.reader which has no timeout tag -> default
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null), 60);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 60);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -999,7 +1016,7 @@ public class UserIdentityTimeoutTest {
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
             // negative user request is treated as absent -> default 60, min(60, 120) = 60
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", -10), 60);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, -10), 60);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -1032,7 +1049,7 @@ public class UserIdentityTimeoutTest {
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
             // user requested 45 < role timeout 90 -> certTimeout=45, min(45, 120) = 45
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", 45), 45);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, 45), 45);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -1065,7 +1082,7 @@ public class UserIdentityTimeoutTest {
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
             // user requested 100 > role timeout 90 -> certTimeout stays 90, min(90, 120) = 90
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", 100), 90);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, 100), 90);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -1089,7 +1106,7 @@ public class UserIdentityTimeoutTest {
 
             // max (120) < default (200) -> constructor sets max = default (200)
             // no role timeout -> default 200, min(200, 200) = 200
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null), 200);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 200);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -1112,7 +1129,7 @@ public class UserIdentityTimeoutTest {
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
             // user requested 90 > default 60 -> certTimeout stays 60, min(60, 120) = 60
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", 90), 60);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, 90), 60);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -1149,7 +1166,7 @@ public class UserIdentityTimeoutTest {
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
             // max role timeout = 240, no user request -> min(240, 300) = 240
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null), 240);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 240);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -1167,7 +1184,7 @@ public class UserIdentityTimeoutTest {
 
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-            assertTrue(userIdentityTimeout.getCertTimeoutMap().isEmpty());
+            assertTrue(getCertTimeoutEntryCount(userIdentityTimeout) == 0);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_IDENTITY_TIMEOUT_REFRESH_INTERVAL);
         }
@@ -1189,7 +1206,7 @@ public class UserIdentityTimeoutTest {
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
             // default was -10 -> reset to 60, max 120 is valid -> min(60, 120) = 60
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null), 60);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 60);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -1212,7 +1229,7 @@ public class UserIdentityTimeoutTest {
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
             // default was 0 -> reset to 60, max 120 is valid -> min(60, 120) = 60
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null), 60);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 60);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -1246,7 +1263,7 @@ public class UserIdentityTimeoutTest {
 
             // max was -5 -> reset to 60, default 60 is valid, max (60) >= default (60) ok
             // role timeout 90, min(90, 60) = 60
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null), 60);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 60);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -1280,7 +1297,7 @@ public class UserIdentityTimeoutTest {
 
             // max was 0 -> reset to 60, default 60 is valid, max (60) >= default (60) ok
             // role timeout 90, min(90, 60) = 60
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null), 60);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 60);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -1303,7 +1320,7 @@ public class UserIdentityTimeoutTest {
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
             // both reset to 60, max (60) >= default (60) ok -> min(60, 60) = 60
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null), 60);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 60);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -1337,11 +1354,11 @@ public class UserIdentityTimeoutTest {
 
             // max (50) < default (100) -> max set to 100
             // role timeout 200, min(200, 100) = 100
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null), 100);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 100);
 
             // no role timeout -> default 100, min(100, 100) = 100
             when(dataStore.getDataCache("user")).thenReturn(null);
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.jane", null), 100);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.jane", null, null), 100);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -1364,7 +1381,7 @@ public class UserIdentityTimeoutTest {
             userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
             // both are 100, max >= default -> no adjustment, min(100, 100) = 100
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null), 100);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 100);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -1388,7 +1405,7 @@ public class UserIdentityTimeoutTest {
 
             // default was -5 -> reset to 60, max 30 is valid but 30 < 60 -> max set to 60
             // no role timeout -> default 60, min(60, 60) = 60
-            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null), 60);
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 60);
         } finally {
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
@@ -1417,7 +1434,7 @@ public class UserIdentityTimeoutTest {
         assertEquals(userIdentityTimeout.getTokenTimeout("user:role.developer"), Integer.valueOf(7200));
         assertNull(userIdentityTimeout.getTokenTimeout("user:role.reader"));
         assertEquals(userIdentityTimeout.getTokenTimeoutMap().size(), 2);
-        assertTrue(userIdentityTimeout.getCertTimeoutMap().isEmpty());
+        assertTrue(getCertTimeoutEntryCount(userIdentityTimeout) == 0);
     }
 
     @Test
@@ -1500,7 +1517,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 3);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 3);
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.admin"), Integer.valueOf(60));
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.developer"), Integer.valueOf(120));
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.certonly"), Integer.valueOf(90));
@@ -1529,7 +1546,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 1);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 1);
         assertEquals(userIdentityTimeout.getTokenTimeoutMap().size(), 1);
 
         DomainData updatedDomainData = new DomainData()
@@ -1539,7 +1556,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout.refreshIfModified();
 
-        assertTrue(userIdentityTimeout.getCertTimeoutMap().isEmpty());
+        assertTrue(getCertTimeoutEntryCount(userIdentityTimeout) == 0);
         assertTrue(userIdentityTimeout.getTokenTimeoutMap().isEmpty());
     }
 
@@ -2263,7 +2280,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout.refreshIfModified();
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 2);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 2);
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.admin"), Integer.valueOf(120));
         assertEquals(userIdentityTimeout.getCertTimeout("user:role.ops"), Integer.valueOf(30));
 
@@ -2288,7 +2305,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
 
-        assertEquals(userIdentityTimeout.getCertTimeoutMap().size(), 1);
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 1);
         assertEquals(userIdentityTimeout.getTokenTimeoutMap().size(), 1);
 
         DomainData updatedDomainData = new DomainData()
@@ -2297,7 +2314,7 @@ public class UserIdentityTimeoutTest {
 
         userIdentityTimeout.refreshTimeoutMap(updatedDomainData);
 
-        assertTrue(userIdentityTimeout.getCertTimeoutMap().isEmpty());
+        assertTrue(getCertTimeoutEntryCount(userIdentityTimeout) == 0);
         assertTrue(userIdentityTimeout.getTokenTimeoutMap().isEmpty());
     }
 
@@ -2352,5 +2369,272 @@ public class UserIdentityTimeoutTest {
             System.clearProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_DEFAULT_TIMEOUT);
             System.clearProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_MAX_TIMEOUT);
         }
+    }
+
+    @Test
+    public void testExtractSignerKeyIdFromRoleNull() {
+
+        DataStore dataStore = Mockito.mock(DataStore.class);
+        when(dataStore.getDomainData("user")).thenReturn(null);
+
+        userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
+
+        assertEquals(userIdentityTimeout.extractSignerKeyIdFromRole(null), UserIdentityTimeout.DEFAULT_KEY_ID);
+    }
+
+    @Test
+    public void testExtractSignerKeyIdFromRoleNullTags() {
+
+        DataStore dataStore = Mockito.mock(DataStore.class);
+        when(dataStore.getDomainData("user")).thenReturn(null);
+
+        userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
+
+        Role role = new Role().setName("user:role.test");
+        assertEquals(userIdentityTimeout.extractSignerKeyIdFromRole(role), UserIdentityTimeout.DEFAULT_KEY_ID);
+    }
+
+    @Test
+    public void testExtractSignerKeyIdFromRoleNoKeyIdTag() {
+
+        DataStore dataStore = Mockito.mock(DataStore.class);
+        when(dataStore.getDomainData("user")).thenReturn(null);
+
+        userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
+
+        Role role = createRoleWithTimeout("user:role.test", "60");
+        assertEquals(userIdentityTimeout.extractSignerKeyIdFromRole(role), UserIdentityTimeout.DEFAULT_KEY_ID);
+    }
+
+    @Test
+    public void testExtractSignerKeyIdFromRoleWithKeyId() {
+
+        DataStore dataStore = Mockito.mock(DataStore.class);
+        when(dataStore.getDomainData("user")).thenReturn(null);
+
+        userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
+
+        Role role = createRoleWithTimeout("user:role.test", "60", "key1");
+        assertEquals(userIdentityTimeout.extractSignerKeyIdFromRole(role), "key1");
+    }
+
+    @Test
+    public void testExtractSignerKeyIdFromRoleEmptyKeyId() {
+
+        DataStore dataStore = Mockito.mock(DataStore.class);
+        when(dataStore.getDomainData("user")).thenReturn(null);
+
+        userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
+
+        Role role = createRoleWithTimeout("user:role.test", "60", "");
+        assertEquals(userIdentityTimeout.extractSignerKeyIdFromRole(role), UserIdentityTimeout.DEFAULT_KEY_ID);
+    }
+
+    @Test
+    public void testExtractSignerKeyIdFromRoleWhitespaceKeyId() {
+
+        DataStore dataStore = Mockito.mock(DataStore.class);
+        when(dataStore.getDomainData("user")).thenReturn(null);
+
+        userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
+
+        Role role = createRoleWithTimeout("user:role.test", "60", "  ");
+        assertEquals(userIdentityTimeout.extractSignerKeyIdFromRole(role), UserIdentityTimeout.DEFAULT_KEY_ID);
+    }
+
+    @Test
+    public void testRolesWithSignerKeyId() {
+
+        DataStore dataStore = Mockito.mock(DataStore.class);
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(createRoleWithTimeout("user:role.admin", "60"));
+        roles.add(createRoleWithTimeout("user:role.developer", "120", "key1"));
+        roles.add(createRoleWithTimeout("user:role.ops", "90", "key2"));
+
+        DomainData domainData = new DomainData()
+                .setName("user")
+                .setRoles(roles)
+                .setModified(Timestamp.fromMillis(1000));
+        when(dataStore.getDomainData("user")).thenReturn(domainData);
+
+        userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
+
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 3);
+        assertEquals(userIdentityTimeout.getCertTimeout(null, "user:role.admin"), Integer.valueOf(60));
+        assertEquals(userIdentityTimeout.getCertTimeout("key1", "user:role.developer"), Integer.valueOf(120));
+        assertEquals(userIdentityTimeout.getCertTimeout("key2", "user:role.ops"), Integer.valueOf(90));
+
+        assertNull(userIdentityTimeout.getCertTimeout("key1", "user:role.admin"));
+        assertNull(userIdentityTimeout.getCertTimeout("key2", "user:role.admin"));
+        assertNull(userIdentityTimeout.getCertTimeout(null, "user:role.developer"));
+    }
+
+    @Test
+    public void testGetUserCertTimeoutWithSignerKeyId() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT, "60");
+        System.setProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT, "300");
+
+        try {
+            DataStore dataStore = Mockito.mock(DataStore.class);
+
+            List<Role> roles = new ArrayList<>();
+            roles.add(createRoleWithTimeout("user:role.admin", "90"));
+            roles.add(createRoleWithTimeout("user:role.developer", "120", "key1"));
+            roles.add(createRoleWithTimeout("user:role.ops", "200", "key1"));
+
+            DomainData domainData = new DomainData()
+                    .setName("user")
+                    .setRoles(roles)
+                    .setModified(Timestamp.fromMillis(1000));
+            when(dataStore.getDomainData("user")).thenReturn(domainData);
+
+            DataCache dataCache = Mockito.mock(DataCache.class);
+            Set<String> accessibleRoles = new HashSet<>();
+            accessibleRoles.add("user:role.admin");
+            accessibleRoles.add("user:role.developer");
+            accessibleRoles.add("user:role.ops");
+            mockAccessibleRoles(dataStore, dataCache, accessibleRoles);
+
+            userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
+
+            // no key id -> uses default map which has role.admin=90
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", null, null), 90);
+
+            // key1 -> uses key1 map which has role.developer=120 and role.ops=200, max=200
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", "key1", null), 200);
+
+            // key2 -> no map for key2, returns default timeout
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", "key2", null), 60);
+
+            // key1 with user request smaller -> uses user request
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", "key1", 150), 150);
+
+            // key1 with user request larger -> uses key1 map max (200)
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", "key1", 250), 200);
+        } finally {
+            System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
+            System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
+        }
+    }
+
+    @Test
+    public void testGetUserCertTimeoutWithEmptySignerKeyId() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT, "60");
+        System.setProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT, "300");
+
+        try {
+            DataStore dataStore = Mockito.mock(DataStore.class);
+
+            List<Role> roles = new ArrayList<>();
+            roles.add(createRoleWithTimeout("user:role.admin", "90"));
+
+            DomainData domainData = new DomainData()
+                    .setName("user")
+                    .setRoles(roles)
+                    .setModified(Timestamp.fromMillis(1000));
+            when(dataStore.getDomainData("user")).thenReturn(domainData);
+
+            DataCache dataCache = Mockito.mock(DataCache.class);
+            Set<String> accessibleRoles = new HashSet<>();
+            accessibleRoles.add("user:role.admin");
+            mockAccessibleRoles(dataStore, dataCache, accessibleRoles);
+
+            userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
+
+            // empty string key id -> uses default map
+            assertEquals(userIdentityTimeout.getUserCertTimeout("user.john", "", null), 90);
+        } finally {
+            System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
+            System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
+        }
+    }
+
+    @Test
+    public void testRefreshWithSignerKeyIdChanges() {
+
+        DataStore dataStore = Mockito.mock(DataStore.class);
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(createRoleWithTimeout("user:role.admin", "60", "key1"));
+
+        DomainData domainData = new DomainData()
+                .setName("user")
+                .setRoles(roles)
+                .setModified(Timestamp.fromMillis(1000));
+        when(dataStore.getDomainData("user")).thenReturn(domainData);
+
+        userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
+
+        assertEquals(userIdentityTimeout.getCertTimeout("key1", "user:role.admin"), Integer.valueOf(60));
+        assertNull(userIdentityTimeout.getCertTimeout(null, "user:role.admin"));
+
+        // move role from key1 to default (remove key id tag)
+
+        List<Role> updatedRoles = new ArrayList<>();
+        updatedRoles.add(createRoleWithTimeout("user:role.admin", "120"));
+
+        DomainData updatedDomainData = new DomainData()
+                .setName("user")
+                .setRoles(updatedRoles)
+                .setModified(Timestamp.fromMillis(2000));
+        when(dataStore.getDomainData("user")).thenReturn(updatedDomainData);
+
+        userIdentityTimeout.refreshIfModified();
+
+        assertNull(userIdentityTimeout.getCertTimeout("key1", "user:role.admin"));
+        assertEquals(userIdentityTimeout.getCertTimeout(null, "user:role.admin"), Integer.valueOf(120));
+    }
+
+    @Test
+    public void testMultipleRolesWithSameSignerKeyId() {
+
+        DataStore dataStore = Mockito.mock(DataStore.class);
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(createRoleWithTimeout("user:role.admin", "60", "key1"));
+        roles.add(createRoleWithTimeout("user:role.developer", "120", "key1"));
+        roles.add(createRoleWithTimeout("user:role.ops", "90", "key1"));
+
+        DomainData domainData = new DomainData()
+                .setName("user")
+                .setRoles(roles)
+                .setModified(Timestamp.fromMillis(1000));
+        when(dataStore.getDomainData("user")).thenReturn(domainData);
+
+        userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
+
+        assertEquals(getCertTimeoutEntryCount(userIdentityTimeout), 3);
+        assertEquals(userIdentityTimeout.getCertTimeout("key1", "user:role.admin"), Integer.valueOf(60));
+        assertEquals(userIdentityTimeout.getCertTimeout("key1", "user:role.developer"), Integer.valueOf(120));
+        assertEquals(userIdentityTimeout.getCertTimeout("key1", "user:role.ops"), Integer.valueOf(90));
+    }
+
+    @Test
+    public void testCertTimeoutMapWithMixedKeyIds() {
+
+        DataStore dataStore = Mockito.mock(DataStore.class);
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(createRoleWithTimeout("user:role.r1", "60"));
+        roles.add(createRoleWithTimeout("user:role.r2", "90"));
+        roles.add(createRoleWithTimeout("user:role.r3", "120", "key1"));
+        roles.add(createRoleWithTimeout("user:role.r4", "150", "key2"));
+
+        DomainData domainData = new DomainData()
+                .setName("user")
+                .setRoles(roles)
+                .setModified(Timestamp.fromMillis(1000));
+        when(dataStore.getDomainData("user")).thenReturn(domainData);
+
+        userIdentityTimeout = new UserIdentityTimeout(dataStore, "user");
+
+        Map<String, Map<String, Integer>> certMap = userIdentityTimeout.getCertTimeoutMap();
+        assertEquals(certMap.size(), 3);
+        assertEquals(certMap.get(UserIdentityTimeout.DEFAULT_KEY_ID).size(), 2);
+        assertEquals(certMap.get("key1").size(), 1);
+        assertEquals(certMap.get("key2").size(), 1);
     }
 }

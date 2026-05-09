@@ -128,6 +128,7 @@ public class ZTSImplIDTokenTest {
 
         System.setProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT, Integer.toString(2400));
         System.setProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT, Integer.toString(96000));
+        System.setProperty(ZTSConsts.ZTS_PROP_USER_CERT_SIGNER_KEY_ID_LIST, "x509-signer-key-1,x509-signer-key-2");
 
         System.setProperty(ZTSConsts.ZTS_PROP_AUTHORIZED_PROXY_USERS,
                 "user_domain.proxy-user1,user_domain.proxy-user2");
@@ -164,6 +165,7 @@ public class ZTSImplIDTokenTest {
         ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
         System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT);
         System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT);
+        System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_SIGNER_KEY_ID_LIST);
     }
 
     private ConfigurableJWTProcessor<SecurityContext> createIDTokenProcessor() {

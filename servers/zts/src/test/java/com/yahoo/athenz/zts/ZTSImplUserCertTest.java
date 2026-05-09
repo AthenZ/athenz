@@ -49,6 +49,7 @@ import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
+import java.util.Collections;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -135,6 +136,7 @@ public class ZTSImplUserCertTest {
         System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_PROVIDER);
         System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_MAX_TIMEOUT);
         System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
+        System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_SIGNER_KEY_ID_LIST);
     }
 
     private ResourceContext createResourceContext(Principal principal) {
@@ -182,7 +184,7 @@ public class ZTSImplUserCertTest {
     @Test
     public void testGetUserX509KeySignerIdAuthorityReturnsValue() {
         Authority mockAuthority = Mockito.mock(Authority.class);
-        when(mockAuthority.getSignerKeyId("user.joe")).thenReturn("authority-key-id");
+        when(mockAuthority.getSignerKeyId("user.joe", "request-key-id")).thenReturn("authority-key-id");
         zts.userAuthority = mockAuthority;
 
         assertEquals(zts.getUserX509KeySignerId("user.joe", "request-key-id"), "authority-key-id");
@@ -191,25 +193,25 @@ public class ZTSImplUserCertTest {
     @Test
     public void testGetUserX509KeySignerIdAuthorityReturnsNull() {
         Authority mockAuthority = Mockito.mock(Authority.class);
-        when(mockAuthority.getSignerKeyId("user.joe")).thenReturn(null);
+        when(mockAuthority.getSignerKeyId("user.joe", "request-key-id")).thenReturn(null);
         zts.userAuthority = mockAuthority;
 
-        assertEquals(zts.getUserX509KeySignerId("user.joe", "request-key-id"), "request-key-id");
+        assertNull(zts.getUserX509KeySignerId("user.joe", "request-key-id"));
     }
 
     @Test
     public void testGetUserX509KeySignerIdAuthorityReturnsEmpty() {
         Authority mockAuthority = Mockito.mock(Authority.class);
-        when(mockAuthority.getSignerKeyId("user.joe")).thenReturn("");
+        when(mockAuthority.getSignerKeyId("user.joe", "request-key-id")).thenReturn("");
         zts.userAuthority = mockAuthority;
 
-        assertEquals(zts.getUserX509KeySignerId("user.joe", "request-key-id"), "request-key-id");
+        assertNull(zts.getUserX509KeySignerId("user.joe", "request-key-id"));
     }
 
     @Test
     public void testGetUserX509KeySignerIdBothNull() {
         Authority mockAuthority = Mockito.mock(Authority.class);
-        when(mockAuthority.getSignerKeyId("user.joe")).thenReturn(null);
+        when(mockAuthority.getSignerKeyId("user.joe", null)).thenReturn(null);
         zts.userAuthority = mockAuthority;
 
         assertNull(zts.getUserX509KeySignerId("user.joe", null));
@@ -218,10 +220,60 @@ public class ZTSImplUserCertTest {
     @Test
     public void testGetUserX509KeySignerIdAuthorityEmptyRequestNull() {
         Authority mockAuthority = Mockito.mock(Authority.class);
-        when(mockAuthority.getSignerKeyId("user.joe")).thenReturn("");
+        when(mockAuthority.getSignerKeyId("user.joe", null)).thenReturn("");
         zts.userAuthority = mockAuthority;
 
         assertNull(zts.getUserX509KeySignerId("user.joe", null));
+    }
+
+    @Test
+    public void testGetUserX509KeySignerIdAllowedListNotConfigured() {
+        Authority mockAuthority = Mockito.mock(Authority.class);
+        when(mockAuthority.getSignerKeyId("user.joe", "request-key-id")).thenReturn("");
+        zts.userAuthority = mockAuthority;
+        zts.validX509CertSignerKeyIds = Collections.emptySet();
+
+        assertNull(zts.getUserX509KeySignerId("user.joe", "request-key-id"));
+    }
+
+    @Test
+    public void testGetUserX509KeySignerIdRequestInAllowedList() {
+        Authority mockAuthority = Mockito.mock(Authority.class);
+        when(mockAuthority.getSignerKeyId("user.joe", "key-id-1")).thenReturn("");
+        zts.userAuthority = mockAuthority;
+        zts.validX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+
+        assertEquals(zts.getUserX509KeySignerId("user.joe", "key-id-1"), "key-id-1");
+    }
+
+    @Test
+    public void testGetUserX509KeySignerIdRequestNotInAllowedList() {
+        Authority mockAuthority = Mockito.mock(Authority.class);
+        when(mockAuthority.getSignerKeyId("user.joe", "unknown-key-id")).thenReturn("");
+        zts.userAuthority = mockAuthority;
+        zts.validX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+
+        assertNull(zts.getUserX509KeySignerId("user.joe", "unknown-key-id"));
+    }
+
+    @Test
+    public void testGetUserX509KeySignerIdRequestNullWithAllowedList() {
+        Authority mockAuthority = Mockito.mock(Authority.class);
+        when(mockAuthority.getSignerKeyId("user.joe", null)).thenReturn(null);
+        zts.userAuthority = mockAuthority;
+        zts.validX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+
+        assertNull(zts.getUserX509KeySignerId("user.joe", null));
+    }
+
+    @Test
+    public void testGetUserX509KeySignerIdAuthorityReturnsValueWithAllowedList() {
+        Authority mockAuthority = Mockito.mock(Authority.class);
+        when(mockAuthority.getSignerKeyId("user.joe", "request-key-id")).thenReturn("authority-key-id");
+        zts.userAuthority = mockAuthority;
+        zts.validX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+
+        assertEquals(zts.getUserX509KeySignerId("user.joe", "request-key-id"), "authority-key-id");
     }
 
     // -----------------------------------------------------------------------
@@ -668,7 +720,7 @@ public class ZTSImplUserCertTest {
 
         Authority mockAuthority = Mockito.mock(Authority.class);
         when(mockAuthority.getUserType("user.joe")).thenReturn(Authority.UserType.USER_ACTIVE);
-        when(mockAuthority.getSignerKeyId("user.joe")).thenReturn(null);
+        when(mockAuthority.getSignerKeyId("user.joe", null)).thenReturn(null);
         zts.userAuthority = mockAuthority;
         zts.userCertProvider = "test.provider";
 
@@ -714,7 +766,7 @@ public class ZTSImplUserCertTest {
 
         Authority mockAuthority = Mockito.mock(Authority.class);
         when(mockAuthority.getUserType("user.joe")).thenReturn(Authority.UserType.USER_ACTIVE);
-        when(mockAuthority.getSignerKeyId("user.joe")).thenReturn(null);
+        when(mockAuthority.getSignerKeyId("user.joe", null)).thenReturn(null);
         zts.userAuthority = mockAuthority;
         zts.userCertProvider = "test.provider";
 
@@ -760,7 +812,7 @@ public class ZTSImplUserCertTest {
 
         Authority mockAuthority = Mockito.mock(Authority.class);
         when(mockAuthority.getUserType("user.joe")).thenReturn(Authority.UserType.USER_ACTIVE);
-        when(mockAuthority.getSignerKeyId("user.joe")).thenReturn("authority-signer-key");
+        when(mockAuthority.getSignerKeyId("user.joe", null)).thenReturn("authority-signer-key");
         zts.userAuthority = mockAuthority;
         zts.userCertProvider = "test.provider";
 
@@ -807,9 +859,10 @@ public class ZTSImplUserCertTest {
 
         Authority mockAuthority = Mockito.mock(Authority.class);
         when(mockAuthority.getUserType("user.joe")).thenReturn(Authority.UserType.USER_ACTIVE);
-        when(mockAuthority.getSignerKeyId("user.joe")).thenReturn(null);
+        when(mockAuthority.getSignerKeyId("user.joe", "request-signer-key")).thenReturn(null);
         zts.userAuthority = mockAuthority;
         zts.userCertProvider = "test.provider";
+        zts.validX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("request-signer-key"));
 
         String csr = generateUserCsr("user.joe");
 
@@ -854,7 +907,7 @@ public class ZTSImplUserCertTest {
 
         Authority mockAuthority = Mockito.mock(Authority.class);
         when(mockAuthority.getUserType("user.joe")).thenReturn(Authority.UserType.USER_ACTIVE);
-        when(mockAuthority.getSignerKeyId("user.joe")).thenReturn(null);
+        when(mockAuthority.getSignerKeyId("user.joe", null)).thenReturn(null);
         zts.userAuthority = mockAuthority;
         zts.userCertProvider = "test.provider";
 
