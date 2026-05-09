@@ -69,7 +69,7 @@ func New(domain, service, region, account, ec2Document, ec2Signature string, use
 	return string(data), nil
 }
 
-func getSTSToken(useRegionalSTS bool, region, account, role string) (*sts.AssumeRoleOutput, error) {
+func getSTSToken(useRegionalSTS bool, region, account, role, rolePath string) (*sts.AssumeRoleOutput, error) {
 	// Attempt STS AssumeRole
 	stsClient, err := stssession.New(useRegionalSTS, region)
 	if err != nil {
