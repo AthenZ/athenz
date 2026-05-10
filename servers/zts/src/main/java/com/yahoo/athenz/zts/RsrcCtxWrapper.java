@@ -46,6 +46,7 @@ public class RsrcCtxWrapper implements ResourceContext {
     private final String apiName;
     private final Authority userAuthority;
     private final String userDomain;
+    private boolean principalValidated = false;
 
     public RsrcCtxWrapper(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response,
                           Http.AuthorityList authList, boolean optionalAuth, Authorizer authorizer,
@@ -134,9 +135,10 @@ public class RsrcCtxWrapper implements ResourceContext {
     }
 
     void validateUserPrincipal(final Principal principal) throws ServerResourceException {
-        if (principal == null || userAuthority == null || userDomain == null) {
+        if (principalValidated || principal == null || userAuthority == null || userDomain == null) {
             return;
         }
+        principalValidated = true;
         if (!userDomain.equals(principal.getDomain())) {
             return;
         }

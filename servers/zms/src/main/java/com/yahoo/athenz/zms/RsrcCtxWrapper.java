@@ -46,6 +46,7 @@ public class RsrcCtxWrapper implements ResourceContext {
     private final boolean eventPublishersEnabled;
     private final Authority userAuthority;
     private final String userDomain;
+    private boolean principalValidated = false;
     private List<DomainChangeMessage> domainChangeMessages;
 
     RsrcCtxWrapper(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response,
@@ -129,9 +130,10 @@ public class RsrcCtxWrapper implements ResourceContext {
     }
 
     void validateUserPrincipal(final Principal principal) throws ServerResourceException {
-        if (principal == null || userAuthority == null || userDomain == null) {
+        if (principalValidated ||principal == null || userAuthority == null || userDomain == null) {
             return;
         }
+        principalValidated = true;
         if (!userDomain.equals(principal.getDomain())) {
             return;
         }
