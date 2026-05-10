@@ -6895,7 +6895,7 @@ public class ZTSImpl implements ZTSHandler {
         boolean optionalAuth = StringUtils.requestUriMatch(request.getRequestURI(),
                 authFreeUriSet, authFreeUriList);
         return new RsrcCtxWrapper(servletContext, request, response, authorities, optionalAuth, authorizer,
-                metric, timerMetric, apiName);
+                metric, timerMetric, apiName, userAuthority, userDomain);
     }
 
     String getExceptionMsg(String prefix, ResourceContext ctx, Exception ex, String hostname) {

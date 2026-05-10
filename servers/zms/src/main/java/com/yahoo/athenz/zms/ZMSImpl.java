@@ -10423,7 +10423,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 authFreeUriSet, authFreeUriList);
         boolean eventPublishersEnabled = !domainChangePublishers.isEmpty();
         return new RsrcCtxWrapper(servletContext, request, response, authorities, optionalAuth, this,
-                timerMetric, apiName, eventPublishersEnabled);
+                timerMetric, apiName, eventPublishersEnabled, userAuthority, userDomain);
     }
 
     @Override

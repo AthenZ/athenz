@@ -14140,7 +14140,7 @@ public class ZMSImplTest {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
         ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
-                null, new Object(), "apiName", false);
+                null, new Object(), "apiName", false, null, null);
 
         zmsImpl.optionsUserToken(ctx, "user", "coretech.storage");
         assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_METHODS), "GET");
@@ -14161,7 +14161,7 @@ public class ZMSImplTest {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
         ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
-                null, new Object(), "apiName", false);
+                null, new Object(), "apiName", false, null, null);
 
         String origin = "https://zms.origin.athenzcompany.com";
         String requestHeaders = "X-Forwarded-For,Content-Type";
@@ -14199,7 +14199,7 @@ public class ZMSImplTest {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
         ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
-                null, new Object(), "apiName", false);
+                null, new Object(), "apiName", false, null, null);
 
         zmsImpl.setStandardCORSHeaders(ctx);
         assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS), "true");
@@ -14217,7 +14217,7 @@ public class ZMSImplTest {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
         ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
-                null, new Object(), "apiName", true);
+                null, new Object(), "apiName", true, null, null);
 
         String origin = "https://zms.origin.athenzcompany.com";
         String requestHeaders = "X-Forwarded-For,Content-Type";

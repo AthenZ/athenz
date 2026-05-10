@@ -1769,7 +1769,7 @@ public class ZTSImplAccessTokenTest {
         HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
         ResourceContext context = new RsrcCtxWrapper(null, servletRequest, null, null, true,
-                null, null, null, "postaccesstoken");
+                null, null, null, "postaccesstoken", null, null);
 
         // first let's try without any client assertions which should
         // return the request at not authenticated
