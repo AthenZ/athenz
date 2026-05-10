@@ -450,4 +450,64 @@ public class SchemaMigrationRunnerTest {
 
         verify(insertStmt, times(2)).executeUpdate();
     }
+
+    @Test
+    public void testMigrateIfConfiguredWithValidDir() throws Exception {
+        Files.writeString(tempDir.resolve("update-20190107.sql"),
+                "ALTER TABLE `test` ADD `col1` VARCHAR(256);\n");
+
+        System.setProperty("test.migration.dir", tempDir.toString());
+
+        ResultSet lockResultSet = Mockito.mock(ResultSet.class);
+        when(lockResultSet.next()).thenReturn(true);
+        when(lockResultSet.getInt(1)).thenReturn(1);
+
+        PreparedStatement lockStmt = Mockito.mock(PreparedStatement.class);
+        when(lockStmt.executeQuery()).thenReturn(lockResultSet);
+
+        PreparedStatement releaseLockStmt = Mockito.mock(PreparedStatement.class);
+        ResultSet releaseLockRs = Mockito.mock(ResultSet.class);
+        when(releaseLockStmt.executeQuery()).thenReturn(releaseLockRs);
+
+        PreparedStatement insertStmt = Mockito.mock(PreparedStatement.class);
+
+        when(mockConnection.prepareStatement("SELECT GET_LOCK(?, ?)")).thenReturn(lockStmt);
+        when(mockConnection.prepareStatement("SELECT RELEASE_LOCK(?)")).thenReturn(releaseLockStmt);
+        when(mockConnection.prepareStatement(SchemaMigrationRunner.INSERT_SCHEMA_VERSION)).thenReturn(insertStmt);
+
+        when(mockStatement.executeQuery(SchemaMigrationRunner.SELECT_APPLIED_VERSIONS))
+                .thenReturn(mockResultSet);
+        when(mockResultSet.next()).thenReturn(false);
+
+        try {
+            SchemaMigrationRunner.migrateIfConfigured(mockDataSource,
+                    "test.migration.dir", "test_lock");
+            verify(insertStmt, times(1)).executeUpdate();
+        } finally {
+            System.clearProperty("test.migration.dir");
+        }
+    }
+
+    @Test
+    public void testReleaseLockSuccess() throws Exception {
+        PreparedStatement releaseLockStmt = Mockito.mock(PreparedStatement.class);
+        ResultSet releaseLockRs = Mockito.mock(ResultSet.class);
+        when(releaseLockStmt.executeQuery()).thenReturn(releaseLockRs);
+        when(mockConnection.prepareStatement("SELECT RELEASE_LOCK(?)")).thenReturn(releaseLockStmt);
+
+        SchemaMigrationRunner runner = new SchemaMigrationRunner(mockDataSource);
+        runner.releaseLock(mockConnection);
+
+        verify(releaseLockStmt).setString(1, SchemaMigrationRunner.DEFAULT_LOCK_NAME);
+        verify(releaseLockStmt).executeQuery();
+    }
+
+    @Test
+    public void testReleaseLockFailure() throws Exception {
+        when(mockConnection.prepareStatement("SELECT RELEASE_LOCK(?)"))
+                .thenThrow(new SQLException("connection closed"));
+
+        SchemaMigrationRunner runner = new SchemaMigrationRunner(mockDataSource);
+        runner.releaseLock(mockConnection);
+    }
 }
