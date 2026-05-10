@@ -130,7 +130,7 @@ public class RsrcCtxWrapper implements ResourceContext {
     }
 
     void validateUserPrincipal(final Principal principal) throws ServerResourceException {
-        if (principalValidated ||principal == null || userAuthority == null || userDomain == null) {
+        if (principalValidated || principal == null || userAuthority == null || userDomain == null) {
             return;
         }
         principalValidated = true;
