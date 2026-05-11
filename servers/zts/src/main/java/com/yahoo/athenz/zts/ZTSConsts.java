@@ -197,10 +197,12 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_HOSTNAME_RESOLVER_FACTORY_CLASS  = "athenz.zts.hostname_resolver_factory_class";
     public static final String ZTS_PROP_SSH_RECORD_STORE_FACTORY_CLASS   = "athenz.zts.ssh_record_store_factory_class";
     public static final String ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS    = "athenz.zts.validate_service_skip_domains";
-    public static final String ZTS_PROP_VALIDATE_SERVICE_IDENTITY        = "athenz.zts.validate_service_identity";
     public static final String ZTS_PROP_MAX_AUTHZ_DETAILS_LENGTH         = "athenz.zts.max_authz_details_length";
     public static final String ZTS_PROP_ROLE_BASED_AUTHZ_SUPPORT         = "athenz.zts.role_based_authz_support";
     public static final String ZTS_PROP_VALIDATE_ROLE_CERT_DNS_NAMES     = "athenz.zts.validate_role_cert_dns_names";
+
+    public static final String ZTS_PROP_VALIDATE_SERVICE_IDENTITY             = "athenz.zts.validate_service_identity";
+    public static final String ZTS_PROP_VALIDATE_USER_AUTHORITY_PRINCIPALS    = "athenz.zts.validate_user_authority_principals";
     public static final String ZTS_PROP_WORKLOAD_RECORD_STORE_FACTORY_CLASS   = "athenz.zts.workload_record_store_factory_class";
 
     public static final String ZTS_CHANGE_LOG_STORE_FACTORY_CLASS  = "com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStoreFactory";
@@ -228,11 +230,11 @@ public final class ZTSConsts {
     public static final String ZTS_USER_CERT_TIMEOUT_TAG = "zts.UserCertTimeout";
     public static final String ZTS_USER_TOKEN_TIMEOUT_TAG = "zts.UserTokenTimeout";
 
-    public static final String ZTS_PROP_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY = "athenz.zts.cert_priority_min_percent_low_priority";
-    public static final String ZTS_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY_DEFAULT = "75";
-    public static final String ZTS_PROP_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY = "athenz.zts.cert_priority_max_percent_high_priority";
+    public static final String ZTS_PROP_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY     = "athenz.zts.cert_priority_min_percent_low_priority";
+    public static final String ZTS_CERT_PRIORITY_MIN_PERCENT_LOW_PRIORITY_DEFAULT  = "75";
+    public static final String ZTS_PROP_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY    = "athenz.zts.cert_priority_max_percent_high_priority";
     public static final String ZTS_CERT_PRIORITY_MAX_PERCENT_HIGH_PRIORITY_DEFAULT = "25";
-    public static final String ZTS_PROP_PRINCIPAL_IDENTITY_ISSUER_MAP_FNAME = "athenz.zts.principal_identity_issuer_map_fname";
+    public static final String ZTS_PROP_PRINCIPAL_IDENTITY_ISSUER_MAP_FNAME        = "athenz.zts.principal_identity_issuer_map_fname";
 
     public static final String ZTS_OPENID_RESPONSE_TOKEN_TYPE = "urn:ietf:params:oauth:token-type:";
     public static final String ZTS_OPENID_RESPONSE_AT_ONLY    = "token";

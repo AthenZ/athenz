@@ -169,6 +169,7 @@ public class ZTSImpl implements ZTSHandler {
     protected boolean verifyCertRequestIP = false;
     protected boolean verifyCertSubjectOU = false;
     protected DynamicConfigBoolean validateInstanceServiceIdentity;
+    protected DynamicConfigBoolean validateUserAuthorityPrincipals;
     protected String ztsOAuthIssuer;
     protected File healthCheckFile = null;
     protected int maxAuthzDetailsLength;
@@ -768,6 +769,7 @@ public class ZTSImpl implements ZTSHandler {
         validateServiceSkipDomains = Arrays.asList(skipDomains.split(","));
 
         validateInstanceServiceIdentity = new DynamicConfigBoolean(CONFIG_MANAGER, ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_IDENTITY, true);
+        validateUserAuthorityPrincipals = new DynamicConfigBoolean(CONFIG_MANAGER, ZTSConsts.ZTS_PROP_VALIDATE_USER_AUTHORITY_PRINCIPALS, false);
 
         // configured max length for authz details claims
 
@@ -6894,8 +6896,9 @@ public class ZTSImpl implements ZTSHandler {
 
         boolean optionalAuth = StringUtils.requestUriMatch(request.getRequestURI(),
                 authFreeUriSet, authFreeUriList);
+        Authority reqUserAuthority = validateUserAuthorityPrincipals.get() ? userAuthority : null;
         return new RsrcCtxWrapper(servletContext, request, response, authorities, optionalAuth, authorizer,
-                metric, timerMetric, apiName, userAuthority, userDomain);
+                metric, timerMetric, apiName, reqUserAuthority, userDomain);
     }
 
     String getExceptionMsg(String prefix, ResourceContext ctx, Exception ex, String hostname) {

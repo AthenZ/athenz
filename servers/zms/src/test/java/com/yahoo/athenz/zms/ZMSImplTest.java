@@ -15285,6 +15285,80 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testNewResourceContextValidateUserAuthorityPrincipalsDefault() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // by default validateUserAuthorityPrincipals is false so the userAuthority
+        // should not be passed to the RsrcCtxWrapper
+
+        DynamicConfigBoolean savedConfig = zmsImpl.validateUserAuthorityPrincipals;
+        Authority savedAuthority = zmsImpl.userAuthority;
+
+        Authority authority = Mockito.mock(Authority.class);
+        zmsImpl.userAuthority = authority;
+
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(false);
+        zmsImpl.validateUserAuthorityPrincipals = dynamicConfigBoolean;
+
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zmsImpl.newResourceContext(zmsTestInitializer.getMockServletContext(),
+                zmsTestInitializer.getMockServletRequest(), zmsTestInitializer.getMockServletResponse(), "apiName");
+        assertNotNull(ctx);
+
+        // the wrapper should have null userAuthority since the config is disabled
+        // which means the validateUserPrincipal check will be skipped
+
+        try {
+            ctx.validateUserPrincipal(null);
+        } catch (Exception ex) {
+            fail();
+        }
+
+        zmsImpl.validateUserAuthorityPrincipals = savedConfig;
+        zmsImpl.userAuthority = savedAuthority;
+    }
+
+    @Test
+    public void testNewResourceContextValidateUserAuthorityPrincipalsEnabled() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        DynamicConfigBoolean savedConfig = zmsImpl.validateUserAuthorityPrincipals;
+        Authority savedAuthority = zmsImpl.userAuthority;
+
+        Authority authority = Mockito.mock(Authority.class);
+        when(authority.getUserType("user.joe")).thenReturn(Authority.UserType.USER_INVALID);
+        zmsImpl.userAuthority = authority;
+
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true);
+        zmsImpl.validateUserAuthorityPrincipals = dynamicConfigBoolean;
+
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zmsImpl.newResourceContext(zmsTestInitializer.getMockServletContext(),
+                zmsTestInitializer.getMockServletRequest(), zmsTestInitializer.getMockServletResponse(), "apiName");
+        assertNotNull(ctx);
+
+        // the wrapper should have a non-null userAuthority since the config is enabled
+        // so the validateUserPrincipal check will be active - an invalid user should
+        // throw an exception
+
+        Principal principal = Mockito.mock(Principal.class);
+        when(principal.getDomain()).thenReturn("user");
+        when(principal.getFullName()).thenReturn("user.joe");
+
+        try {
+            ctx.validateUserPrincipal(principal);
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), 401);
+        }
+
+        zmsImpl.validateUserAuthorityPrincipals = savedConfig;
+        zmsImpl.userAuthority = savedAuthority;
+    }
+
+    @Test
     public void testAssertionMatchAuthenticatedRoles() {
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
 

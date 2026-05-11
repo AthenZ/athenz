@@ -184,6 +184,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected DynamicConfigBoolean validateServiceRoleMembers;
     protected DynamicConfigBoolean validateUserRoleMembers;
     protected DynamicConfigBoolean validatePolicyAssertionRoles;
+    protected DynamicConfigBoolean validateUserAuthorityPrincipals;
     protected DynamicConfigBoolean allowUnderscoreInServiceNames;
     protected boolean useMasterCopyForSignedDomains = false;
     protected List<String> validateServiceMemberSkipDomains;
@@ -883,6 +884,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateServiceRoleMembers = new DynamicConfigBoolean(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_VALIDATE_SERVICE_MEMBERS, false);
         validateUserRoleMembers = new DynamicConfigBoolean(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_VALIDATE_USER_MEMBERS, false);
         validatePolicyAssertionRoles = new DynamicConfigBoolean(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_VALIDATE_ASSERTION_ROLES, false);
+        validateUserAuthorityPrincipals = new DynamicConfigBoolean(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_VALIDATE_USER_AUTHORITY_PRINCIPALS, false);
 
         // there are going to be domains like our ci/cd dynamic project domain
         // where we can't verify the service role members so for those we're
@@ -10422,8 +10424,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         boolean optionalAuth = StringUtils.requestUriMatch(request.getRequestURI(),
                 authFreeUriSet, authFreeUriList);
         boolean eventPublishersEnabled = !domainChangePublishers.isEmpty();
+        Authority reqUserAuthority = validateUserAuthorityPrincipals.get() ? userAuthority : null;
         return new RsrcCtxWrapper(servletContext, request, response, authorities, optionalAuth, this,
-                timerMetric, apiName, eventPublishersEnabled, userAuthority, userDomain);
+                timerMetric, apiName, eventPublishersEnabled, reqUserAuthority, userDomain);
     }
 
     @Override

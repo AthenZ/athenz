@@ -85,9 +85,10 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_DEFAULT_MAX_SERVICE_EXPIRY  = "athenz.zms.default_max_service_expiry_days";
     public static final String ZMS_PROP_DEFAULT_MAX_GROUP_EXPIRY  = "athenz.zms.default_max_group_expiry_days";
 
-    public static final String ZMS_PROP_VALIDATE_USER_MEMBERS    = "athenz.zms.validate_user_members";
-    public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS = "athenz.zms.validate_service_members";
-    public static final String ZMS_PROP_VALIDATE_ASSERTION_ROLES = "athenz.zms.validate_policy_assertion_roles";
+    public static final String ZMS_PROP_VALIDATE_USER_MEMBERS              = "athenz.zms.validate_user_members";
+    public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS           = "athenz.zms.validate_service_members";
+    public static final String ZMS_PROP_VALIDATE_ASSERTION_ROLES           = "athenz.zms.validate_policy_assertion_roles";
+    public static final String ZMS_PROP_VALIDATE_USER_AUTHORITY_PRINCIPALS = "athenz.zms.validate_user_authority_principals";
 
     public static final String ZMS_PROP_VALIDATE_SERVICE_MEMBERS_SKIP_DOMAINS = "athenz.zms.validate_service_members_skip_domains";
     public static final String ZMS_PROP_MASTER_COPY_FOR_SIGNED_DOMAINS        = "athenz.zms.master_copy_for_signed_domains";
@@ -123,7 +124,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_DOMAIN_META_STORE_FACTORY_CLASS = "athenz.zms.domain_meta_store_factory_class";
     public static final String ZMS_DOMAIN_META_STORE_FACTORY_CLASS      = "com.yahoo.athenz.common.server.metastore.impl.NoOpDomainMetaStoreFactory";
 
-    public static final String ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS    = "athenz.zms.auth_history_store_factory_class";
+    public static final String ZMS_PROP_AUTH_HISTORY_STORE_FACTORY_CLASS = "athenz.zms.auth_history_store_factory_class";
 
     public static final String ZMS_PROP_AWS_ASSUME_ROLE_ACTION    = "athenz.zms.aws_assume_role_action";
     public static final String ZMS_PROP_GCP_ASSUME_ROLE_ACTION    = "athenz.zms.gcp_assume_role_action";

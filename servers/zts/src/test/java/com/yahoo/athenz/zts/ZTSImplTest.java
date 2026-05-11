@@ -3168,6 +3168,66 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testNewResourceContextValidateUserAuthorityPrincipalsDefault() {
+
+        DynamicConfigBoolean savedConfig = zts.validateUserAuthorityPrincipals;
+        Authority savedAuthority = zts.userAuthority;
+
+        Authority authority = Mockito.mock(Authority.class);
+        zts.userAuthority = authority;
+
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(false);
+        zts.validateUserAuthorityPrincipals = dynamicConfigBoolean;
+
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletContext,
+                mockServletRequest, mockServletResponse, "apiName");
+        assertNotNull(ctx);
+
+        try {
+            ctx.validateUserPrincipal(null);
+        } catch (Exception ex) {
+            fail();
+        }
+
+        zts.validateUserAuthorityPrincipals = savedConfig;
+        zts.userAuthority = savedAuthority;
+    }
+
+    @Test
+    public void testNewResourceContextValidateUserAuthorityPrincipalsEnabled() {
+
+        DynamicConfigBoolean savedConfig = zts.validateUserAuthorityPrincipals;
+        Authority savedAuthority = zts.userAuthority;
+
+        Authority authority = Mockito.mock(Authority.class);
+        when(authority.getUserType("user.joe")).thenReturn(Authority.UserType.USER_INVALID);
+        zts.userAuthority = authority;
+
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true);
+        zts.validateUserAuthorityPrincipals = dynamicConfigBoolean;
+
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletContext,
+                mockServletRequest, mockServletResponse, "apiName");
+        assertNotNull(ctx);
+
+        Principal principal = Mockito.mock(Principal.class);
+        when(principal.getDomain()).thenReturn("user");
+        when(principal.getFullName()).thenReturn("user.joe");
+
+        try {
+            ctx.validateUserPrincipal(principal);
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), 401);
+        }
+
+        zts.validateUserAuthorityPrincipals = savedConfig;
+        zts.userAuthority = savedAuthority;
+    }
+
+    @Test
     public void testVerifyAWSAssumeRoleInvalidDomain() {
         assertFalse(zts.verifyAWSAssumeRole("unknown-domain", "role", "user_domain.user"));
     }
