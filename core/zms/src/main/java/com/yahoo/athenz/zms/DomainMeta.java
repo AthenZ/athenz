@@ -122,6 +122,9 @@ public class DomainMeta {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String externalMemberValidator;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String costCenter;
 
     public DomainMeta setDescription(String description) {
         this.description = description;
@@ -375,6 +378,13 @@ public class DomainMeta {
     public String getExternalMemberValidator() {
         return externalMemberValidator;
     }
+    public DomainMeta setCostCenter(String costCenter) {
+        this.costCenter = costCenter;
+        return this;
+    }
+    public String getCostCenter() {
+        return costCenter;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -489,6 +499,9 @@ public class DomainMeta {
                 return false;
             }
             if (externalMemberValidator == null ? a.externalMemberValidator != null : !externalMemberValidator.equals(a.externalMemberValidator)) {
+                return false;
+            }
+            if (costCenter == null ? a.costCenter != null : !costCenter.equals(a.costCenter)) {
                 return false;
             }
         }

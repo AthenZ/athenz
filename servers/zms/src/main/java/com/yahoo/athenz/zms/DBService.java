@@ -4496,7 +4496,8 @@ public class DBService implements RolesProvider, DomainProvider {
                         .setSlackChannel(domain.getSlackChannel())
                         .setOnCall(domain.getOnCall())
                         .setAutoDeleteTenantAssumeRoleAssertions(domain.getAutoDeleteTenantAssumeRoleAssertions())
-                        .setExternalMemberValidator(domain.getExternalMemberValidator());
+                        .setExternalMemberValidator(domain.getExternalMemberValidator())
+                        .setCostCenter(domain.getCostCenter());
 
                 // then we're going to apply the updated fields
                 // from the given object
@@ -5008,6 +5009,12 @@ public class DBService implements RolesProvider, DomainProvider {
                     throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
                 }
                 domain.setExternalMemberValidator(meta.getExternalMemberValidator());
+                break;
+            case ZMSConsts.SYSTEM_META_COST_CENTER:
+                if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getCostCenter(), meta.getCostCenter())) {
+                    throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
+                }
+                domain.setCostCenter(meta.getCostCenter());
                 break;
             default:
                 throw ZMSUtils.requestError("unknown system meta attribute: " + attribute, caller);
@@ -6610,7 +6617,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 .append("\", \"environment\": \"").append(domain.getEnvironment())
                 .append("\", \"memberPurgeExpiryDays\": \"").append(domain.getMemberPurgeExpiryDays())
                 .append("\", \"featureFlags\": \"").append(domain.getFeatureFlags())
-                .append("\", \"externalMemberValidator\": \"").append(domain.getExternalMemberValidator()).append("\"");
+                .append("\", \"externalMemberValidator\": \"").append(domain.getExternalMemberValidator())
+                .append("\", \"costCenter\": \"").append(domain.getCostCenter()).append("\"");
         auditLogTags(auditDetails, domain.getTags());
         auditLogDomainContacts(auditDetails, domain.getContacts());
         auditDetails.append("}");

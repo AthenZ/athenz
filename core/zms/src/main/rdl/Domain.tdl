@@ -48,6 +48,7 @@ type DomainMeta Struct {
     String onCall (optional, x_allowempty="true"); //oncall team name/id for any incidents in this domain
     Bool autoDeleteTenantAssumeRoleAssertions (optional, default=false); // Indicates whether to automatically delete assertions for a tenant's assume role
     String externalMemberValidator (optional, x_allowempty="true"); //class name responsible for validating external members
+    String costCenter (optional, x_allowempty="true"); //cost center for this domain for any chargebacks
 }
 
 //A domain is an independent partition of users, roles, and resources.

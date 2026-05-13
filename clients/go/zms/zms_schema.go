@@ -197,6 +197,7 @@ func init() {
 	tDomainMeta.Field("onCall", "String", true, nil, "oncall team name/id for any incidents in this domain")
 	tDomainMeta.Field("autoDeleteTenantAssumeRoleAssertions", "Bool", true, false, "Indicates whether to automatically delete assertions for a tenant's assume role")
 	tDomainMeta.Field("externalMemberValidator", "String", true, nil, "class name responsible for validating external members")
+	tDomainMeta.Field("costCenter", "String", true, nil, "cost center for this domain for any chargebacks")
 	sb.AddType(tDomainMeta.Build())
 
 	tDomain := rdl.NewStructTypeBuilder("DomainMeta", "Domain")

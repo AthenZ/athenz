@@ -34,6 +34,7 @@ func (cli Zms) dumpDomain(buf *bytes.Buffer, domain *zms.Domain) {
 	dumpStringValue(buf, indentLevel1, "gcp_project_number", domain.GcpProjectNumber)
 	dumpStringValue(buf, indentLevel1, "application_id", domain.ApplicationId)
 	dumpStringValue(buf, indentLevel1, "business_service", domain.BusinessService)
+	dumpStringValue(buf, indentLevel1, "cost_center", domain.CostCenter)
 	if domain.ProductId != "" {
 		dumpStringValue(buf, indentLevel1, "product_id", domain.ProductId)
 		dumpInt32Value(buf, indentLevel1, "ypm_id", domain.YpmId)

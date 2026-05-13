@@ -168,7 +168,8 @@ public class ZMSSchema {
             .field("slackChannel", "String", true, "slack channel for any notifications in this domain")
             .field("onCall", "String", true, "oncall team name/id for any incidents in this domain")
             .field("autoDeleteTenantAssumeRoleAssertions", "Bool", true, "Indicates whether to automatically delete assertions for a tenant's assume role", false)
-            .field("externalMemberValidator", "String", true, "class name responsible for validating external members");
+            .field("externalMemberValidator", "String", true, "class name responsible for validating external members")
+            .field("costCenter", "String", true, "cost center for this domain for any chargebacks");
 
         sb.structType("Domain", "DomainMeta")
             .comment("A domain is an independent partition of users, roles, and resources. Its name represents the definition of a namespace; the only way a new namespace can be created, from the top, is by creating Domains. Administration of a domain is governed by the parent domain (using reverse-DNS namespaces). The top level domains are governed by the special \"sys.auth\" domain.")

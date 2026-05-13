@@ -18892,7 +18892,8 @@ public class ZMSImplTest {
                 .setAccount("1234").setAuditEnabled(true).setOrg("org")
                 .setAzureSubscription("4567").setAzureTenant("321").setAzureClient("999")
                 .setBusinessService("123:business service").setGcpProject("gcp").setGcpProjectNumber("1240")
-                .setProductId("abcd-123").setExternalMemberValidator("com.yahoo.test.Validator");
+                .setProductId("abcd-123").setExternalMemberValidator("com.yahoo.test.Validator")
+                .setCostCenter("cost-center-123");
         SignedDomain domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, null);
         assertNull(domain.getDomain().getAccount());
         assertNull(domain.getDomain().getAwsAccountName());
@@ -19029,6 +19030,24 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getSlackChannel());
         assertNull(domain.getDomain().getOnCall());
         assertNull(domain.getDomain().getProductId());
+        assertNull(domain.getDomain().getCostCenter());
+
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "costcenter");
+        assertEquals(domain.getDomain().getCostCenter(), "cost-center-123");
+        assertNull(domain.getDomain().getAccount());
+        assertNull(domain.getDomain().getYpmId());
+        assertNull(domain.getDomain().getOrg());
+        assertNull(domain.getDomain().getAuditEnabled());
+        assertNull(domain.getDomain().getAzureSubscription());
+        assertNull(domain.getDomain().getAzureTenant());
+        assertNull(domain.getDomain().getAzureClient());
+        assertNull(domain.getDomain().getGcpProject());
+        assertNull(domain.getDomain().getGcpProjectNumber());
+        assertNull(domain.getDomain().getBusinessService());
+        assertNull(domain.getDomain().getSlackChannel());
+        assertNull(domain.getDomain().getOnCall());
+        assertNull(domain.getDomain().getProductId());
+        assertNull(domain.getDomain().getExternalMemberValidator());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "all");
         assertEquals(domain.getDomain().getAccount(), "1234");
@@ -19043,6 +19062,7 @@ public class ZMSImplTest {
         assertEquals(domain.getDomain().getBusinessService(), "123:business service");
         assertEquals(domain.getDomain().getProductId(), "abcd-123");
         assertEquals(domain.getDomain().getExternalMemberValidator(), "com.yahoo.test.Validator");
+        assertEquals(domain.getDomain().getCostCenter(), "cost-center-123");
         assertNull(domain.getDomain().getSlackChannel());
         assertNull(domain.getDomain().getOnCall());
 
@@ -19076,6 +19096,10 @@ public class ZMSImplTest {
 
         domainMeta.setExternalMemberValidator(null);
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "externalmembervalidator");
+        assertNull(domain);
+
+        domainMeta.setCostCenter(null);
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "costcenter");
         assertNull(domain);
 
         zmsImpl.objectStore.clearConnections();

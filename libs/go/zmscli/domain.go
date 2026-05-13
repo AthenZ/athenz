@@ -1349,6 +1349,23 @@ func (cli Zms) SetDomainCertDnsDomain(dn string, dnsDomain string) (*string, err
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
+func (cli Zms) SetDomainCostCenter(dn string, costCenter string) (*string, error) {
+	meta := zms.DomainMeta{
+		CostCenter: costCenter,
+	}
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "costcenter", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " cost-center successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) SetDomainExternalMemberValidator(dn string, validator string) (*string, error) {
 	meta := zms.DomainMeta{
 		ExternalMemberValidator: validator,

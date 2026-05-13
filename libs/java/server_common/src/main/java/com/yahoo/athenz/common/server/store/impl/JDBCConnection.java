@@ -94,8 +94,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " service_expiry_days, user_authority_filter, group_expiry_days, azure_subscription, business_service,"
             + " member_purge_expiry_days, gcp_project, gcp_project_number, product_id, feature_flags, environment,"
             + " azure_tenant, azure_client, x509_cert_signer_keyid, ssh_cert_signer_keyid, slack_channel, on_call,"
-            + " auto_delete_tenant_assume_role_assertions, aws_account_name, external_member_validator) "
-            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            + " auto_delete_tenant_assume_role_assertions, aws_account_name, external_member_validator, cost_center) "
+            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);";
     private static final String SQL_UPDATE_DOMAIN = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3), description=?, org=?, uuid=?, enabled=?, audit_enabled=?, account=?, ypm_id=?,"
             + " application_id=?, cert_dns_domain=?, member_expiry_days=?, token_expiry_mins=?, service_cert_expiry_mins=?,"
@@ -104,7 +104,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " gcp_project=?, gcp_project_number=?, product_id=?, feature_flags=?, environment=?,"
             + " azure_tenant=?, azure_client=?, x509_cert_signer_keyid=?, ssh_cert_signer_keyid=?,"
             + " slack_channel=?, on_call=?, auto_delete_tenant_assume_role_assertions=?, aws_account_name=?,"
-            + " external_member_validator=? WHERE name=?;";
+            + " external_member_validator=?, cost_center=? WHERE name=?;";
     private static final String SQL_UPDATE_DOMAIN_MOD_TIMESTAMP = "UPDATE domain "
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
@@ -964,7 +964,8 @@ public class JDBCConnection implements ObjectStoreConnection {
                 .setSlackChannel(saveValue(rs.getString(JDBCConsts.DB_COLUMN_SLACK_CHANNEL)))
                 .setOnCall(saveValue(rs.getString(JDBCConsts.DB_COLUMN_ON_CALL)))
                 .setAutoDeleteTenantAssumeRoleAssertions(rs.getBoolean(JDBCConsts.DB_COLUMN_AUTO_DELETE_TENANT_ASSUME_ROLE_ASSERTIONS))
-                .setExternalMemberValidator(saveValue(rs.getString(JDBCConsts.DB_COLUMN_EXTERNAL_MEMBER_VALIDATOR)));
+                .setExternalMemberValidator(saveValue(rs.getString(JDBCConsts.DB_COLUMN_EXTERNAL_MEMBER_VALIDATOR)))
+                .setCostCenter(saveValue(rs.getString(JDBCConsts.DB_COLUMN_COST_CENTER)));
         if (fetchAddlDetails) {
             int domainId = rs.getInt(JDBCConsts.DB_COLUMN_DOMAIN_ID);
             domain.setTags(getDomainTags(domainId));
@@ -1043,6 +1044,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setBoolean(33, processInsertValue(domain.getAutoDeleteTenantAssumeRoleAssertions(), false));
             ps.setString(34, processInsertValue(domain.getAwsAccountName()));
             ps.setString(35, processInsertValue(domain.getExternalMemberValidator()));
+            ps.setString(36, processInsertValue(domain.getCostCenter()));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -1207,7 +1209,8 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setBoolean(32, processInsertValue(domain.getAutoDeleteTenantAssumeRoleAssertions(), false));
             ps.setString(33, processInsertValue(domain.getAwsAccountName()));
             ps.setString(34, processInsertValue(domain.getExternalMemberValidator()));
-            ps.setString(35, domain.getName());
+            ps.setString(35, processInsertValue(domain.getCostCenter()));
+            ps.setString(36, domain.getName());
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

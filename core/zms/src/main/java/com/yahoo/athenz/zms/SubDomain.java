@@ -122,6 +122,9 @@ public class SubDomain {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String externalMemberValidator;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String costCenter;
     public String name;
     public List<String> adminUsers;
     @RdlOptional
@@ -381,6 +384,13 @@ public class SubDomain {
     public String getExternalMemberValidator() {
         return externalMemberValidator;
     }
+    public SubDomain setCostCenter(String costCenter) {
+        this.costCenter = costCenter;
+        return this;
+    }
+    public String getCostCenter() {
+        return costCenter;
+    }
     public SubDomain setName(String name) {
         this.name = name;
         return this;
@@ -523,6 +533,9 @@ public class SubDomain {
                 return false;
             }
             if (externalMemberValidator == null ? a.externalMemberValidator != null : !externalMemberValidator.equals(a.externalMemberValidator)) {
+                return false;
+            }
+            if (costCenter == null ? a.costCenter != null : !costCenter.equals(a.costCenter)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

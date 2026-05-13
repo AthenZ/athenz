@@ -5636,7 +5636,8 @@ public class DBServiceTest {
                 .setGcpProjectNumber("1234")
                 .setProductId("abcd-1234")
                 .setFeatureFlags(3)
-                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator");
+                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator")
+                .setCostCenter("cost-center-123");
         zms.dbService.updateSystemMetaFields(domain, "account", true, meta);
         assertEquals(domain.getAccount(), "acct");
         assertEquals(domain.getAwsAccountName(), "aws-acct-name");
@@ -5658,6 +5659,8 @@ public class DBServiceTest {
         assertEquals(domain.getFeatureFlags().intValue(), 3);
         zms.dbService.updateSystemMetaFields(domain, "externalmembervalidator", true, meta);
         assertEquals(domain.getExternalMemberValidator(), "com.yahoo.athenz.auth.impl.TestValidator");
+        zms.dbService.updateSystemMetaFields(domain, "costcenter", true, meta);
+        assertEquals(domain.getCostCenter(), "cost-center-123");
         try {
             zms.dbService.updateSystemMetaFields(domain, "unknown", true, meta);
             fail();
@@ -5679,7 +5682,8 @@ public class DBServiceTest {
                 .setGcpProject("gcp")
                 .setGcpProjectNumber("1235")
                 .setFeatureFlags(3)
-                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator");
+                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator")
+                .setCostCenter("cost-center-123");
         zms.dbService.updateSystemMetaFields(domain1, "account", false, meta1);
         assertEquals(domain1.getAccount(), "acct");
         zms.dbService.updateSystemMetaFields(domain1, "productid", false, meta1);
@@ -5699,6 +5703,8 @@ public class DBServiceTest {
         assertEquals(domain.getFeatureFlags().intValue(), 3);
         zms.dbService.updateSystemMetaFields(domain1, "externalmembervalidator", false, meta1);
         assertEquals(domain1.getExternalMemberValidator(), "com.yahoo.athenz.auth.impl.TestValidator");
+        zms.dbService.updateSystemMetaFields(domain1, "costcenter", false, meta1);
+        assertEquals(domain1.getCostCenter(), "cost-center-123");
 
         // setting from set values should be all rejected
 
@@ -5713,7 +5719,8 @@ public class DBServiceTest {
                 .setGcpProject("gcp")
                 .setGcpProjectNumber("1236")
                 .setFeatureFlags(3)
-                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator");
+                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator")
+                .setCostCenter("cost-center-123");
         DomainMeta meta2 = new DomainMeta()
                 .setAccount("acct-new")
                 .setYpmId(1235)
@@ -5725,7 +5732,8 @@ public class DBServiceTest {
                 .setGcpProject("gcp.new")
                 .setGcpProjectNumber("1237")
                 .setFeatureFlags(4)
-                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.NewValidator");
+                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.NewValidator")
+                .setCostCenter("cost-center-456");
 
         // setting from the old value to new value with
         // no delete flag should be rejected
@@ -5786,6 +5794,13 @@ public class DBServiceTest {
             assertTrue(ex.getMessage().contains("reset system meta attribute"));
         }
 
+        try {
+            zms.dbService.updateSystemMetaFields(domain2, "costcenter", false, meta2);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("reset system meta attribute"));
+        }
+
         // setting from set value to the same value should be allowed
 
         Domain domain3 = new Domain()
@@ -5799,7 +5814,8 @@ public class DBServiceTest {
                 .setGcpProject("gcp")
                 .setGcpProjectNumber("1237")
                 .setFeatureFlags(3)
-                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator");
+                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator")
+                .setCostCenter("cost-center-123");
         DomainMeta meta3 = new DomainMeta()
                 .setAccount("acct")
                 .setYpmId(1234)
@@ -5811,7 +5827,8 @@ public class DBServiceTest {
                 .setGcpProject("gcp")
                 .setGcpProjectNumber("1237")
                 .setFeatureFlags(3)
-                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator");
+                .setExternalMemberValidator("com.yahoo.athenz.auth.impl.TestValidator")
+                .setCostCenter("cost-center-123");
         zms.dbService.updateSystemMetaFields(domain3, "account", false, meta3);
         assertEquals(domain3.getAccount(), "acct");
         zms.dbService.updateSystemMetaFields(domain3, "productid", false, meta3);
@@ -5828,6 +5845,8 @@ public class DBServiceTest {
         assertEquals(domain3.getFeatureFlags().intValue(), 3);
         zms.dbService.updateSystemMetaFields(domain3, "externalmembervalidator", false, meta3);
         assertEquals(domain3.getExternalMemberValidator(), "com.yahoo.athenz.auth.impl.TestValidator");
+        zms.dbService.updateSystemMetaFields(domain3, "costcenter", false, meta3);
+        assertEquals(domain3.getCostCenter(), "cost-center-123");
     }
 
     @Test
