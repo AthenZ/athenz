@@ -45,7 +45,7 @@ jobs:
 
     steps:
       - name: Free Disk Space (Ubuntu)
-        uses: kfir4444/free-disk-space@main
+        uses: insightsengineering/disk-space-reclaimer@v1.1.2
         with:
           # this might remove tools that are actually needed,
           # if set to "true" but frees about 6 GB
