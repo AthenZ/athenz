@@ -1,4 +1,26 @@
+Athenz v1.12.41 Release / May 13, 2026
+--------------------------------------
+
+#3326 Support parallel domain fetch and upload in CloudZmsSyncer
+#3338 extract ui functional tests values to config
+#3342 return service feature flags for jws domain response
+#3343 Handle empty file for athenz-accesstoken
+#3345 only log unsigned tokens in debug mode
+#3346 Add support for IAM role path for SIA EC2, Fargate, EKS
+#3348 Bump axios from 1.15.0 to 1.15.2 in /clients/nodejs/zts
+#3349 Add automated schema migration runner
+#3350 support certificate timeouts per requested key id
+#3351 add validation for user principals after auth
+#3354 update usercert default callback uri to match client library
+#3355 replace free-disk-space step with pinned version
+#3357 add costCenter attribute to domain object
+#3359 updated java/go/nodejs dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20260513.sql
+
 Athenz v1.12.40 Release / May 04, 2026
+--------------------------------------
 
 #3322 Adding property description for athenz.zts.k8s_provider_gcp_attr_validator_factory_class
 #3327 disallow * member in roles if filters are configured
