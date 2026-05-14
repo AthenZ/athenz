@@ -74,6 +74,7 @@
     <angus.mail.version>2.0.5</angus.mail.version>
     <apache.httpclient.version>5.6.1</apache.httpclient.version>
     <apache.httpclient4.version>4.5.14</apache.httpclient4.version>
+    <apache.httpcore.version>5.4.2</apache.httpcore.version>
     <aws.version>1.12.797</aws.version>
     <aws2.version>2.44.5</aws2.version>
     <aws.dynamodb.local.version>2.6.1</aws.dynamodb.local.version>

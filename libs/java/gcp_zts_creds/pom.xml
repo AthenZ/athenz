@@ -33,6 +33,16 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5</artifactId>
+        <version>${apache.httpcore.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-h2</artifactId>
+        <version>${apache.httpcore.version}</version>
+      </dependency>
+      <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>libraries-bom</artifactId>
         <version>${gcp.bom.version}</version>
