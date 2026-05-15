@@ -19,18 +19,17 @@ import java.util.Locale;
 
 import com.yahoo.athenz.common.ServerCommonConsts;
 import org.apache.hc.core5.net.InetAddressUtils;
+import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.DateCache;
-import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.util.NanoTime;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.net.ssl.SSLSession;
 
 public class AthenzRequestLog extends CustomRequestLog {
 
@@ -93,10 +92,12 @@ public class AthenzRequestLog extends CustomRequestLog {
     }
 
     private void logTLSProtocol(StringBuilder buf, Request request) {
-        SSLSession sslSession = (SSLSession) request.getAttribute(ServerCommonConsts.REQUEST_SSL_SESSION);
-        append(buf, (sslSession == null) ? null : sslSession.getProtocol());
+        EndPoint.SslSessionData sslData = (EndPoint.SslSessionData) request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE);
+
+        append(buf, (sslData == null) ? null : sslData.sslSession() != null
+            ? sslData.sslSession().getProtocol() : null);
         buf.append(' ');
-        append(buf, (sslSession == null) ? null : sslSession.getCipherSuite());
+        append(buf, (sslData == null) ? null : sslData.cipherSuite());
     }
 
     private void append(StringBuilder buf, String str) {
