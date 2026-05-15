@@ -184,7 +184,8 @@ public class AthenzJettyContainer {
 
         // Add response-headers, according to configuration
 
-        final String responseHeadersJson = System.getProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON);
+        final String responseHeadersJson = System.getProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON,
+            AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON_DEFAULT);
         if (!StringUtil.isEmpty(responseHeadersJson)) {
             HashMap<String, String> responseHeaders;
             try {
