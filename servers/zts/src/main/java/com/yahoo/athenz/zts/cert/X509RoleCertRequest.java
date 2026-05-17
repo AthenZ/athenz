@@ -168,8 +168,8 @@ public class X509RoleCertRequest extends X509CertRequest {
         return true;
     }
 
-    public boolean validate(final String principal, final String proxyUser, Set<String> validCertSubjectOrgValues,
-            boolean validateRoleCertDnsNames) {
+    public boolean validate(final String principal, final String proxyUser, final X509Certificate cert,
+            final Set<String> validCertSubjectOrgValues, final boolean validateRoleCertDnsNames) {
 
         // now let's check if we have a valid role principal
 
@@ -180,7 +180,7 @@ public class X509RoleCertRequest extends X509CertRequest {
         // validate that the dnsSuffix used in the dnsName attribute has
             // been authorized to be used by the given provider
 
-        if (!validateDnsNames(principal, validateRoleCertDnsNames)) {
+        if (!validateDnsNames(principal, cert, validateRoleCertDnsNames)) {
             return false;
         }
 
@@ -201,7 +201,19 @@ public class X509RoleCertRequest extends X509CertRequest {
         return validateSpiffeURI(reqRoleDomain, reqRoleName);
     }
 
-    boolean validateDnsNames(final String principal, boolean validateRoleCertDnsNames) {
+    private boolean serviceIdentityDnsNameMatch(final String prefix, final String dnsName) {
+
+        // the suffix values already start with a dot so we don't need to add it here
+
+        for (String suffix : ZTSUtils.ZTS_CERT_DNS_SUFFIX) {
+            if (dnsName.equals(prefix + suffix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    boolean validateDnsNames(final String principal, final X509Certificate principalCert, final boolean validateRoleCertDnsNames) {
 
         // if no dns names in the CSR then we're ok
 
@@ -217,47 +229,33 @@ public class X509RoleCertRequest extends X509CertRequest {
         final String domain = principal.substring(0, idx);
         final String service = principal.substring(idx + 1);
 
-        // the only format we're allowed to have in the CSR is:
+        List<String> principalCertDnsNames = (principalCert != null) ?
+            Crypto.extractX509CertDnsNames(principalCert) : Collections.emptyList();
+
+        // the dns names in the role certificate can inherit any of the dns names in
+        // the principal certificate or they must be in the format of
         // <service>.<domain-with-dashes>.<provider-dns-suffix>
-        // so we'll check if we have exactly one dns name if
-        // we're configured to validate dns names
-
-        if (validateRoleCertDnsNames && dnsNames.size() != 1) {
-            LOGGER.error("csr has incorrect number of dns names: {}/{}",
-                dnsNames.size(), String.join(", ", dnsNames));
-            return false;
-        }
-
-        // otherwise we'll go through and report any invalid dns names
-        // our dns suffix names already start with . so we don't need to add it again
 
         final String prefix = service + "." + domain.replace('.', '-');
         for (String dnsName : dnsNames) {
 
-            boolean match = false;
-            for (String suffix : ZTSUtils.ZTS_CERT_DNS_SUFFIX) {
-                if (dnsName.equals(prefix + suffix)) {
-                    match = true;
-                    break;
-                }
-            }
+            // if the dns name is in the principal certificate, then we're good
+            // and we can continue with the next dns name
 
-            if (match) {
-                if (validateRoleCertDnsNames) {
-                    return true;
-                }
+            if (principalCertDnsNames.contains(dnsName)) {
                 continue;
             }
 
-            LOGGER.error("Role Certificate sanDNS Validation - invalid entry: {}", dnsName);
+            if (serviceIdentityDnsNameMatch(prefix, dnsName)) {
+                continue;
+            }
+
+            LOGGER.error("Role Certificate sanDNS Validation - invalid entry: {}, principal: {}",
+                dnsName, principal);
             if (validateRoleCertDnsNames) {
                 return false;
             }
         }
-
-        // if our validation was turned on, then we would have
-        // already returned so at this point we're assuming the
-        // validation was turned off so we'll return true
 
         return true;
     }
