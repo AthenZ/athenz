@@ -229,8 +229,8 @@ public class X509RoleCertRequest extends X509CertRequest {
         final String domain = principal.substring(0, idx);
         final String service = principal.substring(idx + 1);
 
-        List<String> principalCertDnsNames = (principalCert != null) ?
-            Crypto.extractX509CertDnsNames(principalCert) : Collections.emptyList();
+Set<String> principalCertDnsNames = (principalCert != null) ?
+    new HashSet<>(Crypto.extractX509CertDnsNames(principalCert)) : Collections.emptySet();
 
         // the dns names in the role certificate can inherit any of the dns names in
         // the principal certificate or they must be in the format of
