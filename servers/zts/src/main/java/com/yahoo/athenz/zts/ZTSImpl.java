@@ -4078,7 +4078,7 @@ public class ZTSImpl implements ZTSHandler {
     boolean validateRoleCertificateRequest(X509RoleCertRequest certReq, final String principal,
             final String proxyUser, X509Certificate cert, final String ip) {
 
-        if (!certReq.validate(principal, proxyUser, validCertSubjectOrgValues, validateRoleCertDnsNames)) {
+        if (!certReq.validate(principal, proxyUser, cert, validCertSubjectOrgValues, validateRoleCertDnsNames)) {
             return false;
         }
 

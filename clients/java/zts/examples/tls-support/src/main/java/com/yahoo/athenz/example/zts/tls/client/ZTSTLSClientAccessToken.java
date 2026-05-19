@@ -102,8 +102,8 @@ public class ZTSTLSClientAccessToken {
                         .clientAssertionProvider(siaProvider);
 
                 try {
-                        AccessTokenResponse tokenResponse = ztsClient.getAccessToken(builder, false);
-                        validateToken(ztsUrl, ztsClient, tokenResponse);
+                    AccessTokenResponse tokenResponse = ztsClient.getAccessToken(builder, false);
+                    validateToken(ztsUrl, ztsClient, tokenResponse);
 
                 } catch (ZTSClientException ex) {
                     System.out.println("Unable to retrieve access token: " + ex.getMessage());
