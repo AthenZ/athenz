@@ -1,8 +1,5 @@
-import getConfig from 'next/config';
-const { publicRuntimeConfig } = getConfig() || {};
-
 // Exposes values from config files that depend on Node.js APIs (not accessible client-side)
 export const CLIENT_CONFIG = {
-    onCallUrl: publicRuntimeConfig?.onCallUrl,
-    organizationDomain: publicRuntimeConfig?.organizationDomain,
+    onCallUrl: process.env.NEXT_PUBLIC_ONCALL_URL,
+    organizationDomain: process.env.NEXT_PUBLIC_ORGANIZATION_DOMAIN,
 };

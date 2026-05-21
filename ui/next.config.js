@@ -1,8 +1,8 @@
 const appConfig = require('./src/config/config')();
 
 module.exports = {
-    publicRuntimeConfig: {
-        onCallUrl: appConfig.onCallUrl || appConfig.serverURL,
-        organizationDomain: appConfig?.organizationDomain,
+    env: {
+        NEXT_PUBLIC_ONCALL_URL: appConfig?.onCallUrl || appConfig.serverURL,
+        NEXT_PUBLIC_ORGANIZATION_DOMAIN: appConfig?.organizationDomain,
     },
 };
