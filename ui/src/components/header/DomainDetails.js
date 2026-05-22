@@ -139,9 +139,9 @@ class DomainDetails extends React.Component {
     }
 
     componentDidMount() {
-        if (this.props.getAllUsers) {
-            Promise.resolve(this.props.getAllUsers()).catch(() => {});
-        }
+        this.props.getAllUsers().catch((err) => {
+            this.showError(RequestUtils.xhrErrorCheckHelper(err));
+        });
     }
 
     showError(errorMessage) {
