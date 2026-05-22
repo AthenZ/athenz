@@ -6611,6 +6611,7 @@ public class ZTSImpl implements ZTSHandler {
         if (!validateUserPrincipalForCert(principalName)) {
             throw requestError("User name is not valid for certificate request", caller, userDomain, userDomain);
         }
+        ((RsrcCtxWrapper) ctx).logPrincipal(principalName);
 
         // parse our request object
 

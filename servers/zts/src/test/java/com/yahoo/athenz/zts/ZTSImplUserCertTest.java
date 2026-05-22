@@ -572,6 +572,7 @@ public class ZTSImplUserCertTest {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("Unable to validate cert request"));
         }
+        Mockito.verify((RsrcCtxWrapper) ctx).logPrincipal("user.joe");
     }
 
     @Test
@@ -852,6 +853,7 @@ public class ZTSImplUserCertTest {
         UserCertificate result = zts.postUserCertificateRequest(ctx, req);
         assertNotNull(result);
         assertEquals(result.getX509Certificate(), pemCert);
+        Mockito.verify((RsrcCtxWrapper) ctx).logPrincipal("user.joe");
     }
 
     @Test
