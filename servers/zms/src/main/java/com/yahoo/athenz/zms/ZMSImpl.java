@@ -2937,6 +2937,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(role.getMaxMembers(), "maxMembers");
         validateIntegerValue(role.getSelfRenewMins(), "selfRenewMins");
 
+        if (role.getSelfRenew() == Boolean.TRUE
+                && (role.getSelfRenewMins() == null || role.getSelfRenewMins() <= 0)) {
+            throw ZMSUtils.requestError(
+                    "Role cannot enable self-renew without a positive selfRenewMins value", caller);
+        }
+
         validateString(role.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(role.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
         validateString(role.getUserAuthorityExpiration(), TYPE_AUTHORITY_KEYWORD, caller);
@@ -2952,6 +2958,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(group.getServiceExpiryDays(), "serviceExpiryDays");
         validateIntegerValue(group.getMaxMembers(), "maxMembers");
         validateIntegerValue(group.getSelfRenewMins(), "selfRenewMins");
+
+        if (group.getSelfRenew() == Boolean.TRUE
+                && (group.getSelfRenewMins() == null || group.getSelfRenewMins() <= 0)) {
+            throw ZMSUtils.requestError(
+                    "Group cannot enable self-renew without a positive selfRenewMins value", caller);
+        }
 
         validateString(group.getNotifyRoles(), TYPE_RESOURCE_NAMES, caller);
         validateString(group.getUserAuthorityFilter(), TYPE_AUTHORITY_KEYWORDS, caller);
@@ -10590,6 +10602,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRoleMetaAuditEnabledFlag(meta, role, domain.getDomain(), caller);
 
+        // validate self-renew settings for the given role
+
+        validateRoleMetaSelfRenewFlag(meta, role, caller);
+
         // authorization check since we have 2 actions: update and update_meta
         // that allow access callers to manage metadata in a role
 
@@ -10633,6 +10649,29 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         } else {
             meta.setAuditEnabled(role.getAuditEnabled());
+        }
+    }
+
+    void validateRoleMetaSelfRenewFlag(RoleMeta meta, Role role, final String caller) {
+
+        // only validate if the caller is touching either of the self-renew fields;
+        // pre-existing inconsistent rows can continue to receive unrelated meta updates
+
+        if (meta.getSelfRenew() == null && meta.getSelfRenewMins() == null) {
+            return;
+        }
+
+        Boolean effectiveSelfRenew = meta.getSelfRenew() != null
+                ? meta.getSelfRenew() : role.getSelfRenew();
+        if (effectiveSelfRenew != Boolean.TRUE) {
+            return;
+        }
+
+        Integer effectiveSelfRenewMins = meta.getSelfRenewMins() != null
+                ? meta.getSelfRenewMins() : role.getSelfRenewMins();
+        if (effectiveSelfRenewMins == null || effectiveSelfRenewMins <= 0) {
+            throw ZMSUtils.requestError(
+                    "Role cannot enable self-renew without a positive selfRenewMins value", caller);
         }
     }
 
@@ -12332,6 +12371,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateGroupMetaAuditEnabledFlag(meta, group, domain.getDomain(), caller);
 
+        // validate self-renew settings for the given group
+
+        validateGroupMetaSelfRenewFlag(meta, group, caller);
+
         // verify resource ownership for the request. If the object returned
         // is not null then it indicates that the object must be modified
         // with the given resource ownership details
@@ -12361,6 +12404,29 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         } else {
             meta.setAuditEnabled(group.getAuditEnabled());
+        }
+    }
+
+    void validateGroupMetaSelfRenewFlag(GroupMeta meta, Group group, final String caller) {
+
+        // only validate if the caller is touching either of the self-renew fields;
+        // pre-existing inconsistent rows can continue to receive unrelated meta updates
+
+        if (meta.getSelfRenew() == null && meta.getSelfRenewMins() == null) {
+            return;
+        }
+
+        Boolean effectiveSelfRenew = meta.getSelfRenew() != null
+                ? meta.getSelfRenew() : group.getSelfRenew();
+        if (effectiveSelfRenew != Boolean.TRUE) {
+            return;
+        }
+
+        Integer effectiveSelfRenewMins = meta.getSelfRenewMins() != null
+                ? meta.getSelfRenewMins() : group.getSelfRenewMins();
+        if (effectiveSelfRenewMins == null || effectiveSelfRenewMins <= 0) {
+            throw ZMSUtils.requestError(
+                    "Group cannot enable self-renew without a positive selfRenewMins value", caller);
         }
     }
 
