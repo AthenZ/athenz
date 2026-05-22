@@ -16,7 +16,10 @@
 package com.yahoo.athenz.zts.cert;
 
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.common.server.cert.CertificateDataValidator;
 import com.yahoo.athenz.common.server.spiffe.SpiffeUriManager;
+import com.yahoo.athenz.zts.utils.ZTSUtils;
+import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -31,13 +34,14 @@ import static org.testng.Assert.*;
 public class X509RoleCertRequestTest {
 
     final SpiffeUriManager spiffeUriManager = new SpiffeUriManager();
+    final CertificateDataValidator certificateDataValidator = null;
 
     @Test
     public void testX509RoleCertRequest() throws IOException {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         assertEquals(certReq.getReqRoleDomain(), "coretech");
@@ -58,7 +62,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -73,7 +77,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertTrue(certReq.validateIPAddress(null, "10.10.11.12"));
     }
 
@@ -83,7 +87,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/role_single_ip.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertTrue(certReq.validateIPAddress(null, "10.11.12.13"));
         assertFalse(certReq.validateIPAddress(null, "10.10.11.12"));
     }
@@ -98,7 +102,7 @@ public class X509RoleCertRequestTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertTrue(certReq.validateIPAddress(cert, "10.11.12.13"));
         assertFalse(certReq.validateIPAddress(cert, "10.10.11.12"));
     }
@@ -117,7 +121,7 @@ public class X509RoleCertRequestTest {
         pem = new String(Files.readAllBytes(path));
         X509Certificate cert2 = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertTrue(certReq.validateIPAddress(cert1, "10.11.12.13"));
         assertTrue(certReq.validateIPAddress(cert2, "10.11.12.13"));
     }
@@ -136,7 +140,7 @@ public class X509RoleCertRequestTest {
         pem = new String(Files.readAllBytes(path));
         X509Certificate cert2 = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertFalse(certReq.validateIPAddress(cert1, "10.11.12.13"));
         assertTrue(certReq.validateIPAddress(cert2, "10.11.12.13"));
     }
@@ -147,7 +151,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -161,7 +165,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/role_single_ip.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -175,7 +179,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/multiple_proxy_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -189,7 +193,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/proxy_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -207,7 +211,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/athenz_role_principal_uri.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertTrue(certReq.validate("athenz.production", null, null, null, false));
         assertFalse(certReq.validate("athenz.api", null, null, null, false));
     }
@@ -218,7 +222,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/athenz_role_principal_uri_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertTrue(certReq.validate("athenz.production", null, null, null, false));
         assertFalse(certReq.validate("athenz.api", null, null, null, false));
     }
@@ -229,7 +233,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/athenz_role_principal_uri_email_mismatch.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertFalse(certReq.validate("athenz.production", null, null, null, false));
         assertFalse(certReq.validate("athenz.api", null, null, null, false));
     }
@@ -240,7 +244,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertTrue(certReq.validateSpiffeURI("coretech", "api"));
         assertFalse(certReq.validateSpiffeURI("coretech", "backend"));
     }
@@ -251,7 +255,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role_trust_domain.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertTrue(certReq.validateSpiffeURI("coretech", "api"));
         assertFalse(certReq.validateSpiffeURI("coretech", "backend"));
     }
@@ -262,7 +266,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertTrue(certReq.validateDnsNames("sports.api", null, false));
     }
 
@@ -272,7 +276,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/role_single_ip.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertFalse(certReq.validateDnsNames("nodotprincipal", null, false));
     }
 
@@ -282,7 +286,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Collections.singletonList("api.sports.athenz.cloud");
 
         assertTrue(certReq.validateDnsNames("sports.api", null, false));
@@ -294,7 +298,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Collections.singletonList("invalid.dns.name");
 
         assertTrue(certReq.validateDnsNames("sports.api", null, false));
@@ -306,7 +310,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Arrays.asList("invalid1.dns.name", "invalid2.dns.name");
 
         assertTrue(certReq.validateDnsNames("sports.api", null, false));
@@ -318,7 +322,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Arrays.asList("api.sports.athenz.cloud", "invalid.dns.name");
 
         assertTrue(certReq.validateDnsNames("sports.api", null, false));
@@ -330,7 +334,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Collections.singletonList("api.sports.athenz.cloud");
 
         assertTrue(certReq.validateDnsNames("sports.api", null, true));
@@ -342,7 +346,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Collections.singletonList("invalid.dns.name");
 
         assertFalse(certReq.validateDnsNames("sports.api", null, true));
@@ -354,7 +358,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Arrays.asList("api.sports.athenz.cloud", "extra.dns.athenz.cloud");
 
         assertFalse(certReq.validateDnsNames("sports.api", null, true));
@@ -366,7 +370,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Arrays.asList("api.sports.athenz.cloud", "api.sports.athenz.cloud");
 
         assertTrue(certReq.validateDnsNames("sports.api", null, true));
@@ -378,7 +382,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Collections.singletonList("api.athenz-sub.athenz.cloud");
 
         assertTrue(certReq.validateDnsNames("athenz.sub.api", null, true));
@@ -390,7 +394,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Collections.singletonList("api.athenz-wrong.athenz.cloud");
 
         assertFalse(certReq.validateDnsNames("athenz.sub.api", null, true));
@@ -402,7 +406,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/role_single_ip.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         // role_single_ip.csr has DNS names that don't match the default suffix pattern
         // with validation off, should still return true
@@ -415,7 +419,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/role_single_ip.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         // role_single_ip.csr has 2 DNS names, with validation on and size != 1, should fail
         assertFalse(certReq.validateDnsNames("athenz.production", null, true));
@@ -427,7 +431,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Collections.singletonList("api.sports.wrong.suffix");
 
         assertFalse(certReq.validateDnsNames("sports.api", null, true));
@@ -439,7 +443,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Collections.singletonList("wrongservice.sports.athenz.cloud");
 
         assertFalse(certReq.validateDnsNames("sports.api", null, true));
@@ -451,7 +455,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Collections.singletonList("api.wrongdomain.athenz.cloud");
 
         assertFalse(certReq.validateDnsNames("sports.api", null, true));
@@ -463,7 +467,7 @@ public class X509RoleCertRequestTest {
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Collections.singletonList("invalid.dns.name");
 
         Set<String> orgValues = new HashSet<>();
@@ -482,7 +486,7 @@ public class X509RoleCertRequestTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Collections.singletonList("production.athenz.ostk.athenz.cloud");
 
         assertTrue(certReq.validateDnsNames("athenz.production", cert, true));
@@ -498,7 +502,7 @@ public class X509RoleCertRequestTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Arrays.asList("production.athenz.ostk.athenz.cloud",
                 "1001.instanceid.athenz.ostk.athenz.cloud");
 
@@ -515,7 +519,7 @@ public class X509RoleCertRequestTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Arrays.asList("production.athenz.ostk.athenz.cloud",
                 "production.athenz.athenz.cloud");
 
@@ -532,7 +536,7 @@ public class X509RoleCertRequestTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Collections.singletonList("unknown.dns.name");
 
         assertFalse(certReq.validateDnsNames("athenz.production", cert, true));
@@ -548,7 +552,7 @@ public class X509RoleCertRequestTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Arrays.asList("production.athenz.ostk.athenz.cloud", "unknown.dns.name");
 
         assertFalse(certReq.validateDnsNames("athenz.production", cert, true));
@@ -564,9 +568,149 @@ public class X509RoleCertRequestTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
         certReq.dnsNames = Arrays.asList("production.athenz.ostk.athenz.cloud", "unknown.dns.name");
 
         assertTrue(certReq.validateDnsNames("athenz.production", cert, false));
+    }
+
+    @Test
+    public void testValidateDnsNamesWithCertificateDataValidatorAccepts() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // the CSR has CN "coretech:role.api", so reqRoleDomain=coretech and reqRoleName=api
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateRoleCertSanDnsName("coretech", "api", "sports.api",
+                "custom.dns.name", ZTSUtils.ZTS_CERT_DNS_SUFFIX)).thenReturn(true);
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, validator);
+        certReq.dnsNames = Collections.singletonList("custom.dns.name");
+
+        // even with validation on, the validator accepts the dns name, so it passes
+
+        assertTrue(certReq.validateDnsNames("sports.api", null, true));
+    }
+
+    @Test
+    public void testValidateDnsNamesWithCertificateDataValidatorRejects() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateRoleCertSanDnsName("coretech", "api", "sports.api",
+                "invalid.dns.name", ZTSUtils.ZTS_CERT_DNS_SUFFIX)).thenReturn(false);
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, validator);
+        certReq.dnsNames = Collections.singletonList("invalid.dns.name");
+
+        // validator rejects the dns name and validation is on, so it fails
+
+        assertFalse(certReq.validateDnsNames("sports.api", null, true));
+    }
+
+    @Test
+    public void testValidateDnsNamesWithCertificateDataValidatorRejectsValidationOff() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateRoleCertSanDnsName("coretech", "api", "sports.api",
+                "invalid.dns.name", ZTSUtils.ZTS_CERT_DNS_SUFFIX)).thenReturn(false);
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, validator);
+        certReq.dnsNames = Collections.singletonList("invalid.dns.name");
+
+        // validator rejects but validation is off, so it still passes
+
+        assertTrue(certReq.validateDnsNames("sports.api", null, false));
+    }
+
+    @Test
+    public void testValidateDnsNamesWithCertificateDataValidatorMixed() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // first dns name matches the default prefix pattern (api.sports.athenz.cloud);
+        // second one only passes because the validator accepts it
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateRoleCertSanDnsName("coretech", "api", "sports.api",
+                "custom.dns.name", ZTSUtils.ZTS_CERT_DNS_SUFFIX)).thenReturn(true);
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, validator);
+        certReq.dnsNames = Arrays.asList("api.sports.athenz.cloud", "custom.dns.name");
+
+        assertTrue(certReq.validateDnsNames("sports.api", null, true));
+    }
+
+    @Test
+    public void testValidateDnsNamesWithCertificateDataValidatorOneRejected() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // first dns name is accepted by the validator, second one is rejected
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateRoleCertSanDnsName("coretech", "api", "sports.api",
+                "accepted.dns.name", ZTSUtils.ZTS_CERT_DNS_SUFFIX)).thenReturn(true);
+        Mockito.when(validator.validateRoleCertSanDnsName("coretech", "api", "sports.api",
+                "rejected.dns.name", ZTSUtils.ZTS_CERT_DNS_SUFFIX)).thenReturn(false);
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, validator);
+        certReq.dnsNames = Arrays.asList("accepted.dns.name", "rejected.dns.name");
+
+        assertFalse(certReq.validateDnsNames("sports.api", null, true));
+    }
+
+    @Test
+    public void testValidateDnsNamesWithCertificateDataValidatorAfterCertDnsMatch() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        path = Paths.get("src/test/resources/athenz.instanceid.pem");
+        String pem = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(pem);
+
+        // the first dns name matches a SAN from the principal certificate;
+        // the second one is only accepted via the certificate data validator
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateRoleCertSanDnsName("coretech", "api", "athenz.production",
+                "custom.dns.name", ZTSUtils.ZTS_CERT_DNS_SUFFIX)).thenReturn(true);
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, validator);
+        certReq.dnsNames = Arrays.asList("production.athenz.ostk.athenz.cloud", "custom.dns.name");
+
+        assertTrue(certReq.validateDnsNames("athenz.production", cert, true));
+    }
+
+    @Test
+    public void testValidateDnsNamesCertificateDataValidatorNotCalledWhenPrefixMatches() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        // the validator would reject everything, but the dns name already matches
+        // the default <service>.<domain>.<suffix> pattern so the validator is never invoked
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateRoleCertSanDnsName(Mockito.anyString(), Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyList())).thenReturn(false);
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, validator);
+        certReq.dnsNames = Collections.singletonList("api.sports.athenz.cloud");
+
+        assertTrue(certReq.validateDnsNames("sports.api", null, true));
+
+        Mockito.verify(validator, Mockito.never()).validateRoleCertSanDnsName(Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyList());
     }
 }

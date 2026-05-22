@@ -32,6 +32,8 @@ import com.yahoo.athenz.common.config.AuthzDetailsEntity;
 import com.yahoo.athenz.common.config.AuthzDetailsEntityList;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
+import com.yahoo.athenz.common.server.cert.CertificateDataValidator;
+import com.yahoo.athenz.common.server.cert.CertificateDataValidatorFactory;
 import com.yahoo.athenz.common.server.cert.Priority;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
@@ -252,6 +254,7 @@ public class ZTSImpl implements ZTSHandler {
     protected static Validator validator;
     protected NotificationManager notificationManager = null;
     protected StatusChecker statusChecker = null;
+    protected CertificateDataValidator certificateDataValidator = null;
 
     private static final RuntimeDelegate.HeaderDelegate<EntityTag> ENTITY_TAG_HEADER_DELEGATE =
             RuntimeDelegate.getInstance().createHeaderDelegate(EntityTag.class);
@@ -399,6 +402,10 @@ public class ZTSImpl implements ZTSHandler {
         // load the StatusChecker
 
         loadStatusChecker();
+
+        // load the certificate data validator if configured
+
+        loadCertificateDataValidator();
 
         // setup open id and oauth config objects
 
@@ -1039,6 +1046,27 @@ public class ZTSImpl implements ZTSHandler {
                 LOGGER.error("Invalid StatusCheckerFactory class: {}", statusCheckerFactoryClass, ex);
                 throw new IllegalArgumentException("Invalid status checker factory class");
             }
+        }
+    }
+
+    void loadCertificateDataValidator() {
+
+        final String certDataValidatorFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_CERT_DATA_VALIDATOR_FACTORY_CLASS);
+        if (StringUtil.isEmpty(certDataValidatorFactoryClass)) {
+            return;
+        }
+
+        CertificateDataValidatorFactory certDataValidatorFactory;
+        try {
+            certDataValidatorFactory = (CertificateDataValidatorFactory) Class.forName(certDataValidatorFactoryClass)
+                    .getDeclaredConstructor().newInstance();
+
+            // create our certificate data validator
+
+            certificateDataValidator = certDataValidatorFactory.create();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid CertificateDataValidatorFactory class: {}", certDataValidatorFactoryClass, ex);
+            throw new IllegalArgumentException("Invalid certificate data validator factory class");
         }
     }
 
@@ -3781,7 +3809,7 @@ public class ZTSImpl implements ZTSHandler {
 
         X509RoleCertRequest certReq;
         try {
-            certReq = new X509RoleCertRequest(req.getCsr(), spiffeUriManager);
+            certReq = new X509RoleCertRequest(req.getCsr(), spiffeUriManager, certificateDataValidator);
         } catch (CryptoException ex) {
             throw requestError("Unable to parse PKCS10 CSR: " + ex.getMessage(),
                     caller, domainName, principalDomain);
@@ -4174,7 +4202,7 @@ public class ZTSImpl implements ZTSHandler {
 
         X509RoleCertRequest certReq;
         try {
-            certReq = new X509RoleCertRequest(req.getCsr(), spiffeUriManager);
+            certReq = new X509RoleCertRequest(req.getCsr(), spiffeUriManager, certificateDataValidator);
         } catch (CryptoException ex) {
             throw requestError("Unable to parse PKCS10 CSR: " + ex.getMessage(),
                     caller, principalDomain, principalDomain);
@@ -4746,7 +4774,7 @@ public class ZTSImpl implements ZTSHandler {
 
         X509ServiceCertRequest certReq;
         try {
-            certReq = new X509ServiceCertRequest(info.getCsr(), spiffeUriManager);
+            certReq = new X509ServiceCertRequest(info.getCsr(), spiffeUriManager, certificateDataValidator);
         } catch (CryptoException ex) {
             throw requestError("unable to parse PKCS10 CSR: " + ex.getMessage(),
                     caller, domain, principalDomain);
@@ -5503,7 +5531,7 @@ public class ZTSImpl implements ZTSHandler {
         final String principalDomain = principal.getDomain();
         X509ServiceCertRequest certReq;
         try {
-            certReq = new X509ServiceCertRequest(info.getCsr(), spiffeUriManager);
+            certReq = new X509ServiceCertRequest(info.getCsr(), spiffeUriManager, certificateDataValidator);
         } catch (CryptoException ex) {
             throw requestError("unable to parse PKCS10 CSR", caller, domain, principalDomain);
         }
@@ -6027,7 +6055,7 @@ public class ZTSImpl implements ZTSHandler {
 
         X509ServiceCertRequest x509CertReq;
         try {
-            x509CertReq = new X509ServiceCertRequest(req.getCsr(), spiffeUriManager);
+            x509CertReq = new X509ServiceCertRequest(req.getCsr(), spiffeUriManager, certificateDataValidator);
         } catch (CryptoException ex) {
             throw requestError("Unable to parse PKCS10 certificate request",
                     caller, domain, principalDomain);
@@ -6617,7 +6645,7 @@ public class ZTSImpl implements ZTSHandler {
 
         X509UserCertRequest certReq;
         try {
-            certReq = new X509UserCertRequest(req.getCsr(), spiffeUriManager);
+            certReq = new X509UserCertRequest(req.getCsr(), spiffeUriManager, certificateDataValidator);
         } catch (CryptoException ex) {
             throw requestError("Unable to parse PKCS10 CSR: " + ex.getMessage(),
                     caller, userDomain, userDomain);

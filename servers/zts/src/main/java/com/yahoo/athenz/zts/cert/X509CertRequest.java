@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.yahoo.athenz.common.server.cert.CertificateDataValidator;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.spiffe.SpiffeUriManager;
 import com.yahoo.athenz.common.utils.X509CertUtils;
@@ -52,8 +53,10 @@ public class X509CertRequest {
     protected List<String> ipAddresses;
     protected List<String> uris;
     protected SpiffeUriManager spiffeUriManager;
-    
-    public X509CertRequest(String csr, SpiffeUriManager spiffeUriManager) throws CryptoException {
+    protected CertificateDataValidator certificateDataValidator;
+
+    public X509CertRequest(String csr, SpiffeUriManager spiffeUriManager,
+            CertificateDataValidator certificateDataValidator) throws CryptoException {
 
         certReq = Crypto.getPKCS10CertRequest(csr);
         if (certReq == null) {
@@ -106,9 +109,10 @@ public class X509CertRequest {
             instanceId = X509CertUtils.extractRequestInstanceIdFromDnsNames(dnsNames);
         }
 
-        // save the spiffe uri manager object
+        // save the spiffe uri manager and certificate data validator objects
 
         this.spiffeUriManager = spiffeUriManager;
+        this.certificateDataValidator = certificateDataValidator;
     }
 
     public PKCS10CertificationRequest getCertReq() {
@@ -178,7 +182,7 @@ public class X509CertRequest {
 
         for (String dnsName : dnsNames) {
             if (!dnsSuffixCheck(dnsName, providerDnsSuffixList, serviceDnsSuffixCheck, wildCardPrefix,
-                    instanceHostname, instanceHostCnames)) {
+                    instanceHostname, instanceHostCnames, domainName, serviceName)) {
                 errorMsg.append(dnsName).append(" does not end with provider/service configured suffix or hostname");
                 return false;
             }
@@ -310,7 +314,7 @@ public class X509CertRequest {
 
     boolean dnsSuffixCheck(final String dnsName, final List<String> providerDnsSuffixList,
             final String serviceDnsSuffixCheck, final String wildCardPrefix, final String instanceHostname,
-            final List<String> instanceHostCnames) {
+            final List<String> instanceHostCnames, final String domainName, final String serviceName) {
 
         if (providerDnsSuffixList != null) {
             for (String dnsSuffixCheck : providerDnsSuffixList) {
@@ -335,6 +339,13 @@ public class X509CertRequest {
                         return true;
                     }
 
+                    // if we have a certificate data validator, then we'll use it to validate the dns name
+
+                    if (certificateDataValidator != null && certificateDataValidator.validateServiceIdentityCertSanDnsName(
+                            domainName, serviceName, dnsName, serviceDnsSuffixCheck, providerDnsSuffixList)) {
+                        return true;
+                    }
+
                     // add the name to the list to be verified
 
                     providerDnsNames.add(dnsName);
@@ -347,6 +358,13 @@ public class X509CertRequest {
         // to check with the provider
 
         if (serviceDnsSuffixCheck != null && dnsName.endsWith(serviceDnsSuffixCheck)) {
+            return true;
+        }
+
+        // if we have a certificate data validator, then we'll use it to validate the dns name
+
+        if (certificateDataValidator != null && certificateDataValidator.validateServiceIdentityCertSanDnsName(
+                domainName, serviceName, dnsName, serviceDnsSuffixCheck, providerDnsSuffixList)) {
             return true;
         }
 

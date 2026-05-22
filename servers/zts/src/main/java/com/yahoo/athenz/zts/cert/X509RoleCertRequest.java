@@ -18,6 +18,7 @@ package com.yahoo.athenz.zts.cert;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.common.server.cert.CertificateDataValidator;
 import com.yahoo.athenz.common.server.spiffe.SpiffeUriManager;
 import com.yahoo.athenz.common.utils.X509CertUtils;
 import com.yahoo.athenz.zts.ZTSConsts;
@@ -33,16 +34,16 @@ public class X509RoleCertRequest extends X509CertRequest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(X509RoleCertRequest.class);
 
-
     protected String reqRoleName;
     protected String reqRoleDomain;
     protected String rolePrincipal;
 
-    public X509RoleCertRequest(String csr, SpiffeUriManager spiffeUriManager) throws CryptoException {
+    public X509RoleCertRequest(String csr, SpiffeUriManager spiffeUriManager,
+            CertificateDataValidator certificateDataValidator) throws CryptoException {
 
         // parse the csr request
 
-        super(csr, spiffeUriManager);
+        super(csr, spiffeUriManager, certificateDataValidator);
 
         // make sure the CN is a valid role name
 
@@ -229,8 +230,8 @@ public class X509RoleCertRequest extends X509CertRequest {
         final String domain = principal.substring(0, idx);
         final String service = principal.substring(idx + 1);
 
-Set<String> principalCertDnsNames = (principalCert != null) ?
-    new HashSet<>(Crypto.extractX509CertDnsNames(principalCert)) : Collections.emptySet();
+        Set<String> principalCertDnsNames = (principalCert != null) ?
+            new HashSet<>(Crypto.extractX509CertDnsNames(principalCert)) : Collections.emptySet();
 
         // the dns names in the role certificate can inherit any of the dns names in
         // the principal certificate or they must be in the format of
@@ -247,6 +248,13 @@ Set<String> principalCertDnsNames = (principalCert != null) ?
             }
 
             if (serviceIdentityDnsNameMatch(prefix, dnsName)) {
+                continue;
+            }
+
+            // if we have a certificate data validator, then we'll use it to validate the dns name
+
+            if (certificateDataValidator != null && certificateDataValidator.validateRoleCertSanDnsName(
+                    reqRoleDomain, reqRoleName, principal, dnsName, ZTSUtils.ZTS_CERT_DNS_SUFFIX)) {
                 continue;
             }
 
