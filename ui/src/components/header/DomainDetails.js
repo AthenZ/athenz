@@ -44,6 +44,7 @@ import { makePoliciesExpires } from '../../redux/actions/policies';
 import Icon from '../denali/icons/Icon';
 import AddPoc from '../member/AddPoc';
 import { selectAllUsers } from '../../redux/selectors/user';
+import { getAllUsers } from '../../redux/thunks/user';
 import AddEnvironmentModal from '../modal/AddEnvironmentModal';
 import AddSlackChannelModal from '../modal/AddSlackChannelModal';
 import OnCallTeamModal from '../modal/OnCallTeamModal';
@@ -135,6 +136,12 @@ class DomainDetails extends React.Component {
         this.onClickOnboardToAWS = this.onClickOnboardToAWS.bind(this);
         this.toggleOnboardToAWSModal = this.toggleOnboardToAWSModal.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
+    }
+
+    componentDidMount() {
+        if (this.props.getAllUsers) {
+            Promise.resolve(this.props.getAllUsers()).catch(() => {});
+        }
     }
 
     showError(errorMessage) {
@@ -744,6 +751,7 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(makeRolesExpires());
         dispatch(makePoliciesExpires());
     },
+    getAllUsers: () => dispatch(getAllUsers()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(DomainDetails);
