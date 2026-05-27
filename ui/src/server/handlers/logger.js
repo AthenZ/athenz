@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const { v4: uuid } = require('uuid');
+const { randomUUID: uuid } = require('crypto');
 const debug = require('debug')('AthenzUI:server:handlers:logger');
 
 module.exports = function (expressApp, config) {

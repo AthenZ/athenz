@@ -16,7 +16,7 @@
 import React from 'react';
 import { css, cx } from '@emotion/css';
 import PropTypes from 'prop-types';
-const { v4: uuid } = require('uuid');
+import { v4 as uuid } from 'uuid';
 
 const makeCssLoader = (props) => css`
     display: inline-block;
