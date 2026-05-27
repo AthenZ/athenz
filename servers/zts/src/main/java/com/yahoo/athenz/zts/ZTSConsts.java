@@ -224,6 +224,7 @@ public final class ZTSConsts {
 
     public static final String ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS = "athenz.zts.status_checker_factory_class";
     public static final String ZTS_PROP_USER_AUTHORITY_CLASS = "athenz.zts.user_authority_class";
+    public static final String ZTS_PROP_CERT_DATA_VALIDATOR_FACTORY_CLASS = "athenz.zts.cert_data_validator_factory_class";
 
     // tag values used by zts server
     public static final String ZTS_ISSUE_ROLE_CERT_TAG = "zts.IssueRoleCerts";
