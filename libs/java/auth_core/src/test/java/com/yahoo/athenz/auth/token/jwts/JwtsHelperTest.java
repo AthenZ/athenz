@@ -581,7 +581,12 @@ public class JwtsHelperTest {
         final String payload = Base64URL.encode("{\"sub\":\"user\"}").toString();
         final String token = header + "." + payload + ".";
 
-        assertEquals(JwtsHelper.extractJWTTokenType(token), "JWT");
+        try {
+            JwtsHelper.extractJWTTokenType(token);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unable to parse token: Not a JWS header"));
+        }
     }
 
     @Test
@@ -610,13 +615,18 @@ public class JwtsHelperTest {
         final String payload = Base64URL.encode("{\"sub\":\"user\"}").toString();
         final String token = header + "." + payload + ".signature";
 
-        assertNull(JwtsHelper.extractJWTTokenType(token));
+        try {
+            JwtsHelper.extractJWTTokenType(token);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unable to parse token: Missing \"alg\" in header JSON object"));
+        }
     }
 
     @Test
     public void testExtractJWTTokenTypeUnsignedToken() {
         // Unsigned token (empty signature segment) - still has 3 parts so should work
-        final String header = Base64URL.encode("{\"alg\":\"none\",\"typ\":\"at+jwt\"}").toString();
+        final String header = Base64URL.encode("{\"alg\":\"RS256\",\"typ\":\"at+jwt\"}").toString();
         final String payload = Base64URL.encode("{\"sub\":\"user\"}").toString();
         final String token = header + "." + payload + ".";
 

@@ -570,7 +570,7 @@ public class AccessTokenRequest {
         if (!StringUtil.isEmpty(authzDetails)) {
             stringBuilder.append("&authorization_details=").append(URLEncoder.encode(authzDetails, StandardCharsets.UTF_8));
         }
-        if (proxyPrincipalsSpiffeUris != null) {
+        if (proxyPrincipalsSpiffeUris != null && !proxyPrincipalsSpiffeUris.isEmpty()) {
             stringBuilder.append("&proxy_principal_spiffe_uris=");
             for (String uri : proxyPrincipalsSpiffeUris) {
                 stringBuilder.append(URLEncoder.encode(uri, StandardCharsets.UTF_8)).append(',');

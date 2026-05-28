@@ -313,8 +313,8 @@ public class JwtsHelper {
             if (parts.length != 3) {
                 throw new CryptoException("Invalid token: not a valid JWT");
             }
-            JWTClaimsSet claimsSet = JWTClaimsSet.parse(parts[0].decodeToString());
-            return claimsSet.getStringClaim("typ");
+            JWSHeader header = JWSHeader.parse(parts[0]);
+            return header.getType() != null ? header.getType().toString() : null;
         } catch (ParseException ex) {
             throw new CryptoException("Unable to parse token: " + ex.getMessage());
         }
