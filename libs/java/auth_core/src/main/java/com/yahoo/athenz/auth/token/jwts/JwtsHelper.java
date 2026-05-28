@@ -307,6 +307,19 @@ public class JwtsHelper {
         }
     }
 
+    public static String extractJWTTokenType(final String token) {
+        try {
+            Base64URL[] parts = JOSEObject.split(token);
+            if (parts.length != 3) {
+                throw new CryptoException("Invalid token: not a valid JWT");
+            }
+            JWTClaimsSet claimsSet = JWTClaimsSet.parse(parts[0].decodeToString());
+            return claimsSet.getStringClaim("typ");
+        } catch (ParseException ex) {
+            throw new CryptoException("Unable to parse token: " + ex.getMessage());
+        }
+    }
+
     public static class CompositeJWKSource<C extends SecurityContext> implements JWKSource<C> {
 
         private final List<JWKSource<C>> keySources;
