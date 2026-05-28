@@ -1,3 +1,25 @@
+Athenz v1.12.42 Release / May 27, 2026
+--------------------------------------
+
+#3323 Bump @xmldom/xmldom and xml-crypto in /ui
+#3324 Bump uuid from 9.0.0 to 14.0.0 in /ui
+#3347 Bump axios from 1.12.2 to 1.15.2 in /ui
+#3358 Bump next from 14.2.35 to 16.2.6 in /ui
+#3360 switch ui docker image to node22 + oat token
+#3361 configure default Strict-Transport-Security header response
+#3362 fix tls protocol/cipher log with jetty 1.12.x
+#3363 extend role cert san-dns validation check
+#3364 update dependencies in java zts/zms client examples
+#3367 uplift next.js to version 16.2.6
+#3368 Bump js-cookie from 3.0.1 to 3.0.7 in /ui
+#3369 log principal name for usercert api
+#3370 fix POC and security POC not loading on non role/group domain tabs
+#3371 add validation for selfRenew in ZMS
+#3374 Bump qs, body-parser and express in /ui
+#3375 add external cert data validator for san dns entries
+#3377 support fetching access tokens based on rfc7523
+#3378 update java/go/nodejs dependencies to their latest releases
+
 Athenz v1.12.41 Release / May 13, 2026
 --------------------------------------
 
