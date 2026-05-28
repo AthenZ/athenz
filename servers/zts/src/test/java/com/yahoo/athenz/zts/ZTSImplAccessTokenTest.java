@@ -1832,6 +1832,103 @@ public class ZTSImplAccessTokenTest {
         }
     }
 
+    @Test
+    public void testPostAccessTokenRequestJwtBearerGrantWithAssertion() throws JOSEException {
+
+        // end-to-end coverage for the RFC 7523 jwt-bearer grant type where the
+        // request payload carries the access-token assertion in the "assertion"
+        // field (no separate client_assertion). The assertion is a self-signed
+        // jwt where the requested scope is encoded in the standard "scope" claim
+        // and the principal (coretech.jwt) is identified by the issuer/subject.
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        // restore the default rsa private key for any other tests
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        // request comes in with no authenticated principal - the principal
+        // will be derived from the jwt-bearer assertion itself.
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+        ResourceContext context = new RsrcCtxWrapper(null, servletRequest, null, null, true,
+                null, null, null, "postaccesstoken", null, null);
+
+        // build the bearer assertion - signed by coretech.jwt using the ec key
+        // whose public key is registered with the service identity (key id "0").
+        // the assertion uses the at+jwt typ header (RFC 9068) so it is routed
+        // through the standard RFC 7523 access token path and not the jag path.
+
+        File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey assertionPrivateKey = Crypto.loadPrivateKey(privateKeyFile);
+
+        long now = System.currentTimeMillis() / 1000;
+        JWSSigner signer = new ECDSASigner((ECPrivateKey) assertionPrivateKey);
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("coretech.jwt")
+                .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(now + 3600)))
+                .issuer("coretech.jwt")
+                .audience(ztsImpl.ztsOAuthIssuer)
+                .claim(AccessToken.CLAIM_SCOPE_STD, "coretech:role.writers")
+                .build();
+
+        SignedJWT signedAssertion = new SignedJWT(
+                new JWSHeader.Builder(JWSAlgorithm.ES256)
+                        .type(new JOSEObjectType(AccessToken.HDR_TOKEN_JWT))
+                        .keyID("0")
+                        .build(),
+                claimsSet);
+        signedAssertion.sign(signer);
+        final String assertionToken = signedAssertion.serialize();
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer"
+                        + "&assertion=" + assertionToken);
+
+        assertNotNull(resp);
+        assertNotNull(resp.getAccess_token());
+        assertEquals(resp.getToken_type(), "Bearer");
+        assertTrue(resp.getExpires_in() > 0);
+
+        // requested role matches the only granted role so the response scope
+        // should not be set.
+
+        assertNull(resp.getScope());
+
+        // verify the issued access token is signed by the zts server key and
+        // contains the expected claims for the coretech.jwt principal.
+
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(resp.getAccess_token());
+            assertTrue(signedJWT.verify(verifier));
+
+            JWTClaimsSet issuedClaims = signedJWT.getJWTClaimsSet();
+            assertEquals(issuedClaims.getAudience().get(0), "coretech");
+            assertEquals(issuedClaims.getIssuer(), ztsImpl.ztsOAuthIssuer);
+            assertEquals(issuedClaims.getStringClaim("client_id"), "coretech.jwt");
+            assertEquals(issuedClaims.getSubject(), "coretech.jwt");
+
+            List<String> scopes = issuedClaims.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
+    }
+
     private String createJagToken(PrivateKey key, String keyId, String subject, String clientId,
             String scope, String audience, long expiryTime, String athenzCode) {
         try {

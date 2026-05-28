@@ -725,14 +725,8 @@ public class OAuthTokenRequestBuilderTest {
         OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS);
         String body = builder.getRequestBody();
         assertNotNull(body);
-        // When no roles and no domain, scope should be empty
-        assertTrue(body.contains("scope="));
-        String scopePart = body.substring(body.indexOf("scope=") + 6);
-        if (scopePart.contains("&")) {
-            scopePart = scopePart.substring(0, scopePart.indexOf("&"));
-        }
-        String decodedScope = java.net.URLDecoder.decode(scopePart, StandardCharsets.UTF_8);
-        assertEquals(decodedScope, "");
+        // When no roles and no domain, no scope should be present
+        assertFalse(body.contains("scope="));
     }
 
     @Test

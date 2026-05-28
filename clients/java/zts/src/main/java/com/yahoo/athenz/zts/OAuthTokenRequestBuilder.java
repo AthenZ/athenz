@@ -378,7 +378,9 @@ public class OAuthTokenRequestBuilder {
             }
         }
         final String scopeStr = scope.toString();
-        body.append("&scope=").append(URLEncoder.encode(scopeStr, StandardCharsets.UTF_8));
+        if (!ZTSClient.isEmpty(scopeStr)) {
+            body.append("&scope=").append(URLEncoder.encode(scopeStr, StandardCharsets.UTF_8));
+        }
 
         if (!ZTSClient.isEmpty(proxyForPrincipal)) {
             body.append("&proxy_for_principal=").append(URLEncoder.encode(proxyForPrincipal, StandardCharsets.UTF_8));
