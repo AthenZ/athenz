@@ -67,8 +67,8 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
 
-        assertTrue(certReq.validate("sports.api", null, null, orgValues, false));
-        assertTrue(certReq.validate("sports.api", null, null, orgValues, true));
+        assertTrue(certReq.validate("sports.api", null, null, orgValues, false, false));
+        assertTrue(certReq.validate("sports.api", null, null, orgValues, true, false));
     }
 
     @Test
@@ -156,7 +156,7 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
 
-        assertFalse(certReq.validate("sports.api", "proxy.user", null, orgValues, false));
+        assertFalse(certReq.validate("sports.api", "proxy.user", null, orgValues, false, false));
     }
 
     @Test
@@ -170,7 +170,7 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
 
-        assertFalse(certReq.validate("athenz.production", "proxy.user", null, orgValues, false));
+        assertFalse(certReq.validate("athenz.production", "proxy.user", null, orgValues, false, false));
     }
 
     @Test
@@ -184,7 +184,7 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
 
-        assertFalse(certReq.validate("sports.api", "proxy.user", null, orgValues, false));
+        assertFalse(certReq.validate("sports.api", "proxy.user", null, orgValues, false, false));
     }
 
     @Test
@@ -199,10 +199,10 @@ public class X509RoleCertRequestTest {
         orgValues.add("Athenz");
 
         // valid proxy user
-        assertTrue(certReq.validate("sports.api", "proxy.user", null, orgValues, false));
+        assertTrue(certReq.validate("sports.api", "proxy.user", null, orgValues, false, false));
 
         // mismatch proxy user
-        assertFalse(certReq.validate("sports.api", "proxy2.user", null, orgValues, false));
+        assertFalse(certReq.validate("sports.api", "proxy2.user", null, orgValues, false, false));
     }
 
     @Test
@@ -212,8 +212,8 @@ public class X509RoleCertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
-        assertTrue(certReq.validate("athenz.production", null, null, null, false));
-        assertFalse(certReq.validate("athenz.api", null, null, null, false));
+        assertTrue(certReq.validate("athenz.production", null, null, null, false, false));
+        assertFalse(certReq.validate("athenz.api", null, null, null, false, false));
     }
 
     @Test
@@ -223,8 +223,8 @@ public class X509RoleCertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
-        assertTrue(certReq.validate("athenz.production", null, null, null, false));
-        assertFalse(certReq.validate("athenz.api", null, null, null, false));
+        assertTrue(certReq.validate("athenz.production", null, null, null, false, false));
+        assertFalse(certReq.validate("athenz.api", null, null, null, false, false));
     }
 
     @Test
@@ -234,8 +234,8 @@ public class X509RoleCertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
-        assertFalse(certReq.validate("athenz.production", null, null, null, false));
-        assertFalse(certReq.validate("athenz.api", null, null, null, false));
+        assertFalse(certReq.validate("athenz.production", null, null, null, false, false));
+        assertFalse(certReq.validate("athenz.api", null, null, null, false, false));
     }
 
     @Test
@@ -473,7 +473,7 @@ public class X509RoleCertRequestTest {
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
 
-        assertFalse(certReq.validate("sports.api", null, null, orgValues, true));
+        assertFalse(certReq.validate("sports.api", null, null, orgValues, true, false));
     }
 
     @Test
@@ -712,5 +712,29 @@ public class X509RoleCertRequestTest {
 
         Mockito.verify(validator, Mockito.never()).validateRoleCertSanDnsName(Mockito.anyString(),
                 Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyList());
+    }
+
+    @Test
+    public void testValidateUnknownUriSchemeNoEnforcement() throws IOException {
+
+        Path path = Paths.get("src/test/resources/spiffe_role.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
+
+        Set<String> orgValues = new HashSet<>();
+        orgValues.add("Athenz");
+
+        // inject an unknown URI to simulate a CSR with unexpected URI schemes
+        certReq.uris = Arrays.asList(
+                "spiffe://trust-domain/ns/athenz/ra/api",
+                "https://unknown.example.com"
+        );
+
+        // without enforcement, unknown URIs are logged but request is allowed
+        assertTrue(certReq.validate("sports.api", null, null, orgValues, false, false));
+
+        // with enforcement, unknown URIs cause failure
+        assertFalse(certReq.validate("sports.api", null, null, orgValues, false, true));
     }
 }

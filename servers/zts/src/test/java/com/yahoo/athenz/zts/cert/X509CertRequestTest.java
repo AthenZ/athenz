@@ -1429,5 +1429,96 @@ public class X509CertRequestTest {
                 Mockito.eq("api.athenz.ostk.athenz.info"),
                 Mockito.any(), Mockito.anyList());
     }
+
+    @Test
+    public void testKnownAthenzUri() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
+
+        assertTrue(certReq.knownAthenzUri("spiffe://trust-domain/ns/default/sa/api"));
+        assertTrue(certReq.knownAthenzUri("spiffe://trust-domain/athenz/production"));
+        assertTrue(certReq.knownAthenzUri("athenz://hostname/host.example.com"));
+        assertTrue(certReq.knownAthenzUri("athenz://principal/athenz.production"));
+        assertTrue(certReq.knownAthenzUri("athenz://proxyuser/user.name"));
+
+        // check is case-sensitive; validateSanUriSchemes lowercases before calling this
+        assertFalse(certReq.knownAthenzUri("SPIFFE://trust-domain/ns/default/sa/api"));
+        assertFalse(certReq.knownAthenzUri("ATHENZ://HOSTNAME/host.example.com"));
+
+        // unknown URI schemes
+        assertFalse(certReq.knownAthenzUri("https://example.com"));
+        assertFalse(certReq.knownAthenzUri("urn:example:animal"));
+        assertFalse(certReq.knownAthenzUri("athenz://unknown/value"));
+    }
+
+    @Test
+    public void testValidateSanUriSchemesNullOrEmpty() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
+
+        certReq.uris = null;
+        assertTrue(certReq.validateSanUriSchemes(true));
+        assertTrue(certReq.validateSanUriSchemes(false));
+
+        certReq.uris = new ArrayList<>();
+        assertTrue(certReq.validateSanUriSchemes(true));
+        assertTrue(certReq.validateSanUriSchemes(false));
+    }
+
+    @Test
+    public void testValidateSanUriSchemesAllKnown() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
+        certReq.uris = Arrays.asList(
+                "spiffe://trust-domain/ns/default/sa/api",
+                "athenz://hostname/host.example.com",
+                "athenz://principal/athenz.production",
+                "athenz://proxyuser/user.name"
+        );
+
+        assertTrue(certReq.validateSanUriSchemes(false));
+        assertTrue(certReq.validateSanUriSchemes(true));
+    }
+
+    @Test
+    public void testValidateSanUriSchemesUnknownNoEnforcement() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
+        certReq.uris = Arrays.asList(
+                "spiffe://trust-domain/ns/default/sa/api",
+                "https://unknown.example.com"
+        );
+
+        // with enforcement off, unknown URIs are logged but allowed
+        assertTrue(certReq.validateSanUriSchemes(false));
+
+        // with enforcement on, unknown URIs cause failure
+        assertFalse(certReq.validateSanUriSchemes(true));
+    }
+
+    @Test
+    public void testValidateSanUriSchemesAllUnknown() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
+        certReq.uris = Arrays.asList("https://bad1.example.com", "urn:bad2");
+
+        assertTrue(certReq.validateSanUriSchemes(false));
+        assertFalse(certReq.validateSanUriSchemes(true));
+    }
 }
 

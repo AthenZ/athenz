@@ -82,15 +82,13 @@ public class X509RoleCertRequest extends X509CertRequest {
             return false;
         }
 
-        // we must only have a single spiffe uri in the list
+        // we need to iterate through the list of URIs and look for the proxy user uri
+        // we'll validate that there is only a single proxy user uri
 
         String proxyUserUri = null;
         for (String uri : uris) {
 
             if (!uri.toLowerCase().startsWith(ZTSConsts.ZTS_CERT_PROXY_USER_URI)) {
-                // at some point we should reject the request if it has unknown
-                // URI values but for now we'll just log the error and continue
-                LOGGER.error("Invalid ProxyUser URI in the Role Certificate CSR: {}", uri);
                 continue;
             }
 
@@ -108,7 +106,7 @@ public class X509RoleCertRequest extends X509CertRequest {
         }
 
         final String uriCheck = ZTSConsts.ZTS_CERT_PROXY_USER_URI + proxyUser;
-        if (!proxyUserUri.equals(uriCheck)) {
+        if (!proxyUserUri.equalsIgnoreCase(uriCheck)) {
             LOGGER.error("ProxyUserURI mismatch: {} vs {}", proxyUserUri, uriCheck);
             return false;
         }
@@ -170,7 +168,17 @@ public class X509RoleCertRequest extends X509CertRequest {
     }
 
     public boolean validate(final String principal, final String proxyUser, final X509Certificate cert,
-            final Set<String> validCertSubjectOrgValues, final boolean validateRoleCertDnsNames) {
+            final Set<String> validCertSubjectOrgValues, final boolean validateRoleCertDnsNames,
+            final boolean validateCertUriSchemes) {
+
+        // validate and report any invalid URI schemes in the request
+        // if we're configured not to reject the request, we'll just
+        // log the invalid values so the system admin can follow up with
+        // respective users before enabling the feature
+
+        if (!validateSanUriSchemes(validateCertUriSchemes)) {
+            return false;
+        }
 
         // now let's check if we have a valid role principal
 

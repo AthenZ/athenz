@@ -205,6 +205,7 @@ public class ZTSImpl implements ZTSHandler {
     protected String ztsMetricLatencyName;
     protected String userCertProvider;
     protected boolean validateRoleCertDnsNames = false;
+    protected boolean validateCertUriSchemes = false;
     private UserIdentityTimeout userIdentityTimeoutManager;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
@@ -824,6 +825,8 @@ public class ZTSImpl implements ZTSHandler {
 
         validateRoleCertDnsNames = Boolean.parseBoolean(
             System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_ROLE_CERT_DNS_NAMES, "false"));
+        validateCertUriSchemes = Boolean.parseBoolean(
+            System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_CERT_URI_SCHEMES, "false"));
     }
 
     static String getServerHostName() {
@@ -4106,7 +4109,8 @@ public class ZTSImpl implements ZTSHandler {
     boolean validateRoleCertificateRequest(X509RoleCertRequest certReq, final String principal,
             final String proxyUser, X509Certificate cert, final String ip) {
 
-        if (!certReq.validate(principal, proxyUser, cert, validCertSubjectOrgValues, validateRoleCertDnsNames)) {
+        if (!certReq.validate(principal, proxyUser, cert, validCertSubjectOrgValues,
+                validateRoleCertDnsNames, validateCertUriSchemes)) {
             return false;
         }
 
@@ -4785,7 +4789,7 @@ public class ZTSImpl implements ZTSHandler {
 
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
                 serviceDnsSuffix, info.getHostname(), info.getHostCnames(), hostnameResolver,
-                info.getNamespace(), errorMsg)) {
+                info.getNamespace(), validateCertUriSchemes, errorMsg)) {
             throw requestError("CSR validation failed - " + errorMsg,
                     caller, domain, principalDomain);
         }
@@ -5542,7 +5546,7 @@ public class ZTSImpl implements ZTSHandler {
         StringBuilder errorMsg = new StringBuilder(256);
         if (!certReq.validate(domain, service, provider, validCertSubjectOrgValues, athenzSysDomainCache,
                 serviceDnsSuffix, info.getHostname(), info.getHostCnames(), hostnameResolver,
-                info.getNamespace(), errorMsg)) {
+                info.getNamespace(), validateCertUriSchemes, errorMsg)) {
             throw requestError("CSR validation failed - " + errorMsg,
                     caller, domain, principalDomain);
         }
