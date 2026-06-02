@@ -115,6 +115,29 @@ public class X509CertRequest {
         this.certificateDataValidator = certificateDataValidator;
     }
 
+    boolean knownAthenzUri(final String uri) {
+        return uri.startsWith(ZTSConsts.ZTS_CERT_SPIFFE_URI) || uri.startsWith(ZTSConsts.ZTS_CERT_HOSTNAME_URI) ||
+            uri.startsWith(ZTSConsts.ZTS_CERT_PRINCIPAL_URI) || uri.startsWith(ZTSConsts.ZTS_CERT_PROXY_USER_URI);
+    }
+
+    boolean validateSanUriSchemes(boolean validateSchemes) {
+        if (uris == null || uris.isEmpty()) {
+            return true;
+        }
+
+        // iterate through and report all unknown uri values
+
+        boolean allUrisValid = true;
+        for (String uri : uris) {
+            if (!knownAthenzUri(uri.toLowerCase())) {
+                allUrisValid = false;
+                LOGGER.error("Certificate Request unknown uri: {}, cn: {}", uri, cn);
+            }
+        }
+
+        return validateSchemes ? allUrisValid : true;
+    }
+
     public PKCS10CertificationRequest getCertReq() {
         return certReq;
     }
