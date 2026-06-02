@@ -117,7 +117,8 @@ public class X509CertRequest {
 
     boolean knownAthenzUri(final String uri) {
         return uri.startsWith(ZTSConsts.ZTS_CERT_SPIFFE_URI) || uri.startsWith(ZTSConsts.ZTS_CERT_HOSTNAME_URI) ||
-            uri.startsWith(ZTSConsts.ZTS_CERT_PRINCIPAL_URI) || uri.startsWith(ZTSConsts.ZTS_CERT_PROXY_USER_URI);
+            uri.startsWith(ZTSConsts.ZTS_CERT_PRINCIPAL_URI) || uri.startsWith(ZTSConsts.ZTS_CERT_PROXY_USER_URI) ||
+            uri.startsWith(ZTSConsts.ZTS_CERT_INSTANCE_ID_URI);
     }
 
     boolean validateSanUriSchemes(boolean validateSchemes) {
