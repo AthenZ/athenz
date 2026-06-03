@@ -6888,7 +6888,7 @@ public class ZTSImpl implements ZTSHandler {
             return signerKeyId;
         }
 
-        LOGGER.error("Unknown signer key id: '{}'' in the certificate request", signerKeyId);
+        LOGGER.error("Unknown signer key id: '{}' in the certificate request", signerKeyId);
         return null;
     }
 
