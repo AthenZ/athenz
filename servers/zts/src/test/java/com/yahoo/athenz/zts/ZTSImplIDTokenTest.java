@@ -459,29 +459,11 @@ public class ZTSImplIDTokenTest {
 
         DomainData domainData = data.getDomainData();
 
-        final String exchangerRoleName = generateRoleName(domainName, "id_token_exchanger_" + roleName);
-
-        // create a role for the principal allowed to request id token exchanges
-
-        Role principalRole = new Role();
-        principalRole.setName(exchangerRoleName);
-        List<RoleMember> principalMembers = new ArrayList<>();
-        principalMembers.add(new RoleMember().setMemberName(principalName));
-        principalRole.setRoleMembers(principalMembers);
-
-        // Add role to domain if it doesn't exist
-        List<Role> roles = new ArrayList<>(domainData.getRoles());
-        boolean roleExists = roles.stream().anyMatch(r -> r.getName().equals(principalRole.getName()));
-        if (!roleExists) {
-            roles.add(principalRole);
-            domainData.setRoles(roles);
-        }
-
         Policy idTokenPolicy = new Policy();
         idTokenPolicy.setName(generatePolicyName(domainName, "id_token_exchange_" + roleName));
 
         Assertion assertion = new Assertion();
-        assertion.setRole(exchangerRoleName);
+        assertion.setRole(generateRoleName(domainName, roleName));
         assertion.setResource(domainName + ":role." + roleName);
         assertion.setAction(ZTSConsts.ZTS_ACTION_ID_TOKEN_EXCHANGE);
         assertion.setEffect(com.yahoo.athenz.zms.AssertionEffect.ALLOW);
@@ -509,8 +491,21 @@ public class ZTSImplIDTokenTest {
         Policy principalPolicy = new Policy();
         principalPolicy.setName(generatePolicyName(domainName, "id_token_exchange_principal_" + roleName));
 
+        final String principalExchangerRoleName = generateRoleName(domainName,
+                "id_token_principal_exchanger_" + roleName);
+        Role principalExchangerRole = new Role();
+        principalExchangerRole.setName(principalExchangerRoleName);
+        principalExchangerRole.setRoleMembers(List.of(new RoleMember().setMemberName(principalName)));
+
+        List<Role> roles = new ArrayList<>(domainData.getRoles());
+        boolean roleExists = roles.stream().anyMatch(r -> r.getName().equals(principalExchangerRole.getName()));
+        if (!roleExists) {
+            roles.add(principalExchangerRole);
+            domainData.setRoles(roles);
+        }
+
         Assertion principalAssertion = new Assertion();
-        principalAssertion.setRole(exchangerRoleName);
+        principalAssertion.setRole(principalExchangerRoleName);
         principalAssertion.setResource(domainName + ":principal.*");
         principalAssertion.setAction(ZTSConsts.ZTS_ACTION_ID_TOKEN_EXCHANGE);
         principalAssertion.setEffect(com.yahoo.athenz.zms.AssertionEffect.ALLOW);
@@ -647,7 +642,7 @@ public class ZTSImplIDTokenTest {
 
         PrivateKey ecPrivateKey = loadECPrivateKey();
         long expiryTime = System.currentTimeMillis() / 1000 + 3600;
-        final String spiffeId = "spiffe://athenz.io/ns/default/sa/coretech.weather";
+        final String spiffeId = "spiffe://user_domain/sa/user";
         String subjectToken = createIdToken(ecPrivateKey, "0", "user_domain.user",
                 "coretech.weather", expiryTime, null, spiffeId);
 

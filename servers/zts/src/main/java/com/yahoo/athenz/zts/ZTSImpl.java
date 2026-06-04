@@ -2702,6 +2702,8 @@ public class ZTSImpl implements ZTSHandler {
             return null;
         }
 
+        // Only ZTS-issued spiffe claims and JWT-SVID subject SPIFFE URIs are recognized.
+        // Other identity-provider-specific SPIFFE claims are not propagated.
         final Object spiffeClaim = token.getClaim(IdToken.CLAIM_SPIFFE);
         if (spiffeClaim != null) {
             final String spiffeId = spiffeClaim.toString();
@@ -2811,6 +2813,8 @@ public class ZTSImpl implements ZTSHandler {
 
         final String spiffeId = extractSpiffeIdFromToken(subjectToken);
         if (spiffeId != null) {
+            verifySpiffeIdMatchesAthenzPrincipal(spiffeId, subjectToken.getSubject(),
+                    caller, requestDomainName, principalDomain);
             accessToken.setCustomClaim(IdToken.CLAIM_SPIFFE, spiffeId);
         }
 
@@ -2935,15 +2939,6 @@ public class ZTSImpl implements ZTSHandler {
                     caller, requestDomainName, principalDomain);
         }
 
-        // now let's verify that our principal is authorized to carry
-        // out token delegation from source to target domain
-
-        final String resource = sourceDomainName + ":" + requestDomainName;
-        if (!authorizer.access(ZTSConsts.ZTS_ACTION_TOKEN_SOURCE_EXCHANGE, resource, principal, null)) {
-            throw forbiddenError("Principal not authorized for token delegation from source domain",
-                    caller, requestDomainName, principalDomain);
-        }
-
         // make sure our principal is authorized to request a token
         // exchange for the given roles
 
@@ -2978,6 +2973,8 @@ public class ZTSImpl implements ZTSHandler {
 
         final String spiffeId = extractSpiffeIdFromToken(subjectToken);
         if (spiffeId != null) {
+            verifySpiffeIdMatchesAthenzPrincipal(spiffeId, subjectToken.getSubject(),
+                    caller, requestDomainName, principalDomain);
             accessToken.setCustomClaim(IdToken.CLAIM_SPIFFE, spiffeId);
         }
 
@@ -3114,14 +3111,14 @@ public class ZTSImpl implements ZTSHandler {
         List<String> idTokenGroups = processIdTokenRoles(subjectIdentity, tokenScope, domainName, true,
                 false, principalDomain, caller);
 
-        // make sure our principal is authorized to request an id token
+        // make sure our subject principal is authorized to request an id token
         // exchange for the given roles
 
         Principal subjectPrincipal = createPrincipalForName(subjectIdentity, principalDomain, caller);
         for (String idTokenGroup : idTokenGroups) {
-            if (!authorizer.access(ZTSConsts.ZTS_ACTION_ID_TOKEN_EXCHANGE, idTokenGroup, principal, null)) {
+            if (!authorizer.access(ZTSConsts.ZTS_ACTION_ID_TOKEN_EXCHANGE, idTokenGroup, subjectPrincipal, null)) {
                 LOGGER.error("access check failure:({}, {}, {})", ZTSConsts.ZTS_ACTION_ID_TOKEN_EXCHANGE,
-                        idTokenGroup, principal);
+                        idTokenGroup, subjectPrincipal);
                 throw forbiddenError("Principal not authorized for token exchange for the requested role",
                         caller, domainName, principalDomain);
             }
@@ -3143,8 +3140,8 @@ public class ZTSImpl implements ZTSHandler {
         final String spiffeId = extractSpiffeIdFromToken(subjectToken);
         if (spiffeId != null) {
             // If we're copying SPIFFE claim into the requested ID token, verify it maps
-            // to the authenticated principal to prevent mismatched SPIFFE identities.
-            verifySpiffeIdMatchesAthenzPrincipal(spiffeId, principalName, caller, domainName, principalDomain);
+            // to the token subject to prevent mismatched SPIFFE identities.
+            verifySpiffeIdMatchesAthenzPrincipal(spiffeId, subjectIdentity, caller, domainName, principalDomain);
             idToken.setSpiffe(spiffeId);
         }
 
