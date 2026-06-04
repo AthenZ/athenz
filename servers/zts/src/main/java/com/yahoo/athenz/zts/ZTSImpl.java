@@ -3143,7 +3143,8 @@ public class ZTSImpl implements ZTSHandler {
             final String clientId = dataStore.getServiceClientId(principal.getDomain(), principalName);
             final String tokenAudience = identityProvider == null ? subjectToken.getAudience() :
                     identityProvider.getTokenAudience(subjectToken);
-            if (clientId == null || !clientId.equals(tokenAudience)) {
+            if ((clientId == null || !clientId.equals(tokenAudience)) &&
+                    !isAuthenticatedUserSubjectToken(principal, subjectToken, identityProvider)) {
                 LOGGER.error("The subject token does not have expected audience: {}/{}", principalName,
                         tokenAudience);
                 throw requestError("Invalid subject token audience", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN,
@@ -3256,6 +3257,33 @@ public class ZTSImpl implements ZTSHandler {
         return new AccessTokenResponse().setAccess_token(accessJwts).setToken_type(OAUTH_NA_TOKEN)
                 .setIssued_token_type(OAUTH_JAG_TOKEN).setExpires_in(tokenTimeout)
                 .setScope(generateScopeResponse(subjectRoles, domainName, false));
+    }
+
+    boolean isAuthenticatedUserSubjectToken(Principal principal, OAuth2Token subjectToken,
+            TokenExchangeIdentityProvider identityProvider) {
+
+        // Public clients cannot authenticate with a service certificate. This is
+        // required for local agent executions where Copper Argos cannot practically
+        // issue or distribute a workload X.509 certificate because the agent runs as
+        // a user-controlled native application rather than as a provider-attested
+        // workload. For that case, allow a user certificate to bind the request to
+        // an ID token whose subject is the same Athenz user, even when the token
+        // audience is the public client instead of the authenticated principal name.
+
+        if (principal == null || principal.getX509Certificate() == null ||
+                !userDomain.equals(principal.getDomain())) {
+            return false;
+        }
+
+        final String tokenAudience = identityProvider == null ? subjectToken.getAudience() :
+                identityProvider.getTokenAudience(subjectToken);
+        if (StringUtil.isEmpty(tokenAudience)) {
+            return false;
+        }
+
+        final String subjectIdentity = identityProvider == null ? subjectToken.getSubject() :
+                identityProvider.getTokenIdentity(subjectToken);
+        return principal.getFullName().equals(subjectIdentity);
     }
 
     AccessTokenResponse processJAGTokenExchangeRequest(ResourceContext ctx, Principal principal,
