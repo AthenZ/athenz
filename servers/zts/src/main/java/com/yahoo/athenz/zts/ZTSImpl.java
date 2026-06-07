@@ -3144,7 +3144,7 @@ public class ZTSImpl implements ZTSHandler {
             final String tokenAudience = identityProvider == null ? subjectToken.getAudience() :
                     identityProvider.getTokenAudience(subjectToken);
             if ((clientId == null || !clientId.equals(tokenAudience)) &&
-                    !isAuthenticatedUserSubjectToken(principal, subjectToken, identityProvider)) {
+                    !isAuthenticatedUserSubjectToken(principal, tokenAudience, subjectToken, identityProvider)) {
                 LOGGER.error("The subject token does not have expected audience: {}/{}", principalName,
                         tokenAudience);
                 throw requestError("Invalid subject token audience", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN,
@@ -3259,7 +3259,7 @@ public class ZTSImpl implements ZTSHandler {
                 .setScope(generateScopeResponse(subjectRoles, domainName, false));
     }
 
-    boolean isAuthenticatedUserSubjectToken(Principal principal, OAuth2Token subjectToken,
+    boolean isAuthenticatedUserSubjectToken(Principal principal, String tokenAudience, OAuth2Token subjectToken,
             TokenExchangeIdentityProvider identityProvider) {
 
         // Public clients cannot authenticate with a service certificate. This is
@@ -3275,8 +3275,6 @@ public class ZTSImpl implements ZTSHandler {
             return false;
         }
 
-        final String tokenAudience = identityProvider == null ? subjectToken.getAudience() :
-                identityProvider.getTokenAudience(subjectToken);
         if (StringUtil.isEmpty(tokenAudience)) {
             return false;
         }
