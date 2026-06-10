@@ -1179,6 +1179,7 @@ public class ZMSServiceIdentityTest {
                 sysAdminMeta);
         serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
         assertEquals(serviceRes.getClientId(), "sys-auth-client-id");
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     private void assertServiceSystemMetaUpdateForbidden(Runnable update) {
