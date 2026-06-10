@@ -407,6 +407,12 @@ type DomainMeta struct {
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// Indicates whether client ID self-update is enabled for services
+	// in this domain
+	//
+	ClientIdSelfUpdate *bool `json:"clientIdSelfUpdate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// class name responsible for validating external members
 	//
 	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
@@ -786,6 +792,12 @@ type Domain struct {
 	// role
 	//
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Indicates whether client ID self-update is enabled for services
+	// in this domain
+	//
+	ClientIdSelfUpdate *bool `json:"clientIdSelfUpdate,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// class name responsible for validating external members
@@ -5587,6 +5599,12 @@ type TopLevelDomain struct {
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// Indicates whether client ID self-update is enabled for services
+	// in this domain
+	//
+	ClientIdSelfUpdate *bool `json:"clientIdSelfUpdate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// class name responsible for validating external members
 	//
 	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
@@ -5990,6 +6008,12 @@ type SubDomain struct {
 	// role
 	//
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Indicates whether client ID self-update is enabled for services
+	// in this domain
+	//
+	ClientIdSelfUpdate *bool `json:"clientIdSelfUpdate,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// class name responsible for validating external members
@@ -6409,6 +6433,12 @@ type UserDomain struct {
 	// role
 	//
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Indicates whether client ID self-update is enabled for services
+	// in this domain
+	//
+	ClientIdSelfUpdate *bool `json:"clientIdSelfUpdate,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// class name responsible for validating external members
@@ -8101,6 +8131,12 @@ type DomainData struct {
 	// role
 	//
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Indicates whether client ID self-update is enabled for services
+	// in this domain
+	//
+	ClientIdSelfUpdate *bool `json:"clientIdSelfUpdate,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
 	// class name responsible for validating external members
