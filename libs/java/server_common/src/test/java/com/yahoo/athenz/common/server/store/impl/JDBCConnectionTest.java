@@ -717,6 +717,7 @@ public class JDBCConnectionTest {
                 .setSlackChannel("athenz")
                 .setOnCall("athenz-oncall")
                 .setAutoDeleteTenantAssumeRoleAssertions(true)
+                .setClientIdSelfUpdate(true)
                 .setExternalMemberValidator("ext.validator.Class")
                 .setCostCenter("cost-center-1");
 
@@ -756,10 +757,11 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(30, "athenz");
         Mockito.verify(mockPrepStmt, times(1)).setString(31, "athenz-oncall");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(32, true);
-        Mockito.verify(mockPrepStmt, times(1)).setString(33, "aws-123456789");
-        Mockito.verify(mockPrepStmt, times(1)).setString(34, "ext.validator.Class");
-        Mockito.verify(mockPrepStmt, times(1)).setString(35, "cost-center-1");
-        Mockito.verify(mockPrepStmt, times(1)).setString(36, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(33, true);
+        Mockito.verify(mockPrepStmt, times(1)).setString(34, "aws-123456789");
+        Mockito.verify(mockPrepStmt, times(1)).setString(35, "ext.validator.Class");
+        Mockito.verify(mockPrepStmt, times(1)).setString(36, "cost-center-1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(37, "my-domain");
         jdbcConn.close();
     }
 
@@ -808,10 +810,11 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(30, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(31, "");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(32, false);
-        Mockito.verify(mockPrepStmt, times(1)).setString(33, "");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(33, false);
         Mockito.verify(mockPrepStmt, times(1)).setString(34, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(35, "");
-        Mockito.verify(mockPrepStmt, times(1)).setString(36, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(36, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(37, "my-domain");
         jdbcConn.close();
     }
 
