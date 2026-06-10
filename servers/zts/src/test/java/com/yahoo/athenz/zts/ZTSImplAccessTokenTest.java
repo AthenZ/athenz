@@ -3101,6 +3101,67 @@ public class ZTSImplAccessTokenTest {
         cloudStore.close();
     }
 
+    @DataProvider(name = "userCertPublicClientAudienceFailureCases")
+    public Object[][] userCertPublicClientAudienceFailureCases() {
+        return new Object[][] {
+                { "user_domain.user1", "public.client", true },
+                { "user_domain.user", "public.client", false },
+                { "user_domain.user", "", true },
+        };
+    }
+
+    @Test(dataProvider = "userCertPublicClientAudienceFailureCases")
+    public void testProcessJAGTokenIssueRequestWithUserCertPublicClientAudienceFailure(
+            String subject, String tokenAudience, boolean includeUserCert) {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        try {
+            ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+            ztsImpl.userDomain = "user_domain";
+            ztsImpl.tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+
+            System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                    "src/test/resources/unit_test_zts_private.pem");
+
+            SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+            store.processSignedDomain(signedDomain, false);
+
+            addJAGExchangeRolePolicy("coretech", "writers");
+
+            final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+            PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+            long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+            String subjectToken = createIdToken(privateKey, "0", subject, tokenAudience, expiryTime);
+
+            SimplePrincipal principal = (SimplePrincipal) SimplePrincipal.create("user_domain", "user",
+                    "v=U1;d=user_domain;n=user;s=signature", 0, null);
+            assertNotNull(principal);
+            if (includeUserCert) {
+                principal.setX509Certificate(Mockito.mock(X509Certificate.class));
+            }
+            ResourceContext context = createResourceContext(principal);
+
+            final String tokenRequest = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&scope=coretech:role.writers";
+
+            try {
+                ztsImpl.postAccessTokenRequest(context, tokenRequest);
+                fail("Expected ResourceException for invalid public client audience binding");
+            } catch (ResourceException ex) {
+                assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+                assertTrue(ex.getMessage().contains("Invalid subject token audience"));
+            }
+        } finally {
+            cloudStore.close();
+        }
+    }
+
     @Test
     public void testProcessJAGTokenIssueRequestEmptyScope() {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
