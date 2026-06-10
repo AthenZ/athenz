@@ -3313,7 +3313,7 @@ public class ZMSResources {
     @Path("/domain/{domain}/service/{service}/meta/system/{attribute}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Set the specified service metadata. Caller must have update privileges on the sys.auth domain.")
+    @Operation(description = "Set the specified service metadata. Caller must have update privileges on the sys.auth domain. For OAuth DCR clientid updates, client ID self-update is also allowed when the server property and domain clientIdSelfUpdate flag are enabled, the caller is the target service principal, and the caller is a member of the target domain's admin role.")
     public void putServiceIdentitySystemMeta(
         @Parameter(description = "name of the domain", required = true) @PathParam("domain") String domain,
         @Parameter(description = "name of the service", required = true) @PathParam("service") String service,
@@ -3324,7 +3324,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putServiceIdentitySystemMeta");
-            context.authorize("update", "sys.auth:meta.service." + attribute + "." + domain + "", null);
+            context.authenticate();
             this.delegate.putServiceIdentitySystemMeta(context, domain, service, attribute, auditRef, detail);
         } catch (ResourceException e) {
             code = e.getCode();

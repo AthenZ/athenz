@@ -245,6 +245,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected boolean allowUserDomains = true;
     protected NotificationObjectStore notificationObjectStore = null;
     protected boolean autoDeleteTenantAssumeRoleAssertions = false;
+    protected boolean clientIdSelfUpdate = false;
     protected String zmsMetricCounterName;
     protected String zmsMetricLatencyName;
 
@@ -1050,6 +1051,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // check for auto delete tenant assume role assertions
         autoDeleteTenantAssumeRoleAssertions = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_AUTO_DELETE_TENANT_ASSUME_ROLE_ASSERTIONS, "false"));
+
+        // check for client ID self-update support
+        clientIdSelfUpdate = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_CLIENT_ID_SELF_UPDATE, "false"));
     }
 
     void loadObjectStore() {
@@ -1759,7 +1763,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setSshCertSignerKeyId(detail.getSshCertSignerKeyId())
                 .setSlackChannel(detail.getSlackChannel())
                 .setOnCall(detail.getOnCall())
-                .setAutoDeleteTenantAssumeRoleAssertions(detail.autoDeleteTenantAssumeRoleAssertions);
+                .setAutoDeleteTenantAssumeRoleAssertions(detail.autoDeleteTenantAssumeRoleAssertions)
+                .setClientIdSelfUpdate(detail.clientIdSelfUpdate);
 
         // before processing validate the fields
 
@@ -2076,7 +2081,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setContacts(detail.getContacts())
                 .setEnvironment(detail.getEnvironment())
                 .setSlackChannel(detail.getSlackChannel())
-                .setOnCall(detail.getOnCall());
+                .setOnCall(detail.getOnCall())
+                .setClientIdSelfUpdate(detail.clientIdSelfUpdate);
 
         // before processing validate the fields
 
@@ -2183,7 +2189,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setX509CertSignerKeyId(detail.getX509CertSignerKeyId())
                 .setSshCertSignerKeyId(detail.getSshCertSignerKeyId())
                 .setSlackChannel(detail.getSlackChannel())
-                .setOnCall(detail.getOnCall());
+                .setOnCall(detail.getOnCall())
+                .setClientIdSelfUpdate(detail.clientIdSelfUpdate);
 
         // before processing validate the fields
 
@@ -7107,6 +7114,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify that request is properly authenticated for this request
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        verifyAuthorizedServiceIdentitySystemMetaOperation(principal, domainName, serviceName, attribute, caller);
         verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
 
         if (LOG.isDebugEnabled()) {
@@ -7115,6 +7123,44 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         dbService.executePutServiceIdentitySystemMeta(ctx, domainName, serviceName, meta, attribute, auditRef, caller);
+    }
+
+    void verifyAuthorizedServiceIdentitySystemMetaOperation(Principal principal, String domainName,
+            String serviceName, String attribute, String caller) {
+
+        final String systemResource = SYS_AUTH + ":meta.service." + attribute + "." + domainName;
+        if (isAllowedSystemAccess(principal, ZMSConsts.ACTION_UPDATE, systemResource)) {
+            return;
+        }
+
+        AthenzDomain domain = getAthenzDomain(domainName, false, true);
+        if (isAllowedClientIdSelfUpdate(principal, domain, serviceName, attribute)) {
+            return;
+        }
+
+        throw ZMSUtils.forbiddenError("putServiceIdentitySystemMeta: Unauthorized update for service system meta attribute",
+                caller);
+    }
+
+    boolean isAllowedClientIdSelfUpdate(Principal principal, AthenzDomain domain, String serviceName,
+            String attribute) {
+
+        if (!clientIdSelfUpdate || !ZMSConsts.SYSTEM_META_CLIENT_ID.equals(attribute)) {
+            return false;
+        }
+
+        if (principal == null || domain == null || domain.getDomain() == null ||
+                !Boolean.TRUE.equals(domain.getDomain().getClientIdSelfUpdate())) {
+            return false;
+        }
+
+        final String servicePrincipal = ResourceUtils.serviceResourceName(domain.getName(), serviceName);
+        if (!servicePrincipal.equalsIgnoreCase(principal.getFullName())) {
+            return false;
+        }
+
+        Role adminRole = getRoleFromDomain(ADMIN_ROLE_NAME, domain);
+        return adminRole != null && isMemberOfRole(adminRole, principal.getFullName());
     }
 
     @Override
