@@ -14893,7 +14893,8 @@ public class ZMSImplTest {
 
         try {
             ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta();
-            zmsTest.putServiceIdentitySystemMeta(ctx, "ReadOnlyDom1", "Service1", "providerendpoint",
+            RsrcCtxWrapper serviceMetaCtx = zmsTestInitializer.contextWithMockPrincipal("putServiceIdentitySystemMeta");
+            zmsTest.putServiceIdentitySystemMeta(serviceMetaCtx, "ReadOnlyDom1", "Service1", "providerendpoint",
                     auditRef, meta);
             fail();
         } catch (ResourceException ex) {
@@ -23266,6 +23267,7 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+        ZMSTestUtils.setupServiceSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName,
                 serviceName, "http://localhost", "/usr/bin/java", "root",
@@ -23311,6 +23313,7 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+        ZMSTestUtils.setupServiceSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName,
                 serviceName, "http://localhost", "/usr/bin/java", "root",

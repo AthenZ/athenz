@@ -4700,7 +4700,7 @@ var zmsspec = {
     },
     "/v1/domain/{domain}/service/{service}/meta/system/{attribute}" : {
       "put" : {
-        "description" : "Set the specified service metadata. Caller must have update privileges on the sys.auth domain.",
+        "description" : "Set the specified service metadata. Caller must have update privileges on the sys.auth domain. For OAuth DCR clientid updates, client ID self-update is also allowed when the server property and domain clientIdSelfUpdate flag are enabled, the caller is the target service principal, and the caller is a member of the target domain's admin role.",
         "operationId" : "putServiceIdentitySystemMeta",
         "parameters" : [ {
           "name" : "domain",
@@ -6976,6 +6976,9 @@ var zmsspec = {
           },
           "businessService" : {
             "type" : "string"
+          },
+          "clientIdSelfUpdate" : {
+            "type" : "boolean"
           }
         }
       },
