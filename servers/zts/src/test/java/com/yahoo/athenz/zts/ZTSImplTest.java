@@ -22,6 +22,8 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.impl.*;
+import com.yahoo.athenz.auth.token.IdToken;
+import com.yahoo.athenz.auth.token.OAuth2Token;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -15185,9 +15187,77 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testExtractSpiffeIdFromTokenNull() {
+        assertNull(zts.extractSpiffeIdFromToken(null));
+    }
+
+    @Test
+    public void testExtractSpiffeIdFromTokenSpiffeClaim() {
+        OAuth2Token token = Mockito.mock(OAuth2Token.class);
+        Mockito.when(token.getClaim(IdToken.CLAIM_SPIFFE)).thenReturn("spiffe://athenz/sa/production");
+
+        assertEquals(zts.extractSpiffeIdFromToken(token), "spiffe://athenz/sa/production");
+    }
+
+    @Test
+    public void testExtractSpiffeIdFromTokenSpiffeSubject() {
+        OAuth2Token token = Mockito.mock(OAuth2Token.class);
+        Mockito.when(token.getSubject()).thenReturn("spiffe://athenz/sa/production");
+
+        assertEquals(zts.extractSpiffeIdFromToken(token), "spiffe://athenz/sa/production");
+    }
+
+    @Test
+    public void testExtractSpiffeIdFromTokenUnsupportedClaim() {
+        OAuth2Token token = Mockito.mock(OAuth2Token.class);
+        Mockito.when(token.getClaim(IdToken.CLAIM_SPIFFE)).thenReturn("athenz.production");
+        Mockito.when(token.getSubject()).thenReturn("athenz.production");
+
+        assertNull(zts.extractSpiffeIdFromToken(token));
+    }
+
+    @Test
+    public void testVerifySpiffeIdMatchesAthenzPrincipalEmpty() {
+        zts.verifySpiffeIdMatchesAthenzPrincipal(null, "athenz.production",
+                "caller", "athenz", "sys.auth");
+        zts.verifySpiffeIdMatchesAthenzPrincipal("spiffe://athenz/sa/production", null,
+                "caller", "athenz", "sys.auth");
+    }
+
+    @Test
     public void testVerifySpiffeIdMatchesAthenzPrincipalSuccess() {
         zts.verifySpiffeIdMatchesAthenzPrincipal("spiffe://athenz/sa/production", "athenz.production",
                 "caller", "athenz", "sys.auth");
+    }
+
+    @Test
+    public void testVerifySpiffeIdMatchesAthenzPrincipalSpiffeSubjectSuccess() {
+        zts.verifySpiffeIdMatchesAthenzPrincipal("spiffe://athenz/sa/production",
+                "spiffe://athenz/sa/production", "caller", "athenz", "sys.auth");
+    }
+
+    @Test
+    public void testVerifySpiffeIdMatchesAthenzPrincipalSpiffeSubjectMismatch() {
+        try {
+            zts.verifySpiffeIdMatchesAthenzPrincipal("spiffe://athenz/sa/production",
+                    "spiffe://athenz/sa/api", "caller", "athenz", "sys.auth");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("SPIFFE ID does not match authenticated principal"));
+        }
+    }
+
+    @Test
+    public void testVerifySpiffeIdMatchesAthenzPrincipalInvalidPrincipal() {
+        try {
+            zts.verifySpiffeIdMatchesAthenzPrincipal("spiffe://athenz/sa/production",
+                    "invalid-principal", "caller", "athenz", "sys.auth");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Invalid principal name for SPIFFE validation"));
+        }
     }
 
     @Test
