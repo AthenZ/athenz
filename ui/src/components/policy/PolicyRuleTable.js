@@ -33,6 +33,14 @@ import {
     getPolicyVersion,
 } from '../../redux/thunks/policies';
 import { connect } from 'react-redux';
+import {
+    isPolicyResourceManaged,
+    resolveResourceOwnershipCliOnError,
+} from '../utils/resourceOwnership';
+import {
+    cliDeleteAssertionPolicyVersion,
+    formatAssertionWords,
+} from '../utils/zmsCliCommands';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -135,6 +143,8 @@ class PolicyRuleTable extends React.Component {
             addAssertion: false,
             assertions: this.props.assertions ? this.props.assertions : [],
             showDelete: false,
+            deleteAssertion: null,
+            resourceOwnershipCliCommand: null,
         };
     }
 
@@ -157,6 +167,7 @@ class PolicyRuleTable extends React.Component {
                     showDelete: false,
                     showSuccess,
                     errorMessage: null,
+                    resourceOwnershipCliCommand: null,
                 });
                 // this is to close the success alert
                 setTimeout(
@@ -178,12 +189,12 @@ class PolicyRuleTable extends React.Component {
         this.setState({ showSuccess: false });
     }
 
-    onClickDeleteAssertion(role, assertionId) {
+    onClickDeleteAssertion(assertion) {
         this.setState({
             showDelete: true,
-            deleteAssertionRole: role,
-            deleteAssertionId: assertionId,
+            deleteAssertion: assertion,
             errorMessage: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
@@ -193,7 +204,7 @@ class PolicyRuleTable extends React.Component {
                 this.props.domain,
                 this.props.name,
                 this.props.version,
-                this.state.deleteAssertionId,
+                this.state.deleteAssertion.id,
                 this.props._csrf
             )
             .then(() => {
@@ -202,8 +213,30 @@ class PolicyRuleTable extends React.Component {
                 );
             })
             .catch((err) => {
+                const errMsg = RequestUtils.xhrErrorCheckHelper(err);
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: errMsg,
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            isPolicyResourceManaged(
+                                this.props.resourceOwnership
+                            ),
+                            err,
+                            () => {
+                                const words = formatAssertionWords(
+                                    this.props.domain,
+                                    this.state.deleteAssertion
+                                );
+                                return cliDeleteAssertionPolicyVersion(
+                                    this.props.domain,
+                                    this.props.name,
+                                    this.props.version,
+                                    words,
+                                    null
+                                );
+                            },
+                            { when: !!this.state.deleteAssertion }
+                        ),
                 });
             });
     }
@@ -211,9 +244,9 @@ class PolicyRuleTable extends React.Component {
     onCancelDeleteAssertion() {
         this.setState({
             showDelete: false,
-            deleteAssertionRole: null,
-            deleteAssertionId: null,
+            deleteAssertion: null,
             errorMessage: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
@@ -225,8 +258,7 @@ class PolicyRuleTable extends React.Component {
         this.state.assertions.forEach((assertion, i) => {
             let onClickDeleteAssertion = this.onClickDeleteAssertion.bind(
                 this,
-                assertion.role,
-                assertion.id
+                assertion
             );
             let tempRole = NameUtils.getShortName(
                 this.props.domain + ':role.',
@@ -287,6 +319,7 @@ class PolicyRuleTable extends React.Component {
                     _csrf={this.props._csrf}
                     name={this.props.name}
                     version={this.props.version}
+                    resourceOwnership={this.props.resourceOwnership}
                 />
             );
         }
@@ -358,11 +391,18 @@ class PolicyRuleTable extends React.Component {
                 ) : null}
                 {this.state.showDelete ? (
                     <DeleteModal
-                        name={this.state.deleteAssertionRole}
+                        name={
+                            this.state.deleteAssertion
+                                ? this.state.deleteAssertion.role
+                                : ''
+                        }
                         isOpen={this.state.showDelete}
                         cancel={this.onCancelDeleteAssertion}
                         submit={this.onSubmitDeleteAssertion}
                         errorMessage={this.state.errorMessage}
+                        resourceOwnershipCliCommand={
+                            this.state.resourceOwnershipCliCommand
+                        }
                         message={
                             'Are you sure you want to permanently delete the assertion with Role '
                         }

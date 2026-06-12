@@ -27,9 +27,15 @@ import { css, keyframes } from '@emotion/react';
 import { deleteKey } from '../../redux/thunks/services';
 import { connect } from 'react-redux';
 import {
+    selectService,
     selectServiceDescription,
     selectServicePublicKeys,
 } from '../../redux/selectors/services';
+import {
+    isServiceResourcePublicKeysManaged,
+    resolveResourceOwnershipCliOnError,
+} from '../utils/resourceOwnership';
+import { cliDeletePublicKey } from '../utils/zmsCliCommands';
 import AddKey from './AddKey';
 
 const HeaderDiv = styled.div`
@@ -167,6 +173,7 @@ class PublicKeyTable extends React.Component {
             showDelete: true,
             deleteKeyId: keyId,
             errorMessage: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
@@ -183,10 +190,26 @@ class PublicKeyTable extends React.Component {
                     `Successfully deleted key id ${this.state.deleteKeyId} from service ${this.props.service}`,
                     true
                 );
+                this.setState({ resourceOwnershipCliCommand: null });
             })
             .catch((err) => {
+                const errMsg = RequestUtils.xhrErrorCheckHelper(err);
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: errMsg,
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            isServiceResourcePublicKeysManaged(
+                                this.props.resourceOwnership
+                            ),
+                            err,
+                            () =>
+                                cliDeletePublicKey(
+                                    this.props.domain,
+                                    this.props.service,
+                                    this.state.deleteKeyId,
+                                    null
+                                )
+                        ),
                 });
             });
     }
@@ -195,18 +218,11 @@ class PublicKeyTable extends React.Component {
         this.setState({
             showDelete: false,
             deleteKeyId: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
     render() {
-        if (this.state.errorMessage) {
-            return (
-                <TdStyled colSpan={7} color={this.props.color}>
-                    <Color name={'red600'}>Failed to fetch PublicKeys.</Color>
-                </TdStyled>
-            );
-        }
-
         let description = null;
         let publicKeys = [];
 
@@ -233,6 +249,7 @@ class PublicKeyTable extends React.Component {
                     <KeyContentDiv>{formattedKey}</KeyContentDiv>
                     <IconDiv>
                         <Icon
+                            dataWdio={'delete-key-' + key.id}
                             icon={'trash'}
                             onClick={onClickDeleteKey}
                             color={colors.icons}
@@ -253,6 +270,7 @@ class PublicKeyTable extends React.Component {
                 domain={this.props.domain}
                 service={this.props.service}
                 _csrf={this.props._csrf}
+                resourceOwnership={this.props.resourceOwnership}
             />
         ) : (
             ''
@@ -291,6 +309,9 @@ class PublicKeyTable extends React.Component {
                         cancel={this.onCancelDeleteKey}
                         submit={this.onSubmitDeleteKey}
                         errorMessage={this.state.errorMessage}
+                        resourceOwnershipCliCommand={
+                            this.state.resourceOwnershipCliCommand
+                        }
                         message={
                             'Are you sure you want to permanently delete the key id '
                         }
@@ -306,6 +327,8 @@ const mapStateToProps = (state, props) => {
         ...props,
         pubKeys: selectServicePublicKeys(state, props.domain, props.service),
         desc: selectServiceDescription(state, props.domain, props.service),
+        resourceOwnership: selectService(state, props.domain, props.service)
+            .resourceOwnership,
     };
 };
 

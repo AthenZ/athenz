@@ -37,4 +37,17 @@ describe('Icon', () => {
         const icon = getByTestId('icon');
         expect(icon).toMatchSnapshot();
     });
+
+    it('should render default managed-resource icon key with 24x24 viewBox', () => {
+        const { getByTestId } = render(
+            <Icon
+                icon='terraform'
+                viewBoxWidth='24'
+                viewBoxHeight='24'
+                size='1.25em'
+            />
+        );
+        const icon = getByTestId('icon');
+        expect(icon.getAttribute('viewBox')).toBe('0 0 24 24');
+    });
 });

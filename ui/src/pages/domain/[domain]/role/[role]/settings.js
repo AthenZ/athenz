@@ -166,6 +166,9 @@ class SettingPage extends React.Component {
                                             domain={domainName}
                                             role={roleName}
                                             selectedName={'settings'}
+                                            resourceOwnership={
+                                                roleDetails.resourceOwnership
+                                            }
                                         />
                                     </PageHeaderDiv>
                                     <SettingTable

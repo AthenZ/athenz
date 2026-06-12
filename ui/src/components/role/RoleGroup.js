@@ -133,6 +133,7 @@ export default class RoleGroup extends React.Component {
                                 timeZone={this.props.timeZone}
                                 _csrf={this.props._csrf}
                                 newRole={this.props.newRole}
+                                iconStripMaxIcons={this.props.iconStripMaxIcons}
                             />
                         );
                     });

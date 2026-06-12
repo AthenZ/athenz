@@ -18,10 +18,17 @@ import styled from '@emotion/styled';
 import AddRuleFormForRole from './AddRuleFormForRole';
 import Button from '../denali/Button';
 import { colors } from '../denali/styles';
-import Color from '../denali/Color';
 import RequestUtils from '../utils/RequestUtils';
+import NameUtils from '../utils/NameUtils';
 import { addAssertion } from '../../redux/thunks/policies';
 import { connect } from 'react-redux';
+import { selectPolicy } from '../../redux/selectors/policies';
+import ResourceOwnershipModalFeedback from '../resource-ownership/ResourceOwnershipModalFeedback';
+import {
+    isPolicyResourceManaged,
+    resolveResourceOwnershipCliOnError,
+} from '../utils/resourceOwnership';
+import { cliAddAssertion, formatAssertionWords } from '../utils/zmsCliCommands';
 
 const StyledDiv = styled.div`
     background-color: ${colors.white};
@@ -47,6 +54,7 @@ class AddAssertionForRole extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.state = {
             case: false,
+            resourceOwnershipCliCommand: null,
         };
     }
 
@@ -58,6 +66,7 @@ class AddAssertionForRole extends React.Component {
         if (!this.state.action || this.state.action === '') {
             this.setState({
                 errorMessage: 'Rule action is required.',
+                resourceOwnershipCliCommand: null,
             });
             return;
         }
@@ -65,6 +74,7 @@ class AddAssertionForRole extends React.Component {
         if (!this.state.resource || this.state.resource === '') {
             this.setState({
                 errorMessage: 'Rule resource is required.',
+                resourceOwnershipCliCommand: null,
             });
             return;
         }
@@ -81,14 +91,48 @@ class AddAssertionForRole extends React.Component {
                 this.props._csrf
             )
             .then(() => {
+                this.setState({ resourceOwnershipCliCommand: null });
                 this.props.submit(
                     `${this.props.name}-${this.props.role}-${this.state.resource}-${this.state.action}`,
                     false
                 );
             })
             .catch((err) => {
+                const errMsg = RequestUtils.xhrErrorCheckHelper(err);
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: errMsg,
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            isPolicyResourceManaged(
+                                this.props.resourceOwnership
+                            ),
+                            err,
+                            () => {
+                                const assertion = {
+                                    effect: this.state.effect,
+                                    action: this.state.action.trim(),
+                                    role: NameUtils.getRoleAssertionName(
+                                        this.props.role,
+                                        this.props.domain
+                                    ),
+                                    resource: NameUtils.getResourceName(
+                                        this.state.resource,
+                                        this.props.domain
+                                    ),
+                                };
+                                const words = formatAssertionWords(
+                                    this.props.domain,
+                                    assertion
+                                );
+                                return cliAddAssertion(
+                                    this.props.domain,
+                                    this.props.name,
+                                    words,
+                                    null,
+                                    !!this.state.case
+                                );
+                            }
+                        ),
                 });
             });
     }
@@ -101,9 +145,15 @@ class AddAssertionForRole extends React.Component {
                     onChange={this.onChange}
                     domain={this.props.domain}
                 />
-                {this.state.errorMessage && (
+                {(this.state.errorMessage ||
+                    this.state.resourceOwnershipCliCommand) && (
                     <ErrorDiv>
-                        <Color name={'red600'}>{this.state.errorMessage}</Color>
+                        <ResourceOwnershipModalFeedback
+                            errorMessage={this.state.errorMessage}
+                            resourceOwnershipCliCommand={
+                                this.state.resourceOwnershipCliCommand
+                            }
+                        />
                     </ErrorDiv>
                 )}
                 <ButtonDiv>
@@ -144,4 +194,14 @@ const mapDispatchToProps = (dispatch) => ({
         ),
 });
 
-export default connect(null, mapDispatchToProps)(AddAssertionForRole);
+const mapStateToProps = (state, props) => {
+    const policy = selectPolicy(state, props.domain, props.name);
+    return {
+        resourceOwnership: policy && policy.resourceOwnership,
+    };
+};
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(AddAssertionForRole);

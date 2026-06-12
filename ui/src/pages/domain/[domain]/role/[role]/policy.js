@@ -167,6 +167,9 @@ class RolePolicyPage extends React.Component {
                                             domain={domainName}
                                             role={roleName}
                                             selectedName={'policies'}
+                                            resourceOwnership={
+                                                roleDetails.resourceOwnership
+                                            }
                                         />
                                     </PageHeaderDiv>
                                     <RolePolicyList

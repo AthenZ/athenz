@@ -25,6 +25,11 @@ import { StaticWorkloadType } from '../constants/constants';
 import RegexUtils from '../utils/RegexUtils';
 import { addServiceHost } from '../../redux/thunks/services';
 import { connect } from 'react-redux';
+import {
+    isServiceResourceHostsManaged,
+    resolveResourceOwnershipCliOnError,
+} from '../utils/resourceOwnership';
+import { cliAddServiceHost } from '../utils/zmsCliCommands';
 
 const SectionDiv = styled.div`
     align-items: center;
@@ -66,6 +71,7 @@ class AddStaticInstances extends React.Component {
             resourceValue: '',
             resourceType: '',
             pattern: '',
+            resourceOwnershipCliCommand: null,
         };
     }
 
@@ -81,6 +87,7 @@ class AddStaticInstances extends React.Component {
     onSubmit() {
         this.setState({
             errorMessage: '',
+            resourceOwnershipCliCommand: null,
         });
 
         //Input field validation
@@ -127,8 +134,23 @@ class AddStaticInstances extends React.Component {
                 this.props._csrf
             )
             .catch((err) => {
+                const errMsg = RequestUtils.xhrErrorCheckHelper(err);
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: errMsg,
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            isServiceResourceHostsManaged(
+                                this.props.resourceOwnership
+                            ),
+                            err,
+                            () =>
+                                cliAddServiceHost(
+                                    this.props.domain,
+                                    this.props.service,
+                                    [this.state.resourceValue],
+                                    auditRef
+                                )
+                        ),
                 });
             });
     }
@@ -169,6 +191,9 @@ class AddStaticInstances extends React.Component {
                     submit={this.onSubmit}
                     title={`Add Static Instances`}
                     errorMessage={this.state.errorMessage}
+                    resourceOwnershipCliCommand={
+                        this.state.resourceOwnershipCliCommand
+                    }
                     sections={sections}
                 />
             </div>

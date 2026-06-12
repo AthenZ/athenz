@@ -228,7 +228,7 @@ let config = {
     baseUrl: functionalConfig.instance,
     //
     // Default timeout for all waitFor* commands.
-    waitforTimeout: 30000,
+    waitforTimeout: 10000,
     //
     // Default timeout in milliseconds for request
     // if browser driver or grid doesn't send response
@@ -251,7 +251,7 @@ let config = {
     framework: 'mocha',
     //
     // The number of times to retry the entire specfile when it fails as a whole
-    specFileRetries: 1,
+    specFileRetries: 0,
     //
     // Delay in seconds between the spec file retry attempts
     specFileRetriesDelay: 5,
@@ -270,7 +270,7 @@ let config = {
     mochaOpts: {
         ui: 'bdd',
         timeout: 120000,
-        retries: 2,
+        retries: 1,
     },
     //
     // =====
