@@ -306,10 +306,13 @@ public class JwtsHelper {
 
     public static JWTClaimsSet parseJWTWithoutSignature(Base64URL[] parts) {
 
+        if (parts == null) {
+            throw new CryptoException("Invalid token: parts cannot be null");
+        }
+        if (parts.length != 3 || !parts[2].toString().isEmpty()) {
+            throw new CryptoException("Token has a signature but no key resolver");
+        }
         try {
-            if (parts.length != 3 || !parts[2].toString().isEmpty()) {
-                throw new CryptoException("Token has a signature but no key resolver");
-            }
             return JWTClaimsSet.parse(parts[1].decodeToString());
         } catch (ParseException ex) {
             throw new CryptoException("Unable to parse token: " + ex.getMessage());
@@ -326,10 +329,13 @@ public class JwtsHelper {
     }
 
     public static String extractJWTTokenType(Base64URL[] parts) {
+        if (parts == null) {
+            throw new CryptoException("Invalid token: parts cannot be null");
+        }
+        if (parts.length != 3) {
+            throw new CryptoException("Invalid token: not a valid JWT");
+        }
         try {
-            if (parts.length != 3) {
-                throw new CryptoException("Invalid token: not a valid JWT");
-            }
             Header header = Header.parse(parts[0]);
             return header.getType() != null ? header.getType().toString() : null;
         } catch (ParseException ex) {

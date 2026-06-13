@@ -184,6 +184,22 @@ public class JwtsHelperTest {
     }
 
     @Test
+    public void testParseJWTNullPartChecks() {
+        try {
+            JwtsHelper.parseJWTWithoutSignature((Base64URL[]) null);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Invalid token: parts cannot be null"));
+        }
+        try {
+            JwtsHelper.extractJWTTokenType((Base64URL[]) null);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Invalid token: parts cannot be null"));
+        }
+    }
+
+    @Test
     public void testGetJWSSigner() throws JOSEException {
 
         PrivateKey privateKey = Crypto.loadPrivateKey(new File("src/test/resources/unit_test_jwt_private.key"));
