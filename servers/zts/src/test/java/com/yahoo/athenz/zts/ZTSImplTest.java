@@ -13828,25 +13828,25 @@ public class ZTSImplTest {
     }
 
     @Test
-    public void testGetIdTokenAudience() {
-        assertEquals(zts.getIdTokenAudience("id", null, null), "id");
-        assertEquals(zts.getIdTokenAudience("id", Boolean.FALSE, null), "id");
-        assertEquals(zts.getIdTokenAudience("id", Boolean.TRUE, null), "id");
+    public void testGetOauth2TokenAudience() {
+        assertEquals(zts.getOauth2TokenAudience("id", null, null), "id");
+        assertEquals(zts.getOauth2TokenAudience("id", Boolean.FALSE, null), "id");
+        assertEquals(zts.getOauth2TokenAudience("id", Boolean.TRUE, null), "id");
 
         List<String> idTokenGroups = new ArrayList<>();
-        assertEquals(zts.getIdTokenAudience("id", null, idTokenGroups), "id");
-        assertEquals(zts.getIdTokenAudience("id", Boolean.FALSE, idTokenGroups), "id");
-        assertEquals(zts.getIdTokenAudience("id", Boolean.TRUE, idTokenGroups), "id");
+        assertEquals(zts.getOauth2TokenAudience("id", null, idTokenGroups), "id");
+        assertEquals(zts.getOauth2TokenAudience("id", Boolean.FALSE, idTokenGroups), "id");
+        assertEquals(zts.getOauth2TokenAudience("id", Boolean.TRUE, idTokenGroups), "id");
 
         idTokenGroups.add("athenz:role.oidc");
-        assertEquals(zts.getIdTokenAudience("id", null, idTokenGroups), "id");
-        assertEquals(zts.getIdTokenAudience("id", Boolean.FALSE, idTokenGroups), "id");
-        assertEquals(zts.getIdTokenAudience("id", Boolean.TRUE, idTokenGroups), "id:athenz:role.oidc");
+        assertEquals(zts.getOauth2TokenAudience("id", null, idTokenGroups), "id");
+        assertEquals(zts.getOauth2TokenAudience("id", Boolean.FALSE, idTokenGroups), "id");
+        assertEquals(zts.getOauth2TokenAudience("id", Boolean.TRUE, idTokenGroups), "id:athenz:role.oidc");
 
         idTokenGroups.add("athenz:role.oidc2");
-        assertEquals(zts.getIdTokenAudience("id", null, idTokenGroups), "id");
-        assertEquals(zts.getIdTokenAudience("id", Boolean.FALSE, idTokenGroups), "id");
-        assertEquals(zts.getIdTokenAudience("id", Boolean.TRUE, idTokenGroups), "id");
+        assertEquals(zts.getOauth2TokenAudience("id", null, idTokenGroups), "id");
+        assertEquals(zts.getOauth2TokenAudience("id", Boolean.FALSE, idTokenGroups), "id");
+        assertEquals(zts.getOauth2TokenAudience("id", Boolean.TRUE, idTokenGroups), "id");
     }
 
     private ServerPrivateKey getServerPrivateKey(ZTSImpl ztsImpl, final String keyType) {

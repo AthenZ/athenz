@@ -69,6 +69,8 @@ public class AccessTokenRequest {
     private static final String KEY_ACTOR = "actor";
     private static final String KEY_ACTOR_TOKEN = "actor_token";
     private static final String KEY_ACTOR_TOKEN_TYPE = "actor_token_type";
+    private static final String KEY_FULL_ARN = "full_arn";
+    private static final String KEY_ROLE_IN_AUD_CLAIM = "role_in_aud_claim";
 
     private static final String OAUTH_ASSERTION_TYPE_JWT_BEARER = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 
@@ -95,6 +97,8 @@ public class AccessTokenRequest {
     Principal principal = null;
     int expiryTime = 0;
     boolean useOpenIDIssuer = false;
+    boolean fullArn = false;
+    boolean roleInAudClaim = false;
     RequestType requestType;
     OAuth2Token actorTokenObj = null;
     OAuth2Token subjectTokenObj = null;
@@ -143,6 +147,12 @@ public class AccessTokenRequest {
                     break;
                 case KEY_OPENID_ISSUER:
                     useOpenIDIssuer = Boolean.parseBoolean(value);
+                    break;
+                case KEY_FULL_ARN:
+                    fullArn = Boolean.parseBoolean(value);
+                    break;
+                case KEY_ROLE_IN_AUD_CLAIM:
+                    roleInAudClaim = Boolean.parseBoolean(value);
                     break;
                 case KEY_CLIENT_ASSERTION_TYPE:
                     clientAssertionType = value.toLowerCase();
@@ -537,6 +547,14 @@ public class AccessTokenRequest {
 
     public boolean isUseOpenIDIssuer() {
         return useOpenIDIssuer;
+    }
+
+    public boolean isFullArn() {
+        return fullArn;
+    }
+
+    public boolean isRoleInAudClaim() {
+        return roleInAudClaim;
     }
 
     public Principal getPrincipal() {

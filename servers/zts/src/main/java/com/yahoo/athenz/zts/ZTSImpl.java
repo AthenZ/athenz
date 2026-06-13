@@ -140,6 +140,8 @@ public class ZTSImpl implements ZTSHandler {
     protected int roleTokenMaxTimeout;
     protected int idTokenMaxTimeout;
     protected int idTokenDefaultTimeout;
+    protected int jagTokenUserMaxTimeout;
+    protected int jagTokenServiceMaxTimeout;
     protected DynamicConfigLong x509CertRefreshResetTime;
     protected long signedPolicyTimeout;
     protected static String serverHostName = null;
@@ -670,6 +672,14 @@ public class ZTSImpl implements ZTSHandler {
         timeout = TimeUnit.SECONDS.convert(1, TimeUnit.HOURS);
         idTokenDefaultTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_ID_TOKEN_DEFAULT_TIMEOUT, Long.toString(timeout)));
+
+        timeout = TimeUnit.SECONDS.convert(1, TimeUnit.HOURS);
+        jagTokenUserMaxTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_JAG_TOKEN_USER_MAX_TIMEOUT, Long.toString(timeout)));
+
+        timeout = TimeUnit.SECONDS.convert(6, TimeUnit.HOURS);
+        jagTokenServiceMaxTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_JAG_TOKEN_SERVICE_MAX_TIMEOUT, Long.toString(timeout)));
 
         // signedPolicyTimeout is in milliseconds but the config setting should be in seconds
         // to be consistent with other configuration properties
@@ -2204,7 +2214,7 @@ public class ZTSImpl implements ZTSHandler {
 
         IdToken idToken = new IdToken();
         idToken.setVersion(1);
-        idToken.setAudience(getIdTokenAudience(clientId, roleInAudClaim, idTokenGroups));
+        idToken.setAudience(getOauth2TokenAudience(clientId, roleInAudClaim, idTokenGroups));
         idToken.setSubject(principalName);
         idToken.setIssuer(issuerResolver.getIDTokenIssuer(ctx.request(), null));
         idToken.setNonce(nonce);
@@ -2250,7 +2260,7 @@ public class ZTSImpl implements ZTSHandler {
         }
     }
 
-    String getIdTokenAudience(final String clientId, Boolean includeGroup, List<String> idTokenGroups) {
+    String getOauth2TokenAudience(final String clientId, Boolean includeGroup, List<String> idTokenGroups) {
         return (includeGroup == Boolean.TRUE && idTokenGroups != null && idTokenGroups.size() == 1) ?
                 clientId + ":" + idTokenGroups.get(0) : clientId;
     }
@@ -3321,7 +3331,8 @@ public class ZTSImpl implements ZTSHandler {
 
             final String clientId = dataStore.getServiceClientId(clientPrincipalDomain, clientPrincipalName);
             if (clientId == null || !clientId.equals(jagToken.getClientId())) {
-                LOGGER.error("Invalid jag assertion client_id claim: {}", jagToken.getClientId());
+                LOGGER.error("Invalid jag assertion client_id claim: {}, clientPrincipalDomain {}, clientPrincipalName {}, clientId {}",
+                    jagToken.getClientId(), clientPrincipalDomain, clientPrincipalName, clientId);
                 throw requestError("Invalid jag assertion client_id", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
             }
         }
@@ -3372,7 +3383,8 @@ public class ZTSImpl implements ZTSHandler {
         }
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("processAccessTokenJAGRequest(principal: {}, assertionScope: {}, requestedScope: {}, scope: {})", principalName, jagToken.getScopeStd(), requestedScope, scopeStd);
+            LOGGER.debug("processAccessTokenJAGRequest(principal: {}, assertionScope: {}, requestedScope: {}, scope: {})",
+                principalName, jagToken.getScopeStd(), requestedScope, scopeStd);
         }
 
         // our scopes are space separated list of values
@@ -3405,7 +3417,8 @@ public class ZTSImpl implements ZTSHandler {
         // process our request and retrieve the roles for the principal
 
         Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoles, false, roles, false);
+        dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoles, false,
+            roles, accessTokenRequest.isFullArn());
 
         // we return failure if we don't have access to any roles
 
@@ -3414,31 +3427,48 @@ public class ZTSImpl implements ZTSHandler {
                     caller, domainName, principalDomain);
         }
 
-        // we're going to issue a token valid only up to the expiry time
-        // of the jag token. However, if the jag token expiry time is too
-        // far in the future we'll limit the access token timeout to our
-        // configured max expiry time
+        // jag tokens are typically issued for a very short period
+        // so we can't base our expiry on the jag token expiry
+        // instead, we need to decide how long to issue an token for
 
-        int tokenTimeout = determineTokenTimeout(data, roles, null, ZTSUtils.getRemainingExpiryTime(jagToken.getExpiryTime()));
+        int tokenTimeout = determineTokenTimeout(data, roles, null,
+            userDomain.equals(principalDomain) ? jagTokenUserMaxTimeout : jagTokenServiceMaxTimeout);
         long iat = System.currentTimeMillis() / 1000;
+
+        // if the client has specified an audience, we'll honor it only
+        // if the full arn is enabled, otherwise we'll just use the
+        // role's domainName as audience as required
+
+        List<String> roleList = new ArrayList<>(roles);
+        final String requestAudience = accessTokenRequest.getAudience();
+        String audience = !StringUtil.isBlank(requestAudience) && accessTokenRequest.isFullArn() ?
+            requestAudience : getOauth2TokenAudience(domainName, accessTokenRequest.isRoleInAudClaim(), roleList);
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
         accessToken.setJwtId(UUID.randomUUID().toString());
-        accessToken.setAudience(domainName);
+        accessToken.setAudience(audience);
         accessToken.setClientId(clientPrincipalName);
         accessToken.setIssueTime(iat);
         accessToken.setAuthTime(iat);
         accessToken.setExpiryTime(iat + tokenTimeout);
         accessToken.setUserId(principalName);
         accessToken.setSubject(principalName);
-        accessToken.setIssuer(jagAudience);
-        accessToken.setScope(new ArrayList<>(roles));
+        accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), accessTokenRequest.isUseOpenIDIssuer()));
+        accessToken.setScope(roleList);
         accessToken.setPrincipalIssuer(principal.getIssuerIdentity());
 
         if (identityProvider != null && identityProvider.getTokenExchangeClaims() != null) {
             for (String claim : identityProvider.getTokenExchangeClaims()) {
-                accessToken.setCustomClaim(claim, jagToken.getClaim(claim));
+
+                // if we're asked for the group claim, we're going to copy
+                // our scp attribute as groups
+
+                if (IdToken.CLAIM_GROUPS.equals(claim)) {
+                    accessToken.setCustomClaim(claim, accessToken.getScope());
+                } else {
+                    accessToken.setCustomClaim(claim, jagToken.getClaim(claim));
+                }
             }
         }
 
