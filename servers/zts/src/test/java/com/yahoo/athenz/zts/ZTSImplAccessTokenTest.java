@@ -1966,7 +1966,7 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
-    public void testProcessJAGTokenExchangeRequestSuccess() throws JOSEException {
+    public void testProcessJAGTokenExchangeRequestImpersonationSuccess() throws JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -2014,6 +2014,10 @@ public class ZTSImplAccessTokenTest {
             assertEquals(claimSet.getAudience().get(0), "coretech");
             assertEquals(claimSet.getStringClaim("client_id"), "coretech.jwt");
             assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
+
+            // impersonation does not include `may_act` or `act` claim:
+            assertNull(claimSet.getJSONObjectClaim("may_act"));
+            assertNull(claimSet.getJSONObjectClaim("act"));
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -2088,6 +2092,10 @@ public class ZTSImplAccessTokenTest {
             assertEquals(claimSet.getStringClaim("client_id"), "coretech.jwt");
             assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
             assertEquals(claimSet.getClaim("athenz_code"), "athenz-code");
+
+            // impersonation does not include `may_act` or `act` claim:
+            assertNull(claimSet.getJSONObjectClaim("may_act"));
+            assertNull(claimSet.getJSONObjectClaim("act"));
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -2148,6 +2156,117 @@ public class ZTSImplAccessTokenTest {
 
         System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER);
         System.clearProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER);
+    }
+
+    @Test
+    public void testProcessJAGTokenExchangeDelegationSuccess() throws JOSEException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        // Create JAG token
+        File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
+                "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+        
+        // Delegation requires mTLS (X.509 certificate)
+        java.security.cert.X509Certificate mockCert = Mockito.mock(java.security.cert.X509Certificate.class);
+        Principal principal = SimplePrincipal.create("coretech", "jwt",
+                "v=U1;d=coretech;n=jwt;s=signature", 0, null);
+        ((SimplePrincipal) principal).setX509Certificate(mockCert);
+        ResourceContext context = createResourceContext(principal);
+
+        // Add `&actor=api.mcp` to make the request delegated
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
+                + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                + "&client_assertion=" + createClientAssertionToken(privateKey)
+                + "&actor=api.mcp");
+
+        assertNotNull(resp);
+        assertEquals(resp.getScope(), "coretech:role.writers");
+        assertNotNull(resp.getAccess_token());
+        assertTrue(resp.getExpires_in() > 0);
+        assertEquals(resp.getToken_type(), "Bearer");
+
+        // Verify the access token
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(resp.getAccess_token());
+            assertTrue(signedJWT.verify(verifier));
+
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "coretech");
+            assertEquals(claimSet.getStringClaim("client_id"), "coretech.jwt");
+            assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
+
+            // delegation DOES include `may_act` and `act` claims:
+            java.util.Map<String, Object> mayActClaim = claimSet.getJSONObjectClaim("may_act");
+            assertNotNull(mayActClaim);
+            assertEquals(mayActClaim.get("sub"), "api.mcp");
+
+            java.util.Map<String, Object> actClaim = claimSet.getJSONObjectClaim("act");
+            assertNotNull(actClaim);
+            assertEquals(actClaim.get("sub"), "coretech.jwt");
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
+    }
+    
+    @Test
+    public void testProcessJAGTokenExchangeDelegationMissingX509() throws JOSEException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        // Create JAG token
+        File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
+                "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
+
+        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(servletRequest.isSecure()).thenReturn(true);
+        
+        // We do create a correct principal, but it is not X.509 authenticated:
+        Principal principal = SimplePrincipal.create("coretech", "jwt",
+                "v=U1;d=coretech;n=jwt;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
+                    + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                    + "&client_assertion=" + createClientAssertionToken(privateKey)
+                    + "&actor=api.mcp");
+            
+            fail("Expected ResourceException(403) to be thrown");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Actor parameter requires X.509 authenticated principal"));
+        }
     }
 
     @DataProvider(name = "jagTokenExchangeCases")
