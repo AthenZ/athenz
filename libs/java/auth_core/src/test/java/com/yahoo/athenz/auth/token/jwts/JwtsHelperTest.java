@@ -175,6 +175,12 @@ public class JwtsHelperTest {
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("Missing second delimiter"));
         }
+        try {
+            JwtsHelper.parseJWTWithoutSignature("header.payload.");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Unable to parse token: Invalid JSON object"));
+        }
     }
 
     @Test
@@ -581,12 +587,7 @@ public class JwtsHelperTest {
         final String payload = Base64URL.encode("{\"sub\":\"user\"}").toString();
         final String token = header + "." + payload + ".";
 
-        try {
-            JwtsHelper.extractJWTTokenType(token);
-            fail();
-        } catch (CryptoException ex) {
-            assertTrue(ex.getMessage().contains("Unable to parse token: Not a JWS header"));
-        }
+        assertEquals(JwtsHelper.extractJWTTokenType(token), "JWT");
     }
 
     @Test

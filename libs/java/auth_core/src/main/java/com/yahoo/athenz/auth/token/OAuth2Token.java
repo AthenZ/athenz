@@ -17,6 +17,7 @@ package com.yahoo.athenz.auth.token;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.*;
 import com.nimbusds.jwt.proc.*;
 import com.yahoo.athenz.auth.KeyStore;
@@ -59,6 +60,7 @@ public class OAuth2Token {
     protected String principalIssuer;
     protected String clientIdDomainName;
     protected String clientIdServiceName;
+    protected String tokenType;
     protected LinkedHashMap<String, Object> act;
     protected LinkedHashMap<String, Object> mayAct;
 
@@ -78,14 +80,20 @@ public class OAuth2Token {
             // without any claim validation
 
             if (keyResolver == null) {
-                claimsSet = JwtsHelper.parseJWTWithoutSignature(token);
+                Base64URL[] parts = JOSEObject.split(token);
+                claimsSet = JwtsHelper.parseJWTWithoutSignature(parts);
+                tokenType = JwtsHelper.extractJWTTokenType(parts);
             } else {
 
                 // create a processor and process the token which does signature verification
                 // along with standard claims validation (expiry, not before, etc.)
 
                 ConfigurableJWTProcessor<SecurityContext> jwtProcessor = JwtsHelper.getJWTProcessor(keyResolver);
-                claimsSet = jwtProcessor.process(token, null);
+                final JWT jwt = JWTParser.parse(token);
+                claimsSet = jwtProcessor.process(jwt, null);
+
+                JOSEObjectType hdrType = jwt.getHeader().getType();
+                tokenType = hdrType == null ? null : hdrType.toString();
             }
 
             setTokenFields();
@@ -97,8 +105,13 @@ public class OAuth2Token {
 
     public OAuth2Token(final String token, ConfigurableJWTProcessor<SecurityContext> jwtProcessor) {
         try {
-            claimsSet = jwtProcessor.process(token, null);
+
+            final JWT jwt = JWTParser.parse(token);
+            claimsSet = jwtProcessor.process(jwt, null);
             setTokenFields();
+
+            JOSEObjectType hdrType = jwt.getHeader().getType();
+            tokenType = hdrType == null ? null : hdrType.toString();
 
         } catch (Exception ex) {
             throw new CryptoException("Unable to parse token: " + ex.getMessage());
@@ -114,7 +127,9 @@ public class OAuth2Token {
             // without any claim validation
 
             if (publicKey == null) {
-                claimsSet = JwtsHelper.parseJWTWithoutSignature(token);
+                Base64URL[] parts = JOSEObject.split(token);
+                claimsSet = JwtsHelper.parseJWTWithoutSignature(parts);
+                tokenType = JwtsHelper.extractJWTTokenType(parts);
             } else {
 
                 // Create a verifier and parse the token and verify the signature
@@ -129,6 +144,11 @@ public class OAuth2Token {
 
                 claimsSet = signedJWT.getJWTClaimsSet();
                 claimsVerifier.verify(claimsSet, null);
+
+                // set the token type
+
+                JOSEObjectType hdrType = signedJWT.getHeader().getType();
+                tokenType = hdrType == null ? null : hdrType.toString();
             }
 
             setTokenFields();
@@ -157,6 +177,11 @@ public class OAuth2Token {
 
             claimsSet = signedJWT.getJWTClaimsSet();
             claimsVerifier.verify(claimsSet, null);
+
+            // set the token type
+
+            JOSEObjectType hdrType = signedJWT.getHeader().getType();
+            tokenType = hdrType == null ? null : hdrType.toString();
 
             // extract the issuer and subject of the token. there are two possible
             // supported cases:
@@ -453,6 +478,10 @@ public class OAuth2Token {
 
     public Object getClaim(final String name) {
         return claimsSet.getClaim(name);
+    }
+
+    public String getTokenType() {
+        return tokenType;
     }
 
     /**
