@@ -323,6 +323,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_NOTIFICATION_OBJECT_STORE_FACTORY_CLASS = "athenz.zms.notification_object_store_factory_class";
     public static final String ZMS_PROP_USER_AUTHORITY_FILTER_DOC_URL = "athenz.zms.user_authority_filter_documentation_url";
     public static final String ZMS_PROP_AUTO_DELETE_TENANT_ASSUME_ROLE_ASSERTIONS = "athenz.zms.auto_delete_tenant_assume_role_assertions";
+    public static final String ZMS_PROP_CLIENT_ID_SELF_UPDATE = "athenz.zms.client_id_self_update";
 
     // Specials Tags used by ZMS itself
     public static final String ZMS_TAG_DELETE_SKIP_SERVICE_PROVIDER_CHECK = "zms.DeleteSkipServiceProviderCheck";

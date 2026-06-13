@@ -120,6 +120,9 @@ public class DomainMeta {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean autoDeleteTenantAssumeRoleAssertions;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean clientIdSelfUpdate;
+    @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String externalMemberValidator;
     @RdlOptional
@@ -371,6 +374,13 @@ public class DomainMeta {
     public Boolean getAutoDeleteTenantAssumeRoleAssertions() {
         return autoDeleteTenantAssumeRoleAssertions;
     }
+    public DomainMeta setClientIdSelfUpdate(Boolean clientIdSelfUpdate) {
+        this.clientIdSelfUpdate = clientIdSelfUpdate;
+        return this;
+    }
+    public Boolean getClientIdSelfUpdate() {
+        return clientIdSelfUpdate;
+    }
     public DomainMeta setExternalMemberValidator(String externalMemberValidator) {
         this.externalMemberValidator = externalMemberValidator;
         return this;
@@ -498,6 +508,9 @@ public class DomainMeta {
             if (autoDeleteTenantAssumeRoleAssertions == null ? a.autoDeleteTenantAssumeRoleAssertions != null : !autoDeleteTenantAssumeRoleAssertions.equals(a.autoDeleteTenantAssumeRoleAssertions)) {
                 return false;
             }
+            if (clientIdSelfUpdate == null ? a.clientIdSelfUpdate != null : !clientIdSelfUpdate.equals(a.clientIdSelfUpdate)) {
+                return false;
+            }
             if (externalMemberValidator == null ? a.externalMemberValidator != null : !externalMemberValidator.equals(a.externalMemberValidator)) {
                 return false;
             }
@@ -520,6 +533,9 @@ public class DomainMeta {
         }
         if (autoDeleteTenantAssumeRoleAssertions == null) {
             autoDeleteTenantAssumeRoleAssertions = false;
+        }
+        if (clientIdSelfUpdate == null) {
+            clientIdSelfUpdate = false;
         }
         return this;
     }
