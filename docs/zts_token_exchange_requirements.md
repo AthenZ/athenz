@@ -154,6 +154,7 @@ Requirements:
 - The token request must have a valid `audience` parameter specified
 - The token request must have the `scope` parameter set to the list of roles being requested in the
   format: `{domainName}:role.{roleName} {domainName}:role.{roleName} ...`
+- If the `subject_token` includes a SPIFFE ID in the `spiffe` claim, ZTS copies it into the issued access token `spiffe` claim.
 
 1. Role Names Validation
 
@@ -194,6 +195,7 @@ Requirements:
   parameter set to `urn:ietf:params:oauth:token-type:id_token`, `urn:ietf:params:oauth:token-type:id-access-token` or
   `urn:ietf:params:oauth:token-type:jwt`
 - The subject_token must have a valid `may_act` claim that includes a `sub` claim that matches the actor_token's subject
+- If the `subject_token` includes a SPIFFE ID in the `spiffe` claim, ZTS copies it into the issued access token `spiffe` claim.
 
 1. Role Names Validation
 
