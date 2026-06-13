@@ -18,10 +18,18 @@ import styled from '@emotion/styled';
 import AddRuleForm from './AddRuleForm';
 import Button from '../denali/Button';
 import { colors } from '../denali/styles';
-import Color from '../denali/Color';
 import RequestUtils from '../utils/RequestUtils';
 import { addAssertionPolicyVersion } from '../../redux/thunks/policies';
 import { connect } from 'react-redux';
+import ResourceOwnershipModalFeedback from '../resource-ownership/ResourceOwnershipModalFeedback';
+import {
+    isPolicyResourceManaged,
+    resolveResourceOwnershipCliOnError,
+} from '../utils/resourceOwnership';
+import {
+    cliAddAssertionPolicyVersion,
+    formatAssertionWords,
+} from '../utils/zmsCliCommands';
 
 const StyledDiv = styled.div`
     background-color: ${colors.white};
@@ -47,6 +55,7 @@ class AddAssertion extends React.Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.state = {
             case: false,
+            resourceOwnershipCliCommand: null,
         };
     }
 
@@ -94,8 +103,36 @@ class AddAssertion extends React.Component {
                 );
             })
             .catch((err) => {
+                const errMsg = RequestUtils.xhrErrorCheckHelper(err);
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: errMsg,
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            isPolicyResourceManaged(
+                                this.props.resourceOwnership
+                            ),
+                            err,
+                            () => {
+                                const assertion = {
+                                    effect: this.state.effect,
+                                    action: this.state.action,
+                                    role: this.state.role,
+                                    resource: this.state.resource,
+                                };
+                                const words = formatAssertionWords(
+                                    this.props.domain,
+                                    assertion
+                                );
+                                return cliAddAssertionPolicyVersion(
+                                    this.props.domain,
+                                    this.props.name,
+                                    this.props.version,
+                                    words,
+                                    null,
+                                    !!this.state.case
+                                );
+                            }
+                        ),
                 });
             });
     }
@@ -108,9 +145,15 @@ class AddAssertion extends React.Component {
                     domain={this.props.domain}
                     id={this.props.name + '-' + this.props.version}
                 />
-                {this.state.errorMessage && (
+                {(this.state.errorMessage ||
+                    this.state.resourceOwnershipCliCommand) && (
                     <ErrorDiv>
-                        <Color name={'red600'}>{this.state.errorMessage}</Color>
+                        <ResourceOwnershipModalFeedback
+                            errorMessage={this.state.errorMessage}
+                            resourceOwnershipCliCommand={
+                                this.state.resourceOwnershipCliCommand
+                            }
+                        />
                     </ErrorDiv>
                 )}
                 <ButtonDiv>

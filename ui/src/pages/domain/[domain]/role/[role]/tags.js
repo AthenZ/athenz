@@ -168,6 +168,9 @@ class RoleTagsPage extends React.Component {
                                             domain={domainName}
                                             role={roleName}
                                             selectedName={'tags'}
+                                            resourceOwnership={
+                                                roleDetails.resourceOwnership
+                                            }
                                         />
                                     </PageHeaderDiv>
                                     <TagList

@@ -112,6 +112,7 @@ class MemberList extends React.Component {
                 _csrf={this.props._csrf}
                 showAddMember={this.state.showAddMember}
                 justificationRequired={justificationReq}
+                resourceOwnership={collectionDetails.resourceOwnership}
             />
         ) : (
             ''
@@ -155,6 +156,7 @@ class MemberList extends React.Component {
                     onSubmit={this.reloadMembers}
                     justificationRequired={justificationReq}
                     newMember={newMember}
+                    resourceOwnership={collectionDetails.resourceOwnership}
                 />
                 <br />
                 {showPending ? (
@@ -170,6 +172,7 @@ class MemberList extends React.Component {
                         onSubmit={this.reloadMembers}
                         justificationRequired={justificationReq}
                         newMember={newMember}
+                        resourceOwnership={collectionDetails.resourceOwnership}
                     />
                 ) : null}
                 {this.state.showSuccess ? (

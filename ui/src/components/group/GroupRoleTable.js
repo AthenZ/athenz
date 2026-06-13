@@ -17,6 +17,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 import RoleGroup from '../role/RoleGroup';
 import { GROUP_ROLES_CATEGORY } from '../constants/constants';
+import { maxRoleVisibleIconCount } from '../utils/roleIconStrip';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { connect } from 'react-redux';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
@@ -102,16 +103,20 @@ class GroupRoleTable extends React.Component {
             if (this.state.rows) {
                 for (let name in this.state.rows) {
                     // group rows
+                    const groupRoles = this.state.rows[name];
+                    const groupIconStripMax =
+                        maxRoleVisibleIconCount(groupRoles);
                     let roleGroup = (
                         <RoleGroup
                             category={GROUP_ROLES_CATEGORY}
                             key={'group-role:' + name}
                             domain={name}
                             name={name}
-                            roles={this.state.rows[name]}
+                            roles={groupRoles}
                             onUpdateSuccess={this.props.onSubmit}
                             _csrf={this.props._csrf}
                             timeZone={this.props.timeZone}
+                            iconStripMaxIcons={groupIconStripMax}
                         />
                     );
                     rows.push(roleGroup);

@@ -27,13 +27,21 @@ import { css, keyframes } from '@emotion/react';
 import { deleteRole } from '../../redux/thunks/roles';
 import { connect } from 'react-redux';
 import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
+import { selectResourceOwnershipUi } from '../../redux/selectors/domains';
 import { isReviewRequired } from '../utils/ReviewUtils';
 import { onClickNewTabFunction } from '../utils/PageUtils';
+import ManagedResourceIcon from '../resource-ownership/ManagedResourceIcon';
+import {
+    isRoleResourceListManaged,
+    resolveRoleDeleteResourceOwnershipCli,
+} from '../utils/resourceOwnership';
+import { getRoleListManagedIconTooltip } from '../utils/resourceOwnershipUi';
+import { roleIconStripMinWidthStyle } from '../utils/roleIconStrip';
 
 const TDStyledName = styled.div`
     background-color: ${(props) => props.color};
     text-align: ${(props) => props.align};
-    padding: 5px 0 5px 15px;
+    padding: 5px 0 5px 0px;
     vertical-align: middle;
     word-break: break-all;
     width: 28%;
@@ -42,16 +50,16 @@ const TDStyledName = styled.div`
 const TDStyledTime = styled.div`
     background-color: ${(props) => props.color};
     text-align: ${(props) => props.align};
-    padding: 5px 0 5px 15px;
+    padding: 5px 0 5px 0px;
     vertical-align: middle;
     word-break: break-all;
-    width: 16%;
+    width: 15%;
 `;
 
 const TDStyledIcon = styled.div`
     background-color: ${(props) => props.color};
     text-align: ${(props) => props.align};
-    padding: 5px 0 5px 15px;
+    padding: 5px 0 5px 0px;
     vertical-align: middle;
     word-break: break-all;
     width: 7%;
@@ -91,8 +99,21 @@ const MenuDiv = styled.div`
     font-size: 12px;
 `;
 
-const LeftSpan = styled.span`
-    padding-left: 20px;
+const IconStrip = styled.span`
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    vertical-align: middle;
+    box-sizing: border-box;
+`;
+
+const IconSlot = styled.span`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35em;
+    vertical-align: middle;
 `;
 
 class RoleRow extends React.Component {
@@ -104,6 +125,7 @@ class RoleRow extends React.Component {
         this.state = {
             name: NameUtils.getShortName(':role.', this.props.details.name),
             showDelete: false,
+            resourceOwnershipCliCommand: null,
         };
         this.localDate = new DateUtils();
     }
@@ -146,14 +168,29 @@ class RoleRow extends React.Component {
                     deleteName: null,
                     deleteJustification: null,
                     errorMessage: null,
+                    resourceOwnershipCliCommand: null,
                 });
                 this.props.onUpdateSuccess(
                     `Successfully deleted role ${roleName}`
                 );
             })
             .catch((err) => {
+                const role = this.props.details;
+                const aud =
+                    this.props.justificationRequired &&
+                    this.state.deleteJustification
+                        ? this.state.deleteJustification
+                        : null;
                 this.setState({
                     errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    resourceOwnershipCliCommand:
+                        resolveRoleDeleteResourceOwnershipCli(
+                            role.resourceOwnership,
+                            err,
+                            this.props.domain,
+                            roleName,
+                            aud
+                        ),
                 });
             });
     }
@@ -163,6 +200,7 @@ class RoleRow extends React.Component {
             showDelete: false,
             deleteName: '',
             errorMessage: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
@@ -287,18 +325,24 @@ class RoleRow extends React.Component {
 
         let reviewRequired = isReviewRequired(role);
 
-        let roleTypeIcon = role.trust ? iconDelegated : '';
         let roleDescriptionIcon = role.description ? iconDescription : '';
-        let roleAuditIcon = auditEnabled ? iconAudit : '';
 
-        let roleNameSpan =
-            roleTypeIcon === '' && roleAuditIcon === '' ? (
-                <LeftSpan>{' ' + this.state.name}</LeftSpan>
-            ) : (
-                <span>{' ' + this.state.name}</span>
-            );
+        let roleTypeIcon = role.trust ? iconDelegated : null;
+        let roleAuditIcon = auditEnabled ? iconAudit : null;
+        let roleManagedResourceIcon = isRoleResourceListManaged(
+            role.resourceOwnership
+        ) ? (
+            <ManagedResourceIcon
+                show={true}
+                tooltip={getRoleListManagedIconTooltip(
+                    role.resourceOwnership,
+                    this.props.resourceOwnershipUi
+                )}
+            />
+        ) : null;
         let newRole =
             this.props.newRole === this.props.domain + '-' + this.state.name;
+        const iconStripMaxIcons = this.props.iconStripMaxIcons ?? 3;
         rows.push(
             <TrStyled
                 key={this.state.name}
@@ -307,9 +351,23 @@ class RoleRow extends React.Component {
                 isSuccess={newRole}
             >
                 <TDStyledName color={color} align={left}>
-                    {roleTypeIcon}
-                    {roleAuditIcon}
-                    {roleNameSpan} {roleDescriptionIcon}
+                    <IconStrip
+                        style={{
+                            minWidth:
+                                roleIconStripMinWidthStyle(iconStripMaxIcons),
+                        }}
+                    >
+                        {roleTypeIcon ? (
+                            <IconSlot>{roleTypeIcon}</IconSlot>
+                        ) : null}
+                        {roleAuditIcon ? (
+                            <IconSlot>{roleAuditIcon}</IconSlot>
+                        ) : null}
+                        {roleManagedResourceIcon ? (
+                            <IconSlot>{roleManagedResourceIcon}</IconSlot>
+                        ) : null}
+                    </IconStrip>
+                    <span>{' ' + this.state.name}</span> {roleDescriptionIcon}
                 </TDStyledName>
                 <TDStyledTime color={color} align={left}>
                     {this.localDate.getLocalDate(
@@ -492,6 +550,9 @@ class RoleRow extends React.Component {
                     }
                     onJustification={this.saveJustification}
                     errorMessage={this.state.errorMessage}
+                    resourceOwnershipCliCommand={
+                        this.state.resourceOwnershipCliCommand
+                    }
                 />
             );
         }
@@ -503,6 +564,7 @@ const mapStateToProps = (state, props) => {
     return {
         ...props,
         justificationRequired: selectDomainAuditEnabled(state),
+        resourceOwnershipUi: selectResourceOwnershipUi(state),
     };
 };
 

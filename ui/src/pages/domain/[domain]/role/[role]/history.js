@@ -172,6 +172,9 @@ class RoleHistoryPage extends React.Component {
                                             domain={domainName}
                                             role={roleName}
                                             selectedName={'history'}
+                                            resourceOwnership={
+                                                roleDetails.resourceOwnership
+                                            }
                                         />
                                     </PageHeaderDiv>
                                     <CollectionHistoryList

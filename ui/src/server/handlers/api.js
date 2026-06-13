@@ -42,9 +42,9 @@ const responseHandler = function (err, data) {
         debug(
             `principal: ${this.req.session.shortId} rid: ${
                 this.req.headers.rid
-            } Error from ZMS while calling ${this.caller} API: ${JSON.stringify(
-                errorHandler.fetcherError(err)
-            )}`
+            } Error from ${this.backend ? this.backend : 'ZMS'} while calling ${
+                this.caller
+            } API: ${JSON.stringify(errorHandler.fetcherError(err))}`
         );
         return this.callback(errorHandler.fetcherError(err));
     } else {
@@ -1857,7 +1857,12 @@ Fetchr.registerService({
     update(req, resource, params, body, config, callback) {
         req.clients.msd.putStaticWorkload(
             params,
-            responseHandler.bind({ caller: 'add-service-host', callback, req })
+            responseHandler.bind({
+                caller: 'add-service-host',
+                callback,
+                req,
+                backend: 'MSD',
+            })
         );
     },
 });
@@ -2587,6 +2592,9 @@ Fetchr.registerService({
             userId: req.session.shortId,
             createDomainMessage: appConfig.createDomainMessage,
             productMasterLink: appConfig.productMasterLink,
+            resourceOwnershipGuideLink: appConfig.resourceOwnershipGuideLink,
+            resourceOwnershipUi: appConfig.resourceOwnershipUi,
+            zmsUrl: appConfig.zms,
         });
     },
 });
@@ -3488,6 +3496,8 @@ module.exports.load = function (config, secrets) {
         createDomainMessage: config.createDomainMessage,
         servicePageConfig: config.servicePageConfig,
         productMasterLink: config.productMasterLink,
+        resourceOwnershipGuideLink: config.resourceOwnershipGuideLink,
+        resourceOwnershipUi: config.resourceOwnershipUi,
         allPrefixes: config.allPrefixes,
         zmsLoginUrl: config.zmsLoginUrl,
         timeZone: config.timeZone,

@@ -18,7 +18,6 @@ import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { initStore } from '../redux/store';
 import { getExpiryTime } from '../redux/utils';
-
 export const renderWithRedux = (component, initialState = {}) => {
     return render(
         <Provider store={initStore(initialState)}>{component}</Provider>

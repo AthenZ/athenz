@@ -21,7 +21,10 @@ import InstanceTable from './InstanceTable';
 import AddStaticInstances from '../microsegmentation/AddStaticInstances';
 import InputDropdown from '../denali/InputDropdown';
 import { selectTimeZone } from '../../redux/selectors/domains';
-import { selectInstancesWorkLoadData } from '../../redux/selectors/services';
+import {
+    selectInstancesWorkLoadData,
+    selectService,
+} from '../../redux/selectors/services';
 import { connect } from 'react-redux';
 
 const InstanceSectionDiv = styled.div`
@@ -158,6 +161,7 @@ class InstanceList extends React.Component {
                 _csrf={this.props._csrf}
                 showAddInstance={this.state.showAddInstance}
                 service={this.props.service}
+                resourceOwnership={this.props.resourceOwnership}
             />
         ) : (
             ''
@@ -241,6 +245,8 @@ const mapStateToProps = (state, props) => {
             props.category
         ),
         timeZone: selectTimeZone(state),
+        resourceOwnership: selectService(state, props.domain, props.service)
+            .resourceOwnership,
     };
 };
 
