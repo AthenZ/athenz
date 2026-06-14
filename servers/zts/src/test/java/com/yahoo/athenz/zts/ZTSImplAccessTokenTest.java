@@ -2095,7 +2095,6 @@ public class ZTSImplAccessTokenTest {
         System.clearProperty(ZTSConsts.ZTS_PROP_PROVIDER_CONFIG_FILE);
     }
 
-
     @Test
     public void testProcessJAGTokenExchangeRequestSuccessWithOpenIDIssuer() throws JOSEException {
 
@@ -2128,7 +2127,8 @@ public class ZTSImplAccessTokenTest {
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
                 "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
                 + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-                + "&client_assertion=" + createClientAssertionToken(privateKey));
+                + "&client_assertion=" + createClientAssertionToken(privateKey)
+                + "&openid_issuer=true");
 
         assertNotNull(resp);
         assertNotNull(resp.getAccess_token());
@@ -2148,6 +2148,290 @@ public class ZTSImplAccessTokenTest {
 
         System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER);
         System.clearProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER);
+    }
+
+    @Test
+    public void testProcessJAGTokenExchangeRequestSuccessGroupsClaim() throws JOSEException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        TokenExchangeIdentityProvider provider = new TokenExchangeIdentityProvider() {
+            @Override
+            public String getTokenIdentity(OAuth2Token token) {
+                return "user_domain.user";
+            }
+
+            @Override
+            public String getTokenAudience(OAuth2Token token) {
+                return token.getAudience();
+            }
+
+            @Override
+            public List<String> getTokenExchangeClaims() {
+                return List.of("groups");
+            }
+        };
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.providerConfigManager.putProvider("coretech.jwt", provider);
+        ztsImpl.tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
+                "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
+
+        Principal principal = SimplePrincipal.create("coretech", "jwt",
+                "v=U1;d=coretech;n=jwt;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
+                        + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                        + "&client_assertion=" + createClientAssertionToken(privateKey));
+
+        assertNotNull(resp);
+        assertNotNull(resp.getAccess_token());
+
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(resp.getAccess_token());
+            assertTrue(signedJWT.verify(verifier));
+
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+            // groups claim must equal the scope (scp) list, not a claim from the jagToken
+            List<String> groups = claimSet.getStringListClaim("groups");
+            assertNotNull(groups);
+            assertFalse(groups.isEmpty());
+            assertEquals(groups, claimSet.getStringListClaim("scp"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testProcessJAGTokenExchangeRequestSuccessFullArnAudience() throws JOSEException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
+                "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
+
+        Principal principal = SimplePrincipal.create("coretech", "jwt",
+                "v=U1;d=coretech;n=jwt;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        final String customAudience = "https://my-service.athenz.io";
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
+                        + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                        + "&client_assertion=" + createClientAssertionToken(privateKey)
+                        + "&full_arn=true&audience=" + customAudience);
+
+        assertNotNull(resp);
+        assertNotNull(resp.getAccess_token());
+
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(resp.getAccess_token());
+            assertTrue(signedJWT.verify(verifier));
+
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+            // with full_arn=true, the custom audience from the request must be used
+            assertEquals(claimSet.getAudience().get(0), customAudience);
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testProcessJAGTokenExchangeRequestAudienceIgnoredWithoutFullArn() throws JOSEException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
+                "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
+
+        Principal principal = SimplePrincipal.create("coretech", "jwt",
+                "v=U1;d=coretech;n=jwt;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
+                        + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                        + "&client_assertion=" + createClientAssertionToken(privateKey)
+                        + "&audience=https://my-service.athenz.io");
+
+        assertNotNull(resp);
+        assertNotNull(resp.getAccess_token());
+
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(resp.getAccess_token());
+            assertTrue(signedJWT.verify(verifier));
+
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+            // without full_arn, the custom audience is ignored and the domain name is used
+            assertEquals(claimSet.getAudience().get(0), "coretech");
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testProcessJAGTokenExchangeRequestRoleInAudClaim() throws JOSEException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        // scope restricted to a single role so role_in_aud_claim produces domain:role
+        String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
+                "coretech:role.writers", ztsImpl.ztsOAuthIssuer, expiryTime);
+
+        Principal principal = SimplePrincipal.create("coretech", "jwt",
+                "v=U1;d=coretech;n=jwt;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
+                        + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                        + "&client_assertion=" + createClientAssertionToken(privateKey)
+                        + "&role_in_aud_claim=true&full_arn=true&audience=coretech.oidc");
+
+        assertNotNull(resp);
+        assertNotNull(resp.getAccess_token());
+
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(resp.getAccess_token());
+            assertTrue(signedJWT.verify(verifier));
+
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+            // with role_in_aud_claim=true and a single accessible role, audience is domain:roleName
+            assertEquals(claimSet.getAudience().get(0), "coretech.oidc:coretech:role.writers");
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testProcessJAGTokenExchangeRequestUserDomainTimeout() throws JOSEException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+        System.setProperty(PROP_USER_DOMAIN, "user_domain");
+        System.setProperty(ZTSConsts.ZTS_PROP_JAG_TOKEN_USER_MAX_TIMEOUT, "500");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        // principal domain "user_domain" matches userDomain so user max timeout applies
+        String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
+                "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
+
+        Principal principal = SimplePrincipal.create("coretech", "jwt",
+                "v=U1;d=coretech;n=jwt;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
+                        + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                        + "&client_assertion=" + createClientAssertionToken(privateKey));
+
+        assertNotNull(resp);
+        assertNotNull(resp.getAccess_token());
+        assertTrue(resp.getExpires_in() > 0);
+        assertTrue(resp.getExpires_in() <= 500);
+
+        System.clearProperty(PROP_USER_DOMAIN);
+        System.clearProperty(ZTSConsts.ZTS_PROP_JAG_TOKEN_USER_MAX_TIMEOUT);
+    }
+
+    @Test
+    public void testProcessJAGTokenExchangeRequestServiceDomainTimeout() throws JOSEException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+        System.setProperty(ZTSConsts.ZTS_PROP_JAG_TOKEN_SERVICE_MAX_TIMEOUT, "600");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        // principalDomain "user_domain" != userDomain "user" so service max timeout applies
+        String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
+                "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
+
+        Principal principal = SimplePrincipal.create("coretech", "jwt",
+                "v=U1;d=coretech;n=jwt;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
+                        + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                        + "&client_assertion=" + createClientAssertionToken(privateKey));
+
+        assertNotNull(resp);
+        assertNotNull(resp.getAccess_token());
+        assertTrue(resp.getExpires_in() > 0);
+        assertTrue(resp.getExpires_in() <= 600);
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_JAG_TOKEN_SERVICE_MAX_TIMEOUT);
     }
 
     @DataProvider(name = "jagTokenExchangeCases")

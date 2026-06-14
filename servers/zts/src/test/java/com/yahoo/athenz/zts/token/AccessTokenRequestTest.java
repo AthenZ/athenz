@@ -68,8 +68,8 @@ public class AccessTokenRequestTest {
     public void testAccessTokenRequest() {
 
         AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials&scope=coretech:role.writers"
-                + "&authorization_details=details&expires_in=100&proxy_principal_spiffe_uris=&actor=athenz.api",
-                defaultConfigOptions);
+                + "&authorization_details=details&expires_in=100&proxy_principal_spiffe_uris=&actor=athenz.api"
+                + "&role_in_aud_claim=true&full_arn=true", defaultConfigOptions);
         assertNotNull(request);
         assertEquals(request.getGrantType(), "client_credentials");
         assertEquals(request.getScope(), "coretech:role.writers");
@@ -77,6 +77,8 @@ public class AccessTokenRequestTest {
         assertEquals(request.getExpiryTime(), 100);
         assertNull(request.getProxyPrincipalsSpiffeUris());
         assertEquals(request.getActor(), "athenz.api");
+        assertTrue(request.isFullArn());
+        assertTrue(request.isRoleInAudClaim());
     }
 
     @Test
