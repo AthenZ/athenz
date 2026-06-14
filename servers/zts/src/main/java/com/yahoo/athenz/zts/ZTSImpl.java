@@ -2214,7 +2214,7 @@ public class ZTSImpl implements ZTSHandler {
 
         IdToken idToken = new IdToken();
         idToken.setVersion(1);
-        idToken.setAudience(getOauth2TokenAudience(clientId, roleInAudClaim, idTokenGroups));
+        idToken.setAudience(getIdTokenAudience(clientId, roleInAudClaim, idTokenGroups));
         idToken.setSubject(principalName);
         idToken.setIssuer(issuerResolver.getIDTokenIssuer(ctx.request(), null));
         idToken.setNonce(nonce);
@@ -2260,7 +2260,7 @@ public class ZTSImpl implements ZTSHandler {
         }
     }
 
-    String getOauth2TokenAudience(final String clientId, Boolean includeGroup, List<String> idTokenGroups) {
+    String getIdTokenAudience(final String clientId, Boolean includeGroup, List<String> idTokenGroups) {
         return (includeGroup == Boolean.TRUE && idTokenGroups != null && idTokenGroups.size() == 1) ?
                 clientId + ":" + idTokenGroups.get(0) : clientId;
     }
@@ -3441,8 +3441,20 @@ public class ZTSImpl implements ZTSHandler {
 
         List<String> roleList = new ArrayList<>(roles);
         final String requestAudience = accessTokenRequest.getAudience();
-        String audience = !StringUtil.isBlank(requestAudience) && accessTokenRequest.isFullArn() ?
-            requestAudience : getOauth2TokenAudience(domainName, accessTokenRequest.isRoleInAudClaim(), roleList);
+        String audience;
+
+        // if we're asked to include role name in the audience claim then
+        // first we should have the full arn requested as well and
+        // our audience value must be a service identity
+
+        if (accessTokenRequest.isRoleInAudClaim() && accessTokenRequest.isFullArn() && roleList.size() == 1) {
+            validate(requestAudience, TYPE_SERVICE_NAME, principalDomain, caller);
+            audience = requestAudience + ":" + roleList.get(0);
+        } else if (accessTokenRequest.isFullArn()) {
+            audience = requestAudience;
+        } else {
+            audience = domainName;
+        }
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);

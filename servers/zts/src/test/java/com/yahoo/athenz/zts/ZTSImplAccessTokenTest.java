@@ -2337,7 +2337,7 @@ public class ZTSImplAccessTokenTest {
                 "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
                         + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
                         + "&client_assertion=" + createClientAssertionToken(privateKey)
-                        + "&role_in_aud_claim=true");
+                        + "&role_in_aud_claim=true&full_arn=true&audience=coretech.oidc");
 
         assertNotNull(resp);
         assertNotNull(resp.getAccess_token());
@@ -2350,7 +2350,7 @@ public class ZTSImplAccessTokenTest {
 
             JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
             // with role_in_aud_claim=true and a single accessible role, audience is domain:roleName
-            assertEquals(claimSet.getAudience().get(0), "coretech:writers");
+            assertEquals(claimSet.getAudience().get(0), "coretech.oidc:coretech:role.writers");
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }

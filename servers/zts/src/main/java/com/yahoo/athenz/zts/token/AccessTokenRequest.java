@@ -290,13 +290,13 @@ public class AccessTokenRequest {
         // service and we have no other way of identifying what access the client
         // is looking for, we'll make the scope mandatory.
 
-        if (StringUtil.isEmpty(scope)) {
+        if (StringUtil.isBlank(scope)) {
             throw new IllegalArgumentException("Invalid request: no scope provided");
         }
 
         // we must have audience specified
 
-        if (StringUtil.isEmpty(audience)) {
+        if (StringUtil.isBlank(audience)) {
             throw new IllegalArgumentException("Invalid request: no audience provided");
         }
 
