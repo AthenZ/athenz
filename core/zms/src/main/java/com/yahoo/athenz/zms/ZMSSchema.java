@@ -2711,7 +2711,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("ServiceIdentitySystemMeta", "PUT", "/domain/{domain}/service/{service}/meta/system/{attribute}")
-            .comment("Set the specified service metadata. Caller must have update privileges on the sys.auth domain. For OAuth DCR clientid updates, client ID self-update is also allowed when the server property and domain clientIdSelfUpdate flag are enabled, the caller is the target service principal, and the target domain policy grants update on resource service.clientid.<clientid>.")
+            .comment("Set the specified service metadata. Caller must have update privileges on the sys.auth domain. For OAuth DCR clientid updates, client ID self-update is also allowed when the server property and domain clientIdSelfUpdate flag are enabled, the caller is the target service principal, and the target domain policy grants update on resource service.<service>.clientid.<clientid>.")
             .pathParam("domain", "DomainName", "name of the domain")
             .pathParam("service", "SimpleName", "name of the service")
             .pathParam("attribute", "SimpleName", "name of the system attribute to be modified")
