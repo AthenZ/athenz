@@ -2904,9 +2904,8 @@ public class ZTSImpl implements ZTSHandler {
         // if we have requested authenticated by another principal other than
         // the actor token principal then we'll just do a quick check here
         // to make sure the principals match
-        
-        final String clientPrincipalName = principal.getFullName();
-        if (!clientPrincipalName.equals(actorToken.getSubject())) {
+
+        if (!principal.getFullName().equals(actorToken.getSubject())) {
             throw forbiddenError("Request principal does not match actor token principal",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
@@ -3005,9 +3004,6 @@ public class ZTSImpl implements ZTSHandler {
         if (actor != null) {
             // may_act: The service principal that will be delegated the authority
             accessToken.setMayActEntry(AccessToken.CLAIM_SUBJECT, actor);
-
-            // act: current authenticated client acting on behalf of the subject
-            accessToken.setActEntry(AccessToken.CLAIM_SUBJECT, clientPrincipalName);
         }
 
         final String spiffeId = extractSpiffeIdFromToken(subjectToken);
