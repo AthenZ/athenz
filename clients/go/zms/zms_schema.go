@@ -2460,7 +2460,7 @@ func init() {
 	sb.AddResource(mDeletePublicKeyEntry.Build())
 
 	mPutServiceIdentitySystemMeta := rdl.NewResourceBuilder("ServiceIdentity", "PUT", "/domain/{domain}/service/{service}/meta/system/{attribute}")
-	mPutServiceIdentitySystemMeta.Comment("Set the specified service metadata. Caller must have update privileges on the sys.auth domain. For OAuth DCR clientid updates, client ID self-update is also allowed when the server property and domain clientIdSelfUpdate flag are enabled, the caller is the target service principal, and the caller is a member of the target domain's admin role.")
+	mPutServiceIdentitySystemMeta.Comment("Set the specified service metadata. Caller must have update privileges on the sys.auth domain. For OAuth DCR clientid updates, client ID self-update is also allowed when the server property and domain clientIdSelfUpdate flag are enabled, the caller is the target service principal, and the target domain policy grants update on resource client_id.<client_id>.")
 	mPutServiceIdentitySystemMeta.Input("domain", "DomainName", true, "", "", false, nil, "name of the domain")
 	mPutServiceIdentitySystemMeta.Input("service", "SimpleName", true, "", "", false, nil, "name of the service")
 	mPutServiceIdentitySystemMeta.Input("attribute", "SimpleName", true, "", "", false, nil, "name of the system attribute to be modified")
