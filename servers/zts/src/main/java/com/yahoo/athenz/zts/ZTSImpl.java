@@ -2904,10 +2904,23 @@ public class ZTSImpl implements ZTSHandler {
         // if we have requested authenticated by another principal other than
         // the actor token principal then we'll just do a quick check here
         // to make sure the principals match
-
-        if (!principal.getFullName().equals(actorToken.getSubject())) {
+        
+        final String clientPrincipalName = principal.getFullName();
+        if (!clientPrincipalName.equals(actorToken.getSubject())) {
             throw forbiddenError("Request principal does not match actor token principal",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        // Optional actor parameter means: issue this delegated AT with may_act
+        // so that the next actor can perform another delegated token exchange.
+        final String actor = accessTokenRequest.getActor();
+        if (actor != null) {
+            validate(actor, TYPE_SERVICE_NAME, principalDomain, caller);
+
+            if (principal.getX509Certificate() == null) {
+                throw forbiddenError("Actor parameter requires X.509 authenticated principal",
+                        caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            }
         }
 
         // in the delegation request the subject token is issued with a specific
@@ -2988,6 +3001,14 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), accessTokenRequest.isUseOpenIDIssuer()));
         accessToken.setScope(new ArrayList<>(roles));
         accessToken.setPrincipalIssuer(principal.getIssuerIdentity());
+
+        if (actor != null) {
+            // may_act: The service principal that will be delegated the authority
+            accessToken.setMayActEntry(AccessToken.CLAIM_SUBJECT, actor);
+
+            // act: current authenticated client acting on behalf of the subject
+            accessToken.setActEntry(AccessToken.CLAIM_SUBJECT, clientPrincipalName);
+        }
 
         final String spiffeId = extractSpiffeIdFromToken(subjectToken);
         if (spiffeId != null) {
