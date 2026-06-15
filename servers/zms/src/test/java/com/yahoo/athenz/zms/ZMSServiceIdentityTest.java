@@ -1164,7 +1164,7 @@ public class ZMSServiceIdentityTest {
                 domainName, serviceName, "clientid", auditRef, meta));
 
         Policy policy = zmsTestInitializer.createPolicyObject(domainName, clientIdUpdateRoleName,
-                clientIdUpdateRoleName, ZMSConsts.ACTION_UPDATE, domainName + ":client_id.client-id",
+                clientIdUpdateRoleName, ZMSConsts.ACTION_UPDATE, domainName + ":service.clientid.client-id",
                 AssertionEffect.ALLOW);
         zmsImpl.putPolicy(ctx, domainName, clientIdUpdateRoleName, auditRef, false, null, policy);
 

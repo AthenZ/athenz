@@ -7164,7 +7164,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return false;
         }
 
-        final String clientIdResource = (domain.getName() + ":client_id." + clientId).toLowerCase();
+        final String clientIdResource = (domain.getName() + ":service.clientid." + clientId).toLowerCase();
         return hasAccess(domain, ZMSConsts.ACTION_UPDATE, clientIdResource, principal, null) == AccessStatus.ALLOWED;
     }
 
