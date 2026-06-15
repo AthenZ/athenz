@@ -1157,7 +1157,7 @@ public class ZMSServiceIdentityTest {
 
         final String clientIdUpdateRoleName = "client-id-updaters";
         Role role = zmsTestInitializer.createRoleObject(domainName, clientIdUpdateRoleName, null,
-                List.of(new RoleMember().setMemberName(servicePrincipal)));
+                new ArrayList<>(List.of(new RoleMember().setMemberName(servicePrincipal))));
         zmsImpl.putRole(ctx, domainName, clientIdUpdateRoleName, auditRef, false, null, role);
 
         assertServiceSystemMetaUpdateForbidden(() -> zmsImpl.putServiceIdentitySystemMeta(serviceCtx,
