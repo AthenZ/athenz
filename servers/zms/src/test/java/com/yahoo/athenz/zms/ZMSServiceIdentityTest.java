@@ -1131,9 +1131,6 @@ public class ZMSServiceIdentityTest {
         zmsImpl.putServiceIdentity(ctx, domainName, otherServiceName, auditRef, false, null, service2);
 
         final String servicePrincipal = ResourceUtils.serviceResourceName(domainName, serviceName);
-        Membership membership = new Membership().setMemberName(servicePrincipal);
-        zmsImpl.putMembership(ctx, domainName, "admin", servicePrincipal, auditRef, false, null, membership);
-
         RsrcCtxWrapper serviceCtx = zmsTestInitializer.contextWithMockPrincipal("putServiceIdentitySystemMeta",
                 domainName, serviceName);
         RsrcCtxWrapper otherServiceCtx = zmsTestInitializer.contextWithMockPrincipal("putServiceIdentitySystemMeta",
@@ -1155,11 +1152,30 @@ public class ZMSServiceIdentityTest {
                 domainName, serviceName, "clientid", auditRef, meta));
 
         zmsImpl.clientIdSelfUpdate = true;
+        assertServiceSystemMetaUpdateForbidden(() -> zmsImpl.putServiceIdentitySystemMeta(serviceCtx,
+                domainName, serviceName, "clientid", auditRef, meta));
+
+        final String clientIdUpdateRoleName = "client-id-updaters";
+        Role role = zmsTestInitializer.createRoleObject(domainName, clientIdUpdateRoleName, null,
+                List.of(new RoleMember().setMemberName(servicePrincipal)));
+        zmsImpl.putRole(ctx, domainName, clientIdUpdateRoleName, auditRef, false, null, role);
+
+        assertServiceSystemMetaUpdateForbidden(() -> zmsImpl.putServiceIdentitySystemMeta(serviceCtx,
+                domainName, serviceName, "clientid", auditRef, meta));
+
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, clientIdUpdateRoleName,
+                clientIdUpdateRoleName, ZMSConsts.ACTION_UPDATE, domainName + ":client_id.client-id",
+                AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, domainName, clientIdUpdateRoleName, auditRef, false, null, policy);
+
         zmsImpl.putServiceIdentitySystemMeta(serviceCtx, domainName, serviceName, "clientid", auditRef, meta);
         ServiceIdentity serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
         assertEquals(serviceRes.getClientId(), "client-id");
 
         ServiceIdentitySystemMeta updatedMeta = new ServiceIdentitySystemMeta().setClientId("client-id2");
+        assertServiceSystemMetaUpdateForbidden(() -> zmsImpl.putServiceIdentitySystemMeta(serviceCtx,
+                domainName, serviceName, "clientid", auditRef, updatedMeta));
+
         assertServiceSystemMetaUpdateForbidden(() -> zmsImpl.putServiceIdentitySystemMeta(otherServiceCtx,
                 domainName, otherServiceName, "clientid", auditRef, updatedMeta));
 

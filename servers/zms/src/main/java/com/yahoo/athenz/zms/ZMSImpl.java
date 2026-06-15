@@ -7114,7 +7114,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify that request is properly authenticated for this request
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
-        verifyAuthorizedServiceIdentitySystemMetaOperation(principal, domainName, serviceName, attribute, caller);
+        verifyAuthorizedServiceIdentitySystemMetaOperation(principal, domainName, serviceName, attribute, meta, caller);
         verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
 
         if (LOG.isDebugEnabled()) {
@@ -7126,7 +7126,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void verifyAuthorizedServiceIdentitySystemMetaOperation(Principal principal, String domainName,
-            String serviceName, String attribute, String caller) {
+            String serviceName, String attribute, ServiceIdentitySystemMeta meta, String caller) {
 
         final String systemResource = SYS_AUTH + ":meta.service." + attribute + "." + domainName;
         if (isAllowedSystemAccess(principal, ZMSConsts.ACTION_UPDATE, systemResource)) {
@@ -7134,7 +7134,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         AthenzDomain domain = getAthenzDomain(domainName, false, true);
-        if (isAllowedClientIdSelfUpdate(principal, domain, serviceName, attribute)) {
+        if (isAllowedClientIdSelfUpdate(principal, domain, serviceName, attribute, meta)) {
             return;
         }
 
@@ -7143,14 +7143,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     boolean isAllowedClientIdSelfUpdate(Principal principal, AthenzDomain domain, String serviceName,
-            String attribute) {
+            String attribute, ServiceIdentitySystemMeta meta) {
 
         if (!clientIdSelfUpdate || !ZMSConsts.SYSTEM_META_CLIENT_ID.equals(attribute)) {
             return false;
         }
 
-        if (principal == null || domain == null || domain.getDomain() == null ||
+        if (principal == null || domain == null || domain.getDomain() == null || meta == null ||
                 !Boolean.TRUE.equals(domain.getDomain().getClientIdSelfUpdate())) {
+            return false;
+        }
+
+        final String clientId = meta.getClientId();
+        if (StringUtil.isEmpty(clientId)) {
             return false;
         }
 
@@ -7159,8 +7164,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return false;
         }
 
-        Role adminRole = getRoleFromDomain(ADMIN_ROLE_NAME, domain);
-        return adminRole != null && isMemberOfRole(adminRole, principal.getFullName());
+        final String clientIdResource = (domain.getName() + ":client_id." + clientId).toLowerCase();
+        return hasAccess(domain, ZMSConsts.ACTION_UPDATE, clientIdResource, principal, null) == AccessStatus.ALLOWED;
     }
 
     @Override
