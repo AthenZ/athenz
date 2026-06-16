@@ -105,6 +105,8 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_USER_CERT_MAX_TIMEOUT      = "athenz.zts.user_cert_max_timeout";
     public static final String ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT  = "athenz.zts.user_cert_default_timeout";
     public static final String ZTS_PROP_USER_CERT_PROVIDER         = "athenz.zts.user_cert_provider";
+
+    public static final String ZTS_PROP_SVC_CERT_SIGNER_KEY_ID_LIST  = "athenz.zts.svc_cert_signer_key_id_list";
     public static final String ZTS_PROP_USER_CERT_SIGNER_KEY_ID_LIST = "athenz.zts.user_cert_signer_key_id_list";
     public static final String ZTS_PROP_USER_IDENTITY_TIMEOUT_REFRESH_INTERVAL = "athenz.zts.user_identity_timeout_refresh_interval";
 
