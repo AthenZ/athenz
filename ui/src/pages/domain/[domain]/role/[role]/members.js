@@ -178,6 +178,9 @@ class MemberPage extends React.Component {
                                             domain={domainName}
                                             role={roleName}
                                             selectedName={'members'}
+                                            resourceOwnership={
+                                                roleDetails.resourceOwnership
+                                            }
                                         />
                                     </PageHeaderDiv>
                                     <MemberList

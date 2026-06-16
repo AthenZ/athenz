@@ -170,6 +170,9 @@ class ReviewPage extends React.Component {
                                             domain={domainName}
                                             role={roleName}
                                             selectedName={'review'}
+                                            resourceOwnership={
+                                                roleDetails.resourceOwnership
+                                            }
                                         />
                                     </PageHeaderDiv>
                                     <ReviewList

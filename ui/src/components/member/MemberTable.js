@@ -163,6 +163,7 @@ export default class MemberTable extends React.Component {
                                 this.props.justificationRequired
                             }
                             newMember={this.props.newMember}
+                            resourceOwnership={this.props.resourceOwnership}
                         />
                     );
                 });

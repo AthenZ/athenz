@@ -392,13 +392,13 @@ exports[`AddRuleForm should render 1`] = `
         >
           <input
             checked=""
-            id="radiobutton-rule-effect-radio-groupundefined-ALLOW"
-            name="rule-effect-radio-groupundefined"
+            id="radiobutton-rule-effect-radio-group-undefined-ALLOW"
+            name="rule-effect-radio-group-undefined"
             type="radio"
             value="ALLOW"
           />
           <label
-            for="radiobutton-rule-effect-radio-groupundefined-ALLOW"
+            for="radiobutton-rule-effect-radio-group-undefined-ALLOW"
           >
             Allow
           </label>
@@ -408,13 +408,13 @@ exports[`AddRuleForm should render 1`] = `
           data-testid="radiobutton-wrapper"
         >
           <input
-            id="radiobutton-rule-effect-radio-groupundefined-DENY"
-            name="rule-effect-radio-groupundefined"
+            id="radiobutton-rule-effect-radio-group-undefined-DENY"
+            name="rule-effect-radio-group-undefined"
             type="radio"
             value="DENY"
           />
           <label
-            for="radiobutton-rule-effect-radio-groupundefined-DENY"
+            for="radiobutton-rule-effect-radio-group-undefined-DENY"
           >
             Deny
           </label>
@@ -441,8 +441,8 @@ exports[`AddRuleForm should render 1`] = `
         <input
           autocomplete="off"
           data-testid="input-node"
-          id="rule-actionundefined"
-          name="rule-actionundefined"
+          id="rule-action-undefined"
+          name="rule-action-undefined"
           placeholder="Rule Action"
           value=""
         />
@@ -472,8 +472,8 @@ exports[`AddRuleForm should render 1`] = `
         <input
           autocomplete="off"
           data-testid="input-node"
-          id="rule-resourceundefined"
-          name="rule-resourceundefined"
+          id="rule-resource-undefined"
+          name="rule-resource-undefined"
           placeholder="Rule Resource"
           value=""
         />
@@ -496,12 +496,12 @@ exports[`AddRuleForm should render 1`] = `
       >
         <input
           data-partial="false"
-          id="checkbox-case-sensitiveundefined"
-          name="checkbox-case-sensitiveundefined"
+          id="checkbox-case-sensitive-undefined"
+          name="checkbox-case-sensitive-undefined"
           type="checkbox"
         />
         <label
-          for="checkbox-case-sensitiveundefined"
+          for="checkbox-case-sensitive-undefined"
         >
           Case Sensitive Action and Resource
         </label>
@@ -903,13 +903,13 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
         >
           <input
             checked=""
-            id="radiobutton-rule-effect-radio-groupundefined-ALLOW"
-            name="rule-effect-radio-groupundefined"
+            id="radiobutton-rule-effect-radio-group-undefined-ALLOW"
+            name="rule-effect-radio-group-undefined"
             type="radio"
             value="ALLOW"
           />
           <label
-            for="radiobutton-rule-effect-radio-groupundefined-ALLOW"
+            for="radiobutton-rule-effect-radio-group-undefined-ALLOW"
           >
             Allow
           </label>
@@ -919,13 +919,13 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
           data-testid="radiobutton-wrapper"
         >
           <input
-            id="radiobutton-rule-effect-radio-groupundefined-DENY"
-            name="rule-effect-radio-groupundefined"
+            id="radiobutton-rule-effect-radio-group-undefined-DENY"
+            name="rule-effect-radio-group-undefined"
             type="radio"
             value="DENY"
           />
           <label
-            for="radiobutton-rule-effect-radio-groupundefined-DENY"
+            for="radiobutton-rule-effect-radio-group-undefined-DENY"
           >
             Deny
           </label>
@@ -952,8 +952,8 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
         <input
           autocomplete="off"
           data-testid="input-node"
-          id="rule-actionundefined"
-          name="rule-actionundefined"
+          id="rule-action-undefined"
+          name="rule-action-undefined"
           placeholder="Rule Action"
           value=""
         />
@@ -983,8 +983,8 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
         <input
           autocomplete="off"
           data-testid="input-node"
-          id="rule-resourceundefined"
-          name="rule-resourceundefined"
+          id="rule-resource-undefined"
+          name="rule-resource-undefined"
           placeholder="Rule Resource"
           value=""
         />
@@ -1007,12 +1007,12 @@ exports[`AddRuleForm should render failed to load roles 1`] = `
       >
         <input
           data-partial="false"
-          id="checkbox-case-sensitiveundefined"
-          name="checkbox-case-sensitiveundefined"
+          id="checkbox-case-sensitive-undefined"
+          name="checkbox-case-sensitive-undefined"
           type="checkbox"
         />
         <label
-          for="checkbox-case-sensitiveundefined"
+          for="checkbox-case-sensitive-undefined"
         >
           Case Sensitive Action and Resource
         </label>

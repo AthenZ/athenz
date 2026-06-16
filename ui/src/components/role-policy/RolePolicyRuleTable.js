@@ -27,9 +27,20 @@ import {
 import RequestUtils from '../utils/RequestUtils';
 import NameUtils from '../utils/NameUtils';
 import { css, keyframes } from '@emotion/react';
-import { selectPolicyAssertions } from '../../redux/selectors/policies';
+import {
+    selectPolicy,
+    selectPolicyAssertions,
+} from '../../redux/selectors/policies';
 import { deleteAssertion } from '../../redux/thunks/policies';
 import { connect } from 'react-redux';
+import {
+    isPolicyResourceManaged,
+    resolveResourceOwnershipCliOnError,
+} from '../utils/resourceOwnership';
+import {
+    cliDeleteAssertion,
+    formatAssertionWords,
+} from '../utils/zmsCliCommands';
 import AddAssertionForRole from './AddAssertionForRole';
 
 const StyleTable = styled.table`
@@ -128,6 +139,7 @@ class RolePolicyRuleTable extends React.Component {
             addAssertion: false,
             assertions: this.props.assertions ? this.props.assertions : [],
             showDelete: false,
+            resourceOwnershipCliCommand: null,
         };
     }
 
@@ -143,6 +155,7 @@ class RolePolicyRuleTable extends React.Component {
             showDelete: false,
             showSuccess,
             errorMessage: null,
+            resourceOwnershipCliCommand: null,
         });
         // this is to close the success alert
         setTimeout(
@@ -164,6 +177,7 @@ class RolePolicyRuleTable extends React.Component {
             deleteAssertionRole: role,
             deleteAssertionId: assertionId,
             errorMessage: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
@@ -183,8 +197,32 @@ class RolePolicyRuleTable extends React.Component {
                 );
             })
             .catch((err) => {
+                const errMsg = RequestUtils.xhrErrorCheckHelper(err);
+                const assertion = this.state.assertions.find(
+                    (a) => a.id === this.state.deleteAssertionId
+                );
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: errMsg,
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            isPolicyResourceManaged(
+                                this.props.resourceOwnership
+                            ),
+                            err,
+                            () => {
+                                const words = formatAssertionWords(
+                                    this.props.domain,
+                                    assertion
+                                );
+                                return cliDeleteAssertion(
+                                    this.props.domain,
+                                    this.props.name,
+                                    words,
+                                    null
+                                );
+                            },
+                            { when: !!assertion }
+                        ),
                 });
             });
     }
@@ -195,6 +233,7 @@ class RolePolicyRuleTable extends React.Component {
             deleteAssertionRole: null,
             deleteAssertionId: null,
             errorMessage: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
@@ -352,6 +391,9 @@ class RolePolicyRuleTable extends React.Component {
                         cancel={this.onCancelDeleteAssertion}
                         submit={this.onSubmitDeleteAssertion}
                         errorMessage={this.state.errorMessage}
+                        resourceOwnershipCliCommand={
+                            this.state.resourceOwnershipCliCommand
+                        }
                         message={
                             'Are you sure you want to permanently delete the assertion with Role '
                         }
@@ -363,9 +405,11 @@ class RolePolicyRuleTable extends React.Component {
 }
 
 const mapStateToProps = (state, props) => {
+    const policy = selectPolicy(state, props.domain, props.name);
     return {
         ...props,
         assertions: selectPolicyAssertions(state, props.domain, props.name),
+        resourceOwnership: policy && policy.resourceOwnership,
     };
 };
 

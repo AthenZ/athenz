@@ -652,33 +652,3 @@ exports[`PublicKeyTable should render deleteKey after click trash icon 1`] = `
   This deletion is permanent
 </div>
 `;
-
-exports[`PublicKeyTable should render error if getService throws error 1`] = `
-<div
-  data-testid="error-message"
-  name="red600"
-  style="color: rgb(208, 17, 17); display: inline-block;"
->
-  Failed to fetch PublicKeys.
-</div>
-`;
-
-exports[`PublicKeyTable should render error if there is an error in submitDeleteKey(other) 1`] = `
-<div
-  data-testid="error-message"
-  name="red600"
-  style="color: rgb(208, 17, 17); display: inline-block;"
->
-  Failed to fetch PublicKeys.
-</div>
-`;
-
-exports[`PublicKeyTable should render error if there is an error in submitDeleteKey(refresh) 1`] = `
-<div
-  data-testid="error-message"
-  name="red600"
-  style="color: rgb(208, 17, 17); display: inline-block;"
->
-  Failed to fetch PublicKeys.
-</div>
-`;

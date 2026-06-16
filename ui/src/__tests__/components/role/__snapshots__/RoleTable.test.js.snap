@@ -47,27 +47,37 @@ exports[`RoleTable should render 1`] = `
 
 .emotion-26 {
   text-align: left;
-  padding: 5px 0 5px 15px;
+  padding: 5px 0 5px 0px;
   vertical-align: middle;
   word-break: break-all;
   width: 28%;
 }
 
 .emotion-28 {
-  padding-left: 20px;
+  display: inline-flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  gap: 2px;
+  -webkit-flex-shrink: 0;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+  vertical-align: middle;
+  box-sizing: border-box;
 }
 
 .emotion-30 {
   text-align: left;
-  padding: 5px 0 5px 15px;
+  padding: 5px 0 5px 0px;
   vertical-align: middle;
   word-break: break-all;
-  width: 16%;
+  width: 15%;
 }
 
 .emotion-34 {
   text-align: center;
-  padding: 5px 0 5px 15px;
+  padding: 5px 0 5px 0px;
   vertical-align: middle;
   word-break: break-all;
   width: 7%;
@@ -147,7 +157,9 @@ exports[`RoleTable should render 1`] = `
     >
       <span
         class="emotion-28 emotion-29"
-      >
+        style="min-width: 0;"
+      />
+      <span>
          a
       </span>
        
@@ -348,7 +360,9 @@ exports[`RoleTable should render 1`] = `
     >
       <span
         class="emotion-28 emotion-29"
-      >
+        style="min-width: 0;"
+      />
+      <span>
          b
       </span>
        
