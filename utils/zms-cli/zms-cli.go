@@ -331,7 +331,7 @@ func main() {
 		ResourceOwner:    *pResourceOwner,
 	}
 
-	defaultConfig, _ := athenzutils.ReadDefaultConfig()
+	defaultConfig := getDefaultConfig()
 	explicitX509CertFile := hasX509CertFile(*pX509KeyFile, *pX509CertFile)
 	x509KeyFile := *pX509KeyFile
 	x509CertFile := *pX509CertFile
