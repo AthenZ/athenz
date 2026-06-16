@@ -40,6 +40,8 @@ func TestDefaultZmsURLReadsDefaultConfig(t *testing.T) {
 }
 
 func TestDefaultZmsURLFallback(t *testing.T) {
+	cachedConfig = nil
+	configRead = false
 	t.Setenv("HOME", t.TempDir())
 	t.Setenv("ZMS", "")
 
