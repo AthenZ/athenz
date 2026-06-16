@@ -18,6 +18,8 @@ func TestDefaultZmsURLPrefersEnvironment(t *testing.T) {
 }
 
 func TestDefaultZmsURLReadsDefaultConfig(t *testing.T) {
+	cachedConfig = nil
+	configRead = false
 	homeDir := t.TempDir()
 	t.Setenv("HOME", homeDir)
 	t.Setenv("ZMS", "")
