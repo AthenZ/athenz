@@ -25,6 +25,26 @@ import { selectProvider } from '../../redux/selectors/services';
 import { deleteService, getProvider } from '../../redux/thunks/services';
 import { connect } from 'react-redux';
 import ProviderTable from './ProviderTable';
+import ManagedResourceIcon from '../resource-ownership/ManagedResourceIcon';
+import { isServiceResourceObjectManaged } from '../utils/resourceOwnership';
+import { roleIconStripMinWidthStyle } from '../utils/roleIconStrip';
+
+const IconStrip = styled.span`
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    vertical-align: middle;
+    box-sizing: border-box;
+`;
+
+const IconSlot = styled.span`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35em;
+    vertical-align: middle;
+`;
 
 const TdStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -113,6 +133,13 @@ class ServiceRow extends React.Component {
         let row = [];
         const serviceName = this.props.serviceName;
         const newService = this.props.newService;
+        const managedResourceIconStripMaxIcons =
+            this.props.managedResourceIconStripMaxIcons ?? 0;
+        const serviceManagedResourceIcon = isServiceResourceObjectManaged(
+            this.props.resourceOwnership
+        ) ? (
+            <ManagedResourceIcon show={true} size='1.1em' />
+        ) : null;
         row.push(
             <TrStyled
                 key={serviceName}
@@ -120,7 +147,26 @@ class ServiceRow extends React.Component {
                 isSuccess={newService}
             >
                 <TdStyled color={color} align={left}>
-                    {serviceName}
+                    {managedResourceIconStripMaxIcons > 0 ? (
+                        <>
+                            <IconStrip
+                                style={{
+                                    minWidth: roleIconStripMinWidthStyle(
+                                        managedResourceIconStripMaxIcons
+                                    ),
+                                }}
+                            >
+                                {serviceManagedResourceIcon ? (
+                                    <IconSlot>
+                                        {serviceManagedResourceIcon}
+                                    </IconSlot>
+                                ) : null}
+                            </IconStrip>
+                            <span>{' ' + serviceName}</span>
+                        </>
+                    ) : (
+                        serviceName
+                    )}
                 </TdStyled>
                 <TdStyled color={color} align={left}>
                     {this.localDate.getLocalDate(
@@ -144,6 +190,7 @@ class ServiceRow extends React.Component {
                 ) : null}
                 <TdStyled color={color} align={center}>
                     <Icon
+                        dataWdio={'service-pubkeys-' + this.props.serviceName}
                         icon={'key'}
                         onClick={this.togglePublicKeys}
                         color={colors.icons}

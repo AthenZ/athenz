@@ -15,6 +15,7 @@
  */
 
 import { selectUserPendingMembers } from './user';
+import { resolveResourceOwnershipUi } from '../../components/utils/resourceOwnershipUi';
 
 export const thunkSelectPendingMembersList = (state, domainName) => {
     let domainPendingMembers = selectPendingMembersList(state, domainName);
@@ -64,6 +65,11 @@ export const selectHeaderDetails = (state) => {
     return state.domains.headerDetails ? state.domains.headerDetails : {};
 };
 
+export const selectZmsUrl = (state) => {
+    const hd = selectHeaderDetails(state);
+    return hd.zmsUrl || null;
+};
+
 export const selectTimeZone = (state) => {
     return state.domains.timeZone ? state.domains.timeZone : 'UTC';
 };
@@ -73,6 +79,18 @@ export const selectProductMasterLink = (state) => {
         selectHeaderDetails(state).productMasterLink
         ? selectHeaderDetails(state).productMasterLink
         : {};
+};
+
+export const selectResourceOwnershipGuideLink = (state) => {
+    const hd = selectHeaderDetails(state);
+    return hd && hd.resourceOwnershipGuideLink
+        ? hd.resourceOwnershipGuideLink
+        : {};
+};
+
+export const selectResourceOwnershipUi = (state) => {
+    const hd = selectHeaderDetails(state);
+    return resolveResourceOwnershipUi(hd && hd.resourceOwnershipUi);
 };
 
 export const selectFeatureFlag = (state) => {

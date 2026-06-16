@@ -36,6 +36,11 @@ import { connect } from 'react-redux';
 import AddPolicy from './AddPolicy';
 import { selectPolicies } from '../../redux/selectors/policies';
 import { selectIsLoading } from '../../redux/selectors/loading';
+import {
+    isPolicyResourceManaged,
+    resolveResourceOwnershipCliOnError,
+} from '../utils/resourceOwnership';
+import { cliAddPolicyVersion, cliDeletePolicy } from '../utils/zmsCliCommands';
 import { selectTimeZone } from '../../redux/selectors/domains';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 import { arrayEquals } from '../utils/ArrayUtils';
@@ -122,6 +127,7 @@ export class PolicyList extends React.Component {
             duplicatePolicyName: null,
             duplicateVersionSourceName: null,
             duplicateVersionName: null,
+            resourceOwnershipCliCommand: null,
         };
     }
 
@@ -173,8 +179,25 @@ export class PolicyList extends React.Component {
                 );
             })
             .catch((err) => {
+                const errMsg = RequestUtils.xhrErrorCheckHelper(err);
+                const versions =
+                    this.state.policiesMap[this.state.deletePolicyName];
+                const active = versions && versions.find((x) => x.active);
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: errMsg,
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            isPolicyResourceManaged(
+                                active && active.resourceOwnership
+                            ),
+                            err,
+                            () =>
+                                cliDeletePolicy(
+                                    this.props.domain,
+                                    this.state.deletePolicyName,
+                                    null
+                                )
+                        ),
                 });
             });
     }
@@ -199,8 +222,27 @@ export class PolicyList extends React.Component {
                 );
             })
             .catch((err) => {
+                const errMsg = RequestUtils.xhrErrorCheckHelper(err);
+                const versions =
+                    this.state.policiesMap[this.state.duplicatePolicyName];
+                const active = versions && versions.find((x) => x.active);
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: errMsg,
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            isPolicyResourceManaged(
+                                active && active.resourceOwnership
+                            ),
+                            err,
+                            () =>
+                                cliAddPolicyVersion(
+                                    this.props.domain,
+                                    this.state.duplicatePolicyName,
+                                    this.state.duplicateVersionSourceName,
+                                    this.state.duplicateVersionName,
+                                    null
+                                )
+                        ),
                 });
             });
     }
@@ -209,6 +251,7 @@ export class PolicyList extends React.Component {
         this.setState({
             showDelete: false,
             deletePolicyName: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
@@ -218,6 +261,7 @@ export class PolicyList extends React.Component {
             duplicatePolicyName: null,
             duplicateVersionName: null,
             reloadPolicyVersionsFunc: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
@@ -299,6 +343,13 @@ export class PolicyList extends React.Component {
         const left = 'left';
         const center = 'center';
         const policyNames = Object.keys(this.state.policiesMap);
+        const managedResourceIconStripMaxIcons =
+            this.props.policies &&
+            this.props.policies.some((p) =>
+                isPolicyResourceManaged(p.resourceOwnership)
+            )
+                ? 1
+                : 0;
         const rows = policyNames.map((policyName, i) => {
             let item = AppUtils.deepClone(
                 this.state.policiesMap[policyName][0]
@@ -324,6 +375,7 @@ export class PolicyList extends React.Component {
                     policyVersions={this.state.policiesMap[policyName]}
                     domain={domain}
                     modified={item.modified}
+                    resourceOwnership={activeVersion.resourceOwnership}
                     duplicatePolicyVersion={this.props.duplicatePolicyVersion}
                     key={item.name + '-' + item.version}
                     _csrf={this.props._csrf}
@@ -339,6 +391,9 @@ export class PolicyList extends React.Component {
                     }
                     isChild={false}
                     timeZone={this.props.timeZone}
+                    managedResourceIconStripMaxIcons={
+                        managedResourceIconStripMaxIcons
+                    }
                 />
             );
         });
@@ -430,6 +485,9 @@ export class PolicyList extends React.Component {
                         cancel={this.onCancelDeletePolicy}
                         submit={this.onSubmitDeletePolicy}
                         errorMessage={this.state.errorMessage}
+                        resourceOwnershipCliCommand={
+                            this.state.resourceOwnershipCliCommand
+                        }
                         message={
                             'Are you sure you want to permanently delete the Policy '
                         }
@@ -441,6 +499,9 @@ export class PolicyList extends React.Component {
                         cancel={this.onCancelDuplicatePolicy}
                         submit={this.onSubmitDuplicatePolicy}
                         errorMessage={this.state.errorMessage}
+                        resourceOwnershipCliCommand={
+                            this.state.resourceOwnershipCliCommand
+                        }
                         title={`Add version to ${this.state.duplicatePolicyName} based on version ${this.state.duplicateVersionSourceName}`}
                         sections={sections}
                         overflowY={'auto'}

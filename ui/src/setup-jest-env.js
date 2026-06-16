@@ -16,3 +16,6 @@
 
 import { TextEncoder, TextDecoder } from 'util';
 Object.assign(global, { TextDecoder, TextEncoder });
+
+const { applyClientEnv } = require('./config/expose-client-env');
+applyClientEnv(require('./config/config')());

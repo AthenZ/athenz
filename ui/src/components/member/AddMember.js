@@ -30,6 +30,17 @@ import InputDropdown from '../denali/InputDropdown';
 import MemberUtils from '../utils/MemberUtils';
 import { selectAllUsers } from '../../redux/selectors/user';
 import Downshift from 'downshift';
+import ManagedResourceIcon from '../resource-ownership/ManagedResourceIcon';
+import {
+    isRoleResourceMembersManaged,
+    resolveResourceOwnershipCliOnError,
+} from '../utils/resourceOwnership';
+import { getMembersManagedIconTooltip } from '../utils/resourceOwnershipUi';
+import { selectResourceOwnershipUi } from '../../redux/selectors/domains';
+import {
+    cliAddRoleMember,
+    cliAddTemporaryRoleMember,
+} from '../utils/zmsCliCommands';
 
 const SectionsDiv = styled.div`
     width: 760px;
@@ -102,8 +113,19 @@ class AddMember extends React.Component {
 
         this.state = {
             showModal: !!this.props.showAddMember,
+            resourceOwnershipCliCommand: null,
         };
         this.dateUtils = new DateUtils();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.showAddMember !== this.props.showAddMember) {
+            this.setState({
+                showModal: !!this.props.showAddMember,
+                errorMessage: null,
+                resourceOwnershipCliCommand: null,
+            });
+        }
     }
 
     clearStateIfInputDoesntMatchIt(inputVal) {
@@ -177,6 +199,7 @@ class AddMember extends React.Component {
                 this.setState({
                     showModal: false,
                     justification: '',
+                    resourceOwnershipCliCommand: null,
                 });
                 this.props.onSubmit(
                     `${this.state.memberName}-${this.props.category}-${this.props.domainName}-${this.props.collection}`,
@@ -184,8 +207,36 @@ class AddMember extends React.Component {
                 );
             })
             .catch((err) => {
+                const errMsg = RequestUtils.xhrErrorCheckHelper(err);
+                const aud =
+                    this.props.justificationRequired && this.state.justification
+                        ? this.state.justification
+                        : null;
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: errMsg,
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            isRoleResourceMembersManaged(
+                                this.props.resourceOwnership
+                            ),
+                            err,
+                            () =>
+                                member.expiration || member.reviewReminder
+                                    ? cliAddTemporaryRoleMember(
+                                          this.props.domainName,
+                                          this.props.collection,
+                                          member.memberName,
+                                          member.expiration || '',
+                                          member.reviewReminder || '',
+                                          aud
+                                      )
+                                    : cliAddRoleMember(
+                                          this.props.domainName,
+                                          this.props.collection,
+                                          member.memberName,
+                                          aud
+                                      )
+                        ),
                 });
             });
     }
@@ -295,19 +346,45 @@ class AddMember extends React.Component {
             </SectionsDiv>
         );
 
+        const isMembersManaged = isRoleResourceMembersManaged(
+            this.props.resourceOwnership
+        );
+        const title = (
+            <span
+                style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '8px',
+                }}
+            >
+                {'Add Member to ' +
+                    this.props.category +
+                    ': ' +
+                    this.props.collection}
+                {isMembersManaged ? (
+                    <ManagedResourceIcon
+                        show={true}
+                        tooltip={getMembersManagedIconTooltip(
+                            this.props.resourceOwnershipUi
+                        )}
+                        size='1em'
+                    />
+                ) : null}
+            </span>
+        );
+
         return (
             <div data-testid='add-member'>
                 <AddModal
                     isOpen={this.state.showModal}
                     cancel={this.props.onCancel}
                     submit={this.onSubmit}
-                    title={
-                        'Add Member to ' +
-                        this.props.category +
-                        ': ' +
-                        this.props.collection
-                    }
+                    title={title}
                     errorMessage={this.state.errorMessage}
+                    resourceOwnershipCliCommand={
+                        this.state.resourceOwnershipCliCommand
+                    }
                     sections={sections}
                 />
             </div>
@@ -319,6 +396,7 @@ const mapStateToProps = (state, props) => {
     return {
         ...props,
         userList: selectAllUsers(state),
+        resourceOwnershipUi: selectResourceOwnershipUi(state),
     };
 };
 
