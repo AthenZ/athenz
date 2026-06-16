@@ -42,7 +42,7 @@ func defaultZmsURL() string {
 	if s != "" {
 		return s
 	}
-	defaultConfig, _ := athenzutils.ReadDefaultConfig()
+	defaultConfig := getDefaultConfig()
 	if defaultConfig != nil && defaultConfig.Zms != "" {
 		return defaultConfig.Zms
 	}
