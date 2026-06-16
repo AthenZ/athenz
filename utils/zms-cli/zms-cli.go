@@ -62,6 +62,19 @@ func defaultDebug() bool {
 	return sDebug == "true"
 }
 
+var (
+	cachedConfig *athenzutils.Config
+	configRead   bool
+)
+
+func getDefaultConfig() *athenzutils.Config {
+	if !configRead {
+		cachedConfig, _ = athenzutils.ReadDefaultConfig()
+		configRead = true
+	}
+	return cachedConfig
+}
+
 func resolveX509CertFiles(keyFile, certFile string, defaultConfig *athenzutils.Config) (string, string) {
 	if defaultConfig == nil {
 		return keyFile, certFile
