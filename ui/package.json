@@ -121,7 +121,7 @@
         "xml-crypto": "6.1.2"
     },
     "devDependencies": {
-        "@babel/core": "7.23.9",
+        "@babel/core": "7.29.6",
         "@emotion/babel-plugin": "11.11.0",
         "@emotion/jest": "11.11.0",
         "@sinonjs/referee": "9.1.1",
