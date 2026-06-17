@@ -16,6 +16,7 @@
 package com.yahoo.athenz.auth.token;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
@@ -120,7 +121,7 @@ public class OAuth2TokenTest {
                 .claim(OAuth2Token.CLAIM_VERSION, "1.0")
                 .build();
 
-        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("eckey1").build(), claimsSet);
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("eckey1").type(JOSEObjectType.JWT).build(), claimsSet);
         signedJWT.sign(signer);
         final String token = signedJWT.serialize();
 
@@ -129,6 +130,7 @@ public class OAuth2TokenTest {
 
         OAuth2Token oAuth2Token = new OAuth2Token(token, resolver);
 
+        assertEquals(oAuth2Token.getTokenType(), "JWT");
         assertEquals(oAuth2Token.getVersion(), 0);
         assertEquals(oAuth2Token.getAudience(), "audience");
         assertEquals(oAuth2Token.getSubject(), "subject");
@@ -164,6 +166,7 @@ public class OAuth2TokenTest {
 
         OAuth2Token oAuth2Token = new OAuth2Token(token, (JwtsSigningKeyResolver) null);
 
+        assertNull(oAuth2Token.getTokenType());
         assertEquals(oAuth2Token.getVersion(), 1);
         assertEquals(oAuth2Token.getAudience(), "audience");
         assertEquals(oAuth2Token.getSubject(), "subject");
@@ -177,6 +180,7 @@ public class OAuth2TokenTest {
         // with public key argument
         oAuth2Token = new OAuth2Token(token, (PublicKey) null);
 
+        assertNull(oAuth2Token.getTokenType());
         assertEquals(oAuth2Token.getVersion(), 1);
         assertEquals(oAuth2Token.getAudience(), "audience");
         assertEquals(oAuth2Token.getSubject(), "subject");
