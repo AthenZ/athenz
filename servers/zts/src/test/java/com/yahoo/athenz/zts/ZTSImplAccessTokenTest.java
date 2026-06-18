@@ -2242,9 +2242,6 @@ public class ZTSImplAccessTokenTest {
         String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
                 "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
 
-        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(servletRequest.isSecure()).thenReturn(true);
-        
         // We do create a correct principal, but it is not X.509 authenticated:
         Principal principal = SimplePrincipal.create("coretech", "jwt",
                 "v=U1;d=coretech;n=jwt;s=signature", 0, null);
