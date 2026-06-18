@@ -2715,6 +2715,29 @@ public class ZTSImpl implements ZTSHandler {
         }
     }
 
+    String extractSpiffeIdFromToken(final OAuth2Token token) {
+        if (token == null) {
+            return null;
+        }
+
+        // Only ZTS-issued spiffe claims and JWT-SVID subject SPIFFE URIs are recognized.
+        // Other identity-provider-specific SPIFFE claims are not propagated.
+        final Object spiffeClaim = token.getClaim(IdToken.CLAIM_SPIFFE);
+        if (spiffeClaim != null) {
+            final String spiffeId = spiffeClaim.toString();
+            if (!StringUtil.isEmpty(spiffeId) && spiffeId.startsWith(ZTSConsts.ZTS_CERT_SPIFFE_URI)) {
+                return spiffeId;
+            }
+        }
+
+        final String subject = token.getSubject();
+        if (!StringUtil.isEmpty(subject) && subject.startsWith(ZTSConsts.ZTS_CERT_SPIFFE_URI)) {
+            return subject;
+        }
+
+        return null;
+    }
+
     AccessTokenResponse processAccessTokenImpersonationRequest(ResourceContext ctx, Principal principal,
             AccessTokenRequest accessTokenRequest, final String principalDomain, final String caller) {
 
@@ -2805,6 +2828,13 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), accessTokenRequest.isUseOpenIDIssuer()));
         accessToken.setScope(new ArrayList<>(roles));
         accessToken.setPrincipalIssuer(principal.getIssuerIdentity());
+
+        final String spiffeId = extractSpiffeIdFromToken(subjectToken);
+        if (spiffeId != null) {
+            verifySpiffeIdMatchesAthenzPrincipal(spiffeId, subjectToken.getSubject(),
+                    caller, requestDomainName, principalDomain);
+            accessToken.setCustomClaim(IdToken.CLAIM_SPIFFE, spiffeId);
+        }
 
         // if we have a certificate used for mTLS authentication then
         // we're going to bind the certificate to the access token
@@ -2959,6 +2989,13 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setScope(new ArrayList<>(roles));
         accessToken.setPrincipalIssuer(principal.getIssuerIdentity());
 
+        final String spiffeId = extractSpiffeIdFromToken(subjectToken);
+        if (spiffeId != null) {
+            verifySpiffeIdMatchesAthenzPrincipal(spiffeId, subjectToken.getSubject(),
+                    caller, requestDomainName, principalDomain);
+            accessToken.setCustomClaim(IdToken.CLAIM_SPIFFE, spiffeId);
+        }
+
         // include the act claim in our response. we're going to use
         // the act claim from the original token and then add our new
         // actor on top of it
@@ -3092,7 +3129,7 @@ public class ZTSImpl implements ZTSHandler {
         List<String> idTokenGroups = processIdTokenRoles(subjectIdentity, tokenScope, domainName, true,
                 false, principalDomain, caller);
 
-        // make sure our principal is authorized to request a jag token
+        // make sure our subject principal is authorized to request an id token
         // exchange for the given roles
 
         Principal subjectPrincipal = createPrincipalForName(subjectIdentity, principalDomain, caller);
@@ -3118,6 +3155,14 @@ public class ZTSImpl implements ZTSHandler {
         idToken.setAuthTime(iat);
         idToken.setPrincipalIssuer(principal.getIssuerIdentity());
 
+        final String spiffeId = extractSpiffeIdFromToken(subjectToken);
+        if (spiffeId != null) {
+            // If we're copying SPIFFE claim into the requested ID token, verify it maps
+            // to the token subject to prevent mismatched SPIFFE identities.
+            verifySpiffeIdMatchesAthenzPrincipal(spiffeId, subjectIdentity, caller, domainName, principalDomain);
+            idToken.setSpiffe(spiffeId);
+        }
+
         // for user principals we're going to use the default 1 hour while for
         // service principals 12 hours as the max timeout, unless the client
         // is explicitly asking for something smaller.
@@ -3131,6 +3176,35 @@ public class ZTSImpl implements ZTSHandler {
 
         return new AccessTokenResponse().setId_token(signedIdToken).setToken_type(OAUTH_BEARER_TOKEN)
                 .setIssued_token_type(ZTSConsts.OAUTH_TOKEN_TYPE_ID).setExpires_in(tokenTimeout);
+    }
+
+    void verifySpiffeIdMatchesAthenzPrincipal(final String spiffeId, final String principalName,
+            final String caller, final String domainName, final String principalDomain) {
+
+        if (StringUtil.isEmpty(spiffeId) || StringUtil.isEmpty(principalName)) {
+            return;
+        }
+
+        // if the principal itself is a spiffe uri (jwt-svid spiffe-subject) then it must match exactly
+        if (principalName.startsWith(ZTSConsts.ZTS_CERT_SPIFFE_URI)) {
+            if (!spiffeId.equals(principalName)) {
+                throw requestError("SPIFFE ID does not match authenticated principal",
+                        caller, domainName, principalDomain);
+            }
+            return;
+        }
+
+        final String principalSpiffeDomain = AthenzUtils.extractPrincipalDomainName(principalName);
+        final String principalSpiffeService = AthenzUtils.extractPrincipalServiceName(principalName);
+        if (principalSpiffeDomain == null || principalSpiffeService == null) {
+            throw requestError("Invalid principal name for SPIFFE validation: " + principalName,
+                    caller, domainName, principalDomain);
+        }
+
+        if (!spiffeUriManager.validateServiceCertUri(spiffeId, principalSpiffeDomain, principalSpiffeService, null)) {
+            throw requestError("SPIFFE ID does not match authenticated principal",
+                    caller, domainName, principalDomain);
+        }
     }
 
     AccessTokenResponse processJAGTokenIssueRequest(ResourceContext ctx, Principal principal,
