@@ -22,6 +22,11 @@ import DeleteModal from '../modal/DeleteModal';
 import NameUtils from '../utils/NameUtils';
 import { MODAL_TIME_OUT } from '../constants/constants';
 import RequestUtils from '../utils/RequestUtils';
+import {
+    isPolicyResourceManaged,
+    resolveResourceOwnershipCliOnError,
+} from '../utils/resourceOwnership';
+import { cliDeletePolicy } from '../utils/zmsCliCommands';
 import { selectActivePoliciesOnly } from '../../redux/selectors/policies';
 import { deletePolicy } from '../../redux/thunks/policies';
 import { connect } from 'react-redux';
@@ -61,6 +66,7 @@ class RolePolicyList extends React.Component {
         this.state = {
             list: props.policies ? this.filterPolicies() : [],
             showAddPolicy: false,
+            resourceOwnershipCliCommand: null,
         };
     }
 
@@ -78,8 +84,27 @@ class RolePolicyList extends React.Component {
                 );
             })
             .catch((err) => {
+                const errMsg = RequestUtils.xhrErrorCheckHelper(err);
+                const policyEntry = this.state.list.find(
+                    (p) =>
+                        NameUtils.getShortName(':policy.', p.name) ===
+                        this.state.deletePolicyName
+                );
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: errMsg,
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            isPolicyResourceManaged(
+                                policyEntry && policyEntry.resourceOwnership
+                            ),
+                            err,
+                            () =>
+                                cliDeletePolicy(
+                                    this.props.domain,
+                                    this.state.deletePolicyName,
+                                    null
+                                )
+                        ),
                 });
             });
     }
@@ -89,6 +114,7 @@ class RolePolicyList extends React.Component {
             showDelete: false,
             deletePolicyName: null,
             errorMessage: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
@@ -97,6 +123,7 @@ class RolePolicyList extends React.Component {
             showDelete: true,
             deletePolicyName: policyName,
             errorMessage: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
@@ -141,6 +168,7 @@ class RolePolicyList extends React.Component {
             showSuccess,
             successMessage,
             showDelete: false,
+            resourceOwnershipCliCommand: null,
         });
         // this is to close the success alert
         setTimeout(
@@ -238,6 +266,9 @@ class RolePolicyList extends React.Component {
                         cancel={this.onCancelDeletePolicy}
                         submit={this.onSubmitDeletePolicy}
                         errorMessage={this.state.errorMessage}
+                        resourceOwnershipCliCommand={
+                            this.state.resourceOwnershipCliCommand
+                        }
                         message={
                             'Are you sure you want to permanently delete the Policy '
                         }
@@ -257,8 +288,8 @@ const mapStateToProps = (state, props) => {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    deletePolicy: (domainName, roleName) =>
-        dispatch(deletePolicy(domainName, roleName)),
+    deletePolicy: (domainName, policyName, _csrf) =>
+        dispatch(deletePolicy(domainName, policyName, _csrf)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(RolePolicyList);

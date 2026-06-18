@@ -231,7 +231,7 @@ public class ZTSImplUserCertTest {
         Authority mockAuthority = Mockito.mock(Authority.class);
         when(mockAuthority.getSignerKeyId("user.joe", "request-key-id")).thenReturn("");
         zts.userAuthority = mockAuthority;
-        zts.validX509CertSignerKeyIds = Collections.emptySet();
+        zts.validUserX509CertSignerKeyIds = Collections.emptySet();
 
         assertNull(zts.getUserX509KeySignerId("user.joe", "request-key-id"));
     }
@@ -241,7 +241,7 @@ public class ZTSImplUserCertTest {
         Authority mockAuthority = Mockito.mock(Authority.class);
         when(mockAuthority.getSignerKeyId("user.joe", "key-id-1")).thenReturn("");
         zts.userAuthority = mockAuthority;
-        zts.validX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+        zts.validUserX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
 
         assertEquals(zts.getUserX509KeySignerId("user.joe", "key-id-1"), "key-id-1");
     }
@@ -251,7 +251,7 @@ public class ZTSImplUserCertTest {
         Authority mockAuthority = Mockito.mock(Authority.class);
         when(mockAuthority.getSignerKeyId("user.joe", "unknown-key-id")).thenReturn("");
         zts.userAuthority = mockAuthority;
-        zts.validX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+        zts.validUserX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
 
         assertNull(zts.getUserX509KeySignerId("user.joe", "unknown-key-id"));
     }
@@ -261,7 +261,7 @@ public class ZTSImplUserCertTest {
         Authority mockAuthority = Mockito.mock(Authority.class);
         when(mockAuthority.getSignerKeyId("user.joe", null)).thenReturn(null);
         zts.userAuthority = mockAuthority;
-        zts.validX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+        zts.validUserX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
 
         assertNull(zts.getUserX509KeySignerId("user.joe", null));
     }
@@ -271,7 +271,7 @@ public class ZTSImplUserCertTest {
         Authority mockAuthority = Mockito.mock(Authority.class);
         when(mockAuthority.getSignerKeyId("user.joe", "request-key-id")).thenReturn("authority-key-id");
         zts.userAuthority = mockAuthority;
-        zts.validX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+        zts.validUserX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
 
         assertEquals(zts.getUserX509KeySignerId("user.joe", "request-key-id"), "authority-key-id");
     }
@@ -864,7 +864,7 @@ public class ZTSImplUserCertTest {
         when(mockAuthority.getSignerKeyId("user.joe", "request-signer-key")).thenReturn(null);
         zts.userAuthority = mockAuthority;
         zts.userCertProvider = "test.provider";
-        zts.validX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("request-signer-key"));
+        zts.validUserX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("request-signer-key"));
 
         String csr = generateUserCsr("user.joe");
 
@@ -1006,5 +1006,57 @@ public class ZTSImplUserCertTest {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("User name is not valid"));
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // validateCertSignerKeyId tests
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testValidateCertSignerKeyIdAllowedListNotConfigured() {
+        zts.validServiceX509CertSignerKeyIds = Collections.emptySet();
+        assertEquals(zts.validateCertSignerKeyId("key-id-1"), "key-id-1");
+    }
+
+    @Test
+    public void testValidateCertSignerKeyIdAllowedListNotConfiguredNullInput() {
+        zts.validServiceX509CertSignerKeyIds = Collections.emptySet();
+        assertNull(zts.validateCertSignerKeyId(null));
+    }
+
+    @Test
+    public void testValidateCertSignerKeyIdAllowedListNotConfiguredEmptyInput() {
+        zts.validServiceX509CertSignerKeyIds = Collections.emptySet();
+        assertEquals(zts.validateCertSignerKeyId(""), "");
+    }
+
+    @Test
+    public void testValidateCertSignerKeyIdNullInputWithAllowedList() {
+        zts.validServiceX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+        assertNull(zts.validateCertSignerKeyId(null));
+    }
+
+    @Test
+    public void testValidateCertSignerKeyIdEmptyInputWithAllowedList() {
+        zts.validServiceX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+        assertNull(zts.validateCertSignerKeyId(""));
+    }
+
+    @Test
+    public void testValidateCertSignerKeyIdKeyInAllowedList() {
+        zts.validServiceX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+        assertEquals(zts.validateCertSignerKeyId("key-id-1"), "key-id-1");
+    }
+
+    @Test
+    public void testValidateCertSignerKeyIdKeyNotInAllowedList() {
+        zts.validServiceX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+        assertNull(zts.validateCertSignerKeyId("unknown-key-id"));
+    }
+
+    @Test
+    public void testValidateCertSignerKeyIdSecondKeyInAllowedList() {
+        zts.validServiceX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+        assertEquals(zts.validateCertSignerKeyId("key-id-2"), "key-id-2");
     }
 }

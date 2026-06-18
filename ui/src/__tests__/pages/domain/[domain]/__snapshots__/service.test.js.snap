@@ -1627,7 +1627,7 @@ exports[`ServicePage should render 1`] = `
                     <svg
                       class="emotion-93"
                       data-testid="icon"
-                      data-wdio=""
+                      data-wdio="service-pubkeys-bastion"
                       height="1.25em"
                       id=""
                       viewBox="0 0 1024 1024"
@@ -1713,7 +1713,7 @@ exports[`ServicePage should render 1`] = `
                     <svg
                       class="emotion-93"
                       data-testid="icon"
-                      data-wdio=""
+                      data-wdio="service-pubkeys-openhouse"
                       height="1.25em"
                       id=""
                       viewBox="0 0 1024 1024"

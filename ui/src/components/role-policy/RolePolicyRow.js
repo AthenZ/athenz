@@ -19,10 +19,31 @@ import { colors } from '../denali/styles';
 import styled from '@emotion/styled';
 import DateUtils from '../utils/DateUtils';
 import { css, keyframes } from '@emotion/react';
-import { selectPolicyAssertions } from '../../redux/selectors/policies';
-import { deletePolicy } from '../../redux/thunks/policies';
+import {
+    selectPolicy,
+    selectPolicyAssertions,
+} from '../../redux/selectors/policies';
 import { connect } from 'react-redux';
 import RolePolicyRuleTable from './RolePolicyRuleTable';
+import ManagedResourceIcon from '../resource-ownership/ManagedResourceIcon';
+import { isPolicyResourceManaged } from '../utils/resourceOwnership';
+
+const IconStrip = styled.span`
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    vertical-align: middle;
+    box-sizing: border-box;
+`;
+
+const IconSlot = styled.span`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35em;
+    vertical-align: middle;
+`;
 
 const TdStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -106,6 +127,11 @@ class RolePolicyRow extends React.Component {
         const arrowup = 'arrowhead-up-circle-solid';
         const arrowdown = 'arrowhead-down-circle';
         let id = this.props.id;
+        const policyManagedResourceIcon = isPolicyResourceManaged(
+            this.props.resourceOwnership
+        ) ? (
+            <ManagedResourceIcon show={true} size='1.1em' />
+        ) : null;
         if (this.state.assertions) {
             rows.push(
                 <TrStyledExpanded
@@ -128,6 +154,14 @@ class RolePolicyRow extends React.Component {
                                     verticalAlign={'text-bottom'}
                                 />
                             </LeftMarginSpan>
+                            {policyManagedResourceIcon ? (
+                                <IconStrip>
+                                    <IconSlot>
+                                        {policyManagedResourceIcon}
+                                    </IconSlot>
+                                </IconStrip>
+                            ) : null}
+                            {policyManagedResourceIcon ? ' ' : ''}
                             {this.state.name}
                         </StyledDiv>
                         <StyledDiv>
@@ -162,6 +196,12 @@ class RolePolicyRow extends React.Component {
                                 verticalAlign={'text-bottom'}
                             />
                         </LeftMarginSpan>
+                        {policyManagedResourceIcon ? (
+                            <IconStrip>
+                                <IconSlot>{policyManagedResourceIcon}</IconSlot>
+                            </IconStrip>
+                        ) : null}
+                        {policyManagedResourceIcon ? ' ' : ''}
                         {this.state.name}
                     </TdStyled>
                 </TrStyled>
@@ -172,15 +212,12 @@ class RolePolicyRow extends React.Component {
 }
 
 const mapStateToProps = (state, props) => {
+    const policy = selectPolicy(state, props.domain, props.name);
     return {
         ...props,
         assertions: selectPolicyAssertions(state, props.domain, props.name),
+        resourceOwnership: policy && policy.resourceOwnership,
     };
 };
 
-const mapDispatchToProps = (dispatch) => ({
-    deletePolicy: (domainName, roleName) =>
-        dispatch(deletePolicy(domainName, roleName)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(RolePolicyRow);
+export default connect(mapStateToProps)(RolePolicyRow);

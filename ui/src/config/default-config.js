@@ -15,6 +15,25 @@
  */
 'use strict';
 
+const resourceOwnershipUiDefaults = {
+    icon: 'terraform',
+    label: 'Terraform',
+    managedIconTooltip:
+        'This resource is managed by {{label}} (ownership in ZMS).',
+    membersManagedIconTooltip:
+        'Role membership is managed by {{label}} (members owner).',
+    cliSuggestionBody:
+        'This resource is {{label}}-managed and cannot be edited via the Athenz UI. To maintain environment stability, always apply changes through {{label}} configuration. While the zms-cli can force immediate updates, doing so creates configuration drift, leaving the resource out-of-sync and requiring manual intervention to reconcile.',
+    cliSuggestionEmergencyHeading: 'Use only in emergencies:',
+    cliSuggestionGuideFooter: 'For detailed guidance, refer to',
+};
+
+const resourceOwnershipGuideLinkDefaults = {
+    title: 'resource-ownership-guide',
+    url: 'https://github.com/AthenZ/athenz/blob/master/docs/design/resource_ownership.md',
+    target: '_blank',
+};
+
 const testdata = {
     user1: {
         name: 'John Doe',
@@ -33,6 +52,17 @@ const testdata = {
      */
     functionalTest: 'functional-test',
     functionalTestNonAdmin: 'functional-test-non-admin',
+    /** Domain with externally managed roles/policies/services for resource-ownership.spec.js */
+    functionalTestResourceOwnership: 'functional-test-ownership',
+    /**
+     * Resource names in functionalTestResourceOwnership
+     */
+    functionalTestResourceOwnershipFixtures: {
+        role: 'ownership-test-role',
+        policy: 'ownership-test-policy',
+        service: 'ownership-test-service',
+        publicKeyId: '0',
+    },
     delegatedParent: 'delegated-parent',
     auditEnabled: 'audit-enabled',
     principalFilter: 'principal-filter',
@@ -117,6 +147,8 @@ const config = {
             url: '',
             target: '_blank',
         },
+        resourceOwnershipGuideLink: { ...resourceOwnershipGuideLinkDefaults },
+        resourceOwnershipUi: { ...resourceOwnershipUiDefaults },
         servicePageConfig: {
             keyCreationLink: {
                 title: 'Key Creation',
@@ -200,6 +232,7 @@ const config = {
             'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:TLS_DHE_RSA_WITH_AES_128_GCM_SHA256:TLS_DHE_RSA_WITH_AES_256_GCM_SHA384:TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256',
         callCloudSSO: true,
         organizationDomain: 'audit-domain-name',
+        allowedDevOrigins: ['localhost'],
     },
     unittest: {
         testdata: { ...testdata },
@@ -230,6 +263,8 @@ const config = {
                 roleGroupReviewFeatureFlag: true,
             },
         },
+        resourceOwnershipGuideLink: { ...resourceOwnershipGuideLinkDefaults },
+        resourceOwnershipUi: { ...resourceOwnershipUiDefaults },
         serviceHeaderLinks: [
             {
                 description:
@@ -251,6 +286,7 @@ const config = {
         serverCipherSuites:
             'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256:TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256:TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256:TLS_DHE_RSA_WITH_AES_128_GCM_SHA256:TLS_DHE_RSA_WITH_AES_256_GCM_SHA384:TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256',
         callCloudSSO: true,
+        allowedDevOrigins: ['localhost'],
     },
 };
 
@@ -260,3 +296,5 @@ module.exports = function () {
     c.env = env;
     return c;
 };
+module.exports.resourceOwnershipGuideLinkDefaults =
+    resourceOwnershipGuideLinkDefaults;

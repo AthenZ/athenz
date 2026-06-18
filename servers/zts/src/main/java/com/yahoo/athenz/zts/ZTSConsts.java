@@ -105,8 +105,13 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_USER_CERT_MAX_TIMEOUT      = "athenz.zts.user_cert_max_timeout";
     public static final String ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT  = "athenz.zts.user_cert_default_timeout";
     public static final String ZTS_PROP_USER_CERT_PROVIDER         = "athenz.zts.user_cert_provider";
+
+    public static final String ZTS_PROP_SVC_CERT_SIGNER_KEY_ID_LIST  = "athenz.zts.svc_cert_signer_key_id_list";
     public static final String ZTS_PROP_USER_CERT_SIGNER_KEY_ID_LIST = "athenz.zts.user_cert_signer_key_id_list";
     public static final String ZTS_PROP_USER_IDENTITY_TIMEOUT_REFRESH_INTERVAL = "athenz.zts.user_identity_timeout_refresh_interval";
+
+    public static final String ZTS_PROP_JAG_TOKEN_USER_MAX_TIMEOUT    = "athenz.zts.jag_token_user_max_timeout";
+    public static final String ZTS_PROP_JAG_TOKEN_SERVICE_MAX_TIMEOUT = "athenz.zts.jag_token_service_max_timeout";
 
     public static final String ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME    = "athenz.zts.self_signer_private_key_fname";
     public static final String ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD = "athenz.zts.self_signer_private_key_password";
@@ -116,13 +121,13 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERT_REQUEST_VERIFY_SUBJECT_OU   = "athenz.zts.cert_request_verify_subject_ou";
     public static final String ZTS_PROP_CERT_REQUEST_TOKEN_TYPE_JWT      = "athenz.zts.cert_request_token_type_jwt";
 
-    public static final String ZTS_PROP_CERT_DNS_SUFFIX                         = "athenz.zts.cert_dns_suffix";
-    public static final String ZTS_PROP_CERT_FILE_STORE_PATH                    = "athenz.zts.cert_file_store_path";
-    public static final String ZTS_PROP_CERT_FILE_STORE_NAME                    = "athenz.zts.cert_file_store_name";
+    public static final String ZTS_PROP_CERT_DNS_SUFFIX      = "athenz.zts.cert_dns_suffix";
+    public static final String ZTS_PROP_CERT_FILE_STORE_PATH = "athenz.zts.cert_file_store_path";
+    public static final String ZTS_PROP_CERT_FILE_STORE_NAME = "athenz.zts.cert_file_store_name";
 
-    public static final String ZTS_PROP_SSH_FILE_STORE_PATH          = "athenz.zts.ssh_file_store_path";
-    public static final String ZTS_PROP_SSH_FILE_STORE_NAME          = "athenz.zts.ssh_file_store_name";
-    public static final String ZTS_PROP_SSH_CERT_VALIDATE_IP         = "athenz.zts.ssh_cert_validate_ip";
+    public static final String ZTS_PROP_SSH_FILE_STORE_PATH  = "athenz.zts.ssh_file_store_path";
+    public static final String ZTS_PROP_SSH_FILE_STORE_NAME  = "athenz.zts.ssh_file_store_name";
+    public static final String ZTS_PROP_SSH_CERT_VALIDATE_IP = "athenz.zts.ssh_cert_validate_ip";
 
     public static final String ZTS_PROP_WORKLOAD_JDBC_STORE               = "athenz.zts.workload_jdbc_store";
     public static final String ZTS_PROP_WORKLOAD_JDBC_USER                = "athenz.zts.workload_jdbc_user";

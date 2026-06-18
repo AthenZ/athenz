@@ -17,6 +17,12 @@ import React from 'react';
 import AddModal from '../modal/AddModal';
 import AddRuleForm from './AddRuleForm';
 import RequestUtils from '../utils/RequestUtils';
+import {
+    isPolicyResourceManaged,
+    resolveResourceOwnershipCliOnError,
+} from '../utils/resourceOwnership';
+import { cliAddPolicy } from '../utils/zmsCliCommands';
+import NameUtils from '../utils/NameUtils';
 
 export default class AddPolicy extends React.Component {
     constructor(props) {
@@ -26,6 +32,7 @@ export default class AddPolicy extends React.Component {
         this.state = {
             showModal: !!this.props.showAddPolicy,
             case: false,
+            resourceOwnershipCliCommand: null,
         };
     }
 
@@ -69,10 +76,53 @@ export default class AddPolicy extends React.Component {
                 this.state.case,
                 this.props._csrf
             )
-            .then(() => this.setState({ showModal: false }))
-            .catch((err) => {
+            .then(() =>
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    showModal: false,
+                    resourceOwnershipCliCommand: null,
+                })
+            )
+            .catch((err) => {
+                const errMsg = RequestUtils.xhrErrorCheckHelper(err);
+                this.setState({
+                    errorMessage: errMsg,
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            isPolicyResourceManaged(
+                                this.props.resourceOwnership
+                            ),
+                            err,
+                            () => {
+                                const assertion = {
+                                    effect: this.state.effect,
+                                    action: this.state.action,
+                                    role: this.state.role,
+                                    resource: this.state.resource,
+                                };
+                                const role = NameUtils.getShortName(
+                                    this.props.domain + ':role.',
+                                    assertion.role
+                                );
+                                const res = NameUtils.getShortName(
+                                    this.props.domain + ':',
+                                    assertion.resource
+                                );
+                                const eff =
+                                    String(
+                                        assertion.effect || ''
+                                    ).toUpperCase() === 'DENY'
+                                        ? 'deny'
+                                        : 'grant';
+                                const words = `${eff} ${assertion.action} to ${role} on ${res}`;
+                                return cliAddPolicy(
+                                    this.props.domain,
+                                    this.state.name,
+                                    words,
+                                    null,
+                                    !!this.state.case
+                                );
+                            }
+                        ),
                 });
             });
     }
@@ -89,6 +139,9 @@ export default class AddPolicy extends React.Component {
                 submit={this.onSubmit}
                 title={`Add Policy to ${this.props.domain}`}
                 errorMessage={this.state.errorMessage}
+                resourceOwnershipCliCommand={
+                    this.state.resourceOwnershipCliCommand
+                }
                 sections={
                     <AddRuleForm
                         domain={this.props.domain}

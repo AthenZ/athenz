@@ -316,6 +316,7 @@ public class AccessTokenTest {
 
         AccessToken checkToken = new AccessToken(accessJws, resolver, cert);
         assertEquals(checkToken.getClaim("sub"), "athenz.api");
+        assertEquals(checkToken.getTokenType(), "at+jwt");
         validateAccessToken(checkToken, now);
     }
 

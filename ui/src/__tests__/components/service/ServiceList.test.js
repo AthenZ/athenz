@@ -45,6 +45,17 @@ const servicesForState = buildServicesForState(
     'home.test'
 );
 
+const externallyManagedServicesForState = buildServicesForState(
+    {
+        [fullServiceName]: {
+            name: fullServiceName,
+            modified: '2020-02-08T00:02:49.477Z',
+            resourceOwnership: { objectOwner: 'terraform' },
+        },
+    },
+    'home.test'
+);
+
 describe('ServiceList', () => {
     afterEach(() => {
         MockApi.cleanMockApi();
@@ -136,6 +147,38 @@ describe('ServiceList', () => {
         expect(
             await waitFor(() => getByTestId('service-list'))
         ).toMatchSnapshot();
+    });
+
+    it('should show resource-ownership zms-cli hint when delete fails for externally managed service', async () => {
+        const api = {
+            deleteService: function (domain, deleteServiceName, _csrf) {
+                return new Promise((resolve, reject) => {
+                    reject({
+                        statusCode: 403,
+                        body: {
+                            message: 'test-error',
+                        },
+                    });
+                });
+            },
+        };
+        MockApi.setMockApi(api);
+
+        const { getByTestId, getByTitle } = renderWithRedux(
+            <ServiceList domain={domain} pageConfig={pageConfig} />,
+            getStateWithServices(externallyManagedServicesForState)
+        );
+        fireEvent.click(getByTitle('trash'));
+
+        await waitFor(() =>
+            fireEvent.click(getByTestId('delete-modal-delete'))
+        );
+
+        const suggestion = await waitFor(() =>
+            getByTestId('resource-ownership-cli-suggestion')
+        );
+        expect(suggestion.textContent).toContain('delete-service');
+        expect(suggestion.textContent).toContain('openhouse');
     });
 
     it('should render serviceList again after confirm delete', async () => {
