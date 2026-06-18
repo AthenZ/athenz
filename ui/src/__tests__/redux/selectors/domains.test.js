@@ -29,6 +29,7 @@ import {
     selectHeaderDetails,
     selectProductMasterLink,
     selectPendingMembersList,
+    selectZmsUrl,
 } from '../../../redux/selectors/domains';
 import {
     configDom,
@@ -345,6 +346,20 @@ describe('test domains selectors', () => {
             expect(
                 selectPendingMembersList(stateWithoutDomainsData, domainName)
             ).toEqual({});
+        });
+    });
+    describe('test selectZmsUrl', () => {
+        it('selectZmsUrl returns zmsUrl from header details', () => {
+            const state = {
+                domains: {
+                    headerDetails: {
+                        zmsUrl: 'https://zms.example.com:4443/zms/v1',
+                    },
+                },
+            };
+            expect(selectZmsUrl(state)).toBe(
+                'https://zms.example.com:4443/zms/v1'
+            );
         });
     });
 });

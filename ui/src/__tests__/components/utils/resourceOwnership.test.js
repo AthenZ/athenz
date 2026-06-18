@@ -83,13 +83,16 @@ describe('resourceOwnership', () => {
         ).toBe(false);
     });
 
-    it('resolveResourceOwnershipCliOnError builds command when managed or error matches', () => {
-        const cmd = resolveResourceOwnershipCliOnError(
+    it('resolveResourceOwnershipCliOnError returns deferred builder when managed or error matches', () => {
+        const builder = resolveResourceOwnershipCliOnError(
             true,
             { body: { message: 'other' } },
-            () => 'zms-cli -d dom'
+            (zmsUrl) => `zms-cli -z ${zmsUrl} -d dom`
         );
-        expect(cmd).toBe('zms-cli -d dom');
+        expect(typeof builder).toBe('function');
+        expect(builder('https://zms.example.com:4443/zms/v1')).toBe(
+            'zms-cli -z https://zms.example.com:4443/zms/v1 -d dom'
+        );
         expect(
             resolveResourceOwnershipCliOnError(
                 false,
@@ -102,7 +105,7 @@ describe('resourceOwnership', () => {
                 false,
                 { body: { message: 'Role has a resource owner: TF' } },
                 () => 'y'
-            )
+            )('https://zms.example.com:4443/zms/v1')
         ).toBe('y');
         expect(
             resolveResourceOwnershipCliOnError(true, {}, () => 'z', {
@@ -111,17 +114,19 @@ describe('resourceOwnership', () => {
         ).toBeNull();
     });
 
-    it('resolveRoleDeleteResourceOwnershipCli builds delete-role command', () => {
-        const cmd = resolveRoleDeleteResourceOwnershipCli(
+    it('resolveRoleDeleteResourceOwnershipCli builds delete-role command via builder', () => {
+        const builder = resolveRoleDeleteResourceOwnershipCli(
             { objectOwner: 'terraform' },
             { body: { message: 'Role has a resource owner: terraform' } },
             'my.domain',
             'readers',
             'audit-ref'
         );
+        const cmd = builder('https://zms.example.com:4443/zms/v1');
         expect(cmd).toContain('delete-role');
         expect(cmd).toContain('readers');
         expect(cmd).toContain('-r ignore');
+        expect(cmd).toContain("-z 'https://zms.example.com:4443/zms/v1'");
     });
 
     it('errorMessageSuggestsResourceOwnership matches ZMS ownership phrases', () => {

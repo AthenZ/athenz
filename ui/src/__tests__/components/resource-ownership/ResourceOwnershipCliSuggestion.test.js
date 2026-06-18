@@ -10,13 +10,15 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * See the License for the specific language governing permissions and limitations
+ * under the License.
  */
 
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { ResourceOwnershipCliSuggestion } from '../../../components/resource-ownership/ResourceOwnershipCliSuggestion';
+
+const RUNTIME_ZMS = 'https://zms.example.com:4443/zms/v1';
 
 describe('ResourceOwnershipCliSuggestion', () => {
     const writeText = jest.fn();
@@ -32,9 +34,24 @@ describe('ResourceOwnershipCliSuggestion', () => {
         jest.restoreAllMocks();
     });
 
+    it('materializes deferred builder with runtime ZMS URL', () => {
+        const { getByTestId } = render(
+            <ResourceOwnershipCliSuggestion
+                command={(zmsUrl) => `zms-cli -z ${zmsUrl} -d my.domain`}
+                zmsUrl={RUNTIME_ZMS}
+            />
+        );
+        expect(
+            getByTestId('resource-ownership-cli-suggestion').textContent
+        ).toContain(`zms-cli -z ${RUNTIME_ZMS}`);
+    });
+
     it('copies command and resets copied state after delay', async () => {
         const { getByTestId } = render(
-            <ResourceOwnershipCliSuggestion command='zms-cli -d my.domain' />
+            <ResourceOwnershipCliSuggestion
+                command={() => 'zms-cli -d my.domain'}
+                zmsUrl={RUNTIME_ZMS}
+            />
         );
         await act(async () => {
             fireEvent.click(getByTestId('resource-ownership-cli-copy'));
@@ -55,7 +72,10 @@ describe('ResourceOwnershipCliSuggestion', () => {
             'setState'
         );
         const { getByTestId, unmount } = render(
-            <ResourceOwnershipCliSuggestion command='zms-cli -d my.domain' />
+            <ResourceOwnershipCliSuggestion
+                command={() => 'zms-cli -d my.domain'}
+                zmsUrl={RUNTIME_ZMS}
+            />
         );
         await act(async () => {
             fireEvent.click(getByTestId('resource-ownership-cli-copy'));
@@ -70,7 +90,8 @@ describe('ResourceOwnershipCliSuggestion', () => {
     it('renders configurable owner label in warning copy', () => {
         const { getByTestId } = render(
             <ResourceOwnershipCliSuggestion
-                command='zms-cli -d my.domain'
+                command={() => 'zms-cli -d my.domain'}
+                zmsUrl={RUNTIME_ZMS}
                 resourceOwnershipUi={{
                     label: 'OpenTofu',
                     icon: 'terraform',
@@ -89,7 +110,10 @@ describe('ResourceOwnershipCliSuggestion', () => {
     it('does not show copied state when clipboard write fails', async () => {
         writeText.mockRejectedValue(new Error('denied'));
         const { getByTestId } = render(
-            <ResourceOwnershipCliSuggestion command='zms-cli -d my.domain' />
+            <ResourceOwnershipCliSuggestion
+                command={() => 'zms-cli -d my.domain'}
+                zmsUrl={RUNTIME_ZMS}
+            />
         );
         await act(async () => {
             fireEvent.click(getByTestId('resource-ownership-cli-copy'));

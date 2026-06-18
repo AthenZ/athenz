@@ -220,7 +220,7 @@ class AddMember extends React.Component {
                                 this.props.resourceOwnership
                             ),
                             err,
-                            () =>
+                            (zmsUrl) =>
                                 member.expiration || member.reviewReminder
                                     ? cliAddTemporaryRoleMember(
                                           this.props.domainName,
@@ -228,13 +228,15 @@ class AddMember extends React.Component {
                                           member.memberName,
                                           member.expiration || '',
                                           member.reviewReminder || '',
-                                          aud
+                                          aud,
+                                          zmsUrl
                                       )
                                     : cliAddRoleMember(
                                           this.props.domainName,
                                           this.props.collection,
                                           member.memberName,
-                                          aud
+                                          aud,
+                                          zmsUrl
                                       )
                         ),
                 });

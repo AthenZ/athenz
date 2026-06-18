@@ -92,7 +92,7 @@ export default class AddPolicy extends React.Component {
                                 this.props.resourceOwnership
                             ),
                             err,
-                            () => {
+                            (zmsUrl) => {
                                 const assertion = {
                                     effect: this.state.effect,
                                     action: this.state.action,
@@ -119,7 +119,8 @@ export default class AddPolicy extends React.Component {
                                     this.state.name,
                                     words,
                                     null,
-                                    !!this.state.case
+                                    !!this.state.case,
+                                    zmsUrl
                                 );
                             }
                         ),

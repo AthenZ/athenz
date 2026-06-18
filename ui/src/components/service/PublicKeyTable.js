@@ -202,12 +202,13 @@ class PublicKeyTable extends React.Component {
                                 this.props.resourceOwnership
                             ),
                             err,
-                            () =>
+                            (zmsUrl) =>
                                 cliDeletePublicKey(
                                     this.props.domain,
                                     this.props.service,
                                     this.state.deleteKeyId,
-                                    null
+                                    null,
+                                    zmsUrl
                                 )
                         ),
                 });

@@ -98,11 +98,12 @@ class RolePolicyList extends React.Component {
                                 policyEntry && policyEntry.resourceOwnership
                             ),
                             err,
-                            () =>
+                            (zmsUrl) =>
                                 cliDeletePolicy(
                                     this.props.domain,
                                     this.state.deletePolicyName,
-                                    null
+                                    null,
+                                    zmsUrl
                                 )
                         ),
                 });

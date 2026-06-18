@@ -222,7 +222,7 @@ class PolicyRuleTable extends React.Component {
                                 this.props.resourceOwnership
                             ),
                             err,
-                            () => {
+                            (zmsUrl) => {
                                 const words = formatAssertionWords(
                                     this.props.domain,
                                     this.state.deleteAssertion
@@ -232,7 +232,8 @@ class PolicyRuleTable extends React.Component {
                                     this.props.name,
                                     this.props.version,
                                     words,
-                                    null
+                                    null,
+                                    zmsUrl
                                 );
                             },
                             { when: !!this.state.deleteAssertion }

@@ -122,11 +122,13 @@ export function shouldOfferResourceOwnershipCli(isResourceManaged, err) {
 }
 
 /**
- * Build a zms-cli command for modal error feedback when ownership blocks a UI mutation.
+ * Deferred zms-cli builder for modal error feedback when ownership blocks a UI mutation.
+ * Resolved at display time with runtime ZMS URL from header-details (see ResourceOwnershipCliSuggestion).
  * @param {boolean} isResourceManaged - from resourceOwnership helpers for the relevant field
  * @param {*} err - API error
- * @param {() => (string|null|undefined)} buildCommand - returns command when CLI hint applies
+ * @param {(zmsUrl: string|null) => (string|null|undefined)} buildCommand - builds command for a ZMS base URL
  * @param {{ when?: boolean }} [options] - set when: false to skip (e.g. missing assertion row)
+ * @returns {((zmsUrl: string|null) => string|null)|null}
  */
 export function resolveResourceOwnershipCliOnError(
     isResourceManaged,
@@ -142,11 +144,13 @@ export function resolveResourceOwnershipCliOnError(
     ) {
         return null;
     }
-    const cmd = buildCommand();
-    return cmd === undefined || cmd === null || cmd === '' ? null : cmd;
+    return (zmsUrl) => {
+        const cmd = buildCommand(zmsUrl);
+        return cmd === undefined || cmd === null || cmd === '' ? null : cmd;
+    };
 }
 
-/** zms-cli command state for role delete modals blocked by resource ownership. */
+/** zms-cli builder for role delete modals blocked by resource ownership. */
 export function resolveRoleDeleteResourceOwnershipCli(
     resourceOwnership,
     err,
@@ -157,6 +161,6 @@ export function resolveRoleDeleteResourceOwnershipCli(
     return resolveResourceOwnershipCliOnError(
         isRoleResourceListManaged(resourceOwnership),
         err,
-        () => cliDeleteRole(domain, roleName, auditRef)
+        (zmsUrl) => cliDeleteRole(domain, roleName, auditRef, zmsUrl)
     );
 }

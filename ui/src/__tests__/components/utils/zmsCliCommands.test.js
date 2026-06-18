@@ -25,7 +25,7 @@ import {
 
 const DOMAIN = 'my.domain';
 const ROLE = 'my-role';
-const ZMS_URL_ENV = 'NEXT_PUBLIC_ZMS_URL';
+const RUNTIME_ZMS = 'https://zms.example.com:4443/zms/v1';
 
 describe('shellQuote', () => {
     it('returns empty string for null and undefined', () => {
@@ -51,32 +51,21 @@ describe('shellQuote', () => {
 });
 
 describe('zmsCliCommands', () => {
-    let savedZmsUrl;
-
-    beforeEach(() => {
-        savedZmsUrl = process.env[ZMS_URL_ENV];
-    });
-
-    afterEach(() => {
-        if (savedZmsUrl === undefined) {
-            delete process.env[ZMS_URL_ENV];
-        } else {
-            process.env[ZMS_URL_ENV] = savedZmsUrl;
-        }
-    });
-
-    it('includes -z when ZMS URL is configured', () => {
-        process.env[ZMS_URL_ENV] = 'https://zms.example.com:4443/zms/v1';
-        const cmd = cliDeleteRole('my.domain', 'my-role', 'audit-ref');
-        expect(cmd).toContain("-z 'https://zms.example.com:4443/zms/v1'");
+    it('includes -z when runtime ZMS URL is passed', () => {
+        const cmd = cliDeleteRole(
+            'my.domain',
+            'my-role',
+            'audit-ref',
+            RUNTIME_ZMS
+        );
+        expect(cmd).toContain(`-z '${RUNTIME_ZMS}'`);
         expect(cmd).toContain('-d my.domain');
         expect(cmd).toContain(`-r ${ZMS_CLI_RESOURCE_OWNER_FLAG}`);
         expect(cmd).toContain('delete-role my-role');
         expect(cmd).toContain('-a audit-ref');
     });
 
-    it('omits -z when ZMS URL is not configured', () => {
-        delete process.env[ZMS_URL_ENV];
+    it('omits -z when ZMS URL is not passed', () => {
         const cmd = cliDeleteRole('my.domain', 'my-role', null);
         expect(cmd).not.toContain(' -z ');
         expect(cmd).toMatch(/^zms-cli -d my\.domain/);

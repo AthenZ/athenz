@@ -302,8 +302,3 @@ const _RESOURCE_OWNERSHIP_UI = readResourceOwnershipUiFromEnv();
 export function getResourceOwnershipUiDefaults() {
     return _RESOURCE_OWNERSHIP_UI;
 }
-
-/** ZMS API base URL for generated zms-cli commands (from config.zms). */
-export function getZmsCliUrl() {
-    return process.env.NEXT_PUBLIC_ZMS_URL || null;
-}

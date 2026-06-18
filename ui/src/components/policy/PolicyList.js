@@ -191,11 +191,12 @@ export class PolicyList extends React.Component {
                                 active && active.resourceOwnership
                             ),
                             err,
-                            () =>
+                            (zmsUrl) =>
                                 cliDeletePolicy(
                                     this.props.domain,
                                     this.state.deletePolicyName,
-                                    null
+                                    null,
+                                    zmsUrl
                                 )
                         ),
                 });
@@ -234,13 +235,14 @@ export class PolicyList extends React.Component {
                                 active && active.resourceOwnership
                             ),
                             err,
-                            () =>
+                            (zmsUrl) =>
                                 cliAddPolicyVersion(
                                     this.props.domain,
                                     this.state.duplicatePolicyName,
                                     this.state.duplicateVersionSourceName,
                                     this.state.duplicateVersionName,
-                                    null
+                                    null,
+                                    zmsUrl
                                 )
                         ),
                 });
