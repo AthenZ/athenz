@@ -6449,6 +6449,78 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
+    public void testProcessAccessTokenImpersonationRequestSuccessWithSpiffeClaim() throws JOSEException {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        final String spiffeId = "spiffe://user_domain/sa/user";
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user",
+                "sourcedomain", subjectRoles, null, null, expiryTime, spiffeId);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                accessTokenRequest, "user_domain", "postAccessTokenRequest");
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+        assertEquals(response.getToken_type(), "Bearer");
+        assertTrue(response.getExpires_in() > 0);
+        assertEquals(response.getScope(), "targetdomain:role.writers");
+
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(response.getAccess_token());
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertNotNull(claimSet);
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "targetdomain");
+            assertEquals(claimSet.getStringClaim("spiffe"), spiffeId);
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
     public void testProcessAccessTokenImpersonationRequestNotAuthorizedForTargetExchange() {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
