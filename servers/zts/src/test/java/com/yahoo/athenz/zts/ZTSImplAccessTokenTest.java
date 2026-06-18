@@ -2177,9 +2177,6 @@ public class ZTSImplAccessTokenTest {
         long expiryTime = System.currentTimeMillis() / 1000 + 3600;
         String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
                 "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
-
-        HttpServletRequest servletRequest = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(servletRequest.isSecure()).thenReturn(true);
         
         // Delegation requires mTLS (X.509 certificate)
         java.security.cert.X509Certificate mockCert = Mockito.mock(java.security.cert.X509Certificate.class);
