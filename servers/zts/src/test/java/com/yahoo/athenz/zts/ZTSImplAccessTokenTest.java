@@ -2312,7 +2312,6 @@ public class ZTSImplAccessTokenTest {
             assertTrue(signedJWT.verify(verifier));
 
             JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
-
             // groups claim must equal the scope (scp) list, not a claim from the jagToken
             List<String> groups = claimSet.getStringListClaim("groups");
             assertNotNull(groups);
@@ -2431,7 +2430,6 @@ public class ZTSImplAccessTokenTest {
         File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
         PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
         long expiryTime = System.currentTimeMillis() / 1000 + 3600;
-
         // scope restricted to a single role so role_in_aud_claim produces domain:role
         String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
                 "coretech:role.writers", ztsImpl.ztsOAuthIssuer, expiryTime);
@@ -2456,7 +2454,6 @@ public class ZTSImplAccessTokenTest {
             assertTrue(signedJWT.verify(verifier));
 
             JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
-
             // with role_in_aud_claim=true and a single accessible role, audience is domain:roleName
             assertEquals(claimSet.getAudience().get(0), "coretech.oidc:coretech:role.writers");
         } catch (ParseException ex) {
@@ -2481,7 +2478,6 @@ public class ZTSImplAccessTokenTest {
         File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
         PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
         long expiryTime = System.currentTimeMillis() / 1000 + 3600;
-
         // principal domain "user_domain" matches userDomain so user max timeout applies
         String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
                 "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
@@ -2520,7 +2516,6 @@ public class ZTSImplAccessTokenTest {
         File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
         PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
         long expiryTime = System.currentTimeMillis() / 1000 + 3600;
-
         // principalDomain "user_domain" != userDomain "user" so service max timeout applies
         String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
                 "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
