@@ -2159,7 +2159,6 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
-    @Test
     public void testProcessJAGTokenExchangeDelegationSuccess() throws JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
@@ -2407,7 +2406,6 @@ public class ZTSImplAccessTokenTest {
             assertTrue(signedJWT.verify(verifier));
 
             JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
-
             // without full_arn, the custom audience is ignored and the domain name is used
             assertEquals(claimSet.getAudience().get(0), "coretech");
         } catch (ParseException ex) {
