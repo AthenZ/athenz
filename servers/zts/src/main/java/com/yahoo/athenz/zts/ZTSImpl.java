@@ -3419,6 +3419,29 @@ public class ZTSImpl implements ZTSHandler {
             }
         }
 
+        // now we need to validate the requested actor parameter. In the context
+        // of OAuth 2.0 Token Exchange (RFC 8693), if the actor is not defined,
+        // the exchange is treated as an impersonation request. In an impersonation
+        // flow, the client simply assumes the identity of the subject, so no
+        // explicit actor validation or delegation checks are required. However,
+        // if an actor is specified, it indicates a delegation request where the
+        // actor represents the next service in the chain that will be granted
+        // the 'may_act' authority. For delegation, we must ensure the actor
+        // conforms to our standard Athenz service identity format. Furthermore,
+        // to securely establish this chain and populate the 'act' and 'may_act'
+        // claims, we strictly require the current requesting client to be
+        // strongly authenticated via mTLS (X.509 certificate).
+
+        final String actor = accessTokenRequest.getActor();
+        if (actor != null) {
+            validate(actor, TYPE_SERVICE_NAME, clientPrincipalDomain, caller);
+
+            if (principal.getX509Certificate() == null) {
+                throw forbiddenError("Actor parameter requires X.509 authenticated principal",
+                        caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
+            }
+        }
+
         // now we need to validate the scope value
         //
         // Mandatory Scope: While RFC 7523 defines the 'scope' parameter as
@@ -3551,6 +3574,14 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), accessTokenRequest.isUseOpenIDIssuer()));
         accessToken.setScope(roleList);
         accessToken.setPrincipalIssuer(principal.getIssuerIdentity());
+
+        if (actor != null) {
+            // may_act: The service principal that will be delegated the authority
+            accessToken.setMayActEntry(AccessToken.CLAIM_SUBJECT, actor);
+
+            // act: current authenticated client acting on behalf of the subject
+            accessToken.setActEntry(AccessToken.CLAIM_SUBJECT, clientPrincipalName);
+        }
 
         if (identityProvider != null && identityProvider.getTokenExchangeClaims() != null) {
             for (String claim : identityProvider.getTokenExchangeClaims()) {
