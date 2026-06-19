@@ -5220,67 +5220,6 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
-    public void testProcessAccessTokenExchangeDelegationRequestWithMayActMissingX509() throws JOSEException {
-        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
-
-        CloudStore cloudStore = new CloudStore();
-        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
-
-        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
-
-        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
-        store.processSignedDomain(sourceDomain, false);
-
-        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
-        store.processSignedDomain(targetDomain, false);
-
-        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
-
-        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
-        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
-        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
-
-        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
-        List<String> subjectRoles = List.of("writers");
-        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user",
-                "sourcedomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime);
-
-        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1",
-                "targetdomain", expiryTime);
-
-        // Correct actor principal, but NOT X.509 authenticated
-        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
-                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
-        assertNotNull(principal);
-        
-        ResourceContext context = createResourceContext(principal);
-        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
-        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
-        tokenConfigOptions.setPublicKeyProvider(keyStore);
-        ztsImpl.tokenConfigOptions = tokenConfigOptions;
-
-        final String requestBody = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
-                        + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
-                        + "&subject_token=" + subjectTokenStr
-                        + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
-                        + "&actor_token=" + actorTokenStr
-                        + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
-                        + "&audience=targetdomain"
-                        + "&scope=targetdomain:role.writers"
-                        + "&actor=athenz.next-actor";
-
-        try {
-            ztsImpl.postAccessTokenRequest(context, requestBody);
-            fail("Expected ResourceException(403) to be thrown");
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 403);
-            assertTrue(ex.getMessage().contains("Actor parameter requires X.509 authenticated principal"));
-        }
-
-        cloudStore.close();
-    }
-
-    @Test
     public void testProcessAccessTokenDelegationRequestPrincipalMismatch() {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 

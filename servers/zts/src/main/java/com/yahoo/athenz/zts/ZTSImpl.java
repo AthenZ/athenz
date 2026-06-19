@@ -2915,11 +2915,6 @@ public class ZTSImpl implements ZTSHandler {
         final String actor = accessTokenRequest.getActor();
         if (actor != null) {
             validate(actor, TYPE_SERVICE_NAME, principalDomain, caller);
-
-            if (principal.getX509Certificate() == null) {
-                throw forbiddenError("Actor parameter requires X.509 authenticated principal",
-                        caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-            }
         }
 
         // in the delegation request the subject token is issued with a specific
