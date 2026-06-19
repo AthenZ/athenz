@@ -4851,6 +4851,9 @@ public class ZTSImplAccessTokenTest {
             assertNotNull(scopes);
             assertEquals(scopes.size(), 1);
             assertEquals(scopes.get(0), "writers");
+
+            // not expecting `may_act` claim with "actor" not defined:
+            assertNull(claimSet.getJSONObjectClaim("may_act"));
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
@@ -5199,6 +5202,116 @@ public class ZTSImplAccessTokenTest {
             Map subActMap = (Map) actMap.get("act");
             assertNotNull(subActMap);
             assertEquals(subActMap.get("sub"), "athenz.actor");
+
+            // not expecting `may_act` claim with "actor" not defined:
+            assertNull(claimSet.getJSONObjectClaim("may_act"));
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenExchangeDelegationRequestWithMayActSuccess() throws JOSEException {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        // Create source domain
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        // Create target domain
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        // Add token target exchange policy
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        // Load EC private key for creating tokens
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        // Create subject token (AccessToken) with roles in source domain
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("writers");
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user",
+                "sourcedomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime);
+
+        // Create actor token (OAuth2Token)
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1",
+                "targetdomain", expiryTime);
+
+        // Create principal for proxy-user1 who will request the token exchange
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+        
+        // Delegation with next actor requires mTLS (X.509) principal.
+        java.security.cert.X509Certificate mockCert = org.mockito.Mockito.mock(java.security.cert.X509Certificate.class);
+        ((com.yahoo.athenz.auth.impl.SimplePrincipal) principal).setX509Certificate(mockCert);
+        
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        ztsImpl.tokenConfigOptions = tokenConfigOptions;
+
+        // Add actor=athenz.next-actor to request may_act
+        final String requestBody = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                        + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                        + "&subject_token=" + subjectTokenStr
+                        + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                        + "&actor_token=" + actorTokenStr
+                        + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                        + "&audience=targetdomain"
+                        + "&scope=targetdomain:role.writers"
+                        + "&actor=athenz.next-actor"; // next actor specified
+
+        AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, requestBody);
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+        assertEquals(response.getToken_type(), "Bearer");
+        assertTrue(response.getExpires_in() > 0);
+        assertEquals(response.getScope(), "targetdomain:role.writers");
+
+        // Verify the access token
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertNotNull(claimSet);
+            assertNotNull(claimSet.getJWTID());
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "targetdomain");
+            assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
+
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(scopes.size(), 1);
+            assertEquals(scopes.get(0), "writers");
+
+            // Verify act claim is constructed
+            Map actMap = (Map) claimSet.getClaim("act");
+            assertNotNull(actMap);
+            assertEquals(actMap.get("sub"), "user_domain.proxy-user1");
+
+            // Verify may_act claim is constructed correctly
+            Map mayActMap = (Map) claimSet.getClaim("may_act");
+            assertNotNull(mayActMap);
+            assertEquals(mayActMap.get("sub"), "athenz.next-actor");
 
         } catch (Exception ex) {
             fail(ex.getMessage());

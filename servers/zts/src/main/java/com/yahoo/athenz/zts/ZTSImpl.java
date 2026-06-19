@@ -2910,6 +2910,13 @@ public class ZTSImpl implements ZTSHandler {
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
+        // Optional actor parameter means: issue this delegated AT with may_act
+        // so that the next actor can perform another delegated token exchange.
+        final String actor = accessTokenRequest.getActor();
+        if (actor != null) {
+            validate(actor, TYPE_SERVICE_NAME, principalDomain, caller);
+        }
+
         // in the delegation request the subject token is issued with a specific
         // domain as the audience and the new audience is expected to be different
         // domain that's been authorized for delegation. If there is no scope
@@ -2988,6 +2995,11 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), accessTokenRequest.isUseOpenIDIssuer()));
         accessToken.setScope(new ArrayList<>(roles));
         accessToken.setPrincipalIssuer(principal.getIssuerIdentity());
+
+        if (actor != null) {
+            // may_act: The service principal that will be delegated the authority
+            accessToken.setMayActEntry(AccessToken.CLAIM_SUBJECT, actor);
+        }
 
         final String spiffeId = extractSpiffeIdFromToken(subjectToken);
         if (spiffeId != null) {
