@@ -1,3 +1,28 @@
+Athenz v1.12.43 Release / Jun 19, 2026
+--------------------------------------
+
+#3254 Add SPIFFE claim support to ZTS ID token exchange
+#3373 ui - add tf icons to tf-managed roles, services, policies; show zms-cli command.
+#3379 Bump axios from 1.15.2 to 1.16.0 in /clients/nodejs/zts
+#3380 config option to validate san uri schemes in certificate requests
+#3381 Bump axios from 1.15.2 to 1.16.0 in /ui
+#3382 support validation for svc cert request key id value
+#3384 Support user-cert-bound JAG issue for public client local agents
+#3387 maintain token type when parsing oauth2 tokens
+#3388 Feat: Support Delegation Claims act & may_act in ID_JAG=>AT Exchange (RFC 8693)
+#3389 jag token integration changes with okta tests
+#3390 Feat: Support Delegation Claims may_act in AT=>AT Delegated Token Exchange (RFC 8693)
+#3392 Allow zms-cli to use default mTLS credentials
+#3393 Bump @opentelemetry package versions in /ui
+#3394 Bump form-data from 4.0.5 to 4.0.6 in /ui
+#3395 Bump @babel/core from 7.23.9 to 7.29.6 in /ui
+#3396 Bump multer from 2.1.1 to 2.2.0 in /ui
+#3397 Migrate athenzutils and zmscli from gopkg.in/yaml.v3 to go.yaml.in/yaml/v3
+#3398 ui - fix otel config after dependency update
+#3399 ui - fix zms-cli url to not be hardcoded in resource ownership suggestion
+#3400 add test case for zts server
+#3401 update java/go/js dependencies to their latest releases
+
 Athenz v1.12.42 Release / May 27, 2026
 --------------------------------------
 
