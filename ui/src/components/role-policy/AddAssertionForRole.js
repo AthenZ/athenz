@@ -107,7 +107,7 @@ class AddAssertionForRole extends React.Component {
                                 this.props.resourceOwnership
                             ),
                             err,
-                            () => {
+                            (zmsUrl) => {
                                 const assertion = {
                                     effect: this.state.effect,
                                     action: this.state.action.trim(),
@@ -129,7 +129,8 @@ class AddAssertionForRole extends React.Component {
                                     this.props.name,
                                     words,
                                     null,
-                                    !!this.state.case
+                                    !!this.state.case,
+                                    zmsUrl
                                 );
                             }
                         ),

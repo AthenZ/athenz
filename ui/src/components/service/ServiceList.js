@@ -117,11 +117,12 @@ class ServiceList extends React.Component {
                                 this.state.deleteServiceResourceOwnership
                             ),
                             err,
-                            () =>
+                            (zmsUrl) =>
                                 cliDeleteService(
                                     this.props.domain,
                                     deletedName,
-                                    null
+                                    null,
+                                    zmsUrl
                                 ),
                             { when: !!deletedName }
                         ),

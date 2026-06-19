@@ -21,7 +21,9 @@ import { colors } from '../denali/styles';
 import {
     selectResourceOwnershipGuideLink,
     selectResourceOwnershipUi,
+    selectZmsUrl,
 } from '../../redux/selectors/domains';
+import { resolveZmsCliUrl } from '../utils/url';
 import {
     getCliSuggestionBody,
     getCliSuggestionEmergencyHeading,
@@ -107,7 +109,10 @@ export class ResourceOwnershipCliSuggestion extends React.Component {
     }
 
     copy() {
-        const cmd = this.props.command;
+        const cmd = resolveResourceOwnershipCliCommand(
+            this.props.command,
+            this.props.zmsUrl
+        );
         if (!cmd) {
             return;
         }
@@ -131,7 +136,11 @@ export class ResourceOwnershipCliSuggestion extends React.Component {
     }
 
     render() {
-        if (!this.props.command) {
+        const command = resolveResourceOwnershipCliCommand(
+            this.props.command,
+            this.props.zmsUrl
+        );
+        if (!command) {
             return null;
         }
         const guide = this.props.resourceOwnershipGuideLink || {};
@@ -147,7 +156,7 @@ export class ResourceOwnershipCliSuggestion extends React.Component {
                 <BodyText>{bodyText}</BodyText>
                 <BodyText>{emergencyHeading}</BodyText>
                 <CommandBox>
-                    <CommandPre>{this.props.command}</CommandPre>
+                    <CommandPre>{command}</CommandPre>
                     <CopyHitArea
                         type='button'
                         onClick={this.copy}
@@ -199,6 +208,7 @@ export class ResourceOwnershipCliSuggestion extends React.Component {
 }
 
 const mapStateToProps = (state, ownProps) => ({
+    zmsUrl: selectZmsUrl(state),
     resourceOwnershipGuideLink:
         ownProps.resourceOwnershipGuideLink !== undefined
             ? ownProps.resourceOwnershipGuideLink
@@ -208,5 +218,13 @@ const mapStateToProps = (state, ownProps) => ({
             ? ownProps.resourceOwnershipUi
             : selectResourceOwnershipUi(state),
 });
+
+/** Materialize zms-cli text from a deferred builder and runtime/header ZMS URL. */
+export function resolveResourceOwnershipCliCommand(command, zmsUrl) {
+    if (typeof command !== 'function') {
+        return null;
+    }
+    return command(resolveZmsCliUrl(zmsUrl));
+}
 
 export default connect(mapStateToProps)(ResourceOwnershipCliSuggestion);

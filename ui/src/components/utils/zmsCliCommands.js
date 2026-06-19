@@ -15,7 +15,7 @@
  */
 
 import NameUtils from './NameUtils';
-import { getZmsCliUrl } from '../constants/constants';
+import { resolveZmsCliUrl } from './url';
 
 /**
  * zms-cli `-r` value: `ignore` skips resource-owner enforcement for the command.
@@ -34,11 +34,11 @@ export function shellQuote(str) {
     return "'" + s.replace(/'/g, "'\\''") + "'";
 }
 
-function base(domain, auditRef) {
-    const zmsUrl = getZmsCliUrl();
+function base(domain, auditRef, zmsUrl) {
+    const resolvedZmsUrl = resolveZmsCliUrl(zmsUrl);
     let cmd = 'zms-cli';
-    if (zmsUrl) {
-        cmd += ` -z ${shellQuote(zmsUrl)}`;
+    if (resolvedZmsUrl) {
+        cmd += ` -z ${shellQuote(resolvedZmsUrl)}`;
     }
     cmd += ` -d ${shellQuote(domain)} -r ${shellQuote(
         ZMS_CLI_RESOURCE_OWNER_FLAG
@@ -49,8 +49,14 @@ function base(domain, auditRef) {
     return cmd;
 }
 
-export function cliAddRoleMember(domain, roleName, memberName, auditRef) {
-    return `${base(domain, auditRef)} add-member ${shellQuote(
+export function cliAddRoleMember(
+    domain,
+    roleName,
+    memberName,
+    auditRef,
+    zmsUrl
+) {
+    return `${base(domain, auditRef, zmsUrl)} add-member ${shellQuote(
         roleName
     )} ${shellQuote(memberName)}`;
 }
@@ -61,9 +67,10 @@ export function cliAddTemporaryRoleMember(
     memberName,
     expirationRdl,
     reviewRdl,
-    auditRef
+    auditRef,
+    zmsUrl
 ) {
-    const b = base(domain, auditRef);
+    const b = base(domain, auditRef, zmsUrl);
     if (expirationRdl && reviewRdl) {
         return `${b} add-temporary-member ${shellQuote(roleName)} ${shellQuote(
             memberName
@@ -79,33 +86,51 @@ export function cliAddTemporaryRoleMember(
             memberName
         )} ${shellQuote(reviewRdl)}`;
     }
-    return cliAddRoleMember(domain, roleName, memberName, auditRef);
+    return cliAddRoleMember(domain, roleName, memberName, auditRef, zmsUrl);
 }
 
-export function cliDeleteRoleMember(domain, roleName, memberName, auditRef) {
-    return `${base(domain, auditRef)} delete-member ${shellQuote(
+export function cliDeleteRoleMember(
+    domain,
+    roleName,
+    memberName,
+    auditRef,
+    zmsUrl
+) {
+    return `${base(domain, auditRef, zmsUrl)} delete-member ${shellQuote(
         roleName
     )} ${shellQuote(memberName)}`;
 }
 
-export function cliDeleteRole(domain, roleName, auditRef) {
-    return `${base(domain, auditRef)} delete-role ${shellQuote(roleName)}`;
+export function cliDeleteRole(domain, roleName, auditRef, zmsUrl) {
+    return `${base(domain, auditRef, zmsUrl)} delete-role ${shellQuote(
+        roleName
+    )}`;
 }
 
-export function cliDeleteService(domain, serviceName, auditRef) {
-    return `${base(domain, auditRef)} delete-service ${shellQuote(
+export function cliDeleteService(domain, serviceName, auditRef, zmsUrl) {
+    return `${base(domain, auditRef, zmsUrl)} delete-service ${shellQuote(
         serviceName
     )}`;
 }
 
-export function cliDeletePolicy(domain, policyName, auditRef) {
-    return `${base(domain, auditRef)} delete-policy ${shellQuote(policyName)}`;
+export function cliDeletePolicy(domain, policyName, auditRef, zmsUrl) {
+    return `${base(domain, auditRef, zmsUrl)} delete-policy ${shellQuote(
+        policyName
+    )}`;
 }
 
-export function cliDeletePolicyVersion(domain, policyName, version, auditRef) {
-    return `${base(domain, auditRef)} delete-policy-version ${shellQuote(
-        policyName
-    )} ${shellQuote(version)}`;
+export function cliDeletePolicyVersion(
+    domain,
+    policyName,
+    version,
+    auditRef,
+    zmsUrl
+) {
+    return `${base(
+        domain,
+        auditRef,
+        zmsUrl
+    )} delete-policy-version ${shellQuote(policyName)} ${shellQuote(version)}`;
 }
 
 export function cliAddPolicyVersion(
@@ -113,9 +138,10 @@ export function cliAddPolicyVersion(
     policyName,
     sourceVersion,
     newVersion,
-    auditRef
+    auditRef,
+    zmsUrl
 ) {
-    return `${base(domain, auditRef)} add-policy-version ${shellQuote(
+    return `${base(domain, auditRef, zmsUrl)} add-policy-version ${shellQuote(
         policyName
     )} ${shellQuote(sourceVersion)} ${shellQuote(newVersion)}`;
 }
@@ -125,9 +151,10 @@ export function cliAddAssertion(
     policyName,
     assertionWords,
     auditRef,
-    caseSensitive
+    caseSensitive,
+    zmsUrl
 ) {
-    let cmd = `${base(domain, auditRef)} add-assertion ${shellQuote(
+    let cmd = `${base(domain, auditRef, zmsUrl)} add-assertion ${shellQuote(
         policyName
     )} ${assertionWords}`;
     if (caseSensitive) {
@@ -140,9 +167,10 @@ export function cliDeleteAssertion(
     domain,
     policyName,
     assertionWords,
-    auditRef
+    auditRef,
+    zmsUrl
 ) {
-    return `${base(domain, auditRef)} delete-assertion ${shellQuote(
+    return `${base(domain, auditRef, zmsUrl)} delete-assertion ${shellQuote(
         policyName
     )} ${assertionWords}`;
 }
@@ -152,11 +180,13 @@ export function cliDeleteAssertionPolicyVersion(
     policyName,
     version,
     assertionWords,
-    auditRef
+    auditRef,
+    zmsUrl
 ) {
     return `${base(
         domain,
-        auditRef
+        auditRef,
+        zmsUrl
     )} delete-assertion-policy-version ${shellQuote(policyName)} ${shellQuote(
         version
     )} ${assertionWords}`;
@@ -168,11 +198,13 @@ export function cliAddAssertionPolicyVersion(
     version,
     assertionWords,
     auditRef,
-    caseSensitive
+    caseSensitive,
+    zmsUrl
 ) {
     let cmd = `${base(
         domain,
-        auditRef
+        auditRef,
+        zmsUrl
     )} add-assertion-policy-version ${shellQuote(policyName)} ${shellQuote(
         version
     )} ${assertionWords}`;
@@ -200,9 +232,10 @@ export function cliAddPolicy(
     policyName,
     assertionWords,
     auditRef,
-    caseSensitive
+    caseSensitive,
+    zmsUrl
 ) {
-    let cmd = `${base(domain, auditRef)} add-policy ${shellQuote(
+    let cmd = `${base(domain, auditRef, zmsUrl)} add-policy ${shellQuote(
         policyName
     )} ${assertionWords}`;
     if (caseSensitive) {
@@ -211,8 +244,14 @@ export function cliAddPolicy(
     return cmd;
 }
 
-export function cliDeletePublicKey(domain, serviceName, keyId, auditRef) {
-    return `${base(domain, auditRef)} delete-public-key ${shellQuote(
+export function cliDeletePublicKey(
+    domain,
+    serviceName,
+    keyId,
+    auditRef,
+    zmsUrl
+) {
+    return `${base(domain, auditRef, zmsUrl)} delete-public-key ${shellQuote(
         serviceName
     )} ${shellQuote(keyId)}`;
 }
@@ -222,9 +261,10 @@ export function cliAddPublicKey(
     serviceName,
     keyId,
     keyValuePathHint,
-    auditRef
+    auditRef,
+    zmsUrl
 ) {
-    let cmd = `${base(domain, auditRef)} add-public-key ${shellQuote(
+    let cmd = `${base(domain, auditRef, zmsUrl)} add-public-key ${shellQuote(
         serviceName
     )} ${shellQuote(keyId)}`;
     if (keyValuePathHint) {
@@ -241,11 +281,18 @@ function boolStr(v) {
  * Builds set-role-* commands for fields that differ between original and updated
  * (shape from SettingTable setCollectionDetails for roles).
  */
-export function cliRoleMetaDiff(domain, roleName, original, updated, auditRef) {
+export function cliRoleMetaDiff(
+    domain,
+    roleName,
+    original,
+    updated,
+    auditRef,
+    zmsUrl
+) {
     if (!original || !updated) {
         return null;
     }
-    const b = base(domain, auditRef);
+    const b = base(domain, auditRef, zmsUrl);
     const parts = [];
     const role = shellQuote(roleName);
 

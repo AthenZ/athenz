@@ -364,13 +364,14 @@ class SettingTable extends React.Component {
                                         .resourceOwnership
                                 ),
                             err,
-                            () =>
+                            (zmsUrl) =>
                                 cliRoleMetaDiff(
                                     this.props.domain,
                                     this.props.collection,
                                     this.state.originalCollectionDetails,
                                     this.state.copyCollectionDetails,
-                                    aud
+                                    aud,
+                                    zmsUrl
                                 )
                         ),
                 });

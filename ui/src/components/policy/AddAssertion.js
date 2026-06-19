@@ -112,7 +112,7 @@ class AddAssertion extends React.Component {
                                 this.props.resourceOwnership
                             ),
                             err,
-                            () => {
+                            (zmsUrl) => {
                                 const assertion = {
                                     effect: this.state.effect,
                                     action: this.state.action,
@@ -129,7 +129,8 @@ class AddAssertion extends React.Component {
                                     this.props.version,
                                     words,
                                     null,
-                                    !!this.state.case
+                                    !!this.state.case,
+                                    zmsUrl
                                 );
                             }
                         ),

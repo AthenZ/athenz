@@ -198,12 +198,13 @@ class MemberRow extends React.Component {
                                 this.props.resourceOwnership
                             ),
                             err,
-                            () =>
+                            (zmsUrl) =>
                                 cliDeleteRoleMember(
                                     this.props.domain,
                                     this.props.collection,
                                     this.state.deleteName,
-                                    aud
+                                    aud,
+                                    zmsUrl
                                 )
                         ),
                 });
@@ -293,14 +294,15 @@ class MemberRow extends React.Component {
                                 this.props.resourceOwnership
                             ),
                             err,
-                            () =>
+                            (zmsUrl) =>
                                 cliAddTemporaryRoleMember(
                                     this.props.domain,
                                     this.props.collection,
                                     member.memberName,
                                     member.expiration || '',
                                     member.reviewReminder || '',
-                                    aud
+                                    aud,
+                                    zmsUrl
                                 )
                         ),
                 });

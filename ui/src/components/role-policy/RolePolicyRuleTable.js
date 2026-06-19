@@ -209,7 +209,7 @@ class RolePolicyRuleTable extends React.Component {
                                 this.props.resourceOwnership
                             ),
                             err,
-                            () => {
+                            (zmsUrl) => {
                                 const words = formatAssertionWords(
                                     this.props.domain,
                                     assertion
@@ -218,7 +218,8 @@ class RolePolicyRuleTable extends React.Component {
                                     this.props.domain,
                                     this.props.name,
                                     words,
-                                    null
+                                    null,
+                                    zmsUrl
                                 );
                             },
                             { when: !!assertion }

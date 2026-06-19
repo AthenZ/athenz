@@ -32,7 +32,7 @@ describe('ResourceOwnershipModalFeedback', () => {
         const { getByTestId, queryByText } = renderWithStore(
             <ResourceOwnershipModalFeedback
                 errorMessage='Forbidden'
-                resourceOwnershipCliCommand='zms-cli -d dom'
+                resourceOwnershipCliCommand={() => 'zms-cli -d dom'}
             />
         );
         expect(getByTestId('resource-ownership-cli-suggestion')).toBeTruthy();

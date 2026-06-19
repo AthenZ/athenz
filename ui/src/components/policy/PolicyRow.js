@@ -357,12 +357,13 @@ export class PolicyRow extends React.Component {
                                 this.props.resourceOwnership
                             ),
                             err,
-                            () =>
+                            (zmsUrl) =>
                                 cliDeletePolicyVersion(
                                     this.props.domain,
                                     this.state.deletePolicyName,
                                     this.state.deleteVersionName,
-                                    null
+                                    null,
+                                    zmsUrl
                                 )
                         ),
                 });
@@ -397,13 +398,14 @@ export class PolicyRow extends React.Component {
                                 this.props.resourceOwnership
                             ),
                             err,
-                            () =>
+                            (zmsUrl) =>
                                 cliAddPolicyVersion(
                                     this.props.domain,
                                     this.state.duplicatePolicyName,
                                     this.state.duplicateVersionSourceName,
                                     this.state.duplicateVersionName,
-                                    null
+                                    null,
+                                    zmsUrl
                                 )
                         ),
                 });

@@ -106,13 +106,14 @@ class AddKey extends React.Component {
                                 this.props.resourceOwnership
                             ),
                             err,
-                            () =>
+                            (zmsUrl) =>
                                 cliAddPublicKey(
                                     this.props.domain,
                                     this.props.service,
                                     this.state.keyId,
                                     '<path-to-public-key.pem>',
-                                    null
+                                    null,
+                                    zmsUrl
                                 )
                         ),
                 });
