@@ -760,6 +760,15 @@ public class UserCertificateProviderTest {
     }
 
     @Test
+    public void testValidateTokenSubjectNullUserName() {
+        UserCertificateProvider provider = createTestProvider();
+
+        AccessToken accessToken = Mockito.mock(AccessToken.class);
+
+        assertFalse(provider.validateTokenSubject(accessToken, "user", null));
+    }
+
+    @Test
     public void testGetFullUserName() {
         UserCertificateProvider provider = createTestProvider();
 
@@ -768,6 +777,8 @@ public class UserCertificateProviderTest {
                 "email:ext.joe@athenz.io");
         assertEquals(provider.getFullUserName("user", "email:group.name:ext.athenz_user@athenz.io"),
                 "user.email:group.name:ext.athenz_user@athenz.io");
+        assertNull(provider.getFullUserName("user", null));
+        assertFalse(provider.isExternalPrincipal(null));
     }
 
     @Test
