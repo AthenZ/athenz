@@ -231,7 +231,7 @@ public class UserCertificateProvider implements InstanceProvider {
         // 1. the token subject is the same as the requested user name without the domain prefix
         // 2. the token subject is the same as the requested user name with the domain prefix
 
-        final String fullName = domainName + AuthorityConsts.ATHENZ_PRINCIPAL_DELIMITER_CHAR + userName;
+        final String fullName = getFullUserName(domainName, userName);
 
         // first, verify that the subject in the token matches the requested user name
 
@@ -254,6 +254,17 @@ public class UserCertificateProvider implements InstanceProvider {
         LOGGER.error("Subject mismatch: token-subject={}/user-name={} vs. requested-user={}",
             accessToken.getSubject(), tokenUserName, fullName);
         return false;
+    }
+
+    String getFullUserName(final String domainName, final String userName) {
+        return isExternalPrincipal(userName) ? userName :
+                domainName + AuthorityConsts.ATHENZ_PRINCIPAL_DELIMITER_CHAR + userName;
+    }
+
+    boolean isExternalPrincipal(final String userName) {
+        final int idx = userName.indexOf(AuthorityConsts.ATHENZ_PRINCIPAL_ENTITY_CHAR);
+        return idx > 0 && userName.regionMatches(idx, AuthorityConsts.EXT_SEP, 0, AuthorityConsts.EXT_SEP.length())
+                && idx != userName.length() - AuthorityConsts.EXT_SEP.length();
     }
 
     String generateAccessTokenRequestBody(final String attestationData) throws ProviderResourceException {

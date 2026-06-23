@@ -690,6 +690,17 @@ public class UserCertificateProviderTest {
     }
 
     @Test
+    public void testValidateTokenSubjectExternalPrincipalMatch() {
+        UserCertificateProvider provider = createTestProvider();
+
+        AccessToken accessToken = Mockito.mock(AccessToken.class);
+        Mockito.when(accessToken.getSubject()).thenReturn("email:ext.joe@athenz.io");
+
+        assertTrue(provider.validateTokenSubject(accessToken, "user",
+                "email:ext.joe@athenz.io"));
+    }
+
+    @Test
     public void testValidateTokenSubjectClaimMatch() {
         UserCertificateProvider provider = createTestProvider();
         provider.userNameClaim = "preferred_username";
@@ -714,6 +725,19 @@ public class UserCertificateProviderTest {
     }
 
     @Test
+    public void testValidateTokenSubjectClaimExternalPrincipalMatch() {
+        UserCertificateProvider provider = createTestProvider();
+        provider.userNameClaim = "preferred_username";
+
+        AccessToken accessToken = Mockito.mock(AccessToken.class);
+        Mockito.when(accessToken.getSubject()).thenReturn("uid-12345");
+        Mockito.when(accessToken.getClaim("preferred_username")).thenReturn("email:ext.joe@athenz.io");
+
+        assertTrue(provider.validateTokenSubject(accessToken, "user",
+                "email:ext.joe@athenz.io"));
+    }
+
+    @Test
     public void testValidateTokenSubjectNoMatch() {
         UserCertificateProvider provider = createTestProvider();
 
@@ -733,6 +757,17 @@ public class UserCertificateProviderTest {
         Mockito.when(accessToken.getClaim("preferred_username")).thenReturn("other-user");
 
         assertFalse(provider.validateTokenSubject(accessToken, "user", "johndoe"));
+    }
+
+    @Test
+    public void testGetFullUserName() {
+        UserCertificateProvider provider = createTestProvider();
+
+        assertEquals(provider.getFullUserName("user", "johndoe"), "user.johndoe");
+        assertEquals(provider.getFullUserName("user", "email:ext.joe@athenz.io"),
+                "email:ext.joe@athenz.io");
+        assertEquals(provider.getFullUserName("user", "email:group.name:ext.athenz_user@athenz.io"),
+                "user.email:group.name:ext.athenz_user@athenz.io");
     }
 
     @Test
