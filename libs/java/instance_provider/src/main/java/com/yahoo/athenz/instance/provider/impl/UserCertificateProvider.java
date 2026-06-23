@@ -227,6 +227,11 @@ public class UserCertificateProvider implements InstanceProvider {
 
     boolean validateTokenSubject(final AccessToken accessToken, final String domainName, final String userName) {
 
+        if (userName == null) {
+            LOGGER.error("User name not provided for token subject validation");
+            return false;
+        }
+
         // when validating the token identity, we need to consider two cases:
         // 1. the token subject is the same as the requested user name without the domain prefix
         // 2. the token subject is the same as the requested user name with the domain prefix
@@ -257,11 +262,17 @@ public class UserCertificateProvider implements InstanceProvider {
     }
 
     String getFullUserName(final String domainName, final String userName) {
+        if (userName == null) {
+            return null;
+        }
         return isExternalPrincipal(userName) ? userName :
                 domainName + AuthorityConsts.ATHENZ_PRINCIPAL_DELIMITER_CHAR + userName;
     }
 
     boolean isExternalPrincipal(final String userName) {
+        if (userName == null) {
+            return false;
+        }
         final int idx = userName.indexOf(AuthorityConsts.ATHENZ_PRINCIPAL_ENTITY_CHAR);
         return idx > 0 && userName.regionMatches(idx, AuthorityConsts.EXT_SEP, 0, AuthorityConsts.EXT_SEP.length())
                 && idx != userName.length() - AuthorityConsts.EXT_SEP.length();
