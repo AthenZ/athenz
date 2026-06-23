@@ -342,6 +342,32 @@ public class ZTSImplUserCertTest {
         assertTrue(zts.validateUserPrincipalForCert("user.joe"));
     }
 
+    @Test
+    public void testValidateUserPrincipalForCertExternalPrincipal() {
+        Authority mockAuthority = Mockito.mock(Authority.class);
+        zts.userAuthority = mockAuthority;
+
+        assertTrue(zts.validateUserPrincipalForCert("email:ext.joe@athenz.io"));
+        Mockito.verify(mockAuthority, Mockito.never()).getUserType(Mockito.anyString());
+    }
+
+    @Test
+    public void testValidateUserPrincipalForCertInvalidExternalPrincipal() {
+        Authority mockAuthority = Mockito.mock(Authority.class);
+        zts.userAuthority = mockAuthority;
+
+        assertFalse(zts.validateUserPrincipalForCert("email:ext."));
+        assertFalse(zts.validateUserPrincipalForCert(":ext.athenz_user@athenz.io"));
+        assertFalse(zts.validateUserPrincipalForCert("email:group.name:ext.athenz_user@athenz.io"));
+    }
+
+    @Test
+    public void testGetUserCertificateRequestServiceName() {
+        assertEquals(zts.getUserCertificateRequestServiceName("user.joe"), "joe");
+        assertEquals(zts.getUserCertificateRequestServiceName("email:ext.joe@athenz.io"),
+                "email:ext.joe@athenz.io");
+    }
+
     // -----------------------------------------------------------------------
     // postUserCertificateRequest tests
     // -----------------------------------------------------------------------
@@ -854,6 +880,57 @@ public class ZTSImplUserCertTest {
         assertNotNull(result);
         assertEquals(result.getX509Certificate(), pemCert);
         Mockito.verify((RsrcCtxWrapper) ctx).logPrincipal("user.joe");
+    }
+
+    @Test
+    public void testPostUserCertificateRequestSuccessExternalPrincipal() throws Exception {
+
+        final String externalPrincipal = "email:ext.joe@athenz.io";
+
+        Authority mockAuthority = Mockito.mock(Authority.class);
+        when(mockAuthority.getSignerKeyId(externalPrincipal, null)).thenReturn(null);
+        zts.userAuthority = mockAuthority;
+        zts.userCertProvider = "test.provider";
+
+        String csr = generateUserCsr(externalPrincipal);
+
+        PrincipalAuthority authority = new PrincipalAuthority();
+        Principal principal = SimplePrincipal.create("user", "joe",
+                "v=U1;d=user;n=joe;s=signature", 0, authority);
+        ResourceContext ctx = createResourceContext(principal);
+
+        UserCertificateRequest req = new UserCertificateRequest()
+                .setName(externalPrincipal)
+                .setCsr(csr)
+                .setAttestationData("attestation-data")
+                .setExpiryTime(3600);
+
+        InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
+        InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
+        when(instanceProviderManager.getProvider(eq("test.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setDomain("user").setService(externalPrincipal).setProvider("test.provider");
+        when(providerClient.confirmInstance(Mockito.argThat(arg ->
+                externalPrincipal.equals(arg.getService())))).thenReturn(confirmation);
+        zts.instanceProviderManager = instanceProviderManager;
+
+        String pemCert = readResourceFile("valid_provider_refresh.pem");
+
+        InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
+        when(certManager.generateX509Certificate(eq("test.provider"), Mockito.any(),
+                eq(csr), eq(InstanceProvider.ZTS_CERT_USAGE_CLIENT), eq(60), Mockito.any(),
+                Mockito.isNull())).thenReturn(pemCert);
+        Mockito.doNothing().when(certManager).logX509Cert(Mockito.any(), Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString(), Mockito.any());
+        zts.instanceCertManager = certManager;
+
+        UserCertificate result = zts.postUserCertificateRequest(ctx, req);
+        assertNotNull(result);
+        assertEquals(result.getX509Certificate(), pemCert);
+        Mockito.verify((RsrcCtxWrapper) ctx).logPrincipal(externalPrincipal);
+        Mockito.verify(mockAuthority, Mockito.never()).getUserType(Mockito.anyString());
     }
 
     @Test
