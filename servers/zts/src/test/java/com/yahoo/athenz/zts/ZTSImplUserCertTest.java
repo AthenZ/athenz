@@ -366,6 +366,8 @@ public class ZTSImplUserCertTest {
         assertEquals(zts.getUserCertificateRequestServiceName("user.joe"), "joe");
         assertEquals(zts.getUserCertificateRequestServiceName("email:ext.joe@athenz.io"),
                 "email:ext.joe@athenz.io");
+        assertNull(zts.getUserCertificateRequestServiceName(null));
+        assertFalse(zts.isExternalPrincipalForCert(null));
     }
 
     // -----------------------------------------------------------------------

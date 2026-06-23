@@ -6931,11 +6931,17 @@ public class ZTSImpl implements ZTSHandler {
     }
 
     String getUserCertificateRequestServiceName(final String principalName) {
+        if (principalName == null) {
+            return null;
+        }
         return principalName.startsWith(userDomainPrefix) ? principalName.substring(userDomainPrefix.length()) :
                 principalName;
     }
 
     boolean isExternalPrincipalForCert(final String principalName) {
+        if (principalName == null) {
+            return false;
+        }
         final int idx = principalName.indexOf(AuthorityConsts.ATHENZ_PRINCIPAL_ENTITY_CHAR);
         return idx > 0 && principalName.regionMatches(idx, AuthorityConsts.EXT_SEP, 0, AuthorityConsts.EXT_SEP.length())
                 && idx != principalName.length() - AuthorityConsts.EXT_SEP.length();
