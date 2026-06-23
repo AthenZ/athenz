@@ -62,10 +62,10 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_REPOSITORY    = "repository";
 
     Set<String> dnsSuffixes = null;
+    Set<String> enterprises = null;
     String githubIssuer = null;
     String provider = null;
     String audience = null;
-    String enterprise = null;
     ConfigurableJWTProcessor<SecurityContext> jwtProcessor = null;
     Authorizer authorizer = null;
     DynamicConfigLong bootTimeOffsetSeconds;
@@ -100,9 +100,12 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         long timeout = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
         bootTimeOffsetSeconds = new DynamicConfigLong(CONFIG_MANAGER, GITHUB_ACTIONS_PROP_BOOT_TIME_OFFSET, timeout);
 
-        // determine if we're running in enterprise mode
+        // determine if we're running in enterprise mode - supports a comma-separated list of values
 
-        enterprise = System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE);
+        final String enterpriseConfig = System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE);
+        if (!StringUtil.isEmpty(enterpriseConfig)) {
+            enterprises = new HashSet<>(Arrays.asList(enterpriseConfig.split(",")));
+        }
 
         // get default/max expiry time for any generated tokens - 6 hours
 
@@ -277,9 +280,9 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // verify that token issuer is set for our enterprise if one is configured
 
-        if (!StringUtil.isEmpty(enterprise)) {
+        if (enterprises != null && !enterprises.isEmpty()) {
             final String tokenEnterprise = JwtsHelper.getStringClaim(claimsSet, CLAIM_ENTERPRISE);
-            if (!enterprise.equals(tokenEnterprise)) {
+            if (!enterprises.contains(tokenEnterprise)) {
                 errMsg.append("token enterprise is not the configured enterprise: ").append(tokenEnterprise);
                 return false;
             }
