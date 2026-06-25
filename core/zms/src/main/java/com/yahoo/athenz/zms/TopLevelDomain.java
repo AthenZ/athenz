@@ -121,6 +121,9 @@ public class TopLevelDomain {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean autoDeleteTenantAssumeRoleAssertions;
     @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean clientIdSelfUpdate;
+    @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String externalMemberValidator;
     @RdlOptional
@@ -377,6 +380,13 @@ public class TopLevelDomain {
     public Boolean getAutoDeleteTenantAssumeRoleAssertions() {
         return autoDeleteTenantAssumeRoleAssertions;
     }
+    public TopLevelDomain setClientIdSelfUpdate(Boolean clientIdSelfUpdate) {
+        this.clientIdSelfUpdate = clientIdSelfUpdate;
+        return this;
+    }
+    public Boolean getClientIdSelfUpdate() {
+        return clientIdSelfUpdate;
+    }
     public TopLevelDomain setExternalMemberValidator(String externalMemberValidator) {
         this.externalMemberValidator = externalMemberValidator;
         return this;
@@ -523,6 +533,9 @@ public class TopLevelDomain {
                 return false;
             }
             if (autoDeleteTenantAssumeRoleAssertions == null ? a.autoDeleteTenantAssumeRoleAssertions != null : !autoDeleteTenantAssumeRoleAssertions.equals(a.autoDeleteTenantAssumeRoleAssertions)) {
+                return false;
+            }
+            if (clientIdSelfUpdate == null ? a.clientIdSelfUpdate != null : !clientIdSelfUpdate.equals(a.clientIdSelfUpdate)) {
                 return false;
             }
             if (externalMemberValidator == null ? a.externalMemberValidator != null : !externalMemberValidator.equals(a.externalMemberValidator)) {

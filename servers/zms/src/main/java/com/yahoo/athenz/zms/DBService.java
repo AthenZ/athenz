@@ -4496,6 +4496,7 @@ public class DBService implements RolesProvider, DomainProvider {
                         .setSlackChannel(domain.getSlackChannel())
                         .setOnCall(domain.getOnCall())
                         .setAutoDeleteTenantAssumeRoleAssertions(domain.getAutoDeleteTenantAssumeRoleAssertions())
+                        .setClientIdSelfUpdate(domain.getClientIdSelfUpdate())
                         .setExternalMemberValidator(domain.getExternalMemberValidator())
                         .setCostCenter(domain.getCostCenter());
 
@@ -4887,6 +4888,9 @@ public class DBService implements RolesProvider, DomainProvider {
         }
         if (meta.getAutoDeleteTenantAssumeRoleAssertions() != null) {
             domain.setAutoDeleteTenantAssumeRoleAssertions(meta.getAutoDeleteTenantAssumeRoleAssertions());
+        }
+        if (meta.getClientIdSelfUpdate() != null) {
+            domain.setClientIdSelfUpdate(meta.getClientIdSelfUpdate());
         }
     }
 
@@ -6617,6 +6621,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 .append("\", \"environment\": \"").append(domain.getEnvironment())
                 .append("\", \"memberPurgeExpiryDays\": \"").append(domain.getMemberPurgeExpiryDays())
                 .append("\", \"featureFlags\": \"").append(domain.getFeatureFlags())
+                .append("\", \"clientIdSelfUpdate\": \"").append(domain.getClientIdSelfUpdate())
                 .append("\", \"externalMemberValidator\": \"").append(domain.getExternalMemberValidator())
                 .append("\", \"costCenter\": \"").append(domain.getCostCenter()).append("\"");
         auditLogTags(auditDetails, domain.getTags());

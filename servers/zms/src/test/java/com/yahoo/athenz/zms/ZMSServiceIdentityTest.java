@@ -928,6 +928,7 @@ public class ZMSServiceIdentityTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+        ZMSTestUtils.setupServiceSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName,
                 serviceName, "http://localhost", "/usr/bin/java", "root",
@@ -1102,6 +1103,109 @@ public class ZMSServiceIdentityTest {
         assertNull(serviceRes.getFeatureFlags());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutServiceIdentitySystemMetaClientIdSelfUpdate() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.contextWithMockPrincipal("putServiceIdentitySystemMeta");
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "service-system-meta-dcr";
+        final String serviceName = "service1";
+        final String otherServiceName = "service2";
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ServiceIdentity service1 = zmsTestInitializer.createServiceObject(domainName,
+                serviceName, "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+        zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service1);
+
+        ServiceIdentity service2 = zmsTestInitializer.createServiceObject(domainName,
+                otherServiceName, "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+        zmsImpl.putServiceIdentity(ctx, domainName, otherServiceName, auditRef, false, null, service2);
+
+        final String servicePrincipal = ResourceUtils.serviceResourceName(domainName, serviceName);
+        RsrcCtxWrapper serviceCtx = zmsTestInitializer.contextWithMockPrincipal("putServiceIdentitySystemMeta",
+                domainName, serviceName);
+        RsrcCtxWrapper otherServiceCtx = zmsTestInitializer.contextWithMockPrincipal("putServiceIdentitySystemMeta",
+                domainName, otherServiceName);
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta().setClientId("client-id");
+
+        assertServiceSystemMetaUpdateForbidden(() -> zmsImpl.putServiceIdentitySystemMeta(serviceCtx,
+                domainName, serviceName, "clientid", auditRef, meta));
+
+        zmsImpl.clientIdSelfUpdate = true;
+        assertServiceSystemMetaUpdateForbidden(() -> zmsImpl.putServiceIdentitySystemMeta(serviceCtx,
+                domainName, serviceName, "clientid", auditRef, meta));
+
+        DomainMeta domainMeta = new DomainMeta().setClientIdSelfUpdate(true);
+        zmsImpl.putDomainMeta(ctx, domainName, auditRef, null, domainMeta);
+
+        zmsImpl.clientIdSelfUpdate = false;
+        assertServiceSystemMetaUpdateForbidden(() -> zmsImpl.putServiceIdentitySystemMeta(serviceCtx,
+                domainName, serviceName, "clientid", auditRef, meta));
+
+        zmsImpl.clientIdSelfUpdate = true;
+        assertServiceSystemMetaUpdateForbidden(() -> zmsImpl.putServiceIdentitySystemMeta(serviceCtx,
+                domainName, serviceName, "clientid", auditRef, meta));
+
+        final String clientIdUpdateRoleName = "client-id-updaters";
+        Role role = zmsTestInitializer.createRoleObject(domainName, clientIdUpdateRoleName, null,
+                new ArrayList<>(List.of(new RoleMember().setMemberName(servicePrincipal))));
+        zmsImpl.putRole(ctx, domainName, clientIdUpdateRoleName, auditRef, false, null, role);
+
+        assertServiceSystemMetaUpdateForbidden(() -> zmsImpl.putServiceIdentitySystemMeta(serviceCtx,
+                domainName, serviceName, "clientid", auditRef, meta));
+
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, clientIdUpdateRoleName,
+                clientIdUpdateRoleName, ZMSConsts.ACTION_UPDATE,
+                domainName + ":service." + serviceName + ".clientid.client-id", AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, domainName, clientIdUpdateRoleName, auditRef, false, null, policy);
+
+        zmsImpl.putServiceIdentitySystemMeta(serviceCtx, domainName, serviceName, "clientid", auditRef, meta);
+        ServiceIdentity serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertEquals(serviceRes.getClientId(), "client-id");
+
+        ServiceIdentitySystemMeta updatedMeta = new ServiceIdentitySystemMeta().setClientId("client-id2");
+        assertServiceSystemMetaUpdateForbidden(() -> zmsImpl.putServiceIdentitySystemMeta(serviceCtx,
+                domainName, serviceName, "clientid", auditRef, updatedMeta));
+
+        assertServiceSystemMetaUpdateForbidden(() -> zmsImpl.putServiceIdentitySystemMeta(otherServiceCtx,
+                domainName, otherServiceName, "clientid", auditRef, updatedMeta));
+
+        assertServiceSystemMetaUpdateForbidden(() -> zmsImpl.putServiceIdentitySystemMeta(serviceCtx,
+                domainName, otherServiceName, "clientid", auditRef, updatedMeta));
+
+        ServiceIdentitySystemMeta providerEndpointMeta = new ServiceIdentitySystemMeta()
+                .setProviderEndpoint("https://localhost");
+        assertServiceSystemMetaUpdateForbidden(() -> zmsImpl.putServiceIdentitySystemMeta(serviceCtx,
+                domainName, serviceName, "providerendpoint", auditRef, providerEndpointMeta));
+
+        zmsImpl.clientIdSelfUpdate = false;
+        RsrcCtxWrapper sysAdminCtx = zmsTestInitializer.generateServiceSysAdmin("putServiceIdentitySystemMeta",
+                "service-system-meta-dcr-sysadmin", "adminsvc");
+        ServiceIdentitySystemMeta sysAdminMeta = new ServiceIdentitySystemMeta().setClientId("sys-auth-client-id");
+        zmsImpl.putServiceIdentitySystemMeta(sysAdminCtx, domainName, serviceName, "clientid", auditRef,
+                sysAdminMeta);
+        serviceRes = zmsImpl.getServiceIdentity(ctx, domainName, serviceName);
+        assertEquals(serviceRes.getClientId(), "sys-auth-client-id");
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    private void assertServiceSystemMetaUpdateForbidden(Runnable update) {
+
+        try {
+            update.run();
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
     }
 
     @Test

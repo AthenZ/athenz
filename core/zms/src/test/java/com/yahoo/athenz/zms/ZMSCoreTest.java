@@ -669,6 +669,7 @@ public class ZMSCoreTest {
         assertEquals(dd.getSlackChannel(), "slack");
         assertEquals(dd.getOnCall(), "oncall");
         assertTrue(dd.getAutoDeleteTenantAssumeRoleAssertions());
+        assertFalse(dd.getClientIdSelfUpdate());
         assertEquals(dd.getExternalMemberValidator(), "ext-validator");
         assertEquals(dd.getCostCenter(), "cost-center");
 
@@ -686,7 +687,7 @@ public class ZMSCoreTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setObjectOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator")
+                .setClientIdSelfUpdate(false).setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator")
                 .setCostCenter("cost-center");
 
         assertEquals(dd2, dd);
@@ -931,6 +932,13 @@ public class ZMSCoreTest {
         dd2.setAutoDeleteTenantAssumeRoleAssertions(null);
         assertNotEquals(dd, dd2);
         dd2.setAutoDeleteTenantAssumeRoleAssertions(true);
+        assertEquals(dd, dd2);
+
+        dd2.setClientIdSelfUpdate(true);
+        assertNotEquals(dd, dd2);
+        dd2.setClientIdSelfUpdate(null);
+        assertNotEquals(dd, dd2);
+        dd2.setClientIdSelfUpdate(false);
         assertEquals(dd, dd2);
 
         dd2.setAuditEnabled(true);
