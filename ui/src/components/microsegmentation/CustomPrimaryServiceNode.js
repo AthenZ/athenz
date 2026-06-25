@@ -20,6 +20,7 @@ import { Handle } from 'react-flow-renderer';
 import styled from '@emotion/styled';
 import { SERVICE_NAME_LABEL } from '../constants/constants';
 import PrimaryServiceDetails from './PrimaryServiceDetails';
+import _ from 'lodash';
 
 const StyledOuterDiv = styled.div`
     display: flex;
@@ -100,7 +101,7 @@ export default class CustomPrimaryServiceNode extends React.Component {
 
             if (rule['category'] === 'outbound') {
                 return (
-                    <StyledIODiv key={'i-' + rule['assertionIdx']}>
+                    <StyledIODiv key={'o-' + rule['assertionIdx']}>
                         <PrimaryServiceDetails
                             data={rule}
                             domain={this.state.data['domain']}

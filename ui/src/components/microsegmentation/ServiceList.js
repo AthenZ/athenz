@@ -44,7 +44,7 @@ const StyledDiv = styled.div`
 `;
 
 const StyledTr = styled.tr`
-    &:nth-child(even) {
+    &:nth-of-type(even) {
         background-color: #3570f40d;
     }
 `;
