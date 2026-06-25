@@ -6857,7 +6857,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // validate request/csr details
 
-        final String userName = principalName.substring(userDomainPrefix.length());
+        final String userName = getUserCertificateRequestServiceName(principalName);
         if (!certReq.validate(userDomain, userName, validCertSubjectOrgValues)) {
             throw requestError("Unable to validate cert request", caller, userDomain, userDomain);
         }
@@ -6914,6 +6914,10 @@ public class ZTSImpl implements ZTSHandler {
             LOGGER.error("User name for certificate request cannot include wild cards");
             return false;
         }
+        if (isExternalPrincipalForCert(principalName)) {
+            return true;
+        }
+
         // it must start with the user domain prefix
         if (!principalName.startsWith(userDomainPrefix)) {
             LOGGER.error("User name {} for certificate request must start with the user domain prefix", principalName);
@@ -6924,6 +6928,23 @@ public class ZTSImpl implements ZTSHandler {
             return false;
         }
         return true;
+    }
+
+    String getUserCertificateRequestServiceName(final String principalName) {
+        if (principalName == null) {
+            return null;
+        }
+        return principalName.startsWith(userDomainPrefix) ? principalName.substring(userDomainPrefix.length()) :
+                principalName;
+    }
+
+    boolean isExternalPrincipalForCert(final String principalName) {
+        if (principalName == null) {
+            return false;
+        }
+        final int idx = principalName.indexOf(AuthorityConsts.ATHENZ_PRINCIPAL_ENTITY_CHAR);
+        return idx > 0 && principalName.regionMatches(idx, AuthorityConsts.EXT_SEP, 0, AuthorityConsts.EXT_SEP.length())
+                && idx != principalName.length() - AuthorityConsts.EXT_SEP.length();
     }
 
     String getUserX509KeySignerId(final String principalName, final String requestSignerKeyId) {
