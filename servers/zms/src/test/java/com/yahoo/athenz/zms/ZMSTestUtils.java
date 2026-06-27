@@ -361,4 +361,30 @@ public class ZMSTestUtils {
         policy.setAssertions(assertions);
         zmsImpl.putPolicy(ctx, sysDomain, objectName, auditRef, false, null, policy);
     }
+
+    public static void setupServiceSystemMetaAuthorization(ResourceContext ctx, ZMSImpl zmsImpl,
+            final String principal, final String auditRef) {
+
+        final String sysDomain = "sys.auth";
+        final String objectName = "service-meta-admins";
+
+        Role role = new Role();
+        role.setName(objectName);
+        RoleMember roleMember = new RoleMember();
+        roleMember.setMemberName(principal);
+        List<RoleMember> roleMembers = Arrays.asList(roleMember);
+        role.setRoleMembers(roleMembers);
+        zmsImpl.putRole(ctx, sysDomain, objectName, auditRef, false, null, role);
+
+        Policy policy = new Policy();
+        policy.setName(objectName);
+        Assertion assertion = new Assertion();
+        assertion.setAction("update");
+        assertion.setResource("sys.auth:meta.service.*");
+        assertion.setEffect(AssertionEffect.ALLOW);
+        assertion.setRole(sysDomain + ":role." + objectName);
+        List<Assertion> assertions = List.of(assertion);
+        policy.setAssertions(assertions);
+        zmsImpl.putPolicy(ctx, sysDomain, objectName, auditRef, false, null, policy);
+    }
 }
