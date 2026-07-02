@@ -13,9 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StaticWorkloadType } from '../../../components/constants/constants';
+import {
+    GROUP_MEMBER_NAME_REGEX,
+    StaticWorkloadType,
+} from '../../../components/constants/constants';
 import IPTestUtils from '../../../tests_utils/IPTestUtils';
 import { forEach } from 'async';
+import RegexUtils from '../../../components/utils/RegexUtils';
+
+describe('Group member name regex', () => {
+    it('allows compound and external member names', () => {
+        expect(
+            RegexUtils.validate('user.jane', GROUP_MEMBER_NAME_REGEX)
+        ).toBeTruthy();
+        expect(
+            RegexUtils.validate('weather.storage', GROUP_MEMBER_NAME_REGEX)
+        ).toBeTruthy();
+        expect(
+            RegexUtils.validate(
+                'email:ext.idjag-learner@athenz.io',
+                GROUP_MEMBER_NAME_REGEX
+            )
+        ).toBeTruthy();
+        expect(
+            RegexUtils.validate(
+                'partner.identity:ext.alice@example.com',
+                GROUP_MEMBER_NAME_REGEX
+            )
+        ).toBeTruthy();
+    });
+
+    it('rejects invalid group member names', () => {
+        expect(
+            RegexUtils.validate('home.test:group.test', GROUP_MEMBER_NAME_REGEX)
+        ).toBeFalsy();
+        expect(
+            RegexUtils.validate('user.test1.', GROUP_MEMBER_NAME_REGEX)
+        ).toBeFalsy();
+        expect(
+            RegexUtils.validate(
+                'email:external.user@example.com',
+                GROUP_MEMBER_NAME_REGEX
+            )
+        ).toBeFalsy();
+    });
+});
 
 describe('StaticWorkloadType', () => {
     it('StaticWorkloadType should match the regex pattern based on types', () => {

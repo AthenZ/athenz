@@ -21,8 +21,10 @@ import {
 export const MODAL_TIME_OUT = 2000;
 export const GROUP_NAME_REGEX =
     '([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*';
+export const EXTERNAL_MEMBER_NAME_REGEX =
+    '([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:ext\\..+';
 export const GROUP_MEMBER_NAME_REGEX =
-    '([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*';
+    `${GROUP_NAME_REGEX}|${EXTERNAL_MEMBER_NAME_REGEX}`;
 export const MICROSEGMENTATION_SERVICE_NAME_REGEX =
     '\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*';
 export const POLICY_ENFORCEMENT_REGEX =
