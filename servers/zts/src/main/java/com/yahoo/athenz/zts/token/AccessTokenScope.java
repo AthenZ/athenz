@@ -56,6 +56,11 @@ public class AccessTokenScope extends OAuthTokenScope {
     }
 
     @Override
+    public String getDomainName() {
+        return (domainNames.size() == 1) ? domainNames.stream().findFirst().get() : null;
+    }
+
+    @Override
     public boolean isOpenIdScope() {
         return supportOpenIdScope && openIdScope;
     }
