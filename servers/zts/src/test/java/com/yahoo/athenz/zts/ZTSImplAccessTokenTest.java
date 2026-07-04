@@ -4578,6 +4578,21 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
+    public void testTokenExchangeRequestedRolesTrimSubjectTokenScope() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "testdomain";
+
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn(" admin  writer ");
+        Mockito.when(accessTokenRequest.getScope()).thenReturn("testdomain:role.admin");
+
+        String[] result = zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        assertNotNull(result);
+        assertEquals(result.length, 1);
+        assertEquals(result[0], "admin");
+    }
+
+    @Test
     public void testTokenExchangeRequestedRolesValidSubset() {
         AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
         OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
@@ -4653,6 +4668,23 @@ public class ZTSImplAccessTokenTest {
         Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD))
                 .thenReturn("api-mcp-accessor api:role.docs-getter");
         Mockito.when(accessTokenRequest.getScope()).thenReturn("api:role.docs-getter");
+
+        String[] result = zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        assertNotNull(result);
+        assertEquals(result.length, 1);
+        assertEquals(result[0], "docs-getter");
+    }
+
+    @Test
+    public void testTokenExchangeRequestedRolesIgnoresNonRoleScopes() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "api";
+
+        Mockito.when(subjectToken.getAudience()).thenReturn("api");
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD))
+                .thenReturn("openid api:service.backend api:role.docs-getter");
+        Mockito.when(accessTokenRequest.getScope()).thenReturn("api:domain");
 
         String[] result = zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
         assertNotNull(result);

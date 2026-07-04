@@ -2889,11 +2889,12 @@ public class ZTSImpl implements ZTSHandler {
         }
 
         final String sourceDomainName = subjectToken.getAudience();
-        Set<String> scopeRoles = new HashSet<>(Arrays.asList(scopeClaim.toString().split("\\s+")));
-        if (scopeRoles.isEmpty() || scopeRoles.contains("")) {
+        final String scopeClaimStr = scopeClaim.toString().trim();
+        if (scopeClaimStr.isEmpty()) {
             LOGGER.error("subject token does not contain any scope roles");
             return null;
         }
+        Set<String> scopeRoles = new HashSet<>(Arrays.asList(scopeClaimStr.split("\\s+")));
         final String scope = accessTokenRequest.getScope();
         if (StringUtil.isEmpty(scope)) {
             String[] requestedRoles = getSubjectTokenRolesForDomain(scopeRoles, sourceDomainName, requestDomainName);
@@ -2957,9 +2958,12 @@ public class ZTSImpl implements ZTSHandler {
         Set<String> requestedRoles = new HashSet<>();
         final String roleScopePrefix = requestDomainName + OAuthTokenScope.OBJECT_ROLE;
         for (String subjectScope : subjectScopes) {
+            if (AccessTokenScope.OBJECT_OPENID.equals(subjectScope)) {
+                continue;
+            }
             if (subjectScope.startsWith(roleScopePrefix)) {
                 requestedRoles.add(subjectScope.substring(roleScopePrefix.length()));
-            } else if (!subjectScope.contains(OAuthTokenScope.OBJECT_ROLE) &&
+            } else if (!subjectScope.contains(":") &&
                     (StringUtil.isEmpty(sourceDomainName) || requestDomainName.equals(sourceDomainName))) {
                 requestedRoles.add(subjectScope);
             }
