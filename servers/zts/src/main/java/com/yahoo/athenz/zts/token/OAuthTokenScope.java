@@ -192,7 +192,7 @@ public class OAuthTokenScope {
     }
 
     public String getDomainName() {
-        return (maxDomains == 1 && !domainNames.isEmpty()) ? domainNames.stream().findFirst().get() : null;
+        return (domainNames.size() == 1) ? domainNames.stream().findFirst().get() : null;
     }
 
     public Set<String> getDomainNames() {
@@ -239,7 +239,7 @@ public class OAuthTokenScope {
             throw error("empty domain name", scope);
         }
         final String domainName = getDomainName();
-        if (enforceMaxDomainCheck && domainName != null && !scopeDomainName.equals(domainName)) {
+        if (enforceMaxDomainCheck && maxDomains == 1 && domainName != null && !scopeDomainName.equals(domainName)) {
              throw error("Multiple domains in scope", scope);
         }
         if (!domainNames.contains(scopeDomainName)) {

@@ -34,11 +34,11 @@ public class AccessTokenScope extends OAuthTokenScope {
         //   <domainName>:role.<roleName>
         //   openid <domainName>:service.<serviceName>
 
-        super(scope, 1, null, supportRolesWithoutDomain ? principalDomain : null);
+        super(scope, Integer.MAX_VALUE, null, supportRolesWithoutDomain ? principalDomain : null);
 
         // if we don't have a domain then it's invalid scope
 
-        if (StringUtil.isEmpty(getDomainName())) {
+        if (getDomainNames().isEmpty()) {
             throw error("No domains in scope", scope);
         }
 
@@ -48,6 +48,10 @@ public class AccessTokenScope extends OAuthTokenScope {
 
         if (openIdScope && StringUtil.isEmpty(serviceName)) {
             throw error("No audience service name for openid scope", scope);
+        }
+
+        if (openIdScope && getDomainName() == null) {
+            throw error("Multiple domains not supported with openid scope", scope);
         }
     }
 

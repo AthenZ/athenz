@@ -411,6 +411,22 @@ public class ZTSImplAccessTokenTest {
         return signedDomain;
     }
 
+    private void addRoleMemberToSignedDomain(SignedDomain signedDomain, final String domainName,
+            final String roleName, final String memberName) {
+
+        DomainData domainData = signedDomain.getDomain();
+        List<Role> roles = new ArrayList<>(domainData.getRoles());
+
+        Role role = new Role();
+        role.setName(generateRoleName(domainName, roleName));
+        role.setRoleMembers(Collections.singletonList(new RoleMember().setMemberName(memberName)));
+        roles.add(role);
+
+        domainData.setRoles(roles);
+        signedDomain.setDomain(domainData);
+        signedDomain.setSignature(Crypto.sign(SignUtils.asCanonicalString(domainData), privateKey));
+    }
+
     private List<ServiceIdentity> createServices(String domainName, String serviceName) {
         List<ServiceIdentity> services = new ArrayList<>();
         ServiceIdentity service = new ServiceIdentity();
@@ -532,6 +548,62 @@ public class ZTSImplAccessTokenTest {
             assertEquals(claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime(), 100 * 1000);
             assertEquals(claimSet.getStringClaim("scope"), "readers writers");
         } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testPostAccessTokenRequestWithAudienceAndCrossDomainScope() throws JOSEException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain mcpHubDomain = createSignedDomain("mcp-hub", "weather", "storage", true);
+        addRoleMemberToSignedDomain(mcpHubDomain, "mcp-hub", "api-mcp-accessor", "user_domain.user");
+        store.processSignedDomain(mcpHubDomain, false);
+
+        SignedDomain apiDomain = createSignedDomain("api", "weather", "storage", true);
+        addRoleMemberToSignedDomain(apiDomain, "api", "docs-getter", "user_domain.user");
+        store.processSignedDomain(apiDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        final String scope = URLEncoder.encode("mcp-hub:role.api-mcp-accessor api:role.docs-getter",
+                StandardCharsets.UTF_8);
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&audience=mcp-hub&scope=" + scope);
+        assertNotNull(resp);
+        assertEquals(resp.getScope(), "api:role.docs-getter api-mcp-accessor");
+
+        String accessTokenStr = resp.getAccess_token();
+        assertNotNull(accessTokenStr);
+
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertNotNull(claimSet);
+            assertNotNull(claimSet.getJWTID());
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "mcp-hub");
+            assertEquals(claimSet.getStringClaim("scope"), "api:role.docs-getter api-mcp-accessor");
+            assertEquals(ztsImpl.ztsOAuthIssuer, claimSet.getIssuer());
+
+            List<String> scopes = claimSet.getStringListClaim("scp");
+            assertNotNull(scopes);
+            assertEquals(scopes.size(), 2);
+            assertTrue(scopes.contains("api-mcp-accessor"));
+            assertTrue(scopes.contains("api:role.docs-getter"));
+        } catch (Exception ex) {
             fail(ex.getMessage());
         }
     }
@@ -4572,6 +4644,37 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
+    public void testTokenExchangeRequestedRolesCrossDomainScope() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "api";
+
+        Mockito.when(subjectToken.getAudience()).thenReturn("mcp-hub");
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD))
+                .thenReturn("api-mcp-accessor api:role.docs-getter");
+        Mockito.when(accessTokenRequest.getScope()).thenReturn("api:role.docs-getter");
+
+        String[] result = zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        assertNotNull(result);
+        assertEquals(result.length, 1);
+        assertEquals(result[0], "docs-getter");
+    }
+
+    @Test
+    public void testTokenExchangeRequestedRolesSimpleRoleBelongsToSourceAudience() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "api";
+
+        Mockito.when(subjectToken.getAudience()).thenReturn("mcp-hub");
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("docs-getter");
+        Mockito.when(accessTokenRequest.getScope()).thenReturn("api:role.docs-getter");
+
+        String[] result = zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        assertNull(result);
+    }
+
+    @Test
     public void testTokenExchangeRequestedRolesNoRequestedRoles() {
         AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
         OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
@@ -4632,8 +4735,8 @@ public class ZTSImplAccessTokenTest {
         assertNotNull(result);
         assertEquals(result.length, 2);
         Set<String> resultSet = new HashSet<>(Arrays.asList(result));
-        assertTrue(resultSet.contains("testdomain:role.admin"));
-        assertTrue(resultSet.contains("testdomain:role.writer"));
+        assertTrue(resultSet.contains("admin"));
+        assertTrue(resultSet.contains("writer"));
     }
 
     private String createAccessToken(PrivateKey privateKey, final String keyId, final String subject,
@@ -4726,7 +4829,7 @@ public class ZTSImplAccessTokenTest {
         exchangePolicy.setName(generatePolicyName(targetDomainName, "token_target_exchange_" + roleName));
 
         Assertion assertion = new Assertion();
-        assertion.setResource(targetDomainName + ":" + ResourceUtils.roleResourceName(sourceDomainName, roleName));
+        assertion.setResource(targetDomainName + ":" + ResourceUtils.roleResourceName(targetDomainName, roleName));
         assertion.setAction(ZTSConsts.ZTS_ACTION_TOKEN_TARGET_EXCHANGE);
         assertion.setEffect(com.yahoo.athenz.zms.AssertionEffect.ALLOW);
 
@@ -4793,9 +4896,9 @@ public class ZTSImplAccessTokenTest {
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
         KeyStore keyStore = getServerPublicKeyProvider(privateKey);
 
-        // Create subject token (AccessToken) with roles in source domain
+        // Create subject token (AccessToken) with target-domain roles and source-domain audience
         long expiryTime = System.currentTimeMillis() / 1000 + 3600;
-        List<String> subjectRoles = List.of("writers");
+        List<String> subjectRoles = List.of("targetdomain:role.writers");
         String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user", 
                 "sourcedomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime);
 
@@ -6114,9 +6217,9 @@ public class ZTSImplAccessTokenTest {
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
         KeyStore keyStore = getServerPublicKeyProvider(privateKey);
 
-        // Create subject token (AccessToken) with roles in source domain
+        // Create subject token (AccessToken) with target-domain roles and source-domain audience
         long expiryTime = System.currentTimeMillis() / 1000 + 3600;
-        List<String> subjectRoles = List.of("writers");
+        List<String> subjectRoles = List.of("targetdomain:role.writers");
         String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user", 
                 "sourcedomain", subjectRoles, expiryTime);
 
