@@ -192,7 +192,7 @@ public class OAuthTokenScope {
     }
 
     public String getDomainName() {
-        return (maxDomains == 1 && domainNames.size() == 1) ? domainNames.stream().findFirst().get() : null;
+        return (maxDomains == 1 && domainNames.size() == 1) ? domainNames.iterator().next() : null;
     }
 
     public Set<String> getDomainNames() {
