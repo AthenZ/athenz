@@ -57,7 +57,7 @@ public class AccessTokenScope extends OAuthTokenScope {
 
     @Override
     public String getDomainName() {
-        return (domainNames.size() == 1) ? domainNames.stream().findFirst().get() : null;
+        return (domainNames.size() == 1) ? domainNames.iterator().next() : null;
     }
 
     @Override
