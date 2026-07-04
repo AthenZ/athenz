@@ -110,8 +110,6 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.StreamReadConstraints;
 
 import javax.crypto.SecretKey;
-import javax.xml.validation.Schema;
-import javax.xml.validation.Validator;
 
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
