@@ -415,7 +415,7 @@ public class ZTSImplAccessTokenTest {
             final String roleName, final String memberName) {
 
         DomainData domainData = signedDomain.getDomain();
-        List<Role> roles = new ArrayList<>(domainData.getRoles());
+        List<Role> roles = domainData.getRoles() == null ? new ArrayList<>() : new ArrayList<>(domainData.getRoles());
 
         Role role = new Role();
         role.setName(generateRoleName(domainName, roleName));
