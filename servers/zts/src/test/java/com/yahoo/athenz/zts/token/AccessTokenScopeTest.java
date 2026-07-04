@@ -83,6 +83,19 @@ public class AccessTokenScopeTest {
         assertFalse(req6.sendScopeResponse());
         assertFalse(req6.isOpenIdScope());
 
+        AccessTokenScope req6a = new AccessTokenScope("sports:role.role1 weather:role.role2", null);
+        assertNotNull(req6a);
+        assertNull(req6a.getDomainName());
+        assertEquals(req6a.getDomainNames().size(), 2);
+        assertNotNull(req6a.getRoleNames("sports"));
+        assertEquals(req6a.getRoleNames("sports").length, 1);
+        assertEquals(req6a.getRoleNames("sports")[0], "role1");
+        assertNotNull(req6a.getRoleNames("weather"));
+        assertEquals(req6a.getRoleNames("weather").length, 1);
+        assertEquals(req6a.getRoleNames("weather")[0], "role2");
+        assertFalse(req6a.sendScopeResponse());
+        assertFalse(req6a.isOpenIdScope());
+
         AccessTokenScope.setSupportRolesWithoutDomain(true);
         AccessTokenScope req7 = new AccessTokenScope("role1 role2", "sports");
         assertNotNull(req7);
@@ -200,25 +213,19 @@ public class AccessTokenScopeTest {
         AccessTokenScope req1 = new AccessTokenScope("sports:domain sports:domain", null);
         assertNotNull(req1);
 
-        try {
-            new AccessTokenScope("sports:domain weather:domain", null);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
+        AccessTokenScope req2 = new AccessTokenScope("sports:domain weather:domain", null);
+        assertNotNull(req2);
+        assertEquals(req2.getDomainNames().size(), 2);
+        assertTrue(req2.sendScopeResponse());
 
-        try {
-            new AccessTokenScope("sports:domain weather:role.role1", null);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
+        AccessTokenScope req3 = new AccessTokenScope("sports:domain weather:role.role1", null);
+        assertNotNull(req3);
+        assertEquals(req3.getDomainNames().size(), 2);
+        assertTrue(req3.sendScopeResponse());
 
-        try {
-            new AccessTokenScope("weather:role.role2 sports:domain weather:role.role1", null);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-        }
+        AccessTokenScope req4 = new AccessTokenScope("weather:role.role2 sports:domain weather:role.role1", null);
+        assertNotNull(req4);
+        assertEquals(req4.getDomainNames().size(), 2);
+        assertTrue(req4.sendScopeResponse());
     }
 }
