@@ -3812,7 +3812,7 @@ public class ZTSImpl implements ZTSHandler {
         }
 
         Map<String, Set<String>> rolesByDomain = new HashMap<>();
-        int tokenTimeout = 0;
+        int tokenTimeout = Integer.MAX_VALUE;
         boolean scopeAdjusted = false;
         for (String scopeDomainName : scopeDomainNames) {
 
