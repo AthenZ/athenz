@@ -3883,7 +3883,7 @@ public class ZTSImpl implements ZTSHandler {
 
             rolesByDomain.put(scopeDomainName, roles);
             int domainTokenTimeout = determineTokenTimeout(data, roles, null, accessTokenRequest.getExpiryTime());
-            tokenTimeout = tokenTimeout == 0 ? domainTokenTimeout : Math.min(tokenTimeout, domainTokenTimeout);
+            tokenTimeout = Math.min(tokenTimeout, domainTokenTimeout);
             if (tokenScope.sendScopeResponse() || requestedRoles != null && requestedRoles.length != roles.size()) {
                 scopeAdjusted = true;
             }
