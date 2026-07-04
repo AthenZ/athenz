@@ -2960,6 +2960,10 @@ public class ZTSImpl implements ZTSHandler {
         }
 
         final String sourceDomainName = subjectToken.getAudience();
+        if (StringUtil.isEmpty(sourceDomainName)) {
+            LOGGER.error("subject token does not contain a valid audience");
+            return null;
+        }
         final String scopeClaimStr = scopeClaim.toString().trim();
         if (scopeClaimStr.isEmpty()) {
             LOGGER.error("subject token does not contain any scope roles");
@@ -3014,8 +3018,7 @@ public class ZTSImpl implements ZTSHandler {
             if (subjectScopes.contains(requestDomainName + OAuthTokenScope.OBJECT_ROLE + requestedRole)) {
                 continue;
             }
-            if ((StringUtil.isEmpty(sourceDomainName) || requestDomainName.equals(sourceDomainName)) &&
-                    subjectScopes.contains(requestedRole)) {
+            if (requestDomainName.equals(sourceDomainName) && subjectScopes.contains(requestedRole)) {
                 continue;
             }
             return false;
@@ -3034,8 +3037,7 @@ public class ZTSImpl implements ZTSHandler {
             }
             if (subjectScope.startsWith(roleScopePrefix)) {
                 requestedRoles.add(subjectScope.substring(roleScopePrefix.length()));
-            } else if (!subjectScope.contains(":") &&
-                    (StringUtil.isEmpty(sourceDomainName) || requestDomainName.equals(sourceDomainName))) {
+            } else if (!subjectScope.contains(":") && requestDomainName.equals(sourceDomainName)) {
                 requestedRoles.add(subjectScope);
             }
         }

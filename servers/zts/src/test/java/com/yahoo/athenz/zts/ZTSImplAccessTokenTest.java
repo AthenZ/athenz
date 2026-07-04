@@ -4579,11 +4579,24 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
+    public void testTokenExchangeRequestedRolesMissingAudience() {
+        AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
+        OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
+        String requestDomainName = "testdomain";
+
+        Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin writer");
+        Mockito.when(accessTokenRequest.getScope()).thenReturn("testdomain:role.admin");
+
+        assertNull(zts.tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName));
+    }
+
+    @Test
     public void testTokenExchangeRequestedRolesEmptyScopeInRequest() {
         AccessTokenRequest accessTokenRequest = Mockito.mock(AccessTokenRequest.class);
         OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
         String requestDomainName = "testdomain";
         
+        Mockito.when(subjectToken.getAudience()).thenReturn(requestDomainName);
         Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin writer");
         Mockito.when(accessTokenRequest.getScope()).thenReturn("");
         
@@ -4602,6 +4615,7 @@ public class ZTSImplAccessTokenTest {
         OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
         String requestDomainName = "testdomain";
         
+        Mockito.when(subjectToken.getAudience()).thenReturn(requestDomainName);
         Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin writer");
         Mockito.when(accessTokenRequest.getScope()).thenReturn(null);
         
@@ -4619,6 +4633,7 @@ public class ZTSImplAccessTokenTest {
         OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
         String requestDomainName = "testdomain";
 
+        Mockito.when(subjectToken.getAudience()).thenReturn(requestDomainName);
         Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn(" admin  writer ");
         Mockito.when(accessTokenRequest.getScope()).thenReturn("testdomain:role.admin");
 
@@ -4635,6 +4650,7 @@ public class ZTSImplAccessTokenTest {
         String requestDomainName = "testdomain";
         
         // Subject token has: admin, writer, reader
+        Mockito.when(subjectToken.getAudience()).thenReturn(requestDomainName);
         Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin writer reader");
         // Request only: admin, writer (subset)
         Mockito.when(accessTokenRequest.getScope()).thenReturn("testdomain:role.admin testdomain:role.writer");
@@ -4654,6 +4670,7 @@ public class ZTSImplAccessTokenTest {
         OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
         String requestDomainName = "testdomain";
         
+        Mockito.when(subjectToken.getAudience()).thenReturn(requestDomainName);
         Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin writer");
         Mockito.when(accessTokenRequest.getScope()).thenReturn("testdomain:role.admin testdomain:role.writer");
         
@@ -4672,6 +4689,7 @@ public class ZTSImplAccessTokenTest {
         String requestDomainName = "testdomain";
         
         // Subject token has: admin, writer
+        Mockito.when(subjectToken.getAudience()).thenReturn(requestDomainName);
         Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin writer");
         // Request: admin, writer, reader (not a subset)
         Mockito.when(accessTokenRequest.getScope()).thenReturn("testdomain:role.admin testdomain:role.writer testdomain:role.reader");
@@ -4686,6 +4704,7 @@ public class ZTSImplAccessTokenTest {
         OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
         String requestDomainName = "testdomain";
         
+        Mockito.when(subjectToken.getAudience()).thenReturn(requestDomainName);
         Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin");
         // Request domain is different
         Mockito.when(accessTokenRequest.getScope()).thenReturn("otherdomain:role.admin");
@@ -4748,6 +4767,7 @@ public class ZTSImplAccessTokenTest {
         OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
         String requestDomainName = "testdomain";
         
+        Mockito.when(subjectToken.getAudience()).thenReturn(requestDomainName);
         Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin writer");
         // Request has domain scope but no specific roles
         Mockito.when(accessTokenRequest.getScope()).thenReturn("testdomain:domain");
@@ -4767,6 +4787,7 @@ public class ZTSImplAccessTokenTest {
         OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
         String requestDomainName = "testdomain";
         
+        Mockito.when(subjectToken.getAudience()).thenReturn(requestDomainName);
         Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("admin writer");
         Mockito.when(accessTokenRequest.getScope()).thenReturn("testdomain:role.admin");
         
@@ -4782,6 +4803,7 @@ public class ZTSImplAccessTokenTest {
         OAuth2Token subjectToken = Mockito.mock(OAuth2Token.class);
         String requestDomainName = "testdomain";
         
+        Mockito.when(subjectToken.getAudience()).thenReturn(requestDomainName);
         Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn("");
         Mockito.when(accessTokenRequest.getScope()).thenReturn("testdomain:role.admin");
         
@@ -4796,6 +4818,7 @@ public class ZTSImplAccessTokenTest {
         
         // Test that toString() is called on the scope claim
         Object scopeClaim = "testdomain:role.admin testdomain:role.writer";
+        Mockito.when(subjectToken.getAudience()).thenReturn(requestDomainName);
         Mockito.when(subjectToken.getClaim(AccessToken.CLAIM_SCOPE_STD)).thenReturn(scopeClaim);
         Mockito.when(accessTokenRequest.getScope()).thenReturn("");
         
