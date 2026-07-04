@@ -104,13 +104,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.util.*;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.StreamReadConstraints;
 
 import javax.crypto.SecretKey;
+import javax.xml.validation.Schema;
+import javax.xml.validation.Validator;
 
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
@@ -2965,7 +2966,10 @@ public class ZTSImpl implements ZTSHandler {
                 continue;
             }
             if (subjectScope.startsWith(roleScopePrefix)) {
-                requestedRoles.add(subjectScope.substring(roleScopePrefix.length()));
+                String roleName = subjectScope.substring(roleScopePrefix.length());
+                if (!roleName.isEmpty()) {
+                    requestedRoles.add(roleName);
+                }
             } else if (!subjectScope.contains(":") && requestDomainName.equals(sourceDomainName)) {
                 requestedRoles.add(subjectScope);
             }
