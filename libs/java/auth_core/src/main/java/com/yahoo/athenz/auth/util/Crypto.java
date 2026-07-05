@@ -376,6 +376,19 @@ public class Crypto {
         }
     }
 
+    static boolean hasInvalidECDSASignatureValue(byte[] signature) {
+        try {
+            ASN1Sequence seq = ASN1Sequence.getInstance(signature);
+            if (seq.size() != 2) {
+                return false;
+            }
+            return ((ASN1Integer) seq.getObjectAt(0)).getValue().signum() <= 0 ||
+                    ((ASN1Integer) seq.getObjectAt(1)).getValue().signum() <= 0;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
     /**
      * Convert signature byte array from ASN.1 DER format to P1363 Format
      * @param signature byte array in DER format
@@ -499,6 +512,9 @@ public class Crypto {
         try {
             byte [] sig = ybase64Decode(signature);
             String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
+            if (signatureAlgorithm.endsWith(ECDSA) && hasInvalidECDSASignatureValue(sig)) {
+                return false;
+            }
             java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, getSignatureProvider());
             signer.initVerify(key);
             signer.update(utf8Bytes(message));
@@ -543,6 +559,9 @@ public class Crypto {
                                  String digestAlgorithm) throws CryptoException {
         try {
             String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
+            if (signatureAlgorithm.endsWith(ECDSA) && hasInvalidECDSASignatureValue(signature)) {
+                return false;
+            }
             java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, getSignatureProvider());
             signer.initVerify(key);
             signer.update(message);
