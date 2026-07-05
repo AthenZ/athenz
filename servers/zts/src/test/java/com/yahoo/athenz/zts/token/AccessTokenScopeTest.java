@@ -27,6 +27,8 @@ public class AccessTokenScopeTest {
     @BeforeMethod
     public void setup() {
         AccessTokenScope.setSupportOpenIdScope(true);
+        AccessTokenScope.setSupportRolesWithoutDomain(false);
+        AccessTokenScope.setMaxDomains(20);
     }
 
     @Test
@@ -227,5 +229,22 @@ public class AccessTokenScopeTest {
         assertNotNull(req4);
         assertEquals(req4.getDomainNames().size(), 2);
         assertTrue(req4.sendScopeResponse());
+    }
+
+    @Test
+    public void testAccessTokenScopeMaxDomains() {
+
+        AccessTokenScope.setMaxDomains(2);
+        AccessTokenScope req1 = new AccessTokenScope("sports:domain weather:domain sports:role.role1", null);
+        assertNotNull(req1);
+        assertEquals(req1.getDomainNames().size(), 2);
+
+        try {
+            new AccessTokenScope("sports:domain weather:domain news:role.role1", null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Domain limit: 2 has been reached"));
+        }
     }
 }

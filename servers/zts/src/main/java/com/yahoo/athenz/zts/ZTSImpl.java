@@ -2767,7 +2767,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // validate that the requested scopes are a subset of the subject token scopes
 
-        String[] requestedRoles = tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        String[] requestedRoles = tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName, true);
         if (requestedRoles == null) {
             throw requestError("Invalid scope for token exchange", caller, requestDomainName, principalDomain);
         }
@@ -2877,6 +2877,11 @@ public class ZTSImpl implements ZTSHandler {
 
     String[] tokenExchangeRequestedRoles(AccessTokenRequest accessTokenRequest, OAuth2Token subjectToken,
             final String requestDomainName) {
+        return tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName, false);
+    }
+
+    String[] tokenExchangeRequestedRoles(AccessTokenRequest accessTokenRequest, OAuth2Token subjectToken,
+            final String requestDomainName, boolean allowLegacySimpleRoles) {
 
         // first let's extract our scope claim from the subject token
         // and convert that into a set
@@ -2900,7 +2905,8 @@ public class ZTSImpl implements ZTSHandler {
         Set<String> scopeRoles = new HashSet<>(Arrays.asList(scopeClaimStr.split("\\s+")));
         final String scope = accessTokenRequest.getScope();
         if (StringUtil.isEmpty(scope)) {
-            String[] requestedRoles = getSubjectTokenRolesForDomain(scopeRoles, sourceDomainName, requestDomainName);
+            String[] requestedRoles = getSubjectTokenRolesForDomain(scopeRoles, sourceDomainName,
+                    requestDomainName, allowLegacySimpleRoles);
             if (requestedRoles == null || requestedRoles.length == 0) {
                 LOGGER.error("subject token does not contain any roles for requested domain {}", requestDomainName);
                 return null;
@@ -2925,13 +2931,15 @@ public class ZTSImpl implements ZTSHandler {
 
         String[] requestedRoles = tokenScope.getRoleNames(requestDomainName);
         if (requestedRoles == null) {
-            requestedRoles = getSubjectTokenRolesForDomain(scopeRoles, sourceDomainName, requestDomainName);
+            requestedRoles = getSubjectTokenRolesForDomain(scopeRoles, sourceDomainName,
+                    requestDomainName, allowLegacySimpleRoles);
             if (requestedRoles == null || requestedRoles.length == 0) {
                 LOGGER.error("subject token does not contain any roles for requested domain {}", requestDomainName);
                 return null;
             }
             return requestedRoles;
-        } else if (subjectTokenHasRequestedRoles(scopeRoles, sourceDomainName, requestDomainName, requestedRoles)) {
+        } else if (subjectTokenHasRequestedRoles(scopeRoles, sourceDomainName, requestDomainName,
+                requestedRoles, allowLegacySimpleRoles)) {
             return requestedRoles;
         } else {
             LOGGER.error("requested roles are not a subset of subject token roles");
@@ -2941,12 +2949,19 @@ public class ZTSImpl implements ZTSHandler {
 
     boolean subjectTokenHasRequestedRoles(Set<String> subjectScopes, final String sourceDomainName,
             final String requestDomainName, String[] requestedRoles) {
+        return subjectTokenHasRequestedRoles(subjectScopes, sourceDomainName, requestDomainName,
+                requestedRoles, false);
+    }
+
+    boolean subjectTokenHasRequestedRoles(Set<String> subjectScopes, final String sourceDomainName,
+            final String requestDomainName, String[] requestedRoles, boolean allowLegacySimpleRoles) {
 
         for (String requestedRole : requestedRoles) {
             if (subjectScopes.contains(requestDomainName + OAuthTokenScope.OBJECT_ROLE + requestedRole)) {
                 continue;
             }
-            if (requestDomainName.equals(sourceDomainName) && subjectScopes.contains(requestedRole)) {
+            if ((requestDomainName.equals(sourceDomainName) || allowLegacySimpleRoles)
+                    && subjectScopes.contains(requestedRole)) {
                 continue;
             }
             return false;
@@ -2956,6 +2971,11 @@ public class ZTSImpl implements ZTSHandler {
 
     String[] getSubjectTokenRolesForDomain(Set<String> subjectScopes, final String sourceDomainName,
             final String requestDomainName) {
+        return getSubjectTokenRolesForDomain(subjectScopes, sourceDomainName, requestDomainName, false);
+    }
+
+    String[] getSubjectTokenRolesForDomain(Set<String> subjectScopes, final String sourceDomainName,
+            final String requestDomainName, boolean allowLegacySimpleRoles) {
 
         Set<String> requestedRoles = new HashSet<>();
         final String roleScopePrefix = requestDomainName + OAuthTokenScope.OBJECT_ROLE;
@@ -2968,7 +2988,8 @@ public class ZTSImpl implements ZTSHandler {
                 if (!roleName.isEmpty()) {
                     requestedRoles.add(roleName);
                 }
-            } else if (!subjectScope.contains(":") && requestDomainName.equals(sourceDomainName)) {
+            } else if (!subjectScope.contains(":")
+                    && (requestDomainName.equals(sourceDomainName) || allowLegacySimpleRoles)) {
                 requestedRoles.add(subjectScope);
             }
         }
@@ -3022,7 +3043,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // validate that the requested scopes are a subset of the subject token scopes
 
-        String[] requestedRoles = tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
+        String[] requestedRoles = tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName, true);
         if (requestedRoles == null) {
             throw requestError("Invalid scope for token exchange", caller, requestDomainName, principalDomain);
         }
@@ -3781,11 +3802,6 @@ public class ZTSImpl implements ZTSHandler {
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
-        if (tokenScope.isOpenIdScope() && tokenScope.getDomainName() == null) {
-            throw requestError("OpenID access token requests cannot include multiple domains", caller,
-                    domainName, principalDomain);
-        }
-
         if (!StringUtil.isEmpty(accessTokenRequest.getAuthzDetails()) && scopeDomainNames.size() > 1) {
             throw requestError("Authorization details cannot be requested for multiple domains", caller,
                     domainName, principalDomain);
@@ -3964,7 +3980,13 @@ public class ZTSImpl implements ZTSHandler {
         // set of scopes
 
         if (scopeAdjusted || scopeDomainNames.size() > 1 || !scopeDomainNames.contains(domainName)) {
-            response.setScope(generateScopeResponse(tokenScopes, tokenScope.isOpenIdScope()));
+            if (scopeDomainNames.size() == 1) {
+                final String scopeDomainName = scopeDomainNames.iterator().next();
+                response.setScope(generateScopeResponse(rolesByDomain.get(scopeDomainName),
+                        scopeDomainName, tokenScope.isOpenIdScope()));
+            } else {
+                response.setScope(generateScopeResponse(tokenScopes, tokenScope.isOpenIdScope()));
+            }
         }
 
         return response;
