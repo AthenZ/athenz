@@ -1505,10 +1505,12 @@ public class CryptoTest {
         // reset the provider to the jdk one since we default to bc
 
         System.setProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER, "SunEC");
-        assertFalse(Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), keyPair.getPublic(),
-                testDerSignature, Crypto.SHA256));
-
-        System.clearProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER);
+        try {
+            assertFalse(Crypto.verify(serviceToken.getBytes(StandardCharsets.UTF_8), keyPair.getPublic(),
+                    testDerSignature, Crypto.SHA256));
+        } finally {
+            System.clearProperty(Crypto.ATHENZ_CRYPTO_SIGNATURE_PROVIDER);
+        }
     }
 
     @Test
