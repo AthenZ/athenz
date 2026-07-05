@@ -24,6 +24,8 @@ public class AccessTokenScope extends OAuthTokenScope {
             System.getProperty(ZTSConsts.ZTS_PROP_OAUTH_OPENID_SCOPE, "false"));
     private static boolean supportRolesWithoutDomain = Boolean.parseBoolean(
             System.getProperty(ZTSConsts.ZTS_PROP_SCOPE_ROLE_WOUT_DOMAIN, "false"));
+    private static int maxDomains = Integer.parseInt(
+            System.getProperty(ZTSConsts.ZTS_PROP_ACCESS_TOKEN_MAX_DOMAINS, "20"));
 
     public AccessTokenScope(final String scope, final String principalDomain) {
 
@@ -34,7 +36,7 @@ public class AccessTokenScope extends OAuthTokenScope {
         //   <domainName>:role.<roleName>
         //   openid <domainName>:service.<serviceName>
 
-        super(scope, Integer.MAX_VALUE, null, supportRolesWithoutDomain ? principalDomain : null);
+        super(scope, maxDomains, null, supportRolesWithoutDomain ? principalDomain : null);
 
         // if we don't have a domain then it's invalid scope
 
@@ -71,5 +73,9 @@ public class AccessTokenScope extends OAuthTokenScope {
 
     public static void setSupportRolesWithoutDomain(boolean value) {
         supportRolesWithoutDomain = value;
+    }
+
+    public static void setMaxDomains(int numDomains) {
+        maxDomains = numDomains;
     }
 }
