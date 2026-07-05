@@ -2814,7 +2814,7 @@ public class ZTSImpl implements ZTSHandler {
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
-        accessToken.setJwtId(UUID.randomUUID().toString());
+        accessToken.setJwtId(java.util.UUID.randomUUID().toString());
         accessToken.setAudience(requestDomainName);
         accessToken.setClientId(principalName);
         accessToken.setIssueTime(iat);
@@ -3060,7 +3060,7 @@ public class ZTSImpl implements ZTSHandler {
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
-        accessToken.setJwtId(UUID.randomUUID().toString());
+        accessToken.setJwtId(java.util.UUID.randomUUID().toString());
         accessToken.setAudience(requestDomainName);
         accessToken.setClientId(principalName);
         accessToken.setIssueTime(iat);
@@ -3437,7 +3437,7 @@ public class ZTSImpl implements ZTSHandler {
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
-        accessToken.setJwtId(UUID.randomUUID().toString());
+        accessToken.setJwtId(java.util.UUID.randomUUID().toString());
         accessToken.setAudience(accessTokenRequest.getAudience());
         accessToken.setClientId(principalName);
         accessToken.setIssueTime(iat);
@@ -3678,7 +3678,7 @@ public class ZTSImpl implements ZTSHandler {
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
-        accessToken.setJwtId(UUID.randomUUID().toString());
+        accessToken.setJwtId(java.util.UUID.randomUUID().toString());
         accessToken.setAudience(audience);
         accessToken.setClientId(clientPrincipalName);
         accessToken.setIssueTime(iat);
@@ -3896,7 +3896,7 @@ public class ZTSImpl implements ZTSHandler {
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
-        accessToken.setJwtId(UUID.randomUUID().toString());
+        accessToken.setJwtId(java.util.UUID.randomUUID().toString());
         accessToken.setAudience(domainName);
         accessToken.setClientId(principalName);
         accessToken.setIssueTime(iat);
