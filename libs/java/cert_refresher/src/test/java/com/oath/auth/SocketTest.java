@@ -92,6 +92,9 @@ public class SocketTest {
 
                             while (running) {
                                 String line = is.readLine();
+                                if (line == null) {
+                                    break;
+                                }
                                 if (line.equals("ping")) {
                                     os.write("pong\n".getBytes());
                                 }
