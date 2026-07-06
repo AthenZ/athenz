@@ -545,9 +545,6 @@ public class Crypto {
                                  String digestAlgorithm) throws CryptoException {
         try {
             String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
-            if (signatureAlgorithm.endsWith(ECDSA) && hasInvalidECDSASignatureValue(signature)) {
-                return false;
-            }
             java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, getSignatureProvider());
             signer.initVerify(key);
             signer.update(message);
