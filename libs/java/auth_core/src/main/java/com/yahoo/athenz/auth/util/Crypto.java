@@ -498,9 +498,6 @@ public class Crypto {
         try {
             byte [] sig = ybase64Decode(signature);
             String signatureAlgorithm = getSignatureAlgorithm(key.getAlgorithm(), digestAlgorithm);
-            if (signatureAlgorithm.endsWith(ECDSA) && hasInvalidECDSASignatureValue(sig)) {
-                return false;
-            }
             java.security.Signature signer = java.security.Signature.getInstance(signatureAlgorithm, getSignatureProvider());
             signer.initVerify(key);
             signer.update(utf8Bytes(message));
