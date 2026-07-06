@@ -247,4 +247,17 @@ public class AccessTokenScopeTest {
             assertTrue(ex.getMessage().contains("Domain limit: 2 has been reached"));
         }
     }
+
+    @Test
+    public void testAccessTokenScopeMaxDomainsOneLegacyErrorMessage() {
+
+        AccessTokenScope.setMaxDomains(1);
+        try {
+            new AccessTokenScope("sports:role.role1 weather:role.role2", null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Multiple domains in scope"));
+        }
+    }
 }
