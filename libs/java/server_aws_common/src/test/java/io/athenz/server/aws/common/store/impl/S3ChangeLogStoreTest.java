@@ -21,6 +21,8 @@ import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.*;
@@ -43,6 +45,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.model.*;
+import com.yahoo.athenz.zms.DomainAttributes;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
@@ -57,6 +60,7 @@ public class S3ChangeLogStoreTest {
         System.setProperty(ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
         System.setProperty(ZTS_PROP_AWS_REGION_NAME, "test-region");
         System.clearProperty("athenz.zts.s3_change_log_store_domain_filter");
+        System.clearProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE);
     }
 
     @Test
@@ -105,6 +109,321 @@ public class S3ChangeLogStoreTest {
 
         store.setLastModificationTimestamp(null);
         assertEquals(store.lastModTime, 0);
+    }
+
+    @Test
+    public void testLocalFileCacheRequiresRootDirectory() {
+        System.setProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE, "true");
+        try {
+            new S3ChangeLogStore();
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("local cache root directory cannot be null"));
+        } finally {
+            System.clearProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE);
+        }
+    }
+
+    @Test
+    public void testLocalFileCacheSignedDomain() throws IOException {
+        System.setProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE, "true");
+        File rootDirectory = Files.createTempDirectory("s3-change-log-store-test").toFile();
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore(rootDirectory);
+            SignedDomain signedDomain = new SignedDomain().setDomain(new DomainData().setName("iaas"));
+            store.saveLocalDomain("iaas", signedDomain);
+            store.setLastModificationTimestamp("12345");
+
+            MockS3ChangeLogStore cachedStore = new MockS3ChangeLogStore(rootDirectory);
+            mockS3DomainList(cachedStore, "iaas");
+            assertEquals(cachedStore.lastModTime, 12345);
+            List<String> domains = cachedStore.getLocalDomainList();
+            assertEquals(domains.size(), 1);
+            assertEquals(domains.get(0), "iaas");
+
+            SignedDomain cachedDomain = cachedStore.getLocalSignedDomain("iaas");
+            assertNotNull(cachedDomain);
+            assertEquals(cachedDomain.getDomain().getName(), "iaas");
+            verify(cachedStore.awsS3Client, times(1)).listObjectsV2(any(ListObjectsV2Request.class));
+            verify(cachedStore.awsS3Client, never()).getObject(any(GetObjectRequest.class));
+        } finally {
+            deleteDirectory(rootDirectory);
+            System.clearProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE);
+        }
+    }
+
+    @Test
+    public void testLocalFileCacheFallbackForCorruptSignedDomain() throws IOException {
+        System.setProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE, "true");
+        File rootDirectory = Files.createTempDirectory("s3-change-log-store-test").toFile();
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore(rootDirectory);
+            store.saveLocalDomain("iaas", new SignedDomain().setDomain(new DomainData().setName("iaas")));
+            store.setLastModificationTimestamp("12345");
+            Files.write(new File(rootDirectory, "iaas").toPath(), "invalid".getBytes(StandardCharsets.UTF_8));
+
+            MockS3ChangeLogStore cachedStore = new MockS3ChangeLogStore(rootDirectory);
+            mockS3Object(cachedStore, "iaas", "src/test/resources/iaas.json");
+
+            SignedDomain cachedDomain = cachedStore.getLocalSignedDomain("iaas");
+            assertNotNull(cachedDomain);
+            assertEquals(cachedDomain.getDomain().getName(), "iaas");
+
+            cachedDomain = cachedStore.getLocalSignedDomain("iaas");
+            assertNotNull(cachedDomain);
+            assertEquals(cachedDomain.getDomain().getName(), "iaas");
+            verify(cachedStore.awsS3Client, times(1)).getObject(any(GetObjectRequest.class));
+        } finally {
+            deleteDirectory(rootDirectory);
+            System.clearProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE);
+        }
+    }
+
+    @Test
+    public void testLocalFileCacheServerDomainListUsesS3ObjectNamesOnly() throws IOException {
+        System.setProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE, "true");
+        File rootDirectory = Files.createTempDirectory("s3-change-log-store-test").toFile();
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore(rootDirectory);
+            store.saveLocalDomain("iaas", new SignedDomain().setDomain(new DomainData().setName("iaas")));
+            store.setLastModificationTimestamp("12345");
+
+            MockS3ChangeLogStore cachedStore = new MockS3ChangeLogStore(rootDirectory);
+            mockS3DomainList(cachedStore, "iaas");
+            assertFalse(cachedStore.getLocalDomainList().isEmpty());
+            verify(cachedStore.awsS3Client, times(1)).listObjectsV2(any(ListObjectsV2Request.class));
+
+            ListObjectsV2Response mockListObjectsV2Response = mock(ListObjectsV2Response.class);
+            ArrayList<S3Object> objectList = new ArrayList<>();
+            objectList.add(S3Object.builder().key("iaas").build());
+            when(mockListObjectsV2Response.contents()).thenReturn(objectList);
+            when(mockListObjectsV2Response.isTruncated()).thenReturn(false);
+            when(cachedStore.awsS3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(mockListObjectsV2Response);
+
+            Set<String> domains = cachedStore.getServerDomainList();
+            assertEquals(domains.size(), 1);
+            assertTrue(domains.contains("iaas"));
+            verify(cachedStore.awsS3Client, times(2)).listObjectsV2(any(ListObjectsV2Request.class));
+            verify(cachedStore.awsS3Client, never()).getObject(any(GetObjectRequest.class));
+
+            cachedStore.getLocalDomainList();
+            domains = cachedStore.getServerDomainList();
+            assertEquals(domains.size(), 1);
+            assertTrue(domains.contains("iaas"));
+            verify(cachedStore.awsS3Client, times(4)).listObjectsV2(any(ListObjectsV2Request.class));
+        } finally {
+            deleteDirectory(rootDirectory);
+            System.clearProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE);
+        }
+    }
+
+    @Test
+    public void testLocalFileCacheAppliesDomainFilter() throws IOException {
+        System.setProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE, "true");
+        System.setProperty("athenz.zts.s3_change_log_store_domain_filter", "athenz");
+        File rootDirectory = Files.createTempDirectory("s3-change-log-store-test").toFile();
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore(rootDirectory);
+            store.saveLocalDomain("iaas", new SignedDomain().setDomain(new DomainData().setName("iaas")));
+            store.saveLocalDomain("athenz", new SignedDomain().setDomain(new DomainData().setName("athenz")));
+            store.setLastModificationTimestamp("12345");
+
+            MockS3ChangeLogStore cachedStore = new MockS3ChangeLogStore(rootDirectory);
+            mockS3DomainList(cachedStore, "iaas", "athenz");
+            List<String> domains = cachedStore.getLocalDomainList();
+            assertEquals(domains.size(), 1);
+            assertEquals(domains.get(0), "athenz");
+
+            Map<String, DomainAttributes> domainAttributes = cachedStore.getLocalDomainAttributeList();
+            assertEquals(domainAttributes.size(), 1);
+            assertTrue(domainAttributes.containsKey("athenz"));
+            assertFalse(domainAttributes.containsKey("iaas"));
+            verify(cachedStore.awsS3Client, times(1)).listObjectsV2(any(ListObjectsV2Request.class));
+            verify(cachedStore.awsS3Client, never()).getObject(any(GetObjectRequest.class));
+        } finally {
+            deleteDirectory(rootDirectory);
+            System.clearProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE);
+            System.clearProperty("athenz.zts.s3_change_log_store_domain_filter");
+        }
+    }
+
+    @Test
+    public void testLocalFileCacheJWSDomain() throws IOException {
+        System.setProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE, "true");
+        File rootDirectory = Files.createTempDirectory("s3-change-log-store-test").toFile();
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore(rootDirectory);
+            JWSDomain jwsDomain = new JWSDomain().setPayload("payload").setProtectedHeader("header").setSignature("signature");
+            store.saveLocalDomain("iaas", jwsDomain);
+            store.setLastModificationTimestamp("12345");
+
+            MockS3ChangeLogStore cachedStore = new MockS3ChangeLogStore(rootDirectory);
+            JWSDomain cachedDomain = cachedStore.getLocalJWSDomain("iaas");
+            assertNotNull(cachedDomain);
+            assertEquals(cachedDomain.getPayload(), "payload");
+            verify(cachedStore.awsS3Client, never()).listObjectsV2(any(ListObjectsV2Request.class));
+            verify(cachedStore.awsS3Client, never()).getObject(any(GetObjectRequest.class));
+        } finally {
+            deleteDirectory(rootDirectory);
+            System.clearProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE);
+        }
+    }
+
+    @Test
+    public void testLocalFileCacheFallbackForCorruptJWSDomain() throws IOException {
+        System.setProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE, "true");
+        File rootDirectory = Files.createTempDirectory("s3-change-log-store-test").toFile();
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore(rootDirectory);
+            store.saveLocalDomain("iaas", new JWSDomain().setPayload("payload"));
+            store.setLastModificationTimestamp("12345");
+            Files.write(new File(rootDirectory, "iaas").toPath(), "invalid".getBytes(StandardCharsets.UTF_8));
+
+            MockS3ChangeLogStore cachedStore = new MockS3ChangeLogStore(rootDirectory);
+            cachedStore.setJWSDomainSupport(true);
+            mockS3Object(cachedStore, "iaas", "src/test/resources/iaas.jws");
+
+            JWSDomain cachedDomain = cachedStore.getLocalJWSDomain("iaas");
+            assertNotNull(cachedDomain);
+            assertNotNull(cachedDomain.getPayload());
+
+            cachedDomain = cachedStore.getLocalJWSDomain("iaas");
+            assertNotNull(cachedDomain);
+            assertNotNull(cachedDomain.getPayload());
+            verify(cachedStore.awsS3Client, times(1)).getObject(any(GetObjectRequest.class));
+        } finally {
+            deleteDirectory(rootDirectory);
+            System.clearProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE);
+        }
+    }
+
+    @Test
+    public void testLocalFileCacheFetchesMissingSignedDomainFromS3() throws IOException {
+        System.setProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE, "true");
+        File rootDirectory = Files.createTempDirectory("s3-change-log-store-test").toFile();
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore(rootDirectory);
+            store.saveLocalDomain("athenz", new SignedDomain().setDomain(new DomainData().setName("athenz")));
+            store.setLastModificationTimestamp("12345");
+
+            MockS3ChangeLogStore cachedStore = new MockS3ChangeLogStore(rootDirectory);
+            mockS3DomainList(cachedStore, "athenz", "iaas");
+            mockS3Object(cachedStore, "iaas", "src/test/resources/iaas.json");
+
+            List<String> domains = cachedStore.getLocalDomainList();
+            assertEquals(new HashSet<>(domains), new HashSet<>(Arrays.asList("athenz", "iaas")));
+            assertTrue(new File(rootDirectory, "iaas").exists());
+
+            SignedDomain cachedDomain = cachedStore.getLocalSignedDomain("iaas");
+            assertNotNull(cachedDomain);
+            assertEquals(cachedDomain.getDomain().getName(), "iaas");
+            verify(cachedStore.awsS3Client, times(1)).listObjectsV2(any(ListObjectsV2Request.class));
+            verify(cachedStore.awsS3Client, times(1)).getObject(any(GetObjectRequest.class));
+        } finally {
+            deleteDirectory(rootDirectory);
+            System.clearProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE);
+        }
+    }
+
+    @Test
+    public void testLocalFileCacheResetsLastModTimeWhenMissingDomainListFails() throws IOException {
+        System.setProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE, "true");
+        File rootDirectory = Files.createTempDirectory("s3-change-log-store-test").toFile();
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore(rootDirectory);
+            store.saveLocalDomain("athenz", new SignedDomain().setDomain(new DomainData().setName("athenz")));
+            store.setLastModificationTimestamp("12345");
+
+            MockS3ChangeLogStore cachedStore = new MockS3ChangeLogStore(rootDirectory);
+            S3Exception s3Exception = Mockito.mock(S3Exception.class);
+            when(s3Exception.getMessage()).thenReturn("failed list operation");
+            when(cachedStore.awsS3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenThrow(s3Exception);
+
+            List<String> domains = cachedStore.getLocalDomainList();
+            assertEquals(domains.size(), 1);
+            assertEquals(domains.get(0), "athenz");
+            assertEquals(cachedStore.lastModTime, 0);
+            assertNull(cachedStore.localChangeLogStore.lastModTime);
+            verify(cachedStore.awsS3Client, times(1)).listObjectsV2(any(ListObjectsV2Request.class));
+            verify(cachedStore.awsS3Client, never()).getObject(any(GetObjectRequest.class));
+        } finally {
+            deleteDirectory(rootDirectory);
+            System.clearProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE);
+        }
+    }
+
+    @Test
+    public void testLocalFileCacheResetsLastModTimeWhenMissingSignedDomainFetchFails() throws IOException {
+        System.setProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE, "true");
+        File rootDirectory = Files.createTempDirectory("s3-change-log-store-test").toFile();
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore(rootDirectory);
+            store.saveLocalDomain("athenz", new SignedDomain().setDomain(new DomainData().setName("athenz")));
+            store.setLastModificationTimestamp("12345");
+
+            MockS3ChangeLogStore cachedStore = new MockS3ChangeLogStore(rootDirectory);
+            mockS3DomainList(cachedStore, "athenz", "iaas");
+
+            List<String> domains = cachedStore.getLocalDomainList();
+            assertEquals(domains.size(), 1);
+            assertEquals(domains.get(0), "athenz");
+            assertEquals(cachedStore.lastModTime, 0);
+            assertNull(cachedStore.localChangeLogStore.lastModTime);
+            assertFalse(new File(rootDirectory, "iaas").exists());
+            verify(cachedStore.awsS3Client, times(1)).listObjectsV2(any(ListObjectsV2Request.class));
+            verify(cachedStore.awsS3Client, times(1)).getObject(any(GetObjectRequest.class));
+        } finally {
+            deleteDirectory(rootDirectory);
+            System.clearProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE);
+        }
+    }
+
+    @Test
+    public void testLocalFileCacheFetchesMissingJWSDomainFromS3() throws IOException {
+        System.setProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE, "true");
+        File rootDirectory = Files.createTempDirectory("s3-change-log-store-test").toFile();
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore(rootDirectory);
+            store.saveLocalDomain("athenz", new JWSDomain().setPayload("payload"));
+            store.setLastModificationTimestamp("12345");
+
+            MockS3ChangeLogStore cachedStore = new MockS3ChangeLogStore(rootDirectory);
+            cachedStore.setJWSDomainSupport(true);
+            mockS3DomainList(cachedStore, "athenz", "iaas");
+            mockS3Object(cachedStore, "iaas", "src/test/resources/iaas.jws");
+
+            List<String> domains = cachedStore.getLocalDomainList();
+            assertEquals(new HashSet<>(domains), new HashSet<>(Arrays.asList("athenz", "iaas")));
+            assertTrue(new File(rootDirectory, "iaas").exists());
+
+            JWSDomain cachedDomain = cachedStore.getLocalJWSDomain("iaas");
+            assertNotNull(cachedDomain);
+            assertNotNull(cachedDomain.getPayload());
+            verify(cachedStore.awsS3Client, times(1)).listObjectsV2(any(ListObjectsV2Request.class));
+            verify(cachedStore.awsS3Client, times(1)).getObject(any(GetObjectRequest.class));
+        } finally {
+            deleteDirectory(rootDirectory);
+            System.clearProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE);
+        }
+    }
+
+    @Test
+    public void testLocalFileCacheMissingLastModTimeDeletesDomains() throws IOException {
+        System.setProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE, "true");
+        File rootDirectory = Files.createTempDirectory("s3-change-log-store-test").toFile();
+        try {
+            MockS3ChangeLogStore store = new MockS3ChangeLogStore(rootDirectory);
+            store.saveLocalDomain("iaas", new SignedDomain().setDomain(new DomainData().setName("iaas")));
+            assertTrue(new File(rootDirectory, "iaas").exists());
+
+            MockS3ChangeLogStore cachedStore = new MockS3ChangeLogStore(rootDirectory);
+            assertFalse(new File(rootDirectory, "iaas").exists());
+            assertTrue(cachedStore.getLocalDomainList().isEmpty());
+            verify(cachedStore.awsS3Client, never()).listObjectsV2(any(ListObjectsV2Request.class));
+        } finally {
+            deleteDirectory(rootDirectory);
+            System.clearProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE);
+        }
     }
 
     @Test
@@ -705,7 +1024,7 @@ public class S3ChangeLogStoreTest {
     @Test
     public void initNoRegionException() {
         System.clearProperty(ZTS_PROP_AWS_REGION_NAME);
-        S3ChangeLogStore store = new S3ChangeLogStore(null);
+        S3ChangeLogStore store = new S3ChangeLogStore((String) null);
         try {
             store.getS3Client();
             fail();
@@ -1281,5 +1600,37 @@ public class S3ChangeLogStoreTest {
         assertEquals(domains.size(), 2);
         assertTrue(domains.contains("iaas"));
         assertTrue(domains.contains("iaas.athenz"));
+    }
+
+    private void deleteDirectory(File directory) {
+        if (directory == null || !directory.exists()) {
+            return;
+        }
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                deleteDirectory(file);
+            }
+        }
+        assertTrue(directory.delete());
+    }
+
+    private void mockS3DomainList(MockS3ChangeLogStore store, String... domainNames) {
+        ListObjectsV2Response mockListObjectsV2Response = mock(ListObjectsV2Response.class);
+        ArrayList<S3Object> objectList = new ArrayList<>();
+        for (String domainName : domainNames) {
+            objectList.add(S3Object.builder().key(domainName).build());
+        }
+        when(mockListObjectsV2Response.contents()).thenReturn(objectList);
+        when(mockListObjectsV2Response.isTruncated()).thenReturn(false);
+        when(store.awsS3Client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(mockListObjectsV2Response);
+    }
+
+    private void mockS3Object(MockS3ChangeLogStore store, String domainName, String resourcePath) throws FileNotFoundException {
+        GetObjectResponse response = Mockito.mock(GetObjectResponse.class);
+        ResponseInputStream<GetObjectResponse> s3Is = new ResponseInputStream<>(response, new FileInputStream(resourcePath));
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket("s3-unit-test-bucket-name")
+                .key(domainName).build();
+        when(store.awsS3Client.getObject(getObjectRequest)).thenReturn(s3Is);
     }
 }
