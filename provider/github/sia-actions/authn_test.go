@@ -19,14 +19,32 @@ package sia
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"github.com/stretchr/testify/assert"
+	"crypto/x509"
+	"encoding/pem"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
+
+type customFormatter struct{}
+
+func (f *customFormatter) FormatServiceURI(trustDomain, namespace, domain, service, workloadId string) string {
+	return fmt.Sprintf("spiffe://custom.github/svc/%s/%s", domain, service)
+}
+
+func (f *customFormatter) FormatRoleURI(trustDomain, domain, role string) string {
+	return ""
+}
+
+func (f *customFormatter) FormatUserURI(trustDomain, namespace, principalName, deviceId string) string {
+	return ""
+}
 
 func startHttpServer(token string, statusCode int) *httptest.Server {
 	router := http.NewServeMux()
@@ -109,4 +127,16 @@ func TestGetCSRDetails(t *testing.T) {
 	csr, err := GetCSRDetails(privateKey, "sports", "api", "sys.auth.github-actions", "0001", "athenz.io", "athenz", "", "", "")
 	assert.Nil(t, err)
 	assert.True(t, csr != "")
+}
+
+func TestGetCSRDetailsWithCustomSpiffeFormatter(t *testing.T) {
+	privateKey, _ := rsa.GenerateKey(rand.Reader, 2048)
+	formatter := &customFormatter{}
+	csr, err := GetCSRDetailsWithSpiffeFormatter(privateKey, "sports", "api", "sys.auth.github-actions", "0001", "athenz.io", "athenz", "", "", "", formatter)
+	assert.Nil(t, err)
+
+	block, _ := pem.Decode([]byte(csr))
+	parsedCSR, err := x509.ParseCertificateRequest(block.Bytes)
+	assert.Nil(t, err)
+	assert.Equal(t, "spiffe://custom.github/svc/sports/api", parsedCSR.URIs[0].String())
 }

@@ -35,6 +35,7 @@ import (
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/athenzutils"
+	"github.com/AthenZ/athenz/libs/go/sia/spiffe"
 	"github.com/AthenZ/athenz/libs/go/tls/config"
 )
 
@@ -42,25 +43,27 @@ import (
 // Fields that are pre-set (non-zero) before calling Run are treated as
 // hard-coded and will NOT be overridden by command-line flags.
 type Options struct {
-	ZtsURL            string // ZTS server URL (required)
-	PrivateKeyFile    string // path to private key PEM file (required)
-	UserName          string // user name without domain prefix (required)
-	IdpEndpoint       string // IdP OAuth2 authorization endpoint (required)
-	IdpClientId       string // IdP OAuth2 client ID (required)
-	CertFile          string // output cert file; empty means stdout
-	CACertFile        string // CA cert file for ZTS TLS verification
-	SubjectCountry    string // CSR subject Country field
-	SubjectOrg        string // CSR subject Organization field
-	SubjectOrgUnit    string // CSR subject OrganizationalUnit field
-	SpiffeTrustDomain string // SPIFFE trust domain for URI SAN
-	Scope             string // OIDC scope parameter (default: "openid")
-	SignerKeyId       string // signer key id for the user certificate
-	CallbackPort      int    // local port for OAuth2 callback server
-	CallbackTimeout   int    // seconds to wait for IdP callback
-	ExpiryTime        int    // certificate expiry in minutes (0 = server default)
-	PKCE              bool   // enable PKCE for IdP auth flow
-	Proxy             bool   // use HTTP proxy from environment
-	Verbose           bool   // enable verbose logging
+	ZtsURL             string              // ZTS server URL (required)
+	PrivateKeyFile     string              // path to private key PEM file (required)
+	UserName           string              // user name without domain prefix (required)
+	IdpEndpoint        string              // IdP OAuth2 authorization endpoint (required)
+	IdpClientId        string              // IdP OAuth2 client ID (required)
+	CertFile           string              // output cert file; empty means stdout
+	CACertFile         string              // CA cert file for ZTS TLS verification
+	SubjectCountry     string              // CSR subject Country field
+	SubjectOrg         string              // CSR subject Organization field
+	SubjectOrgUnit     string              // CSR subject OrganizationalUnit field
+	SpiffeTrustDomain  string              // SPIFFE trust domain for URI SAN
+	SpiffeURIFormatter spiffe.URIFormatter // optional SPIFFE URI formatter override
+	DeviceId           string              // optional device ID for SPIFFE user URI
+	Scope              string              // OIDC scope parameter (default: "openid")
+	SignerKeyId        string              // signer key id for the user certificate
+	CallbackPort       int                 // local port for OAuth2 callback server
+	CallbackTimeout    int                 // seconds to wait for IdP callback
+	ExpiryTime         int                 // certificate expiry in minutes (0 = server default)
+	PKCE               bool                // enable PKCE for IdP auth flow
+	Proxy              bool                // use HTTP proxy from environment
+	Verbose            bool                // enable verbose logging
 }
 
 type signer struct {
@@ -85,7 +88,7 @@ func RequestCertificate(opts Options) (string, error) {
 	}
 
 	csrData, err := generateCSR(pkSigner, opts.UserName, opts.SubjectCountry, opts.SubjectOrg,
-		opts.SubjectOrgUnit, opts.SpiffeTrustDomain)
+		opts.SubjectOrgUnit, opts.SpiffeTrustDomain, opts.DeviceId, opts.SpiffeURIFormatter)
 	if err != nil {
 		return "", fmt.Errorf("unable to generate CSR: %v", err)
 	}
@@ -182,7 +185,7 @@ func Run(opts Options) (string, error) {
 	return cert, nil
 }
 
-func generateCSR(keySigner *signer, principalName, subjC, subjO, subjOU, spiffeTrustDomain string) (string, error) {
+func generateCSR(keySigner *signer, principalName, subjC, subjO, subjOU, spiffeTrustDomain, deviceId string, spiffeFormatter spiffe.URIFormatter) (string, error) {
 
 	subj := pkix.Name{
 		CommonName: principalName,
@@ -202,7 +205,10 @@ func generateCSR(keySigner *signer, principalName, subjC, subjO, subjOU, spiffeT
 	}
 
 	if spiffeTrustDomain != "" {
-		spiffeURI := fmt.Sprintf("spiffe://%s/ns/default/sa/%s", spiffeTrustDomain, principalName)
+		if spiffeFormatter == nil {
+			spiffeFormatter = spiffe.GetDefaultFormatter()
+		}
+		spiffeURI := spiffeFormatter.FormatUserURI(spiffeTrustDomain, "default", principalName, deviceId)
 		uriPtr, err := url.Parse(spiffeURI)
 		if err == nil {
 			template.URIs = []*url.URL{uriPtr}
