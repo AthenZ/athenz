@@ -1,6 +1,6 @@
 Access Tokens are used to authorize access to service provider resources.
 The Access Token contains the set of roles (identified in the token as
-scopes) a client belongs to for a specified domain. So, when a client wants
+scopes) a client belongs to for one or more specified domains. So, when a client wants
 to access a resource, this client
 must obtain the appropriate Access Token from ZTS and use the token in the
 header of the subsequent HTTP client request. If enabled, the service will
@@ -22,13 +22,15 @@ endpoint. The request body must contain the following parameters:
 grant_type : Value MUST be set to "client_credentials"
 scope : list of scopes/roles requested in the access token. The caller
         can either specify to include all roles the principal has access
-        to in a specific domain (e.g. <domain-name>:domain) or ask for
+        to in specific domains (e.g. <domain-name>:domain) or ask for
         specific roles only (e.g. <domain-name>:role.<role1>). Scopes
         are separated by spaces.
         To request an ID token, the scope must include 'openid' and audience
         service name (e.g. <domain-name>:service.<service-name>). The domain
-        name in id token request match the domain name in the access token
-        scope.
+        name in id token request must match the domain name in the access token
+        scope. ID token requests do not support multiple scope domains.
+audience : optional audience domain for the access token. This value is
+           required when the scope includes more than one domain.
 expires_in : requested expiry time for access token in seconds
 ```
 
@@ -44,16 +46,16 @@ Content-Type: application/x-www-form-urlencoded
 grant_type=client_credentials&scope=demo%3Adomain
 ```
 
-If the principal requests an access token only for accessing
-`demo` domain and wants to include `readers` and `writers` roles it has access
-to in that domain, the request would be:
+If the principal requests an access token for accessing `demo` and `sherpa`
+domains and wants to include `readers` and `writers` roles it has access to,
+the request would be:
 
 ```
 POST /zts/v1/oauth2/token HTTP/1.1
 Host: <zts-address>
 Content-Type: application/x-www-form-urlencoded
 
-grant_type=client_credentials&scope=demo%3Arole.readers+sherpa%3Arole.writers
+grant_type=client_credentials&audience=demo&scope=demo%3Arole.readers+sherpa%3Arole.writers
 ```
 
 If the principal requests an access token along with an id token for accessing
@@ -114,7 +116,9 @@ uid : unique identifier for the principal (same as client Id)
 sub : subject of the access token (same as client Id)
 iat : token issue time in seconds (Unix time)
 exp : token expiry time in seconds (Unix time)
-scp : array of scopes are granted to this access token. This is the list of roles that principal can assume in the audience domain
+scp : array of scopes granted to this access token. Roles in the audience domain
+      are listed by role name, while roles from other domains are listed as
+      <domain-name>:role.<role-name>
 client_id : client ID (Athenz Principal) of the client that requested the access token
 ```
 
