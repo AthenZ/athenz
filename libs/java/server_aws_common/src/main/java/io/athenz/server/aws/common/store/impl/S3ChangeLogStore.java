@@ -619,9 +619,9 @@ public class S3ChangeLogStore implements ChangeLogStore {
         // been deleted, we're going to get a new s3 client
         // instead of using our original client
 
-        try {
+        try (S3Client s3Client = getS3Client()) {
             HashSet<String> domains = new HashSet<>();
-            listObjects(getS3Client(), domains, 0);
+            listObjects(s3Client, domains, 0);
             return domains;
         } catch (Exception ex) {
             LOGGER.error("S3ChangeLogStore: unable to retrieve domain list from S3", ex);

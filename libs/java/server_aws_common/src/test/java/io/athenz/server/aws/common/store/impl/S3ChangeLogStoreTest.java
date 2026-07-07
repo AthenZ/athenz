@@ -762,6 +762,7 @@ public class S3ChangeLogStoreTest {
         // also verify that last mod time is not updated
         
         assertEquals(store.lastModTime, 0);
+        verify(store.awsS3Client).close();
     }
     
     @Test
