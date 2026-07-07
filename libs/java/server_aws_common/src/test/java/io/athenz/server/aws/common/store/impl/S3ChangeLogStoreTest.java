@@ -851,6 +851,57 @@ public class S3ChangeLogStoreTest {
     }
 
     @Test
+    public void testGetSignedDomainFromS3RefreshesAndClosesClientOnFailure() throws IOException {
+        ClientRefreshingS3ChangeLogStore store = new ClientRefreshingS3ChangeLogStore();
+        S3Client oldClient = mock(S3Client.class);
+        S3Client newClient = mock(S3Client.class);
+        store.addS3Client(oldClient);
+        store.addS3Client(newClient);
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket("s3-unit-test-bucket-name")
+                .key("iaas").build();
+        when(oldClient.getObject(getObjectRequest)).thenReturn(null);
+
+        GetObjectResponse response = Mockito.mock(GetObjectResponse.class);
+        ResponseInputStream<GetObjectResponse> s3Is = new ResponseInputStream<>(response,
+                new FileInputStream("src/test/resources/iaas.json"));
+        when(newClient.getObject(getObjectRequest)).thenReturn(s3Is);
+
+        SignedDomain signedDomain = store.getSignedDomainFromS3("iaas");
+        assertNotNull(signedDomain);
+        assertSame(store.getAwsS3Client(), newClient);
+        assertEquals(store.clientCreationCount, 2);
+        verify(oldClient).close();
+        verify(oldClient).getObject(getObjectRequest);
+        verify(newClient).getObject(getObjectRequest);
+        verify(newClient, never()).close();
+    }
+
+    @Test
+    public void testRefreshAwsS3ClientDoesNotCloseStaleClient() {
+        ClientRefreshingS3ChangeLogStore store = new ClientRefreshingS3ChangeLogStore();
+        S3Client staleClient = mock(S3Client.class);
+        S3Client currentClient = mock(S3Client.class);
+        store.awsS3Client = currentClient;
+
+        assertSame(store.refreshAwsS3Client(staleClient), currentClient);
+        assertEquals(store.clientCreationCount, 0);
+        verify(staleClient, never()).close();
+        verify(currentClient, never()).close();
+    }
+
+    @Test
+    public void testCloseS3ClientIgnoresCloseException() {
+        S3ChangeLogStore store = new S3ChangeLogStore("test-region");
+        S3Client s3Client = mock(S3Client.class);
+        doThrow(new RuntimeException("close failed")).when(s3Client).close();
+
+        store.closeS3Client(s3Client);
+
+        verify(s3Client).close();
+    }
+
+    @Test
     public void testGetServerSignedDomain() {
         MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         assertNull(store.getServerSignedDomain("iaas"));
@@ -1279,6 +1330,33 @@ public class S3ChangeLogStoreTest {
     }
 
     @Test
+    public void testGetJWSDomainFromS3RefreshesAndClosesClientOnFailure() throws IOException {
+        ClientRefreshingS3ChangeLogStore store = new ClientRefreshingS3ChangeLogStore();
+        S3Client oldClient = mock(S3Client.class);
+        S3Client newClient = mock(S3Client.class);
+        store.addS3Client(oldClient);
+        store.addS3Client(newClient);
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket("s3-unit-test-bucket-name")
+                .key("iaas").build();
+        when(oldClient.getObject(getObjectRequest)).thenReturn(null);
+
+        GetObjectResponse response = Mockito.mock(GetObjectResponse.class);
+        ResponseInputStream<GetObjectResponse> s3Is = new ResponseInputStream<>(response,
+                new FileInputStream("src/test/resources/iaas.jws"));
+        when(newClient.getObject(getObjectRequest)).thenReturn(s3Is);
+
+        JWSDomain jwsDomain = store.getJWSDomainFromS3("iaas");
+        assertNotNull(jwsDomain);
+        assertSame(store.getAwsS3Client(), newClient);
+        assertEquals(store.clientCreationCount, 2);
+        verify(oldClient).close();
+        verify(oldClient).getObject(getObjectRequest);
+        verify(newClient).getObject(getObjectRequest);
+        verify(newClient, never()).close();
+    }
+
+    @Test
     public void testGetJWSDomainNotFound() {
         MockS3ChangeLogStore store = new MockS3ChangeLogStore();
         when(store.awsS3Client.getObject(any(GetObjectRequest.class))).thenReturn(null);
@@ -1632,5 +1710,24 @@ public class S3ChangeLogStoreTest {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket("s3-unit-test-bucket-name")
                 .key(domainName).build();
         when(store.awsS3Client.getObject(getObjectRequest)).thenReturn(s3Is);
+    }
+
+    static class ClientRefreshingS3ChangeLogStore extends S3ChangeLogStore {
+        final Queue<S3Client> s3Clients = new ArrayDeque<>();
+        int clientCreationCount = 0;
+
+        ClientRefreshingS3ChangeLogStore() {
+            super("test-region");
+        }
+
+        void addS3Client(S3Client s3Client) {
+            s3Clients.add(s3Client);
+        }
+
+        @Override
+        S3Client getS3Client() {
+            clientCreationCount++;
+            return s3Clients.remove();
+        }
     }
 }

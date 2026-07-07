@@ -254,20 +254,15 @@ public class S3ChangeLogStore implements ChangeLogStore {
 
     SignedDomain getSignedDomainFromS3(String domainName) {
 
-        // make sure we have an aws s3 client for our request
-
-        if (awsS3Client == null) {
-            awsS3Client = getS3Client();
-        }
-
-        SignedDomain signedDomain = getSignedDomain(awsS3Client, domainName);
+        S3Client s3Client = getAwsS3Client();
+        SignedDomain signedDomain = getSignedDomain(s3Client, domainName);
 
         // if we got a failure for any reason, we're going
         // get a new aws s3 client and try again
 
         if (signedDomain == null) {
-            awsS3Client = getS3Client();
-            signedDomain = getSignedDomain(awsS3Client, domainName);
+            s3Client = refreshAwsS3Client(s3Client);
+            signedDomain = getSignedDomain(s3Client, domainName);
         }
 
         return signedDomain;
@@ -275,23 +270,49 @@ public class S3ChangeLogStore implements ChangeLogStore {
 
     JWSDomain getJWSDomainFromS3(String domainName) {
 
-        // make sure we have an aws s3 client for our request
-
-        if (awsS3Client == null) {
-            awsS3Client = getS3Client();
-        }
-
-        JWSDomain jwsDomain = getJWSDomain(awsS3Client, domainName);
+        S3Client s3Client = getAwsS3Client();
+        JWSDomain jwsDomain = getJWSDomain(s3Client, domainName);
 
         // if we got a failure for any reason, we're going
         // get a new aws s3 client and try again
 
         if (jwsDomain == null) {
-            awsS3Client = getS3Client();
-            jwsDomain = getJWSDomain(awsS3Client, domainName);
+            s3Client = refreshAwsS3Client(s3Client);
+            jwsDomain = getJWSDomain(s3Client, domainName);
         }
 
         return jwsDomain;
+    }
+
+    S3Client getAwsS3Client() {
+        synchronized (this) {
+            if (awsS3Client == null) {
+                awsS3Client = getS3Client();
+            }
+            return awsS3Client;
+        }
+    }
+
+    S3Client refreshAwsS3Client(S3Client currentClient) {
+        synchronized (this) {
+            if (awsS3Client == currentClient) {
+                closeS3Client(awsS3Client);
+                awsS3Client = null;
+                awsS3Client = getS3Client();
+            }
+            return awsS3Client;
+        }
+    }
+
+    void closeS3Client(S3Client s3Client) {
+        if (s3Client == null) {
+            return;
+        }
+        try {
+            s3Client.close();
+        } catch (Exception ex) {
+            LOGGER.warn("S3ChangeLogStore: unable to close S3 client", ex);
+        }
     }
 
     SignedDomain getSignedDomain(S3Client s3, String domainName) {
@@ -495,51 +516,47 @@ public class S3ChangeLogStore implements ChangeLogStore {
             return true;
         }
 
-        S3Client s3;
-        Set<String> serverDomains;
-        try {
-            s3 = getS3Client();
+        try (S3Client s3Client = getS3Client()) {
             HashSet<String> domains = new HashSet<>();
-            listObjects(s3, domains, 0);
-            serverDomains = domains;
+            listObjects(s3Client, domains, 0);
+
+            Set<String> localDomainSet = new HashSet<>(localDomains);
+            boolean fetchedAllMissingDomains = true;
+            int fetchedDomains = 0;
+            for (String domainName : domains) {
+                if (localDomainSet.contains(domainName)) {
+                    continue;
+                }
+
+                if (jwsDomainSupport) {
+                    JWSDomain jwsDomain = getJWSDomain(s3Client, domainName);
+                    if (jwsDomain == null) {
+                        fetchedAllMissingDomains = false;
+                        continue;
+                    }
+                    localChangeLogStore.saveLocalDomain(domainName, jwsDomain);
+                } else {
+                    SignedDomain signedDomain = getSignedDomain(s3Client, domainName);
+                    if (signedDomain == null) {
+                        fetchedAllMissingDomains = false;
+                        continue;
+                    }
+                    localChangeLogStore.saveLocalDomain(domainName, signedDomain);
+                }
+
+                localDomains.add(domainName);
+                localDomainSet.add(domainName);
+                fetchedDomains++;
+            }
+
+            if (fetchedDomains > 0) {
+                LOGGER.info("S3ChangeLogStore: fetched {} missing domain(s) into local cache", fetchedDomains);
+            }
+            return fetchedAllMissingDomains;
         } catch (Exception ex) {
             LOGGER.error("S3ChangeLogStore: unable to retrieve domain list from S3", ex);
             return false;
         }
-
-        Set<String> localDomainSet = new HashSet<>(localDomains);
-        boolean fetchedAllMissingDomains = true;
-        int fetchedDomains = 0;
-        for (String domainName : serverDomains) {
-            if (localDomainSet.contains(domainName)) {
-                continue;
-            }
-
-            if (jwsDomainSupport) {
-                JWSDomain jwsDomain = getJWSDomain(s3, domainName);
-                if (jwsDomain == null) {
-                    fetchedAllMissingDomains = false;
-                    continue;
-                }
-                localChangeLogStore.saveLocalDomain(domainName, jwsDomain);
-            } else {
-                SignedDomain signedDomain = getSignedDomain(s3, domainName);
-                if (signedDomain == null) {
-                    fetchedAllMissingDomains = false;
-                    continue;
-                }
-                localChangeLogStore.saveLocalDomain(domainName, signedDomain);
-            }
-
-            localDomains.add(domainName);
-            localDomainSet.add(domainName);
-            fetchedDomains++;
-        }
-
-        if (fetchedDomains > 0) {
-            LOGGER.info("S3ChangeLogStore: fetched {} missing domain(s) into local cache", fetchedDomains);
-        }
-        return fetchedAllMissingDomains;
     }
 
     @Override
