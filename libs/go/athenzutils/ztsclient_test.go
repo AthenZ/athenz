@@ -127,7 +127,7 @@ func TestTokenCacheKey_Uniqueness(t *testing.T) {
 
 func TestHasMinLifetime_FreshToken(t *testing.T) {
 	e := &accessTokenEntry{
-		expiresAt:    time.Now().Unix() + 3600,
+		expiresAt:    time.Now().Add(3600 * time.Second),
 		serverExpiry: 3600,
 	}
 	if !e.hasMinLifetime(3600) {
@@ -139,7 +139,7 @@ func TestHasMinLifetime_LessThanQuarterRemaining(t *testing.T) {
 	// 3600 / 4 = 900.  With only 800 seconds remaining the token should be
 	// considered stale.
 	e := &accessTokenEntry{
-		expiresAt:    time.Now().Unix() + 800,
+		expiresAt:    time.Now().Add(800 * time.Second),
 		serverExpiry: 3600,
 	}
 	if e.hasMinLifetime(3600) {
@@ -148,20 +148,20 @@ func TestHasMinLifetime_LessThanQuarterRemaining(t *testing.T) {
 }
 
 func TestHasMinLifetime_ExactlyQuarterRemaining(t *testing.T) {
-	// At exactly 1/4 remaining the token should be considered valid
-	// (>= not >).
+	// At or above the 1/4 boundary the token should be considered valid (>= not >).
+	// Add a small buffer so time elapsed during test setup doesn't flip the result.
 	e := &accessTokenEntry{
-		expiresAt:    time.Now().Unix() + 900,
+		expiresAt:    time.Now().Add(900*time.Second + 500*time.Millisecond),
 		serverExpiry: 3600,
 	}
 	if !e.hasMinLifetime(3600) {
-		t.Error("token with exactly 1/4 lifetime remaining should be valid")
+		t.Error("token at the 1/4 lifetime boundary should be valid")
 	}
 }
 
 func TestHasMinLifetime_ZeroExpiryUsesServerExpiry(t *testing.T) {
 	e := &accessTokenEntry{
-		expiresAt:    time.Now().Unix() + 3600,
+		expiresAt:    time.Now().Add(3600 * time.Second),
 		serverExpiry: 7200,
 	}
 	// Caller passes 0 → use serverExpiry (7200).  7200/4 = 1800.
@@ -221,7 +221,7 @@ func TestGetAccessToken_StaleEntry_Refetches(t *testing.T) {
 	c.mu.Lock()
 	c.entries[key] = &accessTokenEntry{
 		response:     newTestResponse("tok-stale", 3600),
-		expiresAt:    time.Now().Unix() + 100, // only 100s left out of 3600 → < 1/4
+		expiresAt:    time.Now().Add(100 * time.Second), // only 100s left out of 3600 → < 1/4
 		serverExpiry: 3600,
 		domain:       "domain",
 		roles:        "r1",
@@ -241,6 +241,46 @@ func TestGetAccessToken_StaleEntry_Refetches(t *testing.T) {
 	}
 }
 
+func TestGetAccessToken_OlderFetchedToken_DoesNotOverrideOrReturnOlder(t *testing.T) {
+	fetcher := &mockFetcher{response: newTestResponse("tok-older", 120)}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	key := tokenCacheKey("domain", "", "r1", "", "", "", 0)
+	newer := &accessTokenEntry{
+		response: newTestResponse("tok-newer", 3600),
+		// Keep >1/4 lifetime remaining so fast-path serves cache directly.
+		expiresAt:    time.Now().Add(1200 * time.Second),
+		serverExpiry: 3600,
+		domain:       "domain",
+		roles:        "r1",
+		expiryTime:   0,
+	}
+	newer.lastUsed.Store(time.Now().Unix())
+
+	c.mu.Lock()
+	c.entries[key] = newer
+	c.mu.Unlock()
+
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 0)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if resp.Access_token != "tok-newer" {
+		t.Fatalf("expected newer cached token, got %q", resp.Access_token)
+	}
+	if fetcher.calls() != 0 {
+		t.Fatalf("expected no ZTS call on fresh cache hit, got %d", fetcher.calls())
+	}
+
+	c.mu.RLock()
+	stored := c.entries[key]
+	c.mu.RUnlock()
+	if stored == nil || stored.response.Access_token != "tok-newer" {
+		t.Fatalf("cache should retain newer token, got %+v", stored)
+	}
+}
+
 func TestGetAccessToken_ZTSError_FallbackToStaleCache(t *testing.T) {
 	fetcher := &mockFetcher{err: fmt.Errorf("ZTS unavailable")}
 	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
@@ -251,7 +291,7 @@ func TestGetAccessToken_ZTSError_FallbackToStaleCache(t *testing.T) {
 	c.mu.Lock()
 	c.entries[key] = &accessTokenEntry{
 		response:     newTestResponse("tok-stale", 3600),
-		expiresAt:    time.Now().Unix() + 100,
+		expiresAt:    time.Now().Add(100 * time.Second),
 		serverExpiry: 3600,
 		domain:       "domain",
 		roles:        "r1",
@@ -288,6 +328,100 @@ func TestGetAccessToken_NilExpiresIn_ReturnsError(t *testing.T) {
 	_, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
 	if err == nil {
 		t.Error("expected error for response with nil Expires_in")
+	}
+}
+
+func TestGetAccessToken_InvalidResponse_FallbackToStaleCache(t *testing.T) {
+	fetcher := &mockFetcher{}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	// Pre-populate cache with a stale-but-existing entry.
+	key := tokenCacheKey("domain", "", "r1", "", "", "", 3600)
+	c.mu.Lock()
+	c.entries[key] = &accessTokenEntry{
+		response:     newTestResponse("tok-stale", 3600),
+		expiresAt:    time.Now().Add(100 * time.Second),
+		serverExpiry: 3600,
+		domain:       "domain",
+		roles:        "r1",
+		expiryTime:   3600,
+	}
+	c.mu.Unlock()
+
+	// Invalid response from ZTS should still return stale token (Java parity).
+	fetcher.setResponse(&zts.AccessTokenResponse{Access_token: "tok-invalid"}, nil) // Expires_in nil
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	if err != nil {
+		t.Fatalf("expected stale fallback on invalid response, got error: %v", err)
+	}
+	if resp == nil || resp.Access_token != "tok-stale" {
+		t.Errorf("expected stale token, got %v", resp)
+	}
+}
+
+func TestGetAccessToken_EmptyAccessToken_FallbackToStaleCache(t *testing.T) {
+	fetcher := &mockFetcher{}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	key := tokenCacheKey("domain", "", "r1", "", "", "", 3600)
+	c.mu.Lock()
+	c.entries[key] = &accessTokenEntry{
+		response:     newTestResponse("tok-stale", 3600),
+		expiresAt:    time.Now().Add(100 * time.Second),
+		serverExpiry: 3600,
+		domain:       "domain",
+		roles:        "r1",
+		expiryTime:   3600,
+	}
+	c.entries[key].lastUsed.Store(time.Now().Unix())
+	c.mu.Unlock()
+
+	// Empty token should be treated as invalid and fall back to stale.
+	exp := int32(3600)
+	fetcher.setResponse(&zts.AccessTokenResponse{Access_token: "", Expires_in: &exp}, nil)
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	if err != nil {
+		t.Fatalf("expected stale fallback on empty access token, got error: %v", err)
+	}
+	if resp == nil || resp.Access_token != "tok-stale" {
+		t.Errorf("expected stale token, got %v", resp)
+	}
+}
+
+func TestGetAccessToken_ZeroExpiresIn_ReturnsError(t *testing.T) {
+	zero := int32(0)
+	fetcher := &mockFetcher{response: &zts.AccessTokenResponse{Access_token: "tok", Expires_in: &zero}}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	_, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	if err == nil {
+		t.Error("expected error for response with non-positive Expires_in")
+	}
+}
+
+func TestGetAccessToken_ReturnsDefensiveCopy(t *testing.T) {
+	fetcher := &mockFetcher{response: newTestResponse("tok", 3600)}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	r1, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if r1.Expires_in == nil {
+		t.Fatal("expected Expires_in")
+	}
+	*r1.Expires_in = 1 // mutate returned response copy
+
+	r2, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if r2.Expires_in == nil || *r2.Expires_in != 3600 {
+		t.Fatalf("expected cached Expires_in to remain 3600, got %v", r2.Expires_in)
 	}
 }
 
@@ -414,6 +548,203 @@ func TestGetAccessToken_BackgroundRefresh_UpdatesCache(t *testing.T) {
 	}
 	if entry.response.Access_token != "tok-v2" {
 		t.Errorf("expected tok-v2 after refresh, got %q", entry.response.Access_token)
+	}
+}
+
+func TestRefreshAll_InvalidExpiresIn_KeepsStaleAndSetsBackoff(t *testing.T) {
+	fetcher := &mockFetcher{response: newTestResponse("tok-v1", 3600)}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	// Prime cache with a valid token.
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	if err != nil {
+		t.Fatalf("unexpected error priming cache: %v", err)
+	}
+	if resp.Access_token != "tok-v1" {
+		t.Fatalf("expected tok-v1, got %q", resp.Access_token)
+	}
+
+	// Refresh now returns invalid expiry.
+	zero := int32(0)
+	fetcher.setResponse(&zts.AccessTokenResponse{
+		Access_token: "tok-invalid",
+		Expires_in:   &zero,
+	}, nil)
+
+	c.refreshAll(context.Background())
+
+	c.mu.RLock()
+	key := tokenCacheKey("domain", "", "r1", "", "", "", 3600)
+	entry := c.entries[key]
+	c.mu.RUnlock()
+
+	if entry == nil {
+		t.Fatal("cache entry missing after refresh")
+	}
+	if entry.response.Access_token != "tok-v1" {
+		t.Errorf("expected stale tok-v1 to be kept, got %q", entry.response.Access_token)
+	}
+	if entry.retryAfter.Load() <= time.Now().Unix() {
+		t.Error("expected retryAfter to be set in the future on refresh failure")
+	}
+}
+
+func TestRefreshAll_EvictsIdleEntry(t *testing.T) {
+	fetcher := &mockFetcher{response: newTestResponse("tok-refresh", 3600)}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	key := tokenCacheKey("domain", "", "r1", "", "", "", 3600)
+	c.mu.Lock()
+	c.entries[key] = &accessTokenEntry{
+		response:     newTestResponse("tok-stale", 3600),
+		expiresAt:    time.Now().Add(10 * time.Minute),
+		serverExpiry: 10, // idle eviction threshold uses one token lifetime
+		domain:       "domain",
+		roles:        "r1",
+		expiryTime:   3600,
+	}
+	c.entries[key].lastUsed.Store(time.Now().Add(-20 * time.Second).Unix()) // idle > serverExpiry
+	c.mu.Unlock()
+
+	c.refreshAll(context.Background())
+
+	c.mu.RLock()
+	_, exists := c.entries[key]
+	c.mu.RUnlock()
+	if exists {
+		t.Fatal("expected idle entry to be evicted")
+	}
+	if got := fetcher.calls(); got != 0 {
+		t.Fatalf("expected no ZTS refresh call for evicted entry, got %d", got)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Retry backoff – ZTS failure should not cause fail-slow
+// ---------------------------------------------------------------------------
+
+// TestGetAccessToken_ZTSFailure_SetsRetryAfter verifies that when ZTS returns
+// an error and a stale token exists, subsequent calls within the backoff window
+// are served from cache immediately without re-trying ZTS.
+func TestGetAccessToken_ZTSFailure_SetsRetryAfter(t *testing.T) {
+	fetcher := &mockFetcher{response: newTestResponse("stale-tok", 3600)}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	// Prime the cache.
+	_, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	if err != nil {
+		t.Fatalf("unexpected error priming cache: %v", err)
+	}
+
+	// Force the cached entry to look stale so the slow path is triggered.
+	c.mu.Lock()
+	key := tokenCacheKey("domain", "", "r1", "", "", "", 3600)
+	c.entries[key].expiresAt = time.Now().Add(-time.Second)
+	c.mu.Unlock()
+
+	// Make ZTS fail.
+	fetcher.setResponse(nil, fmt.Errorf("zts down"))
+	callsBeforeFail := fetcher.calls()
+
+	// First call with a failing ZTS: should return stale token and set retryAfter.
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	if err != nil {
+		t.Fatalf("expected stale fallback, got error: %v", err)
+	}
+	if resp.Access_token != "stale-tok" {
+		t.Errorf("expected stale-tok, got %q", resp.Access_token)
+	}
+	if got := fetcher.calls() - callsBeforeFail; got != 1 {
+		t.Errorf("expected exactly 1 ZTS call on first failure, got %d", got)
+	}
+	callsAfterFirstFail := fetcher.calls()
+
+	// Subsequent calls within the backoff window must NOT call ZTS.
+	for i := 0; i < 5; i++ {
+		resp, err = c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+		if err != nil {
+			t.Fatalf("iteration %d: expected stale fallback, got error: %v", i, err)
+		}
+		if resp.Access_token != "stale-tok" {
+			t.Errorf("iteration %d: expected stale-tok, got %q", i, resp.Access_token)
+		}
+	}
+	if got := fetcher.calls(); got != callsAfterFirstFail {
+		t.Errorf("expected no additional ZTS calls during backoff window, got %d extra", got-callsAfterFirstFail)
+	}
+}
+
+// TestGetAccessToken_RetryAfterExpiry_RetriesZTS verifies that once the backoff
+// window passes, GetAccessToken resumes calling ZTS.
+func TestGetAccessToken_RetryAfterExpiry_RetriesZTS(t *testing.T) {
+	fetcher := &mockFetcher{response: newTestResponse("tok-v1", 3600)}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	// Prime the cache.
+	_, _ = c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+
+	// Mark entry as stale and simulate a ZTS failure to set retryAfter.
+	c.mu.Lock()
+	key := tokenCacheKey("domain", "", "r1", "", "", "", 3600)
+	c.entries[key].expiresAt = time.Now().Add(-time.Second)
+	c.mu.Unlock()
+	fetcher.setResponse(nil, fmt.Errorf("zts down"))
+	_, _ = c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+
+	// Expire the retryAfter window manually to simulate time passing.
+	c.mu.RLock()
+	entry := c.entries[key]
+	c.mu.RUnlock()
+	entry.retryAfter.Store(time.Now().Unix() - 1)
+
+	// ZTS is back up; the entry is still stale so the slow path triggers.
+	fetcher.setResponse(newTestResponse("tok-v2", 7200), nil)
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	if err != nil {
+		t.Fatalf("unexpected error after backoff expiry: %v", err)
+	}
+	if resp.Access_token != "tok-v2" {
+		t.Errorf("expected tok-v2 after recovery, got %q", resp.Access_token)
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Concurrent background refresh
+// ---------------------------------------------------------------------------
+
+// TestRefreshAll_Concurrent verifies that refreshAll runs token fetches
+// concurrently: with a 50 ms delay per call and 5 entries, total time should
+// be well under 5×50 ms (sequential) and close to 50 ms (parallel).
+func TestRefreshAll_Concurrent(t *testing.T) {
+	const entries = 5
+	fetcher := &mockFetcher{
+		response: newTestResponse("tok", 3600),
+		delay:    50 * time.Millisecond,
+	}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	// Populate the cache with distinct keys.
+	for i := 0; i < entries; i++ {
+		domain := fmt.Sprintf("domain-%d", i)
+		_, err := c.GetAccessToken(domain, "", "r1", "", "", "", 3600)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	}
+
+	start := time.Now()
+	c.refreshAll(context.Background())
+	elapsed := time.Since(start)
+
+	// Concurrent execution: should finish in roughly one delay slot, not entries×delay.
+	limit := time.Duration(entries) * 50 * time.Millisecond / 2 // 125 ms — well under sequential 250 ms
+	if elapsed > limit {
+		t.Errorf("refreshAll took %v; expected concurrent execution (< %v)", elapsed, limit)
 	}
 }
 
