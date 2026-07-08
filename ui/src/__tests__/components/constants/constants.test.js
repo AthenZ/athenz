@@ -41,14 +41,24 @@ describe('Group member name regex', () => {
                 GROUP_MEMBER_NAME_REGEX
             )
         ).toBeTruthy();
+        expect(
+            RegexUtils.validate(
+                'athenz:ext.oidc/group/my-group',
+                GROUP_MEMBER_NAME_REGEX
+            )
+        ).toBeTruthy();
     });
 
     it('rejects invalid group member names', () => {
+        expect(RegexUtils.validate('*', GROUP_MEMBER_NAME_REGEX)).toBeFalsy();
         expect(
             RegexUtils.validate('home.test:group.test', GROUP_MEMBER_NAME_REGEX)
         ).toBeFalsy();
         expect(
             RegexUtils.validate('user.test1.', GROUP_MEMBER_NAME_REGEX)
+        ).toBeFalsy();
+        expect(
+            RegexUtils.validate('athenz:ext.', GROUP_MEMBER_NAME_REGEX)
         ).toBeFalsy();
         expect(
             RegexUtils.validate(
