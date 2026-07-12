@@ -240,6 +240,11 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
      * is equivalent to a plain getAuthToken() call against the default region only.
      */
     String getAuthTokenFromCandidateRegions(String hostname, int port, String rdsUser) {
+
+        if (hostname == null) {
+            return null;
+        }
+
         // if no additional candidate regions are configured, just use the default region
         if (candidateRegions.isEmpty()) {
             return getAuthToken(hostname, port, rdsUser);
@@ -273,6 +278,8 @@ public class AWSObjectStoreFactory implements ObjectStoreFactory {
         Properties properties = buildSslProperties();
         properties.setProperty(DB_PROP_USER, rdsUser);
         properties.setProperty(DB_PROP_PASSWORD, token);
+        properties.setProperty("connectTimeout", "5000");
+        properties.setProperty("socketTimeout", "5000");
 
         try (Connection connection = DriverManager.getConnection(jdbcUrl, properties)) {
             return connection != null;

@@ -21,6 +21,7 @@ import com.yahoo.athenz.common.server.store.ObjectStore;
 import com.yahoo.athenz.common.server.store.impl.JDBCConsts;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import software.amazon.awssdk.regions.Region;
@@ -29,10 +30,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
 
 public class AWSObjectStoreFactoryTest {
 
@@ -125,17 +124,19 @@ public class AWSObjectStoreFactoryTest {
         System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME);
     }
 
-    @Test
-    public void testParseCandidateRegions() {
+    @DataProvider(name = "candidateRegionsProvider")
+    public Object[][] candidateRegionsProvider() {
+        return new Object[][] {
+            { null, List.of() },
+            { "", List.of() },
+            { "  ", List.of() },
+            { " us-west-2 , eu-west-1 ,,", List.of(Region.US_WEST_2, Region.EU_WEST_1) },
+        };
+    }
 
-        assertTrue(AWSObjectStoreFactory.parseCandidateRegions(null).isEmpty());
-        assertTrue(AWSObjectStoreFactory.parseCandidateRegions("").isEmpty());
-        assertTrue(AWSObjectStoreFactory.parseCandidateRegions("  ").isEmpty());
-
-        List<Region> regions = AWSObjectStoreFactory.parseCandidateRegions(" us-west-2 , eu-west-1 ,,");
-        assertEquals(regions.size(), 2);
-        assertEquals(regions.get(0), Region.US_WEST_2);
-        assertEquals(regions.get(1), Region.EU_WEST_1);
+    @Test(dataProvider = "candidateRegionsProvider")
+    public void testParseCandidateRegions(String input, List<Region> expected) {
+        assertEquals(AWSObjectStoreFactory.parseCandidateRegions(input), expected);
     }
 
     @Test
