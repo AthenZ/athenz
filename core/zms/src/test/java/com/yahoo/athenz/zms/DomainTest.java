@@ -89,7 +89,7 @@ public class DomainTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setExternalMemberValidator("ext-validator");
+                .setExternalMemberValidator("ext-validator").setCostCenter("cost-center");
 
         Validator.Result result = validator.validate(dm, "DomainMeta");
         assertTrue(result.valid);
@@ -131,6 +131,7 @@ public class DomainTest {
         assertEquals(dm.getOnCall(), "oncall");
         assertTrue(dm.getAutoDeleteTenantAssumeRoleAssertions());
         assertEquals(dm.getExternalMemberValidator(), "ext-validator");
+        assertEquals(dm.getCostCenter(), "cost-center");
 
         DomainMeta dm2 = new DomainMeta().init();
         dm2.setDescription("domain desc").setOrg("org:test").setEnabled(true).setAuditEnabled(false)
@@ -146,10 +147,17 @@ public class DomainTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setExternalMemberValidator("ext-validator");
+                .setExternalMemberValidator("ext-validator").setCostCenter("cost-center");
 
         assertEquals(dm, dm2);
         assertEquals(dm, dm);
+
+        dm2.setCostCenter("cost-center2");
+        assertNotEquals(dm, dm2);
+        dm2.setCostCenter(null);
+        assertNotEquals(dm, dm2);
+        dm2.setCostCenter("cost-center");
+        assertEquals(dm, dm2);
 
         dm2.setExternalMemberValidator("ext-validator2");
         assertNotEquals(dm, dm2);
@@ -416,7 +424,8 @@ public class DomainTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator")
+                .setCostCenter("cost-center");
 
         result = validator.validate(tld, "TopLevelDomain");
         assertTrue(result.valid);
@@ -461,6 +470,7 @@ public class DomainTest {
         assertEquals(tld.getOnCall(), "oncall");
         assertTrue(tld.getAutoDeleteTenantAssumeRoleAssertions());
         assertEquals(tld.getExternalMemberValidator(), "ext-validator");
+        assertEquals(tld.getCostCenter(), "cost-center");
 
         TopLevelDomain tld2 = new TopLevelDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
@@ -475,10 +485,18 @@ public class DomainTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator")
+                .setCostCenter("cost-center");
 
         assertEquals(tld, tld2);
         assertEquals(tld, tld);
+
+        tld2.setCostCenter("cost-center2");
+        assertNotEquals(tld, tld2);
+        tld2.setCostCenter(null);
+        assertNotEquals(tld, tld2);
+        tld2.setCostCenter("cost-center");
+        assertEquals(tld, tld2);
 
         tld2.setExternalMemberValidator("ext-validator2");
         assertNotEquals(tld, tld2);
@@ -731,7 +749,8 @@ public class DomainTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator")
+                .setCostCenter("cost-center");
 
         Validator.Result result = validator.validate(sd, "SubDomain");
         assertTrue(result.valid, result.error);
@@ -777,6 +796,7 @@ public class DomainTest {
         assertEquals(sd.getOnCall(), "oncall");
         assertTrue(sd.getAutoDeleteTenantAssumeRoleAssertions());
         assertEquals(sd.getExternalMemberValidator(), "ext-validator");
+        assertEquals(sd.getCostCenter(), "cost-center");
 
         SubDomain sd2 = new SubDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testdomain").setAdminUsers(admins)
@@ -793,11 +813,19 @@ public class DomainTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator")
+                .setCostCenter("cost-center");
 
         assertEquals(sd, sd2);
         assertEquals(sd, sd);
         assertNotEquals(schema, sd);
+
+        sd2.setCostCenter("cost-center2");
+        assertNotEquals(sd, sd2);
+        sd2.setCostCenter(null);
+        assertNotEquals(sd, sd2);
+        sd2.setCostCenter("cost-center");
+        assertEquals(sd, sd2);
 
         sd2.setExternalMemberValidator("ext-validator2");
         assertNotEquals(sd, sd2);
@@ -1048,7 +1076,8 @@ public class DomainTest {
                 .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator")
+                .setCostCenter("cost-center");
 
         Validator.Result result = validator.validate(ud, "UserDomain");
         assertTrue(result.valid);
@@ -1092,6 +1121,7 @@ public class DomainTest {
         assertEquals(ud.getOnCall(), "oncall");
         assertTrue(ud.getAutoDeleteTenantAssumeRoleAssertions());
         assertEquals(ud.getExternalMemberValidator(), "ext-validator");
+        assertEquals(ud.getCostCenter(), "cost-center");
 
         UserDomain ud2 = new UserDomain().setDescription("domain desc").setOrg("org:test").setEnabled(true)
                 .setAuditEnabled(false).setAccount("aws").setYpmId(10).setName("testuser")
@@ -1107,10 +1137,18 @@ public class DomainTest {
                 .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator")
+                .setCostCenter("cost-center");
 
         assertEquals(ud, ud2);
         assertEquals(ud, ud);
+
+        ud2.setCostCenter("cost-center2");
+        assertNotEquals(ud, ud2);
+        ud2.setCostCenter(null);
+        assertNotEquals(ud, ud2);
+        ud2.setCostCenter("cost-center");
+        assertEquals(ud, ud2);
 
         ud2.setExternalMemberValidator("ext-validator2");
         assertNotEquals(ud, ud2);
@@ -1381,7 +1419,8 @@ public class DomainTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator")
+                .setCostCenter("cost-center");
 
         Validator.Result result = validator.validate(d, "Domain");
         assertTrue(result.valid);
@@ -1426,6 +1465,7 @@ public class DomainTest {
         assertEquals(d.getOnCall(), "oncall");
         assertTrue(d.getAutoDeleteTenantAssumeRoleAssertions());
         assertEquals(d.getExternalMemberValidator(), "ext-validator");
+        assertEquals(d.getCostCenter(), "cost-center");
 
         Domain d2 = new Domain();
         d2.setName("test.domain").setModified(Timestamp.fromMillis(123456789123L)).setId(UUID.fromMillis(100))
@@ -1442,10 +1482,18 @@ public class DomainTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setMetaOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator")
+                .setCostCenter("cost-center");
 
         assertEquals(d, d2);
         assertEquals(d, d);
+
+        d2.setCostCenter("cost-center2");
+        assertNotEquals(d, d2);
+        d2.setCostCenter(null);
+        assertNotEquals(d, d2);
+        d2.setCostCenter("cost-center");
+        assertEquals(d, d2);
 
         d2.setExternalMemberValidator("ext-validator2");
         assertNotEquals(d, d2);

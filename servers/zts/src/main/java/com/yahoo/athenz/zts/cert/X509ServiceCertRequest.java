@@ -18,6 +18,7 @@ package com.yahoo.athenz.zts.cert;
 import java.util.List;
 import java.util.Set;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.common.server.cert.CertificateDataValidator;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.spiffe.SpiffeUriManager;
 import com.yahoo.athenz.zts.cache.DataCache;
@@ -25,14 +26,25 @@ import org.eclipse.jetty.util.StringUtil;
 
 public class X509ServiceCertRequest extends X509CertRequest {
 
-    public X509ServiceCertRequest(String csr, SpiffeUriManager spiffeUriManager) throws CryptoException {
-        super(csr, spiffeUriManager);
+    public X509ServiceCertRequest(String csr, SpiffeUriManager spiffeUriManager,
+            CertificateDataValidator certificateDataValidator) throws CryptoException {
+        super(csr, spiffeUriManager, certificateDataValidator);
     }
 
     public boolean validate(final String domainName, final String serviceName, final String provider,
             final Set<String> validSubjectOValues, final DataCache athenzSysDomainCache,
             final String serviceDnsSuffix, final String instanceHostname, final List<String> instanceHostCnames,
-            HostnameResolver hostnameResolver, final String namespace, StringBuilder errorMsg) {
+            HostnameResolver hostnameResolver, final String namespace, final boolean validateCertUriSchemes,
+            StringBuilder errorMsg) {
+
+        // validate and report any invalid URI schemes in the request
+        // if we're configured not to reject the request, we'll just
+        // log the invalid values so the system admin can follow up with
+        // respective users before enabling the feature
+
+        if (!validateSanUriSchemes(validateCertUriSchemes)) {
+            return false;
+        }
 
         // instanceId must be non-empty
 

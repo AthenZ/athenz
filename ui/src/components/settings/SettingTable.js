@@ -39,6 +39,11 @@ import { selectIsLoading } from '../../redux/selectors/loading';
 import { selectAuthorityAttributes } from '../../redux/selectors/domains';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
 import { selectDomainAuditEnabled } from '../../redux/selectors/domainData';
+import {
+    isRoleResourceMetaManaged,
+    resolveResourceOwnershipCliOnError,
+} from '../utils/resourceOwnership';
+import { cliRoleMetaDiff } from '../utils/zmsCliCommands';
 
 const StyleTable = styled.table`
     width: 100%;
@@ -115,6 +120,7 @@ class SettingTable extends React.Component {
             showSubmit: false,
             showSuccess: false,
             errorMessage: null,
+            resourceOwnershipCliCommand: null,
             enableSubmit: false,
             boolUserAuthorityAttributes: boolUserAuthorityAttributes,
             dateUserAuthorityAttributes: dateUserAuthorityAttributes,
@@ -216,6 +222,7 @@ class SettingTable extends React.Component {
             showSubmit: false,
             showSuccess: false,
             errorMessage: null,
+            resourceOwnershipCliCommand: null,
             enableSubmit: false,
         });
     }
@@ -238,6 +245,7 @@ class SettingTable extends React.Component {
         this.setState({
             showSubmit: false,
             errorMessage: null,
+            resourceOwnershipCliCommand: null,
             justification: '',
         });
     }
@@ -259,6 +267,7 @@ class SettingTable extends React.Component {
         this.setState({
             showSuccess: null,
             errorMessage: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
@@ -326,6 +335,7 @@ class SettingTable extends React.Component {
                     originalCollectionDetails: newCollectionDetails,
                     copyCollectionDetails: _.cloneDeep(newCollectionDetails),
                     errorMessage: null,
+                    resourceOwnershipCliCommand: null,
                     showSuccess: true,
                     showSubmit: false,
                     enableSubmit: false,
@@ -340,8 +350,30 @@ class SettingTable extends React.Component {
                 );
             })
             .catch((err) => {
+                const errMsg = RequestUtils.xhrErrorCheckHelper(err);
+                const aud = this.props.isDomainAuditEnabled
+                    ? this.state.justification
+                    : null;
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: errMsg,
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            this.props.category === 'role' &&
+                                isRoleResourceMetaManaged(
+                                    this.props.collectionDetails
+                                        .resourceOwnership
+                                ),
+                            err,
+                            (zmsUrl) =>
+                                cliRoleMetaDiff(
+                                    this.props.domain,
+                                    this.props.collection,
+                                    this.state.originalCollectionDetails,
+                                    this.state.copyCollectionDetails,
+                                    aud,
+                                    zmsUrl
+                                )
+                        ),
                 });
             });
     }
@@ -364,6 +396,9 @@ class SettingTable extends React.Component {
                 showJustification={this.props.isDomainAuditEnabled}
                 onJustification={this.saveJustification}
                 errorMessage={this.state.errorMessage}
+                resourceOwnershipCliCommand={
+                    this.state.resourceOwnershipCliCommand
+                }
             />
         ) : (
             ''

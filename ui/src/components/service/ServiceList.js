@@ -36,6 +36,11 @@ import {
     selectShowMicrosegmentation,
 } from '../../redux/selectors/domains';
 import { ReduxPageLoader } from '../denali/ReduxPageLoader';
+import {
+    isServiceResourceObjectManaged,
+    resolveResourceOwnershipCliOnError,
+} from '../utils/resourceOwnership';
+import { cliDeleteService } from '../utils/zmsCliCommands';
 
 const ServicesSectionDiv = styled.div`
     margin: 20px;
@@ -88,21 +93,39 @@ class ServiceList extends React.Component {
     }
 
     onSubmitDeleteService() {
+        const deletedName = this.state.deleteServiceName;
         this.props
-            .deleteService(
-                this.props.domain,
-                this.state.deleteServiceName,
-                this.props._csrf
-            )
+            .deleteService(this.props.domain, deletedName, this.props._csrf)
             .then(() => {
+                this.setState({
+                    deleteServiceName: null,
+                    deleteServiceResourceOwnership: null,
+                    errorMessage: null,
+                    resourceOwnershipCliCommand: null,
+                });
                 this.reloadServices(
-                    `Successfully deleted service ${this.state.deleteServiceName}`,
+                    `Successfully deleted service ${deletedName}`,
                     true
                 );
             })
             .catch((err) => {
                 this.setState({
                     errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            isServiceResourceObjectManaged(
+                                this.state.deleteServiceResourceOwnership
+                            ),
+                            err,
+                            (zmsUrl) =>
+                                cliDeleteService(
+                                    this.props.domain,
+                                    deletedName,
+                                    null,
+                                    zmsUrl
+                                ),
+                            { when: !!deletedName }
+                        ),
                 });
             });
     }
@@ -111,18 +134,33 @@ class ServiceList extends React.Component {
         this.setState({
             showDelete: false,
             deleteServiceName: null,
+            deleteServiceResourceOwnership: null,
+            errorMessage: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
     onClickDeleteService(serviceName) {
+        const svc = (this.props.services || []).find(
+            (s) => NameUtils.getShortName('.', s.name) === serviceName
+        );
         this.setState({
             showDelete: true,
             deleteServiceName: serviceName,
+            deleteServiceResourceOwnership: svc?.resourceOwnership ?? null,
             errorMessage: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
     buildServiceRows(services) {
+        const managedResourceIconStripMaxIcons =
+            services &&
+            services.some((item) =>
+                isServiceResourceObjectManaged(item.resourceOwnership)
+            )
+                ? 1
+                : 0;
         const rows = services
             ? services.map((item, i) => {
                   const serviceName = NameUtils.getShortName('.', item.name);
@@ -153,6 +191,10 @@ class ServiceList extends React.Component {
                           }
                           _csrf={this.props._csrf}
                           onClickDeleteService={onClickDeleteService}
+                          resourceOwnership={item.resourceOwnership}
+                          managedResourceIconStripMaxIcons={
+                              managedResourceIconStripMaxIcons
+                          }
                       />
                   );
                   return toReturn;
@@ -286,6 +328,9 @@ class ServiceList extends React.Component {
                         cancel={this.onCancelDeleteService}
                         submit={this.onSubmitDeleteService}
                         errorMessage={this.state.errorMessage}
+                        resourceOwnershipCliCommand={
+                            this.state.resourceOwnershipCliCommand
+                        }
                         message={
                             'Are you sure you want to permanently delete the Service '
                         }

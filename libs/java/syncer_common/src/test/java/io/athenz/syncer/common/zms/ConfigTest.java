@@ -70,6 +70,8 @@ public class ConfigTest {
         Assert.assertEquals(configInstance.getConfigParam(Config.SYNC_CFG_PARAM_TRUST_STORE_PASSWORD), "truststore_password");
         Assert.assertEquals(configInstance.getConfigParam(Config.SYNC_CFG_PARAM_STATE_BUILDER_THREADS), "10");
         Assert.assertEquals(configInstance.getConfigParam(Config.SYNC_CFG_PARAM_STATE_BUILDER_TIMEOUT), "1800");
+        Assert.assertEquals(configInstance.getConfigParam(Config.SYNC_CFG_PARAM_DOMAIN_UPDATE_FETCH_THREADS), "1");
+        Assert.assertEquals(configInstance.getConfigParam(Config.SYNC_CFG_PARAM_DOMAIN_REFRESH_FETCH_THREADS), "1");
     }
 
     @Test
@@ -219,4 +221,3 @@ public class ConfigTest {
     }
 
 }
-

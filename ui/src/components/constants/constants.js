@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CLIENT_CONFIG } from '../../config/client-config';
+import {
+    CLIENT_CONFIG,
+    readResourceOwnershipUiFromEnv,
+} from '../../config/client-config';
 
 export const MODAL_TIME_OUT = 2000;
 export const GROUP_NAME_REGEX =
@@ -292,4 +295,10 @@ export const ONCALL_URL = CLIENT_CONFIG.onCallUrl;
 const _ORGANIZATION_DOMAIN = CLIENT_CONFIG.organizationDomain;
 export function getOrganizationDomain() {
     return _ORGANIZATION_DOMAIN;
+}
+
+const _RESOURCE_OWNERSHIP_UI = readResourceOwnershipUiFromEnv();
+/** Merged resourceOwnershipUi defaults (default-config + extended-config). */
+export function getResourceOwnershipUiDefaults() {
+    return _RESOURCE_OWNERSHIP_UI;
 }

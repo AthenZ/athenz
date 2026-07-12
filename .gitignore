@@ -172,3 +172,4 @@ pids
 
 .vscode/
 .cursor/
+provider/spacelift/sia-spacelift/__pycache__/

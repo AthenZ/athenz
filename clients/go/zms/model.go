@@ -410,6 +410,11 @@ type DomainMeta struct {
 	// class name responsible for validating external members
 	//
 	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// cost center for this domain for any chargebacks
+	//
+	CostCenter string `json:"costCenter" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewDomainMeta - creates an initialized DomainMeta instance, returns a pointer to it
@@ -580,6 +585,12 @@ func (self *DomainMeta) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.ExternalMemberValidator)
 		if !val.Valid {
 			return fmt.Errorf("DomainMeta.externalMemberValidator does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.CostCenter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.CostCenter)
+		if !val.Valid {
+			return fmt.Errorf("DomainMeta.costCenter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	return nil
@@ -782,6 +793,11 @@ type Domain struct {
 	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// cost center for this domain for any chargebacks
+	//
+	CostCenter string `json:"costCenter" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// the common name to be referred to, the symbolic id. It is immutable
 	//
 	Name DomainName `json:"name"`
@@ -965,6 +981,12 @@ func (self *Domain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.ExternalMemberValidator)
 		if !val.Valid {
 			return fmt.Errorf("Domain.externalMemberValidator does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.CostCenter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.CostCenter)
+		if !val.Valid {
+			return fmt.Errorf("Domain.costCenter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -5570,6 +5592,11 @@ type TopLevelDomain struct {
 	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// cost center for this domain for any chargebacks
+	//
+	CostCenter string `json:"costCenter" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -5756,6 +5783,12 @@ func (self *TopLevelDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.ExternalMemberValidator)
 		if !val.Valid {
 			return fmt.Errorf("TopLevelDomain.externalMemberValidator does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.CostCenter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.CostCenter)
+		if !val.Valid {
+			return fmt.Errorf("TopLevelDomain.costCenter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -5964,6 +5997,11 @@ type SubDomain struct {
 	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// cost center for this domain for any chargebacks
+	//
+	CostCenter string `json:"costCenter" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name SimpleName `json:"name"`
@@ -6155,6 +6193,12 @@ func (self *SubDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.ExternalMemberValidator)
 		if !val.Valid {
 			return fmt.Errorf("SubDomain.externalMemberValidator does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.CostCenter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.CostCenter)
+		if !val.Valid {
+			return fmt.Errorf("SubDomain.costCenter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -6372,6 +6416,11 @@ type UserDomain struct {
 	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// cost center for this domain for any chargebacks
+	//
+	CostCenter string `json:"costCenter" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// user id which will be the domain name
 	//
 	Name SimpleName `json:"name"`
@@ -6550,6 +6599,12 @@ func (self *UserDomain) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.ExternalMemberValidator)
 		if !val.Valid {
 			return fmt.Errorf("UserDomain.externalMemberValidator does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.CostCenter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.CostCenter)
+		if !val.Valid {
+			return fmt.Errorf("UserDomain.costCenter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {
@@ -8053,6 +8108,11 @@ type DomainData struct {
 	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// cost center for this domain for any chargebacks
+	//
+	CostCenter string `json:"costCenter" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// name of the domain
 	//
 	Name DomainName `json:"name"`
@@ -8271,6 +8331,12 @@ func (self *DomainData) Validate() error {
 		val := rdl.Validate(ZMSSchema(), "String", self.ExternalMemberValidator)
 		if !val.Valid {
 			return fmt.Errorf("DomainData.externalMemberValidator does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.CostCenter != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.CostCenter)
+		if !val.Valid {
+			return fmt.Errorf("DomainData.costCenter does not contain a valid String (%v)", val.Error)
 		}
 	}
 	if self.Name == "" {

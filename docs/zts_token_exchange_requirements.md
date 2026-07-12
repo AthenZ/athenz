@@ -28,6 +28,16 @@ Requirements:
 - Checks if the subject token audience matches the principal name
 - If not, retrieves the service client ID assigned to the principal. If an external identity
   provider is used, it fetches the token audience and validates that the client ID matches the token audience
+- For public clients that cannot authenticate with a service certificate, a user certificate can bind
+  the request to the ID token instead. This is required for local agent executions where Copper Argos
+  cannot practically issue or distribute a workload X.509 certificate because the agent is running as a
+  user-controlled native application rather than as a provider-attested workload. In that case, the
+  client must be treated as a public client, and the user's X.509 certificate is the available Athenz
+  credential for proving the same user is presenting the ID token. If the authenticated principal is in
+  the configured Athenz user domain, was authenticated with an X.509 certificate, the ID token has a
+  non-empty audience, and the authenticated principal matches the subject identity in the ID token, ZTS
+  accepts the subject token even when its audience is the public client rather than the authenticated
+  principal name or service client ID.
 
 2. Role Names Validation
 
@@ -144,6 +154,7 @@ Requirements:
 - The token request must have a valid `audience` parameter specified
 - The token request must have the `scope` parameter set to the list of roles being requested in the
   format: `{domainName}:role.{roleName} {domainName}:role.{roleName} ...`
+- If the `subject_token` includes a SPIFFE ID in the `spiffe` claim, ZTS copies it into the issued access token `spiffe` claim.
 
 1. Role Names Validation
 
@@ -184,6 +195,7 @@ Requirements:
   parameter set to `urn:ietf:params:oauth:token-type:id_token`, `urn:ietf:params:oauth:token-type:id-access-token` or
   `urn:ietf:params:oauth:token-type:jwt`
 - The subject_token must have a valid `may_act` claim that includes a `sub` claim that matches the actor_token's subject
+- If the `subject_token` includes a SPIFFE ID in the `spiffe` claim, ZTS copies it into the issued access token `spiffe` claim.
 
 1. Role Names Validation
 

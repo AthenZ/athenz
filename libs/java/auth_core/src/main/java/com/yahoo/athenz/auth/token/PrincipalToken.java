@@ -183,10 +183,6 @@ public class PrincipalToken extends Token {
     }
 
     public PrincipalToken(String signedToken) {
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Constructing PrincipalToken with input string: {}", signedToken);
-        }
         
         if (signedToken == null || signedToken.isEmpty()) {
             throw new IllegalArgumentException("Input String signedToken must not be empty");
@@ -235,6 +231,10 @@ public class PrincipalToken extends Token {
         }
 
         final String parseToken = unsignedToken != null ? unsignedToken : signedToken;
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Constructing PrincipalToken with input string: {}", parseToken);
+        }
+
         for (String item : parseToken.split(";")) {
             String [] kv = item.split("=");
             if (kv.length == 2) {

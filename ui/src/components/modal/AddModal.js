@@ -17,8 +17,8 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Button from '../denali/Button';
 import Modal from '../denali/Modal';
-import Color from '../denali/Color';
 import Loader from '../denali/Loader';
+import ResourceOwnershipModalFeedback from '../resource-ownership/ResourceOwnershipModalFeedback';
 
 const MessageDiv = styled.div`
     text-align: left;
@@ -88,13 +88,19 @@ export default class AddModal extends React.Component {
                 >
                     {this.props.sections}
                 </MessageDiv>
-                {this.props.errorMessage && (
-                    <Color name={'red600'}>{this.props.errorMessage}</Color>
-                )}
+                <ResourceOwnershipModalFeedback
+                    errorMessage={this.props.errorMessage}
+                    resourceOwnershipCliCommand={
+                        this.props.resourceOwnershipCliCommand
+                    }
+                />
                 <ButtonDiv>
                     <ModifiedButton
                         onClick={this.props.submit}
-                        disabled={this.props.saving === 'saving'}
+                        disabled={
+                            this.props.saving === 'saving' ||
+                            !!this.props.resourceOwnershipCliCommand
+                        }
                     >
                         Submit
                         <StyledLoaderSpan>

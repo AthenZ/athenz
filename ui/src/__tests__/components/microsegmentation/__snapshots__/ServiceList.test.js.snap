@@ -23,7 +23,7 @@ exports[`ServiceList should render 1`] = `
   max-height: 600px;
 }
 
-.emotion-4:nth-child(even) {
+.emotion-4:nth-of-type(even) {
   background-color: #3570f40d;
 }
 

@@ -9,8 +9,11 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { credentials } from '@grpc/grpc-js';
 import { readFileSync } from 'fs';
 import { RuntimeNodeInstrumentation } from '@opentelemetry/instrumentation-runtime-node';
-import { Resource } from '@opentelemetry/resources';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
+import { resourceFromAttributes } from '@opentelemetry/resources';
+import {
+    ATTR_SERVICE_NAME,
+    ATTR_SERVICE_NAMESPACE,
+} from '@opentelemetry/semantic-conventions';
 
 const STATIC_ASSET_EXTENSIONS = ['.js', '.css', '.svg', '.js.map', '.webp'];
 
@@ -65,11 +68,10 @@ if (caPath) {
 
 // Initialize OpenTelemetry SDK
 const sdk = new NodeSDK({
-    resource: new Resource({
-        [SemanticResourceAttributes.SERVICE_NAME]: 'athenz-ui',
-        [SemanticResourceAttributes.SERVICE_NAMESPACE]: 'AthenzUI',
-        [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]:
-            process.env.ENVIRONMENT || 'local',
+    resource: resourceFromAttributes({
+        [ATTR_SERVICE_NAME]: 'athenz-ui',
+        [ATTR_SERVICE_NAMESPACE]: 'AthenzUI',
+        'deployment.environment': process.env.ENVIRONMENT || 'local',
     }),
 
     traceExporter: new OTLPTraceExporter(exporterOptions),

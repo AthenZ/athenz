@@ -191,7 +191,7 @@ exports[`ServiceList should render add service modal after click 1`] = `
           <svg
             class="emotion-25"
             data-testid="icon"
-            data-wdio=""
+            data-wdio="service-pubkeys-openhouse"
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -460,7 +460,7 @@ exports[`ServiceList should render delete service modal error(other) after click
           <svg
             class="emotion-25"
             data-testid="icon"
-            data-wdio=""
+            data-wdio="service-pubkeys-openhouse"
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -719,7 +719,7 @@ exports[`ServiceList should render delete service modal error(refresh) after cli
           <svg
             class="emotion-25"
             data-testid="icon"
-            data-wdio=""
+            data-wdio="service-pubkeys-openhouse"
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -978,7 +978,7 @@ exports[`ServiceList should render serviceList again after cancel delete 1`] = `
           <svg
             class="emotion-25"
             data-testid="icon"
-            data-wdio=""
+            data-wdio="service-pubkeys-openhouse"
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"
@@ -1387,7 +1387,7 @@ exports[`ServiceList should render with services 1`] = `
           <svg
             class="emotion-25"
             data-testid="icon"
-            data-wdio=""
+            data-wdio="service-pubkeys-openhouse"
             height="1.25em"
             id=""
             viewBox="0 0 1024 1024"

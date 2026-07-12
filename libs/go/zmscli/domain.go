@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v3"
 
 	"github.com/AthenZ/athenz/clients/go/zms"
 )
@@ -1341,6 +1341,23 @@ func (cli Zms) SetDomainCertDnsDomain(dn string, dnsDomain string) (*string, err
 		return nil, err
 	}
 	s := "[domain " + dn + " cert-dns-domain successfully updated]\n"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
+func (cli Zms) SetDomainCostCenter(dn string, costCenter string) (*string, error) {
+	meta := zms.DomainMeta{
+		CostCenter: costCenter,
+	}
+	err := cli.Zms.PutDomainSystemMeta(zms.DomainName(dn), "costcenter", cli.AuditRef, &meta)
+	if err != nil {
+		return nil, err
+	}
+	s := "[domain " + dn + " cost-center successfully updated]\n"
 	message := SuccessMessage{
 		Status:  200,
 		Message: s,

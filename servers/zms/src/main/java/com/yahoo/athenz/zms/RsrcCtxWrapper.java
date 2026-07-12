@@ -28,6 +28,8 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.server.rest.Http;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -35,20 +37,28 @@ import java.util.List;
 
 public class RsrcCtxWrapper implements ResourceContext {
 
+    private static final Logger LOG = LoggerFactory.getLogger(RsrcCtxWrapper.class);
+
     private final ServerResourceContext ctx;
     private final Object timerMetric;
     private final boolean optionalAuth;
     private final String apiName;
     private final boolean eventPublishersEnabled;
+    private final Authority userAuthority;
+    private final String userDomain;
+    private boolean principalValidated = false;
     private List<DomainChangeMessage> domainChangeMessages;
-    
+
     RsrcCtxWrapper(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response,
                    Http.AuthorityList authList, boolean optionalAuth, Authorizer authorizer, Object timerMetric,
-                   final String apiName, boolean eventPublishersEnabled) {
+                   final String apiName, boolean eventPublishersEnabled,
+                   Authority userAuthority, String userDomain) {
         this.optionalAuth = optionalAuth;
         this.timerMetric = timerMetric;
         this.apiName = apiName.toLowerCase();
         this.eventPublishersEnabled = eventPublishersEnabled;
+        this.userAuthority = userAuthority;
+        this.userDomain = userDomain;
         ctx = new ServerResourceContext(servletContext, request,
                 response, authList, authorizer);
     }
@@ -102,6 +112,7 @@ public class RsrcCtxWrapper implements ResourceContext {
     public void authenticate() {
         try {
             ctx.authenticate(optionalAuth);
+            validateUserPrincipal(principal());
         } catch (ServerResourceException restExc) {
             throwZmsException(restExc);
         }
@@ -111,9 +122,24 @@ public class RsrcCtxWrapper implements ResourceContext {
     public void authorize(String action, String resource, String trustedDomain) {
         try {
             ctx.authorize(action, resource, trustedDomain);
+            validateUserPrincipal(principal());
         } catch (ServerResourceException restExc) {
             logPrincipal();
             throwZmsException(restExc);
+        }
+    }
+
+    void validateUserPrincipal(final Principal principal) throws ServerResourceException {
+        if (principalValidated || principal == null || userAuthority == null || userDomain == null) {
+            return;
+        }
+        principalValidated = true;
+        if (!userDomain.equals(principal.getDomain())) {
+            return;
+        }
+        if (userAuthority.getUserType(principal.getFullName()) != Authority.UserType.USER_ACTIVE) {
+            LOG.error("validateUserPrincipal: user {} is not valid", principal.getFullName());
+            throw new ServerResourceException(ServerResourceException.UNAUTHORIZED, "user is not valid");
         }
     }
 

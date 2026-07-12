@@ -17,8 +17,8 @@ import React from 'react';
 import styled from '@emotion/styled';
 import Button from '../denali/Button';
 import Modal from '../denali/Modal';
-import Color from '../denali/Color';
 import Input from '../denali/Input';
+import ResourceOwnershipModalFeedback from '../resource-ownership/ResourceOwnershipModalFeedback';
 
 const StyledModal = styled(Modal)`
     width: 600px;
@@ -92,13 +92,17 @@ export default class DeleteModal extends React.Component {
                         />
                     </MessageDiv>
                 )}
-                {this.props.errorMessage && (
-                    <Color name={'red600'}>{this.props.errorMessage}</Color>
-                )}
+                <ResourceOwnershipModalFeedback
+                    errorMessage={this.props.errorMessage}
+                    resourceOwnershipCliCommand={
+                        this.props.resourceOwnershipCliCommand
+                    }
+                />
                 <ButtonDiv>
                     <ModifiedButton
                         danger
                         onClick={this.props.submit}
+                        disabled={!!this.props.resourceOwnershipCliCommand}
                         data-testid={'delete-modal-delete'}
                     >
                         Delete

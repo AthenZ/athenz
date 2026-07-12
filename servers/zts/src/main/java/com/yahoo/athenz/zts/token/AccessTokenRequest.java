@@ -19,6 +19,8 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.OAuth2Token;
+import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
+import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import org.eclipse.jetty.util.StringUtil;
@@ -67,6 +69,8 @@ public class AccessTokenRequest {
     private static final String KEY_ACTOR = "actor";
     private static final String KEY_ACTOR_TOKEN = "actor_token";
     private static final String KEY_ACTOR_TOKEN_TYPE = "actor_token_type";
+    private static final String KEY_FULL_ARN = "full_arn";
+    private static final String KEY_ROLE_IN_AUD_CLAIM = "role_in_aud_claim";
 
     private static final String OAUTH_ASSERTION_TYPE_JWT_BEARER = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 
@@ -93,6 +97,8 @@ public class AccessTokenRequest {
     Principal principal = null;
     int expiryTime = 0;
     boolean useOpenIDIssuer = false;
+    boolean fullArn = false;
+    boolean roleInAudClaim = false;
     RequestType requestType;
     OAuth2Token actorTokenObj = null;
     OAuth2Token subjectTokenObj = null;
@@ -141,6 +147,12 @@ public class AccessTokenRequest {
                     break;
                 case KEY_OPENID_ISSUER:
                     useOpenIDIssuer = Boolean.parseBoolean(value);
+                    break;
+                case KEY_FULL_ARN:
+                    fullArn = Boolean.parseBoolean(value);
+                    break;
+                case KEY_ROLE_IN_AUD_CLAIM:
+                    roleInAudClaim = Boolean.parseBoolean(value);
                     break;
                 case KEY_CLIENT_ASSERTION_TYPE:
                     clientAssertionType = value.toLowerCase();
@@ -220,11 +232,34 @@ public class AccessTokenRequest {
 
             case OAUTH_GRANT_JWT_BEARER:
 
+                // we must have an assertion provided
+
+                if (StringUtil.isEmpty(assertion)) {
+                    throw new IllegalArgumentException("Invalid request: no assertion provided");
+                }
+
+                // JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants
+                // https://www.rfc-editor.org/rfc/rfc7523.html
                 // Identity Assertion Authorization Grant
                 // https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
 
-                requestType = RequestType.JAG_JWT_BEARER;
-                validateJWTBearerRequest(options);
+                // need to figure out if this is a standard token access request
+                // according to rfc7523 or a jag token exchange request. So we
+                // need to extract the token type from the assertion and validate accordingly.
+
+                String tokenType = null;
+                try {
+                    tokenType = JwtsHelper.extractJWTTokenType(assertion);
+                } catch (CryptoException ex) {
+                    throw new IllegalArgumentException("Invalid assertion token: " + ex.getMessage());
+                }
+                if (JwtsHelper.TYPE_JWT_JAG.equals(tokenType)) {
+                    requestType = RequestType.JAG_JWT_BEARER;
+                    validateJWTBearerRequest(options);
+                } else {
+                    requestType = RequestType.ACCESS_TOKEN;
+                    validateJWTAccessTokenRequest(options);
+                }
                 break;
 
             default:
@@ -255,13 +290,13 @@ public class AccessTokenRequest {
         // service and we have no other way of identifying what access the client
         // is looking for, we'll make the scope mandatory.
 
-        if (StringUtil.isEmpty(scope)) {
+        if (StringUtil.isBlank(scope)) {
             throw new IllegalArgumentException("Invalid request: no scope provided");
         }
 
         // we must have audience specified
 
-        if (StringUtil.isEmpty(audience)) {
+        if (StringUtil.isBlank(audience)) {
             throw new IllegalArgumentException("Invalid request: no audience provided");
         }
 
@@ -326,13 +361,35 @@ public class AccessTokenRequest {
                 ZTSConsts.OAUTH_TOKEN_TYPE_JWT.equals(tokenType));
     }
 
-    void validateJWTBearerRequest(TokenConfigOptions options) {
+    void validateJWTAccessTokenRequest(TokenConfigOptions options) {
 
-        // the only required attribute is assertion
+        // let's check if we have a valid assertion token
+        // provided and, if yes, generate our principal object
+        // and set our scope claim
 
-        if (StringUtil.isEmpty(assertion)) {
-            throw new IllegalArgumentException("Invalid request: no assertion provided");
+        try {
+            AccessToken token = new AccessToken(assertion, options.getPublicKeyProvider(),
+                    options.getOauth2Issuers());
+
+            // if we have a scope parameter specified then we're good,
+            // otherwise we must have our scope claim set in the token
+
+            if (StringUtil.isEmpty(scope)) {
+                scope = token.getScopeStd();
+            }
+            if (StringUtil.isEmpty(scope)) {
+                throw new IllegalArgumentException("Invalid assertion: no scope claim provided");
+            }
+
+            principal = SimplePrincipal.create(token.getClientIdDomainName(),
+                    token.getClientIdServiceName(), assertion, token.getIssueTime(), null);
+
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Invalid client assertion: " + ex.getMessage());
         }
+    }
+
+    void validateJWTBearerRequest(TokenConfigOptions options) {
 
         // we need to validate the jag assertion with our processor
         // which will validate that our token is properly signed and
@@ -490,6 +547,14 @@ public class AccessTokenRequest {
 
     public boolean isUseOpenIDIssuer() {
         return useOpenIDIssuer;
+    }
+
+    public boolean isFullArn() {
+        return fullArn;
+    }
+
+    public boolean isRoleInAudClaim() {
+        return roleInAudClaim;
     }
 
     public Principal getPrincipal() {

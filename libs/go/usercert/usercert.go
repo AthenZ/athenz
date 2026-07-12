@@ -54,6 +54,7 @@ type Options struct {
 	SubjectOrgUnit    string // CSR subject OrganizationalUnit field
 	SpiffeTrustDomain string // SPIFFE trust domain for URI SAN
 	Scope             string // OIDC scope parameter (default: "openid")
+	SignerKeyId       string // signer key id for the user certificate
 	CallbackPort      int    // local port for OAuth2 callback server
 	CallbackTimeout   int    // seconds to wait for IdP callback
 	ExpiryTime        int    // certificate expiry in minutes (0 = server default)
@@ -131,6 +132,9 @@ func RequestCertificate(opts Options) (string, error) {
 	if opts.ExpiryTime > 0 {
 		expiry := int32(opts.ExpiryTime)
 		req.ExpiryTime = &expiry
+	}
+	if opts.SignerKeyId != "" {
+		req.X509CertSignerKeyId = zts.SimpleName(opts.SignerKeyId)
 	}
 
 	if opts.Verbose {

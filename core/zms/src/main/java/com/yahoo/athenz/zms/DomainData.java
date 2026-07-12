@@ -122,6 +122,9 @@ public class DomainData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String externalMemberValidator;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String costCenter;
     public String name;
     public List<Role> roles;
     public SignedPolicies policies;
@@ -382,6 +385,13 @@ public class DomainData {
     public String getExternalMemberValidator() {
         return externalMemberValidator;
     }
+    public DomainData setCostCenter(String costCenter) {
+        this.costCenter = costCenter;
+        return this;
+    }
+    public String getCostCenter() {
+        return costCenter;
+    }
     public DomainData setName(String name) {
         this.name = name;
         return this;
@@ -545,6 +555,9 @@ public class DomainData {
                 return false;
             }
             if (externalMemberValidator == null ? a.externalMemberValidator != null : !externalMemberValidator.equals(a.externalMemberValidator)) {
+                return false;
+            }
+            if (costCenter == null ? a.costCenter != null : !costCenter.equals(a.costCenter)) {
                 return false;
             }
             if (name == null ? a.name != null : !name.equals(a.name)) {

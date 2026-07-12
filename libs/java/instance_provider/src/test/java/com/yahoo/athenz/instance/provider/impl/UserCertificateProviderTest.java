@@ -100,6 +100,19 @@ public class UserCertificateProviderTest {
     }
 
     @Test
+    public void testInitializeDefaultRedirectUri() throws ProviderResourceException {
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_TOKEN_ENDPOINT, "https://idp.example.com/oauth2/v1/token");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_JWKS_ENDPOINT, "https://idp.example.com/oauth2/v1/keys");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_CLIENT_ID, "test-client-id");
+        System.setProperty(UserCertificateProvider.USER_CERT_PROP_AUDIENCE, "test-audience");
+
+        UserCertificateProvider provider = new UserCertificateProvider();
+        provider.initialize("sys.auth.user_cert", null, null, null);
+
+        assertEquals(provider.redirectUri, "http://127.0.0.1:9213/oauth2/callback");
+    }
+
+    @Test
     public void testInitializeWithCustomValues() throws ProviderResourceException {
         System.setProperty(UserCertificateProvider.USER_CERT_PROP_TOKEN_ENDPOINT, "https://idp.example.com/token");
         System.setProperty(UserCertificateProvider.USER_CERT_PROP_JWKS_ENDPOINT, "https://idp.example.com/keys");

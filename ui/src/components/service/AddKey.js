@@ -19,11 +19,16 @@ import ServiceKeyUtils from '../utils/ServiceKeyUtils';
 import styled from '@emotion/styled';
 import { colors } from '../denali/styles';
 import Button from '../denali/Button';
-import Color from '../denali/Color';
 import RequestUtils from '../utils/RequestUtils';
+import ResourceOwnershipModalFeedback from '../resource-ownership/ResourceOwnershipModalFeedback';
+import {
+    isServiceResourcePublicKeysManaged,
+    resolveResourceOwnershipCliOnError,
+} from '../utils/resourceOwnership';
+import { cliAddPublicKey } from '../utils/zmsCliCommands';
 import { selectIsLoading } from '../../redux/selectors/loading';
 import { selectServices } from '../../redux/selectors/services';
-import { addKey, deleteService } from '../../redux/thunks/services';
+import { addKey } from '../../redux/thunks/services';
 import { connect } from 'react-redux';
 
 const SectionsDiv = styled.div`
@@ -61,6 +66,7 @@ class AddKey extends React.Component {
         if (!this.state.keyId || this.state.keyId === '') {
             this.setState({
                 errorMessage: 'Key Id is required.',
+                resourceOwnershipCliCommand: null,
             });
             return;
         }
@@ -68,6 +74,7 @@ class AddKey extends React.Component {
         if (!this.state.keyValue || this.state.keyValue === '') {
             this.setState({
                 errorMessage: 'Key Value is required.',
+                resourceOwnershipCliCommand: null,
             });
             return;
         }
@@ -83,14 +90,32 @@ class AddKey extends React.Component {
                 this.props._csrf
             )
             .then(() => {
+                this.setState({ resourceOwnershipCliCommand: null });
                 this.props.onSubmit(
                     `${this.state.keyId}-${this.props.service}`,
                     false
                 );
             })
             .catch((err) => {
+                const errMsg = RequestUtils.xhrErrorCheckHelper(err);
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: errMsg,
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            isServiceResourcePublicKeysManaged(
+                                this.props.resourceOwnership
+                            ),
+                            err,
+                            (zmsUrl) =>
+                                cliAddPublicKey(
+                                    this.props.domain,
+                                    this.props.service,
+                                    this.state.keyId,
+                                    '<path-to-public-key.pem>',
+                                    null,
+                                    zmsUrl
+                                )
+                        ),
                 });
             });
     }
@@ -106,9 +131,16 @@ class AddKey extends React.Component {
                     domain={this.props.domain}
                     onChange={this.onChange}
                 />
-                {this.state.errorMessage && (
+                {(this.state.errorMessage ||
+                    this.state.resourceOwnershipCliCommand) && (
                     <ErrorDiv>
-                        <Color name={'red600'}>{this.state.errorMessage}</Color>
+                        <ResourceOwnershipModalFeedback
+                            errorMessage={this.state.errorMessage}
+                            resourceOwnershipCliCommand={
+                                this.state.resourceOwnershipCliCommand
+                            }
+                            errorTestId='error-message'
+                        />
                     </ErrorDiv>
                 )}
                 <ParentButtonsDiv>

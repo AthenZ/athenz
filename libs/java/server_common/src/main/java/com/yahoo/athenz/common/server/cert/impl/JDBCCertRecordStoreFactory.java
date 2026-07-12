@@ -23,6 +23,7 @@ import com.yahoo.athenz.common.server.cert.CertRecordStore;
 import com.yahoo.athenz.common.server.cert.CertRecordStoreFactory;
 import com.yahoo.athenz.common.server.db.DataSourceFactory;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
+import com.yahoo.athenz.common.server.db.SchemaMigrationRunner;
 import com.yahoo.athenz.common.server.ServerResourceException;
 
 public class JDBCCertRecordStoreFactory implements CertRecordStoreFactory {
@@ -36,7 +37,8 @@ public class JDBCCertRecordStoreFactory implements CertRecordStoreFactory {
     public static final String ZTS_PROP_CERT_JDBC_USE_SSL                       = "athenz.zts.cert_jdbc_use_ssl";
     public static final String ZTS_PROP_CERT_OP_TIMEOUT                         = "athenz.zts.cert_op_timeout";
     public static final String ZTS_PROP_CERT_FILE_STORE_PATH                    = "athenz.zts.cert_file_store_path";
-    
+    public static final String ZTS_PROP_SCHEMA_MIGRATION_DIR                    = "athenz.zts.schema_migration_dir";
+
     private static final String JDBC = "jdbc";
     
     @Override
@@ -58,6 +60,8 @@ public class JDBCCertRecordStoreFactory implements CertRecordStoreFactory {
 
         PoolableDataSource src = DataSourceFactory.create(jdbcStore, props);
 
+        runSchemaMigrations(src);
+
         // set default timeout for our connections
 
         JDBCCertRecordStore certStore = new JDBCCertRecordStore(src);
@@ -65,5 +69,10 @@ public class JDBCCertRecordStoreFactory implements CertRecordStoreFactory {
         certStore.setOperationTimeout(opTimeout);
 
         return certStore;
+    }
+
+    void runSchemaMigrations(PoolableDataSource dataSource) {
+        SchemaMigrationRunner.migrateIfConfigured(dataSource,
+                ZTS_PROP_SCHEMA_MIGRATION_DIR, "athenz_schema_migration_zts");
     }
 }

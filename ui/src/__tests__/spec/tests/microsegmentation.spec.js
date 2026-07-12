@@ -21,6 +21,8 @@ const TEST_ENFORCEMENT_POLICY_HOSTS_SPACE =
 
 const TEST_ADD_POLICY_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES =
     'should add a policy with enforce and report modes, multiple source services, and verify all details';
+const TEST_GRAPHICAL_VIEW_SOURCE_AND_SERVICE_NAME_LABELS =
+    'graphical view shows SOURCE NAME and Service Name labels when expanded';
 const SERVICE_NAME_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES =
     'enforce-report-multi-source-service';
 const POLICY_NAME_ENFORCE_AND_REPORT_MULTIPLE_SOURCE_SERVICES =
@@ -291,6 +293,30 @@ describe('Microsegmentation', () => {
             // TODO complete the test after msd fixes
         }
     );
+
+    /*
+    Expects an existing microsegmentation policy
+     */
+    it(TEST_GRAPHICAL_VIEW_SOURCE_AND_SERVICE_NAME_LABELS, async () => {
+        await authenticateAndWait();
+        await navigateAndWait(`/domain/${TEST_DOMAIN}/role`);
+        await expect(browser).toHaveUrl(expect.stringContaining('athenz'));
+
+        await waitAndClick('div*=Microsegmentation');
+        await waitForElementExist('[data-testid="segmentation-data-list"]');
+
+        await waitAndClick('label[for="graphical"]');
+        await waitForElementExist('[data-testid="segmentation-rule-table"]');
+        await waitForElementExist('[data-testid="role-policy-row"]');
+
+        await waitAndClick(
+            '//tr[@data-testid="role-policy-row"]//*[local-name()="svg"]'
+        );
+        await waitForElementExist('[data-testid="policy-row"]');
+
+        await waitForElementExist('//div[contains(text(), "Service Name")]');
+        await waitForElementExist('//div[contains(text(), "SOURCE NAME")]');
+    });
 
     // cleanup after tests
     afterEach(async () => {

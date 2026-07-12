@@ -65,7 +65,7 @@ public class RsrcCtxWrapperTest {
         authListMock.add(authMock);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, reqMock, resMock, authListMock, false,
-                authorizerMock, metricMock, timerMetricMock, "apiName");
+                authorizerMock, metricMock, timerMetricMock, "apiName", null, null);
 
         assertNotNull(wrapper.context());
 
@@ -113,7 +113,7 @@ public class RsrcCtxWrapperTest {
         authListMock.add(authMock);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, reqMock, resMock, authListMock, false,
-                authorizerMock, metricMock, timerMetricMock, "apiName");
+                authorizerMock, metricMock, timerMetricMock, "apiName", null, null);
 
         assertNotNull(wrapper.context());
 
@@ -156,7 +156,7 @@ public class RsrcCtxWrapperTest {
         authListMock.add(authMock);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, reqMock, resMock, authListMock, false,
-                authorizerMock, metricMock, timerMetricMock, "apiName");
+                authorizerMock, metricMock, timerMetricMock, "apiName", null, null);
 
         try {
             wrapper.authenticate();
@@ -192,7 +192,7 @@ public class RsrcCtxWrapperTest {
                 .thenReturn(true);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, reqMock, resMock, authListMock, false,
-                authorizerMock, metricMock, timerMetricMock, "apiName");
+                authorizerMock, metricMock, timerMetricMock, "apiName", null, null);
 
         wrapper.authorize("add-domain", "test", "test");
 
@@ -228,7 +228,7 @@ public class RsrcCtxWrapperTest {
                 .thenReturn(true);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, reqMock, resMock, authListMock, false,
-                authorizerMock, metricMock, timerMetricMock, "apiName");
+                authorizerMock, metricMock, timerMetricMock, "apiName", null, null);
 
         try {
             wrapper.authorize("add-domain", "test", "test");
@@ -259,7 +259,7 @@ public class RsrcCtxWrapperTest {
                 .thenReturn(true);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, reqMock, resMock, authListMock, false,
-                authorizerMock, metricMock, timerMetricMock, "apiName");
+                authorizerMock, metricMock, timerMetricMock, "apiName", null, null);
 
         // when not set authority
         wrapper.authorize("add-domain", "test", "test");
@@ -278,7 +278,7 @@ public class RsrcCtxWrapperTest {
         Object timerMetricMock = Mockito.mock(Object.class);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, servletRequest, servletResponse,
-                authListMock, false, authorizerMock, metricMock, timerMetricMock, "apiName");
+                authListMock, false, authorizerMock, metricMock, timerMetricMock, "apiName", null, null);
 
         wrapper.logPrincipal();
         assertNull(servletRequest.getAttribute("com.yahoo.athenz.auth.principal"));
@@ -316,7 +316,7 @@ public class RsrcCtxWrapperTest {
         authListMock.add(authMock);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, reqMock, resMock, authListMock, false,
-                authorizerMock, metricMock, timerMetricMock, "apiName");
+                authorizerMock, metricMock, timerMetricMock, "apiName", null, null);
 
         wrapper.authenticate();
         wrapper.logPrincipal();
@@ -353,7 +353,7 @@ public class RsrcCtxWrapperTest {
         authListMock.add(authMock);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, reqMock, resMock, authListMock, false,
-                authorizerMock, metricMock, timerMetricMock, "apiName");
+                authorizerMock, metricMock, timerMetricMock, "apiName", null, null);
 
         wrapper.authenticate();
         assertEquals(wrapper.logPrincipal(), "athenz.role");
@@ -373,7 +373,7 @@ public class RsrcCtxWrapperTest {
         Object timerMetricMock = Mockito.mock(Object.class);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, servletRequest, servletResponse,
-                authListMock, false, authorizerMock, metricMock, timerMetricMock, "apiName");
+                authListMock, false, authorizerMock, metricMock, timerMetricMock, "apiName", null, null);
 
         ServerResourceException restExc =
                 new ServerResourceException(503, null);
@@ -399,10 +399,272 @@ public class RsrcCtxWrapperTest {
         Object timerMetricMock = Mockito.mock(Object.class);
 
         RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, servletRequest, servletResponse,
-            authListMock, false, authorizerMock, metricMock, timerMetricMock, "apiName");
-        
+            authListMock, false, authorizerMock, metricMock, timerMetricMock, "apiName", null, null);
+
         wrapper.addDomainChangeMessage(new DomainChangeMessage());
-        
+
         assertNull(wrapper.getDomainChangeMessages());
+    }
+
+    @Test
+    public void testAuthenticateUserPrincipalValid() {
+        HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
+        ServletContext servletContext = Mockito.mock(ServletContext.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Authority authMock = Mockito.mock(Authority.class);
+        Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
+
+        Principal prin = Mockito.mock(Principal.class);
+        Mockito.when(prin.getDomain()).thenReturn("user");
+        Mockito.when(prin.getFullName()).thenReturn("user.joe");
+
+        Authority userAuthority = Mockito.mock(Authority.class);
+        Mockito.when(userAuthority.getUserType("user.joe")).thenReturn(Authority.UserType.USER_ACTIVE);
+
+        Mockito.when(authMock.getHeader()).thenReturn("testheader");
+        Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
+        Mockito.when(authMock.getCredSource()).thenReturn(Authority.CredSource.HEADER);
+        Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(prin);
+        Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
+        Mockito.when(reqMock.getMethod()).thenReturn("POST");
+        authListMock.add(authMock);
+
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, reqMock, resMock, authListMock, false,
+                authorizerMock, metricMock, timerMetricMock, "apiName", userAuthority, "user");
+
+        wrapper.authenticate();
+        assertEquals(wrapper.principal(), prin);
+    }
+
+    @Test
+    public void testAuthenticateUserPrincipalInvalid() {
+        HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
+        ServletContext servletContext = Mockito.mock(ServletContext.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Authority authMock = Mockito.mock(Authority.class);
+        Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
+
+        Principal prin = Mockito.mock(Principal.class);
+        Mockito.when(prin.getDomain()).thenReturn("user");
+        Mockito.when(prin.getFullName()).thenReturn("user.joe");
+
+        Authority userAuthority = Mockito.mock(Authority.class);
+        Mockito.when(userAuthority.getUserType("user.joe")).thenReturn(Authority.UserType.USER_INVALID);
+
+        Mockito.when(authMock.getHeader()).thenReturn("testheader");
+        Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
+        Mockito.when(authMock.getCredSource()).thenReturn(Authority.CredSource.HEADER);
+        Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(prin);
+        Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
+        Mockito.when(reqMock.getMethod()).thenReturn("POST");
+        authListMock.add(authMock);
+
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, reqMock, resMock, authListMock, false,
+                authorizerMock, metricMock, timerMetricMock, "apiName", userAuthority, "user");
+
+        try {
+            wrapper.authenticate();
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 401);
+            assertEquals(ex.getMessage(), "ResourceException (401): {code: 401, message: \"user is not valid\"}");
+        }
+    }
+
+    @Test
+    public void testAuthenticateUserPrincipalSuspended() {
+        HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
+        ServletContext servletContext = Mockito.mock(ServletContext.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Authority authMock = Mockito.mock(Authority.class);
+        Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
+
+        Principal prin = Mockito.mock(Principal.class);
+        Mockito.when(prin.getDomain()).thenReturn("user");
+        Mockito.when(prin.getFullName()).thenReturn("user.joe");
+
+        Authority userAuthority = Mockito.mock(Authority.class);
+        Mockito.when(userAuthority.getUserType("user.joe")).thenReturn(Authority.UserType.USER_SUSPENDED);
+
+        Mockito.when(authMock.getHeader()).thenReturn("testheader");
+        Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
+        Mockito.when(authMock.getCredSource()).thenReturn(Authority.CredSource.HEADER);
+        Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(prin);
+        Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
+        Mockito.when(reqMock.getMethod()).thenReturn("POST");
+        authListMock.add(authMock);
+
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, reqMock, resMock, authListMock, false,
+                authorizerMock, metricMock, timerMetricMock, "apiName", userAuthority, "user");
+
+        try {
+            wrapper.authenticate();
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 401);
+        }
+    }
+
+    @Test
+    public void testAuthenticateNonUserDomainSkipsValidation() {
+        HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
+        ServletContext servletContext = Mockito.mock(ServletContext.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Authority authMock = Mockito.mock(Authority.class);
+        Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
+
+        Principal prin = Mockito.mock(Principal.class);
+        Mockito.when(prin.getDomain()).thenReturn("sports");
+        Mockito.when(prin.getFullName()).thenReturn("sports.api");
+
+        Authority userAuthority = Mockito.mock(Authority.class);
+
+        Mockito.when(authMock.getHeader()).thenReturn("testheader");
+        Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
+        Mockito.when(authMock.getCredSource()).thenReturn(Authority.CredSource.HEADER);
+        Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(prin);
+        Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
+        Mockito.when(reqMock.getMethod()).thenReturn("POST");
+        authListMock.add(authMock);
+
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, reqMock, resMock, authListMock, false,
+                authorizerMock, metricMock, timerMetricMock, "apiName", userAuthority, "user");
+
+        wrapper.authenticate();
+        assertEquals(wrapper.principal(), prin);
+        Mockito.verify(userAuthority, Mockito.never()).getUserType(Mockito.anyString());
+    }
+
+    @Test
+    public void testAuthorizeUserPrincipalValid() {
+        HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
+        ServletContext servletContext = Mockito.mock(ServletContext.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Authority authMock = Mockito.mock(Authority.class);
+        Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
+
+        Principal prin = Mockito.mock(Principal.class);
+        Mockito.when(prin.getDomain()).thenReturn("user");
+        Mockito.when(prin.getFullName()).thenReturn("user.joe");
+
+        Authority userAuthority = Mockito.mock(Authority.class);
+        Mockito.when(userAuthority.getUserType("user.joe")).thenReturn(Authority.UserType.USER_ACTIVE);
+
+        Mockito.when(authMock.getHeader()).thenReturn("testheader");
+        Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
+        Mockito.when(authMock.getCredSource()).thenReturn(Authority.CredSource.HEADER);
+        Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(prin);
+        Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
+        Mockito.when(reqMock.getMethod()).thenReturn("POST");
+        authListMock.add(authMock);
+
+        Mockito.when(authorizerMock.access(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(true);
+
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, reqMock, resMock, authListMock, false,
+                authorizerMock, metricMock, timerMetricMock, "apiName", userAuthority, "user");
+
+        wrapper.authorize("add-domain", "test", "test");
+        assertEquals(wrapper.principal(), prin);
+    }
+
+    @Test
+    public void testAuthorizeUserPrincipalInvalid() {
+        HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
+        ServletContext servletContext = Mockito.mock(ServletContext.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Authority authMock = Mockito.mock(Authority.class);
+        Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
+
+        Principal prin = Mockito.mock(Principal.class);
+        Mockito.when(prin.getDomain()).thenReturn("user");
+        Mockito.when(prin.getFullName()).thenReturn("user.joe");
+
+        Authority userAuthority = Mockito.mock(Authority.class);
+        Mockito.when(userAuthority.getUserType("user.joe")).thenReturn(Authority.UserType.USER_INVALID);
+
+        Mockito.when(authMock.getHeader()).thenReturn("testheader");
+        Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
+        Mockito.when(authMock.getCredSource()).thenReturn(Authority.CredSource.HEADER);
+        Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(prin);
+        Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
+        Mockito.when(reqMock.getMethod()).thenReturn("POST");
+        authListMock.add(authMock);
+
+        Mockito.when(authorizerMock.access(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(true);
+
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, reqMock, resMock, authListMock, false,
+                authorizerMock, metricMock, timerMetricMock, "apiName", userAuthority, "user");
+
+        try {
+            wrapper.authorize("add-domain", "test", "test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 401);
+            assertEquals(ex.getMessage(), "ResourceException (401): {code: 401, message: \"user is not valid\"}");
+        }
+    }
+
+    @Test
+    public void testAuthenticateNullUserAuthoritySkipsValidation() {
+        HttpServletRequest reqMock = Mockito.mock(HttpServletRequest.class);
+        HttpServletResponse resMock = Mockito.mock(HttpServletResponse.class);
+        ServletContext servletContext = Mockito.mock(ServletContext.class);
+
+        AuthorityList authListMock = new AuthorityList();
+        Authorizer authorizerMock = Mockito.mock(Authorizer.class);
+        Authority authMock = Mockito.mock(Authority.class);
+        Metric metricMock = Mockito.mock(Metric.class);
+        Object timerMetricMock = Mockito.mock(Object.class);
+
+        Principal prin = Mockito.mock(Principal.class);
+        Mockito.when(prin.getDomain()).thenReturn("user");
+        Mockito.when(prin.getFullName()).thenReturn("user.joe");
+
+        Mockito.when(authMock.getHeader()).thenReturn("testheader");
+        Mockito.when(reqMock.getHeader("testheader")).thenReturn("testcred");
+        Mockito.when(authMock.getCredSource()).thenReturn(Authority.CredSource.HEADER);
+        Mockito.when(authMock.authenticate(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenReturn(prin);
+        Mockito.when(reqMock.getRemoteAddr()).thenReturn("1.1.1.1");
+        Mockito.when(reqMock.getMethod()).thenReturn("POST");
+        authListMock.add(authMock);
+
+        RsrcCtxWrapper wrapper = new RsrcCtxWrapper(servletContext, reqMock, resMock, authListMock, false,
+                authorizerMock, metricMock, timerMetricMock, "apiName", null, "user");
+
+        wrapper.authenticate();
+        assertEquals(wrapper.principal(), prin);
     }
 }

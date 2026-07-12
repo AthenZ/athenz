@@ -24,6 +24,7 @@ import java.util.*;
 
 import static org.testng.Assert.*;
 
+import com.yahoo.athenz.common.server.cert.CertificateDataValidator;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.spiffe.SpiffeUriManager;
 import com.yahoo.athenz.zts.CertType;
@@ -39,6 +40,7 @@ import com.yahoo.athenz.auth.util.CryptoException;
 public class X509CertRequestTest {
 
     final SpiffeUriManager spiffeUriManager = new SpiffeUriManager();
+    final CertificateDataValidator certificateDataValidator = null;
 
     @Test
     public void testConstructorValidCsr() throws IOException {
@@ -46,7 +48,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
     }
     
@@ -55,7 +57,7 @@ public class X509CertRequestTest {
 
         X509CertRequest certReq = null;
         try {
-            certReq = new X509CertRequest("csr", spiffeUriManager);
+            certReq = new X509CertRequest("csr", spiffeUriManager, certificateDataValidator);
             fail();
         } catch (CryptoException ignored) {
         }
@@ -66,14 +68,14 @@ public class X509CertRequestTest {
     public void testConstructorValidUriHostname() throws IOException {
         Path path = Paths.get("src/test/resources/athenz.examples.uri-instanceid-hostname.csr");
 
-        X509CertRequest certReq = new X509CertRequest(new String(Files.readAllBytes(path)), spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(new String(Files.readAllBytes(path)), spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         assertEquals(certReq.getUriHostname(), "abc.athenz.com");
 
         path = Paths.get("src/test/resources/athenz.examples.uri-hostname-only.csr");
 
-        certReq = new X509CertRequest(new String(Files.readAllBytes(path)), spiffeUriManager);
+        certReq = new X509CertRequest(new String(Files.readAllBytes(path)), spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
         assertEquals(certReq.getUriHostname(), "abc.athenz.com");
     }
@@ -83,7 +85,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/multiple_ips.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         List<String> values = certReq.getDnsNames();
@@ -102,7 +104,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/invalid_dns.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
     }
     
@@ -111,7 +113,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         assertTrue(certReq.validateCommonName("athenz.production"));
@@ -126,7 +128,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.examples.uri-instanceid-hostname.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         assertTrue(certReq.validateUriHostname("abc.athenz.com"));
@@ -139,7 +141,7 @@ public class X509CertRequestTest {
         path = Paths.get("src/test/resources/athenz.examples.uri-hostname-empty.csr");
         csr = new String(Files.readAllBytes(path));
 
-        certReq = new X509CertRequest(csr, spiffeUriManager);
+        certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
         assertTrue(certReq.validateUriHostname("abc.athenz.com"));
     }
@@ -149,7 +151,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         assertEquals(certReq.getInstanceId(), "1001");
@@ -161,7 +163,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -177,7 +179,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         List<String> providerDnsSuffixList = new ArrayList<>();
@@ -236,7 +238,7 @@ public class X509CertRequestTest {
         String csr = new String(Files.readAllBytes(path));
         String service = "athenz.production";
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         DataCache athenzSysDomainCache = Mockito.mock(DataCache.class);
@@ -279,7 +281,7 @@ public class X509CertRequestTest {
         String csr = new String(Files.readAllBytes(path));
         String service = "athenz.production";
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         DataCache athenzSysDomainCache = Mockito.mock(DataCache.class);
@@ -313,7 +315,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         List<String> providerDnsSuffixList = new ArrayList<>();
@@ -386,7 +388,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         List<String> providerDnsSuffixList = new ArrayList<>();
@@ -417,7 +419,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         List<String> providerDnsSuffixList = new ArrayList<>();
@@ -447,7 +449,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         List<String> providerDnsSuffixList = new ArrayList<>();
@@ -504,7 +506,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         // now add the hostname to the list
@@ -537,7 +539,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/multi_dns_domain_wildcard.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         // now add the hostname to the list
@@ -568,7 +570,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/multi_dns_domain_wildcard_mismatch.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         // now add the hostname to the list
@@ -601,7 +603,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/valid_cn_only.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         DataCache athenzSysDomainCache = Mockito.mock(DataCache.class);
@@ -619,7 +621,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         path = Paths.get("src/test/resources/valid_cn_x509.cert");
@@ -635,7 +637,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.mismatch.dns.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -651,7 +653,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
         
         path = Paths.get("src/test/resources/valid_provider_refresh.pem");
@@ -667,7 +669,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         X509Certificate cert = Mockito.mock(X509Certificate.class);
@@ -682,7 +684,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
         
         PKCS10CertificationRequest req = Mockito.mock(PKCS10CertificationRequest.class);
@@ -702,7 +704,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.mismatch.dns.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
         
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -718,7 +720,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
         
         assertFalse(certReq.validatePublicKeys((String) null));
@@ -730,7 +732,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
         
         PKCS10CertificationRequest req = Mockito.mock(PKCS10CertificationRequest.class);
@@ -745,7 +747,7 @@ public class X509CertRequestTest {
         
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         
         final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
                 + "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAKrvfvBgXWqWAorw5hYJu3dpOJe0gp3n\n"
@@ -760,7 +762,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
         
         final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
@@ -776,7 +778,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
         
         final String ztsPublicKey = "-----BEGIN PUBLIC KEY-----\n"
@@ -792,7 +794,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/valid.csr");
         String csr = new String(Files.readAllBytes(path));
         
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
         
         final String ztsPublicKey1 = "   -----BEGIN PUBLIC KEY-----\n"
@@ -815,7 +817,7 @@ public class X509CertRequestTest {
         String csr = new String(Files.readAllBytes(path));
 
         try {
-            new X509CertRequest(csr, spiffeUriManager);
+            new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
             fail();
         } catch (CryptoException ex) {
             assertTrue(ex.getMessage().contains("Subject contains multiple values"));
@@ -830,7 +832,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         testValidateOUFieldCheck(certReq);
@@ -841,7 +843,7 @@ public class X509CertRequestTest {
         path = Paths.get("src/test/resources/athenz.instanceid.restricted.csr");
         csr = new String(Files.readAllBytes(path));
 
-        certReq = new X509CertRequest(csr, spiffeUriManager);
+        certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         testValidateOUFieldCheck(certReq);
@@ -881,7 +883,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.single_ip.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         HashSet<String> validOrgUnits = new HashSet<>();
@@ -902,7 +904,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.multiple_ou.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         assertFalse(certReq.validateSubjectOUField("Athenz", null, null));
@@ -915,7 +917,7 @@ public class X509CertRequestTest {
         Path path = Paths.get("src/test/resources/athenz.instanceid.uri.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         assertEquals(certReq.getInstanceId(), "id-001");
@@ -928,7 +930,7 @@ public class X509CertRequestTest {
         String csr = new String(Files.readAllBytes(path));
         String service = "athenz.api";
 
-        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         // cnames null and empty is always true
@@ -992,6 +994,531 @@ public class X509CertRequestTest {
 
         assertTrue(certReq.validateInstanceCnames("provider", athenzSysDomainCache, service, "hostname.athenz.cloud",
                 Collections.singletonList("host2.athenz.cloud"), resolver, errorMsg));
+    }
+
+    @Test
+    public void testDnsSuffixCheckCertDataValidatorAcceptsInProviderSuffix() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName("athenz", "api",
+                "production.athenz.ostk.athenz.cloud", null, providerDnsSuffixList)).thenReturn(true);
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, validator);
+        assertNotNull(certReq);
+
+        // dnsName ends with the provider suffix, is not a cname, does not start with
+        // the wildcard prefix, but the certificate data validator accepts the name -
+        // so the dns name should NOT be added to the providerDnsNames list
+
+        assertTrue(certReq.dnsSuffixCheck("production.athenz.ostk.athenz.cloud",
+                providerDnsSuffixList, null, "*.api.athenz.", null, null, "athenz", "api"));
+        assertTrue(certReq.getProviderDnsNames().isEmpty());
+    }
+
+    @Test
+    public void testDnsSuffixCheckCertDataValidatorRejectsInProviderSuffix() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName("athenz", "api",
+                "production.athenz.ostk.athenz.cloud", null, providerDnsSuffixList)).thenReturn(false);
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, validator);
+        assertNotNull(certReq);
+
+        // dnsName ends with the provider suffix, but the validator rejects it -
+        // the existing behavior must be preserved: the name is added to the
+        // providerDnsNames list and the call still returns true
+
+        assertTrue(certReq.dnsSuffixCheck("production.athenz.ostk.athenz.cloud",
+                providerDnsSuffixList, null, "*.api.athenz.", null, null, "athenz", "api"));
+        assertEquals(certReq.getProviderDnsNames().size(), 1);
+        assertTrue(certReq.getProviderDnsNames().contains("production.athenz.ostk.athenz.cloud"));
+    }
+
+    @Test
+    public void testDnsSuffixCheckCertDataValidatorNotCalledForCnameInProviderSuffix() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName(Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyList())).thenReturn(false);
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, validator);
+        assertNotNull(certReq);
+
+        // dnsName is in the cname list - the validator must not be consulted
+
+        List<String> cnames = Collections.singletonList("production.athenz.ostk.athenz.cloud");
+        assertTrue(certReq.dnsSuffixCheck("production.athenz.ostk.athenz.cloud",
+                providerDnsSuffixList, null, "*.api.athenz.", null, cnames, "athenz", "api"));
+        assertTrue(certReq.getProviderDnsNames().isEmpty());
+
+        Mockito.verify(validator, Mockito.never()).validateServiceIdentityCertSanDnsName(
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
+                Mockito.any(), Mockito.anyList());
+    }
+
+    @Test
+    public void testDnsSuffixCheckCertDataValidatorNotCalledForWildcardInProviderSuffix() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName(Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyList())).thenReturn(false);
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, validator);
+        assertNotNull(certReq);
+
+        // dnsName starts with the wildcard prefix - the validator must not be consulted
+
+        final String wildCardPrefix = "*.api.athenz.";
+        assertTrue(certReq.dnsSuffixCheck("*.api.athenz.region.ostk.athenz.cloud",
+                providerDnsSuffixList, null, wildCardPrefix, null, null, "athenz", "api"));
+        assertTrue(certReq.getProviderDnsNames().isEmpty());
+
+        Mockito.verify(validator, Mockito.never()).validateServiceIdentityCertSanDnsName(
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
+                Mockito.any(), Mockito.anyList());
+    }
+
+    @Test
+    public void testDnsSuffixCheckCertDataValidatorAcceptsFallback() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName("athenz", "api",
+                "custom.dns.name", null, providerDnsSuffixList)).thenReturn(true);
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, validator);
+        assertNotNull(certReq);
+
+        // dnsName does not match the provider suffix, the service suffix, the instance
+        // hostname or the cname list - the fallback validator accepts it so the check
+        // returns true and no entry is added to providerDnsNames
+
+        assertTrue(certReq.dnsSuffixCheck("custom.dns.name", providerDnsSuffixList, null,
+                "*.api.athenz.", null, null, "athenz", "api"));
+        assertTrue(certReq.getProviderDnsNames().isEmpty());
+    }
+
+    @Test
+    public void testDnsSuffixCheckCertDataValidatorRejectsFallback() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName("athenz", "api",
+                "custom.dns.name", null, providerDnsSuffixList)).thenReturn(false);
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, validator);
+        assertNotNull(certReq);
+
+        // dnsName does not match any of the standard checks and the validator
+        // rejects it - the call must return false
+
+        assertFalse(certReq.dnsSuffixCheck("custom.dns.name", providerDnsSuffixList, null,
+                "*.api.athenz.", null, null, "athenz", "api"));
+        assertTrue(certReq.getProviderDnsNames().isEmpty());
+    }
+
+    @Test
+    public void testDnsSuffixCheckNoCertDataValidatorFallbackRejects() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
+        assertNotNull(certReq);
+
+        // no validator configured and no other checks match - the call must return false
+
+        assertFalse(certReq.dnsSuffixCheck("custom.dns.name", providerDnsSuffixList, null,
+                "*.api.athenz.", null, null, "athenz", "api"));
+        assertTrue(certReq.getProviderDnsNames().isEmpty());
+    }
+
+    @Test
+    public void testDnsSuffixCheckCertDataValidatorNotCalledForServiceSuffix() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName(Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyList())).thenReturn(false);
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, validator);
+        assertNotNull(certReq);
+
+        // dnsName ends with the service suffix - validator must not be consulted
+
+        assertTrue(certReq.dnsSuffixCheck("api.athenz.ostk.athenz.info", providerDnsSuffixList,
+                ".ostk.athenz.info", "*.api.athenz.", null, null, "athenz", "api"));
+        assertTrue(certReq.getProviderDnsNames().isEmpty());
+
+        Mockito.verify(validator, Mockito.never()).validateServiceIdentityCertSanDnsName(
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
+                Mockito.any(), Mockito.anyList());
+    }
+
+    @Test
+    public void testDnsSuffixCheckCertDataValidatorAcceptedBeforeInstanceHostname() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName("athenz", "api",
+                "api.athenz.host", null, providerDnsSuffixList)).thenReturn(true);
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, validator);
+        assertNotNull(certReq);
+
+        // dnsName equals the instance hostname AND the validator accepts it -
+        // the validator runs before the hostname check so the call returns true
+        // without adding the entry to providerDnsNames
+
+        assertTrue(certReq.dnsSuffixCheck("api.athenz.host", providerDnsSuffixList, null,
+                "*.api.athenz.", "api.athenz.host", null, "athenz", "api"));
+        assertTrue(certReq.getProviderDnsNames().isEmpty());
+
+        Mockito.verify(validator, Mockito.times(1)).validateServiceIdentityCertSanDnsName(
+                "athenz", "api", "api.athenz.host", null, providerDnsSuffixList);
+    }
+
+    @Test
+    public void testDnsSuffixCheckCertDataValidatorRejectedFallsThroughToInstanceHostname() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName(Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyList())).thenReturn(false);
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, validator);
+        assertNotNull(certReq);
+
+        // validator rejects so the fallback falls through to the instance hostname
+        // check which matches and adds the entry to providerDnsNames
+
+        assertTrue(certReq.dnsSuffixCheck("api.athenz.host", providerDnsSuffixList, null,
+                "*.api.athenz.", "api.athenz.host", null, "athenz", "api"));
+        assertEquals(certReq.getProviderDnsNames().size(), 1);
+        assertTrue(certReq.getProviderDnsNames().contains("api.athenz.host"));
+
+        Mockito.verify(validator, Mockito.times(1)).validateServiceIdentityCertSanDnsName(
+                "athenz", "api", "api.athenz.host", null, providerDnsSuffixList);
+    }
+
+    @Test
+    public void testDnsSuffixCheckFallbackCnameListNoMatchReturnsFalse() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName(Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyList())).thenReturn(false);
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, validator);
+        assertNotNull(certReq);
+
+        // validator rejects, instance hostname is null, and the cname list does not
+        // contain the dnsName - the call must return false
+
+        List<String> cnames = Collections.singletonList("other.host");
+        assertFalse(certReq.dnsSuffixCheck("custom.dns.name", providerDnsSuffixList, null,
+                "*.api.athenz.", null, cnames, "athenz", "api"));
+        assertTrue(certReq.getProviderDnsNames().isEmpty());
+    }
+
+    @Test
+    public void testDnsSuffixCheckCertDataValidatorAcceptedBeforeCnameFallback() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName("athenz", "api",
+                "cname.athenz.host", null, providerDnsSuffixList)).thenReturn(true);
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, validator);
+        assertNotNull(certReq);
+
+        // dnsName is in the cname list AND the validator accepts it - the validator
+        // runs before the cname check so the call returns true via the validator
+
+        List<String> cnames = Collections.singletonList("cname.athenz.host");
+        assertTrue(certReq.dnsSuffixCheck("cname.athenz.host", providerDnsSuffixList, null,
+                "*.api.athenz.", null, cnames, "athenz", "api"));
+        assertTrue(certReq.getProviderDnsNames().isEmpty());
+
+        Mockito.verify(validator, Mockito.times(1)).validateServiceIdentityCertSanDnsName(
+                "athenz", "api", "cname.athenz.host", null, providerDnsSuffixList);
+    }
+
+    @Test
+    public void testDnsSuffixCheckCertDataValidatorRejectedFallsThroughToCnameFallback() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName(Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyList())).thenReturn(false);
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, validator);
+        assertNotNull(certReq);
+
+        // validator rejects so the fallback falls through to the cname check
+        // which matches and the call returns true with an empty providerDnsNames
+
+        List<String> cnames = Collections.singletonList("cname.athenz.host");
+        assertTrue(certReq.dnsSuffixCheck("cname.athenz.host", providerDnsSuffixList, null,
+                "*.api.athenz.", null, cnames, "athenz", "api"));
+        assertTrue(certReq.getProviderDnsNames().isEmpty());
+
+        Mockito.verify(validator, Mockito.times(1)).validateServiceIdentityCertSanDnsName(
+                "athenz", "api", "cname.athenz.host", null, providerDnsSuffixList);
+    }
+
+    @Test
+    public void testValidateDnsNamesWithCertDataValidatorAcceptsAll() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        // multi_dns_domain.csr contains:
+        //   - production.athenz.ostk.athenz.cloud  (matches provider suffix)
+        //   - api.athenz.ostk.athenz.info          (only acceptable through validator)
+        // configure the validator to accept both so the overall call succeeds and
+        // the production entry is skipped from the providerDnsNames list
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName("athenz", "api",
+                "production.athenz.ostk.athenz.cloud", null, providerDnsSuffixList)).thenReturn(true);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName("athenz", "api",
+                "api.athenz.ostk.athenz.info", null, providerDnsSuffixList)).thenReturn(true);
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, validator);
+        assertNotNull(certReq);
+
+        DataCache athenzSysDomainCache = Mockito.mock(DataCache.class);
+        Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider"))
+                .thenReturn(providerDnsSuffixList);
+
+        StringBuilder errorMsg = new StringBuilder();
+        assertTrue(certReq.validateDnsNames("athenz", "api", "provider", athenzSysDomainCache,
+                null, null, null, null, errorMsg));
+
+        // validator accepted both names - providerDnsNames should be empty
+
+        assertTrue(certReq.getProviderDnsNames().isEmpty());
+    }
+
+    @Test
+    public void testValidateDnsNamesWithCertDataValidatorRejectsFallback() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        // configure validator to reject api.athenz.ostk.athenz.info - since none of
+        // the other checks match either, the overall call must fail
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName(Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.anyList())).thenReturn(false);
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, validator);
+        assertNotNull(certReq);
+
+        DataCache athenzSysDomainCache = Mockito.mock(DataCache.class);
+        Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider"))
+                .thenReturn(providerDnsSuffixList);
+
+        StringBuilder errorMsg = new StringBuilder();
+        assertFalse(certReq.validateDnsNames("athenz", "api", "provider", athenzSysDomainCache,
+                null, null, null, null, errorMsg));
+        assertTrue(errorMsg.toString().contains("does not end with provider/service configured suffix or hostname"));
+    }
+
+    @Test
+    public void testValidateDnsNamesWithCertDataValidatorMixedResults() throws IOException {
+
+        Path path = Paths.get("src/test/resources/multi_dns_domain.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        // configure validator to accept the production... name (provider-suffix path)
+        // and reject the api... name. since the service suffix matches the api name,
+        // the overall call must succeed without invoking the validator for it.
+
+        CertificateDataValidator validator = Mockito.mock(CertificateDataValidator.class);
+        Mockito.when(validator.validateServiceIdentityCertSanDnsName("athenz", "api",
+                "production.athenz.ostk.athenz.cloud", ".ostk.athenz.info", providerDnsSuffixList))
+                .thenReturn(true);
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, validator);
+        assertNotNull(certReq);
+
+        DataCache athenzSysDomainCache = Mockito.mock(DataCache.class);
+        Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider"))
+                .thenReturn(providerDnsSuffixList);
+
+        StringBuilder errorMsg = new StringBuilder();
+        assertTrue(certReq.validateDnsNames("athenz", "api", "provider", athenzSysDomainCache,
+                "ostk.athenz.info", null, null, null, errorMsg));
+
+        // validator handled production... so providerDnsNames stays empty
+
+        assertTrue(certReq.getProviderDnsNames().isEmpty());
+
+        // validator must have been called exactly once for production... and never
+        // for api... (which is handled by the service suffix match)
+
+        Mockito.verify(validator, Mockito.times(1)).validateServiceIdentityCertSanDnsName(
+                "athenz", "api", "production.athenz.ostk.athenz.cloud",
+                ".ostk.athenz.info", providerDnsSuffixList);
+        Mockito.verify(validator, Mockito.never()).validateServiceIdentityCertSanDnsName(
+                Mockito.eq("athenz"), Mockito.eq("api"),
+                Mockito.eq("api.athenz.ostk.athenz.info"),
+                Mockito.any(), Mockito.anyList());
+    }
+
+    @Test
+    public void testKnownAthenzUri() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
+
+        assertTrue(certReq.knownAthenzUri("spiffe://trust-domain/ns/default/sa/api"));
+        assertTrue(certReq.knownAthenzUri("spiffe://trust-domain/athenz/production"));
+        assertTrue(certReq.knownAthenzUri("athenz://hostname/host.example.com"));
+        assertTrue(certReq.knownAthenzUri("athenz://principal/athenz.production"));
+        assertTrue(certReq.knownAthenzUri("athenz://proxyuser/user.name"));
+
+        // check is case-sensitive; validateSanUriSchemes lowercases before calling this
+        assertFalse(certReq.knownAthenzUri("SPIFFE://trust-domain/ns/default/sa/api"));
+        assertFalse(certReq.knownAthenzUri("ATHENZ://HOSTNAME/host.example.com"));
+
+        // unknown URI schemes
+        assertFalse(certReq.knownAthenzUri("https://example.com"));
+        assertFalse(certReq.knownAthenzUri("urn:example:animal"));
+        assertFalse(certReq.knownAthenzUri("athenz://unknown/value"));
+    }
+
+    @Test
+    public void testValidateSanUriSchemesNullOrEmpty() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
+
+        certReq.uris = null;
+        assertTrue(certReq.validateSanUriSchemes(true));
+        assertTrue(certReq.validateSanUriSchemes(false));
+
+        certReq.uris = new ArrayList<>();
+        assertTrue(certReq.validateSanUriSchemes(true));
+        assertTrue(certReq.validateSanUriSchemes(false));
+    }
+
+    @Test
+    public void testValidateSanUriSchemesAllKnown() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
+        certReq.uris = Arrays.asList(
+                "spiffe://trust-domain/ns/default/sa/api",
+                "athenz://hostname/host.example.com",
+                "athenz://principal/athenz.production",
+                "athenz://proxyuser/user.name"
+        );
+
+        assertTrue(certReq.validateSanUriSchemes(false));
+        assertTrue(certReq.validateSanUriSchemes(true));
+    }
+
+    @Test
+    public void testValidateSanUriSchemesUnknownNoEnforcement() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
+        certReq.uris = Arrays.asList(
+                "spiffe://trust-domain/ns/default/sa/api",
+                "https://unknown.example.com"
+        );
+
+        // with enforcement off, unknown URIs are logged but allowed
+        assertTrue(certReq.validateSanUriSchemes(false));
+
+        // with enforcement on, unknown URIs cause failure
+        assertFalse(certReq.validateSanUriSchemes(true));
+    }
+
+    @Test
+    public void testValidateSanUriSchemesAllUnknown() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
+        certReq.uris = Arrays.asList("https://bad1.example.com", "urn:bad2");
+
+        assertTrue(certReq.validateSanUriSchemes(false));
+        assertFalse(certReq.validateSanUriSchemes(true));
     }
 }
 

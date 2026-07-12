@@ -29,8 +29,11 @@ import com.yahoo.athenz.auth.token.AccessToken;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.Crypto;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import org.eclipse.jetty.util.StringUtil;
 import org.mockito.Mockito;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -40,6 +43,7 @@ import java.security.interfaces.ECPrivateKey;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -64,8 +68,8 @@ public class AccessTokenRequestTest {
     public void testAccessTokenRequest() {
 
         AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials&scope=coretech:role.writers"
-                + "&authorization_details=details&expires_in=100&proxy_principal_spiffe_uris=&actor=athenz.api",
-                defaultConfigOptions);
+                + "&authorization_details=details&expires_in=100&proxy_principal_spiffe_uris=&actor=athenz.api"
+                + "&role_in_aud_claim=true&full_arn=true", defaultConfigOptions);
         assertNotNull(request);
         assertEquals(request.getGrantType(), "client_credentials");
         assertEquals(request.getScope(), "coretech:role.writers");
@@ -73,6 +77,8 @@ public class AccessTokenRequestTest {
         assertEquals(request.getExpiryTime(), 100);
         assertNull(request.getProxyPrincipalsSpiffeUris());
         assertEquals(request.getActor(), "athenz.api");
+        assertTrue(request.isFullArn());
+        assertTrue(request.isRoleInAudClaim());
     }
 
     @Test
@@ -551,6 +557,7 @@ public class AccessTokenRequestTest {
         assertEquals(request.getAssertion(), assertionToken);
         assertEquals(request.getScope(), "test");
         assertEquals(request.getResource(), "data");
+        assertNotNull(request.getJagTokenObj());
     }
 
     @Test
@@ -1212,17 +1219,459 @@ public class AccessTokenRequestTest {
         }
     }
 
-    private String createToken(PrivateKey privateKey, String keyId, String subject, String audience,
-            long expiryTime, String mayActSubject, String tokenType) {
+    @Test
+    public void testAccessTokenRequestJWTBearerAccessTokenWithAtJwtType() {
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        final File ecPublicKey = new File("./src/test/resources/zts_public_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        KeyStore publicKeyProvider = Mockito.mock(KeyStore.class);
+        Mockito.when(publicKeyProvider.getServicePublicKey("sys.auth", "zts", "0"))
+                .thenReturn(Crypto.loadPublicKey(ecPublicKey));
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String assertionToken = createAccessTokenAssertion(privateKey, "0", "athenz.api",
+                "https://athenz.io:4443/zts/v1", "https://athenz.io:4443/zts/v1", expiryTime,
+                "coretech:role.readers", AccessToken.HDR_TOKEN_JWT);
+
+        TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
+        tokenConfigOptions.setPublicKeyProvider(publicKeyProvider);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer"
+                + "&assertion=" + assertionToken, tokenConfigOptions);
+        assertNotNull(request);
+        assertEquals(request.getGrantType(), "urn:ietf:params:oauth:grant-type:jwt-bearer");
+        assertEquals(request.getRequestType(), AccessTokenRequest.RequestType.ACCESS_TOKEN);
+        assertEquals(request.getAssertion(), assertionToken);
+        assertEquals(request.getScope(), "coretech:role.readers");
+
+        Principal principal = request.getPrincipal();
+        assertNotNull(principal);
+        assertEquals(principal.getDomain(), "athenz");
+        assertEquals(principal.getName(), "api");
+    }
+
+    @Test
+    public void testAccessTokenRequestJWTBearerAccessTokenNoTypHeader() {
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        final File ecPublicKey = new File("./src/test/resources/zts_public_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        KeyStore publicKeyProvider = Mockito.mock(KeyStore.class);
+        Mockito.when(publicKeyProvider.getServicePublicKey("sys.auth", "zts", "0"))
+                .thenReturn(Crypto.loadPublicKey(ecPublicKey));
+
+        // assertion token has no typ header at all - should still go through
+        // validateJWTAccessTokenRequest since typ is not equal to oauth-id-jag+jwt
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String assertionToken = createAccessTokenAssertion(privateKey, "0", "athenz.api",
+                "https://athenz.io:4443/zts/v1", "https://athenz.io:4443/zts/v1", expiryTime,
+                "coretech:role.readers", null);
+
+        TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
+        tokenConfigOptions.setPublicKeyProvider(publicKeyProvider);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer"
+                + "&assertion=" + assertionToken, tokenConfigOptions);
+        assertNotNull(request);
+        assertEquals(request.getRequestType(), AccessTokenRequest.RequestType.ACCESS_TOKEN);
+        assertEquals(request.getScope(), "coretech:role.readers");
+        assertNotNull(request.getPrincipal());
+    }
+
+    @Test
+    public void testAccessTokenRequestJWTBearerAccessTokenMissingScope() {
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        final File ecPublicKey = new File("./src/test/resources/zts_public_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        KeyStore publicKeyProvider = Mockito.mock(KeyStore.class);
+        Mockito.when(publicKeyProvider.getServicePublicKey("sys.auth", "zts", "0"))
+                .thenReturn(Crypto.loadPublicKey(ecPublicKey));
+
+        // assertion token with at+jwt type but no scope claim
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String assertionToken = createAccessTokenAssertion(privateKey, "0", "athenz.api",
+                "https://athenz.io:4443/zts/v1", "https://athenz.io:4443/zts/v1", expiryTime,
+                null, AccessToken.HDR_TOKEN_JWT);
+
+        TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
+        tokenConfigOptions.setPublicKeyProvider(publicKeyProvider);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+
+        try {
+            new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer"
+                    + "&assertion=" + assertionToken, tokenConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid client assertion: Invalid assertion: no scope claim provided");
+        }
+    }
+
+    @Test
+    public void testAccessTokenRequestJWTBearerAccessTokenEmptyScope() {
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        final File ecPublicKey = new File("./src/test/resources/zts_public_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        KeyStore publicKeyProvider = Mockito.mock(KeyStore.class);
+        Mockito.when(publicKeyProvider.getServicePublicKey("sys.auth", "zts", "0"))
+                .thenReturn(Crypto.loadPublicKey(ecPublicKey));
+
+        // assertion token with at+jwt type and an empty scope claim
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String assertionToken = createAccessTokenAssertion(privateKey, "0", "athenz.api",
+                "https://athenz.io:4443/zts/v1", "https://athenz.io:4443/zts/v1", expiryTime,
+                "", AccessToken.HDR_TOKEN_JWT);
+
+        TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
+        tokenConfigOptions.setPublicKeyProvider(publicKeyProvider);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+
+        try {
+            new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer"
+                    + "&assertion=" + assertionToken, tokenConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid client assertion: Invalid assertion: no scope claim provided");
+        }
+    }
+
+    @Test
+    public void testAccessTokenRequestJWTBearerAccessTokenInvalidToken() {
+
+        // assertion token has 3 parts and valid header (so extractJWTTokenType returns
+        // null typ and routes to validateJWTAccessTokenRequest), but the AccessToken
+        // construction will fail because the signature/issuer cannot be validated.
+
+        final String header = com.nimbusds.jose.util.Base64URL.encode("{\"alg\":\"RS256\"}").toString();
+        final String payload = com.nimbusds.jose.util.Base64URL.encode("{\"sub\":\"athenz.api\"}").toString();
+        final String assertionToken = header + "." + payload + ".signature";
+
+        KeyStore publicKeyProvider = Mockito.mock(KeyStore.class);
+        TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
+        tokenConfigOptions.setPublicKeyProvider(publicKeyProvider);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+
+        try {
+            new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer"
+                    + "&assertion=" + assertionToken, tokenConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().startsWith("Invalid client assertion: "));
+        }
+    }
+
+    @Test
+    public void testAccessTokenRequestJWTBearerAssertionNotJwt() {
+
+        // assertion is not a parseable JWT (no dots), so extractJWTTokenType throws
+        // a CryptoException that bubbles up directly to the caller without being
+        // wrapped as IllegalArgumentException.
+
+        try {
+            new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer"
+                    + "&assertion=invalid-token", defaultConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().startsWith("Invalid assertion token: "));
+        }
+    }
+
+    @Test
+    public void testAccessTokenRequestJWTBearerAssertionInvalidJwtStructure() {
+
+        // assertion has more than 3 parts (looks like JWE), so extractJWTTokenType
+        // throws CryptoException("Invalid token: not a valid JWT") that bubbles up.
+
+        try {
+            new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer"
+                    + "&assertion=h.ek.iv.ct.tag", defaultConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().startsWith("Invalid assertion token: "));
+        }
+    }
+
+    @Test
+    public void testAccessTokenRequestJAGTokenExchangeMissingScope() {
+
+        // JAG token exchange without scope should throw "no scope provided"
+        // exception from validateJAGTokenExchangeRequest.
+
+        try {
+            new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&audience=sports&subject_token=token123"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token",
+                    defaultConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid request: no scope provided");
+        }
+    }
+
+    @Test
+    public void testAccessTokenRequestIdTokenExchange() {
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        // valid id token exchange request - covers validateIdTokenExchangeRequest
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createToken(privateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime, null);
+
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id_token"
+                + "&audience=sports&subject_token=" + subjectToken
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token",
+                defaultConfigOptions);
+        assertNotNull(request);
+        assertEquals(request.getRequestType(), AccessTokenRequest.RequestType.ID_TOKEN_EXCHANGE);
+        assertNotNull(request.getSubjectTokenObj());
+    }
+
+    @Test
+    public void testAccessTokenRequestTokenExchangeInvalidSubjectToken() {
+
+        // a subject token that is not parseable should trigger the catch block in
+        // validateSubjectToken and result in "Invalid subject token: ..." exception.
+
+        try {
+            new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&audience=sports&subject_token=not-a-valid-jwt"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token",
+                    defaultConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().startsWith("Invalid subject token: "));
+        }
+    }
+
+    @Test
+    public void testAccessTokenRequestJWTBearerAccessTokenWithUrlScope() {
+
+        // Provide scope explicitly in the URL request body so the
+        // validateJWTAccessTokenRequest skips the token's scope claim lookup.
+        // This covers the false branch of the `if (StringUtil.isEmpty(scope))`
+        // check that decides whether to copy the scope from the token claim.
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        final File ecPublicKey = new File("./src/test/resources/zts_public_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        KeyStore publicKeyProvider = Mockito.mock(KeyStore.class);
+        Mockito.when(publicKeyProvider.getServicePublicKey("sys.auth", "zts", "0"))
+                .thenReturn(Crypto.loadPublicKey(ecPublicKey));
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String assertionToken = createAccessTokenAssertion(privateKey, "0", "athenz.api",
+                "https://athenz.io:4443/zts/v1", "https://athenz.io:4443/zts/v1", expiryTime,
+                "token-scope", AccessToken.HDR_TOKEN_JWT);
+
+        TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
+        tokenConfigOptions.setPublicKeyProvider(publicKeyProvider);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer"
+                + "&assertion=" + assertionToken + "&scope=url-scope", tokenConfigOptions);
+        assertNotNull(request);
+        assertEquals(request.getRequestType(), AccessTokenRequest.RequestType.ACCESS_TOKEN);
+        assertEquals(request.getScope(), "url-scope");
+    }
+
+    @Test
+    public void testAccessTokenRequestTokenExchangeMayActWithoutSubKey() {
+
+        // Subject token has a may_act claim that is a non-empty map but does
+        // not contain the required "sub" key. This exercises the second branch
+        // of the `mayAct == null || !mayAct.containsKey(SUB)` check in
+        // validateActorToken.
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        final File ecPublicKey = new File("./src/test/resources/zts_public_ec.pem");
+
+        long now = System.currentTimeMillis() / 1000;
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        KeyStore publicKeyProvider = Mockito.mock(KeyStore.class);
+        Mockito.when(publicKeyProvider.getServicePublicKey("athenz", "api", "eckey1"))
+                .thenReturn(Crypto.loadPublicKey(ecPublicKey));
+        Mockito.when(publicKeyProvider.getServicePublicKey("sys.auth", "zts", "0"))
+                .thenReturn(Crypto.loadPublicKey(ecPublicKey));
+
+        long expiryTime = now + 3600;
+        Map<String, Object> mayActMap = new HashMap<>();
+        mayActMap.put("aud", "athenz.api");
+        String subjectToken = createTokenWithMayAct(privateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime, mayActMap, null);
+        String actorToken = createToken(privateKey, "0", "athenz.api",
+                "athenz.api", expiryTime, null);
+
+        TokenConfigOptions tokenConfigOptions = new TokenConfigOptions();
+        tokenConfigOptions.setPublicKeyProvider(publicKeyProvider);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+
+        try {
+            new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&audience=sports&subject_token=" + subjectToken
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&actor_token=" + actorToken
+                    + "&actor_token_type=urn:ietf:params:oauth:token-type:id_token",
+                    tokenConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid subject token: missing may_act claim");
+        }
+    }
+
+    @Test
+    public void testAccessTokenRequestQueryDataNoScope() {
+
+        // ID/access token exchange does not require a scope. Build a request
+        // without a scope and confirm getQueryLogData omits the scope field
+        // (covers the false branch of the scope check in getQueryLogData).
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createToken(privateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime, null);
+
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&audience=sports&subject_token=" + subjectToken
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                + "&expires_in=200&proxy_for_principal=user.joe", defaultConfigOptions);
+        String queryData = request.getQueryLogData();
+        assertNotNull(queryData);
+        assertFalse(queryData.contains("scope="));
+        assertTrue(queryData.contains("expires_in=200"));
+        assertTrue(queryData.contains("proxy_for_principal=user.joe"));
+    }
+
+    @Test
+    public void testAccessTokenRequestDebugLoggingDisabled() {
+
+        // When DEBUG logging is disabled for the AccessTokenRequest logger we
+        // still need to exercise the code paths that handle malformed request
+        // body components, so that the false branch of the LOGGER.isDebugEnabled()
+        // guards is covered.
+
+        Logger logger = (Logger) LoggerFactory.getLogger(AccessTokenRequest.class);
+        Level originalLevel = logger.getLevel();
+        try {
+            logger.setLevel(Level.INFO);
+
+            AccessTokenRequest request = new AccessTokenRequest(
+                    "grant_type=client_credentials&scope=test&invalid&%ZZ=value",
+                    defaultConfigOptions);
+            assertNotNull(request);
+            assertEquals(request.getScope(), "test");
+        } finally {
+            logger.setLevel(originalLevel);
+        }
+    }
+
+    @Test
+    public void testAccessTokenRequestJWTBearerJAGInvalidAssertion() {
+
+        // assertion has the JAG type header but is signed with a key id that
+        // the JAG processor cannot resolve. As a result the assertion validation
+        // in validateJWTBearerRequest will fail and we will get an exception
+        // wrapped as "Invalid assertion token: ...".
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String assertionToken = createToken(privateKey, "unknown-key-id", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime, AccessToken.HDR_TOKEN_JAG);
+
+        try {
+            new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer"
+                    + "&assertion=" + assertionToken
+                    + "&scope=test", defaultConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().startsWith("Invalid assertion token: "));
+        }
+    }
+
+    private String createAccessTokenAssertion(PrivateKey privateKey, String keyId, String subject,
+            String audience, String issuer, long expiryTime, String scope, String tokenType) {
 
         try {
             JWSSigner signer = JwtsHelper.getJWSSigner(privateKey);
             long now = System.currentTimeMillis() / 1000;
-            HashMap<String, String> mayActMap = null;
-            if (mayActSubject != null) {
-                mayActMap = new HashMap<>();
-                mayActMap.put("sub", mayActSubject);
+            JWTClaimsSet.Builder claimsBuilder = new JWTClaimsSet.Builder()
+                    .subject(subject)
+                    .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                    .expirationTime(Date.from(Instant.ofEpochSecond(expiryTime)))
+                    .issuer(issuer)
+                    .audience(audience)
+                    .claim("ver", 1)
+                    .claim("auth_time", now);
+            if (scope != null) {
+                claimsBuilder.claim(AccessToken.CLAIM_SCOPE_STD, scope);
             }
+
+            JWSHeader.Builder builder = new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(keyId);
+            if (tokenType != null) {
+                builder.type(new JOSEObjectType(tokenType));
+            }
+            SignedJWT signedJWT = new SignedJWT(builder.build(), claimsBuilder.build());
+            signedJWT.sign(signer);
+            return signedJWT.serialize();
+        } catch (JOSEException ex) {
+            fail("Failed to create access token: " + ex.getMessage());
+            return null;
+        }
+    }
+
+    private String createToken(PrivateKey privateKey, String keyId, String subject, String audience,
+            long expiryTime, String mayActSubject, String tokenType) {
+
+        Map<String, Object> mayActMap = null;
+        if (mayActSubject != null) {
+            mayActMap = new HashMap<>();
+            mayActMap.put("sub", mayActSubject);
+        }
+        return createTokenWithMayAct(privateKey, keyId, subject, audience, expiryTime, mayActMap, tokenType);
+    }
+
+    private String createTokenWithMayAct(PrivateKey privateKey, String keyId, String subject, String audience,
+            long expiryTime, Map<String, Object> mayActMap, String tokenType) {
+
+        try {
+            JWSSigner signer = JwtsHelper.getJWSSigner(privateKey);
+            long now = System.currentTimeMillis() / 1000;
             JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                     .subject(subject)
                     .issueTime(Date.from(Instant.ofEpochSecond(now)))

@@ -26,6 +26,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.DefaultJOSEObjectTypeVerifier;
 import com.nimbusds.jose.proc.JOSEObjectTypeVerifier;
 import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jose.util.Resource;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
@@ -173,6 +174,28 @@ public class JwtsHelperTest {
             fail();
         } catch (Exception ex) {
             assertTrue(ex.getMessage().contains("Missing second delimiter"));
+        }
+        try {
+            JwtsHelper.parseJWTWithoutSignature("header.payload.");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Unable to parse token: Invalid JSON object"));
+        }
+    }
+
+    @Test
+    public void testParseJWTNullPartChecks() {
+        try {
+            JwtsHelper.parseJWTWithoutSignature((Base64URL[]) null);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Invalid token: parts cannot be null"));
+        }
+        try {
+            JwtsHelper.extractJWTTokenType((Base64URL[]) null);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Invalid token: parts cannot be null"));
         }
     }
 
@@ -544,6 +567,182 @@ public class JwtsHelperTest {
         assertNotNull(claims);
         assertEquals(claims.getSubject(), "1234567890");
         assertEquals(claims.getClaim("name"), "John Doe");
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeAtJwt() {
+        final String header = Base64URL.encode("{\"alg\":\"RS256\",\"typ\":\"at+jwt\"}").toString();
+        final String payload = Base64URL.encode("{\"sub\":\"user\"}").toString();
+        final String token = header + "." + payload + ".signature";
+
+        assertEquals(JwtsHelper.extractJWTTokenType(token), JwtsHelper.TYPE_AT_JWT);
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeJwt() {
+        final String header = Base64URL.encode("{\"alg\":\"RS256\",\"typ\":\"jwt\"}").toString();
+        final String payload = Base64URL.encode("{\"sub\":\"user\"}").toString();
+        final String token = header + "." + payload + ".signature";
+
+        assertEquals(JwtsHelper.extractJWTTokenType(token), JwtsHelper.TYPE_JWT);
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeJwtJag() {
+        final String header = Base64URL.encode("{\"alg\":\"RS256\",\"typ\":\"oauth-id-jag+jwt\"}").toString();
+        final String payload = Base64URL.encode("{\"sub\":\"user\"}").toString();
+        final String token = header + "." + payload + ".signature";
+
+        assertEquals(JwtsHelper.extractJWTTokenType(token), JwtsHelper.TYPE_JWT_JAG);
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeUppercaseJWT() {
+        // {"alg":"none","typ":"JWT"} - uppercase typ as used by some legacy tokens
+        final String header = "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0";
+        final String payload = Base64URL.encode("{\"sub\":\"user\"}").toString();
+        final String token = header + "." + payload + ".";
+
+        assertEquals(JwtsHelper.extractJWTTokenType(token), "JWT");
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeCustomType() {
+        final String header = Base64URL.encode("{\"alg\":\"ES256\",\"typ\":\"custom+jwt\"}").toString();
+        final String payload = Base64URL.encode("{\"sub\":\"user\"}").toString();
+        final String token = header + "." + payload + ".signature";
+
+        assertEquals(JwtsHelper.extractJWTTokenType(token), "custom+jwt");
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeNoTypClaim() {
+        // Header with no typ claim - should return null
+        final String header = Base64URL.encode("{\"alg\":\"RS256\"}").toString();
+        final String payload = Base64URL.encode("{\"sub\":\"user\"}").toString();
+        final String token = header + "." + payload + ".signature";
+
+        assertNull(JwtsHelper.extractJWTTokenType(token));
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeEmptyHeader() {
+        // Empty JSON object header - should return null since typ is not set
+        final String header = Base64URL.encode("{}").toString();
+        final String payload = Base64URL.encode("{\"sub\":\"user\"}").toString();
+        final String token = header + "." + payload + ".signature";
+
+        try {
+            JwtsHelper.extractJWTTokenType(token);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unable to parse token: Missing \"alg\" in header JSON object"));
+        }
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeUnsignedToken() {
+        // Unsigned token (empty signature segment) - still has 3 parts so should work
+        final String header = Base64URL.encode("{\"alg\":\"RS256\",\"typ\":\"at+jwt\"}").toString();
+        final String payload = Base64URL.encode("{\"sub\":\"user\"}").toString();
+        final String token = header + "." + payload + ".";
+
+        assertEquals(JwtsHelper.extractJWTTokenType(token), JwtsHelper.TYPE_AT_JWT);
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeFivePartToken() {
+        // JWE format with 5 parts - not a valid JWS, should throw CryptoException
+        try {
+            JwtsHelper.extractJWTTokenType("header.encryptedkey.iv.ciphertext.tag");
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Invalid token: not a valid JWT"));
+        }
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeTwoPartToken() {
+        // Only two parts - JOSEObject.split throws ParseException
+        try {
+            JwtsHelper.extractJWTTokenType("header.payload");
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unable to parse token"));
+            assertTrue(ex.getMessage().contains("Missing second delimiter"));
+        }
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeSinglePartToken() {
+        // No dots - JOSEObject.split throws ParseException
+        try {
+            JwtsHelper.extractJWTTokenType("only-one-part");
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unable to parse token"));
+        }
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeFourPartToken() {
+        // Four parts - not a valid JWS (3) or JWE (5)
+        try {
+            JwtsHelper.extractJWTTokenType("header.payload.signature.extra");
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unable to parse token"));
+        }
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeEmptyString() {
+        try {
+            JwtsHelper.extractJWTTokenType("");
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unable to parse token"));
+        }
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeInvalidJsonHeader() {
+        // Header is not valid JSON - JWTClaimsSet.parse throws ParseException
+        final String header = Base64URL.encode("not-valid-json").toString();
+        final String payload = Base64URL.encode("{\"sub\":\"user\"}").toString();
+        final String token = header + "." + payload + ".signature";
+
+        try {
+            JwtsHelper.extractJWTTokenType(token);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unable to parse token"));
+        }
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeNonStringTypClaim() {
+        // typ claim is a number instead of a string - getStringClaim throws ParseException
+        final String header = Base64URL.encode("{\"alg\":\"RS256\",\"typ\":12345}").toString();
+        final String payload = Base64URL.encode("{\"sub\":\"user\"}").toString();
+        final String token = header + "." + payload + ".signature";
+
+        try {
+            JwtsHelper.extractJWTTokenType(token);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Unable to parse token"));
+        }
+    }
+
+    @Test
+    public void testExtractJWTTokenTypeNullTypClaim() {
+        // typ claim is explicitly null
+        final String header = Base64URL.encode("{\"alg\":\"RS256\",\"typ\":null}").toString();
+        final String payload = Base64URL.encode("{\"sub\":\"user\"}").toString();
+        final String token = header + "." + payload + ".signature";
+
+        assertNull(JwtsHelper.extractJWTTokenType(token));
     }
 
     @Test

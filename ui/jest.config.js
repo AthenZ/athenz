@@ -44,6 +44,7 @@ module.exports = {
     transform: {
         '^.+\\.js$': ['babel-jest', { presets: ['next/babel'] }],
     },
+    transformIgnorePatterns: ['/node_modules/(?!(uuid)/)'],
     moduleNameMapper: {
         '\\.(css|less)$': 'identity-obj-proxy',
     },

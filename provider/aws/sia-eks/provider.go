@@ -82,7 +82,7 @@ func (eks EKSProvider) GetSuffixes() []string {
 }
 
 func (eks EKSProvider) CloudAttestationData(request *provider.AttestationRequest) (string, error) {
-	return attestation.New(request.Domain, request.Service, request.Region, request.Account, request.EC2Document, request.EC2Signature, request.UseRegionalSTS, request.OmitDomain)
+	return attestation.New(request.Domain, request.Service, request.Region, request.Account, request.EC2Document, request.EC2Signature, request.UseRegionalSTS, request.OmitDomain, request.RolePath)
 }
 
 func (eks EKSProvider) GetAccountDomainServiceFromMeta(_ string) (string, string, string, error) {

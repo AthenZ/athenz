@@ -1047,6 +1047,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.SetDomainOrgName(dn, args[0])
 			}
+		case "set-cost-center":
+			if argc == 1 {
+				return cli.SetDomainCostCenter(dn, args[0])
+			}
 		case "set-external-member-validator":
 			if argc == 1 {
 				return cli.SetDomainExternalMemberValidator(dn, args[0])
@@ -1742,6 +1746,16 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   set-business-service      : set the Business Service for the domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-business-service security-tools\n")
+	case "set-cost-center":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-cost-center cost-center\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain        : name of the domain being updated\n")
+		}
+		buf.WriteString("   cost-center   : set the cost center for the domain\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-cost-center 12345\n")
 	case "set-cert-dns-domain":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   [-o json] " + domainParam + " set-cert-dns-domain cert-domain-name\n")
@@ -3789,6 +3803,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-product-id product-id\n")
 	buf.WriteString("   set-application-id application-id\n")
 	buf.WriteString("   set-business-service business-service\n")
+	buf.WriteString("   set-cost-center cost-center\n")
 	buf.WriteString("   set-org-name org-name\n")
 	buf.WriteString("   set-external-member-validator validator\n")
 	buf.WriteString("   set-cert-dns-domain cert-dns-domain\n")

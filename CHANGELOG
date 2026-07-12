@@ -1,4 +1,73 @@
+Athenz v1.12.43 Release / Jun 19, 2026
+--------------------------------------
+
+#3254 Add SPIFFE claim support to ZTS ID token exchange
+#3373 ui - add tf icons to tf-managed roles, services, policies; show zms-cli command.
+#3379 Bump axios from 1.15.2 to 1.16.0 in /clients/nodejs/zts
+#3380 config option to validate san uri schemes in certificate requests
+#3381 Bump axios from 1.15.2 to 1.16.0 in /ui
+#3382 support validation for svc cert request key id value
+#3384 Support user-cert-bound JAG issue for public client local agents
+#3387 maintain token type when parsing oauth2 tokens
+#3388 Feat: Support Delegation Claims act & may_act in ID_JAG=>AT Exchange (RFC 8693)
+#3389 jag token integration changes with okta tests
+#3390 Feat: Support Delegation Claims may_act in AT=>AT Delegated Token Exchange (RFC 8693)
+#3392 Allow zms-cli to use default mTLS credentials
+#3393 Bump @opentelemetry package versions in /ui
+#3394 Bump form-data from 4.0.5 to 4.0.6 in /ui
+#3395 Bump @babel/core from 7.23.9 to 7.29.6 in /ui
+#3396 Bump multer from 2.1.1 to 2.2.0 in /ui
+#3397 Migrate athenzutils and zmscli from gopkg.in/yaml.v3 to go.yaml.in/yaml/v3
+#3398 ui - fix otel config after dependency update
+#3399 ui - fix zms-cli url to not be hardcoded in resource ownership suggestion
+#3400 add test case for zts server
+#3401 update java/go/js dependencies to their latest releases
+
+Athenz v1.12.42 Release / May 27, 2026
+--------------------------------------
+
+#3323 Bump @xmldom/xmldom and xml-crypto in /ui
+#3324 Bump uuid from 9.0.0 to 14.0.0 in /ui
+#3347 Bump axios from 1.12.2 to 1.15.2 in /ui
+#3358 Bump next from 14.2.35 to 16.2.6 in /ui
+#3360 switch ui docker image to node22 + oat token
+#3361 configure default Strict-Transport-Security header response
+#3362 fix tls protocol/cipher log with jetty 1.12.x
+#3363 extend role cert san-dns validation check
+#3364 update dependencies in java zts/zms client examples
+#3367 uplift next.js to version 16.2.6
+#3368 Bump js-cookie from 3.0.1 to 3.0.7 in /ui
+#3369 log principal name for usercert api
+#3370 fix POC and security POC not loading on non role/group domain tabs
+#3371 add validation for selfRenew in ZMS
+#3374 Bump qs, body-parser and express in /ui
+#3375 add external cert data validator for san dns entries
+#3377 support fetching access tokens based on rfc7523
+#3378 update java/go/nodejs dependencies to their latest releases
+
+Athenz v1.12.41 Release / May 13, 2026
+--------------------------------------
+
+#3326 Support parallel domain fetch and upload in CloudZmsSyncer
+#3338 extract ui functional tests values to config
+#3342 return service feature flags for jws domain response
+#3343 Handle empty file for athenz-accesstoken
+#3345 only log unsigned tokens in debug mode
+#3346 Add support for IAM role path for SIA EC2, Fargate, EKS
+#3348 Bump axios from 1.15.0 to 1.15.2 in /clients/nodejs/zts
+#3349 Add automated schema migration runner
+#3350 support certificate timeouts per requested key id
+#3351 add validation for user principals after auth
+#3354 update usercert default callback uri to match client library
+#3355 replace free-disk-space step with pinned version
+#3357 add costCenter attribute to domain object
+#3359 updated java/go/nodejs dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20260513.sql
+
 Athenz v1.12.40 Release / May 04, 2026
+--------------------------------------
 
 #3322 Adding property description for athenz.zts.k8s_provider_gcp_attr_validator_factory_class
 #3327 disallow * member in roles if filters are configured

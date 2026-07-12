@@ -17,6 +17,7 @@ package com.yahoo.athenz.zts.cert;
 
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.common.server.cert.CertificateDataValidator;
 import com.yahoo.athenz.common.server.spiffe.SpiffeUriManager;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.testng.annotations.Test;
@@ -30,6 +31,7 @@ import static org.testng.Assert.*;
 public class X509UserCertRequestTest {
 
     final SpiffeUriManager spiffeUriManager = new SpiffeUriManager();
+    final CertificateDataValidator certificateDataValidator = null;
 
     private String generateCsr(String x500Principal, GeneralName[] sanArray) throws Exception {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
@@ -42,14 +44,14 @@ public class X509UserCertRequestTest {
     @Test
     public void testConstructor() throws Exception {
         String csr = generateCsr("cn=user.joe,o=Athenz", null);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
     }
 
     @Test
     public void testConstructorInvalidCsr() {
         try {
-            new X509UserCertRequest("invalid-csr", spiffeUriManager);
+            new X509UserCertRequest("invalid-csr", spiffeUriManager, certificateDataValidator);
             fail();
         } catch (CryptoException ignored) {
         }
@@ -63,7 +65,7 @@ public class X509UserCertRequestTest {
                     new GeneralName(GeneralName.uniformResourceIdentifier, "spiffe://user/sa/jane")
             };
             String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-            new X509UserCertRequest(csr, spiffeUriManager);
+            new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
             fail();
         } catch (Exception ignored) {
         }
@@ -72,7 +74,7 @@ public class X509UserCertRequestTest {
     @Test
     public void testValidateValidNoUri() throws Exception {
         String csr = generateCsr("cn=user.joe,o=Athenz", null);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -83,7 +85,7 @@ public class X509UserCertRequestTest {
     @Test
     public void testValidateValidNullOrgValues() throws Exception {
         String csr = generateCsr("cn=user.joe,o=Athenz", null);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         assertTrue(certReq.validate("user", "joe", null));
     }
@@ -91,7 +93,7 @@ public class X509UserCertRequestTest {
     @Test
     public void testValidateValidEmptyOrgValues() throws Exception {
         String csr = generateCsr("cn=user.joe", null);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         assertTrue(certReq.validate("user", "joe", new HashSet<>()));
     }
@@ -102,7 +104,7 @@ public class X509UserCertRequestTest {
                 new GeneralName(GeneralName.dNSName, "host.example.com")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -116,7 +118,7 @@ public class X509UserCertRequestTest {
                 new GeneralName(GeneralName.iPAddress, "10.11.12.13")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -131,7 +133,7 @@ public class X509UserCertRequestTest {
                         "athenz://instanceid/provider/1001")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -146,7 +148,7 @@ public class X509UserCertRequestTest {
                         "athenz://hostname/host.example.com")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -163,7 +165,7 @@ public class X509UserCertRequestTest {
                         "athenz://principal/user.joe")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -178,7 +180,7 @@ public class X509UserCertRequestTest {
                         "athenz://principal/user.joe")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -189,7 +191,7 @@ public class X509UserCertRequestTest {
     @Test
     public void testValidateWithInvalidOrg() throws Exception {
         String csr = generateCsr("cn=user.joe,o=InvalidOrg", null);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -204,7 +206,7 @@ public class X509UserCertRequestTest {
                         "spiffe://user/sa/joe")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -219,7 +221,7 @@ public class X509UserCertRequestTest {
                         "spiffe://athenz.io/ns/default/sa/user.joe")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -234,7 +236,7 @@ public class X509UserCertRequestTest {
                         "spiffe://wrongdomain/sa/joe")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -249,7 +251,7 @@ public class X509UserCertRequestTest {
                         "spiffe://user/sa/jane")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -260,7 +262,7 @@ public class X509UserCertRequestTest {
     @Test
     public void testValidateSpiffeURINull() throws Exception {
         String csr = generateCsr("cn=user.joe,o=Athenz", null);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         assertTrue(certReq.validateSpiffeURI("user", "joe"));
     }
@@ -272,7 +274,7 @@ public class X509UserCertRequestTest {
                         "spiffe://user/sa/joe")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         assertTrue(certReq.validateSpiffeURI("user", "joe"));
     }
@@ -284,7 +286,7 @@ public class X509UserCertRequestTest {
                         "spiffe://user/sa/joe")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         assertFalse(certReq.validateSpiffeURI("wrongdomain", "joe"));
     }
@@ -296,7 +298,7 @@ public class X509UserCertRequestTest {
                         "spiffe://user/sa/joe")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         assertFalse(certReq.validateSpiffeURI("user", "jane"));
     }
@@ -308,7 +310,7 @@ public class X509UserCertRequestTest {
                 new GeneralName(GeneralName.iPAddress, "10.11.12.13")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -325,7 +327,7 @@ public class X509UserCertRequestTest {
                         "athenz://hostname/host.example.com")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -340,7 +342,7 @@ public class X509UserCertRequestTest {
                         "1001.instanceid.athenz.ostk.athenz.cloud")
         };
         String csr = generateCsr("cn=user.joe,o=Athenz", sanArray);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         Set<String> orgValues = new HashSet<>();
         orgValues.add("Athenz");
@@ -351,7 +353,7 @@ public class X509UserCertRequestTest {
     @Test
     public void testValidateFieldAccess() throws Exception {
         String csr = generateCsr("cn=user.joe,o=Athenz", null);
-        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager);
+        X509UserCertRequest certReq = new X509UserCertRequest(csr, spiffeUriManager, certificateDataValidator);
 
         assertNull(certReq.reqUserName);
         assertNull(certReq.userPrincipal);

@@ -62,7 +62,7 @@ public class UserCertificateProvider implements InstanceProvider {
     static final String CODE_PREFIX = "code=";
     static final String CODE_VERIFIER_PREFIX = "code_verifier=";
 
-    static final String DEFAULT_REDIRECT_URI = "http://localhost:9213/oauth2/callback";
+    static final String DEFAULT_REDIRECT_URI = "http://127.0.0.1:9213/oauth2/callback";
 
     String tokenEndpoint;
     String clientId;

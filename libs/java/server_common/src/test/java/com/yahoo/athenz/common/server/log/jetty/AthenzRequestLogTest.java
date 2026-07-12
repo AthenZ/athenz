@@ -18,6 +18,7 @@ package com.yahoo.athenz.common.server.log.jetty;
 import com.yahoo.athenz.common.ServerCommonConsts;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
+import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.internal.HttpChannelState;
 import org.mockito.Mockito;
@@ -299,9 +300,11 @@ public class AthenzRequestLogTest {
         Mockito.when(response.getStatus()).thenReturn(200);
 
         SSLSession sslSession = Mockito.mock(SSLSession.class);
-        Mockito.when(request.getAttribute(ServerCommonConsts.REQUEST_SSL_SESSION)).thenReturn(sslSession);
         Mockito.when(sslSession.getProtocol()).thenReturn("TLSv1.2");
-        Mockito.when(sslSession.getCipherSuite()).thenReturn("TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
+        EndPoint.SslSessionData sslData = Mockito.mock(EndPoint.SslSessionData.class);
+        Mockito.when(sslData.sslSession()).thenReturn(sslSession);
+        Mockito.when(sslData.cipherSuite()).thenReturn("TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
+        Mockito.when(request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE)).thenReturn(sslData);
 
         athenzRequestLog.log(request, response);
         athenzRequestLog.stop();
@@ -357,9 +360,11 @@ public class AthenzRequestLogTest {
         Mockito.when(response.getStatus()).thenReturn(200);
 
         SSLSession sslSession = Mockito.mock(SSLSession.class);
-        Mockito.when(request.getAttribute(ServerCommonConsts.REQUEST_SSL_SESSION)).thenReturn(sslSession);
         Mockito.when(sslSession.getProtocol()).thenReturn("TLSv1.2");
-        Mockito.when(sslSession.getCipherSuite()).thenReturn("TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
+        EndPoint.SslSessionData sslData = Mockito.mock(EndPoint.SslSessionData.class);
+        Mockito.when(sslData.sslSession()).thenReturn(sslSession);
+        Mockito.when(sslData.cipherSuite()).thenReturn("TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256");
+        Mockito.when(request.getAttribute(EndPoint.SslSessionData.ATTRIBUTE)).thenReturn(sslData);
 
         athenzRequestLog.log(request, response);
         athenzRequestLog.stop();

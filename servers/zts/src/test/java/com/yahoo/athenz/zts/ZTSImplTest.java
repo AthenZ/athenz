@@ -22,6 +22,8 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.impl.*;
+import com.yahoo.athenz.auth.token.IdToken;
+import com.yahoo.athenz.auth.token.OAuth2Token;
 import com.yahoo.athenz.auth.token.PrincipalToken;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -3168,6 +3170,66 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testNewResourceContextValidateUserAuthorityPrincipalsDefault() {
+
+        DynamicConfigBoolean savedConfig = zts.validateUserAuthorityPrincipals;
+        Authority savedAuthority = zts.userAuthority;
+
+        Authority authority = Mockito.mock(Authority.class);
+        zts.userAuthority = authority;
+
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(false);
+        zts.validateUserAuthorityPrincipals = dynamicConfigBoolean;
+
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletContext,
+                mockServletRequest, mockServletResponse, "apiName");
+        assertNotNull(ctx);
+
+        try {
+            ctx.validateUserPrincipal(null);
+        } catch (Exception ex) {
+            fail();
+        }
+
+        zts.validateUserAuthorityPrincipals = savedConfig;
+        zts.userAuthority = savedAuthority;
+    }
+
+    @Test
+    public void testNewResourceContextValidateUserAuthorityPrincipalsEnabled() {
+
+        DynamicConfigBoolean savedConfig = zts.validateUserAuthorityPrincipals;
+        Authority savedAuthority = zts.userAuthority;
+
+        Authority authority = Mockito.mock(Authority.class);
+        when(authority.getUserType("user.joe")).thenReturn(Authority.UserType.USER_INVALID);
+        zts.userAuthority = authority;
+
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true);
+        zts.validateUserAuthorityPrincipals = dynamicConfigBoolean;
+
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zts.newResourceContext(mockServletContext,
+                mockServletRequest, mockServletResponse, "apiName");
+        assertNotNull(ctx);
+
+        Principal principal = Mockito.mock(Principal.class);
+        when(principal.getDomain()).thenReturn("user");
+        when(principal.getFullName()).thenReturn("user.joe");
+
+        try {
+            ctx.validateUserPrincipal(principal);
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), 401);
+        }
+
+        zts.validateUserAuthorityPrincipals = savedConfig;
+        zts.userAuthority = savedAuthority;
+    }
+
+    @Test
     public void testVerifyAWSAssumeRoleInvalidDomain() {
         assertFalse(zts.verifyAWSAssumeRole("unknown-domain", "role", "user_domain.user"));
     }
@@ -4264,7 +4326,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager, zts.certificateDataValidator);
 
         zts.validCertSubjectOrgValues = null;
         assertFalse(zts.validateRoleCertificateRequest(certReq, "sports.standings",
@@ -4277,7 +4339,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_noemail.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager, zts.certificateDataValidator);
 
         zts.validCertSubjectOrgValues = null;
         assertFalse(zts.validateRoleCertificateRequest(certReq, "no-email", null,
@@ -4290,7 +4352,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager, zts.certificateDataValidator);
 
         Set<String> validOValues = new HashSet<>();
         validOValues.add("InvalidCompany");
@@ -4305,7 +4367,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_email.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager, zts.certificateDataValidator);
 
         zts.validCertSubjectOrgValues = null;
         assertTrue(zts.validateRoleCertificateRequest(certReq, "sports.scores",
@@ -4331,7 +4393,7 @@ public class ZTSImplTest {
         zts.validCertSubjectOrgUnitValues = ouValues;
         zts.verifyCertSubjectOU = true;
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager, zts.certificateDataValidator);
         assertFalse(zts.validateRoleCertificateRequest(certReq, "sports.scores", null, null, "10.0.0.1"));
 
         ouValues.add("Testing Domain");
@@ -4347,7 +4409,7 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager, zts.certificateDataValidator);
 
         // if the CSR has hostname, but the cert doesn't have hostname, it should result in false
         assertFalse(zts.validateRoleCertificateRequest(certReq, "athenz.examples.httpd",
@@ -4362,7 +4424,7 @@ public class ZTSImplTest {
 
         path = Paths.get("src/test/resources/athenz.examples.role-uri-instanceid-hostname.csr");
         csr = new String(Files.readAllBytes(path));
-        certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
+        certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager, zts.certificateDataValidator);
 
         // if CSR has hostname+instanceid, and cert has only hostname, it should result in false
         assertFalse(zts.validateRoleCertificateRequest(certReq, "athenz.examples.httpd",
@@ -4428,7 +4490,7 @@ public class ZTSImplTest {
         pem = new String(Files.readAllBytes(path));
         X509Certificate invalidCert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager, zts.certificateDataValidator);
 
         zts.validCertSubjectOrgValues = null;
 
@@ -4454,7 +4516,7 @@ public class ZTSImplTest {
         String pem = new String(Files.readAllBytes(path));
         X509Certificate cert = Crypto.loadX509Certificate(pem);
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, zts.spiffeUriManager, zts.certificateDataValidator);
 
         // disable IP validation and we should get success
 
@@ -4486,7 +4548,7 @@ public class ZTSImplTest {
 
         RoleCertificateRequest req = new RoleCertificateRequest();
 
-        X509RoleCertRequest certReq = new X509RoleCertRequest(ROLE_CERT_CORETECH_REQUEST, zts.spiffeUriManager);
+        X509RoleCertRequest certReq = new X509RoleCertRequest(ROLE_CERT_CORETECH_REQUEST, zts.spiffeUriManager, zts.certificateDataValidator);
 
         Set<String> origUnitValues = zts.validCertSubjectOrgUnitValues;
         boolean verifyCertSubjectOU = zts.verifyCertSubjectOU;
@@ -9211,7 +9273,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager, ztsImpl.certificateDataValidator);
         assertNotNull(certReq);
 
         path = Paths.get("src/test/resources/valid_provider_refresh.pem");
@@ -9238,7 +9300,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager, ztsImpl.certificateDataValidator);
         assertNotNull(certReq);
         certReq.setNormCsrPublicKey("mismatch-public-key");
 
@@ -9266,7 +9328,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/valid_provider_refresh.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager, ztsImpl.certificateDataValidator);
         assertNotNull(certReq);
 
         path = Paths.get("src/test/resources/valid_provider_refresh.pem");
@@ -9295,7 +9357,7 @@ public class ZTSImplTest {
         Path path = Paths.get("src/test/resources/athenz.mismatch.dns.csr");
         String csr = new String(Files.readAllBytes(path));
 
-        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager);
+        X509CertRequest certReq = new X509CertRequest(csr, ztsImpl.spiffeUriManager, ztsImpl.certificateDataValidator);
         assertNotNull(certReq);
 
         path = Paths.get("src/test/resources/athenz.instanceid.pem");
@@ -9828,6 +9890,56 @@ public class ZTSImplTest {
             assertTrue(ex.getMessage().contains("Invalid status checker factory class"));
         }
         System.clearProperty(ZTSConsts.ZTS_PROP_STATUS_CHECKER_FACTORY_CLASS);
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DATA_VALIDATOR_FACTORY_CLASS, "invalid.class");
+        try {
+            ztsImpl.loadCertificateDataValidator();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid certificate data validator factory class"));
+        }
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DATA_VALIDATOR_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testLoadCertificateDataValidator() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+
+        // property is not set - validator should remain null
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DATA_VALIDATOR_FACTORY_CLASS);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        assertNull(ztsImpl.certificateDataValidator);
+
+        // property is set to empty string - validator should remain null
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DATA_VALIDATOR_FACTORY_CLASS, "");
+        ztsImpl.loadCertificateDataValidator();
+        assertNull(ztsImpl.certificateDataValidator);
+
+        // property is set to a valid factory class - validator should be created
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DATA_VALIDATOR_FACTORY_CLASS,
+                "com.yahoo.athenz.zts.cert.impl.TestCertificateDataValidatorFactory");
+        ztsImpl.loadCertificateDataValidator();
+        assertNotNull(ztsImpl.certificateDataValidator);
+
+        // property is set to a factory class whose create() throws - load should fail
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_DATA_VALIDATOR_FACTORY_CLASS,
+                "com.yahoo.athenz.zts.cert.impl.TestCertificateDataValidatorFactory$FactoryThrowsException");
+        try {
+            ztsImpl.loadCertificateDataValidator();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid certificate data validator factory class"));
+        }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_DATA_VALIDATOR_FACTORY_CLASS);
     }
 
     @Test
@@ -13527,7 +13639,7 @@ public class ZTSImplTest {
 
         path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String certCsr = new String(Files.readAllBytes(path));
-        X509CertRequest certRequest = new X509ServiceCertRequest(certCsr, zts.spiffeUriManager);
+        X509CertRequest certRequest = new X509ServiceCertRequest(certCsr, zts.spiffeUriManager, zts.certificateDataValidator);
 
         InstanceConfirmation confirmation = ztsImpl.newInstanceConfirmationForRegister(context,
                 "secureboot.provider",
@@ -15072,5 +15184,91 @@ public class ZTSImplTest {
         long iat = claimsSet.getIssueTime().getTime() / 1000;
         long authTime = claimsSet.getLongClaim("auth_time");
         assertEquals(iat, authTime);
+    }
+
+    @Test
+    public void testExtractSpiffeIdFromTokenNull() {
+        assertNull(zts.extractSpiffeIdFromToken(null));
+    }
+
+    @Test
+    public void testExtractSpiffeIdFromTokenSpiffeClaim() {
+        OAuth2Token token = Mockito.mock(OAuth2Token.class);
+        Mockito.when(token.getClaim(IdToken.CLAIM_SPIFFE)).thenReturn("spiffe://athenz/sa/production");
+
+        assertEquals(zts.extractSpiffeIdFromToken(token), "spiffe://athenz/sa/production");
+    }
+
+    @Test
+    public void testExtractSpiffeIdFromTokenSpiffeSubject() {
+        OAuth2Token token = Mockito.mock(OAuth2Token.class);
+        Mockito.when(token.getSubject()).thenReturn("spiffe://athenz/sa/production");
+
+        assertEquals(zts.extractSpiffeIdFromToken(token), "spiffe://athenz/sa/production");
+    }
+
+    @Test
+    public void testExtractSpiffeIdFromTokenUnsupportedClaim() {
+        OAuth2Token token = Mockito.mock(OAuth2Token.class);
+        Mockito.when(token.getClaim(IdToken.CLAIM_SPIFFE)).thenReturn("athenz.production");
+        Mockito.when(token.getSubject()).thenReturn("athenz.production");
+
+        assertNull(zts.extractSpiffeIdFromToken(token));
+    }
+
+    @Test
+    public void testVerifySpiffeIdMatchesAthenzPrincipalEmpty() {
+        zts.verifySpiffeIdMatchesAthenzPrincipal(null, "athenz.production",
+                "caller", "athenz", "sys.auth");
+        zts.verifySpiffeIdMatchesAthenzPrincipal("spiffe://athenz/sa/production", null,
+                "caller", "athenz", "sys.auth");
+    }
+
+    @Test
+    public void testVerifySpiffeIdMatchesAthenzPrincipalSuccess() {
+        zts.verifySpiffeIdMatchesAthenzPrincipal("spiffe://athenz/sa/production", "athenz.production",
+                "caller", "athenz", "sys.auth");
+    }
+
+    @Test
+    public void testVerifySpiffeIdMatchesAthenzPrincipalSpiffeSubjectSuccess() {
+        zts.verifySpiffeIdMatchesAthenzPrincipal("spiffe://athenz/sa/production",
+                "spiffe://athenz/sa/production", "caller", "athenz", "sys.auth");
+    }
+
+    @Test
+    public void testVerifySpiffeIdMatchesAthenzPrincipalSpiffeSubjectMismatch() {
+        try {
+            zts.verifySpiffeIdMatchesAthenzPrincipal("spiffe://athenz/sa/production",
+                    "spiffe://athenz/sa/api", "caller", "athenz", "sys.auth");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("SPIFFE ID does not match authenticated principal"));
+        }
+    }
+
+    @Test
+    public void testVerifySpiffeIdMatchesAthenzPrincipalInvalidPrincipal() {
+        try {
+            zts.verifySpiffeIdMatchesAthenzPrincipal("spiffe://athenz/sa/production",
+                    "invalid-principal", "caller", "athenz", "sys.auth");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Invalid principal name for SPIFFE validation"));
+        }
+    }
+
+    @Test
+    public void testVerifySpiffeIdMatchesAthenzPrincipalMismatch() {
+        try {
+            zts.verifySpiffeIdMatchesAthenzPrincipal("spiffe://athenz/sa/other", "athenz.production",
+                    "caller", "athenz", "sys.auth");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("SPIFFE ID does not match authenticated principal"));
+        }
     }
 }

@@ -1,8 +1,7 @@
 const appConfig = require('./src/config/config')();
+const { buildClientEnv } = require('./src/config/expose-client-env');
 
 module.exports = {
-    publicRuntimeConfig: {
-        onCallUrl: appConfig.onCallUrl || appConfig.serverURL,
-        organizationDomain: appConfig?.organizationDomain,
-    },
+    env: buildClientEnv(appConfig),
+    allowedDevOrigins: appConfig.allowedDevOrigins,
 };

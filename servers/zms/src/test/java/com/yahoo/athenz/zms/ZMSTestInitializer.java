@@ -759,7 +759,7 @@ public class ZMSTestInitializer {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
         RsrcCtxWrapper wrapperCtx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
-                null, new Object(), apiName, true);
+                null, new Object(), apiName, true, null, null);
         ServerResourceContext ctx = wrapperCtx.context();
 
         Authority adminPrincipalAuthority = new com.yahoo.athenz.common.server.debug.DebugPrincipalAuthority();

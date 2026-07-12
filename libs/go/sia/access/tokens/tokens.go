@@ -17,6 +17,7 @@
 package tokens
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -87,19 +88,28 @@ func ToBeRefreshedBasedOnTime(opts *config.TokenOptions, currentTime time.Time) 
 				continue
 			}
 
+			// Empty or whitespace-only files (e.g. failed writes) are unusable; fetch a new token.
+			if len(bytes.TrimSpace(content)) == 0 {
+				refresh = append(refresh, t)
+				continue
+			}
+
 			atr := zts.AccessTokenResponse{}
 			err = json.Unmarshal(content, &atr)
 			if err != nil {
+				refresh = append(refresh, t)
 				errs = append(errs, fmt.Errorf("token: %s not unmarshallable, err: %v", tpath, err))
 				continue
 			}
 			if atr.Expires_in == nil {
+				refresh = append(refresh, t)
 				errs = append(errs, fmt.Errorf("invalid token: %s, expires_in key is not found", tpath))
 				continue
 			}
 			//  Extract expiration claim from token and compare with AccessTokenResponse
 			claims, err := GetClaimsFromAccessTokenUnverified(atr)
 			if err != nil {
+				refresh = append(refresh, t)
 				errs = append(errs, fmt.Errorf("token: %s exists, but failed to extract claims, err: %v", tpath, err))
 				continue
 			}

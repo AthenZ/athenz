@@ -32,6 +32,7 @@ public final class JDBCConsts {
     public static final String ZMS_PROP_JDBC_USE_SSL            = "athenz.zms.jdbc_use_ssl";
     public static final String ZMS_PROP_JDBC_TLS_VERSIONS       = "athenz.zms.jdbc_tls_versions";
     public static final String ZMS_PROP_JDBC_DRIVER_CLASS       = "athenz.db.driver.class";
+    public static final String ZMS_PROP_JDBC_SCHEMA_MIGRATION_DIR = "athenz.zms.schema_migration_dir";
 
     public static final String ZMS_PROP_MYSQL_SERVER_TIMEZONE = "athenz.zms.mysql_server_timezone";
     public static final String ZMS_PROP_MYSQL_SERVER_TRUST_ROLES_UPDATE_TIMEOUT = "athenz.zms.mysql_server_trust_roles_update_timeout";
@@ -138,8 +139,9 @@ public final class JDBCConsts {
     public static final String DB_COLUMN_SSH_CERT_SIGNER_KEYID    = "ssh_cert_signer_keyid";
     public static final String DB_COLUMN_SLACK_CHANNEL            = "slack_channel";
     public static final String DB_COLUMN_ON_CALL                  = "on_call";
-    public static final String DB_COLUMN_AUTO_DELETE_TENANT_ASSUME_ROLE_ASSERTIONS = "auto_delete_tenant_assume_role_assertions";
     public static final String DB_COLUMN_EXTERNAL_MEMBER_VALIDATOR = "external_member_validator";
+    public static final String DB_COLUMN_COST_CENTER               = "cost_center";
+    public static final String DB_COLUMN_AUTO_DELETE_TENANT_ASSUME_ROLE_ASSERTIONS = "auto_delete_tenant_assume_role_assertions";
 
     public static final String DB_COLUMN_USER_AUTHORITY_FILTER           = "user_authority_filter";
     public static final String DB_COLUMN_USER_AUTHORITY_EXPIRATION       = "user_authority_expiration";

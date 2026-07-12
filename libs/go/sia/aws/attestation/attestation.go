@@ -41,7 +41,7 @@ type AttestationData struct {
 // New creates a new AttestationData with values fed to it and from the result of STS Assume Role.
 // This requires an identity document along with its signature. The aws account and region will
 // be extracted from the identity document.
-func New(domain, service, region, account, ec2Document, ec2Signature string, useRegionalSTS, omitDomain bool) (string, error) {
+func New(domain, service, region, account, ec2Document, ec2Signature string, useRegionalSTS, omitDomain bool, rolePath string) (string, error) {
 	commonName := fmt.Sprintf("%s.%s", domain, service)
 	var role string
 	if omitDomain {
@@ -49,7 +49,7 @@ func New(domain, service, region, account, ec2Document, ec2Signature string, use
 	} else {
 		role = commonName
 	}
-	tok, err := getSTSToken(useRegionalSTS, region, account, role)
+	tok, err := getSTSToken(useRegionalSTS, region, account, role, rolePath)
 	if err != nil {
 		return "", err
 	}
@@ -69,14 +69,19 @@ func New(domain, service, region, account, ec2Document, ec2Signature string, use
 	return string(data), nil
 }
 
-func getSTSToken(useRegionalSTS bool, region, account, role string) (*sts.AssumeRoleOutput, error) {
+func getSTSToken(useRegionalSTS bool, region, account, role, rolePath string) (*sts.AssumeRoleOutput, error) {
 	// Attempt STS AssumeRole
 	stsClient, err := stssession.New(useRegionalSTS, region)
 	if err != nil {
 		log.Printf("unable to create new session: %v\n", err)
 		return nil, err
 	}
-	roleArn := fmt.Sprintf("arn:aws:iam::%s:role/%s", account, role)
+	var roleArn string
+	if rolePath != "" {
+	    roleArn = fmt.Sprintf("arn:aws:iam::%s:role/%s/%s", account, rolePath, role)
+    } else {
+        roleArn = fmt.Sprintf("arn:aws:iam::%s:role/%s", account, role)
+    }
 	log.Printf("Trying to assume role: %v\n", roleArn)
 	return stsClient.AssumeRole(context.TODO(), &sts.AssumeRoleInput{
 		RoleArn:         &roleArn,

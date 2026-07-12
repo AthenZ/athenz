@@ -35,6 +35,23 @@ const config = {
     createDomainMessage: '',
     servicePageConfig: '',
     productMasterLink: '',
+    resourceOwnershipGuideLink: {
+        title: 'resource-ownership-guide',
+        url: 'https://github.com/AthenZ/athenz/blob/master/docs/design/resource_ownership.md',
+        target: '_blank',
+    },
+    resourceOwnershipUi: {
+        icon: 'terraform',
+        label: 'Terraform',
+        managedIconTooltip:
+            'This resource is managed by {{label}} (ownership in ZMS).',
+        membersManagedIconTooltip:
+            'Role membership is managed by {{label}} (members owner).',
+        cliSuggestionBody:
+            'This resource is {{label}}-managed and cannot be edited via the Athenz UI. To maintain environment stability, always apply changes through {{label}} configuration. While the zms-cli can force immediate updates, doing so creates configuration drift, leaving the resource out-of-sync and requiring manual intervention to reconcile.',
+        cliSuggestionEmergencyHeading: 'Use only in emergencies:',
+        cliSuggestionGuideFooter: 'For detailed guidance, refer to',
+    },
     userData: () => {},
     userDomain: 'test-user-domain',
     serviceHeaderLinks: [],
@@ -1172,6 +1189,26 @@ describe('Fetchr Server API Test', () => {
                         userId: 'testuser',
                         createDomainMessage: '',
                         productMasterLink: '',
+                        resourceOwnershipGuideLink: {
+                            title: 'resource-ownership-guide',
+                            url: 'https://github.com/AthenZ/athenz/blob/master/docs/design/resource_ownership.md',
+                            target: '_blank',
+                        },
+                        resourceOwnershipUi: {
+                            icon: 'terraform',
+                            label: 'Terraform',
+                            managedIconTooltip:
+                                'This resource is managed by {{label}} (ownership in ZMS).',
+                            membersManagedIconTooltip:
+                                'Role membership is managed by {{label}} (members owner).',
+                            cliSuggestionBody:
+                                'This resource is {{label}}-managed and cannot be edited via the Athenz UI. To maintain environment stability, always apply changes through {{label}} configuration. While the zms-cli can force immediate updates, doing so creates configuration drift, leaving the resource out-of-sync and requiring manual intervention to reconcile.',
+                            cliSuggestionEmergencyHeading:
+                                'Use only in emergencies:',
+                            cliSuggestionGuideFooter:
+                                'For detailed guidance, refer to',
+                        },
+                        zmsUrl: 'https://zms.athenz.io',
                     });
                 });
         });

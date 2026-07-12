@@ -45,7 +45,7 @@ jobs:
 
     steps:
       - name: Free Disk Space (Ubuntu)
-        uses: kfir4444/free-disk-space@main
+        uses: insightsengineering/disk-space-reclaimer@v1.1.2
         with:
           # this might remove tools that are actually needed,
           # if set to "true" but frees about 6 GB
@@ -75,7 +75,7 @@ jobs:
         id: default_env
         run: |
           [[ "${{ env.DOCKER_REGISTRY_URL}}" = "" ]] && echo "DOCKER_REGISTRY_URL=docker.io" >> $GITHUB_ENV
-          [[ "${{ env.DOCKER_REGISTRY_USER }}" = "" ]] && echo "DOCKER_REGISTRY_USER=abvaidya" >> $GITHUB_ENV
+          [[ "${{ env.DOCKER_REGISTRY_USER }}" = "" ]] && echo "DOCKER_REGISTRY_USER=athenz" >> $GITHUB_ENV
           [[ "${{ env.DOCKER_REGISTRY_OWNER }}" = "" ]] && echo "DOCKER_REGISTRY_OWNER=athenz" >> $GITHUB_ENV
           [[ "${{ env.DOCKER_REGISTRY_IMAGE }}" = "" ]] && echo "DOCKER_REGISTRY_IMAGE=${{ env.CI_REPOSITORY_NAME }}" >> $GITHUB_ENV
           [[ "${{ env.DOCKER_REGISTRY_TOKEN}}" = "" ]] && echo "DOCKER_REGISTRY_TOKEN=${{ secrets.DOCKER_REGISTRY_TOKEN }}" >> $GITHUB_ENV

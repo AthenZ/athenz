@@ -459,6 +459,54 @@ public class InstanceGithubActionsProviderTest {
     }
 
     @Test
+    public void testValidateOIDCTokenEnterpriseMultipleValuesMatch() throws JOSEException {
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ENTERPRISE, "other-enterprise,athenz,another-enterprise");
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal principal = SimplePrincipal.create("sports", "api", (String) null);
+        Mockito.when(authorizer.access("github.push", "sports:repo:athenz/sia:ref:refs/heads/main", principal, null))
+                .thenReturn(true);
+        provider.setAuthorizer(authorizer);
+
+        // token enterprise "athenz" matches one of the configured enterprise values
+
+        String idToken = generateIdToken("https://token.actions.githubusercontent.com",
+                System.currentTimeMillis() / 1000, false, false, false, false, false);
+        StringBuilder errMsg = new StringBuilder(256);
+        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        assertTrue(result);
+        assertEquals(errMsg.length(), 0);
+    }
+
+    @Test
+    public void testValidateOIDCTokenEnterpriseMultipleValuesMismatch() throws JOSEException {
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ENTERPRISE, "enterprise-one,enterprise-two");
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        // token enterprise "athenz" does not match any configured enterprise values
+
+        String idToken = generateIdToken("https://token.actions.githubusercontent.com",
+                System.currentTimeMillis() / 1000, false, false, false, false, false);
+        StringBuilder errMsg = new StringBuilder(256);
+        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        assertFalse(result);
+        assertTrue(errMsg.toString().contains("token enterprise is not the configured enterprise"));
+    }
+
+    @Test
     public void testValidateOIDCTokenStartNotRecentEnough() throws JOSEException {
 
         final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();

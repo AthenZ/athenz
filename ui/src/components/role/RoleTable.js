@@ -18,6 +18,7 @@ import styled from '@emotion/styled';
 import RoleRow from './RoleRow';
 //import 'denali-css/css/denali.css';
 import RoleGroup from './RoleGroup';
+import { maxRoleVisibleIconCount } from '../utils/roleIconStrip';
 
 const StyleTable = styled.div`
     width: 100%;
@@ -104,6 +105,9 @@ export default class RoleTable extends React.Component {
         const { domain } = this.props;
         const adminRole = domain + ':role.admin';
         let rows = [];
+        const tableIconStripMax = maxRoleVisibleIconCount(
+            this.props.roles || []
+        );
         if (this.props.roles && this.props.roles.length > 0) {
             let remainingRows = this.props.roles.filter((item) => {
                 if (item.name === adminRole) {
@@ -140,6 +144,7 @@ export default class RoleTable extends React.Component {
                             onUpdateSuccess={this.props.onSubmit}
                             timeZone={this.props.timeZone}
                             _csrf={this.props._csrf}
+                            iconStripMaxIcons={tableIconStripMax}
                         />
                     );
                 });
@@ -148,16 +153,20 @@ export default class RoleTable extends React.Component {
 
             if (this.state.rows) {
                 for (let name in this.state.rows) {
+                    const groupRoles = this.state.rows[name];
+                    const groupIconStripMax =
+                        maxRoleVisibleIconCount(groupRoles);
                     let roleGroup = (
                         <RoleGroup
                             key={'group:' + name}
                             domain={domain}
                             name={name}
-                            roles={this.state.rows[name]}
+                            roles={groupRoles}
                             onUpdateSuccess={this.props.onSubmit}
                             timeZone={this.props.timeZone}
                             _csrf={this.props._csrf}
                             newRole={this.props.newRole}
+                            iconStripMaxIcons={groupIconStripMax}
                         />
                     );
 
@@ -180,6 +189,7 @@ export default class RoleTable extends React.Component {
                             timeZone={this.props.timeZone}
                             _csrf={this.props._csrf}
                             newRole={this.props.newRole}
+                            iconStripMaxIcons={tableIconStripMax}
                         />
                     );
                 });

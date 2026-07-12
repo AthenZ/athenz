@@ -1499,6 +1499,76 @@ public class ZMSMetaAttributeTest {
     }
 
     @Test
+    public void testPutDomainSystemMetaCostCenter() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "athenz-domain-with-cost-center";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
+        Domain domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertNull(domain.getCostCenter());
+
+        // set the cost center
+
+        DomainMeta dm = new DomainMeta().setCostCenter("cost-center-123");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "costcenter", auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getCostCenter(), "cost-center-123");
+
+        // update the cost center
+        // first we're going to be rejected with invalid authorization
+
+        dm.setCostCenter("cost-center-456");
+        try {
+            zmsImpl.putDomainSystemMeta(ctx, domainName, "costcenter", auditRef, dm);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("unauthorized to reset system meta attribute: costcenter"));
+        }
+
+        // let's create the role and policy to allow this operation
+
+        Role role1 = zmsTestInitializer.createRoleObject("sys.auth", "meta-cost-center", null, "user.user1",
+                zmsTestInitializer.getAdminUser());
+        zmsImpl.putRole(ctx, "sys.auth", "meta-cost-center", auditRef, false, null, role1);
+
+        Policy policy1 = zmsTestInitializer.createPolicyObject("sys.auth", "meta-cost-center",
+                "meta-cost-center", "delete", "sys.auth:meta.domain.costcenter.*",
+                AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, "sys.auth", "meta-cost-center", auditRef, false, null, policy1);
+
+        // now our operation should succeed
+
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "costcenter", auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getCostCenter(), "cost-center-456");
+
+        // remove the cost center
+
+        dm = new DomainMeta().setCostCenter("");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "costcenter", auditRef, dm);
+
+        domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertNull(domain.getCostCenter());
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testSubDomainSignerKeyIdInherit() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();

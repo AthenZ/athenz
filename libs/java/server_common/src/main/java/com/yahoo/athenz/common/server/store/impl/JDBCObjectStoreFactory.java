@@ -21,6 +21,7 @@ import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.db.DataSourceFactory;
 import com.yahoo.athenz.common.server.db.PoolableDataSource;
+import com.yahoo.athenz.common.server.db.SchemaMigrationRunner;
 import com.yahoo.athenz.common.server.store.ObjectStore;
 import com.yahoo.athenz.common.server.store.ObjectStoreFactory;
 import org.eclipse.jetty.util.StringUtil;
@@ -54,7 +55,9 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
         final String jdbcKeygroupName = System.getProperty(JDBCConsts.ZMS_PROP_JDBC_KEYGROUP_NAME, "");
         Properties readWriteProperties = getProperties(jdbcUser, keyStore.getSecret(jdbcAppName, jdbcKeygroupName, password));
         PoolableDataSource readWriteSrc = DataSourceFactory.create(jdbcStore, readWriteProperties);
-        
+
+        runSchemaMigrations(readWriteSrc);
+
         // now check to see if we also have a read-only jdbc store configured
         // if no username and password are specified then we'll use the
         // read-write store credentials
@@ -68,6 +71,11 @@ public class JDBCObjectStoreFactory implements ObjectStoreFactory {
             readOnlySrc = DataSourceFactory.create(jdbcReadOnlyStore, readOnlyProperties);
         }
         return new JDBCObjectStore(readWriteSrc, readOnlySrc);
+    }
+
+    void runSchemaMigrations(PoolableDataSource dataSource) {
+        SchemaMigrationRunner.migrateIfConfigured(dataSource,
+                JDBCConsts.ZMS_PROP_JDBC_SCHEMA_MIGRATION_DIR, "athenz_schema_migration_zms");
     }
 
     String getDefaultSetting(final String propName, final String defaultValue) {

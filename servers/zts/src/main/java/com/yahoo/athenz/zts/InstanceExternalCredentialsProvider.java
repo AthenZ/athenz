@@ -56,7 +56,8 @@ public class InstanceExternalCredentialsProvider implements ExternalCredentialsP
         public ProviderResourceContext(ServletContext servletContext, HttpServletRequest request,
                 HttpServletResponse response, Http.AuthorityList authList, boolean optionalAuth,
                 Authorizer authorizer, Metric metric, Object timerMetric, String apiName) {
-            super(servletContext, request, response, authList, optionalAuth, authorizer, metric, timerMetric, apiName);
+            super(servletContext, request, response, authList, optionalAuth, authorizer, metric, timerMetric,
+                    apiName, null, null);
         }
 
         public void setPrincipal(Principal principal) {

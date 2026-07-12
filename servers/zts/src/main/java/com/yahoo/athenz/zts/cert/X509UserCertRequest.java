@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zts.cert;
 
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.common.server.cert.CertificateDataValidator;
 import com.yahoo.athenz.common.server.spiffe.SpiffeUriManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +30,9 @@ public class X509UserCertRequest extends X509CertRequest {
     protected String reqUserName;
     protected String userPrincipal;
 
-    public X509UserCertRequest(String csr, SpiffeUriManager spiffeUriManager) throws CryptoException {
-        super(csr, spiffeUriManager);
+    public X509UserCertRequest(String csr, SpiffeUriManager spiffeUriManager,
+            CertificateDataValidator certificateDataValidator) throws CryptoException {
+        super(csr, spiffeUriManager, certificateDataValidator);
     }
 
     public boolean validate(final String domainName, final String userName, final Set<String> validCertSubjectOrgValues) {

@@ -272,6 +272,9 @@ func InitEnvConfig(config *sc.Config) (*sc.Config, *sc.ConfigAccount, error) {
 	if !config.RunAfterFailExit {
 		config.RunAfterFailExit = util.ParseEnvBooleanFlag("ATHENZ_SIA_RUN_AFTER_FAIL_EXIT")
 	}
+    if config.RolePath == "" {
+        config.RolePath = os.Getenv("ATHENZ_SIA_ROLE_PATH")
+    }
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 	if roleArn == "" {
@@ -398,6 +401,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 	runAfterFailExit := false
 	roleCertsRequired := false
 	httpPort := 0
+	rolePath := ""
 
 	var storeTokenOption *int
 	if config != nil {
@@ -416,6 +420,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		runAfterFailExit = config.RunAfterFailExit
 		roleCertsRequired = config.RoleCertsRequired
 		httpPort = config.HttpPort
+		rolePath = config.RolePath
 
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
@@ -669,6 +674,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		RoleCertsRequired:      roleCertsRequired,
 		OTel:                   oTelCfg,
 		HttpPort:               httpPort,
+		RolePath:               rolePath,
 	}, nil
 }
 

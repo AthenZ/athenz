@@ -44,14 +44,20 @@ public class RsrcCtxWrapper implements ResourceContext {
     Metric metric;
     private final Object timerMetric;
     private final String apiName;
+    private final Authority userAuthority;
+    private final String userDomain;
+    private boolean principalValidated = false;
 
     public RsrcCtxWrapper(ServletContext servletContext, HttpServletRequest request, HttpServletResponse response,
                           Http.AuthorityList authList, boolean optionalAuth, Authorizer authorizer,
-                          Metric metric, Object timerMetric, String apiName) {
+                          Metric metric, Object timerMetric, String apiName,
+                          Authority userAuthority, String userDomain) {
         this.optionalAuth = optionalAuth;
         this.metric = metric;
         this.timerMetric = timerMetric;
         this.apiName = apiName.toLowerCase();
+        this.userAuthority = userAuthority;
+        this.userDomain = userDomain;
         ctx = new ServerResourceContext(servletContext, request, response,
                 authList, authorizer);
     }
@@ -111,18 +117,34 @@ public class RsrcCtxWrapper implements ResourceContext {
                 LOG.error("authenticate: certificate is mTLS restricted");
                 throw new ServerResourceException(ServerResourceException.UNAUTHORIZED, "certificate is mTLS restricted");
             }
+            validateUserPrincipal(principal);
         } catch (ServerResourceException restExc) {
             throwZtsException(restExc);
         }
     }
-    
+
     @Override
     public void authorize(String action, String resource, String trustedDomain) {
         try {
             ctx.authorize(action, resource, trustedDomain);
+            validateUserPrincipal(principal());
         } catch (ServerResourceException restExc) {
             logPrincipal();
             throwZtsException(restExc);
+        }
+    }
+
+    void validateUserPrincipal(final Principal principal) throws ServerResourceException {
+        if (principalValidated || principal == null || userAuthority == null || userDomain == null) {
+            return;
+        }
+        principalValidated = true;
+        if (!userDomain.equals(principal.getDomain())) {
+            return;
+        }
+        if (userAuthority.getUserType(principal.getFullName()) != Authority.UserType.USER_ACTIVE) {
+            LOG.error("validateUserPrincipal: user {} is not valid", principal.getFullName());
+            throw new ServerResourceException(ServerResourceException.UNAUTHORIZED, "user is not valid");
         }
     }
 

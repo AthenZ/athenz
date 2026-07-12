@@ -14140,7 +14140,7 @@ public class ZMSImplTest {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
         ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
-                null, new Object(), "apiName", false);
+                null, new Object(), "apiName", false, null, null);
 
         zmsImpl.optionsUserToken(ctx, "user", "coretech.storage");
         assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_METHODS), "GET");
@@ -14161,7 +14161,7 @@ public class ZMSImplTest {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
         ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
-                null, new Object(), "apiName", false);
+                null, new Object(), "apiName", false, null, null);
 
         String origin = "https://zms.origin.athenzcompany.com";
         String requestHeaders = "X-Forwarded-For,Content-Type";
@@ -14199,7 +14199,7 @@ public class ZMSImplTest {
         HttpServletRequest servletRequest = new MockHttpServletRequest();
         HttpServletResponse servletResponse = new MockHttpServletResponse();
         ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
-                null, new Object(), "apiName", false);
+                null, new Object(), "apiName", false, null, null);
 
         zmsImpl.setStandardCORSHeaders(ctx);
         assertEquals(servletResponse.getHeader(ZMSConsts.HTTP_ACCESS_CONTROL_ALLOW_CREDENTIALS), "true");
@@ -14217,7 +14217,7 @@ public class ZMSImplTest {
         MockHttpServletRequest servletRequest = new MockHttpServletRequest();
         MockHttpServletResponse servletResponse = new MockHttpServletResponse();
         ResourceContext ctx = new RsrcCtxWrapper(null, servletRequest, servletResponse, null, false,
-                null, new Object(), "apiName", true);
+                null, new Object(), "apiName", true, null, null);
 
         String origin = "https://zms.origin.athenzcompany.com";
         String requestHeaders = "X-Forwarded-For,Content-Type";
@@ -15282,6 +15282,80 @@ public class ZMSImplTest {
             assertEquals(ex.getCode(), 401);
             assertEquals( ((ResourceError) ex.data).message, "failed struct");
         }
+    }
+
+    @Test
+    public void testNewResourceContextValidateUserAuthorityPrincipalsDefault() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        // by default validateUserAuthorityPrincipals is false so the userAuthority
+        // should not be passed to the RsrcCtxWrapper
+
+        DynamicConfigBoolean savedConfig = zmsImpl.validateUserAuthorityPrincipals;
+        Authority savedAuthority = zmsImpl.userAuthority;
+
+        Authority authority = Mockito.mock(Authority.class);
+        zmsImpl.userAuthority = authority;
+
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(false);
+        zmsImpl.validateUserAuthorityPrincipals = dynamicConfigBoolean;
+
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zmsImpl.newResourceContext(zmsTestInitializer.getMockServletContext(),
+                zmsTestInitializer.getMockServletRequest(), zmsTestInitializer.getMockServletResponse(), "apiName");
+        assertNotNull(ctx);
+
+        // the wrapper should have null userAuthority since the config is disabled
+        // which means the validateUserPrincipal check will be skipped
+
+        try {
+            ctx.validateUserPrincipal(null);
+        } catch (Exception ex) {
+            fail();
+        }
+
+        zmsImpl.validateUserAuthorityPrincipals = savedConfig;
+        zmsImpl.userAuthority = savedAuthority;
+    }
+
+    @Test
+    public void testNewResourceContextValidateUserAuthorityPrincipalsEnabled() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        DynamicConfigBoolean savedConfig = zmsImpl.validateUserAuthorityPrincipals;
+        Authority savedAuthority = zmsImpl.userAuthority;
+
+        Authority authority = Mockito.mock(Authority.class);
+        when(authority.getUserType("user.joe")).thenReturn(Authority.UserType.USER_INVALID);
+        zmsImpl.userAuthority = authority;
+
+        DynamicConfigBoolean dynamicConfigBoolean = Mockito.mock(DynamicConfigBoolean.class);
+        when(dynamicConfigBoolean.get()).thenReturn(true);
+        zmsImpl.validateUserAuthorityPrincipals = dynamicConfigBoolean;
+
+        RsrcCtxWrapper ctx = (RsrcCtxWrapper) zmsImpl.newResourceContext(zmsTestInitializer.getMockServletContext(),
+                zmsTestInitializer.getMockServletRequest(), zmsTestInitializer.getMockServletResponse(), "apiName");
+        assertNotNull(ctx);
+
+        // the wrapper should have a non-null userAuthority since the config is enabled
+        // so the validateUserPrincipal check will be active - an invalid user should
+        // throw an exception
+
+        Principal principal = Mockito.mock(Principal.class);
+        when(principal.getDomain()).thenReturn("user");
+        when(principal.getFullName()).thenReturn("user.joe");
+
+        try {
+            ctx.validateUserPrincipal(principal);
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), 401);
+        }
+
+        zmsImpl.validateUserAuthorityPrincipals = savedConfig;
+        zmsImpl.userAuthority = savedAuthority;
     }
 
     @Test
@@ -18818,7 +18892,8 @@ public class ZMSImplTest {
                 .setAccount("1234").setAuditEnabled(true).setOrg("org")
                 .setAzureSubscription("4567").setAzureTenant("321").setAzureClient("999")
                 .setBusinessService("123:business service").setGcpProject("gcp").setGcpProjectNumber("1240")
-                .setProductId("abcd-123").setExternalMemberValidator("com.yahoo.test.Validator");
+                .setProductId("abcd-123").setExternalMemberValidator("com.yahoo.test.Validator")
+                .setCostCenter("cost-center-123");
         SignedDomain domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, null);
         assertNull(domain.getDomain().getAccount());
         assertNull(domain.getDomain().getAwsAccountName());
@@ -18955,6 +19030,24 @@ public class ZMSImplTest {
         assertNull(domain.getDomain().getSlackChannel());
         assertNull(domain.getDomain().getOnCall());
         assertNull(domain.getDomain().getProductId());
+        assertNull(domain.getDomain().getCostCenter());
+
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "costcenter");
+        assertEquals(domain.getDomain().getCostCenter(), "cost-center-123");
+        assertNull(domain.getDomain().getAccount());
+        assertNull(domain.getDomain().getYpmId());
+        assertNull(domain.getDomain().getOrg());
+        assertNull(domain.getDomain().getAuditEnabled());
+        assertNull(domain.getDomain().getAzureSubscription());
+        assertNull(domain.getDomain().getAzureTenant());
+        assertNull(domain.getDomain().getAzureClient());
+        assertNull(domain.getDomain().getGcpProject());
+        assertNull(domain.getDomain().getGcpProjectNumber());
+        assertNull(domain.getDomain().getBusinessService());
+        assertNull(domain.getDomain().getSlackChannel());
+        assertNull(domain.getDomain().getOnCall());
+        assertNull(domain.getDomain().getProductId());
+        assertNull(domain.getDomain().getExternalMemberValidator());
 
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "all");
         assertEquals(domain.getDomain().getAccount(), "1234");
@@ -18969,6 +19062,7 @@ public class ZMSImplTest {
         assertEquals(domain.getDomain().getBusinessService(), "123:business service");
         assertEquals(domain.getDomain().getProductId(), "abcd-123");
         assertEquals(domain.getDomain().getExternalMemberValidator(), "com.yahoo.test.Validator");
+        assertEquals(domain.getDomain().getCostCenter(), "cost-center-123");
         assertNull(domain.getDomain().getSlackChannel());
         assertNull(domain.getDomain().getOnCall());
 
@@ -19002,6 +19096,10 @@ public class ZMSImplTest {
 
         domainMeta.setExternalMemberValidator(null);
         domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "externalmembervalidator");
+        assertNull(domain);
+
+        domainMeta.setCostCenter(null);
+        domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, "costcenter");
         assertNull(domain);
 
         zmsImpl.objectStore.clearConnections();

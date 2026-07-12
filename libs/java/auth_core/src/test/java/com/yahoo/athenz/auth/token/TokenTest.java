@@ -192,6 +192,8 @@ public class TokenTest {
             assertTrue(unsignedToken.length() < signedToken.length());
             assertTrue(signedToken.startsWith(unsignedToken));
         }
+
+        assertNull(Token.getUnsignedToken(null));
     }
 
     @Test

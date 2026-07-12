@@ -251,7 +251,23 @@ public interface Authority {
      * @param username user's name or id
      * @return signer key id or null if not available
      */
+    @Deprecated
     default String getSignerKeyId(final String username) {
+        return getSignerKeyId(username, null);
+    }
+
+    /**
+     * Return the signer key id for the user if the authority is handling user
+     * principals and needs to determine the signer key id for the user that
+     * is requesting the certificate. The requestSignerKeyId is the signer key id
+     * that was requested by the client in the request. If the requestSignerKeyId
+     * is not null, then the authority should determine if it's valid for the user
+     * and either return that value or another signer key id for the user.
+     * @param username user's name or id
+     * @param requestSignerKeyId user's requested signer key id
+     * @return signer key id or null if not available
+     */
+    default String getSignerKeyId(final String username, final String requestSignerKeyId) {
         return null;
     }
 }

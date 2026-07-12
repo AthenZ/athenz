@@ -221,8 +221,11 @@ describe('PublicKeyTable', () => {
             await waitFor(() => getByTestId('delete-modal-delete'))
         );
         expect(
-            await waitFor(() => getByTestId('error-message'))
-        ).toMatchSnapshot();
+            await waitFor(() =>
+                getByText('Session expired. Please refresh the page.')
+            )
+        ).toBeInTheDocument();
+        expect(getByTestId('public-key-table')).toBeInTheDocument();
     });
 
     it('should render error if there is an error in submitDeleteKey(other)', async () => {
@@ -275,8 +278,70 @@ describe('PublicKeyTable', () => {
             await waitFor(() => getByTestId('delete-modal-delete'))
         );
         expect(
-            await waitFor(() => getByTestId('error-message'))
-        ).toMatchSnapshot();
+            await waitFor(() => getByText('Status: 1. Message: test-error'))
+        ).toBeInTheDocument();
+        expect(getByTestId('public-key-table')).toBeInTheDocument();
+    });
+
+    it('should show resource-ownership zms-cli hint when delete fails for externally managed public key', async () => {
+        const services = buildServicesForState(
+            {
+                [serviceFullName]: {
+                    name: 'home.user1.openhouse',
+                    description: 'This is a default service for Openhouse.',
+                    modified: '2017-12-19T20:24:41.195Z',
+                    publicKeys: {
+                        'test-id': {
+                            id: 'test-id',
+                            key: 'test-value',
+                        },
+                    },
+                    resourceOwnership: { publicKeysOwner: 'TF2' },
+                },
+            },
+            domain
+        );
+        const color = '';
+        const api = {
+            deleteKey: function (domainName, serviceName, keyId, _csrf) {
+                return new Promise((resolve, reject) => {
+                    reject({
+                        statusCode: 409,
+                        output: {
+                            message: 'Service has a resource owner: TF2',
+                        },
+                    });
+                });
+            },
+        };
+        MockApi.setMockApi(api);
+
+        const { getByTestId, getByTitle } = renderWithRedux(
+            <table>
+                <tbody>
+                    <tr>
+                        <PublicKeyTable
+                            domain={domain}
+                            service={service}
+                            color={color}
+                        />
+                    </tr>
+                </tbody>
+            </table>,
+            getStateWithServices(services)
+        );
+        fireEvent.click(getByTitle('trash'));
+        fireEvent.click(
+            await waitFor(() => getByTestId('delete-modal-delete'))
+        );
+
+        const suggestion = await waitFor(() =>
+            getByTestId('resource-ownership-cli-suggestion')
+        );
+        expect(suggestion.textContent).toContain('delete-public-key');
+        expect(suggestion.textContent).toContain(service);
+        expect(suggestion.textContent).toContain('test-id');
+        expect(getByTestId('public-key-table')).toBeInTheDocument();
     });
 
     it('should reloadService after successful delete', async () => {
@@ -391,7 +456,8 @@ describe('PublicKeyTable', () => {
             await waitFor(() => getByTestId('delete-modal-delete'))
         );
         expect(
-            await waitFor(() => getByTestId('error-message'))
-        ).toMatchSnapshot();
+            await waitFor(() => getByText('Status: 404. Message: not found'))
+        ).toBeInTheDocument();
+        expect(getByTestId('public-key-table')).toBeInTheDocument();
     });
 });

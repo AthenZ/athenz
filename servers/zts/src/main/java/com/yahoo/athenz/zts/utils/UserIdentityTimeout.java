@@ -21,6 +21,8 @@ import com.yahoo.athenz.zms.TagValueList;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.store.DataStore;
+
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,10 +38,11 @@ public class UserIdentityTimeout implements Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserIdentityTimeout.class);
 
     static final long DEFAULT_REFRESH_INTERVAL_MINS = 10;
+    static final String DEFAULT_KEY_ID = "_default_";
 
     private final DataStore dataStore;
     private final String userDomain;
-    private final Map<String, Integer> roleCertTimeoutMap;
+    private volatile Map<String, Map<String, Integer>> roleCertTimeoutMap;
     private final Map<String, Integer> roleTokenTimeoutMap;
     private final ScheduledExecutorService scheduledExecutor;
 
@@ -57,6 +60,7 @@ public class UserIdentityTimeout implements Closeable {
         this.roleCertTimeoutMap = new ConcurrentHashMap<>();
         this.roleTokenTimeoutMap = new ConcurrentHashMap<>();
         this.lastModifiedMillis = 0;
+        this.roleCertTimeoutMap.put(DEFAULT_KEY_ID, new ConcurrentHashMap<>());
 
         // default and max (1hr) for user cert timeouts
 
@@ -157,13 +161,14 @@ public class UserIdentityTimeout implements Closeable {
             return;
         }
 
-        Set<String> currentCertRoles = new HashSet<>();
+        Map<String, Map<String, Integer>> newCertMap = new HashMap<>();
         Set<String> currentTokenRoles = new HashSet<>();
         for (Role role : roles) {
             Integer timeout = extractTimeoutFromRole(role, ZTSConsts.ZTS_USER_CERT_TIMEOUT_TAG);
             if (timeout != null) {
-                roleCertTimeoutMap.put(role.getName(), timeout);
-                currentCertRoles.add(role.getName());
+                String keyId = extractSignerKeyIdFromRole(role);
+                newCertMap.computeIfAbsent(keyId, k -> new ConcurrentHashMap<>())
+                        .put(role.getName(), timeout);
             }
             timeout = extractTimeoutFromRole(role, ZTSConsts.ZTS_USER_TOKEN_TIMEOUT_TAG);
             if (timeout != null) {
@@ -172,13 +177,13 @@ public class UserIdentityTimeout implements Closeable {
             }
         }
 
-        roleCertTimeoutMap.keySet().retainAll(currentCertRoles);
+        roleCertTimeoutMap = newCertMap;
         roleTokenTimeoutMap.keySet().retainAll(currentTokenRoles);
 
         lastModifiedMillis = domainData.getModified() != null ? domainData.getModified().millis() : 0;
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Refreshed user cert timeout map with {} entries", roleCertTimeoutMap.size());
+            LOGGER.debug("Refreshed user cert timeout map with {} key-id entries", roleCertTimeoutMap.size());
             LOGGER.debug("Refreshed user token timeout map with {} entries", roleTokenTimeoutMap.size());
         }
     }
@@ -203,11 +208,31 @@ public class UserIdentityTimeout implements Closeable {
         }
     }
 
-    public Integer getCertTimeout(String roleName) {
-        return roleCertTimeoutMap.get(roleName);
+    String extractSignerKeyIdFromRole(Role role) {
+
+        if (role == null || role.getTags() == null) {
+            return DEFAULT_KEY_ID;
+        }
+
+        TagValueList tagValueList = role.getTags().get(ZTSConsts.ZTS_USER_CERT_SIGNER_KEY_ID_TAG);
+        if (tagValueList == null || tagValueList.getList() == null || tagValueList.getList().isEmpty()) {
+            return DEFAULT_KEY_ID;
+        }
+
+        String keyId = tagValueList.getList().get(0).trim();
+        return keyId.isEmpty() ? DEFAULT_KEY_ID : keyId;
     }
 
-    public Map<String, Integer> getCertTimeoutMap() {
+    public Integer getCertTimeout(String keyId, String roleName) {
+        Map<String, Integer> keyMap = roleCertTimeoutMap.get(keyId != null ? keyId : DEFAULT_KEY_ID);
+        return keyMap != null ? keyMap.get(roleName) : null;
+    }
+
+    public Integer getCertTimeout(String roleName) {
+        return getCertTimeout(null, roleName);
+    }
+
+    public Map<String, Map<String, Integer>> getCertTimeoutMap() {
         return Collections.unmodifiableMap(roleCertTimeoutMap);
     }
 
@@ -231,12 +256,23 @@ public class UserIdentityTimeout implements Closeable {
 
     /**
      * This method will return the maximum timeout for the user's accessible roles
-     * If the domain does not exist or the user is not part of any roles, we'll
-     * return the default timeout.
+     * for the given signer key id. If the signer key id is null or empty, the
+     * default map is used. If the domain does not exist or the user is not part
+     * of any roles, we'll return the default timeout.
      * @param userName the name of the user
+     * @param signerKeyId the signer key id (null for default)
      * @return the maximum timeout for the user's accessible roles
      */
-    int getUserRoleCertTimeout(final String userName) {
+    int getUserRoleCertTimeout(final String userName, final String signerKeyId) {
+
+        // determine which key id map to use
+
+        final String effectiveKeyId = StringUtil.isEmpty(signerKeyId) ? DEFAULT_KEY_ID : signerKeyId;
+
+        Map<String, Integer> keyMap = roleCertTimeoutMap.get(effectiveKeyId);
+        if (keyMap == null || keyMap.isEmpty()) {
+            return userCertDefaultTimeout;
+        }
 
         // now we'll get the accessible roles for the user
 
@@ -244,7 +280,7 @@ public class UserIdentityTimeout implements Closeable {
 
         int maxRoleTimeout = 0;
         for (String role : roles) {
-            Integer timeout = getCertTimeout(role);
+            Integer timeout = keyMap.get(role);
             if (timeout != null && timeout > maxRoleTimeout) {
                 maxRoleTimeout = timeout;
             }
@@ -283,12 +319,14 @@ public class UserIdentityTimeout implements Closeable {
         return (maxRoleTimeout == 0) ? userTokenDefaultTimeout : maxRoleTimeout;
     }
 
-    public int getUserCertTimeout(final String userName, Integer userExpiryRequested) {
+    public int getUserCertTimeout(final String userName, final String signerKeyId,
+            Integer userExpiryRequested) {
 
         // first we'll get the maximum timeout for the user's accessible roles
         // and determine the timeout to return
 
-        return getUserIdentityTimeout(getUserRoleCertTimeout(userName), userCertMaxTimeout, userExpiryRequested);
+        return getUserIdentityTimeout(getUserRoleCertTimeout(userName, signerKeyId),
+                userCertMaxTimeout, userExpiryRequested);
     }
 
     public int getUserTokenTimeout(final String userName, Integer userExpiryRequested) {

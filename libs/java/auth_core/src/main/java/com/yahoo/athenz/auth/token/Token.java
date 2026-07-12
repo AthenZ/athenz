@@ -227,9 +227,12 @@ public class Token {
      * @return credentials without the signature
     **/
     public static String getUnsignedToken(String credential) {
-        int idx = credential.indexOf(";s=");
-        if (idx != -1) {
-            credential = credential.substring(0, idx);
+
+        if (credential != null) {
+            int idx = credential.indexOf(";s=");
+            if (idx != -1) {
+                credential = credential.substring(0, idx);
+            }
         }
 
         return credential;

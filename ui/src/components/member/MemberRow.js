@@ -36,6 +36,14 @@ import {
     MEMBER_AUTHORITY_SYSTEM_SUSPENDED,
 } from '../constants/constants';
 import NameUtils from '../utils/NameUtils';
+import {
+    isRoleResourceMembersManaged,
+    resolveResourceOwnershipCliOnError,
+} from '../utils/resourceOwnership';
+import {
+    cliAddTemporaryRoleMember,
+    cliDeleteRoleMember,
+} from '../utils/zmsCliCommands';
 
 const TDStyled = styled.td`
     background-color: ${(props) => props.color};
@@ -112,6 +120,7 @@ class MemberRow extends React.Component {
             showDelete: false,
             showEdit: false,
             date: null,
+            resourceOwnershipCliCommand: null,
         };
         this.localDate = new DateUtils();
     }
@@ -173,10 +182,31 @@ class MemberRow extends React.Component {
                         true
                     );
                 }
+                this.setState({ resourceOwnershipCliCommand: null });
             })
             .catch((err) => {
+                const errMsg = RequestUtils.xhrErrorCheckHelper(err);
+                const aud =
+                    this.props.justificationRequired && this.state.justification
+                        ? this.state.justification
+                        : null;
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: errMsg,
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            isRoleResourceMembersManaged(
+                                this.props.resourceOwnership
+                            ),
+                            err,
+                            (zmsUrl) =>
+                                cliDeleteRoleMember(
+                                    this.props.domain,
+                                    this.props.collection,
+                                    this.state.deleteName,
+                                    aud,
+                                    zmsUrl
+                                )
+                        ),
                 });
             });
     }
@@ -186,6 +216,7 @@ class MemberRow extends React.Component {
             showDelete: false,
             deleteName: '',
             errorMessage: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
@@ -202,6 +233,7 @@ class MemberRow extends React.Component {
             showEdit: false,
             errorMessage: null,
             date: null,
+            resourceOwnershipCliCommand: null,
         });
     }
 
@@ -245,11 +277,34 @@ class MemberRow extends React.Component {
                 );
                 this.setState({
                     showEdit: false,
+                    resourceOwnershipCliCommand: null,
                 });
             })
             .catch((err) => {
+                const errMsg = RequestUtils.xhrErrorCheckHelper(err);
+                const aud =
+                    this.props.justificationRequired && this.state.justification
+                        ? this.state.justification
+                        : null;
                 this.setState({
-                    errorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                    errorMessage: errMsg,
+                    resourceOwnershipCliCommand:
+                        resolveResourceOwnershipCliOnError(
+                            isRoleResourceMembersManaged(
+                                this.props.resourceOwnership
+                            ),
+                            err,
+                            (zmsUrl) =>
+                                cliAddTemporaryRoleMember(
+                                    this.props.domain,
+                                    this.props.collection,
+                                    member.memberName,
+                                    member.expiration || '',
+                                    member.reviewReminder || '',
+                                    aud,
+                                    zmsUrl
+                                )
+                        ),
                 });
             });
     }
@@ -502,6 +557,9 @@ class MemberRow extends React.Component {
                     onJustification={this.saveJustification}
                     onDateChange={this.onDateChange}
                     errorMessage={this.state.errorMessage}
+                    resourceOwnershipCliCommand={
+                        this.state.resourceOwnershipCliCommand
+                    }
                 />
             );
         }
@@ -520,6 +578,9 @@ class MemberRow extends React.Component {
                     }
                     onJustification={this.saveJustification}
                     errorMessage={this.state.errorMessage}
+                    resourceOwnershipCliCommand={
+                        this.state.resourceOwnershipCliCommand
+                    }
                 />
             );
         }

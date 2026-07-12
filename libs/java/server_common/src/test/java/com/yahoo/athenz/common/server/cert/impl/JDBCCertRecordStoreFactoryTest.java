@@ -16,7 +16,9 @@
 package com.yahoo.athenz.common.server.cert.impl;
 
 import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import org.mockito.Mockito;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.auth.PrivateKeyStore;
@@ -39,5 +41,41 @@ public class JDBCCertRecordStoreFactoryTest {
         JDBCCertRecordStoreFactory factory = new JDBCCertRecordStoreFactory();
         CertRecordStore store = factory.create(keyStore);
         assertNotNull(store);
+    }
+
+    @AfterMethod
+    public void tearDown() {
+        System.clearProperty(JDBCCertRecordStoreFactory.ZTS_PROP_SCHEMA_MIGRATION_DIR);
+    }
+
+    @Test
+    public void testRunSchemaMigrationsNotConfigured() {
+        System.clearProperty(JDBCCertRecordStoreFactory.ZTS_PROP_SCHEMA_MIGRATION_DIR);
+        PoolableDataSource mockDs = Mockito.mock(PoolableDataSource.class);
+
+        JDBCCertRecordStoreFactory factory = new JDBCCertRecordStoreFactory();
+        factory.runSchemaMigrations(mockDs);
+
+        Mockito.verifyNoInteractions(mockDs);
+    }
+
+    @Test
+    public void testRunSchemaMigrationsEmptyProperty() {
+        System.setProperty(JDBCCertRecordStoreFactory.ZTS_PROP_SCHEMA_MIGRATION_DIR, "");
+        PoolableDataSource mockDs = Mockito.mock(PoolableDataSource.class);
+
+        JDBCCertRecordStoreFactory factory = new JDBCCertRecordStoreFactory();
+        factory.runSchemaMigrations(mockDs);
+
+        Mockito.verifyNoInteractions(mockDs);
+    }
+
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public void testRunSchemaMigrationsInvalidDirectory() {
+        System.setProperty(JDBCCertRecordStoreFactory.ZTS_PROP_SCHEMA_MIGRATION_DIR, "/non/existent/dir");
+        PoolableDataSource mockDs = Mockito.mock(PoolableDataSource.class);
+
+        JDBCCertRecordStoreFactory factory = new JDBCCertRecordStoreFactory();
+        factory.runSchemaMigrations(mockDs);
     }
 }

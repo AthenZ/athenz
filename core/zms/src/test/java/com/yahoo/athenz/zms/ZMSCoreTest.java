@@ -620,7 +620,8 @@ public class ZMSCoreTest {
                 .setEnvironment("production").setResourceOwnership(new ResourceDomainOwnership().setObjectOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator")
+                .setCostCenter("cost-center");
 
         result = validator.validate(dd, "DomainData");
         assertTrue(result.valid, result.error);
@@ -669,6 +670,7 @@ public class ZMSCoreTest {
         assertEquals(dd.getOnCall(), "oncall");
         assertTrue(dd.getAutoDeleteTenantAssumeRoleAssertions());
         assertEquals(dd.getExternalMemberValidator(), "ext-validator");
+        assertEquals(dd.getCostCenter(), "cost-center");
 
         DomainData dd2 = new DomainData().setName("test.domain").setAccount("aws").setYpmId(1).setRoles(rl)
                 .setPolicies(sp).setServices(sil).setEntities(elist).setModified(Timestamp.fromMillis(123456789123L))
@@ -684,11 +686,19 @@ public class ZMSCoreTest {
                 .setResourceOwnership(new ResourceDomainOwnership().setObjectOwner("TF"))
                 .setX509CertSignerKeyId("x509-keyid").setSshCertSignerKeyId("ssh-keyid")
                 .setSlackChannel("slack").setOnCall("oncall").setAutoDeleteTenantAssumeRoleAssertions(true)
-                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator");
+                .setAwsAccountName("aws-name").setExternalMemberValidator("ext-validator")
+                .setCostCenter("cost-center");
 
         assertEquals(dd2, dd);
         assertNotEquals(dd, null);
         assertNotEquals(new String(), dd);
+
+        dd2.setCostCenter("cost-center2");
+        assertNotEquals(dd, dd2);
+        dd2.setCostCenter(null);
+        assertNotEquals(dd, dd2);
+        dd2.setCostCenter("cost-center");
+        assertEquals(dd, dd2);
 
         dd2.setExternalMemberValidator("ext-validator2");
         assertNotEquals(dd, dd2);

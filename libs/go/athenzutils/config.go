@@ -6,7 +6,7 @@ package athenzutils
 import (
 	"fmt"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v3"
 	"os"
 	"path/filepath"
 )

@@ -23,6 +23,7 @@ import {
     DESTINATION_NAME_LABEL,
     SOURCE_NAME_LABEL,
 } from '../constants/constants';
+import _ from 'lodash';
 
 const StyledDiv = styled.div`
     display: flex;

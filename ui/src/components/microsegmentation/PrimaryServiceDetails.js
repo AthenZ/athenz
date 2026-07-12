@@ -140,7 +140,6 @@ class PrimaryServiceDetails extends React.Component {
         let submitDeleteCondition = this.onSubmitDeleteCondition.bind(this);
         let clickDeleteConditionCancel =
             this.onClickDeleteConditionCancel.bind(this);
-        let rows = [];
 
         let portLabel, ports;
 
@@ -152,58 +151,51 @@ class PrimaryServiceDetails extends React.Component {
             ports = data['source_port'];
         }
 
-        rows.push(
-            <StyledDiv category={data['category']}>
-                <StyledPortIdDiv>
-                    <StyledColumnFlexDiv>
-                        <StyledLabelDiv>{portLabel}</StyledLabelDiv>
-                        <StyledDataDiv>{ports}</StyledDataDiv>
-                    </StyledColumnFlexDiv>
-                    <StyledColumnFlexDiv>
-                        <StyledLabelDiv>{IDENTIFIER_LABEL}</StyledLabelDiv>
-                        <StyledDataDiv>{data['identifier']}</StyledDataDiv>
-                    </StyledColumnFlexDiv>
-                </StyledPortIdDiv>
-                <StyledProtocolValidationDiv>
-                    <StyledColumnFlexDiv>
-                        <StyledLabelDiv>{PROTOCOL_LABEL}</StyledLabelDiv>
-                        <StyledDataDiv>{data['layer']}</StyledDataDiv>
-                    </StyledColumnFlexDiv>
-                </StyledProtocolValidationDiv>
-                <hr />
-                <EnforcementStateList
-                    list={data['conditionsList']}
-                    api={this.props.api}
-                    domain={this.props.domain}
-                    _csrf={this.props._csrf}
-                    deleteCondition={onClickDeleteCondition}
-                />
-            </StyledDiv>
+        return (
+            <>
+                <StyledDiv category={data['category']}>
+                    <StyledPortIdDiv>
+                        <StyledColumnFlexDiv>
+                            <StyledLabelDiv>{portLabel}</StyledLabelDiv>
+                            <StyledDataDiv>{ports}</StyledDataDiv>
+                        </StyledColumnFlexDiv>
+                        <StyledColumnFlexDiv>
+                            <StyledLabelDiv>{IDENTIFIER_LABEL}</StyledLabelDiv>
+                            <StyledDataDiv>{data['identifier']}</StyledDataDiv>
+                        </StyledColumnFlexDiv>
+                    </StyledPortIdDiv>
+                    <StyledProtocolValidationDiv>
+                        <StyledColumnFlexDiv>
+                            <StyledLabelDiv>{PROTOCOL_LABEL}</StyledLabelDiv>
+                            <StyledDataDiv>{data['layer']}</StyledDataDiv>
+                        </StyledColumnFlexDiv>
+                    </StyledProtocolValidationDiv>
+                    <hr />
+                    <EnforcementStateList
+                        list={data['conditionsList']}
+                        api={this.props.api}
+                        domain={this.props.domain}
+                        _csrf={this.props._csrf}
+                        deleteCondition={onClickDeleteCondition}
+                    />
+                </StyledDiv>
+                {this.state.showDeleteAssertionCondition && (
+                    <DeleteModal
+                        isOpen={this.state.showDeleteAssertionCondition}
+                        cancel={clickDeleteConditionCancel}
+                        submit={submitDeleteCondition}
+                        message={
+                            'Are you sure you want to permanently delete the Policy Enforcement Condition'
+                        }
+                        errorMessage={this.state.errorMessage}
+                        showJustification={this.props.justificationRequired}
+                        onJustification={(val) =>
+                            this.setState({ justification: val })
+                        }
+                    />
+                )}
+            </>
         );
-
-        if (this.state.showDeleteAssertionCondition) {
-            rows.push(
-                <DeleteModal
-                    isOpen={this.state.showDeleteAssertionCondition}
-                    cancel={clickDeleteConditionCancel}
-                    submit={submitDeleteCondition}
-                    key={
-                        this.state.assertionId +
-                        '-' +
-                        this.state.conditionId +
-                        '-delete'
-                    }
-                    message={
-                        'Are you sure you want to permanently delete the Policy Enforcement Condition'
-                    }
-                    errorMessage={this.state.errorMessage}
-                    showJustification={this.props.justificationRequired}
-                    onJustification={this.saveJustification}
-                />
-            );
-        }
-
-        return rows;
     }
 }
 

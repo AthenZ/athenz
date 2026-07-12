@@ -23,4 +23,12 @@ and the corresponding SQL script is stored in the `servers/zms/schema/zms_server
 1. Create a new file in the updates directory with the name `update-<date>.sql` where `<date>` is
    the current date (e.g. update-20240523.sql).
 2. Include the necessary SQL statements in the file to update an existing schema (e.g. `ALTER TABLE`, etc.).
-3. Include the update file as part of your PR.
+3. Follow these formatting rules (required by the automated migration runner):
+   - Each SQL statement must end with a semicolon (`;`) as the last non-whitespace
+     character on its line.
+   - Do not place comments after a semicolon on the same line
+     (e.g., avoid `ALTER TABLE ...; -- comment`).
+   - Do not place multiple statements on the same line.
+   - Use `--` for line comments (not `#`).
+   - Statements may span multiple lines.
+4. Include the update file as part of your PR.
