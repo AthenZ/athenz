@@ -570,6 +570,68 @@ func TestGetAccessToken_DiskHit_SkipsZTS(t *testing.T) {
 	}
 }
 
+func TestGetAccessToken_IgnoreCache_DiskHitSkipsZTS(t *testing.T) {
+	dir := t.TempDir()
+	expiry := time.Now().Add(2 * time.Hour).Unix()
+	writeDiskTokenFile(t, dir, "sports", "reader-token", "sports:role.reader", 3600, expiry)
+
+	fetcher := &mockFetcher{response: newTestResponse("zts-tok", 3600), err: nil}
+	c := newAccessTokenCacheWithFetcherAndDir(context.Background(), fetcher, dir, 0)
+	defer c.Stop()
+
+	resp, err := c.GetAccessToken("sports", "", "reader", "", "", "", 0, true)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if resp == nil {
+		t.Fatal("expected non-nil response")
+	}
+	if count := int(fetcher.callCount); count != 0 {
+		t.Errorf("ZTS was called %d times, expected 0 (disk should have been used)", count)
+	}
+}
+
+func TestGetAccessToken_IgnoreCache_DiskHitDoesNotReturnNewerMemoryToken(t *testing.T) {
+	dir := t.TempDir()
+	expiry := time.Now().Add(2 * time.Hour).Unix()
+	writeDiskTokenFile(t, dir, "sports", "reader-token", "sports:role.reader", 3600, expiry)
+
+	fetcher := &mockFetcher{response: newTestResponse("zts-tok", 3600), err: nil}
+	c := newAccessTokenCacheWithFetcherAndDir(context.Background(), fetcher, dir, 0)
+	defer c.Stop()
+
+	key := tokenCacheKey("sports", "", "reader", "", "", "", 0)
+	c.mu.Lock()
+	c.entries[key] = &accessTokenEntry{
+		response:     newTestResponse("cached-tok", 7200),
+		expiresAt:    time.Now().Add(7200 * time.Second),
+		serverExpiry: 7200,
+	}
+	c.entries[key].lastUsed.Store(time.Now().Unix())
+	c.mu.Unlock()
+
+	resp, err := c.GetAccessToken("sports", "", "reader", "", "", "", 0, true)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if resp == nil {
+		t.Fatal("expected non-nil response")
+	}
+	if resp.Access_token == "cached-tok" {
+		t.Fatal("ignoreCache=true returned newer in-memory token instead of disk token")
+	}
+	if count := int(fetcher.callCount); count != 0 {
+		t.Errorf("ZTS was called %d times, expected 0 (disk should have been used)", count)
+	}
+
+	c.mu.RLock()
+	stored := c.entries[key]
+	c.mu.RUnlock()
+	if stored == nil || stored.response.Access_token != "cached-tok" {
+		t.Fatalf("cache should retain newer in-memory token, got %+v", stored)
+	}
+}
+
 func TestGetAccessToken_DiskMiss_FallsBackToZTS(t *testing.T) {
 	dir := t.TempDir()
 	// Only writer on disk, but we request reader.

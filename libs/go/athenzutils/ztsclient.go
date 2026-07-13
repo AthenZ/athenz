@@ -233,23 +233,32 @@ func newAccessTokenCacheWithFetcher(ctx context.Context, fetcher ztsTokenFetcher
 // GetAccessToken returns a cached token if still fresh, otherwise fetches from ZTS.
 // Concurrent misses for the same key are collapsed into one ZTS call via singleflight.
 // On ZTS failure, a stale token is returned if one exists (Java parity); error only when none.
-func (c *AccessTokenCache) GetAccessToken(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris, proxyForPrincipal string, expiryTime int) (*zts.AccessTokenResponse, error) {
+// When ignoreCache is true, cache lookup and stale fallback are skipped.
+// If omitted, ignoreCache defaults to false.
+func (c *AccessTokenCache) GetAccessToken(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris, proxyForPrincipal string, expiryTime int, ignoreCacheOpt ...bool) (*zts.AccessTokenResponse, error) {
+	ignoreCache := len(ignoreCacheOpt) > 0 && ignoreCacheOpt[0]
 	key := tokenCacheKey(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris, proxyForPrincipal, expiryTime)
 
 	// Fast path: token is fresh, or we are within the failure backoff window.
-	c.mu.RLock()
-	entry, ok := c.entries[key]
-	c.mu.RUnlock()
-	if ok && entry.isServable(expiryTime) {
-		entry.touch()
-		return copyResponse(entry.response), nil
+	if !ignoreCache {
+		c.mu.RLock()
+		entry, ok := c.entries[key]
+		c.mu.RUnlock()
+		if ok && entry.isServable(expiryTime) {
+			entry.touch()
+			return copyResponse(entry.response), nil
+		}
 	}
 
 	// Slow path: deduplicated ZTS fetch — N concurrent misses result in one call.
 	type sfResult struct {
 		entry *accessTokenEntry
 	}
-	v, err, _ := c.group.Do(key, func() (interface{}, error) {
+	sfKey := key
+	if ignoreCache {
+		sfKey += "\x00ignoreCache"
+	}
+	v, err, _ := c.group.Do(sfKey, func() (interface{}, error) {
 		// Check disk before calling ZTS. Disk entries are written by the SIA
 		// agent and represent pre-provisioned tokens for this host identity.
 		if c.tokenDir != "" {
@@ -265,7 +274,9 @@ func (c *AccessTokenCache) GetAccessToken(domain, service, roles, authzDetails, 
 				if cur, exists := c.entries[key]; !exists {
 					c.entries[key] = diskEntry
 				} else if cur.expiresAt.After(diskEntry.expiresAt) {
-					diskEntry = cur
+					if !ignoreCache {
+						diskEntry = cur
+					}
 				} else {
 					c.entries[key] = diskEntry
 				}
@@ -285,26 +296,30 @@ func (c *AccessTokenCache) GetAccessToken(domain, service, roles, authzDetails, 
 		resp, fetchErr := c.fetcher.PostAccessTokenRequest(zts.AccessTokenRequest(request))
 		if fetchErr != nil {
 			// Return stale token if available and set backoff to avoid hammering ZTS.
-			c.mu.RLock()
-			stale, exists := c.entries[key]
-			c.mu.RUnlock()
-			if exists {
-				stale.retryAfter.Store(time.Now().Unix() + ztsFailureBackoffSeconds)
-				stale.touch()
-				return sfResult{entry: stale}, nil
+			if !ignoreCache {
+				c.mu.RLock()
+				stale, exists := c.entries[key]
+				c.mu.RUnlock()
+				if exists {
+					stale.retryAfter.Store(time.Now().Unix() + ztsFailureBackoffSeconds)
+					stale.touch()
+					return sfResult{entry: stale}, nil
+				}
 			}
 			return nil, fetchErr
 		}
 		if resp == nil || resp.Access_token == "" || resp.Expires_in == nil || *resp.Expires_in <= 0 {
 			// Invalid ZTS response is treated like a fetch failure: use stale
 			// token if available, otherwise return an error.
-			c.mu.RLock()
-			stale, exists := c.entries[key]
-			c.mu.RUnlock()
-			if exists {
-				stale.retryAfter.Store(time.Now().Unix() + ztsFailureBackoffSeconds)
-				stale.touch()
-				return sfResult{entry: stale}, nil
+			if !ignoreCache {
+				c.mu.RLock()
+				stale, exists := c.entries[key]
+				c.mu.RUnlock()
+				if exists {
+					stale.retryAfter.Store(time.Now().Unix() + ztsFailureBackoffSeconds)
+					stale.touch()
+					return sfResult{entry: stale}, nil
+				}
 			}
 			return nil, fmt.Errorf("athenzutils: ZTS returned an invalid response for domain %q", domain)
 		}
@@ -312,8 +327,10 @@ func (c *AccessTokenCache) GetAccessToken(domain, service, roles, authzDetails, 
 		c.mu.Lock()
 		if current, exists := c.entries[key]; !exists {
 			c.entries[key] = e
-		} else if current.hasMinLifetime(expiryTime) && current.expiresAt.After(e.expiresAt) {
-			e = current
+		} else if current.expiresAt.After(e.expiresAt) {
+			if !ignoreCache && current.hasMinLifetime(expiryTime) {
+				e = current
+			}
 		} else {
 			c.entries[key] = e
 		}
