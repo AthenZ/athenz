@@ -30,8 +30,10 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 public class AWSObjectStoreFactoryTest {
 
@@ -150,9 +152,16 @@ public class AWSObjectStoreFactoryTest {
         assertNull(factory.getAuthTokenFromCandidateRegions("host", 3306, "other-user"));
     }
 
+    @Test
+    public void testGetAuthTokenFromCandidateRegionsNullHostname() {
+        TestAWSObjectStoreFactory factory = new TestAWSObjectStoreFactory();
+        assertNull(factory.getAuthTokenFromCandidateRegions(null, 3306, "rds-user"));
+    }
+
     static class CandidateRegionTestFactory extends AWSObjectStoreFactory {
 
         private Region workingRegion;
+        private Region noTokenRegion;
         final List<Region> regionsTried = new java.util.concurrent.CopyOnWriteArrayList<>();
 
         CandidateRegionTestFactory(Region workingRegion) {
@@ -163,6 +172,10 @@ public class AWSObjectStoreFactoryTest {
             this.workingRegion = workingRegion;
         }
 
+        void setNoTokenRegion(Region noTokenRegion) {
+            this.noTokenRegion = noTokenRegion;
+        }
+
         @Override
         Region getRegion() {
             return Region.US_EAST_1;
@@ -171,12 +184,131 @@ public class AWSObjectStoreFactoryTest {
         @Override
         String getAuthToken(String hostname, int port, String rdsUser, Region region) {
             regionsTried.add(region);
+            if (region.equals(noTokenRegion)) {
+                return null;
+            }
             return "token-" + region.id();
         }
 
         @Override
         boolean verifyConnection(String jdbcUrl, String rdsUser, String token) {
             return token.equals("token-" + workingRegion.id());
+        }
+    }
+
+    @Test
+    public void testGetAuthTokenFromCandidateRegionsSkipsRegionWithNoToken() {
+
+        System.setProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE, "instance");
+        System.setProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_USER, "rds-user");
+        System.setProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME, "30000");
+        System.setProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_CANDIDATE_REGIONS, "us-west-2,eu-west-1");
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_REPLICA_INSTANCE);
+
+        // us-west-2 fails to generate a token at all (e.g. a transient signing error) - the
+        // factory must skip it and move on to the next candidate rather than treating a
+        // null/empty token as terminal
+
+        CandidateRegionTestFactory factory = new CandidateRegionTestFactory(Region.EU_WEST_1);
+        factory.setNoTokenRegion(Region.US_WEST_2);
+        ObjectStore store = factory.create(null);
+        assertNotNull(store);
+
+        assertEquals(factory.regionsTried, List.of(Region.US_EAST_1, Region.US_WEST_2, Region.EU_WEST_1));
+
+        factory.stop();
+
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_PRIMARY_INSTANCE);
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_USER);
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_CREDS_REFRESH_TIME);
+        System.clearProperty(AWSObjectStoreFactory.ZMS_PROP_AWS_RDS_CANDIDATE_REGIONS);
+    }
+
+    @Test
+    public void testVerifyConnectionRealImplementationFailsFast() {
+
+        // exercises the real (non-overridden) verifyConnection() failure path with a
+        // URL no registered driver accepts, so DriverManager fails synchronously
+        // without attempting any real network I/O
+
+        AWSObjectStoreFactory factory = new AWSObjectStoreFactory();
+        assertFalse(factory.verifyConnection("not-a-valid-jdbc-url", "user", "token"));
+    }
+
+    /**
+     * Minimal fake JDBC driver so tests can exercise verifyConnection()'s success path
+     * without a live database. Only connect()/acceptsURL() matter; the returned Connection
+     * is a no-op proxy since verifyConnection() only checks it for non-null before closing it.
+     */
+    static class FakeSuccessDriver implements java.sql.Driver {
+
+        static final String URL = "jdbc:athenztest://fake/db";
+
+        @Override
+        public boolean acceptsURL(String url) {
+            return URL.equals(url);
+        }
+
+        @Override
+        public java.sql.Connection connect(String url, java.util.Properties info) {
+            return (java.sql.Connection) java.lang.reflect.Proxy.newProxyInstance(
+                    java.sql.Connection.class.getClassLoader(),
+                    new Class<?>[] { java.sql.Connection.class },
+                    (proxy, method, args) -> {
+                        switch (method.getName()) {
+                            case "isClosed":
+                                return false;
+                            case "equals":
+                                return proxy == (args != null && args.length > 0 ? args[0] : null);
+                            case "hashCode":
+                                return System.identityHashCode(proxy);
+                            case "toString":
+                                return "FakeConnection";
+                            default:
+                                return null;
+                        }
+                    });
+        }
+
+        @Override
+        public int getMajorVersion() {
+            return 1;
+        }
+
+        @Override
+        public int getMinorVersion() {
+            return 0;
+        }
+
+        @Override
+        public boolean jdbcCompliant() {
+            return false;
+        }
+
+        @Override
+        public java.util.logging.Logger getParentLogger() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public java.sql.DriverPropertyInfo[] getPropertyInfo(String url, java.util.Properties info) {
+            return new java.sql.DriverPropertyInfo[0];
+        }
+    }
+
+    @Test
+    public void testVerifyConnectionRealImplementationSucceeds() throws java.sql.SQLException {
+
+        // registers a minimal fake driver so the real (non-overridden) verifyConnection()
+        // can exercise its success path (a real, non-null Connection) without a live database
+
+        FakeSuccessDriver driver = new FakeSuccessDriver();
+        java.sql.DriverManager.registerDriver(driver);
+        try {
+            AWSObjectStoreFactory factory = new AWSObjectStoreFactory();
+            assertTrue(factory.verifyConnection(FakeSuccessDriver.URL, "user", "token"));
+        } finally {
+            java.sql.DriverManager.deregisterDriver(driver);
         }
     }
 
