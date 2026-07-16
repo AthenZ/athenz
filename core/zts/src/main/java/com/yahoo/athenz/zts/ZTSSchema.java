@@ -1297,6 +1297,22 @@ public class ZTSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("UserCertificateRequest", "POST", "/extmembercert")
+            .comment("Return a TLS certificate for the given external member")
+            .name("PostExternalMemberCertificateRequest")
+            .input("req", "UserCertificateRequest", "csr request")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("rdl.Schema", "GET", "/schema")
             .comment("Get RDL Schema")
             .auth("", "", true)

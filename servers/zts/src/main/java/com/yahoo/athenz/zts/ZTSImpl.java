@@ -209,6 +209,7 @@ public class ZTSImpl implements ZTSHandler {
     protected String userCertProvider;
     protected boolean validateRoleCertDnsNames = false;
     protected boolean validateCertUriSchemes = false;
+    protected Set<String> externalMemberCertAllowedDomains = Collections.emptySet();
     private UserIdentityTimeout userIdentityTimeoutManager;
 
     private static final String TYPE_DOMAIN_NAME = "DomainName";
@@ -226,6 +227,7 @@ public class ZTSImpl implements ZTSHandler {
     private static final String TYPE_COMPOUND_NAME = "CompoundName";
     private static final String TYPE_RESOURCE_NAME = "ResourceName";
     private static final String TYPE_PATH_ELEMENT = "PathElement";
+    private static final String TYPE_EXTERNAL_MEMBER_NAME = "ExternalMemberName";
     private static final String TYPE_AWS_ARN_ROLE_NAME = "AWSArnRoleName";
     private static final String TYPE_SIGNED_POLICY_REQUEST = "SignedPolicyRequest";
     private static final String TYPE_EXTERNAL_CREDENTIALS_REQUEST = "ExternalCredentialsRequest";
@@ -709,6 +711,9 @@ public class ZTSImpl implements ZTSHandler {
             validUserX509CertSignerKeyIds = Collections.emptySet();
         }
 
+        externalMemberCertAllowedDomains = parseDomainList(
+                System.getProperty(ZTSConsts.ZTS_PROP_EXTERNAL_MEMBER_CERT_ALLOWED_DOMAINS));
+
         final String svcCertSignerKeyIdList = System.getProperty(ZTSConsts.ZTS_PROP_SVC_CERT_SIGNER_KEY_ID_LIST);
         if (svcCertSignerKeyIdList != null) {
             validServiceX509CertSignerKeyIds = new HashSet<>(Arrays.asList(svcCertSignerKeyIdList.split(",")));
@@ -845,6 +850,22 @@ public class ZTSImpl implements ZTSHandler {
             System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_ROLE_CERT_DNS_NAMES, "false"));
         validateCertUriSchemes = Boolean.parseBoolean(
             System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_CERT_URI_SCHEMES, "false"));
+    }
+
+    Set<String> parseDomainList(final String domainList) {
+
+        if (StringUtil.isEmpty(domainList)) {
+            return Collections.emptySet();
+        }
+
+        Set<String> domains = new HashSet<>();
+        for (String domain : domainList.split(",")) {
+            final String trimmedDomain = domain.trim().toLowerCase(Locale.ROOT);
+            if (!trimmedDomain.isEmpty()) {
+                domains.add(trimmedDomain);
+            }
+        }
+        return Collections.unmodifiableSet(domains);
     }
 
     static String getServerHostName() {
@@ -6811,6 +6832,16 @@ public class ZTSImpl implements ZTSHandler {
 
     @Override
     public UserCertificate postUserCertificateRequest(ResourceContext ctx, UserCertificateRequest req) {
+        return processUserCertificateRequest(ctx, req, false);
+    }
+
+    @Override
+    public UserCertificate postExternalMemberCertificateRequest(ResourceContext ctx, UserCertificateRequest req) {
+        return processUserCertificateRequest(ctx, req, true);
+    }
+
+    UserCertificate processUserCertificateRequest(ResourceContext ctx, UserCertificateRequest req,
+            final boolean externalMemberRequest) {
 
         final String caller = ctx.getApiName();
 
@@ -6819,10 +6850,10 @@ public class ZTSImpl implements ZTSHandler {
                     caller, userDomain, userDomain);
         }
 
-        // make sure we have a user authority configured
+        // make sure we have a user cert provider configured
 
-        if (userAuthority == null || userCertProvider == null) {
-            throw requestError("User authority configuration is not set", caller, userDomain, userDomain);
+        if (userCertProvider == null || (!externalMemberRequest && userAuthority == null)) {
+            throw requestError("User certificate configuration is not set", caller, userDomain, userDomain);
         }
 
         // validate the request
@@ -6830,10 +6861,14 @@ public class ZTSImpl implements ZTSHandler {
         validate(req, TYPE_USER_CERTIFICATE_REQUEST, userDomain, caller);
         setRequestDomain(ctx, userDomain);
 
-        // make sure we have a valid user name
+        // make sure we have a valid principal name
 
         final String principalName = req.getName();
-        if (!validateUserPrincipalForCert(principalName)) {
+        if (externalMemberRequest) {
+            if (!validateExternalMemberPrincipalForCert(principalName)) {
+                throw requestError("External member name is not valid for certificate request", caller, userDomain, userDomain);
+            }
+        } else if (!validateUserPrincipalForCert(principalName)) {
             throw requestError("User name is not valid for certificate request", caller, userDomain, userDomain);
         }
         ((RsrcCtxWrapper) ctx).logPrincipal(principalName);
@@ -6848,7 +6883,7 @@ public class ZTSImpl implements ZTSHandler {
                     caller, userDomain, userDomain);
         }
 
-        // make sure the request csr matches our user name
+        // make sure the request csr matches our principal name
 
         if (!certReq.getCommonName().equals(principalName)) {
             throw requestError("User Certificate Request mismatch: " + certReq.getCommonName() +
@@ -6857,8 +6892,9 @@ public class ZTSImpl implements ZTSHandler {
 
         // validate request/csr details
 
-        final String userName = getUserCertificateRequestServiceName(principalName);
-        if (!certReq.validate(userDomain, userName, validCertSubjectOrgValues)) {
+        final String serviceName = externalMemberRequest ? principalName :
+                getUserCertificateRequestServiceName(principalName);
+        if (!certReq.validate(userDomain, serviceName, validCertSubjectOrgValues)) {
             throw requestError("Unable to validate cert request", caller, userDomain, userDomain);
         }
 
@@ -6870,7 +6906,7 @@ public class ZTSImpl implements ZTSHandler {
         
         InstanceConfirmation instance = new InstanceConfirmation()
             .setAttestationData(req.getAttestationData())
-            .setDomain(userDomain).setService(userName).setProvider(userCertProvider);
+            .setDomain(userDomain).setService(serviceName).setProvider(userCertProvider);
 
         // make sure to close our provider when its no longer needed
         // and the method will do that for us
@@ -6880,7 +6916,8 @@ public class ZTSImpl implements ZTSHandler {
 
         // determine the expiry time for the certificate
 
-        final String signerKeyId = getUserX509KeySignerId(principalName, req.getX509CertSignerKeyId());
+        final String signerKeyId = externalMemberRequest ? req.getX509CertSignerKeyId() :
+                getUserX509KeySignerId(principalName, req.getX509CertSignerKeyId());
         int expiryTime = userIdentityTimeoutManager.getUserCertTimeout(principalName, signerKeyId, req.getExpiryTime());
 
         if (LOGGER.isDebugEnabled()) {
@@ -6914,10 +6951,6 @@ public class ZTSImpl implements ZTSHandler {
             LOGGER.error("User name for certificate request cannot include wild cards");
             return false;
         }
-        if (isExternalPrincipalForCert(principalName)) {
-            return true;
-        }
-
         // it must start with the user domain prefix
         if (!principalName.startsWith(userDomainPrefix)) {
             LOGGER.error("User name {} for certificate request must start with the user domain prefix", principalName);
@@ -6930,12 +6963,32 @@ public class ZTSImpl implements ZTSHandler {
         return true;
     }
 
+    boolean validateExternalMemberPrincipalForCert(final String principalName) {
+        if (StringUtil.isEmpty(principalName)) {
+            LOGGER.error("External member name for certificate request is empty");
+            return false;
+        }
+        if (principalName.contains("*")) {
+            LOGGER.error("External member name for certificate request cannot include wild cards");
+            return false;
+        }
+        try {
+            validate(principalName, TYPE_EXTERNAL_MEMBER_NAME, userDomain, "validateExternalMemberPrincipalForCert");
+        } catch (ResourceException ex) {
+            return false;
+        }
+        if (!isExternalMemberCertDomainAllowed(principalName)) {
+            LOGGER.error("External member domain is not allowed for certificate request: {}", principalName);
+            return false;
+        }
+        return true;
+    }
+
     String getUserCertificateRequestServiceName(final String principalName) {
         if (principalName == null) {
             return null;
         }
-        return principalName.startsWith(userDomainPrefix) ? principalName.substring(userDomainPrefix.length()) :
-                principalName;
+        return principalName.substring(userDomainPrefix.length());
     }
 
     boolean isExternalPrincipalForCert(final String principalName) {
@@ -6945,6 +6998,14 @@ public class ZTSImpl implements ZTSHandler {
         final int idx = principalName.indexOf(AuthorityConsts.ATHENZ_PRINCIPAL_ENTITY_CHAR);
         return idx > 0 && principalName.regionMatches(idx, AuthorityConsts.EXT_SEP, 0, AuthorityConsts.EXT_SEP.length())
                 && idx != principalName.length() - AuthorityConsts.EXT_SEP.length();
+    }
+
+    boolean isExternalMemberCertDomainAllowed(final String principalName) {
+        final int idx = principalName == null ? -1 : principalName.indexOf(AuthorityConsts.ATHENZ_PRINCIPAL_ENTITY_CHAR);
+        if (idx <= 0) {
+            return false;
+        }
+        return externalMemberCertAllowedDomains.contains(principalName.substring(0, idx).toLowerCase(Locale.ROOT));
     }
 
     String getUserX509KeySignerId(final String principalName, final String requestSignerKeyId) {

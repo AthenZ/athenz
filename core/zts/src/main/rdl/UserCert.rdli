@@ -26,3 +26,15 @@ resource UserCertificate POST "/usercert" {
         ResourceError TOO_MANY_REQUESTS;
     }
 }
+
+//Return a TLS certificate for the given external member
+resource UserCertificate POST "/extmembercert" (name=PostExternalMemberCertificateRequest) {
+    UserCertificateRequest req; //csr request
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
