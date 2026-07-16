@@ -6975,6 +6975,8 @@ public class ZTSImpl implements ZTSHandler {
         try {
             validate(principalName, TYPE_EXTERNAL_MEMBER_NAME, userDomain, "validateExternalMemberPrincipalForCert");
         } catch (ResourceException ex) {
+            LOGGER.error("External member name validation failed for principal {} in domain {}: {}",
+                    principalName, userDomain, ex.getMessage());
             return false;
         }
         if (!isExternalMemberCertDomainAllowed(principalName)) {
@@ -6988,16 +6990,10 @@ public class ZTSImpl implements ZTSHandler {
         if (principalName == null) {
             return null;
         }
-        return principalName.substring(userDomainPrefix.length());
-    }
-
-    boolean isExternalPrincipalForCert(final String principalName) {
-        if (principalName == null) {
-            return false;
+        if (principalName.startsWith(userDomainPrefix)) {
+            return principalName.substring(userDomainPrefix.length());
         }
-        final int idx = principalName.indexOf(AuthorityConsts.ATHENZ_PRINCIPAL_ENTITY_CHAR);
-        return idx > 0 && principalName.regionMatches(idx, AuthorityConsts.EXT_SEP, 0, AuthorityConsts.EXT_SEP.length())
-                && idx != principalName.length() - AuthorityConsts.EXT_SEP.length();
+        return principalName;
     }
 
     boolean isExternalMemberCertDomainAllowed(final String principalName) {

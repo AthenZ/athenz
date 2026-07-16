@@ -378,10 +378,8 @@ public class ZTSImplUserCertTest {
     public void testGetUserCertificateRequestServiceName() {
         assertEquals(zts.getUserCertificateRequestServiceName("user.joe"), "joe");
         assertNull(zts.getUserCertificateRequestServiceName(null));
-        assertFalse(zts.isExternalPrincipalForCert(null));
-        assertTrue(zts.isExternalPrincipalForCert("email:ext.joe@athenz.io"));
-        assertFalse(zts.isExternalPrincipalForCert("email:joe@athenz.io"));
-        assertFalse(zts.isExternalPrincipalForCert("email:ext."));
+        assertEquals(zts.getUserCertificateRequestServiceName("email:ext.joe@athenz.io"),
+                "email:ext.joe@athenz.io");
         assertFalse(zts.isExternalMemberCertDomainAllowed("email:ext.joe@athenz.io"));
         zts.externalMemberCertAllowedDomains = Collections.singleton("email");
         assertTrue(zts.isExternalMemberCertDomainAllowed("email:ext.joe@athenz.io"));
