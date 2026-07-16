@@ -90,11 +90,15 @@ module.exports = function (expressApp, config, secrets) {
 
     expressApp.use(multer().none());
 
+    const SESSION_COOKIE_MAX_AGE_DEFAULT = 30 * 60 * 1000; // 30 minutes
+    const sessionCookieMaxAge =
+        config.sessionCookieMaxAge || SESSION_COOKIE_MAX_AGE_DEFAULT;
+
     expressApp.use(
         cookieSession({
             name: 'session',
             secret: secrets.cookieSession,
-            maxAge: 30 * 60 * 1000, // 30 minutes
+            maxAge: sessionCookieMaxAge,
             httpOnly: true,
             secure: true,
             sameSite: 'strict',
