@@ -357,6 +357,9 @@ public class ZTSImplUserCertTest {
         zts.externalMemberCertAllowedDomains = Collections.singleton("email");
 
         assertTrue(zts.validateExternalMemberPrincipalForCert("email:ext.joe@athenz.io"));
+        assertFalse(zts.validateExternalMemberPrincipalForCert(null));
+        assertFalse(zts.validateExternalMemberPrincipalForCert(""));
+        assertFalse(zts.validateExternalMemberPrincipalForCert("email:ext.*@athenz.io"));
         assertFalse(zts.validateExternalMemberPrincipalForCert("email:ext."));
         assertFalse(zts.validateExternalMemberPrincipalForCert(":ext.athenz_user@athenz.io"));
         assertFalse(zts.validateExternalMemberPrincipalForCert("email:group.name:ext.athenz_user@athenz.io"));
@@ -364,10 +367,21 @@ public class ZTSImplUserCertTest {
     }
 
     @Test
+    public void testParseDomainList() {
+        assertTrue(zts.parseDomainList(null).isEmpty());
+        assertTrue(zts.parseDomainList("").isEmpty());
+        assertEquals(zts.parseDomainList(" email, HOSTS ,,email "),
+                new java.util.HashSet<>(java.util.Arrays.asList("email", "hosts")));
+    }
+
+    @Test
     public void testGetUserCertificateRequestServiceName() {
         assertEquals(zts.getUserCertificateRequestServiceName("user.joe"), "joe");
         assertNull(zts.getUserCertificateRequestServiceName(null));
         assertFalse(zts.isExternalPrincipalForCert(null));
+        assertTrue(zts.isExternalPrincipalForCert("email:ext.joe@athenz.io"));
+        assertFalse(zts.isExternalPrincipalForCert("email:joe@athenz.io"));
+        assertFalse(zts.isExternalPrincipalForCert("email:ext."));
         assertFalse(zts.isExternalMemberCertDomainAllowed("email:ext.joe@athenz.io"));
         zts.externalMemberCertAllowedDomains = Collections.singleton("email");
         assertTrue(zts.isExternalMemberCertDomainAllowed("email:ext.joe@athenz.io"));
