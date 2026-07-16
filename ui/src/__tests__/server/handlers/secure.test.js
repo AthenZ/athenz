@@ -46,7 +46,11 @@ describe('secure test', () => {
         test('should use configured sessionCookieMaxAge when provided', () => {
             const app = { use: jest.fn() };
             const customMaxAge = 60 * 60 * 1000; // 1 hour
-            secure(app, { sessionCookieMaxAge: customMaxAge }, { cookieSession: '1234' });
+            secure(
+                app,
+                { sessionCookieMaxAge: customMaxAge },
+                { cookieSession: '1234' }
+            );
             expect(cookieSession).toHaveBeenCalledWith(
                 expect.objectContaining({ maxAge: customMaxAge })
             );
@@ -56,7 +60,9 @@ describe('secure test', () => {
             const app = { use: jest.fn() };
             secure(app, {}, { cookieSession: '1234' });
             expect(cookieSession).toHaveBeenCalledWith(
-                expect.objectContaining({ maxAge: SESSION_COOKIE_MAX_AGE_DEFAULT })
+                expect.objectContaining({
+                    maxAge: SESSION_COOKIE_MAX_AGE_DEFAULT,
+                })
             );
         });
 
@@ -64,7 +70,9 @@ describe('secure test', () => {
             const app = { use: jest.fn() };
             secure(app, { sessionCookieMaxAge: 0 }, { cookieSession: '1234' });
             expect(cookieSession).toHaveBeenCalledWith(
-                expect.objectContaining({ maxAge: SESSION_COOKIE_MAX_AGE_DEFAULT })
+                expect.objectContaining({
+                    maxAge: SESSION_COOKIE_MAX_AGE_DEFAULT,
+                })
             );
         });
     });
