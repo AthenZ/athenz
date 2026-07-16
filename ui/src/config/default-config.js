@@ -162,6 +162,7 @@ const config = {
         },
         cookieName: 'Athenz-Principal-Auth',
         cookieMaxAge: 60 * 60 * 1000,
+        sessionCookieMaxAge: 30 * 60 * 1000, // 30 minutes
         loginPath: '/login',
         uiKeyPath: process.env.UI_CERT_KEY_PATH || 'keys/ui_key.pem',
         uiCertPath: process.env.UI_CERT_PATH || 'keys/ui_cert.pem',
@@ -242,6 +243,7 @@ const config = {
         envLabel: 'unittest',
         cookieName: 'Athenz-Principal-Auth',
         cookieMaxAge: 60 * 60 * 1000,
+        sessionCookieMaxAge: 30 * 60 * 1000, // 30 minutes
         loginPath: '/login',
         userDomain: 'user',
         user: 'test',

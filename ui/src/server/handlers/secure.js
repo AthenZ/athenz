@@ -94,7 +94,7 @@ module.exports = function (expressApp, config, secrets) {
         cookieSession({
             name: 'session',
             secret: secrets.cookieSession,
-            maxAge: 30 * 60 * 1000, // 30 minutes
+            maxAge: config.sessionCookieMaxAge || 30 * 60 * 1000, // default 30 minutes
             httpOnly: true,
             secure: true,
             sameSite: 'strict',

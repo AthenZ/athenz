@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
+jest.mock('cookie-session', () =>
+    jest.fn(() => (req, res, next) => next())
+);
+
 let secure = require('../../../server/handlers/secure');
 const request = require('supertest');
 const express = require('express');
+const cookieSession = require('cookie-session');
 let expressApp = express();
 expressApp.get('/test', async (req, res) => {
     res.json({ message: 'pass!' });
@@ -30,6 +35,29 @@ describe('secure test', () => {
             app.use = jest.fn();
             secure(app, {}, { cookieSession: '1234' });
             expect(app.use).toHaveBeenCalledTimes(8);
+        });
+    });
+    describe('session cookie maxAge test', () => {
+        beforeEach(() => {
+            cookieSession.mockClear();
+        });
+        test('should use configured sessionCookieMaxAge when provided', () => {
+            const app = { use: jest.fn() };
+            secure(
+                app,
+                { sessionCookieMaxAge: 15 * 60 * 1000 },
+                { cookieSession: '1234' }
+            );
+            expect(cookieSession).toHaveBeenCalledWith(
+                expect.objectContaining({ maxAge: 15 * 60 * 1000 })
+            );
+        });
+        test('should default to 30 minutes when sessionCookieMaxAge is not configured', () => {
+            const app = { use: jest.fn() };
+            secure(app, {}, { cookieSession: '1234' });
+            expect(cookieSession).toHaveBeenCalledWith(
+                expect.objectContaining({ maxAge: 30 * 60 * 1000 })
+            );
         });
     });
     describe('middleware calls test', () => {
