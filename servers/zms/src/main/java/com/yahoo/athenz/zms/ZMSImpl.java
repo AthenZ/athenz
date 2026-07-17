@@ -233,6 +233,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected ServiceProviderManager serviceProviderManager;
     protected ServiceProviderClient serviceProviderClient;
     protected ExternalMemberValidatorManager externalMemberValidatorManager;
+    protected DBHealthChecker dbHealthChecker = null;
     protected Info serverInfo = null;
     protected Set<String> domainContactTypes = new HashSet<>();
     protected Set<String> domainEnvironments = new HashSet<>();
@@ -708,6 +709,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         initializeExternalMemberValidatorManager();
 
+        // Initialize the DB health checker used by the status endpoint
+
+        initializeDBHealthChecker();
+
         // load the domain change publisher
 
         loadDomainChangePublisher();
@@ -780,6 +785,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     private void initializeExternalMemberValidatorManager() {
         externalMemberValidatorManager = new ExternalMemberValidatorManager(dbService);
+    }
+
+    private void initializeDBHealthChecker() {
+        dbHealthChecker = new DBHealthChecker(dbService);
     }
 
     private void setNotificationManager() {
@@ -10368,11 +10377,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRequest(ctx.request(), caller, true);
 
-        // we're going to verify our database connectivity
-        // by listing our system domains. In case of failure
-        // we're going to return not found
+        // we're going to verify our database connectivity by checking the
+        // flag maintained by our background DB health checker. This avoids
+        // making a database call within this handler and keeps the status
+        // endpoint as fast as possible. In case of failure we're going to
+        // return not found
 
-        if (dbService.listDomains(SYS_AUTH, 0, false).isEmpty()) {
+        if (dbHealthChecker != null && !dbHealthChecker.isDomainsAvailable()) {
             throw ZMSUtils.notFoundError("Error - no domains available", caller);
         }
 
