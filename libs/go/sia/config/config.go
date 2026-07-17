@@ -21,6 +21,7 @@ import (
 
 	ac "github.com/AthenZ/athenz/libs/go/sia/access/config"
 	"github.com/AthenZ/athenz/libs/go/sia/host/provider"
+	"github.com/AthenZ/athenz/libs/go/sia/spiffe"
 	"github.com/AthenZ/athenz/libs/go/sia/ssh/hostkey"
 )
 
@@ -113,7 +114,7 @@ type Config struct {
 	RoleCertsRequired bool                     `json:"role_certs_required,omitempty"`        //role certs are required for system operations, fail if not successful
 	OTel              OTel                     `json:"otel"`                                 //OpenTelemetry configuration
 	HttpPort          int                      `json:"http_port,omitempty"`                  //HTTP port for health check
-	RolePath          string                    `json:"role_path,omitempty"`                 //IAM role path prefix
+	RolePath          string                   `json:"role_path,omitempty"`                  //IAM role path prefix
 }
 
 type AccessProfileConfig struct {
@@ -156,77 +157,78 @@ type Service struct {
 
 // Options represents settings that are derived from config file and application defaults
 type Options struct {
-	Provider               provider.Provider //provider instance
-	MetaEndPoint           string            //meta data service endpoint
-	Name                   string            //name of the service identity
-	User                   string            //the username to chown the cert/key dirs to. If absent, then root
-	Group                  string            //the group name to chown the cert/key dirs to. If absent, then athenz
-	Domain                 string            //name of the domain for the identity
-	Account                string            //name of the account
-	Service                string            //name of the service for the identity
-	Zts                    string            //the ZTS to contact
-	InstanceId             string            //instance id if ec2/vm, task id if running within eks/ecs/gke
-	InstanceName           string            //instance name if ec2/vm
-	Roles                  []Role            //map of roles to retrieve certificates for
-	Region                 string            //region name
-	SanDnsWildcard         bool              //san dns wildcard support
-	SanDnsHostname         bool              //san dns hostname support
-	Version                string            //sia version number
-	ZTSDomains             []string          //zts domain prefixes
-	Services               []Service         //array of configured services
-	Ssh                    bool              //ssh certificate support
-	UseRegionalSTS         bool              //use regional sts endpoint
-	KeyDir                 string            //private key directory path
-	CertDir                string            //x.509 certificate directory path
-	AthenzCACertFile       string            //filename to store Athenz CA certs
-	ZTSCACertFile          string            //filename for CA certs when communicating with ZTS
-	ZTSServerName          string            //ZTS server name, if necessary for tls
-	GenerateRoleKey        bool              //option to generate a separate key for role certificates
-	RotateKey              bool              //rotate the private key when refreshing certificates
-	BackupDir              string            //backup directory for key/cert rotation
-	CertCountryName        string            //generated x.509 certificate country name
-	CertOrgName            string            //generated x.509 certificate organization name
-	SshPubKeyFile          string            //ssh host public key file path
-	SshCertFile            string            //ssh host certificate file path
-	SshConfigFile          string            //sshd config file path
-	SshHostKeyType         hostkey.KeyType   //ssh host key type - rsa or ecdsa
-	PrivateIp              string            //instance private ip
-	EC2Document            string            //EC2 instance identity document
-	EC2Signature           string            //EC2 instance identity document pkcs7 signature
-	EC2StartTime           *time.Time        //EC2 instance start time
-	InstanceIdSanDNS       bool              //include instance id in a san dns entry (backward compatible option)
-	RolePrincipalEmail     bool              //include role principal in a san email field (backward compatible option)
-	SDSUdsPath             string            //UDS path if the agent should support uds connections
-	SDSUdsUid              int               //UDS connections must be from the given user uid
-	RefreshInterval        int               //refresh interval for certificates - default 24 hours
-	ZTSRegion              string            //ZTS region in case the client needs this information
-	DropPrivileges         bool              //Drop privileges to configured user instead of running as root
-	TokenDir               string            //Access tokens directory
-	AccessTokens           []ac.AccessToken  //Access tokens object
-	Profile                string            //Access profile name
-	ProfileRestrictTo      string            //Tag associated with access profile roles
-	Threshold              float64           //threshold in number of days for cert expiry checks
-	SshThreshold           float64           //threshold in number of days for ssh cert expiry checks
-	FileDirectUpdate       bool              //update key/cert files directly instead of using rename
-	HostnameSuffix         string            //hostname suffix in case we need to auto-generate hostname
-	SshPrincipals          string            //ssh additional principals
-	AccessManagement       bool              //access management support
-	ZTSCloudDomains        []string          //list of domain prefixes for sanDNS entries
-	AddlSanDNSEntries      []string          //additional san dns entries to be added to the CSR
-	FailCountForExit       int               //number of failed counts before exiting program
-	RunAfterCertsOkParts   []string          //run after certificate parsed parts for success
-	RunAfterCertsErrParts  []string          //run after certificate parsed parts for errors
-	RunAfterTokensOkParts  []string          //run after token parsed parts for success
-	RunAfterTokensErrParts []string          //run after token parsed parts for errors
-	SpiffeTrustDomain      string            //spiffe uri trust domain
-	SpiffeNamespace        string            //spiffe uri namespace
-	OmitDomain             bool              //attestation role only includes service name
-	StoreTokenOption       *int              //store access token option
-	RunAfterFailExit       bool              //exit process if run_after script fails
-	RoleCertsRequired      bool              //role certs are required for system operations, fail if not successful
-	OTel                   OTel              //openTelemetry configuration
-	HttpPort               int               //HTTP port for health check
-	RolePath               string            //IAM role path prefix
+	Provider               provider.Provider   //provider instance
+	MetaEndPoint           string              //meta data service endpoint
+	Name                   string              //name of the service identity
+	User                   string              //the username to chown the cert/key dirs to. If absent, then root
+	Group                  string              //the group name to chown the cert/key dirs to. If absent, then athenz
+	Domain                 string              //name of the domain for the identity
+	Account                string              //name of the account
+	Service                string              //name of the service for the identity
+	Zts                    string              //the ZTS to contact
+	InstanceId             string              //instance id if ec2/vm, task id if running within eks/ecs/gke
+	InstanceName           string              //instance name if ec2/vm
+	Roles                  []Role              //map of roles to retrieve certificates for
+	Region                 string              //region name
+	SanDnsWildcard         bool                //san dns wildcard support
+	SanDnsHostname         bool                //san dns hostname support
+	Version                string              //sia version number
+	ZTSDomains             []string            //zts domain prefixes
+	Services               []Service           //array of configured services
+	Ssh                    bool                //ssh certificate support
+	UseRegionalSTS         bool                //use regional sts endpoint
+	KeyDir                 string              //private key directory path
+	CertDir                string              //x.509 certificate directory path
+	AthenzCACertFile       string              //filename to store Athenz CA certs
+	ZTSCACertFile          string              //filename for CA certs when communicating with ZTS
+	ZTSServerName          string              //ZTS server name, if necessary for tls
+	GenerateRoleKey        bool                //option to generate a separate key for role certificates
+	RotateKey              bool                //rotate the private key when refreshing certificates
+	BackupDir              string              //backup directory for key/cert rotation
+	CertCountryName        string              //generated x.509 certificate country name
+	CertOrgName            string              //generated x.509 certificate organization name
+	SshPubKeyFile          string              //ssh host public key file path
+	SshCertFile            string              //ssh host certificate file path
+	SshConfigFile          string              //sshd config file path
+	SshHostKeyType         hostkey.KeyType     //ssh host key type - rsa or ecdsa
+	PrivateIp              string              //instance private ip
+	EC2Document            string              //EC2 instance identity document
+	EC2Signature           string              //EC2 instance identity document pkcs7 signature
+	EC2StartTime           *time.Time          //EC2 instance start time
+	InstanceIdSanDNS       bool                //include instance id in a san dns entry (backward compatible option)
+	RolePrincipalEmail     bool                //include role principal in a san email field (backward compatible option)
+	SDSUdsPath             string              //UDS path if the agent should support uds connections
+	SDSUdsUid              int                 //UDS connections must be from the given user uid
+	RefreshInterval        int                 //refresh interval for certificates - default 24 hours
+	ZTSRegion              string              //ZTS region in case the client needs this information
+	DropPrivileges         bool                //Drop privileges to configured user instead of running as root
+	TokenDir               string              //Access tokens directory
+	AccessTokens           []ac.AccessToken    //Access tokens object
+	Profile                string              //Access profile name
+	ProfileRestrictTo      string              //Tag associated with access profile roles
+	Threshold              float64             //threshold in number of days for cert expiry checks
+	SshThreshold           float64             //threshold in number of days for ssh cert expiry checks
+	FileDirectUpdate       bool                //update key/cert files directly instead of using rename
+	HostnameSuffix         string              //hostname suffix in case we need to auto-generate hostname
+	SshPrincipals          string              //ssh additional principals
+	AccessManagement       bool                //access management support
+	ZTSCloudDomains        []string            //list of domain prefixes for sanDNS entries
+	AddlSanDNSEntries      []string            //additional san dns entries to be added to the CSR
+	FailCountForExit       int                 //number of failed counts before exiting program
+	RunAfterCertsOkParts   []string            //run after certificate parsed parts for success
+	RunAfterCertsErrParts  []string            //run after certificate parsed parts for errors
+	RunAfterTokensOkParts  []string            //run after token parsed parts for success
+	RunAfterTokensErrParts []string            //run after token parsed parts for errors
+	SpiffeTrustDomain      string              //spiffe uri trust domain
+	SpiffeNamespace        string              //spiffe uri namespace
+	SpiffeURIFormatter     spiffe.URIFormatter //optional custom spiffe uri formatter; if nil, uses built-in default format
+	OmitDomain             bool                //attestation role only includes service name
+	StoreTokenOption       *int                //store access token option
+	RunAfterFailExit       bool                //exit process if run_after script fails
+	RoleCertsRequired      bool                //role certs are required for system operations, fail if not successful
+	OTel                   OTel                //openTelemetry configuration
+	HttpPort               int                 //HTTP port for health check
+	RolePath               string              //IAM role path prefix
 }
 
 // OTel stores the configuration for OpenTelemetry.

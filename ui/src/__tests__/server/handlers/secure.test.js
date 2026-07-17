@@ -15,6 +15,7 @@
  */
 
 let secure = require('../../../server/handlers/secure');
+const cookieSession = require('cookie-session');
 const request = require('supertest');
 const express = require('express');
 let expressApp = express();
@@ -23,7 +24,13 @@ expressApp.get('/test', async (req, res) => {
 });
 let appConfig = require('../../../config/config')();
 
+jest.mock('cookie-session', () => jest.fn(() => (req, res, next) => next()));
+
 describe('secure test', () => {
+    beforeEach(() => {
+        cookieSession.mockClear();
+    });
+
     describe('middleware registration test', () => {
         test('should register all security middlewares', () => {
             const app = {};
@@ -32,6 +39,44 @@ describe('secure test', () => {
             expect(app.use).toHaveBeenCalledTimes(8);
         });
     });
+
+    describe('session cookie maxAge configuration', () => {
+        const SESSION_COOKIE_MAX_AGE_DEFAULT = 30 * 60 * 1000;
+
+        test('should use configured sessionCookieMaxAge when provided', () => {
+            const app = { use: jest.fn() };
+            const customMaxAge = 60 * 60 * 1000; // 1 hour
+            secure(
+                app,
+                { sessionCookieMaxAge: customMaxAge },
+                { cookieSession: '1234' }
+            );
+            expect(cookieSession).toHaveBeenCalledWith(
+                expect.objectContaining({ maxAge: customMaxAge })
+            );
+        });
+
+        test('should default to 30 minutes when sessionCookieMaxAge is absent', () => {
+            const app = { use: jest.fn() };
+            secure(app, {}, { cookieSession: '1234' });
+            expect(cookieSession).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    maxAge: SESSION_COOKIE_MAX_AGE_DEFAULT,
+                })
+            );
+        });
+
+        test('should default to 30 minutes when sessionCookieMaxAge is 0', () => {
+            const app = { use: jest.fn() };
+            secure(app, { sessionCookieMaxAge: 0 }, { cookieSession: '1234' });
+            expect(cookieSession).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    maxAge: SESSION_COOKIE_MAX_AGE_DEFAULT,
+                })
+            );
+        });
+    });
+
     describe('middleware calls test', () => {
         beforeAll(() => {
             secure(expressApp, appConfig, { cookieSession: '1234' });

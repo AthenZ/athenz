@@ -10,7 +10,7 @@ all: build_darwin build_linux build_windows test
 
 build: get all
 
-mac:   get build_darwin test
+mac: get build_darwin test
 
 linux: get build_linux test
 

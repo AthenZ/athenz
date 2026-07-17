@@ -144,15 +144,16 @@ func GetRoleCertificates(ztsUrl string, opts *sc.Options) (int, []string) {
 			emailDomain = opts.ZTSCloudDomains[0]
 		}
 		roleCertReqOptions := &util.RoleCertReqOptions{
-			Country:           opts.CertCountryName,
-			OrgName:           opts.CertOrgName,
-			Domain:            opts.Domain,
-			Service:           role.Service,
-			RoleName:          role.Name,
-			InstanceId:        opts.InstanceId,
-			Provider:          opts.Provider.GetName(),
-			EmailDomain:       emailDomain,
-			SpiffeTrustDomain: opts.SpiffeTrustDomain,
+			Country:            opts.CertCountryName,
+			OrgName:            opts.CertOrgName,
+			Domain:             opts.Domain,
+			Service:            role.Service,
+			RoleName:           role.Name,
+			InstanceId:         opts.InstanceId,
+			Provider:           opts.Provider.GetName(),
+			EmailDomain:        emailDomain,
+			SpiffeTrustDomain:  opts.SpiffeTrustDomain,
+			SpiffeURIFormatter: opts.SpiffeURIFormatter,
 		}
 		csr, err := util.GenerateRoleCertCSR(key, roleCertReqOptions)
 		if err != nil {
@@ -292,22 +293,23 @@ func registerSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 	}
 	serviceName := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
 	svcCertReqOptions := &util.SvcCertReqOptions{
-		Country:           opts.CertCountryName,
-		OrgName:           opts.CertOrgName,
-		Domain:            opts.Domain,
-		Service:           svc.Name,
-		CommonName:        serviceName,
-		Account:           opts.Account,
-		InstanceId:        opts.InstanceId,
-		InstanceName:      opts.InstanceName,
-		Provider:          opts.Provider.GetName(),
-		Hostname:          hostname,
-		SpiffeTrustDomain: opts.SpiffeTrustDomain,
-		SpiffeNamespace:   opts.SpiffeNamespace,
-		AddlSanDNSEntries: opts.AddlSanDNSEntries,
-		ZtsDomains:        opts.ZTSCloudDomains,
-		WildCardDnsName:   opts.SanDnsWildcard,
-		InstanceIdSanDNS:  opts.InstanceIdSanDNS,
+		Country:            opts.CertCountryName,
+		OrgName:            opts.CertOrgName,
+		Domain:             opts.Domain,
+		Service:            svc.Name,
+		CommonName:         serviceName,
+		Account:            opts.Account,
+		InstanceId:         opts.InstanceId,
+		InstanceName:       opts.InstanceName,
+		Provider:           opts.Provider.GetName(),
+		Hostname:           hostname,
+		SpiffeTrustDomain:  opts.SpiffeTrustDomain,
+		SpiffeNamespace:    opts.SpiffeNamespace,
+		AddlSanDNSEntries:  opts.AddlSanDNSEntries,
+		ZtsDomains:         opts.ZTSCloudDomains,
+		WildCardDnsName:    opts.SanDnsWildcard,
+		InstanceIdSanDNS:   opts.InstanceIdSanDNS,
+		SpiffeURIFormatter: opts.SpiffeURIFormatter,
 	}
 	if opts.PrivateIp != "" {
 		svcCertReqOptions.IpList = []string{opts.PrivateIp}
@@ -444,22 +446,23 @@ func refreshSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 	}
 	serviceName := fmt.Sprintf("%s.%s", opts.Domain, svc.Name)
 	svcCertReqOptions := &util.SvcCertReqOptions{
-		Country:           opts.CertCountryName,
-		OrgName:           opts.CertOrgName,
-		Domain:            opts.Domain,
-		Service:           svc.Name,
-		CommonName:        serviceName,
-		Account:           opts.Account,
-		InstanceId:        opts.InstanceId,
-		InstanceName:      opts.InstanceName,
-		Provider:          opts.Provider.GetName(),
-		Hostname:          hostname,
-		SpiffeTrustDomain: opts.SpiffeTrustDomain,
-		SpiffeNamespace:   opts.SpiffeNamespace,
-		AddlSanDNSEntries: opts.AddlSanDNSEntries,
-		ZtsDomains:        opts.ZTSCloudDomains,
-		WildCardDnsName:   opts.SanDnsWildcard,
-		InstanceIdSanDNS:  opts.InstanceIdSanDNS,
+		Country:            opts.CertCountryName,
+		OrgName:            opts.CertOrgName,
+		Domain:             opts.Domain,
+		Service:            svc.Name,
+		CommonName:         serviceName,
+		Account:            opts.Account,
+		InstanceId:         opts.InstanceId,
+		InstanceName:       opts.InstanceName,
+		Provider:           opts.Provider.GetName(),
+		Hostname:           hostname,
+		SpiffeTrustDomain:  opts.SpiffeTrustDomain,
+		SpiffeNamespace:    opts.SpiffeNamespace,
+		AddlSanDNSEntries:  opts.AddlSanDNSEntries,
+		ZtsDomains:         opts.ZTSCloudDomains,
+		WildCardDnsName:    opts.SanDnsWildcard,
+		InstanceIdSanDNS:   opts.InstanceIdSanDNS,
+		SpiffeURIFormatter: opts.SpiffeURIFormatter,
 	}
 	if opts.PrivateIp != "" {
 		svcCertReqOptions.IpList = []string{opts.PrivateIp}

@@ -30,8 +30,6 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JDBCCertRecordStoreConnection.class);
 
-    private static final int MYSQL_ER_OPTION_DUPLICATE_ENTRY = 1062;
-
     public static final String ZTS_PROP_NOTIFICATION_GRACE_PERIOD_HOURS = "athenz.zts.notification_cert_fail_grace_hours";
 
     // Default grace period - 2 weeks (336 hours)
@@ -42,7 +40,12 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
     private static final String SQL_INSERT_X509_RECORD = "INSERT INTO certificates " +
             "(provider, instanceId, service, currentSerial, currentTime, currentIP, prevSerial, prevTime, prevIP, clientCert, " +
             "expiryTime, hostName, siaProvider) " +
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);";
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) " +
+            "ON DUPLICATE KEY UPDATE " +
+            "currentSerial=VALUES(currentSerial), currentTime=VALUES(currentTime), currentIP=VALUES(currentIP), " +
+            "prevSerial=VALUES(prevSerial), prevTime=VALUES(prevTime), prevIP=VALUES(prevIP), " +
+            "clientCert=VALUES(clientCert), expiryTime=VALUES(expiryTime), hostName=VALUES(hostName), " +
+            "siaProvider=VALUES(siaProvider);";
     private static final String SQL_UPDATE_X509_RECORD = "UPDATE certificates SET " +
             "currentSerial=?, currentTime=?, currentIP=?, prevSerial=?, prevTime=?, prevIP=?, " +
             "expiryTime=?, hostName=?, clientCert=?, siaProvider=? " +
@@ -242,20 +245,8 @@ public class JDBCCertRecordStoreConnection implements CertRecordStoreConnection 
             ps.setString(13, certRecord.getSiaProvider());
 
             affectedRows = executeUpdate(ps, caller);
-            
+
         } catch (SQLException ex) {
-            
-            // if the record already exists, we're going to reset
-            // the state and convert this into an update operation
-            
-            if (ex.getErrorCode() == MYSQL_ER_OPTION_DUPLICATE_ENTRY) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("{}: Resetting state for instance {} - {}",
-                            caller, certRecord.getProvider(), certRecord.getInstanceId());
-                }
-                return updateX509CertRecord(certRecord);
-            }
-            
             throw sqlError(ex, caller);
         }
         return (affectedRows > 0);

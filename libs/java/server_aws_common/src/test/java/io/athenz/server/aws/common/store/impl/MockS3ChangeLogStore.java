@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.s3.S3Client;
 
+import java.io.File;
 import java.util.concurrent.ExecutorService;
 
 class MockS3ChangeLogStore extends S3ChangeLogStore {
@@ -36,6 +37,11 @@ class MockS3ChangeLogStore extends S3ChangeLogStore {
         super();
         awsS3Client = mock(S3Client.class);
         this.execService = executorService;
+    }
+
+    public MockS3ChangeLogStore(File rootDirectory) {
+        super(rootDirectory);
+        awsS3Client = mock(S3Client.class);
     }
 
     void resetAWSS3Client() {

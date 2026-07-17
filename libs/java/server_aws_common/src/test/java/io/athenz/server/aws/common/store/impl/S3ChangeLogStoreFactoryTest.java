@@ -18,6 +18,10 @@ package io.athenz.server.aws.common.store.impl;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import org.testng.annotations.Test;
 
+import java.io.File;
+import java.nio.file.Files;
+
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_DATA_STORE_SUBDIR;
 import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_BUCKET_NAME;
 import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_REGION_NAME;
 import static org.testng.Assert.*;
@@ -35,5 +39,38 @@ public class S3ChangeLogStoreFactoryTest {
 
         System.clearProperty(ZTS_PROP_AWS_BUCKET_NAME);
         System.clearProperty(ZTS_PROP_AWS_REGION_NAME);
+    }
+
+    @Test
+    public void testCreateStoreWithLocalFileCache() throws Exception {
+        System.setProperty(ZTS_PROP_AWS_BUCKET_NAME, "s3-unit-test-bucket-name");
+        System.setProperty(ZTS_PROP_AWS_REGION_NAME, "us-west-1");
+        System.setProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE, "true");
+
+        File rootDirectory = Files.createTempDirectory("s3-change-log-store-factory-test").toFile();
+        try {
+            S3ChangeLogStoreFactory factory = new S3ChangeLogStoreFactory();
+            ChangeLogStore store = factory.create(rootDirectory.getPath(), null, null);
+            assertNotNull(store);
+            assertTrue(new File(rootDirectory, System.getProperty(PROP_DATA_STORE_SUBDIR, "zts_store")).isDirectory());
+        } finally {
+            deleteDirectory(rootDirectory);
+            System.clearProperty(ZTS_PROP_AWS_BUCKET_NAME);
+            System.clearProperty(ZTS_PROP_AWS_REGION_NAME);
+            System.clearProperty(S3ChangeLogStore.ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE);
+        }
+    }
+
+    private void deleteDirectory(File directory) {
+        if (directory == null || !directory.exists()) {
+            return;
+        }
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                deleteDirectory(file);
+            }
+        }
+        assertTrue(directory.delete());
     }
 }
