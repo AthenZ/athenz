@@ -241,6 +241,46 @@ func TestGetAccessToken_StaleEntry_Refetches(t *testing.T) {
 	}
 }
 
+func TestGetAccessToken_OlderFetchedToken_DoesNotOverrideOrReturnOlder(t *testing.T) {
+	fetcher := &mockFetcher{response: newTestResponse("tok-older", 120)}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	key := tokenCacheKey("domain", "", "r1", "", "", "", 0)
+	newer := &accessTokenEntry{
+		response: newTestResponse("tok-newer", 3600),
+		// Keep >1/4 lifetime remaining so fast-path serves cache directly.
+		expiresAt:    time.Now().Add(1200 * time.Second),
+		serverExpiry: 3600,
+		domain:       "domain",
+		roles:        "r1",
+		expiryTime:   0,
+	}
+	newer.lastUsed.Store(time.Now().Unix())
+
+	c.mu.Lock()
+	c.entries[key] = newer
+	c.mu.Unlock()
+
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 0)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if resp.Access_token != "tok-newer" {
+		t.Fatalf("expected newer cached token, got %q", resp.Access_token)
+	}
+	if fetcher.calls() != 0 {
+		t.Fatalf("expected no ZTS call on fresh cache hit, got %d", fetcher.calls())
+	}
+
+	c.mu.RLock()
+	stored := c.entries[key]
+	c.mu.RUnlock()
+	if stored == nil || stored.response.Access_token != "tok-newer" {
+		t.Fatalf("cache should retain newer token, got %+v", stored)
+	}
+}
+
 func TestGetAccessToken_ZTSError_FallbackToStaleCache(t *testing.T) {
 	fetcher := &mockFetcher{err: fmt.Errorf("ZTS unavailable")}
 	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
