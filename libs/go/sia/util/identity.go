@@ -22,12 +22,14 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"github.com/AthenZ/athenz/clients/go/zts"
 	"log"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/AthenZ/athenz/clients/go/zts"
+	"github.com/AthenZ/athenz/libs/go/sia/spiffe"
 )
 
 const (
@@ -110,6 +112,13 @@ func GenerateCustomSecretJsonData(siaCertData *SiaCertData, jsonFieldMapper map[
 }
 
 func RegisterIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, instanceId, attestationData, spiffeTrustDomain string, sanDNSDomains []string, csrSubjectFields CsrSubjectFields, instanceIdSanDNS bool, privateKey *rsa.PrivateKey) (*SiaCertData, error) {
+	return RegisterIdentityWithSpiffeFormatter(athenzDomain, athenzService, athenzProvider, ztsUrl, instanceId, attestationData, spiffeTrustDomain, sanDNSDomains, csrSubjectFields, instanceIdSanDNS, privateKey, nil)
+}
+
+func RegisterIdentityWithSpiffeFormatter(athenzDomain, athenzService, athenzProvider, ztsUrl, instanceId, attestationData, spiffeTrustDomain string, sanDNSDomains []string, csrSubjectFields CsrSubjectFields, instanceIdSanDNS bool, privateKey *rsa.PrivateKey, spiffeFormatter spiffe.URIFormatter) (*SiaCertData, error) {
+	if spiffeFormatter == nil {
+		spiffeFormatter = spiffe.GetDefaultFormatter()
+	}
 
 	var csrDetails CertReqDetails
 	csrDetails.CommonName = fmt.Sprintf("%s.%s", athenzDomain, athenzService)
@@ -129,7 +138,8 @@ func RegisterIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, insta
 	}
 	// add our uri fields. spiffe uri must be the first entry
 	csrDetails.URIs = []*url.URL{}
-	csrDetails.URIs = AppendUri(csrDetails.URIs, GetSvcSpiffeUri(spiffeTrustDomain, "default", athenzDomain, athenzService))
+	spiffeURI := spiffeFormatter.FormatServiceURI(spiffeTrustDomain, "default", athenzDomain, athenzService, instanceId)
+	csrDetails.URIs = AppendUri(csrDetails.URIs, spiffeURI)
 	csrDetails.URIs = AppendUri(csrDetails.URIs, SanURIInstanceId(athenzProvider, instanceId))
 
 	csr, err := GenerateX509CSR(privateKey, csrDetails)

@@ -259,6 +259,10 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_EXTERNAL_MEMBER_VALIDATOR_FREQUENCY_MINUTES = "athenz.zms.external_member_validator_frequency_minutes";
     public static final String ZMS_PROP_EXTERNAL_MEMBER_VALIDATOR_FREQUENCY_DEFAULT = "60";
 
+    public static final String ZMS_PROP_DB_HEALTH_CHECK_FREQUENCY_SECONDS = "athenz.zms.db_health_check_frequency_seconds";
+    public static final String ZMS_PROP_DB_HEALTH_CHECK_FREQUENCY_DEFAULT = "10";
+    public static final String ZMS_PROP_DB_HEALTH_CHECK_DISABLE_TIMER = "athenz.zms.disable_db_health_check_timer_task";
+
     public static final String ZMS_PROP_QUOTA_ASSERTION_CONDITIONS = "athenz.zms.quota_assertion_conditions";
 
     public static final String ZMS_PROP_MAX_POLICY_VERSIONS_DEFAULT = "3";

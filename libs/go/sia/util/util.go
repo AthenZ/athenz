@@ -42,6 +42,7 @@ import (
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/futil"
 	"github.com/AthenZ/athenz/libs/go/sia/otel"
+	"github.com/AthenZ/athenz/libs/go/sia/spiffe"
 	"github.com/AthenZ/athenz/libs/go/tls/config"
 	"github.com/ardielle/ardielle-go/rdl"
 	"github.com/google/shlex"
@@ -63,36 +64,38 @@ type CertReqDetails struct {
 
 // SvcCertReqOptions - struct with details to generate a service certificate CSR
 type SvcCertReqOptions struct {
-	Country           string
-	OrgName           string
-	Domain            string
-	Service           string
-	CommonName        string
-	Account           string
-	InstanceName      string
-	InstanceId        string
-	Provider          string
-	Hostname          string
-	SpiffeTrustDomain string
-	SpiffeNamespace   string
-	AddlSanDNSEntries []string
-	ZtsDomains        []string
-	IpList            []string
-	WildCardDnsName   bool
-	InstanceIdSanDNS  bool
+	Country            string
+	OrgName            string
+	Domain             string
+	Service            string
+	CommonName         string
+	Account            string
+	InstanceName       string
+	InstanceId         string
+	Provider           string
+	Hostname           string
+	SpiffeTrustDomain  string
+	SpiffeNamespace    string
+	AddlSanDNSEntries  []string
+	ZtsDomains         []string
+	IpList             []string
+	WildCardDnsName    bool
+	InstanceIdSanDNS   bool
+	SpiffeURIFormatter spiffe.URIFormatter
 }
 
 // RoleCertReqOptions - struct with details to generate a role certificate CSR
 type RoleCertReqOptions struct {
-	Country           string
-	OrgName           string
-	Domain            string
-	Service           string
-	RoleName          string
-	InstanceId        string
-	Provider          string
-	EmailDomain       string
-	SpiffeTrustDomain string
+	Country            string
+	OrgName            string
+	Domain             string
+	Service            string
+	RoleName           string
+	InstanceId         string
+	Provider           string
+	EmailDomain        string
+	SpiffeTrustDomain  string
+	SpiffeURIFormatter spiffe.URIFormatter
 }
 
 // SSHKeyReq - congruent with certsign-rdl/certsign.rdl
@@ -345,7 +348,11 @@ func GenerateSvcCertCSR(key *rsa.PrivateKey, options *SvcCertReqOptions) (string
 
 	csrDetails.URIs = []*url.URL{}
 	// spiffe uri must always be the first one
-	spiffeUri := GetSvcSpiffeUri(options.SpiffeTrustDomain, options.SpiffeNamespace, options.Domain, options.Service)
+	formatter := options.SpiffeURIFormatter
+	if formatter == nil {
+		formatter = spiffe.GetDefaultFormatter()
+	}
+	spiffeUri := formatter.FormatServiceURI(options.SpiffeTrustDomain, options.SpiffeNamespace, options.Domain, options.Service, options.InstanceId)
 	csrDetails.URIs = AppendUri(csrDetails.URIs, spiffeUri)
 
 	// athenz://instanceid/<provider>/<instance-id>
@@ -363,24 +370,13 @@ func GenerateSvcCertCSR(key *rsa.PrivateKey, options *SvcCertReqOptions) (string
 }
 
 func GetSvcSpiffeUri(trustDomain, namespace, domain, service string) string {
-	var uriStr string
-	if trustDomain != "" && namespace != "" {
-		uriStr = fmt.Sprintf("spiffe://%s/ns/%s/sa/%s.%s", trustDomain, namespace, domain, service)
-	} else {
-		uriStr = fmt.Sprintf("spiffe://%s/sa/%s", domain, service)
-	}
+	uriStr := spiffe.GetDefaultFormatter().FormatServiceURI(trustDomain, namespace, domain, service, "")
 	log.Printf("using spiffe uri: '%s' based on trustDomain: '%s' and namespace: '%s'\n", uriStr, trustDomain, namespace)
 	return uriStr
 }
 
 func GetRoleSpiffeUri(trustDomain, domain, role string) string {
-	var uriStr string
-	if trustDomain != "" {
-		uriStr = fmt.Sprintf("spiffe://%s/ns/%s/ra/%s", trustDomain, domain, role)
-	} else {
-		uriStr = fmt.Sprintf("spiffe://%s/ra/%s", domain, role)
-	}
-	return uriStr
+	return spiffe.GetDefaultFormatter().FormatRoleURI(trustDomain, domain, role)
 }
 
 func GenerateRoleCertCSR(key *rsa.PrivateKey, options *RoleCertReqOptions) (string, error) {
@@ -400,7 +396,11 @@ func GenerateRoleCertCSR(key *rsa.PrivateKey, options *RoleCertReqOptions) (stri
 	if err != nil {
 		return "", err
 	}
-	spiffeUri := GetRoleSpiffeUri(options.SpiffeTrustDomain, domainNameRequest, roleNameRequest)
+	formatter := options.SpiffeURIFormatter
+	if formatter == nil {
+		formatter = spiffe.GetDefaultFormatter()
+	}
+	spiffeUri := formatter.FormatRoleURI(options.SpiffeTrustDomain, domainNameRequest, roleNameRequest)
 	csrDetails.URIs = AppendUri(csrDetails.URIs, spiffeUri)
 
 	// athenz://instanceid/<provider>/<instance-id>
@@ -1025,76 +1025,16 @@ func SaveServiceCertKey(key, cert []byte, keyFile, certFile, serviceName string,
 }
 
 func ParseServiceSpiffeUri(uri string) (string, string, string, string) {
-	//  spiffe://<athenz-domain>/sa/<athenz-service>
-	//   e.g. spiffe://sports/sa/api
-	//  spiffe://<trust-domain>/ns/<namespace>/sa/<athenz-domain>.<athenz-service>
-	//   e.g. spiffe://athenz.io/ns/default/sa/sports.api
-	idx := strings.Index(uri, "/ns/")
-	if idx == -1 {
-		domain, service := parseSpiffeUriWithoutNamespace(uri, "/sa/")
-		return "", "", domain, service
-	} else {
-		trustDomain, namespace, athenzService := parseSpiffeUriWithNamespace(uri, "/sa/")
-		idx = strings.LastIndex(athenzService, ".")
-		if idx < 0 {
-			return "", "", "", ""
-		} else {
-			return trustDomain, namespace, athenzService[0:idx], athenzService[idx+1:]
-		}
-	}
+	td, ns, domain, service, _ := spiffe.GetDefaultParser().ParseServiceURI(uri)
+	return td, ns, domain, service
 }
 
 func ParseRoleSpiffeUri(uri string) (string, string) {
-	//  spiffe://<athenz-domain>/ra/<athenz-role>
-	return parseSpiffeUriWithoutNamespace(uri, "/ra/")
+	return spiffe.GetDefaultParser().ParseRoleURI(uri)
 }
 
 func ParseCASpiffeUri(uri string) (string, string, string) {
-	//  spiffe://<trust-domain>/ns/<namespace>/ca/<athenz-cluster>
-	idx := strings.Index(uri, "/ns/")
-	if idx == -1 {
-		return "", "", ""
-	} else {
-		return parseSpiffeUriWithNamespace(uri, "/ca/")
-	}
-}
-
-func parseSpiffeUriWithoutNamespace(uri, objType string) (string, string) {
-	if !strings.HasPrefix(uri, "spiffe://") {
-		return "", ""
-	}
-	comp := uri[9:]
-	//supported formats:
-	//  spiffe://<athenz-domain>/sa/<athenz-service>
-	//  spiffe://<athenz-domain>/ra/<athenz-role>
-	idx := strings.Index(comp, objType)
-	if idx == -1 {
-		return "", ""
-	}
-	comp1 := comp[0:idx]
-	comp2 := comp[idx+len(objType):]
-	if comp1 == "" || comp2 == "" {
-		return "", ""
-	}
-	return comp1, comp2
-}
-
-func parseSpiffeUriWithNamespace(uri, objType string) (string, string, string) {
-	if !strings.HasPrefix(uri, "spiffe://") {
-		return "", "", ""
-	}
-	comp := uri[9:]
-	//supported formats:
-	//  spiffe://<trust-domain>/ns/<namespace>/sa/<athenz-domain>.<athenz-service>
-	//  spiffe://<trust-domain>/ns/<namespace>/ca/<athenz-cluster>
-	idx := strings.Index(comp, "/ns/")
-	trustDomain := comp[0:idx]
-	nsComp := comp[idx+4:]
-	idx = strings.Index(nsComp, objType)
-	if idx == -1 {
-		return "", "", ""
-	}
-	return trustDomain, nsComp[0:idx], nsComp[idx+len(objType):]
+	return spiffe.GetDefaultParser().ParseCAURI(uri)
 }
 
 func Nonce() (string, error) {

@@ -27,6 +27,8 @@ import software.amazon.awssdk.services.s3.model.*;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
+import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStoreCommon;
+import com.yahoo.athenz.zms.DomainAttributes;
 import com.yahoo.athenz.zms.JWSDomain;
 import com.yahoo.athenz.zms.SignedDomain;
 import com.yahoo.athenz.zms.SignedDomains;
@@ -35,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.TrustManagerFactory;
+import java.io.File;
 import java.net.URI;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
@@ -52,6 +55,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
 
     long lastModTime;
     S3Client awsS3Client = null;
+    ZMSFileChangeLogStoreCommon localChangeLogStore = null;
 
     private String s3BucketName;
     private String awsRegion;
@@ -64,22 +68,28 @@ public class S3ChangeLogStore implements ChangeLogStore {
     private static final String ZTS_PROP_AWS_S3_ENDPOINT = "athenz.zts.aws_s3_endpoint";
     private static final String ZTS_PROP_AWS_S3_CA_CERT = "athenz.zts.aws_s3_ca_cert";
     private static final String ZTS_PROP_S3_CHANGE_LOG_STORE_FILTER = "athenz.zts.s3_change_log_store_domain_filter";
+    static final String ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE = "athenz.zts.s3_change_log_store_local_cache";
     private final int nThreads = Integer.parseInt(System.getProperty(NUMBER_OF_THREADS, "10"));
     private final int defaultTimeoutSeconds = Integer.parseInt(System.getProperty(DEFAULT_TIMEOUT_SECONDS, "1800"));
     protected Map<String, SignedDomain> tempSignedDomainMap = new ConcurrentHashMap<>();
     protected Map<String, JWSDomain> tempJWSDomainMap = new ConcurrentHashMap<>();
 
     public S3ChangeLogStore() {
-        init();
+        init(null);
         initAwsRegion();
     }
 
     public S3ChangeLogStore(String awsRegion) {
-        init();
+        init(null);
         this.awsRegion = awsRegion;
     }
 
-    void init() {
+    S3ChangeLogStore(File rootDirectory) {
+        init(rootDirectory == null ? null : rootDirectory.getPath());
+        initAwsRegion();
+    }
+
+    void init(String rootDirectory) {
         s3BucketName = System.getProperty(ZTS_PROP_AWS_BUCKET_NAME);
         if (s3BucketName == null || s3BucketName.isEmpty()) {
             LOGGER.error("S3 Bucket name cannot be null");
@@ -121,6 +131,36 @@ public class S3ChangeLogStore implements ChangeLogStore {
                 domainFilter = null;
             }
         }
+
+        initLocalCache(rootDirectory);
+    }
+
+    void initLocalCache(String rootDirectory) {
+
+        if (!Boolean.parseBoolean(System.getProperty(ZTS_PROP_S3_CHANGE_LOG_STORE_LOCAL_CACHE, "false"))) {
+            return;
+        }
+
+        if (StringUtil.isEmpty(rootDirectory)) {
+            LOGGER.error("S3 local cache root directory cannot be null");
+            throw new RuntimeException("S3ChangeLogStore: local cache root directory cannot be null");
+        }
+
+        localChangeLogStore = new ZMSFileChangeLogStoreCommon(rootDirectory);
+        if (localChangeLogStore.lastModTime == null) {
+            return;
+        }
+
+        try {
+            lastModTime = Long.parseLong(localChangeLogStore.lastModTime);
+        } catch (NumberFormatException ex) {
+            LOGGER.error("S3ChangeLogStore: invalid local cache lastModTime: {}", localChangeLogStore.lastModTime);
+            lastModTime = 0;
+        }
+    }
+
+    boolean isDomainAllowed(String domainName) {
+        return domainFilter == null || domainFilter.contains(domainName);
     }
 
     void initAwsRegion() {
@@ -147,6 +187,17 @@ public class S3ChangeLogStore implements ChangeLogStore {
             LOGGER.debug("getLocalSignedDomain: {}", domainName);
         }
 
+        if (localChangeLogStore != null) {
+            SignedDomain signedDomain = localChangeLogStore.getLocalSignedDomain(domainName);
+            if (signedDomain == null) {
+                signedDomain = getSignedDomainFromS3(domainName);
+                if (signedDomain != null) {
+                    localChangeLogStore.saveLocalDomain(domainName, signedDomain);
+                }
+            }
+            return signedDomain;
+        }
+
         // clear the mapping if present and value is stored else null is returned
 
         SignedDomain signedDomain = tempSignedDomainMap.remove(domainName);
@@ -160,21 +211,7 @@ public class S3ChangeLogStore implements ChangeLogStore {
                 LOGGER.info("getLocalSignedDomain: not present in cache, fetching from S3...");
             }
 
-            // make sure we have an aws s3 client for our request
-
-            if (awsS3Client == null) {
-                awsS3Client = getS3Client();
-            }
-
-            signedDomain = getSignedDomain(awsS3Client, domainName);
-
-            // if we got a failure for any reason, we're going
-            // get a new aws s3 client and try again
-
-            if (signedDomain == null) {
-                awsS3Client = getS3Client();
-                signedDomain = getSignedDomain(awsS3Client, domainName);
-            }
+            signedDomain = getSignedDomainFromS3(domainName);
         }
         return signedDomain;
     }
@@ -184,6 +221,17 @@ public class S3ChangeLogStore implements ChangeLogStore {
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("getLocalJWSDomain: {}", domainName);
+        }
+
+        if (localChangeLogStore != null) {
+            JWSDomain jwsDomain = localChangeLogStore.getLocalJWSDomain(domainName);
+            if (jwsDomain == null) {
+                jwsDomain = getJWSDomainFromS3(domainName);
+                if (jwsDomain != null) {
+                    localChangeLogStore.saveLocalDomain(domainName, jwsDomain);
+                }
+            }
+            return jwsDomain;
         }
 
         // clear the mapping if present and value is stored else null is returned
@@ -199,23 +247,72 @@ public class S3ChangeLogStore implements ChangeLogStore {
                 LOGGER.info("getLocalJWSDomain: not present in cache, fetching from S3...");
             }
 
-            // make sure we have an aws s3 client for our request
+            jwsDomain = getJWSDomainFromS3(domainName);
+        }
+        return jwsDomain;
+    }
 
+    SignedDomain getSignedDomainFromS3(String domainName) {
+
+        S3Client s3Client = getAwsS3Client();
+        SignedDomain signedDomain = getSignedDomain(s3Client, domainName);
+
+        // if we got a failure for any reason, we're going
+        // get a new aws s3 client and try again
+
+        if (signedDomain == null) {
+            s3Client = refreshAwsS3Client(s3Client);
+            signedDomain = getSignedDomain(s3Client, domainName);
+        }
+
+        return signedDomain;
+    }
+
+    JWSDomain getJWSDomainFromS3(String domainName) {
+
+        S3Client s3Client = getAwsS3Client();
+        JWSDomain jwsDomain = getJWSDomain(s3Client, domainName);
+
+        // if we got a failure for any reason, we're going
+        // get a new aws s3 client and try again
+
+        if (jwsDomain == null) {
+            s3Client = refreshAwsS3Client(s3Client);
+            jwsDomain = getJWSDomain(s3Client, domainName);
+        }
+
+        return jwsDomain;
+    }
+
+    S3Client getAwsS3Client() {
+        synchronized (this) {
             if (awsS3Client == null) {
                 awsS3Client = getS3Client();
             }
-
-            jwsDomain = getJWSDomain(awsS3Client, domainName);
-
-            // if we got a failure for any reason, we're going
-            // get a new aws s3 client and try again
-
-            if (jwsDomain == null) {
-                awsS3Client = getS3Client();
-                jwsDomain = getJWSDomain(awsS3Client, domainName);
-            }
+            return awsS3Client;
         }
-        return jwsDomain;
+    }
+
+    S3Client refreshAwsS3Client(S3Client currentClient) {
+        synchronized (this) {
+            if (awsS3Client == currentClient) {
+                closeS3Client(awsS3Client);
+                awsS3Client = null;
+                awsS3Client = getS3Client();
+            }
+            return awsS3Client;
+        }
+    }
+
+    void closeS3Client(S3Client s3Client) {
+        if (s3Client == null) {
+            return;
+        }
+        try {
+            s3Client.close();
+        } catch (Exception ex) {
+            LOGGER.warn("S3ChangeLogStore: unable to close S3 client", ex);
+        }
     }
 
     SignedDomain getSignedDomain(S3Client s3, String domainName) {
@@ -260,19 +357,36 @@ public class S3ChangeLogStore implements ChangeLogStore {
     public void removeLocalDomain(String domainName) {
         // in AWS our Athenz syncer is responsible for pushing new
         // changes including removing deleted domain to S3 so this
-        // api is just a no-op
+        // api is just a no-op unless local file cache is enabled
+
+        if (localChangeLogStore == null) {
+            return;
+        }
+        localChangeLogStore.removeLocalDomain(domainName);
     }
 
     @Override
     public void saveLocalDomain(String domainName, SignedDomain signedDomain) {
         // in AWS our Athenz syncer is responsible for pushing new
-        // changes into S3 so this api is just a no-op
+        // changes into S3 so this api is just a no-op unless local
+        // file cache is enabled
+
+        if (localChangeLogStore == null) {
+            return;
+        }
+        localChangeLogStore.saveLocalDomain(domainName, signedDomain);
     }
 
     @Override
     public void saveLocalDomain(String domainName, JWSDomain jwsDomain) {
         // in AWS our Athenz syncer is responsible for pushing new
-        // changes into S3 so this api is just a no-op
+        // changes into S3 so this api is just a no-op unless local
+        // file cache is enabled
+
+        if (localChangeLogStore == null) {
+            return;
+        }
+        localChangeLogStore.saveLocalDomain(domainName, jwsDomain);
     }
 
     /**
@@ -352,6 +466,15 @@ public class S3ChangeLogStore implements ChangeLogStore {
     @Override
     public List<String> getLocalDomainList() {
 
+        if (localChangeLogStore != null) {
+            List<String> localDomains = localChangeLogStore.getLocalDomainList();
+            localDomains.removeIf(domain -> !isDomainAllowed(domain));
+            if (!fetchMissingLocalDomains(localDomains)) {
+                setLastModificationTimestamp(null);
+            }
+            return localDomains;
+        }
+
         // check to see if we need to maintain our last modification time.
         // this will be necessary if our last mod time field is null. We need
         // to save the timestamp at the beginning just in case we end up getting
@@ -382,6 +505,68 @@ public class S3ChangeLogStore implements ChangeLogStore {
         }
 
         return domains;
+    }
+
+    boolean fetchMissingLocalDomains(List<String> localDomains) {
+
+        // Without a last modification timestamp, startup will already fetch
+        // all domains from S3 through the regular update path.
+
+        if (localChangeLogStore.lastModTime == null) {
+            return true;
+        }
+
+        try (S3Client s3Client = getS3Client()) {
+            HashSet<String> domains = new HashSet<>();
+            listObjects(s3Client, domains, 0);
+
+            Set<String> localDomainSet = new HashSet<>(localDomains);
+            boolean fetchedAllMissingDomains = true;
+            int fetchedDomains = 0;
+            for (String domainName : domains) {
+                if (localDomainSet.contains(domainName)) {
+                    continue;
+                }
+
+                if (jwsDomainSupport) {
+                    JWSDomain jwsDomain = getJWSDomain(s3Client, domainName);
+                    if (jwsDomain == null) {
+                        fetchedAllMissingDomains = false;
+                        continue;
+                    }
+                    localChangeLogStore.saveLocalDomain(domainName, jwsDomain);
+                } else {
+                    SignedDomain signedDomain = getSignedDomain(s3Client, domainName);
+                    if (signedDomain == null) {
+                        fetchedAllMissingDomains = false;
+                        continue;
+                    }
+                    localChangeLogStore.saveLocalDomain(domainName, signedDomain);
+                }
+
+                localDomains.add(domainName);
+                localDomainSet.add(domainName);
+                fetchedDomains++;
+            }
+
+            if (fetchedDomains > 0) {
+                LOGGER.info("S3ChangeLogStore: fetched {} missing domain(s) into local cache", fetchedDomains);
+            }
+            return fetchedAllMissingDomains;
+        } catch (Exception ex) {
+            LOGGER.error("S3ChangeLogStore: unable to retrieve domain list from S3", ex);
+            return false;
+        }
+    }
+
+    @Override
+    public Map<String, DomainAttributes> getLocalDomainAttributeList() {
+        if (localChangeLogStore == null) {
+            return null;
+        }
+        Map<String, DomainAttributes> domainAttributes = localChangeLogStore.getLocalDomainAttributeList();
+        domainAttributes.entrySet().removeIf(entry -> !isDomainAllowed(entry.getKey()));
+        return domainAttributes;
     }
 
     public boolean getAllDomains(List<String> domains) {
@@ -434,9 +619,14 @@ public class S3ChangeLogStore implements ChangeLogStore {
         // been deleted, we're going to get a new s3 client
         // instead of using our original client
 
-        HashSet<String> domains = new HashSet<>();
-        listObjects(getS3Client(), domains, 0);
-        return domains;
+        try (S3Client s3Client = getS3Client()) {
+            HashSet<String> domains = new HashSet<>();
+            listObjects(s3Client, domains, 0);
+            return domains;
+        } catch (Exception ex) {
+            LOGGER.error("S3ChangeLogStore: unable to retrieve domain list from S3", ex);
+            return null;
+        }
     }
 
     /**
@@ -535,6 +725,9 @@ public class S3ChangeLogStore implements ChangeLogStore {
             lastModTime = 0;
         } else {
             lastModTime = Long.parseLong(newLastModTime);
+        }
+        if (localChangeLogStore != null) {
+            localChangeLogStore.setLastModificationTimestamp(newLastModTime);
         }
     }
 

@@ -18700,6 +18700,48 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testGetStatusNoDomainsAvailable() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        zmsImpl.statusPort = 0;
+
+        // simulate the background DB health checker having marked the
+        // database as unavailable - getStatus must return not found
+
+        DBHealthChecker dbHealthChecker = Mockito.mock(DBHealthChecker.class);
+        Mockito.when(dbHealthChecker.isDomainsAvailable()).thenReturn(false);
+        zmsImpl.dbHealthChecker = dbHealthChecker;
+
+        try {
+            zmsImpl.getStatus(ctx);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        zmsImpl.objectStore.clearConnections();
+    }
+
+    @Test
+    public void testGetStatusNoDBHealthChecker() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        zmsImpl.statusPort = 0;
+
+        // if the DB health checker is not configured we skip the check
+        // and rely on the remaining status verifications
+
+        zmsImpl.dbHealthChecker = null;
+
+        Status status = zmsImpl.getStatus(ctx);
+        assertEquals(status.getCode(), ResourceException.OK);
+
+        zmsImpl.objectStore.clearConnections();
+    }
+
+    @Test
     public void testGetStatusWithStatusFile() throws IOException {
 
         System.setProperty(ZMSConsts.ZMS_PROP_HEALTH_CHECK_PATH, "/tmp/zms-healthcheck");

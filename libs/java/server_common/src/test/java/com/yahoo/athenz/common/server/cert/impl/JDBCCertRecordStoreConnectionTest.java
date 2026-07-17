@@ -185,7 +185,7 @@ public class JDBCCertRecordStoreConnectionTest {
 
     @Test
     public void testInsertX509RecordAlreadyExists() throws Exception {
-        
+
         JDBCCertRecordStoreConnection jdbcConn = new JDBCCertRecordStoreConnection(mockConn);
 
         Date now = new Date();
@@ -195,18 +195,20 @@ public class JDBCCertRecordStoreConnectionTest {
         certRecord.setExpiryTime(now);
         certRecord.setHostName("hostname");
 
-        Mockito.doThrow(new SQLException("entry already exits", "state", 1062))
-            .doReturn(1).when(mockPrepStmt).executeUpdate();
-        
+        // With ON DUPLICATE KEY UPDATE, MySQL returns 2 affected rows when an existing
+        // row is updated via the UPSERT path. The statement is executed only once.
+        Mockito.doReturn(2).when(mockPrepStmt).executeUpdate();
+
         boolean requestSuccess = jdbcConn.insertX509CertRecord(certRecord);
         assertTrue(requestSuccess);
-        
-        // we should have all operation done once for insert and one for update
+
+        // single UPSERT execution - all insert parameters bound once
 
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "ostk");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "instance-id");
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "cn");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "current-serial");
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(5, new java.sql.Timestamp(now.getTime()));
         Mockito.verify(mockPrepStmt, times(1)).setString(6, "current-ip");
         Mockito.verify(mockPrepStmt, times(1)).setString(7, "prev-serial");
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(8, new java.sql.Timestamp(now.getTime()));
@@ -215,22 +217,6 @@ public class JDBCCertRecordStoreConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(11, new java.sql.Timestamp(now.getTime()));
         Mockito.verify(mockPrepStmt, times(1)).setString(12, "hostname");
 
-        Mockito.verify(mockPrepStmt, times(1)).setString(1, "current-serial");
-        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(2, new java.sql.Timestamp(now.getTime()));
-        Mockito.verify(mockPrepStmt, times(1)).setString(3, "current-ip");
-        Mockito.verify(mockPrepStmt, times(1)).setString(4, "prev-serial");
-        Mockito.verify(mockPrepStmt, times(1)).setString(6, "prev-ip");
-        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(7, new java.sql.Timestamp(now.getTime()));
-        Mockito.verify(mockPrepStmt, times(1)).setString(8, "hostname");
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(9, false);
-        Mockito.verify(mockPrepStmt, times(1)).setString(10, null);
-        Mockito.verify(mockPrepStmt, times(1)).setString(11, "ostk");
-        Mockito.verify(mockPrepStmt, times(1)).setString(12, "instance-id");
-        Mockito.verify(mockPrepStmt, times(1)).setString(13, "cn");
-
-        // common between insert/update so count is 2 times
-        Mockito.verify(mockPrepStmt, times(2)).setTimestamp(5, new java.sql.Timestamp(now.getTime()));
-        
         jdbcConn.close();
     }
 

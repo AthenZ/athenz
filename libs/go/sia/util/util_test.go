@@ -1695,6 +1695,87 @@ func TestGetSvcSpiffeUri(t *testing.T) {
 	}
 }
 
+type customFormatter struct{}
+
+func (f *customFormatter) FormatServiceURI(trustDomain, namespace, domain, service, workloadId string) string {
+	return fmt.Sprintf("spiffe://custom.example/svc/%s/%s", domain, service)
+}
+
+func (f *customFormatter) FormatRoleURI(trustDomain, domain, role string) string {
+	return fmt.Sprintf("spiffe://custom.example/role/%s/%s", domain, role)
+}
+
+func (f *customFormatter) FormatUserURI(trustDomain, namespace, principalName, deviceId string) string {
+	return fmt.Sprintf("spiffe://custom.example/user/%s", principalName)
+}
+
+type customParser struct{}
+
+func (p *customParser) ParseServiceURI(uri string) (string, string, string, string, string) {
+	if uri == "spiffe://custom.example/svc/athenz/api" {
+		return "custom.example", "custom-ns", "athenz", "api", ""
+	}
+	return "", "", "", "", ""
+}
+
+func (p *customParser) ParseRoleURI(uri string) (string, string) {
+	if uri == "spiffe://custom.example/role/athenz/readers" {
+		return "athenz", "readers"
+	}
+	return "", ""
+}
+
+func (p *customParser) ParseCAURI(uri string) (string, string, string) {
+	if uri == "spiffe://custom.example/ca/default/us-west-2" {
+		return "custom.example", "default", "us-west-2"
+	}
+	return "", "", ""
+}
+
+func TestGenerateSvcCertCSRCustomSpiffeFormatter(t *testing.T) {
+	key, err := GenerateKeyPair(2048)
+	if err != nil {
+		t.Fatalf("Cannot generate private key: %v", err)
+	}
+
+	svcCertReqOptions := &SvcCertReqOptions{
+		Country:            "US",
+		Domain:             "domain",
+		Service:            "service",
+		CommonName:         "domain.service",
+		InstanceId:         "instance001",
+		Provider:           "Athenz",
+		ZtsDomains:         []string{"athenz.cloud"},
+		WildCardDnsName:    false,
+		InstanceIdSanDNS:   false,
+		SpiffeURIFormatter: &customFormatter{},
+	}
+
+	csr, err := GenerateSvcCertCSR(key, svcCertReqOptions)
+	if err != nil {
+		t.Fatalf("Cannot create CSR: %v", err)
+	}
+
+	block, _ := pem.Decode([]byte(csr))
+	parsedcertreq, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		t.Fatalf("Cannot parse CSR: %v", err)
+	}
+
+	if parsedcertreq.URIs[0].String() != "spiffe://custom.example/svc/domain/service" {
+		t.Fatalf("CSR does not have expected custom spiffe uri: %s", parsedcertreq.URIs[0].String())
+	}
+}
+
+func TestParseServiceSpiffeUriCustomParser(t *testing.T) {
+	// Use explicit injection instead of global state
+	parser := &customParser{}
+	trust, ns, domain, service, _ := parser.ParseServiceURI("spiffe://custom.example/svc/athenz/api")
+	if trust != "custom.example" || ns != "custom-ns" || domain != "athenz" || service != "api" {
+		t.Fatalf("custom parser was not used, got trust=%s ns=%s domain=%s service=%s", trust, ns, domain, service)
+	}
+}
+
 func TestGetRoleSpiffeUri(t *testing.T) {
 
 	tests := map[string]struct {

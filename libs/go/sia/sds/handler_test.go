@@ -17,12 +17,30 @@
 package sds
 
 import (
+	"strings"
+	"testing"
+
 	sc "github.com/AthenZ/athenz/libs/go/sia/config"
 	envoyCore "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	envoyDiscovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
-	"strings"
-	"testing"
 )
+
+type testSpiffeParser struct{}
+
+func (p *testSpiffeParser) ParseServiceURI(uri string) (string, string, string, string, string) {
+	return "", "", "", "", ""
+}
+
+func (p *testSpiffeParser) ParseRoleURI(uri string) (string, string) {
+	return "", ""
+}
+
+func (p *testSpiffeParser) ParseCAURI(uri string) (string, string, string) {
+	if uri == "spiffe://custom.example/ca/default" {
+		return "custom.example", "athenz", "default"
+	}
+	return "", "", ""
+}
 
 func TestResourceNamesChanged(test *testing.T) {
 	curList := []string{"abc", "bcd", "cde"}
@@ -275,5 +293,23 @@ func TestGetTLSCABundleSecret(test *testing.T) {
 	_, err := handler.getTLSCABundleSecret("spiffe://athenz/ca/default", "athenz", "default")
 	if err != nil {
 		test.Errorf("unable to generate valid bundle: %v", err)
+	}
+}
+
+func TestGetResponseWithCustomSpiffeParser(test *testing.T) {
+	parser := &testSpiffeParser{}
+	handler := NewServerHandlerWithSpiffeParser(&sc.Options{
+		AthenzCACertFile: "data/ca.cert.pem",
+	}, parser)
+	req := envoyDiscovery.DiscoveryRequest{
+		ResourceNames: []string{"spiffe://custom.example/ca/default"},
+	}
+	resp := envoyDiscovery.DiscoveryResponse{}
+	err := handler.getResponse(&req, ClientInfo{}, "", &resp)
+	if err != nil {
+		test.Errorf("unexpected error returned: %v", err)
+	}
+	if len(resp.Resources) != 1 {
+		test.Errorf("unexpected response objects created: %d", len(resp.Resources))
 	}
 }
