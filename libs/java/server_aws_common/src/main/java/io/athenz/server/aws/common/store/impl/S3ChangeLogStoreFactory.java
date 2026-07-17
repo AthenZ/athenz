@@ -19,13 +19,18 @@ package io.athenz.server.aws.common.store.impl;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
 
+import java.io.File;
 import java.security.PrivateKey;
+
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_DATA_STORE_SUBDIR;
 
 public class S3ChangeLogStoreFactory implements ChangeLogStoreFactory {
 
     @Override
     public ChangeLogStore create(String ztsHomeDir, PrivateKey privateKey, String privateKeyId) {
-        return new S3ChangeLogStore();
+        final File rootDirectory = ztsHomeDir == null ? null :
+                new File(ztsHomeDir, System.getProperty(PROP_DATA_STORE_SUBDIR, "zts_store"));
+        return new S3ChangeLogStore(rootDirectory);
     }
 
 }
