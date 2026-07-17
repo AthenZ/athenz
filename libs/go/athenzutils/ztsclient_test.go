@@ -180,7 +180,7 @@ func TestGetAccessToken_CacheMiss_FetchesFromZTS(t *testing.T) {
 	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
 	defer c.Stop()
 
-	resp, err := c.GetAccessToken("domain", "", "role1", "", "", "", 3600)
+	resp, err := c.GetAccessToken("domain", "", "role1", "", "", "", 3600, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -198,7 +198,7 @@ func TestGetAccessToken_CacheHit_NoZTSCall(t *testing.T) {
 	defer c.Stop()
 
 	for i := 0; i < 10; i++ {
-		resp, err := c.GetAccessToken("domain", "", "role1", "", "", "", 3600)
+		resp, err := c.GetAccessToken("domain", "", "role1", "", "", "", 3600, false)
 		if err != nil {
 			t.Fatalf("call %d: unexpected error: %v", i, err)
 		}
@@ -208,6 +208,51 @@ func TestGetAccessToken_CacheHit_NoZTSCall(t *testing.T) {
 	}
 	if fetcher.calls() != 1 {
 		t.Errorf("expected exactly 1 ZTS call for 10 repeated requests, got %d", fetcher.calls())
+	}
+}
+
+func TestGetAccessToken_OmittedIgnoreCache_DefaultsToFalse(t *testing.T) {
+	fetcher := &mockFetcher{response: newTestResponse("tok-2", 3600)}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	for i := 0; i < 2; i++ {
+		resp, err := c.GetAccessToken("domain", "", "role1", "", "", "", 3600)
+		if err != nil {
+			t.Fatalf("call %d: unexpected error: %v", i, err)
+		}
+		if resp.Access_token != "tok-2" {
+			t.Errorf("call %d: expected tok-2, got %q", i, resp.Access_token)
+		}
+	}
+	if fetcher.calls() != 1 {
+		t.Errorf("expected omitted ignoreCache to use cache, got %d ZTS calls", fetcher.calls())
+	}
+}
+
+func TestGetAccessToken_IgnoreCache_BypassesFreshCache(t *testing.T) {
+	fetcher := &mockFetcher{response: newTestResponse("tok-cached", 3600)}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	resp, err := c.GetAccessToken("domain", "", "role1", "", "", "", 3600, false)
+	if err != nil {
+		t.Fatalf("unexpected error priming cache: %v", err)
+	}
+	if resp.Access_token != "tok-cached" {
+		t.Fatalf("expected tok-cached, got %q", resp.Access_token)
+	}
+
+	fetcher.setResponse(newTestResponse("tok-fresh", 3600), nil)
+	resp, err = c.GetAccessToken("domain", "", "role1", "", "", "", 3600, true)
+	if err != nil {
+		t.Fatalf("unexpected error bypassing cache: %v", err)
+	}
+	if resp.Access_token != "tok-fresh" {
+		t.Errorf("expected tok-fresh when ignoreCache=true, got %q", resp.Access_token)
+	}
+	if fetcher.calls() != 2 {
+		t.Errorf("expected ignoreCache=true to call ZTS again, got %d calls", fetcher.calls())
 	}
 }
 
@@ -229,7 +274,7 @@ func TestGetAccessToken_StaleEntry_Refetches(t *testing.T) {
 	}
 	c.mu.Unlock()
 
-	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -281,6 +326,43 @@ func TestGetAccessToken_OlderFetchedToken_DoesNotOverrideOrReturnOlder(t *testin
 	}
 }
 
+func TestGetAccessToken_IgnoreCache_ReturnsFetchedTokenEvenWhenCacheIsNewer(t *testing.T) {
+	fetcher := &mockFetcher{response: newTestResponse("tok-fetched", 120)}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	key := tokenCacheKey("domain", "", "r1", "", "", "", 0)
+	c.mu.Lock()
+	c.entries[key] = &accessTokenEntry{
+		response:     newTestResponse("tok-cached", 3600),
+		expiresAt:    time.Now().Add(3600 * time.Second),
+		serverExpiry: 3600,
+		domain:       "domain",
+		roles:        "r1",
+		expiryTime:   0,
+	}
+	c.entries[key].lastUsed.Store(time.Now().Unix())
+	c.mu.Unlock()
+
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 0, true)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if resp.Access_token != "tok-fetched" {
+		t.Fatalf("expected freshly fetched token, got %q", resp.Access_token)
+	}
+	if fetcher.calls() != 1 {
+		t.Fatalf("expected one ZTS call with ignoreCache=true, got %d", fetcher.calls())
+	}
+
+	c.mu.RLock()
+	stored := c.entries[key]
+	c.mu.RUnlock()
+	if stored == nil || stored.response.Access_token != "tok-cached" {
+		t.Fatalf("cache should retain newer cached token, got %+v", stored)
+	}
+}
+
 func TestGetAccessToken_ZTSError_FallbackToStaleCache(t *testing.T) {
 	fetcher := &mockFetcher{err: fmt.Errorf("ZTS unavailable")}
 	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
@@ -300,7 +382,7 @@ func TestGetAccessToken_ZTSError_FallbackToStaleCache(t *testing.T) {
 	c.mu.Unlock()
 
 	// ZTS fails, but we have a stale entry → return it without error (Java parity).
-	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err != nil {
 		t.Errorf("expected nil error on stale fallback, got %v", err)
 	}
@@ -309,12 +391,96 @@ func TestGetAccessToken_ZTSError_FallbackToStaleCache(t *testing.T) {
 	}
 }
 
+func TestGetAccessToken_IgnoreCache_ZTSErrorSkipsStaleFallback(t *testing.T) {
+	fetcher := &mockFetcher{err: fmt.Errorf("ZTS unavailable")}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	key := tokenCacheKey("domain", "", "r1", "", "", "", 3600)
+	c.mu.Lock()
+	c.entries[key] = &accessTokenEntry{
+		response:     newTestResponse("tok-stale", 3600),
+		expiresAt:    time.Now().Add(100 * time.Second),
+		serverExpiry: 3600,
+		domain:       "domain",
+		roles:        "r1",
+		expiryTime:   3600,
+	}
+	c.mu.Unlock()
+
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, true)
+	if err == nil {
+		t.Fatal("expected error when ignoreCache=true and ZTS fails")
+	}
+	if resp != nil {
+		t.Errorf("expected no stale token when ignoreCache=true, got %v", resp)
+	}
+}
+
+func TestGetAccessToken_ConcurrentMixedIgnoreCacheDoesNotShareStaleFallback(t *testing.T) {
+	fetcher := &mockFetcher{
+		err:   fmt.Errorf("ZTS unavailable"),
+		delay: 50 * time.Millisecond,
+	}
+	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
+	defer c.Stop()
+
+	key := tokenCacheKey("domain", "", "r1", "", "", "", 3600)
+	c.mu.Lock()
+	c.entries[key] = &accessTokenEntry{
+		response:     newTestResponse("tok-stale", 3600),
+		expiresAt:    time.Now().Add(100 * time.Second),
+		serverExpiry: 3600,
+		domain:       "domain",
+		roles:        "r1",
+		expiryTime:   3600,
+	}
+	c.mu.Unlock()
+
+	normalDone := make(chan error, 1)
+	go func() {
+		resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
+		if err != nil {
+			normalDone <- fmt.Errorf("normal call expected stale fallback, got error: %w", err)
+			return
+		}
+		if resp == nil || resp.Access_token != "tok-stale" {
+			normalDone <- fmt.Errorf("normal call expected stale token, got %v", resp)
+			return
+		}
+		normalDone <- nil
+	}()
+
+	deadline := time.Now().Add(time.Second)
+	for fetcher.calls() == 0 && time.Now().Before(deadline) {
+		time.Sleep(time.Millisecond)
+	}
+	if fetcher.calls() == 0 {
+		t.Fatal("normal call did not enter ZTS fetch")
+	}
+
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, true)
+	if err == nil {
+		t.Fatal("ignoreCache=true call should not share stale fallback from normal call")
+	}
+	if resp != nil {
+		t.Fatalf("ignoreCache=true call should not return stale token, got %v", resp)
+	}
+
+	if err := <-normalDone; err != nil {
+		t.Fatal(err)
+	}
+	if fetcher.calls() != 2 {
+		t.Fatalf("expected separate singleflight groups for normal and ignoreCache calls, got %d ZTS calls", fetcher.calls())
+	}
+}
+
 func TestGetAccessToken_ZTSError_NoCacheFallback_ReturnsError(t *testing.T) {
 	fetcher := &mockFetcher{err: fmt.Errorf("ZTS unavailable")}
 	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
 	defer c.Stop()
 
-	_, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	_, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err == nil {
 		t.Error("expected error when ZTS fails with empty cache")
 	}
@@ -325,7 +491,7 @@ func TestGetAccessToken_NilExpiresIn_ReturnsError(t *testing.T) {
 	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
 	defer c.Stop()
 
-	_, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	_, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err == nil {
 		t.Error("expected error for response with nil Expires_in")
 	}
@@ -351,7 +517,7 @@ func TestGetAccessToken_InvalidResponse_FallbackToStaleCache(t *testing.T) {
 
 	// Invalid response from ZTS should still return stale token (Java parity).
 	fetcher.setResponse(&zts.AccessTokenResponse{Access_token: "tok-invalid"}, nil) // Expires_in nil
-	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err != nil {
 		t.Fatalf("expected stale fallback on invalid response, got error: %v", err)
 	}
@@ -381,7 +547,7 @@ func TestGetAccessToken_EmptyAccessToken_FallbackToStaleCache(t *testing.T) {
 	// Empty token should be treated as invalid and fall back to stale.
 	exp := int32(3600)
 	fetcher.setResponse(&zts.AccessTokenResponse{Access_token: "", Expires_in: &exp}, nil)
-	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err != nil {
 		t.Fatalf("expected stale fallback on empty access token, got error: %v", err)
 	}
@@ -396,7 +562,7 @@ func TestGetAccessToken_ZeroExpiresIn_ReturnsError(t *testing.T) {
 	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
 	defer c.Stop()
 
-	_, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	_, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err == nil {
 		t.Error("expected error for response with non-positive Expires_in")
 	}
@@ -407,7 +573,7 @@ func TestGetAccessToken_ReturnsDefensiveCopy(t *testing.T) {
 	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
 	defer c.Stop()
 
-	r1, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	r1, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -416,7 +582,7 @@ func TestGetAccessToken_ReturnsDefensiveCopy(t *testing.T) {
 	}
 	*r1.Expires_in = 1 // mutate returned response copy
 
-	r2, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	r2, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -430,7 +596,7 @@ func TestGetAccessToken_NilResponse_ReturnsError(t *testing.T) {
 	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, time.Hour)
 	defer c.Stop()
 
-	_, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	_, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err == nil {
 		t.Error("expected error for nil ZTS response with nil error")
 	}
@@ -442,7 +608,7 @@ func TestNewAccessTokenCacheWithFetcher_ZeroInterval_NoRefreshGoroutine(t *testi
 	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, 0)
 	defer c.Stop()
 
-	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -468,12 +634,12 @@ func TestGetAccessToken_DifferentParams_DifferentCacheEntries(t *testing.T) {
 	fetcher.mu.Lock()
 	fetcher.response = newTestResponse("tok-d1", 3600)
 	fetcher.mu.Unlock()
-	resp1, _ := c.GetAccessToken("domain1", "", "r1", "", "", "", 3600)
+	resp1, _ := c.GetAccessToken("domain1", "", "r1", "", "", "", 3600, false)
 
 	fetcher.mu.Lock()
 	fetcher.response = newTestResponse("tok-d2", 3600)
 	fetcher.mu.Unlock()
-	resp2, _ := c.GetAccessToken("domain2", "", "r1", "", "", "", 3600)
+	resp2, _ := c.GetAccessToken("domain2", "", "r1", "", "", "", 3600, false)
 
 	if resp1.Access_token == resp2.Access_token {
 		t.Errorf("expected different tokens for different domains, both got %q", resp1.Access_token)
@@ -488,7 +654,7 @@ func TestGetAccessToken_Stop_CancelsRefresh(t *testing.T) {
 	c := newAccessTokenCacheWithFetcher(context.Background(), fetcher, 50*time.Millisecond)
 
 	// Populate the cache.
-	_, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	_, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -521,7 +687,7 @@ func TestGetAccessToken_BackgroundRefresh_UpdatesCache(t *testing.T) {
 	defer c.Stop()
 
 	// Prime the cache.
-	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -557,7 +723,7 @@ func TestRefreshAll_InvalidExpiresIn_KeepsStaleAndSetsBackoff(t *testing.T) {
 	defer c.Stop()
 
 	// Prime cache with a valid token.
-	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err != nil {
 		t.Fatalf("unexpected error priming cache: %v", err)
 	}
@@ -634,7 +800,7 @@ func TestGetAccessToken_ZTSFailure_SetsRetryAfter(t *testing.T) {
 	defer c.Stop()
 
 	// Prime the cache.
-	_, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	_, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err != nil {
 		t.Fatalf("unexpected error priming cache: %v", err)
 	}
@@ -650,7 +816,7 @@ func TestGetAccessToken_ZTSFailure_SetsRetryAfter(t *testing.T) {
 	callsBeforeFail := fetcher.calls()
 
 	// First call with a failing ZTS: should return stale token and set retryAfter.
-	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err != nil {
 		t.Fatalf("expected stale fallback, got error: %v", err)
 	}
@@ -664,7 +830,7 @@ func TestGetAccessToken_ZTSFailure_SetsRetryAfter(t *testing.T) {
 
 	// Subsequent calls within the backoff window must NOT call ZTS.
 	for i := 0; i < 5; i++ {
-		resp, err = c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+		resp, err = c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 		if err != nil {
 			t.Fatalf("iteration %d: expected stale fallback, got error: %v", i, err)
 		}
@@ -685,7 +851,7 @@ func TestGetAccessToken_RetryAfterExpiry_RetriesZTS(t *testing.T) {
 	defer c.Stop()
 
 	// Prime the cache.
-	_, _ = c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	_, _ = c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 
 	// Mark entry as stale and simulate a ZTS failure to set retryAfter.
 	c.mu.Lock()
@@ -693,7 +859,7 @@ func TestGetAccessToken_RetryAfterExpiry_RetriesZTS(t *testing.T) {
 	c.entries[key].expiresAt = time.Now().Add(-time.Second)
 	c.mu.Unlock()
 	fetcher.setResponse(nil, fmt.Errorf("zts down"))
-	_, _ = c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	_, _ = c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 
 	// Expire the retryAfter window manually to simulate time passing.
 	c.mu.RLock()
@@ -703,7 +869,7 @@ func TestGetAccessToken_RetryAfterExpiry_RetriesZTS(t *testing.T) {
 
 	// ZTS is back up; the entry is still stale so the slow path triggers.
 	fetcher.setResponse(newTestResponse("tok-v2", 7200), nil)
-	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+	resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 	if err != nil {
 		t.Fatalf("unexpected error after backoff expiry: %v", err)
 	}
@@ -731,7 +897,7 @@ func TestRefreshAll_Concurrent(t *testing.T) {
 	// Populate the cache with distinct keys.
 	for i := 0; i < entries; i++ {
 		domain := fmt.Sprintf("domain-%d", i)
-		_, err := c.GetAccessToken(domain, "", "r1", "", "", "", 3600)
+		_, err := c.GetAccessToken(domain, "", "r1", "", "", "", 3600, false)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -772,7 +938,7 @@ func TestAccessTokenCache_Singleflight_ThunderingHerd(t *testing.T) {
 	for i := 0; i < goroutines; i++ {
 		go func(i int) {
 			defer wg.Done()
-			resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600)
+			resp, err := c.GetAccessToken("domain", "", "r1", "", "", "", 3600, false)
 			errs[i] = err
 			if resp != nil {
 				tokens[i] = resp.Access_token
@@ -822,7 +988,7 @@ func TestAccessTokenCache_ConcurrentAccess(t *testing.T) {
 			defer wg.Done()
 			domain := fmt.Sprintf("domain-%d", i%distinctDomains)
 			for j := 0; j < requestsEach; j++ {
-				resp, err := c.GetAccessToken(domain, "", "r1", "", "", "", 3600)
+				resp, err := c.GetAccessToken(domain, "", "r1", "", "", "", 3600, false)
 				if err != nil {
 					t.Errorf("goroutine %d request %d: unexpected error: %v", i, j, err)
 					return
@@ -854,7 +1020,7 @@ func TestAccessTokenCache_ConcurrentReadWrite(t *testing.T) {
 			defer wg.Done()
 			domain := fmt.Sprintf("d%d", i%3)
 			for j := 0; j < 30; j++ {
-				_, _ = c.GetAccessToken(domain, "", "r1", "", "", "", 3600)
+				_, _ = c.GetAccessToken(domain, "", "r1", "", "", "", 3600, false)
 			}
 		}(i)
 	}
@@ -878,7 +1044,7 @@ func TestAccessTokenCache_StopDuringConcurrentRequests(t *testing.T) {
 			defer wg.Done()
 			domain := fmt.Sprintf("d%d", i%4)
 			for j := 0; j < 10; j++ {
-				_, _ = c.GetAccessToken(domain, "", "r1", "", "", "", 3600)
+				_, _ = c.GetAccessToken(domain, "", "r1", "", "", "", 3600, false)
 			}
 		}(i)
 	}
