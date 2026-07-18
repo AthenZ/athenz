@@ -1,3 +1,20 @@
+Athenz v1.12.44 Release / Jul 18, 2026
+--------------------------------------
+
+#3404 extend github actions provider to support multiple enterprises
+#3405 ui - fix microsegmentation page error and warnings, add functional test
+#3406 Fix: UI no longer returns an error for the valid external identity during the group member add
+#3408 Use ON DUPLICATE KEY UPDATE for X.509 cert record insert to avoid spurious errors in DB audit logs
+#3409 add cached access token client wrappers to athenzutils
+#3410 Add opt-in local file cache for S3ChangeLogStore
+#3411 Feat: allow spiffe uri customization
+#3413 access token go lib update/disk based fallback
+#3415 add support for IAM Auth candidate regions
+#3416 Add ignoreCache parameter to Go access token client
+#3418 make ui session cookie configurable
+#3419 move db lookup in status response into a separate thread
+#3420 update java/go/js dependencies to their latest releases
+
 Athenz v1.12.43 Release / Jun 19, 2026
 --------------------------------------
 
