@@ -4820,7 +4820,7 @@ type ExternalMemberCertificateRequest struct {
 	//
 	// name of the external member
 	//
-	Name string `json:"name"`
+	Name ExternalMemberName `json:"name"`
 
 	//
 	// external member certificate signing request
@@ -4873,9 +4873,9 @@ func (self *ExternalMemberCertificateRequest) Validate() error {
 	if self.Name == "" {
 		return fmt.Errorf("ExternalMemberCertificateRequest.name is missing but is a required field")
 	} else {
-		val := rdl.Validate(ZTSSchema(), "String", self.Name)
+		val := rdl.Validate(ZTSSchema(), "ExternalMemberName", self.Name)
 		if !val.Valid {
-			return fmt.Errorf("ExternalMemberCertificateRequest.name does not contain a valid String (%v)", val.Error)
+			return fmt.Errorf("ExternalMemberCertificateRequest.name does not contain a valid ExternalMemberName (%v)", val.Error)
 		}
 	}
 	if self.Csr == "" {

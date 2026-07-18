@@ -517,7 +517,7 @@ public class ZTSSchema {
 
         sb.structType("ExternalMemberCertificateRequest")
             .comment("ExternalMemberCertificateRequest - an external member certificate signing request")
-            .field("name", "String", false, "name of the external member")
+            .field("name", "ExternalMemberName", false, "name of the external member")
             .field("csr", "String", false, "external member certificate signing request")
             .field("attestationData", "String", false, "identity attestation data")
             .field("expiryTime", "Int32", true, "expiry time in minutes for the certificate (server enforces max expiry)")

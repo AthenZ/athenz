@@ -22,7 +22,7 @@ type ExternalMemberCertificate Struct {
 
 // ExternalMemberCertificateRequest - an external member certificate signing request
 type ExternalMemberCertificateRequest Struct {
-    String name; //name of the external member
+    ExternalMemberName name; //name of the external member
     String csr; //external member certificate signing request
     String attestationData; //identity attestation data
     Int32 expiryTime (optional); //expiry time in minutes for the certificate (server enforces max expiry)

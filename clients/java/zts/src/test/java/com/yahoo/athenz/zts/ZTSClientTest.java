@@ -5585,7 +5585,7 @@ public class ZTSClientTest {
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
         ExternalMemberCertificateRequest req = new ExternalMemberCertificateRequest()
-                .setCsr("csr").setAttestationData("valid");
+                .setName("email:ext.joe@athenz.io").setCsr("csr").setAttestationData("valid");
         ExternalMemberCertificate userCert = client.postExternalMemberCertificateRequest(req);
         assertNotNull(userCert);
         assertEquals(userCert.getX509Certificate(), "x509cert");

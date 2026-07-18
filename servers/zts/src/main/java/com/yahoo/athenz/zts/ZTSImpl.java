@@ -155,6 +155,7 @@ public class ZTSImpl implements ZTSHandler {
     protected boolean leastPrivilegePrincipal = false;
     protected Set<String> authorizedProxyUsers = null;
     protected Set<String> validUserX509CertSignerKeyIds = null;
+    protected Set<String> validExternalMemberX509CertSignerKeyIds = null;
     protected Set<String> validServiceX509CertSignerKeyIds = null;
     protected Set<String> validCertSubjectOrgValues = null;
     protected Set<String> validCertSubjectOrgUnitValues = null;
@@ -714,6 +715,14 @@ public class ZTSImpl implements ZTSHandler {
 
         externalMemberCertAllowedDomains = parseDomainList(
                 System.getProperty(ZTSConsts.ZTS_PROP_EXTERNAL_MEMBER_CERT_ALLOWED_DOMAINS));
+
+        final String externalMemberCertSignerKeyIdList =
+                System.getProperty(ZTSConsts.ZTS_PROP_EXTERNAL_MEMBER_CERT_SIGNER_KEY_ID_LIST);
+        if (externalMemberCertSignerKeyIdList != null) {
+            validExternalMemberX509CertSignerKeyIds = new HashSet<>(Arrays.asList(externalMemberCertSignerKeyIdList.split(",")));
+        } else {
+            validExternalMemberX509CertSignerKeyIds = Collections.emptySet();
+        }
 
         final String svcCertSignerKeyIdList = System.getProperty(ZTSConsts.ZTS_PROP_SVC_CERT_SIGNER_KEY_ID_LIST);
         if (svcCertSignerKeyIdList != null) {
@@ -6891,7 +6900,7 @@ public class ZTSImpl implements ZTSHandler {
         // make sure the request csr matches our principal name
 
         if (!certReq.getCommonName().equals(principalName)) {
-            throw requestError("User Certificate Request mismatch: " + certReq.getCommonName() +
+            throw requestError("Certificate Request mismatch: " + certReq.getCommonName() +
                     "/" + principalName, caller, userDomain, userDomain);
         }
 
@@ -6921,7 +6930,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // determine the expiry time for the certificate
 
-        final String signerKeyId = externalMemberRequest ? req.getX509CertSignerKeyId() :
+        final String signerKeyId = externalMemberRequest ? getExternalMemberX509KeySignerId(req.getX509CertSignerKeyId()) :
                 getUserX509KeySignerId(principalName, req.getX509CertSignerKeyId());
         int expiryTime = userIdentityTimeoutManager.getUserCertTimeout(principalName, signerKeyId, req.getExpiryTime());
 
@@ -7061,10 +7070,18 @@ public class ZTSImpl implements ZTSHandler {
         if (!StringUtil.isEmpty(authoritySignerKeyId)) {
             return authoritySignerKeyId;
         }
+        return getRequestedX509KeySignerId(requestSignerKeyId, validUserX509CertSignerKeyIds);
+    }
+
+    String getExternalMemberX509KeySignerId(final String requestSignerKeyId) {
+        return getRequestedX509KeySignerId(requestSignerKeyId, validExternalMemberX509CertSignerKeyIds);
+    }
+
+    String getRequestedX509KeySignerId(final String requestSignerKeyId, final Set<String> validX509CertSignerKeyIds) {
         if (StringUtil.isEmpty(requestSignerKeyId)) {
             return null;
         }
-        if (!validUserX509CertSignerKeyIds.contains(requestSignerKeyId)) {
+        if (!validX509CertSignerKeyIds.contains(requestSignerKeyId)) {
             LOGGER.error("Request signer key id {} is not in the allowed list", requestSignerKeyId);
             return null;
         }

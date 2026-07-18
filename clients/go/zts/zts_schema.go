@@ -595,7 +595,7 @@ func init() {
 
 	tExternalMemberCertificateRequest := rdl.NewStructTypeBuilder("Struct", "ExternalMemberCertificateRequest")
 	tExternalMemberCertificateRequest.Comment("ExternalMemberCertificateRequest - an external member certificate signing request")
-	tExternalMemberCertificateRequest.Field("name", "String", false, nil, "name of the external member")
+	tExternalMemberCertificateRequest.Field("name", "ExternalMemberName", false, nil, "name of the external member")
 	tExternalMemberCertificateRequest.Field("csr", "String", false, nil, "external member certificate signing request")
 	tExternalMemberCertificateRequest.Field("attestationData", "String", false, nil, "identity attestation data")
 	tExternalMemberCertificateRequest.Field("expiryTime", "Int32", true, nil, "expiry time in minutes for the certificate (server enforces max expiry)")

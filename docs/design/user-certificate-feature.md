@@ -431,6 +431,7 @@ listed in `athenz.zts.external_member_cert_allowed_domains`.
 |---|---|---|
 | `athenz.zts.user_cert_provider` | (none) | Provider class name |
 | `athenz.zts.external_member_cert_allowed_domains` | (none) | Comma-separated external member domains allowed to request certificates through `/extmembercert`; when unset, external member certificate requests are rejected |
+| `athenz.zts.external_member_cert_signer_key_id_list` | (none) | Comma-separated signer key IDs allowed in external member certificate requests |
 | `athenz.zts.user_cert_max_timeout` | 60 min | Maximum certificate lifetime (absolute cap) |
 | `athenz.zts.user_cert_default_timeout` | 60 min | Default certificate lifetime when no request or role timeout is set |
 | `athenz.zts.user_cert_timeout_refresh_interval` | 10 min | Interval for refreshing the role-based timeout map from the user domain |

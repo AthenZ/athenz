@@ -269,6 +269,7 @@ public final class ZTSConsts {
     public static final String ZTS_EXTERNAL_CREDS_PROVIDER_AWS   = "aws";
     public static final String ZTS_EXTERNAL_CREDS_PROVIDER_AZURE = "azure";
     public static final String ZTS_PROP_EXTERNAL_MEMBER_CERT_ALLOWED_DOMAINS = "athenz.zts.external_member_cert_allowed_domains";
+    public static final String ZTS_PROP_EXTERNAL_MEMBER_CERT_SIGNER_KEY_ID_LIST = "athenz.zts.external_member_cert_signer_key_id_list";
 
     public static final String ZTS_EXTERNAL_ATTR_ROLE_NAME     = "athenzRoleName";
     public static final String ZTS_EXTERNAL_ATTR_SCOPE         = "athenzScope";

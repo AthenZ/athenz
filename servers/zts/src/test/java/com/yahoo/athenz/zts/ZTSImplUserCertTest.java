@@ -138,6 +138,7 @@ public class ZTSImplUserCertTest {
         System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT);
         System.clearProperty(ZTSConsts.ZTS_PROP_USER_CERT_SIGNER_KEY_ID_LIST);
         System.clearProperty(ZTSConsts.ZTS_PROP_EXTERNAL_MEMBER_CERT_ALLOWED_DOMAINS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_EXTERNAL_MEMBER_CERT_SIGNER_KEY_ID_LIST);
     }
 
     private ResourceContext createResourceContext(Principal principal) {
@@ -275,6 +276,27 @@ public class ZTSImplUserCertTest {
         zts.validUserX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
 
         assertEquals(zts.getUserX509KeySignerId("user.joe", "request-key-id"), "authority-key-id");
+    }
+
+    @Test
+    public void testGetExternalMemberX509KeySignerIdRequestInAllowedList() {
+        zts.validExternalMemberX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+
+        assertEquals(zts.getExternalMemberX509KeySignerId("key-id-1"), "key-id-1");
+    }
+
+    @Test
+    public void testGetExternalMemberX509KeySignerIdRequestNotInAllowedList() {
+        zts.validExternalMemberX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+
+        assertNull(zts.getExternalMemberX509KeySignerId("unknown-key-id"));
+    }
+
+    @Test
+    public void testGetExternalMemberX509KeySignerIdRequestNullWithAllowedList() {
+        zts.validExternalMemberX509CertSignerKeyIds = new java.util.HashSet<>(java.util.Arrays.asList("key-id-1", "key-id-2"));
+
+        assertNull(zts.getExternalMemberX509KeySignerId(null));
     }
 
     // -----------------------------------------------------------------------
@@ -580,7 +602,7 @@ public class ZTSImplUserCertTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
-            assertTrue(ex.getMessage().contains("User Certificate Request mismatch"));
+            assertTrue(ex.getMessage().contains("Certificate Request mismatch"));
         }
     }
 
@@ -935,6 +957,7 @@ public class ZTSImplUserCertTest {
         zts.externalMemberCertAllowedDomains = Collections.singleton("email");
         zts.userAuthority = null;
         zts.userCertProvider = "test.provider";
+        zts.validExternalMemberX509CertSignerKeyIds = new java.util.HashSet<>(Collections.singleton("request-signer-key"));
 
         String csr = generateUserCsr(externalPrincipal);
 
@@ -947,7 +970,8 @@ public class ZTSImplUserCertTest {
                 .setName(externalPrincipal)
                 .setCsr(csr)
                 .setAttestationData("attestation-data")
-                .setExpiryTime(3600);
+                .setExpiryTime(3600)
+                .setX509CertSignerKeyId("request-signer-key");
 
         InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
         InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
@@ -965,7 +989,7 @@ public class ZTSImplUserCertTest {
         InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
         when(certManager.generateX509Certificate(eq("test.provider"), Mockito.any(),
                 eq(csr), eq(InstanceProvider.ZTS_CERT_USAGE_CLIENT), eq(60), Mockito.any(),
-                Mockito.isNull())).thenReturn(pemCert);
+                eq("request-signer-key"))).thenReturn(pemCert);
         Mockito.doNothing().when(certManager).logX509Cert(Mockito.any(), Mockito.anyString(),
                 Mockito.anyString(), Mockito.anyString(), Mockito.any());
         zts.instanceCertManager = certManager;
@@ -1002,6 +1026,35 @@ public class ZTSImplUserCertTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("External member name is not valid"));
+        }
+    }
+
+    @Test
+    public void testPostExternalMemberCertificateRequestCnMismatch() throws Exception {
+
+        final String externalPrincipal = "email:ext.joe@athenz.io";
+
+        zts.externalMemberCertAllowedDomains = Collections.singleton("email");
+        zts.userCertProvider = "test.provider";
+
+        String csr = generateUserCsr("email:ext.differentuser@athenz.io");
+
+        PrincipalAuthority authority = new PrincipalAuthority();
+        Principal principal = SimplePrincipal.create("user", "joe",
+                "v=U1;d=user;n=joe;s=signature", 0, authority);
+        ResourceContext ctx = createResourceContext(principal);
+
+        ExternalMemberCertificateRequest req = new ExternalMemberCertificateRequest()
+                .setName(externalPrincipal)
+                .setCsr(csr)
+                .setAttestationData("attestation-data");
+
+        try {
+            zts.postExternalMemberCertificateRequest(ctx, req);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Certificate Request mismatch"));
         }
     }
 
