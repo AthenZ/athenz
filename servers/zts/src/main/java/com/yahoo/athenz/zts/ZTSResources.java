@@ -1285,8 +1285,8 @@ public class ZTSResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Return a TLS certificate for the given external member")
-    public UserCertificate postExternalMemberCertificateRequest(
-        @Parameter(description = "csr request", required = true) UserCertificateRequest req) {
+    public ExternalMemberCertificate postExternalMemberCertificateRequest(
+        @Parameter(description = "csr request", required = true) ExternalMemberCertificateRequest req) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {

@@ -4018,11 +4018,11 @@ public class ZTSClient implements Closeable {
     }
 
     /**
-     * For the specified external member return the corresponding User Certificate
-     * @param req User Certificate Request (csr)
-     * @return UserCertificate that includes client x509 user certificate
+     * For the specified external member return the corresponding External Member Certificate
+     * @param req External Member Certificate Request (csr)
+     * @return ExternalMemberCertificate that includes client x509 external member certificate
      */
-    public UserCertificate postExternalMemberCertificateRequest(UserCertificateRequest req) {
+    public ExternalMemberCertificate postExternalMemberCertificateRequest(ExternalMemberCertificateRequest req) {
         try {
             return ztsClient.postExternalMemberCertificateRequest(req);
         } catch (ClientResourceException ex) {

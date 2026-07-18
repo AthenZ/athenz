@@ -1307,7 +1307,7 @@ public class ZTSRDLGeneratedClient {
         }
     }
 
-    public UserCertificate postExternalMemberCertificateRequest(UserCertificateRequest req) throws URISyntaxException, IOException {
+    public ExternalMemberCertificate postExternalMemberCertificateRequest(ExternalMemberCertificateRequest req) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/extmembercert");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(req), ContentType.APPLICATION_JSON);
@@ -1321,7 +1321,7 @@ public class ZTSRDLGeneratedClient {
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
             case 200:
-                return jsonMapper.readValue(httpResponseEntity.getContent(), UserCertificate.class);
+                return jsonMapper.readValue(httpResponseEntity.getContent(), ExternalMemberCertificate.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())

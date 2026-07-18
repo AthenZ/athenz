@@ -4768,3 +4768,137 @@ func (self *UserCertificateRequest) Validate() error {
 	}
 	return nil
 }
+
+// ExternalMemberCertificate - ExternalMemberCertificate - an external member
+// certificate
+type ExternalMemberCertificate struct {
+	X509Certificate string `json:"x509Certificate"`
+}
+
+// NewExternalMemberCertificate - creates an initialized ExternalMemberCertificate instance, returns a pointer to it
+func NewExternalMemberCertificate(init ...*ExternalMemberCertificate) *ExternalMemberCertificate {
+	var o *ExternalMemberCertificate
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ExternalMemberCertificate)
+	}
+	return o
+}
+
+type rawExternalMemberCertificate ExternalMemberCertificate
+
+// UnmarshalJSON is defined for proper JSON decoding of a ExternalMemberCertificate
+func (self *ExternalMemberCertificate) UnmarshalJSON(b []byte) error {
+	var m rawExternalMemberCertificate
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ExternalMemberCertificate(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *ExternalMemberCertificate) Validate() error {
+	if self.X509Certificate == "" {
+		return fmt.Errorf("ExternalMemberCertificate.x509Certificate is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.X509Certificate)
+		if !val.Valid {
+			return fmt.Errorf("ExternalMemberCertificate.x509Certificate does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// ExternalMemberCertificateRequest - ExternalMemberCertificateRequest - an
+// external member certificate signing request
+type ExternalMemberCertificateRequest struct {
+
+	//
+	// name of the external member
+	//
+	Name string `json:"name"`
+
+	//
+	// external member certificate signing request
+	//
+	Csr string `json:"csr"`
+
+	//
+	// identity attestation data
+	//
+	AttestationData string `json:"attestationData"`
+
+	//
+	// expiry time in minutes for the certificate (server enforces max expiry)
+	//
+	ExpiryTime *int32 `json:"expiryTime,omitempty" rdl:"optional"`
+
+	//
+	// requested x509 cert signer key id
+	//
+	X509CertSignerKeyId SimpleName `json:"x509CertSignerKeyId,omitempty" rdl:"optional"`
+}
+
+// NewExternalMemberCertificateRequest - creates an initialized ExternalMemberCertificateRequest instance, returns a pointer to it
+func NewExternalMemberCertificateRequest(init ...*ExternalMemberCertificateRequest) *ExternalMemberCertificateRequest {
+	var o *ExternalMemberCertificateRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(ExternalMemberCertificateRequest)
+	}
+	return o
+}
+
+type rawExternalMemberCertificateRequest ExternalMemberCertificateRequest
+
+// UnmarshalJSON is defined for proper JSON decoding of a ExternalMemberCertificateRequest
+func (self *ExternalMemberCertificateRequest) UnmarshalJSON(b []byte) error {
+	var m rawExternalMemberCertificateRequest
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := ExternalMemberCertificateRequest(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *ExternalMemberCertificateRequest) Validate() error {
+	if self.Name == "" {
+		return fmt.Errorf("ExternalMemberCertificateRequest.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("ExternalMemberCertificateRequest.name does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Csr == "" {
+		return fmt.Errorf("ExternalMemberCertificateRequest.csr is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.Csr)
+		if !val.Valid {
+			return fmt.Errorf("ExternalMemberCertificateRequest.csr does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.AttestationData == "" {
+		return fmt.Errorf("ExternalMemberCertificateRequest.attestationData is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZTSSchema(), "String", self.AttestationData)
+		if !val.Valid {
+			return fmt.Errorf("ExternalMemberCertificateRequest.attestationData does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.X509CertSignerKeyId != "" {
+		val := rdl.Validate(ZTSSchema(), "SimpleName", self.X509CertSignerKeyId)
+		if !val.Valid {
+			return fmt.Errorf("ExternalMemberCertificateRequest.x509CertSignerKeyId does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	return nil
+}

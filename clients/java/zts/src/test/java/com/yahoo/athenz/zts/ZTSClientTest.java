@@ -5584,8 +5584,9 @@ public class ZTSClientTest {
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         client.setZTSRDLGeneratedClient(ztsClientMock);
 
-        UserCertificateRequest req = new UserCertificateRequest().setCsr("csr").setAttestationData("valid");
-        UserCertificate userCert = client.postExternalMemberCertificateRequest(req);
+        ExternalMemberCertificateRequest req = new ExternalMemberCertificateRequest()
+                .setCsr("csr").setAttestationData("valid");
+        ExternalMemberCertificate userCert = client.postExternalMemberCertificateRequest(req);
         assertNotNull(userCert);
         assertEquals(userCert.getX509Certificate(), "x509cert");
 

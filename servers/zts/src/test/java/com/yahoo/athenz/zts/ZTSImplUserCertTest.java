@@ -943,7 +943,7 @@ public class ZTSImplUserCertTest {
                 "v=U1;d=user;n=joe;s=signature", 0, authority);
         ResourceContext ctx = createResourceContext(principal);
 
-        UserCertificateRequest req = new UserCertificateRequest()
+        ExternalMemberCertificateRequest req = new ExternalMemberCertificateRequest()
                 .setName(externalPrincipal)
                 .setCsr(csr)
                 .setAttestationData("attestation-data")
@@ -970,7 +970,7 @@ public class ZTSImplUserCertTest {
                 Mockito.anyString(), Mockito.anyString(), Mockito.any());
         zts.instanceCertManager = certManager;
 
-        UserCertificate result = zts.postExternalMemberCertificateRequest(ctx, req);
+        ExternalMemberCertificate result = zts.postExternalMemberCertificateRequest(ctx, req);
         assertNotNull(result);
         assertEquals(result.getX509Certificate(), pemCert);
         Mockito.verify((RsrcCtxWrapper) ctx).logPrincipal(externalPrincipal);
@@ -991,7 +991,7 @@ public class ZTSImplUserCertTest {
                 "v=U1;d=user;n=joe;s=signature", 0, authority);
         ResourceContext ctx = createResourceContext(principal);
 
-        UserCertificateRequest req = new UserCertificateRequest()
+        ExternalMemberCertificateRequest req = new ExternalMemberCertificateRequest()
                 .setName(externalPrincipal)
                 .setCsr(csr)
                 .setAttestationData("attestation-data");

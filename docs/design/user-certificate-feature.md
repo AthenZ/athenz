@@ -417,8 +417,9 @@ The CLI is a thin wrapper that parses command-line flags and delegates to `userc
 
 **API Endpoint:** `POST /extmembercert`
 
-The external member certificate endpoint uses the same `UserCertificateRequest`
-schema and provider attestation flow, but it is intentionally separate from
+The external member certificate endpoint uses dedicated
+`ExternalMemberCertificateRequest` and `ExternalMemberCertificate` schema types
+with the same provider attestation flow, but it is intentionally separate from
 `/usercert`. The `/usercert` endpoint remains tied to active principals in the
 configured user authority, while `/extmembercert` only accepts names that match
 the `ExternalMemberName` format and whose external member domain is explicitly

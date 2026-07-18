@@ -223,6 +223,7 @@ public class ZTSImpl implements ZTSHandler {
     private static final String TYPE_INSTANCE_REFRESH_REQUEST = "InstanceRefreshRequest";
     private static final String TYPE_ROLE_CERTIFICATE_REQUEST = "RoleCertificateRequest";
     private static final String TYPE_USER_CERTIFICATE_REQUEST = "UserCertificateRequest";
+    private static final String TYPE_EXTERNAL_MEMBER_CERTIFICATE_REQUEST = "ExternalMemberCertificateRequest";
     private static final String TYPE_SSH_CERT_REQUEST = "SSHCertRequest";
     private static final String TYPE_COMPOUND_NAME = "CompoundName";
     private static final String TYPE_RESOURCE_NAME = "ResourceName";
@@ -6832,16 +6833,20 @@ public class ZTSImpl implements ZTSHandler {
 
     @Override
     public UserCertificate postUserCertificateRequest(ResourceContext ctx, UserCertificateRequest req) {
-        return processUserCertificateRequest(ctx, req, false);
+        return processUserCertificateRequest(ctx, req, certificateRequestData(req),
+                TYPE_USER_CERTIFICATE_REQUEST, false);
     }
 
     @Override
-    public UserCertificate postExternalMemberCertificateRequest(ResourceContext ctx, UserCertificateRequest req) {
-        return processUserCertificateRequest(ctx, req, true);
+    public ExternalMemberCertificate postExternalMemberCertificateRequest(ResourceContext ctx,
+            ExternalMemberCertificateRequest req) {
+        UserCertificate userCertificate = processUserCertificateRequest(ctx, req, certificateRequestData(req),
+                TYPE_EXTERNAL_MEMBER_CERTIFICATE_REQUEST, true);
+        return new ExternalMemberCertificate().setX509Certificate(userCertificate.getX509Certificate());
     }
 
-    UserCertificate processUserCertificateRequest(ResourceContext ctx, UserCertificateRequest req,
-            final boolean externalMemberRequest) {
+    private UserCertificate processUserCertificateRequest(ResourceContext ctx, Object requestObject,
+            CertificateRequestData req, final String requestType, final boolean externalMemberRequest) {
 
         final String caller = ctx.getApiName();
 
@@ -6858,7 +6863,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // validate the request
 
-        validate(req, TYPE_USER_CERTIFICATE_REQUEST, userDomain, caller);
+        validate(requestObject, requestType, userDomain, caller);
         setRequestDomain(ctx, userDomain);
 
         // make sure we have a valid principal name
@@ -6939,6 +6944,53 @@ public class ZTSImpl implements ZTSHandler {
 
         instanceCertManager.logX509Cert(null, ctx.request().getRemoteAddr(), ZTSConsts.ZTS_SERVICE, principalName, userCert);
         return new UserCertificate().setX509Certificate(x509Cert);
+    }
+
+    private static CertificateRequestData certificateRequestData(final UserCertificateRequest req) {
+        return req == null ? null : new CertificateRequestData(req.getName(), req.getCsr(),
+                req.getAttestationData(), req.getExpiryTime(), req.getX509CertSignerKeyId());
+    }
+
+    private static CertificateRequestData certificateRequestData(final ExternalMemberCertificateRequest req) {
+        return req == null ? null : new CertificateRequestData(req.getName(), req.getCsr(),
+                req.getAttestationData(), req.getExpiryTime(), req.getX509CertSignerKeyId());
+    }
+
+    private static class CertificateRequestData {
+        private final String name;
+        private final String csr;
+        private final String attestationData;
+        private final Integer expiryTime;
+        private final String x509CertSignerKeyId;
+
+        CertificateRequestData(final String name, final String csr, final String attestationData,
+                final Integer expiryTime, final String x509CertSignerKeyId) {
+            this.name = name;
+            this.csr = csr;
+            this.attestationData = attestationData;
+            this.expiryTime = expiryTime;
+            this.x509CertSignerKeyId = x509CertSignerKeyId;
+        }
+
+        String getName() {
+            return name;
+        }
+
+        String getCsr() {
+            return csr;
+        }
+
+        String getAttestationData() {
+            return attestationData;
+        }
+
+        Integer getExpiryTime() {
+            return expiryTime;
+        }
+
+        String getX509CertSignerKeyId() {
+            return x509CertSignerKeyId;
+        }
     }
 
     boolean validateUserPrincipalForCert(final String principalName) {
