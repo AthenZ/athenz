@@ -1189,6 +1189,18 @@ public class ZMSServiceIdentityTest {
         serviceResult = zmsImpl.getServiceIdentity(sysAdminCtx, domainName, serviceName);
         assertNull(serviceResult.getProviderEndpoint());
 
+        // An unknown domain must be rejected without attempting an access check
+        // against a null domain object.
+
+        try {
+            zmsImpl.putServiceIdentitySystemMeta(domainAuthorizedCtx, "unknown-service-system-meta-domain",
+                    serviceName, ZMSConsts.SYSTEM_META_CLIENT_ID, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("unauthorized to update service system meta attribute: clientid"));
+        }
+
         zmsImpl.deleteTopLevelDomain(sysAdminCtx, domainName, auditRef, null);
     }
 

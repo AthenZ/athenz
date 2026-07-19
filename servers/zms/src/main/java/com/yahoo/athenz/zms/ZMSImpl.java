@@ -7143,7 +7143,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (ZMSConsts.SYSTEM_META_CLIENT_ID.equals(attribute)) {
             final String domainResource = domainName + ":meta.service." + attribute + "." + serviceName;
-            if (hasAccess(getAthenzDomain(domainName, false), ZMSConsts.ACTION_UPDATE, domainResource,
+            final AthenzDomain domain = retrieveAccessDomain(domainName, principal);
+            if (domain != null && hasAccess(domain, ZMSConsts.ACTION_UPDATE, domainResource,
                     principal, null) == AccessStatus.ALLOWED) {
                 return;
             }
