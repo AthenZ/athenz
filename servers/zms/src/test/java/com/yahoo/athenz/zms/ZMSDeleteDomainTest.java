@@ -572,7 +572,7 @@ public class ZMSDeleteDomainTest {
         assertEquals(dependentDomainList.getNames().size(), 0);
         ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta();
         meta.setProviderEndpoint("https://localhost/testendpoint");
-        zmsImpl.putServiceIdentitySystemMeta(ctx, topLevelDomainName, "service-provider2",
+        zmsImpl.putServiceIdentitySystemMeta(sysAdminCtx, topLevelDomainName, "service-provider2",
                 "providerendpoint", auditRef, meta);
 
         // Wait for cache to be ServiceProviderManager cache to refresh

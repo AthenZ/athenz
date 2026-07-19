@@ -23273,7 +23273,8 @@ public class ZMSImplTest {
         zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
 
         ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta().setFeatureFlags(7);
-        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "featureflags", auditRef, meta);
+        RsrcCtxWrapper sysAdminCtx = zmsTestInitializer.contextWithMockPrincipal("putservicesystemmeta");
+        zmsImpl.putServiceIdentitySystemMeta(sysAdminCtx, domainName, serviceName, "featureflags", auditRef, meta);
 
         Response response = zmsImpl.getJWSDomain(ctx, domainName, null, null);
         JWSDomain jwsDomain = (JWSDomain) response.getEntity();
@@ -23318,7 +23319,8 @@ public class ZMSImplTest {
         zmsImpl.putServiceIdentity(ctx, domainName, serviceName, auditRef, false, null, service);
 
         ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta().setFeatureFlags(7);
-        zmsImpl.putServiceIdentitySystemMeta(ctx, domainName, serviceName, "featureflags", auditRef, meta);
+        RsrcCtxWrapper sysAdminCtx = zmsTestInitializer.contextWithMockPrincipal("putservicesystemmeta");
+        zmsImpl.putServiceIdentitySystemMeta(sysAdminCtx, domainName, serviceName, "featureflags", auditRef, meta);
 
         // set a non-null encryption key so the creds authorization check is triggered.
         // the test principal does not have access to sys.auth:attribute.creds so
