@@ -2710,13 +2710,13 @@ public class ZMSSchema {
 ;
 
         sb.resource("ServiceIdentitySystemMeta", "PUT", "/domain/{domain}/service/{service}/meta/system/{attribute}")
-            .comment("Set the specified service metadata. Caller must have update privileges on the sys.auth domain.")
+            .comment("Set the specified service metadata. System-authorized callers may update any supported attribute. For clientId only, callers may instead be authorized by the service's domain for the exact target service.")
             .pathParam("domain", "DomainName", "name of the domain")
             .pathParam("service", "SimpleName", "name of the service")
             .pathParam("attribute", "SimpleName", "name of the system attribute to be modified")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("detail", "ServiceIdentitySystemMeta", "ServiceIdentitySystemMeta object with updated attribute values")
-            .auth("update", "sys.auth:meta.service.{attribute}.{domain}")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

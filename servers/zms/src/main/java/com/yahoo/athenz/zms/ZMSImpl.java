@@ -7116,6 +7116,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify that request is properly authenticated for this request
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        verifyAuthorizedServiceSystemMetaOperation(principal, domainName, serviceName, attribute, caller);
         verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
 
         if (LOG.isDebugEnabled()) {
@@ -7124,6 +7125,31 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         dbService.executePutServiceIdentitySystemMeta(ctx, domainName, serviceName, meta, attribute, auditRef, caller);
+    }
+
+    void verifyAuthorizedServiceSystemMetaOperation(Principal principal, String domainName, String serviceName,
+            String attribute, String caller) {
+
+        // Preserve the existing system authorization for every service system
+        // metadata attribute.
+
+        final String systemResource = SYS_AUTH + ":meta.service." + attribute + "." + domainName;
+        if (isAllowedSystemAccess(principal, ZMSConsts.ACTION_UPDATE, systemResource)) {
+            return;
+        }
+
+        // A domain may delegate client-id updates for an exact service. No other
+        // system metadata attribute is available through domain authorization.
+
+        if (ZMSConsts.SYSTEM_META_CLIENT_ID.equals(attribute)) {
+            final String domainResource = domainName + ":meta.service." + attribute + "." + serviceName;
+            if (hasAccess(getAthenzDomain(domainName, false), ZMSConsts.ACTION_UPDATE, domainResource,
+                    principal, null) == AccessStatus.ALLOWED) {
+                return;
+            }
+        }
+
+        throw ZMSUtils.forbiddenError("unauthorized to update service system meta attribute: " + attribute, caller);
     }
 
     @Override

@@ -929,6 +929,17 @@ public class ZMSServiceIdentityTest {
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
+        // This test exercises the existing sys.auth authorization path for all
+        // service system metadata attributes.
+
+        Role systemMetaRole = zmsTestInitializer.createRoleObject("sys.auth", "service-meta-admins", null,
+                ctx.principal().getFullName(), null);
+        zmsImpl.putRole(ctx, "sys.auth", "service-meta-admins", auditRef, false, null, systemMetaRole);
+
+        Policy systemMetaPolicy = zmsTestInitializer.createPolicyObject("sys.auth", "service-meta-admins",
+                "service-meta-admins", ZMSConsts.ACTION_UPDATE, "sys.auth:meta.service.*", AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, "sys.auth", "service-meta-admins", auditRef, false, null, systemMetaPolicy);
+
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName,
                 serviceName, "http://localhost", "/usr/bin/java", "root",
                 "users", "host1");
@@ -1102,6 +1113,83 @@ public class ZMSServiceIdentityTest {
         assertNull(serviceRes.getFeatureFlags());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutServiceIdentitySystemMetaClientIdDomainAuthorization() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper sysAdminCtx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "service-system-meta-domain-auth";
+        final String serviceName = "athenzd";
+        final String otherServiceName = "other-service";
+        final String userName = "idjag-learner";
+
+        TopLevelDomain domain = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Service system metadata domain authorization", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(sysAdminCtx, auditRef, null, domain);
+
+        ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName,
+                serviceName, "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+        zmsImpl.putServiceIdentity(sysAdminCtx, domainName, serviceName, auditRef, false, null, service);
+
+        ServiceIdentity otherService = zmsTestInitializer.createServiceObject(domainName,
+                otherServiceName, "http://localhost", "/usr/bin/java", "root",
+                "users", "host1");
+        zmsImpl.putServiceIdentity(sysAdminCtx, domainName, otherServiceName, auditRef, false, null, otherService);
+
+        Role role = zmsTestInitializer.createRoleObject(domainName, "clientid-managers", null,
+                "user." + userName, null);
+        zmsImpl.putRole(sysAdminCtx, domainName, "clientid-managers", auditRef, false, null, role);
+
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, "clientid-managers",
+                "clientid-managers", ZMSConsts.ACTION_UPDATE,
+                domainName + ":meta.service.clientid." + serviceName, AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(sysAdminCtx, domainName, "clientid-managers", auditRef, false, null, policy);
+
+        RsrcCtxWrapper domainAuthorizedCtx = zmsTestInitializer.contextWithMockPrincipal(
+                "putservicesystemmeta", "user", userName);
+        ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta().setClientId("athenzd");
+
+        // The domain policy allows this user to update clientId for the exact service.
+
+        zmsImpl.putServiceIdentitySystemMeta(domainAuthorizedCtx, domainName, serviceName,
+                ZMSConsts.SYSTEM_META_CLIENT_ID, auditRef, meta);
+        ServiceIdentity serviceResult = zmsImpl.getServiceIdentity(sysAdminCtx, domainName, serviceName);
+        assertEquals(serviceResult.getClientId(), "athenzd");
+
+        // The same permission does not apply to another service.
+
+        try {
+            zmsImpl.putServiceIdentitySystemMeta(domainAuthorizedCtx, domainName, otherServiceName,
+                    ZMSConsts.SYSTEM_META_CLIENT_ID, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("unauthorized to update service system meta attribute: clientid"));
+        }
+
+        // Domain authorization is clientId-only and cannot update another
+        // service system metadata attribute.
+
+        meta.setProviderEndpoint("https://localhost");
+        try {
+            zmsImpl.putServiceIdentitySystemMeta(domainAuthorizedCtx, domainName, serviceName,
+                    ZMSConsts.SYSTEM_META_PROVIDER_ENDPOINT, auditRef, meta);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains(
+                    "unauthorized to update service system meta attribute: providerendpoint"));
+        }
+
+        serviceResult = zmsImpl.getServiceIdentity(sysAdminCtx, domainName, serviceName);
+        assertNull(serviceResult.getProviderEndpoint());
+
+        zmsImpl.deleteTopLevelDomain(sysAdminCtx, domainName, auditRef, null);
     }
 
     @Test
