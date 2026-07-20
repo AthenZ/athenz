@@ -134,9 +134,6 @@ public class JwtsSigningKeyResolver {
     }
 
     private void createKeyResolver(JWKSetSource<SecurityContext> jwkSetSource, boolean skipConfig) {
-        if (jwkSetSource == null) {
-            throw new CryptoException("JWKSetSource must be specified");
-        }
 
         // extract our configuration settings
 

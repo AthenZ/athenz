@@ -365,7 +365,7 @@ public class JwtsSigningKeyResolverTest {
 
     @Test
     public void testConstructorJWKSetSourceSkipConfig() throws IOException, ParseException {
-        final URL jwksUrl = classLoader.getResource("jwt_jwks.json");
+        final URL jwksUrl = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json"));
         final JWKSet jwkSet = JWKSet.load(jwksUrl);
         JWKSetSource<SecurityContext> jwkSetSource = new JWKSetSource<>() {
             @Override
