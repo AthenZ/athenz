@@ -18,12 +18,9 @@ package com.yahoo.athenz.auth.token.jwts;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.KeySourceException;
 import com.nimbusds.jose.jwk.*;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.jwk.source.JWKSourceBuilder;
+import com.nimbusds.jose.jwk.source.*;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jose.util.DefaultResourceRetriever;
-
 import com.nimbusds.jose.util.ResourceRetriever;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
@@ -34,7 +31,6 @@ import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.IOException;
 import java.net.*;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -96,8 +92,18 @@ public class JwtsSigningKeyResolver {
 
         for (int i = 1; i < resolvers.size(); i++) {
             jwtsResolver = resolvers.get(i);
-            addJwksUriKeySource(jwtsResolver.getJwksUri(), jwtsResolver.getProxyUrl(), jwtsResolver.getSslContext());
+            URLBasedJWKSetSource<SecurityContext> jwkSetSource =
+                    createJwkSetSource(jwtsResolver.getJwksUri(), jwtsResolver.getProxyUrl(), jwtsResolver.getSslContext());
+            addKeySource(jwkSetSource);
         }
+    }
+
+    public JwtsSigningKeyResolver(JWKSetSource<SecurityContext> jwkSetSource, boolean skipConfig) {
+
+        if (jwkSetSource == null) {
+            throw new CryptoException("JWK set source must be specified");
+        }
+        createKeyResolver(jwkSetSource, skipConfig);
     }
 
     private void createKeyResolver(final String jwksUri, final SSLContext sslContext, final String proxyUrl, boolean skipConfig) {
@@ -106,6 +112,30 @@ public class JwtsSigningKeyResolver {
 
         if (jwksUri == null || jwksUri.isEmpty()) {
             throw new CryptoException("Jwks uri must be specified");
+        }
+
+        URLBasedJWKSetSource<SecurityContext> jwkSetSource = createJwkSetSource(jwksUri, proxyUrl, sslContext);
+        createKeyResolver(jwkSetSource, skipConfig);
+    }
+
+    private URLBasedJWKSetSource<SecurityContext> createJwkSetSource(String jwksUri, String proxyUrl,
+                                                                     SSLContext sslContext) {
+        ResourceRetriever resourceRetriever = getResourceRetriever(proxyUrl, sslContext);
+        return createJwkSetSource(jwksUri, resourceRetriever);
+    }
+
+    private URLBasedJWKSetSource<SecurityContext> createJwkSetSource(String jwksUri, ResourceRetriever resourceRetriever) {
+        try {
+            return new URLBasedJWKSetSource<>(new URL(jwksUri), resourceRetriever);
+        } catch (MalformedURLException e) {
+            LOGGER.error("Invalid jwks uri: {}", jwksUri);
+            throw new CryptoException("Invalid jwks uri: " + jwksUri);
+        }
+    }
+
+    private void createKeyResolver(JWKSetSource<SecurityContext> jwkSetSource, boolean skipConfig) {
+        if (jwkSetSource == null) {
+            throw new CryptoException("JWKSetSource must be specified");
         }
 
         // extract our configuration settings
@@ -132,12 +162,7 @@ public class JwtsSigningKeyResolver {
             loadAthenzConfAsKeySource();
         }
 
-        addJwksUriKeySource(jwksUri, proxyUrl, sslContext);
-    }
-
-    void addJwksUriKeySource(final String jwksUri, final String proxyUrl, final SSLContext sslContext) {
-        ResourceRetriever resourceRetriever = getResourceRetriever(proxyUrl, sslContext);
-        addKeySource(jwksUri, resourceRetriever);
+        addKeySource(jwkSetSource);
     }
 
     ResourceRetriever getResourceRetriever(final String proxyUrl, SSLContext sslContext) {
@@ -163,23 +188,17 @@ public class JwtsSigningKeyResolver {
         return resourceRetriever;
     }
 
-    void addKeySource(final String jwksUri, ResourceRetriever resourceRetriever) {
+    void addKeySource(JWKSetSource<SecurityContext> jwkSetSource) {
 
-        try {
-            JWKSource<SecurityContext> jwksUriKeySource = JWKSourceBuilder
-                    .create(new URL(jwksUri), resourceRetriever)
-                    .cache(TimeUnit.DAYS.toMillis(7), TimeUnit.DAYS.toMillis(1))
-                    .rateLimited(millisBetweenZtsCalls)
-                    .outageTolerantForever()
-                    .retrying(true)
-                    .build();
+        JWKSource<SecurityContext> jwkSource = JWKSourceBuilder
+                .create(jwkSetSource)
+                .cache(TimeUnit.DAYS.toMillis(7), TimeUnit.DAYS.toMillis(1))
+                .rateLimited(millisBetweenZtsCalls)
+                .outageTolerantForever()
+                .retrying(true)
+                .build();
 
-            keySource.addKeySource(jwksUriKeySource);
-
-        } catch (MalformedURLException ex) {
-            LOGGER.error("Invalid jwks uri: {}", jwksUri);
-            throw new CryptoException("Invalid jwks uri: " + jwksUri);
-        }
+        keySource.addKeySource(jwkSource);
     }
 
     public JWKSource<SecurityContext> getKeySource() {
@@ -254,7 +273,10 @@ public class JwtsSigningKeyResolver {
             return;
         }
 
-        addKeySource("file://" + jwkConfFileName, new JwtsHelper.SiaJwkResourceRetriever());
+        String jwksUri = "file://" + jwkConfFileName;
+        final URLBasedJWKSetSource<SecurityContext> jwkSetSource =
+                createJwkSetSource(jwksUri, new JwtsHelper.SiaJwkResourceRetriever());
+        addKeySource(jwkSetSource);
     }
 
     public PublicKey getPublicKey(final String keyId) {
