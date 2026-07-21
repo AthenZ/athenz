@@ -1253,7 +1253,7 @@ public class Crypto {
             return null;
         }
         if (rdns.length != 1) {
-            throw new CryptoException("CSR Subject contains multiple values for the same field.");
+            throw new CryptoException("x500 dn contains multiple values for the same field.");
         }
         return IETFUtils.valueToString(rdns[0].getFirst().getValue());
     }
@@ -1265,20 +1265,10 @@ public class Crypto {
      * @return string representing Subject field requested
      */
     public static String extractX509CertSubjectField(X509Certificate x509Cert, ASN1ObjectIdentifier id) {
-
-        // we extract the subject directly from the encoded certificate structure
-        // rather than parsing the DN string form (getSubjectX500Principal().getName()).
-        // constructing an X500Name from a string re-encodes each field through the
-        // default BouncyCastle style which enforces the RFC 5280 upper bounds (e.g.
-        // ub-common-name of 64) and would reject peer certificates that carry a
-        // longer, but otherwise valid, common name
-
-        try {
-            X500Name x500name = new JcaX509CertificateHolder(x509Cert).getSubject();
-            return extractX500DnFieldValue(x500name, id);
-        } catch (CertificateEncodingException ex) {
-            throw new CryptoException(ex);
-        }
+        // the DN string is parsed with a lenient style (see extractX500DnField) so that
+        // fields exceeding the RFC 5280 upper bounds (e.g. a common name longer than the
+        // ub-common-name of 64) presented by a peer certificate can still be extracted
+        return extractX500DnField(x509Cert.getSubjectX500Principal().getName(), id);
     }
 
     /**

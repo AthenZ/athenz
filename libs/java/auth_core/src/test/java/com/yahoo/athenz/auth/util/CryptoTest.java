@@ -22,7 +22,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
@@ -2259,15 +2258,6 @@ public class CryptoTest {
 
         assertEquals(Crypto.extractX509DNCommonName(dn), longCn);
         assertEquals(Crypto.extractX500DnField(dn, BCStyle.O), "My Test Company");
-    }
-
-    @Test
-    public void testExtractX509CertSubjectFieldEncodingException() throws Exception {
-        X509Certificate cert = mock(X509Certificate.class);
-        when(cert.getEncoded()).thenThrow(new CertificateEncodingException("bad cert"));
-
-        assertThrows(CryptoException.class,
-                () -> Crypto.extractX509CertSubjectField(cert, BCStyle.CN));
     }
 
     @Test
