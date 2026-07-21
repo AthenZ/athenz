@@ -735,6 +735,7 @@ func processAccessTokens(config *sc.Config, processedSvcs []sc.Service) ([]ac.Ac
 			Uid:                      processedSvc.Uid,
 			Gid:                      processedSvc.Gid,
 			ProxyPrincipalSpiffeUris: t.ProxyPrincipalSpiffeUris,
+			RoleInAudClaim:           t.RoleInAudClaim,
 		})
 	}
 	return accessTokens, nil
