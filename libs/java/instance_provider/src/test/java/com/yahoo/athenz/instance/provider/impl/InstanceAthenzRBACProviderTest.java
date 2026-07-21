@@ -262,6 +262,33 @@ public class InstanceAthenzRBACProviderTest {
     }
 
     @Test
+    public void testConfirmInstanceCommonNameExceedingRfc5280Limit() throws ProviderResourceException {
+        provider.initialize("test-provider", "class://test", null, null);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        provider.setAuthorizer(authorizer);
+
+        // the subject CN is 65 characters long, exceeding the RFC 5280 ub-common-name
+        // limit of 64. we must still be able to extract it from the subject DN string
+        // and carry out the authorization check for the derived principal
+        final String longCn = "mediaplatform.gcp.prod.monetization.prebid-early-auction-close-cd";
+        assertEquals(longCn.length(), 65);
+        String subjectDN = "CN=" + longCn + ",OU=Test,O=Athenz";
+        InstanceConfirmation confirmation = createBasicConfirmation("sports", "api",
+                TEST_ISSUER_DN, subjectDN);
+
+        Principal principal = SimplePrincipal.create(
+                "mediaplatform.gcp.prod.monetization", "prebid-early-auction-close-cd", (String) null);
+        String resource = "sports:service.api";
+        Mockito.when(authorizer.access(eq(InstanceAthenzRBACProvider.ATHENZ_RBAC_ACTION),
+                eq(resource), eq(principal), isNull())).thenReturn(true);
+
+        InstanceConfirmation result = provider.confirmInstance(confirmation);
+        assertNotNull(result);
+        assertEquals(result.getDomain(), "sports");
+        assertEquals(result.getService(), "api");
+    }
+
+    @Test
     public void testConfirmInstanceSuccessWithIssuerDNInList() throws ProviderResourceException {
         System.setProperty(InstanceAthenzRBACProvider.ZTS_PROP_ATHENZ_RBAC_ISSUER_DN_LIST,
                 TEST_ISSUER_DN + ";CN=Another Issuer,OU=Test");
