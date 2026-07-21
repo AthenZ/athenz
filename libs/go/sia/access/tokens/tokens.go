@@ -162,7 +162,7 @@ func Fetch(opts *config.TokenOptions) ([]string, []error) {
 		}
 		client.AddCredentials(UserAgent, opts.UserAgent)
 
-		res, err := client.PostAccessTokenRequest(zts.AccessTokenRequest(makeTokenRequest(t.Domain, t.Roles, t.Expiry, t.ProxyPrincipalSpiffeUris)))
+		res, err := client.PostAccessTokenRequest(zts.AccessTokenRequest(makeTokenRequest(t.Domain, t.Roles, t.Expiry, t.ProxyPrincipalSpiffeUris, t.RoleInAudClaim)))
 		if err != nil {
 			errs = append(errs, fmt.Errorf("unable to post access token request for domain: %q, roles: %v, err: %v", t.Domain, t.Roles, err))
 			continue
@@ -226,12 +226,15 @@ func TokenDirs(root string, tokens []config.AccessToken) []string {
 	return dirs
 }
 
-func makeTokenRequest(domain string, roles []string, expiryTime int, proxyPrincipalSpiffeUris string) string {
+func makeTokenRequest(domain string, roles []string, expiryTime int, proxyPrincipalSpiffeUris string, roleInAudClaim bool) string {
 	params := url.Values{}
 	params.Add("grant_type", "client_credentials")
 	params.Add("expires_in", strconv.Itoa(expiryTime))
 	if proxyPrincipalSpiffeUris != "" {
 		params.Add("proxy_principal_spiffe_uris", proxyPrincipalSpiffeUris)
+	}
+	if roleInAudClaim {
+		params.Add("role_in_aud_claim", "true")
 	}
 
 	var scope string
