@@ -24,6 +24,7 @@ type Role struct {
 	Roles                    []string `json:"roles,omitempty"`                       // the roles in the domain in which principal is a member
 	Expiry                   int      `json:"expires_in,omitempty"`                  // requested expiry time for access token in seconds
 	ProxyPrincipalSpiffeUris string   `json:"proxy_principal_spiffe_uris,omitempty"` // Proxy Principal Spiffe URIs to be included in the token
+	UseOpenIDIssuer          bool     `json:"openid_issuer,omitempty"`               // use OpenID Connect issuer instead of default athenz issuer
 }
 
 // AccessToken is the type that holds information AFTER processing the configuration
@@ -37,6 +38,7 @@ type AccessToken struct {
 	Gid                      int      // Gid of the file on disc
 	Expiry                   int      // Expiry of the access token
 	ProxyPrincipalSpiffeUris string   // Proxy Principal Spiffe URIs to be included in the token
+	UseOpenIDIssuer          bool     // use OpenID Connect issuer instead of default athenz issuer
 }
 
 type StoreTokenOptions int
