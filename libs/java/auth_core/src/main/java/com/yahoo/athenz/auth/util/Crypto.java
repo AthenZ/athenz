@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.X500NameStyle;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.bouncycastle.asn1.pkcs.Attribute;
@@ -1205,6 +1206,23 @@ public class Crypto {
         return strWriter.toString();
     }
 
+    // BCStyle enforces the RFC 5280 upper bounds (e.g. ub-common-name of 64) when it
+    // encodes field values while parsing a DN string. Since we only parse subject DN
+    // strings to read their values - we never re-issue certificates from them - we use
+    // a lenient style that relaxes the common name length check so that a valid but
+    // longer CN presented by a peer certificate can still be extracted. The RFC 5280
+    // enforcement belongs at certificate issuance time, not when reading an existing DN.
+
+    private static final X500NameStyle RFC5280_LENIENT_STYLE = new BCStyle() {
+        @Override
+        protected ASN1Encodable encodeStringValue(ASN1ObjectIdentifier oid, String value) {
+            if (BCStyle.CN.equals(oid)) {
+                return new DERUTF8String(value);
+            }
+            return super.encodeStringValue(oid, value);
+        }
+    };
+
     /**
      * extractX500DnField extracts a sub part from the DN
      * @param principalName a string representing the DN
@@ -1215,7 +1233,17 @@ public class Crypto {
         if (principalName == null || principalName.isEmpty()) {
             return null;
         }
-        X500Name x500name = new X500Name(principalName);
+        X500Name x500name = new X500Name(RFC5280_LENIENT_STYLE, principalName);
+        return extractX500DnFieldValue(x500name, id);
+    }
+
+    /**
+     * extractX500DnFieldValue extracts a sub part from the given X500Name
+     * @param x500name the parsed X500Name to extract the field from
+     * @param id ASN1ObjectIdentifier for the sub part
+     * @return string with the subpart of the DN
+     */
+    static String extractX500DnFieldValue(X500Name x500name, ASN1ObjectIdentifier id) {
         RDN[] rdns = x500name.getRDNs(id);
 
         // we're only supporting a single field in Athenz certificates so
@@ -1237,7 +1265,20 @@ public class Crypto {
      * @return string representing Subject field requested
      */
     public static String extractX509CertSubjectField(X509Certificate x509Cert, ASN1ObjectIdentifier id) {
-        return extractX500DnField(x509Cert.getSubjectX500Principal().getName(), id);
+
+        // we extract the subject directly from the encoded certificate structure
+        // rather than parsing the DN string form (getSubjectX500Principal().getName()).
+        // constructing an X500Name from a string re-encodes each field through the
+        // default BouncyCastle style which enforces the RFC 5280 upper bounds (e.g.
+        // ub-common-name of 64) and would reject peer certificates that carry a
+        // longer, but otherwise valid, common name
+
+        try {
+            X500Name x500name = new JcaX509CertificateHolder(x509Cert).getSubject();
+            return extractX500DnFieldValue(x500name, id);
+        } catch (CertificateEncodingException ex) {
+            throw new CryptoException(ex);
+        }
     }
 
     /**

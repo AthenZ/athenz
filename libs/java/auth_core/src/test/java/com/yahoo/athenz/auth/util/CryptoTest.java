@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
@@ -2243,13 +2244,46 @@ public class CryptoTest {
 
     @Test
     public void testExtractX509CertSubjectFieldMultipleValues() {
+        // a subject with multiple values for the same field must be rejected
+        assertThrows(CryptoException.class,
+                () -> Crypto.extractX509DNCommonName("CN=first,CN=second,O=Athenz"));
+    }
+
+    @Test
+    public void testExtractX509DNCommonNameExceedingRfc5280Limit() {
+        // the common name is 65 characters long, exceeding the RFC 5280 ub-common-name
+        // limit of 64. we must still be able to extract it from a peer's subject DN string
+        final String longCn = "mediaplatform.gcp.prod.monetization.prebid-early-auction-close-cd";
+        assertEquals(longCn.length(), 65);
+        final String dn = "CN=" + longCn + ",O=My Test Company";
+
+        assertEquals(Crypto.extractX509DNCommonName(dn), longCn);
+        assertEquals(Crypto.extractX500DnField(dn, BCStyle.O), "My Test Company");
+    }
+
+    @Test
+    public void testExtractX509CertSubjectFieldEncodingException() throws Exception {
         X509Certificate cert = mock(X509Certificate.class);
-        javax.security.auth.x500.X500Principal principal =
-                new javax.security.auth.x500.X500Principal("CN=first,CN=second,O=Athenz");
-        when(cert.getSubjectX500Principal()).thenReturn(principal);
+        when(cert.getEncoded()).thenThrow(new CertificateEncodingException("bad cert"));
 
         assertThrows(CryptoException.class,
                 () -> Crypto.extractX509CertSubjectField(cert, BCStyle.CN));
+    }
+
+    @Test
+    public void testExtractX509CertCommonNameExceedingRfc5280Limit() throws Exception {
+        // the common name is 65 characters long, exceeding the RFC 5280 ub-common-name
+        // limit of 64. we must still be able to extract it from a peer certificate since
+        // we read the subject directly from the encoded certificate structure rather than
+        // re-parsing the DN string form through the length-enforcing BouncyCastle style
+        try (InputStream inStream = new FileInputStream("src/test/resources/long_cn_x509.cert")) {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            assertEquals(Crypto.extractX509CertCommonName(cert),
+                    "mediaplatform.gcp.prod.monetization.prebid-early-auction-close-cd");
+            assertEquals(Crypto.extractX509CertSubjectField(cert, BCStyle.O), "My Test Company");
+        }
     }
 
     @Test

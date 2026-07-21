@@ -449,6 +449,20 @@ public class SecureBootProviderTest {
     }
 
     @Test
+    public void testValidateCnHostnameExceedingRfc5280Limit() {
+        // the CN (hostname) is 65 characters long, exceeding the RFC 5280 ub-common-name
+        // limit of 64. we must still be able to extract it from the subject DN string and
+        // successfully match it against the instance hostname
+        final String longHostname = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.long-hostname.example.com";
+        assertTrue(longHostname.length() > 64);
+        final String subjectDn = "CN=" + longHostname + ",OU=Testing Domain,O=Athenz,L=LA,ST=CA,C=US";
+
+        assertEquals(SecureBootProvider.getSubjectCn(subjectDn), longHostname);
+        assertTrue(SecureBootProvider.validateCnHostname(longHostname,
+                Collections.singletonMap(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, subjectDn)));
+    }
+
+    @Test
     public void testValidateCertHostname() {
         assertTrue(SecureBootProvider.validateCertHostname("athenz-examples1.abc.com", null));
         assertTrue(SecureBootProvider.validateCertHostname("athenz-examples1.abc.com", new HashMap<>()));
