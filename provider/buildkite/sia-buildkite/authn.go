@@ -19,10 +19,12 @@ package sia
 import (
 	"crypto/rsa"
 	"fmt"
+	"net/url"
+
+	"github.com/AthenZ/athenz/libs/go/sia/spiffe"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
-	"net/url"
 )
 
 func GetOIDCTokenClaims(oidcToken string) (map[string]interface{}, error) {
@@ -41,6 +43,13 @@ func GetOIDCTokenClaims(oidcToken string) (map[string]interface{}, error) {
 }
 
 func GetCSRDetails(privateKey *rsa.PrivateKey, domain, service, provider, instanceId, dnsDomain, spiffeTrustDomain, subjC, subjO, subjOU string) (string, error) {
+	return GetCSRDetailsWithSpiffeFormatter(privateKey, domain, service, provider, instanceId, dnsDomain, spiffeTrustDomain, subjC, subjO, subjOU, nil)
+}
+
+func GetCSRDetailsWithSpiffeFormatter(privateKey *rsa.PrivateKey, domain, service, provider, instanceId, dnsDomain, spiffeTrustDomain, subjC, subjO, subjOU string, spiffeFormatter spiffe.URIFormatter) (string, error) {
+	if spiffeFormatter == nil {
+		spiffeFormatter = spiffe.GetDefaultFormatter()
+	}
 	// note: RFC 6125 states that if the SAN (Subject Alternative Name) exists,
 	// it is used, not the CA. So, we will always put the Athenz name in the CN
 	// (it is *not* a DNS domain name), and put the host name into the SAN.
@@ -56,7 +65,8 @@ func GetCSRDetails(privateKey *rsa.PrivateKey, domain, service, provider, instan
 
 	// add our uri fields. spiffe uri must be the first entry
 	csrDetails.URIs = []*url.URL{}
-	csrDetails.URIs = util.AppendUri(csrDetails.URIs, util.GetSvcSpiffeUri(spiffeTrustDomain, "default", domain, service))
+	spiffeURI := spiffeFormatter.FormatServiceURI(spiffeTrustDomain, "default", domain, service, instanceId)
+	csrDetails.URIs = util.AppendUri(csrDetails.URIs, spiffeURI)
 	csrDetails.URIs = util.AppendUri(csrDetails.URIs, util.SanURIInstanceId(provider, instanceId))
 
 	return util.GenerateX509CSR(privateKey, csrDetails)

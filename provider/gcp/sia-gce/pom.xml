@@ -19,7 +19,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.12.44-SNAPSHOT</version>
+    <version>1.12.45-SNAPSHOT</version>
     <relativePath>../../../pom.xml</relativePath>
   </parent>
 
@@ -67,5 +67,36 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>mac-only</id>
+      <activation>
+        <os><family>mac</family></os>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>${maven-exec-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>default</id>
+                <goals><goal>exec</goal></goals>
+                <phase>compile</phase>
+                <configuration>
+                  <executable>make</executable>
+                  <arguments>
+                    <argument>clean</argument>
+                    <argument>darwin</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>

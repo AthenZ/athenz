@@ -21,6 +21,20 @@ import (
 	"testing"
 )
 
+type testSpiffeFormatter struct{}
+
+func (f *testSpiffeFormatter) FormatServiceURI(trustDomain, namespace, domain, service, workloadId string) string {
+	return ""
+}
+
+func (f *testSpiffeFormatter) FormatRoleURI(trustDomain, domain, role string) string {
+	return ""
+}
+
+func (f *testSpiffeFormatter) FormatUserURI(trustDomain, namespace, principalName, deviceId string) string {
+	return fmt.Sprintf("spiffe://custom.example/users/%s", principalName)
+}
+
 var ecdsaPrivateKeyPEM = []byte(`-----BEGIN EC PRIVATE KEY-----
 MIGkAgEBBDA27vlziu7AYNJo/aaG3mS4XPK2euiTLQDxzUoDkiMpVHRXLxSbX897
 Gz7dQNFo3UWgBwYFK4EEACKhZANiAARBr6GWO6EGIV09DGInLfC/JSvPOKc26mZu
@@ -121,7 +135,7 @@ func TestGenerateCSRWithECDSA(t *testing.T) {
 		t.Fatalf("failed to create signer: %v", err)
 	}
 
-	csrPEM, err := generateCSR(s, "johndoe", "US", "Oath Inc.", "Athenz", "")
+	csrPEM, err := generateCSR(s, "johndoe", "US", "Oath Inc.", "Athenz", "", "", nil)
 	if err != nil {
 		t.Fatalf("generateCSR failed: %v", err)
 	}
@@ -156,7 +170,7 @@ func TestGenerateCSRWithRSA(t *testing.T) {
 		t.Fatalf("failed to create signer: %v", err)
 	}
 
-	csrPEM, err := generateCSR(s, "janedoe", "GB", "ACME Corp.", "Engineering", "")
+	csrPEM, err := generateCSR(s, "janedoe", "GB", "ACME Corp.", "Engineering", "", "", nil)
 	if err != nil {
 		t.Fatalf("generateCSR failed: %v", err)
 	}
@@ -182,7 +196,7 @@ func TestGenerateCSRWithSpiffeTrustDomain(t *testing.T) {
 		t.Fatalf("failed to create signer: %v", err)
 	}
 
-	csrPEM, err := generateCSR(s, "johndoe", "US", "Oath Inc.", "Athenz", "athenz.io")
+	csrPEM, err := generateCSR(s, "johndoe", "US", "Oath Inc.", "Athenz", "athenz.io", "", nil)
 	if err != nil {
 		t.Fatalf("generateCSR failed: %v", err)
 	}
@@ -211,7 +225,7 @@ func TestGenerateCSRWithEmptySpiffeTrustDomain(t *testing.T) {
 		t.Fatalf("failed to create signer: %v", err)
 	}
 
-	csrPEM, err := generateCSR(s, "johndoe", "US", "Oath Inc.", "Athenz", "")
+	csrPEM, err := generateCSR(s, "johndoe", "US", "Oath Inc.", "Athenz", "", "", nil)
 	if err != nil {
 		t.Fatalf("generateCSR failed: %v", err)
 	}
@@ -250,7 +264,7 @@ func TestGenerateCSRDifferentSubjectFields(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			csrPEM, err := generateCSR(s, tt.user, tt.country, tt.org, tt.orgUnit, "")
+			csrPEM, err := generateCSR(s, tt.user, tt.country, tt.org, tt.orgUnit, "", "", nil)
 			if err != nil {
 				t.Fatalf("generateCSR failed: %v", err)
 			}
@@ -264,6 +278,35 @@ func TestGenerateCSRDifferentSubjectFields(t *testing.T) {
 			}
 			assertSubjectFields(t, csr.Subject, tt.country, tt.org, tt.orgUnit)
 		})
+	}
+}
+
+func TestGenerateCSRWithCustomSpiffeFormatter(t *testing.T) {
+	s, err := newSigner(ecdsaPrivateKeyPEM)
+	if err != nil {
+		t.Fatalf("failed to create signer: %v", err)
+	}
+
+	formatter := &testSpiffeFormatter{}
+	csrPEM, err := generateCSR(s, "johndoe", "US", "Oath Inc.", "Athenz", "athenz.io", "", formatter)
+	if err != nil {
+		t.Fatalf("generateCSR failed: %v", err)
+	}
+
+	block, _ := pem.Decode([]byte(csrPEM))
+	if block == nil {
+		t.Fatal("failed to decode CSR PEM block")
+	}
+
+	csr, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		t.Fatalf("failed to parse CSR: %v", err)
+	}
+	if len(csr.URIs) != 1 {
+		t.Fatalf("expected 1 URI SAN, got %d", len(csr.URIs))
+	}
+	if got := csr.URIs[0].String(); got != "spiffe://custom.example/users/johndoe" {
+		t.Fatalf("unexpected custom URI, got %s", got)
 	}
 }
 

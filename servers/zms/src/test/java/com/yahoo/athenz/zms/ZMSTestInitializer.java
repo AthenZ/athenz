@@ -159,6 +159,7 @@ public class ZMSTestInitializer {
                 "role,group,policy,service,domain,entity,tenancy,template");
         System.setProperty(ZMSConsts.ZMS_PROP_VALIDATE_ASSERTION_ROLES, "true");
         System.setProperty(ZMSConsts.ZMS_PROP_PRINCIPAL_STATE_UPDATER_DISABLE_TIMER, "true");
+        System.setProperty(ZMSConsts.ZMS_PROP_DB_HEALTH_CHECK_DISABLE_TIMER, "true");
         System.setProperty(ZMSConsts.ZMS_PROP_MAX_POLICY_VERSIONS, "5");
 
         String certPath = Resources.getResource("service.provider.cert.pem").getPath();
