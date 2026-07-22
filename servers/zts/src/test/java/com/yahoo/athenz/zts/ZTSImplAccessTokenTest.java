@@ -17,6 +17,9 @@ package com.yahoo.athenz.zts;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -74,6 +77,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.time.Instant;
@@ -205,8 +209,15 @@ public class ZTSImplAccessTokenTest {
         JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null, null, true);
         JWKSource<SecurityContext> keySource = resolver.getKeySource();
         if (serverPrivateKey != null) {
-            RSAKey ztsKey = new RSAKey.Builder((RSAPublicKey) Crypto.extractPublicKey(serverPrivateKey.getKey()))
-                    .keyID(serverPrivateKey.getId()).build();
+            PublicKey publicKey = Crypto.extractPublicKey(serverPrivateKey.getKey());
+            JWK ztsKey;
+            if (publicKey instanceof RSAPublicKey) {
+                ztsKey = new RSAKey.Builder((RSAPublicKey) publicKey).keyID(serverPrivateKey.getId()).build();
+            } else {
+                ECPublicKey ecPublicKey = (ECPublicKey) publicKey;
+                ztsKey = new ECKey.Builder(Curve.forECParameterSpec(ecPublicKey.getParams()), ecPublicKey)
+                        .keyID(serverPrivateKey.getId()).build();
+            }
             JwtsHelper.CompositeJWKSource<SecurityContext> compositeSource = new JwtsHelper.CompositeJWKSource<>();
             compositeSource.addKeySource(keySource);
             compositeSource.addKeySource(new ImmutableJWKSet<>(new JWKSet(ztsKey)));
