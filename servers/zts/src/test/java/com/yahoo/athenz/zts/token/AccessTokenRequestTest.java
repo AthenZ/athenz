@@ -358,6 +358,60 @@ public class AccessTokenRequestTest {
     }
 
     @Test
+    public void testAccessTokenRequestJAGTokenRefresh() {
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createToken(privateKey, "0", "user_domain.user",
+                "https://athenz.io:4443/zts/v1", expiryTime, AccessToken.HDR_TOKEN_JAG);
+
+        final String requestBody = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + subjectToken
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id-jag";
+
+        AccessTokenRequest request = new AccessTokenRequest(requestBody, defaultConfigOptions);
+        assertEquals(request.getRequestType(), AccessTokenRequest.RequestType.JAG_TOKEN_REFRESH);
+        assertNotNull(request.getJagTokenObj());
+        assertNull(request.getScope());
+        assertNull(request.getAudience());
+
+        try {
+            new AccessTokenRequest(requestBody + "&scope=coretech:role.writers", defaultConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid request: scope is not supported for ID-JAG refresh");
+        }
+
+        try {
+            new AccessTokenRequest(requestBody + "&audience=https://athenz.io", defaultConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid request: audience is not supported for ID-JAG refresh");
+        }
+
+        try {
+            new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id-jag", defaultConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertEquals(ex.getMessage(), "Invalid request: no subject token provided");
+        }
+
+        try {
+            new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&subject_token=invalid"
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id-jag", defaultConfigOptions);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().startsWith("Invalid subject ID-JAG: "));
+        }
+    }
+
+    @Test
     public void testAccessTokenRequestTokenExchangeWithResource() {
 
         final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
