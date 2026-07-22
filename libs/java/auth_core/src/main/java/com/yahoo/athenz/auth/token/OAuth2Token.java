@@ -476,6 +476,19 @@ public class OAuth2Token {
         return true;
     }
 
+    /**
+     * Copies non-standard claims from an OAuth2Token that has been parsed and
+     * validated. Standard claims are ignored and must be set explicitly by the
+     * caller.
+     *
+     * @param sourceToken parsed and validated source token
+     */
+    public void copyCustomClaimsFrom(final OAuth2Token sourceToken) {
+        for (Map.Entry<String, Object> entry : sourceToken.claimsSet.getClaims().entrySet()) {
+            setCustomClaim(entry.getKey(), entry.getValue());
+        }
+    }
+
     public Object getClaim(final String name) {
         return claimsSet.getClaim(name);
     }
