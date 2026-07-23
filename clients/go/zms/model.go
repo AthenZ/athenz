@@ -407,6 +407,12 @@ type DomainMeta struct {
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// Indicates whether client ID self-update is enabled for services in this
+	// domain
+	//
+	ClientIdSelfUpdate *bool `json:"clientIdSelfUpdate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// class name responsible for validating external members
 	//
 	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
@@ -441,6 +447,10 @@ func (self *DomainMeta) Init() *DomainMeta {
 	if self.AutoDeleteTenantAssumeRoleAssertions == nil {
 		d := false
 		self.AutoDeleteTenantAssumeRoleAssertions = &d
+	}
+	if self.ClientIdSelfUpdate == nil {
+		d := false
+		self.ClientIdSelfUpdate = &d
 	}
 	return self
 }
@@ -788,6 +798,12 @@ type Domain struct {
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// Indicates whether client ID self-update is enabled for services in this
+	// domain
+	//
+	ClientIdSelfUpdate *bool `json:"clientIdSelfUpdate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// class name responsible for validating external members
 	//
 	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
@@ -837,6 +853,10 @@ func (self *Domain) Init() *Domain {
 	if self.AutoDeleteTenantAssumeRoleAssertions == nil {
 		d := false
 		self.AutoDeleteTenantAssumeRoleAssertions = &d
+	}
+	if self.ClientIdSelfUpdate == nil {
+		d := false
+		self.ClientIdSelfUpdate = &d
 	}
 	return self
 }
@@ -5587,6 +5607,12 @@ type TopLevelDomain struct {
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// Indicates whether client ID self-update is enabled for services in this
+	// domain
+	//
+	ClientIdSelfUpdate *bool `json:"clientIdSelfUpdate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// class name responsible for validating external members
 	//
 	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
@@ -5636,6 +5662,10 @@ func (self *TopLevelDomain) Init() *TopLevelDomain {
 	if self.AutoDeleteTenantAssumeRoleAssertions == nil {
 		d := false
 		self.AutoDeleteTenantAssumeRoleAssertions = &d
+	}
+	if self.ClientIdSelfUpdate == nil {
+		d := false
+		self.ClientIdSelfUpdate = &d
 	}
 	if self.AdminUsers == nil {
 		self.AdminUsers = make([]ResourceName, 0)
@@ -5992,6 +6022,12 @@ type SubDomain struct {
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// Indicates whether client ID self-update is enabled for services in this
+	// domain
+	//
+	ClientIdSelfUpdate *bool `json:"clientIdSelfUpdate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// class name responsible for validating external members
 	//
 	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
@@ -6046,6 +6082,10 @@ func (self *SubDomain) Init() *SubDomain {
 	if self.AutoDeleteTenantAssumeRoleAssertions == nil {
 		d := false
 		self.AutoDeleteTenantAssumeRoleAssertions = &d
+	}
+	if self.ClientIdSelfUpdate == nil {
+		d := false
+		self.ClientIdSelfUpdate = &d
 	}
 	if self.AdminUsers == nil {
 		self.AdminUsers = make([]ResourceName, 0)
@@ -6411,6 +6451,12 @@ type UserDomain struct {
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// Indicates whether client ID self-update is enabled for services in this
+	// domain
+	//
+	ClientIdSelfUpdate *bool `json:"clientIdSelfUpdate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// class name responsible for validating external members
 	//
 	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
@@ -6455,6 +6501,10 @@ func (self *UserDomain) Init() *UserDomain {
 	if self.AutoDeleteTenantAssumeRoleAssertions == nil {
 		d := false
 		self.AutoDeleteTenantAssumeRoleAssertions = &d
+	}
+	if self.ClientIdSelfUpdate == nil {
+		d := false
+		self.ClientIdSelfUpdate = &d
 	}
 	return self
 }
@@ -8103,6 +8153,12 @@ type DomainData struct {
 	AutoDeleteTenantAssumeRoleAssertions *bool `json:"autoDeleteTenantAssumeRoleAssertions,omitempty" rdl:"optional" yaml:",omitempty"`
 
 	//
+	// Indicates whether client ID self-update is enabled for services in this
+	// domain
+	//
+	ClientIdSelfUpdate *bool `json:"clientIdSelfUpdate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
 	// class name responsible for validating external members
 	//
 	ExternalMemberValidator string `json:"externalMemberValidator" rdl:"optional" yaml:",omitempty"`
@@ -8172,6 +8228,10 @@ func (self *DomainData) Init() *DomainData {
 	if self.AutoDeleteTenantAssumeRoleAssertions == nil {
 		d := false
 		self.AutoDeleteTenantAssumeRoleAssertions = &d
+	}
+	if self.ClientIdSelfUpdate == nil {
+		d := false
+		self.ClientIdSelfUpdate = &d
 	}
 	if self.Roles == nil {
 		self.Roles = make([]*Role, 0)

@@ -1284,7 +1284,7 @@ obj = {
 ### putServiceIdentitySystemMeta(*obj, function(err, json, response) { });
 
 `PUT /domain/{domain}/service/{service}/meta/system/{attribute}`
-Set the specified service metadata. Caller must have update privileges on the sys.auth domain.
+Set the specified service metadata. Caller must have update privileges on the sys.auth domain. For OAuth DCR clientid updates, client ID self-update is also allowed when the server property and domain clientIdSelfUpdate flag are enabled, the caller is the target service principal, and the target domain policy grants update on resource service.<service>.clientid.<clientid>.
 
 ```
 obj = {
@@ -2430,6 +2430,13 @@ Set of metadata attributes that all domains may have and can be changed.
             "type": "String",
             "optional": true,
             "comment": "slack channel for any notifications in this domain"
+        },
+        {
+            "name": "clientIdSelfUpdate",
+            "type": "Bool",
+            "optional": true,
+            "comment": "Indicates whether client ID self-update is enabled for services in this domain",
+            "default": false
         }
     ],
     "closed": false
