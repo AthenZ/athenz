@@ -2838,6 +2838,8 @@ public class ZTSImpl implements ZTSHandler {
 
         // validate that the requested scopes are a subset of the subject token scopes
 
+        // Legacy subject tokens contain only simple role names even when exchanged for a
+        // different audience. Target-role access and exchange authorization are checked below.
         String[] requestedRoles = tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName, true);
         if (requestedRoles == null) {
             throw requestError("Invalid scope for token exchange", caller, requestDomainName, principalDomain);
@@ -3114,6 +3116,8 @@ public class ZTSImpl implements ZTSHandler {
 
         // validate that the requested scopes are a subset of the subject token scopes
 
+        // Legacy subject tokens contain only simple role names even when exchanged for a
+        // different audience. Target-role access and exchange authorization are checked below.
         String[] requestedRoles = tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName, true);
         if (requestedRoles == null) {
             throw requestError("Invalid scope for token exchange", caller, requestDomainName, principalDomain);
