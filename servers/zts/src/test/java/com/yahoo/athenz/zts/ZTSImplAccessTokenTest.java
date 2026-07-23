@@ -17,6 +17,13 @@ package com.yahoo.athenz.zts;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -70,6 +77,8 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.*;
@@ -191,14 +200,35 @@ public class ZTSImplAccessTokenTest {
 
     private ConfigurableJWTProcessor<SecurityContext> createJAGProcessor() {
 
+        return createJAGProcessor(null);
+    }
+
+    private ConfigurableJWTProcessor<SecurityContext> createJAGProcessor(ServerPrivateKey serverPrivateKey) {
+
         final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
         JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null, null, true);
+        JWKSource<SecurityContext> keySource = resolver.getKeySource();
+        if (serverPrivateKey != null) {
+            PublicKey publicKey = Crypto.extractPublicKey(serverPrivateKey.getKey());
+            JWK ztsKey;
+            if (publicKey instanceof RSAPublicKey) {
+                ztsKey = new RSAKey.Builder((RSAPublicKey) publicKey).keyID(serverPrivateKey.getId()).build();
+            } else {
+                ECPublicKey ecPublicKey = (ECPublicKey) publicKey;
+                ztsKey = new ECKey.Builder(Curve.forECParameterSpec(ecPublicKey.getParams()), ecPublicKey)
+                        .keyID(serverPrivateKey.getId()).build();
+            }
+            JwtsHelper.CompositeJWKSource<SecurityContext> compositeSource = new JwtsHelper.CompositeJWKSource<>();
+            compositeSource.addKeySource(keySource);
+            compositeSource.addKeySource(new ImmutableJWKSet<>(new JWKSet(ztsKey)));
+            keySource = compositeSource;
+        }
 
         ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
         jwtProcessor.setJWSTypeVerifier(JwtsHelper.JWT_JAG_TYPE_VERIFIER);
 
         jwtProcessor.setJWSKeySelector(new JWSVerificationKeySelector<>(JwtsHelper.JWS_SUPPORTED_ALGORITHMS,
-                resolver.getKeySource()));
+                keySource));
         return jwtProcessor;
     }
 
@@ -4373,6 +4403,141 @@ public class ZTSImplAccessTokenTest {
             assertEquals(signedJWT.getHeader().getType().toString(), "oauth-id-jag+jwt");
         } catch (Exception ex) {
             fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessJAGTokenRefreshRequest() throws Exception {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/unit_test_zts_at_private.pem");
+
+        TokenExchangeIdentityProvider provider = new TokenExchangeIdentityProvider() {
+            @Override
+            public String getTokenIdentity(OAuth2Token token) {
+                return token.getSubject();
+            }
+
+            @Override
+            public String getTokenAudience(OAuth2Token token) {
+                return token.getAudience();
+            }
+
+            @Override
+            public List<String> getTokenExchangeClaims() {
+                return List.of("preferred_email", "athenz_code");
+            }
+        };
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.userDomain = "user_domain";
+        ztsImpl.tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        ztsImpl.tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor(serverPrivateKey));
+        ztsImpl.providerConfigManager.putProvider(ztsImpl.ztsOpenIDIssuer, provider);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+        addJAGExchangePolicy("coretech", "coretech.jwt", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String idToken = createIdToken(privateKey, "0", "user_domain.user", "coretech.jwt",
+                expiryTime, "john.doe@athenz.io", "athenz-code");
+
+        Principal principal = SimplePrincipal.create("coretech", "jwt",
+                "x509-certificate-details", 0, new CertificateAuthority());
+        assertNotNull(principal);
+        ((SimplePrincipal) principal).setX509Certificate(Mockito.mock(X509Certificate.class));
+        ResourceContext context = createResourceContext(principal);
+
+        String issueRequest = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + idToken
+                + "&audience=" + ztsImpl.ztsOAuthIssuer
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                + "&scope=coretech:role.writers";
+
+        AccessTokenResponse issuedResponse = ztsImpl.postAccessTokenRequest(context, issueRequest);
+        String issuedToken = issuedResponse.getAccess_token();
+        assertNotNull(issuedToken);
+
+        String refreshRequest = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + issuedToken
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id-jag";
+
+        AccessTokenResponse refreshedResponse = ztsImpl.postAccessTokenRequest(context, refreshRequest);
+        assertEquals(refreshedResponse.getToken_type(), "N_A");
+        assertEquals(refreshedResponse.getIssued_token_type(),
+                "urn:ietf:params:oauth:token-type:id-jag");
+        assertEquals(refreshedResponse.getScope(), "coretech:role.writers");
+
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        SignedJWT issuedJwt = SignedJWT.parse(issuedToken);
+        SignedJWT refreshedJwt = SignedJWT.parse(refreshedResponse.getAccess_token());
+        assertTrue(refreshedJwt.verify(verifier));
+
+        JWTClaimsSet issuedClaims = issuedJwt.getJWTClaimsSet();
+        JWTClaimsSet refreshedClaims = refreshedJwt.getJWTClaimsSet();
+        assertNotEquals(refreshedClaims.getJWTID(), issuedClaims.getJWTID());
+        assertEquals(refreshedClaims.getSubject(), issuedClaims.getSubject());
+        assertEquals(refreshedClaims.getAudience(), issuedClaims.getAudience());
+        assertEquals(refreshedClaims.getIssuer(), issuedClaims.getIssuer());
+        assertEquals(refreshedClaims.getStringClaim("client_id"), issuedClaims.getStringClaim("client_id"));
+        assertEquals(refreshedClaims.getStringListClaim("scp"), issuedClaims.getStringListClaim("scp"));
+        assertEquals(refreshedClaims.getLongClaim("auth_time"), issuedClaims.getLongClaim("auth_time"));
+        assertEquals(refreshedClaims.getStringClaim("preferred_email"), "john.doe@athenz.io");
+        assertEquals(refreshedClaims.getStringClaim("athenz_code"), "athenz-code");
+
+        Principal noCertPrincipal = SimplePrincipal.create("coretech", "jwt", "token", 0, null);
+        try {
+            ztsImpl.postAccessTokenRequest(createResourceContext(noCertPrincipal), refreshRequest);
+            fail("Expected an authentication error without a service certificate");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.UNAUTHORIZED);
+        }
+
+        Principal userCertPrincipal = SimplePrincipal.create("user_domain", "user",
+                "x509-certificate-details", 0, new CertificateAuthority());
+        ((SimplePrincipal) userCertPrincipal).setX509Certificate(Mockito.mock(X509Certificate.class));
+        try {
+            ztsImpl.postAccessTokenRequest(createResourceContext(userCertPrincipal), refreshRequest);
+            fail("Expected an authentication error for a user certificate");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.UNAUTHORIZED);
+        }
+
+        Principal wrongClientPrincipal = SimplePrincipal.create("coretech", "storage",
+                "x509-certificate-details", 0, new CertificateAuthority());
+        ((SimplePrincipal) wrongClientPrincipal).setX509Certificate(Mockito.mock(X509Certificate.class));
+        try {
+            ztsImpl.postAccessTokenRequest(createResourceContext(wrongClientPrincipal), refreshRequest);
+            fail("Expected a client binding error");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Invalid jag assertion client_id"));
+        }
+
+        String invalidIssuerToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
+                "coretech:role.writers", ztsImpl.ztsOAuthIssuer, expiryTime);
+        String invalidIssuerRequest = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + invalidIssuerToken
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id-jag";
+        try {
+            ztsImpl.postAccessTokenRequest(context, invalidIssuerRequest);
+            fail("Expected an issuer validation error");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Unknown jag refresh issuer"));
         }
 
         cloudStore.close();
