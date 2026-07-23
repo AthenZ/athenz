@@ -4567,7 +4567,7 @@ public class ZTSImplAccessTokenTest {
         rolesByDomain.put("api", new HashSet<>(Arrays.asList("docs-getter")));
         rolesByDomain.put("weather", new HashSet<>(Arrays.asList("reader")));
 
-        List scopes = zts.generateAccessTokenScopeList(rolesByDomain, "mcp-hub");
+        List<String> scopes = zts.generateAccessTokenScopeList(rolesByDomain, "mcp-hub");
 
         assertEquals(scopes, Arrays.asList(
             "api:role.docs-getter",
