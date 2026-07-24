@@ -16,7 +16,6 @@
 package com.yahoo.athenz.instance.provider.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.auth.token.AccessToken;
@@ -27,7 +26,6 @@ import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.athenz.zts.AccessTokenResponse;
-
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,23 +39,35 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-public class UserCertificateProvider implements InstanceProvider {
+public class ExternalMemberCertificateProvider implements InstanceProvider {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserCertificateProvider.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExternalMemberCertificateProvider.class);
 
-    static final String USER_CERT_PROP_CONFIG_ENDPOINT     = "athenz.zts.user_cert.idp_config_endpoint";
-    static final String USER_CERT_PROP_TOKEN_ENDPOINT      = "athenz.zts.user_cert.idp_token_endpoint";
-    static final String USER_CERT_PROP_JWKS_ENDPOINT       = "athenz.zts.user_cert.idp_jwks_endpoint";
-    static final String USER_CERT_PROP_CLIENT_ID           = "athenz.zts.user_cert.idp_client_id";
-    static final String USER_CERT_PROP_REDIRECT_URI        = "athenz.zts.user_cert.idp_redirect_uri";
-    static final String USER_CERT_PROP_AUDIENCE            = "athenz.zts.user_cert.idp_audience";
-    static final String USER_CERT_PROP_CONNECT_TIMEOUT     = "athenz.zts.user_cert.connect_timeout";
-    static final String USER_CERT_PROP_READ_TIMEOUT        = "athenz.zts.user_cert.read_timeout";
-    static final String USER_CERT_PROP_USER_NAME_CLAIM     = "athenz.zts.user_cert.user_name_claim";
+    static final String EXT_MEMBER_CERT_PROP_CONFIG_ENDPOINT =
+            "athenz.zts.external_member_cert.idp_config_endpoint";
+    static final String EXT_MEMBER_CERT_PROP_TOKEN_ENDPOINT =
+            "athenz.zts.external_member_cert.idp_token_endpoint";
+    static final String EXT_MEMBER_CERT_PROP_JWKS_ENDPOINT =
+            "athenz.zts.external_member_cert.idp_jwks_endpoint";
+    static final String EXT_MEMBER_CERT_PROP_CLIENT_ID =
+            "athenz.zts.external_member_cert.idp_client_id";
+    static final String EXT_MEMBER_CERT_PROP_REDIRECT_URI =
+            "athenz.zts.external_member_cert.idp_redirect_uri";
+    static final String EXT_MEMBER_CERT_PROP_AUDIENCE =
+            "athenz.zts.external_member_cert.idp_audience";
+    static final String EXT_MEMBER_CERT_PROP_CONNECT_TIMEOUT =
+            "athenz.zts.external_member_cert.connect_timeout";
+    static final String EXT_MEMBER_CERT_PROP_READ_TIMEOUT =
+            "athenz.zts.external_member_cert.read_timeout";
+    static final String EXT_MEMBER_CERT_PROP_MEMBER_NAME_CLAIM =
+            "athenz.zts.external_member_cert.member_name_claim";
 
-    static final String USER_CERT_PROP_CLIENT_SECRET_APP      = "athenz.zts.user_cert.idp_client_secret_app";
-    static final String USER_CERT_PROP_CLIENT_SECRET_KEYGROUP = "athenz.zts.user_cert.idp_client_secret_keygroup";
-    static final String USER_CERT_PROP_CLIENT_SECRET_KEYNAME  = "athenz.zts.user_cert.idp_client_secret_keyname";
+    static final String EXT_MEMBER_CERT_PROP_CLIENT_SECRET_APP =
+            "athenz.zts.external_member_cert.idp_client_secret_app";
+    static final String EXT_MEMBER_CERT_PROP_CLIENT_SECRET_KEYGROUP =
+            "athenz.zts.external_member_cert.idp_client_secret_keygroup";
+    static final String EXT_MEMBER_CERT_PROP_CLIENT_SECRET_KEYNAME =
+            "athenz.zts.external_member_cert.idp_client_secret_keyname";
 
     static final String CODE_PREFIX = "code=";
     static final String CODE_VERIFIER_PREFIX = "code_verifier=";
@@ -68,7 +78,7 @@ public class UserCertificateProvider implements InstanceProvider {
     String clientId;
     String clientSecret;
     String redirectUri;
-    String userNameClaim;
+    String memberNameClaim;
     String audience;
     int connectTimeout;
     int readTimeout;
@@ -92,7 +102,7 @@ public class UserCertificateProvider implements InstanceProvider {
             throws ProviderResourceException {
 
         String jwksEndpoint = null;
-        final String configEndpoint = System.getProperty(USER_CERT_PROP_CONFIG_ENDPOINT);
+        final String configEndpoint = System.getProperty(EXT_MEMBER_CERT_PROP_CONFIG_ENDPOINT);
         if (!StringUtil.isEmpty(configEndpoint)) {
             JwtsHelper helper = new JwtsHelper();
             OpenIdConfiguration openIdConfig = helper.extractOpenIdConfiguration(configEndpoint, sslContext, null);
@@ -103,60 +113,52 @@ public class UserCertificateProvider implements InstanceProvider {
         }
 
         if (StringUtil.isEmpty(tokenEndpoint)) {
-            tokenEndpoint = System.getProperty(USER_CERT_PROP_TOKEN_ENDPOINT);
+            tokenEndpoint = System.getProperty(EXT_MEMBER_CERT_PROP_TOKEN_ENDPOINT);
             if (StringUtil.isEmpty(tokenEndpoint)) {
                 throw new ProviderResourceException(ProviderResourceException.INTERNAL_SERVER_ERROR,
-                        "IdP token endpoint not configured");
+                        "External member IdP token endpoint not configured");
             }
         }
 
         if (!tokenEndpoint.toLowerCase().startsWith("https://")) {
             throw new ProviderResourceException(ProviderResourceException.INTERNAL_SERVER_ERROR,
-                    "IdP token endpoint must be an https url");
+                    "External member IdP token endpoint must be an https url");
         }
 
         if (StringUtil.isEmpty(jwksEndpoint)) {
-            jwksEndpoint = System.getProperty(USER_CERT_PROP_JWKS_ENDPOINT);
+            jwksEndpoint = System.getProperty(EXT_MEMBER_CERT_PROP_JWKS_ENDPOINT);
             if (StringUtil.isEmpty(jwksEndpoint)) {
                 throw new ProviderResourceException(ProviderResourceException.INTERNAL_SERVER_ERROR,
-                        "IdP jwks endpoint not configured");
+                        "External member IdP jwks endpoint not configured");
             }
         }
 
         if (!jwksEndpoint.toLowerCase().startsWith("https://")) {
             throw new ProviderResourceException(ProviderResourceException.INTERNAL_SERVER_ERROR,
-                    "IdP jwks endpoint must be an https url");
+                    "External member IdP jwks endpoint must be an https url");
         }
 
         signingKeyResolver = new JwtsSigningKeyResolver(jwksEndpoint, null);
 
-        clientId = System.getProperty(USER_CERT_PROP_CLIENT_ID);
+        clientId = System.getProperty(EXT_MEMBER_CERT_PROP_CLIENT_ID);
         if (StringUtil.isEmpty(clientId)) {
             throw new ProviderResourceException(ProviderResourceException.INTERNAL_SERVER_ERROR,
-                    "IdP client id not configured");
+                    "External member IdP client id not configured");
         }
 
         clientSecret = getClientSecret();
-        redirectUri = System.getProperty(USER_CERT_PROP_REDIRECT_URI, DEFAULT_REDIRECT_URI);
+        redirectUri = System.getProperty(EXT_MEMBER_CERT_PROP_REDIRECT_URI, DEFAULT_REDIRECT_URI);
 
-        // extract audience. the value must match the audience in the token, otherwise the token is invalid.
-        
-        audience = System.getProperty(USER_CERT_PROP_AUDIENCE);
+        audience = System.getProperty(EXT_MEMBER_CERT_PROP_AUDIENCE);
         if (StringUtil.isEmpty(audience)) {
             throw new ProviderResourceException(ProviderResourceException.INTERNAL_SERVER_ERROR,
-                    "IdP audience not configured");
+                    "External member IdP audience not configured");
         }
 
-        // extract connection and read timeouts
-        
-        connectTimeout = Integer.parseInt(System.getProperty(USER_CERT_PROP_CONNECT_TIMEOUT, "10000"));
-        readTimeout = Integer.parseInt(System.getProperty(USER_CERT_PROP_READ_TIMEOUT, "15000"));
+        connectTimeout = Integer.parseInt(System.getProperty(EXT_MEMBER_CERT_PROP_CONNECT_TIMEOUT, "10000"));
+        readTimeout = Integer.parseInt(System.getProperty(EXT_MEMBER_CERT_PROP_READ_TIMEOUT, "15000"));
 
-        // extract user name claim. by default, use the subject claim,
-        // but it's possible that the IdP uses a different claim for the user name
-        // in that case, the user can configure the claim name here
-        
-        userNameClaim = System.getProperty(USER_CERT_PROP_USER_NAME_CLAIM);
+        memberNameClaim = System.getProperty(EXT_MEMBER_CERT_PROP_MEMBER_NAME_CLAIM);
     }
 
     String getClientSecret() {
@@ -165,9 +167,9 @@ public class UserCertificateProvider implements InstanceProvider {
             return "";
         }
 
-        final String appName = System.getProperty(USER_CERT_PROP_CLIENT_SECRET_APP, "");
-        final String keygroupName = System.getProperty(USER_CERT_PROP_CLIENT_SECRET_KEYGROUP, "");
-        final String keyName = System.getProperty(USER_CERT_PROP_CLIENT_SECRET_KEYNAME, "");
+        final String appName = System.getProperty(EXT_MEMBER_CERT_PROP_CLIENT_SECRET_APP, "");
+        final String keygroupName = System.getProperty(EXT_MEMBER_CERT_PROP_CLIENT_SECRET_KEYGROUP, "");
+        final String keyName = System.getProperty(EXT_MEMBER_CERT_PROP_CLIENT_SECRET_KEYNAME, "");
 
         if (StringUtil.isEmpty(keyName)) {
             return "";
@@ -182,77 +184,58 @@ public class UserCertificateProvider implements InstanceProvider {
 
         final String attestationData = confirmation.getAttestationData();
         if (StringUtil.isEmpty(attestationData)) {
-            throw forbiddenError("Attestation data not provided");
+            throw forbiddenError("External member attestation data not provided");
         }
 
-        final String userName = confirmation.getService();
-        if (StringUtil.isEmpty(userName)) {
-            throw forbiddenError("User name not provided in confirmation");
+        final String memberName = confirmation.getService();
+        if (StringUtil.isEmpty(memberName)) {
+            throw forbiddenError("External member name not provided in confirmation");
         }
-
-        // exchange the authorization code with the IdP token endpoint
 
         AccessToken accessTokenObject;
         final String accessTokenString = exchangeAuthCodeForAccessToken(attestationData);
         try {
             accessTokenObject = new AccessToken(accessTokenString, signingKeyResolver);
         } catch (Exception ex) {
-            LOGGER.error("Unable to validate access token: {}", ex.getMessage());
-            throw forbiddenError("Unable to validate access token");
+            LOGGER.error("Unable to validate external member access token: {}", ex.getMessage());
+            throw forbiddenError("Unable to validate external member access token");
         }
 
-        // extract the subject from the id token and verify it matches
-
-        if (!validateTokenSubject(accessTokenObject, confirmation.getDomain(), userName)) {
-            throw forbiddenError("Subject token does not match requested user name");
+        if (!validateTokenSubject(accessTokenObject, memberName)) {
+            throw forbiddenError("Subject token does not match requested external member name");
         }
-
-        // verify that the audience in the token matches the configured audience
 
         if (!audience.equals(accessTokenObject.getAudience())) {
-            LOGGER.error("Audience mismatch: token-audience={} vs. configured-audience={}",
+            LOGGER.error("External member audience mismatch: token-audience={} vs. configured-audience={}",
                     accessTokenObject.getAudience(), audience);
-            throw forbiddenError("Token audience mismatch");
+            throw forbiddenError("External member token audience mismatch");
         }
-
-        // our validation is done, return the confirmation object
 
         return confirmation;
     }
 
     @Override
     public InstanceConfirmation refreshInstance(InstanceConfirmation confirmation) throws ProviderResourceException {
-        throw forbiddenError("User X.509 Certificates cannot be refreshed");
+        throw forbiddenError("External member X.509 Certificates cannot be refreshed");
     }
 
-    boolean validateTokenSubject(final AccessToken accessToken, final String domainName, final String userName) {
-
-        // when validating the token identity, we need to consider two cases:
-        // 1. the token subject is the same as the requested user name without the domain prefix
-        // 2. the token subject is the same as the requested user name with the domain prefix
-
-        final String fullName = domainName + AuthorityConsts.ATHENZ_PRINCIPAL_DELIMITER_CHAR + userName;
-
-        // first, verify that the subject in the token matches the requested user name
+    boolean validateTokenSubject(final AccessToken accessToken, final String memberName) {
 
         final String tokenSubject = accessToken.getSubject();
-        if (userName.equals(tokenSubject) || fullName.equals(tokenSubject)) {
+        if (memberName.equals(tokenSubject)) {
             return true;
         }
 
-        // if the user name claim is configured, verify that the claim value 
-        // in the token matches the requested user name
-
-        String tokenUserName = null;
-        if (!StringUtil.isEmpty(userNameClaim)) {
-            tokenUserName = (String) accessToken.getClaim(userNameClaim);
-            if (userName.equals(tokenUserName) || fullName.equals(tokenUserName)) {
+        String tokenMemberName = null;
+        if (!StringUtil.isEmpty(memberNameClaim)) {
+            tokenMemberName = (String) accessToken.getClaim(memberNameClaim);
+            if (memberName.equals(tokenMemberName)) {
                 return true;
             }
         }
 
-        LOGGER.error("Subject mismatch: token-subject={}/user-name={} vs. requested-user={}",
-            accessToken.getSubject(), tokenUserName, fullName);
+        LOGGER.error("External member subject mismatch: token-subject={}/member-name={} vs. requested-member={}",
+                tokenSubject, tokenMemberName, memberName);
         return false;
     }
 
@@ -262,8 +245,8 @@ public class UserCertificateProvider implements InstanceProvider {
         String codeVerifier = null;
 
         String requestBody = "grant_type=authorization_code"
-            + "&client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
-            + "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8);
+                + "&client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
+                + "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8);
 
         String[] params = attestationData.split("&");
         for (String param : params) {
@@ -274,25 +257,17 @@ public class UserCertificateProvider implements InstanceProvider {
             }
         }
 
-        // make sure we have valid code specified in our attestation data
-
         if (StringUtil.isEmpty(code)) {
-            throw forbiddenError("Code not provided in attestation data");
+            throw forbiddenError("Code not provided in external member attestation data");
         }
-
-        // if our secret is not configured then pkce is required and as such
-        // the code verifier must be specified in the attestation data
 
         if (StringUtil.isEmpty(clientSecret)) {
             if (StringUtil.isEmpty(codeVerifier)) {
-                throw forbiddenError("PKCE is required but code verifier not provided");
+                throw forbiddenError("External member PKCE is required but code verifier not provided");
             }
         } else {
             requestBody += "&client_secret=" + URLEncoder.encode(clientSecret, StandardCharsets.UTF_8);
         }
-
-        // otherwise, return the code and code verifier
-        // encoded and concatenated with the appropriate ampersands
 
         requestBody += "&" + CODE_PREFIX + URLEncoder.encode(code, StandardCharsets.UTF_8);
         if (!StringUtil.isEmpty(codeVerifier)) {
@@ -308,7 +283,7 @@ public class UserCertificateProvider implements InstanceProvider {
 
         final String accessToken = accessTokenResponse.getAccess_token();
         if (StringUtil.isEmpty(accessToken)) {
-            throw forbiddenError("IdP token response does not contain an access token");
+            throw forbiddenError("External member IdP token response does not contain an access token");
         }
 
         return accessToken;
@@ -331,8 +306,9 @@ public class UserCertificateProvider implements InstanceProvider {
             }
             int responseCode = conn.getResponseCode();
             if (responseCode != HttpURLConnection.HTTP_OK) {
-                LOGGER.error("IdP token endpoint returned error: responseMessage={}", conn.getResponseMessage());
-                throw forbiddenError("IdP token endpoint returned error: " + responseCode);
+                LOGGER.error("External member IdP token endpoint returned error: responseMessage={}",
+                        conn.getResponseMessage());
+                throw forbiddenError("External member IdP token endpoint returned error: " + responseCode);
             }
 
             return jsonMapper.readValue(conn.getInputStream(), AccessTokenResponse.class);
@@ -340,7 +316,7 @@ public class UserCertificateProvider implements InstanceProvider {
         } catch (ProviderResourceException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw forbiddenError("Unable to exchange auth code with IdP: " + ex.getMessage());
+            throw forbiddenError("Unable to exchange external member auth code with IdP: " + ex.getMessage());
         } finally {
             if (conn != null) {
                 conn.disconnect();

@@ -208,6 +208,9 @@ public class ZTSImpl implements ZTSHandler {
     protected String ztsMetricCounterName;
     protected String ztsMetricLatencyName;
     protected String userCertProvider;
+    protected String externalMemberCertProvider;
+    protected int externalMemberCertMaxTimeout;
+    protected int externalMemberCertDefaultTimeout;
     protected boolean validateRoleCertDnsNames = false;
     protected boolean validateCertUriSchemes = false;
     protected Set<String> externalMemberCertAllowedDomains = Collections.emptySet();
@@ -854,12 +857,44 @@ public class ZTSImpl implements ZTSHandler {
 
         userCertProvider = System.getProperty(ZTSConsts.ZTS_PROP_USER_CERT_PROVIDER);
 
+        // external member certificates use independent provider and timeout settings
+
+        externalMemberCertProvider = System.getProperty(ZTSConsts.ZTS_PROP_EXTERNAL_MEMBER_CERT_PROVIDER);
+        loadExternalMemberCertTimeoutSettings();
+
         // default to false to maintain backward compatibility
 
         validateRoleCertDnsNames = Boolean.parseBoolean(
             System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_ROLE_CERT_DNS_NAMES, "false"));
         validateCertUriSchemes = Boolean.parseBoolean(
             System.getProperty(ZTSConsts.ZTS_PROP_VALIDATE_CERT_URI_SCHEMES, "false"));
+    }
+
+    void loadExternalMemberCertTimeoutSettings() {
+
+        final int defaultTimeout = (int) TimeUnit.MINUTES.convert(1, TimeUnit.HOURS);
+
+        externalMemberCertMaxTimeout = Integer.parseInt(System.getProperty(
+                ZTSConsts.ZTS_PROP_EXTERNAL_MEMBER_CERT_MAX_TIMEOUT, Integer.toString(defaultTimeout)));
+        if (externalMemberCertMaxTimeout <= 0) {
+            LOGGER.error("Invalid external member cert max timeout: {}, using default: {}",
+                    externalMemberCertMaxTimeout, defaultTimeout);
+            externalMemberCertMaxTimeout = defaultTimeout;
+        }
+
+        externalMemberCertDefaultTimeout = Integer.parseInt(System.getProperty(
+                ZTSConsts.ZTS_PROP_EXTERNAL_MEMBER_CERT_DEFAULT_TIMEOUT, Integer.toString(defaultTimeout)));
+        if (externalMemberCertDefaultTimeout <= 0) {
+            LOGGER.error("Invalid external member cert default timeout: {}, using default: {}",
+                    externalMemberCertDefaultTimeout, defaultTimeout);
+            externalMemberCertDefaultTimeout = defaultTimeout;
+        }
+
+        if (externalMemberCertMaxTimeout < externalMemberCertDefaultTimeout) {
+            LOGGER.error("External member cert max timeout: {} is less than default timeout: {}, setting both to default",
+                    externalMemberCertMaxTimeout, externalMemberCertDefaultTimeout);
+            externalMemberCertMaxTimeout = externalMemberCertDefaultTimeout;
+        }
     }
 
     Set<String> parseDomainList(final String domainList) {
@@ -6842,20 +6877,6 @@ public class ZTSImpl implements ZTSHandler {
 
     @Override
     public UserCertificate postUserCertificateRequest(ResourceContext ctx, UserCertificateRequest req) {
-        return processUserCertificateRequest(ctx, req, certificateRequestData(req),
-                TYPE_USER_CERTIFICATE_REQUEST, false);
-    }
-
-    @Override
-    public ExternalMemberCertificate postExternalMemberCertificateRequest(ResourceContext ctx,
-            ExternalMemberCertificateRequest req) {
-        UserCertificate userCertificate = processUserCertificateRequest(ctx, req, certificateRequestData(req),
-                TYPE_EXTERNAL_MEMBER_CERTIFICATE_REQUEST, true);
-        return new ExternalMemberCertificate().setX509Certificate(userCertificate.getX509Certificate());
-    }
-
-    private UserCertificate processUserCertificateRequest(ResourceContext ctx, Object requestObject,
-            CertificateRequestData req, final String requestType, final boolean externalMemberRequest) {
 
         final String caller = ctx.getApiName();
 
@@ -6864,25 +6885,21 @@ public class ZTSImpl implements ZTSHandler {
                     caller, userDomain, userDomain);
         }
 
-        // make sure we have a user cert provider configured
+        // make sure we have a user authority configured
 
-        if (userCertProvider == null || (!externalMemberRequest && userAuthority == null)) {
-            throw requestError("User certificate configuration is not set", caller, userDomain, userDomain);
+        if (userAuthority == null || userCertProvider == null) {
+            throw requestError("User authority configuration is not set", caller, userDomain, userDomain);
         }
 
         // validate the request
 
-        validate(requestObject, requestType, userDomain, caller);
+        validate(req, TYPE_USER_CERTIFICATE_REQUEST, userDomain, caller);
         setRequestDomain(ctx, userDomain);
 
-        // make sure we have a valid principal name
+        // make sure we have a valid user name
 
         final String principalName = req.getName();
-        if (externalMemberRequest) {
-            if (!validateExternalMemberPrincipalForCert(principalName)) {
-                throw requestError("External member name is not valid for certificate request", caller, userDomain, userDomain);
-            }
-        } else if (!validateUserPrincipalForCert(principalName)) {
+        if (!validateUserPrincipalForCert(principalName)) {
             throw requestError("User name is not valid for certificate request", caller, userDomain, userDomain);
         }
         ((RsrcCtxWrapper) ctx).logPrincipal(principalName);
@@ -6897,18 +6914,17 @@ public class ZTSImpl implements ZTSHandler {
                     caller, userDomain, userDomain);
         }
 
-        // make sure the request csr matches our principal name
+        // make sure the request csr matches our user name
 
         if (!certReq.getCommonName().equals(principalName)) {
-            throw requestError("Certificate Request mismatch: " + certReq.getCommonName() +
+            throw requestError("User Certificate Request mismatch: " + certReq.getCommonName() +
                     "/" + principalName, caller, userDomain, userDomain);
         }
 
         // validate request/csr details
 
-        final String serviceName = externalMemberRequest ? principalName :
-                getUserCertificateRequestServiceName(principalName);
-        if (!certReq.validate(userDomain, serviceName, validCertSubjectOrgValues)) {
+        final String userName = principalName.substring(userDomainPrefix.length());
+        if (!certReq.validate(userDomain, userName, validCertSubjectOrgValues)) {
             throw requestError("Unable to validate cert request", caller, userDomain, userDomain);
         }
 
@@ -6920,7 +6936,7 @@ public class ZTSImpl implements ZTSHandler {
         
         InstanceConfirmation instance = new InstanceConfirmation()
             .setAttestationData(req.getAttestationData())
-            .setDomain(userDomain).setService(serviceName).setProvider(userCertProvider);
+            .setDomain(userDomain).setService(userName).setProvider(userCertProvider);
 
         // make sure to close our provider when its no longer needed
         // and the method will do that for us
@@ -6930,8 +6946,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // determine the expiry time for the certificate
 
-        final String signerKeyId = externalMemberRequest ? getExternalMemberX509KeySignerId(req.getX509CertSignerKeyId()) :
-                getUserX509KeySignerId(principalName, req.getX509CertSignerKeyId());
+        final String signerKeyId = getUserX509KeySignerId(principalName, req.getX509CertSignerKeyId());
         int expiryTime = userIdentityTimeoutManager.getUserCertTimeout(principalName, signerKeyId, req.getExpiryTime());
 
         if (LOGGER.isDebugEnabled()) {
@@ -6955,51 +6970,80 @@ public class ZTSImpl implements ZTSHandler {
         return new UserCertificate().setX509Certificate(x509Cert);
     }
 
-    private static CertificateRequestData certificateRequestData(final UserCertificateRequest req) {
-        return req == null ? null : new CertificateRequestData(req.getName(), req.getCsr(),
-                req.getAttestationData(), req.getExpiryTime(), req.getX509CertSignerKeyId());
-    }
+    @Override
+    public ExternalMemberCertificate postExternalMemberCertificateRequest(ResourceContext ctx,
+            ExternalMemberCertificateRequest req) {
 
-    private static CertificateRequestData certificateRequestData(final ExternalMemberCertificateRequest req) {
-        return req == null ? null : new CertificateRequestData(req.getName(), req.getCsr(),
-                req.getAttestationData(), req.getExpiryTime(), req.getX509CertSignerKeyId());
-    }
+        final String caller = ctx.getApiName();
 
-    private static class CertificateRequestData {
-        private final String name;
-        private final String csr;
-        private final String attestationData;
-        private final Integer expiryTime;
-        private final String x509CertSignerKeyId;
-
-        CertificateRequestData(final String name, final String csr, final String attestationData,
-                final Integer expiryTime, final String x509CertSignerKeyId) {
-            this.name = name;
-            this.csr = csr;
-            this.attestationData = attestationData;
-            this.expiryTime = expiryTime;
-            this.x509CertSignerKeyId = x509CertSignerKeyId;
+        if (readOnlyMode.get()) {
+            throw requestError("Server in Maintenance Read-Only mode. Please try your request later",
+                    caller, userDomain, userDomain);
         }
 
-        String getName() {
-            return name;
+        if (externalMemberCertProvider == null) {
+            throw requestError("External member certificate configuration is not set",
+                    caller, userDomain, userDomain);
         }
 
-        String getCsr() {
-            return csr;
+        validate(req, TYPE_EXTERNAL_MEMBER_CERTIFICATE_REQUEST, userDomain, caller);
+        setRequestDomain(ctx, userDomain);
+
+        final String externalMemberName = req.getName();
+        if (!validateExternalMemberPrincipalForCert(externalMemberName)) {
+            throw requestError("External member name is not valid for certificate request",
+                    caller, userDomain, userDomain);
+        }
+        ((RsrcCtxWrapper) ctx).logPrincipal(externalMemberName);
+
+        X509ExternalMemberCertRequest certReq;
+        try {
+            certReq = new X509ExternalMemberCertRequest(req.getCsr(), spiffeUriManager, certificateDataValidator);
+        } catch (CryptoException ex) {
+            throw requestError("Unable to parse PKCS10 CSR: " + ex.getMessage(),
+                    caller, userDomain, userDomain);
         }
 
-        String getAttestationData() {
-            return attestationData;
+        if (!certReq.getCommonName().equals(externalMemberName)) {
+            throw requestError("External Member Certificate Request mismatch: " + certReq.getCommonName() +
+                    "/" + externalMemberName, caller, userDomain, userDomain);
         }
 
-        Integer getExpiryTime() {
-            return expiryTime;
+        if (!certReq.validate(validCertSubjectOrgValues)) {
+            throw requestError("Unable to validate cert request", caller, userDomain, userDomain);
         }
 
-        String getX509CertSignerKeyId() {
-            return x509CertSignerKeyId;
+        InstanceProvider instanceProvider = getInstanceProvider(externalMemberCertProvider,
+                InstanceProvider.SVIDType.X509, userDomain, userDomain, caller);
+
+        InstanceConfirmation instance = new InstanceConfirmation()
+                .setAttestationData(req.getAttestationData())
+                .setDomain(userDomain).setService(externalMemberName)
+                .setProvider(externalMemberCertProvider);
+
+        validateConfirmationData(ctx, instance, instanceProvider, userDomain, userDomain,
+                ctx.request().getRemoteAddr(), caller);
+
+        final String signerKeyId = getExternalMemberX509KeySignerId(req.getX509CertSignerKeyId());
+        int expiryTime = getExternalMemberCertTimeout(req.getExpiryTime());
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("External Member Certificate for {} expiryTime: {}", externalMemberName, expiryTime);
         }
+
+        Object timerX509CertMetric = metric.startTiming("certsignx509_timing", userDomain, userDomain);
+        final String x509Cert = instanceCertManager.generateX509Certificate(externalMemberCertProvider, null, req.getCsr(),
+                InstanceProvider.ZTS_CERT_USAGE_CLIENT, expiryTime, Priority.High, signerKeyId);
+        metric.stopTiming(timerX509CertMetric, userDomain, userDomain);
+
+        if (StringUtil.isEmpty(x509Cert)) {
+            throw serverError("Unable to create certificate from the cert signer", caller, userDomain, userDomain);
+        }
+
+        final X509Certificate externalMemberCert = Crypto.loadX509Certificate(x509Cert);
+        instanceCertManager.logX509Cert(null, ctx.request().getRemoteAddr(), ZTSConsts.ZTS_SERVICE,
+                externalMemberName, externalMemberCert);
+        return new ExternalMemberCertificate().setX509Certificate(x509Cert);
     }
 
     boolean validateUserPrincipalForCert(final String principalName) {
@@ -7047,16 +7091,6 @@ public class ZTSImpl implements ZTSHandler {
         return true;
     }
 
-    String getUserCertificateRequestServiceName(final String principalName) {
-        if (principalName == null) {
-            return null;
-        }
-        if (principalName.startsWith(userDomainPrefix)) {
-            return principalName.substring(userDomainPrefix.length());
-        }
-        return principalName;
-    }
-
     boolean isExternalMemberCertDomainAllowed(final String principalName) {
         final int idx = principalName == null ? -1 : principalName.indexOf(AuthorityConsts.ATHENZ_PRINCIPAL_ENTITY_CHAR);
         if (idx <= 0) {
@@ -7070,22 +7104,33 @@ public class ZTSImpl implements ZTSHandler {
         if (!StringUtil.isEmpty(authoritySignerKeyId)) {
             return authoritySignerKeyId;
         }
-        return getRequestedX509KeySignerId(requestSignerKeyId, validUserX509CertSignerKeyIds);
-    }
-
-    String getExternalMemberX509KeySignerId(final String requestSignerKeyId) {
-        return getRequestedX509KeySignerId(requestSignerKeyId, validExternalMemberX509CertSignerKeyIds);
-    }
-
-    String getRequestedX509KeySignerId(final String requestSignerKeyId, final Set<String> validX509CertSignerKeyIds) {
         if (StringUtil.isEmpty(requestSignerKeyId)) {
             return null;
         }
-        if (!validX509CertSignerKeyIds.contains(requestSignerKeyId)) {
+        if (!validUserX509CertSignerKeyIds.contains(requestSignerKeyId)) {
             LOGGER.error("Request signer key id {} is not in the allowed list", requestSignerKeyId);
             return null;
         }
         return requestSignerKeyId;
+    }
+
+    String getExternalMemberX509KeySignerId(final String requestSignerKeyId) {
+        if (StringUtil.isEmpty(requestSignerKeyId)) {
+            return null;
+        }
+        if (!validExternalMemberX509CertSignerKeyIds.contains(requestSignerKeyId)) {
+            LOGGER.error("Request signer key id {} is not in the allowed list", requestSignerKeyId);
+            return null;
+        }
+        return requestSignerKeyId;
+    }
+
+    int getExternalMemberCertTimeout(final Integer requestedExpiryTime) {
+        int expiryTime = externalMemberCertDefaultTimeout;
+        if (requestedExpiryTime != null && requestedExpiryTime > 0 && requestedExpiryTime < expiryTime) {
+            expiryTime = requestedExpiryTime;
+        }
+        return Math.min(expiryTime, externalMemberCertMaxTimeout);
     }
 
     synchronized void fetchInfoFromManifest(ServletContext servletContext) {
