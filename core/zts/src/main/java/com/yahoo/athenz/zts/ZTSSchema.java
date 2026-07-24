@@ -511,6 +511,18 @@ public class ZTSSchema {
             .field("expiryTime", "Int32", true, "expiry time in minutes for the certificate (server enforces max expiry)")
             .field("x509CertSignerKeyId", "SimpleName", true, "requested x509 cert signer key id");
 
+        sb.structType("ExternalMemberCertificate")
+            .comment("ExternalMemberCertificate - an external member certificate")
+            .field("x509Certificate", "String", false, "");
+
+        sb.structType("ExternalMemberCertificateRequest")
+            .comment("ExternalMemberCertificateRequest - an external member certificate signing request")
+            .field("name", "ExternalMemberName", false, "name of the external member")
+            .field("csr", "String", false, "external member certificate signing request")
+            .field("attestationData", "String", false, "identity attestation data")
+            .field("expiryTime", "Int32", true, "expiry time in minutes for the certificate (server enforces max expiry)")
+            .field("x509CertSignerKeyId", "SimpleName", true, "requested x509 cert signer key id");
+
         sb.stringType("rdl.Identifier")
             .comment("All names need to be of this restricted string type")
             .pattern("[a-zA-Z_]+[a-zA-Z_0-9]*");
@@ -1285,6 +1297,22 @@ public class ZTSSchema {
         sb.resource("UserCertificateRequest", "POST", "/usercert")
             .comment("Return a TLS certificate for the given principal user")
             .input("req", "UserCertificateRequest", "csr request")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("ExternalMemberCertificateRequest", "POST", "/extmembercert")
+            .comment("Return a TLS certificate for the given external member")
+            .name("PostExternalMemberCertificateRequest")
+            .input("req", "ExternalMemberCertificateRequest", "csr request")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 

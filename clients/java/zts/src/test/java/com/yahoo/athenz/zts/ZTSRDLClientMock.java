@@ -704,4 +704,14 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
         }
         return new UserCertificate().setX509Certificate("x509cert");
     }
+
+    @Override
+    public ExternalMemberCertificate postExternalMemberCertificateRequest(ExternalMemberCertificateRequest req) {
+        if (req.getAttestationData().equals("exc")) {
+            throw new IllegalArgumentException();
+        } if (req.getAttestationData().equals("forbidden")) {
+            throw new ClientResourceException(403, "Forbidden");
+        }
+        return new ExternalMemberCertificate().setX509Certificate("x509cert");
+    }
 }

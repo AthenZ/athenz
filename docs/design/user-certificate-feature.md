@@ -380,7 +380,7 @@ The CLI is a thin wrapper that parses command-line flags and delegates to `userc
 |---|---|---|
 | `x509Certificate` | String | PEM-encoded X.509 certificate |
 
-**Handler Logic (ZTSImpl.java, lines 6538–6629):**
+**Handler Logic (ZTSImpl.java):**
 
 1. **Read-only mode check** — Reject if ZTS is in maintenance mode.
 2. **Configuration check** — Verify `userAuthority` and `userCertProvider` are configured.
@@ -413,11 +413,30 @@ The CLI is a thin wrapper that parses command-line flags and delegates to `userc
 11. **Logging** — Log the issued certificate.
 12. **Return** — Return `UserCertificate` with the PEM certificate string.
 
+### 4.2.1 Server-Side: ZTS `postExternalMemberCertificateRequest` Handler
+
+**API Endpoint:** `POST /extmembercert`
+
+The external member certificate endpoint uses dedicated
+`ExternalMemberCertificateRequest` and `ExternalMemberCertificate` schema types
+and is intentionally separate from `/usercert`. The `/usercert` endpoint remains
+tied to active principals in the configured user authority and the configured
+`athenz.zts.user_cert_provider`. The `/extmembercert` endpoint uses
+`athenz.zts.external_member_cert_provider`, does not consult the user authority,
+and only accepts names that match the `ExternalMemberName` format and whose
+external member domain is explicitly listed in
+`athenz.zts.external_member_cert_allowed_domains`.
+
 **Configuration Properties:**
 
 | Property | Default | Description |
 |---|---|---|
 | `athenz.zts.user_cert_provider` | (none) | Provider class name |
+| `athenz.zts.external_member_cert_provider` | (none) | Provider class name for `/extmembercert`; `/extmembercert` does not fall back to `athenz.zts.user_cert_provider` |
+| `athenz.zts.external_member_cert_allowed_domains` | (none) | Comma-separated external member domains allowed to request certificates through `/extmembercert`; when unset, external member certificate requests are rejected |
+| `athenz.zts.external_member_cert_signer_key_id_list` | (none) | Comma-separated signer key IDs allowed in external member certificate requests |
+| `athenz.zts.external_member_cert_max_timeout` | 60 min | Maximum external member certificate lifetime |
+| `athenz.zts.external_member_cert_default_timeout` | 60 min | Default external member certificate lifetime |
 | `athenz.zts.user_cert_max_timeout` | 60 min | Maximum certificate lifetime (absolute cap) |
 | `athenz.zts.user_cert_default_timeout` | 60 min | Default certificate lifetime when no request or role timeout is set |
 | `athenz.zts.user_cert_timeout_refresh_interval` | 10 min | Interval for refreshing the role-based timeout map from the user domain |
@@ -663,9 +682,17 @@ The authentication chain provides defense in depth:
 # Provider class for user certificate attestation
 athenz.zts.user_cert_provider=<provider-class-name>
 
+# Provider class for external member certificate attestation
+athenz.zts.external_member_cert_provider=<external-member-provider-class-name>
+
+# External member domains allowed for POST /extmembercert (for example: email)
+athenz.zts.external_member_cert_allowed_domains=email
+
 # Certificate lifetime limits (in minutes)
 athenz.zts.user_cert_max_timeout=60
 athenz.zts.user_cert_default_timeout=60
+athenz.zts.external_member_cert_max_timeout=60
+athenz.zts.external_member_cert_default_timeout=60
 
 # Refresh interval for role-based timeout map (in minutes)
 athenz.zts.user_cert_timeout_refresh_interval=10

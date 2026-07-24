@@ -1,0 +1,28 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+// ExternalMemberCertificate - an external member certificate
+type ExternalMemberCertificate Struct {
+    String x509Certificate;
+}
+
+// ExternalMemberCertificateRequest - an external member certificate signing request
+type ExternalMemberCertificateRequest Struct {
+    ExternalMemberName name; //name of the external member
+    String csr; //external member certificate signing request
+    String attestationData; //identity attestation data
+    Int32 expiryTime (optional); //expiry time in minutes for the certificate (server enforces max expiry)
+    SimpleName x509CertSignerKeyId (optional); //requested x509 cert signer key id
+}
+
+//Return a TLS certificate for the given external member
+resource ExternalMemberCertificate POST "/extmembercert" (name=PostExternalMemberCertificateRequest) {
+    ExternalMemberCertificateRequest req; //csr request
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

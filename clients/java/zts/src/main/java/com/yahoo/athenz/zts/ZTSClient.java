@@ -4017,6 +4017,21 @@ public class ZTSClient implements Closeable {
         }
     }
 
+    /**
+     * For the specified external member return the corresponding External Member Certificate
+     * @param req External Member Certificate Request (csr)
+     * @return ExternalMemberCertificate that includes client x509 external member certificate
+     */
+    public ExternalMemberCertificate postExternalMemberCertificateRequest(ExternalMemberCertificateRequest req) {
+        try {
+            return ztsClient.postExternalMemberCertificateRequest(req);
+        } catch (ClientResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getMessage());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
     static class ClientKeyRefresherListener implements KeyRefresherListener {
 
         long lastCertRefreshTime = 0;
