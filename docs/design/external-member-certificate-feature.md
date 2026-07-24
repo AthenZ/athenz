@@ -2,7 +2,7 @@
 
 **Date:** July 2026
 **Status:** For Security Review
-**Components:** ZTS Server (`postExternalMemberCertificateRequest`), `ExternalMemberCertificateProvider`, `X509ExternalMemberCertRequest`
+**Components:** ZTS Server (`postExternalMemberCertificateRequest`), `ExternalMemberCertificateProvider`
 
 ---
 
@@ -10,7 +10,12 @@
 
 The External Member Certificate feature allows an external member principal to obtain a short-lived X.509 TLS client certificate from ZTS through a dedicated `/extmembercert` endpoint. The requested identity is validated through an external Identity Provider (IdP) using the OAuth 2.0 Authorization Code flow before ZTS signs the submitted CSR.
 
-This feature is intentionally separate from the User Certificate feature:
+- Allow human users to obtain X.509 certificates without pre-existing Athenz credentials.
+- Delegate user authentication to an enterprise IdP (e.g., Okta, Azure AD, Google Workspace).
+- Issue short-lived, client-only certificates with server-enforced maximum lifetimes.
+- Prevent certificate refresh — each certificate requires a fresh IdP authentication.
+
+This feature is designed as similar to [User Certificate](user-certificate-feature.md), but is intentionally separate from the User Certificate feature:
 
 - It uses `POST /extmembercert`, not `POST /usercert`.
 - It uses `ExternalMemberCertificateRequest` and `ExternalMemberCertificate` API types, not `UserCertificateRequest` or `UserCertificate`.
