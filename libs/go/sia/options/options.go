@@ -802,6 +802,7 @@ func processAccessTokens(config *sc.Config, processedSvcs []sc.Service) ([]ac.Ac
 			Uid:                      processedSvc.Uid,
 			Gid:                      processedSvc.Gid,
 			ProxyPrincipalSpiffeUris: t.ProxyPrincipalSpiffeUris,
+			UseOpenIDIssuer:          t.UseOpenIDIssuer,
 		})
 	}
 	return accessTokens, nil
