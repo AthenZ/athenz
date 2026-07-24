@@ -71,4 +71,10 @@ public class ZTSTest {
         ZTSBinder binder = ZTSBinder.getInstance();
         binder.configure();
     }
+
+    @Test
+    public void testZTSImplFactory() {
+        assertNotNull(new ZTSImplFactory());
+        assertNotNull(ZTSImplFactory.getZtsInstance());
+    }
 }
