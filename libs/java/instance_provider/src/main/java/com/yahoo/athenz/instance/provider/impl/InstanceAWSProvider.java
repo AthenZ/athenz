@@ -25,13 +25,10 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
-import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
+import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.KeyStore;
+import com.yahoo.athenz.instance.provider.AWSAttestationValidator;
+import com.yahoo.athenz.instance.provider.AWSAttestationValidatorFactory;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ProviderResourceException;
@@ -65,17 +62,27 @@ public class InstanceAWSProvider implements InstanceProvider {
     static final String AWS_PROP_VALIDATE_IP_ADDRESS    = "athenz.zts.aws_validate_ip_address";
     static final String AWS_PROP_ALLOWED_IP_ADDRESSES   = "athenz.zts.aws_allowed_ip_addresses";
 
+    static final String AWS_PROP_ATTESTATION_VALIDATOR_FACTORY_CLASS = "athenz.zts.aws.attestation_validator_factory_class";
+    static final String AWS_DEFAULT_ATTESTATION_VALIDATOR_FACTORY_CLASS =
+            "com.yahoo.athenz.instance.provider.impl.DefaultAWSAttestationValidatorFactory";
+
     DynamicConfigLong bootTimeOffsetSeconds; // boot time offset in seconds
     DynamicConfigCsv eksClusterNames;        // list of eks cluster names
 
     long certValidityTime;                   // cert validity for STS creds only case
     boolean supportRefresh = false;
-    String awsRegion;
     Set<String> dnsSuffixes = null;
     List<String> eksDnsSuffixes = null;
     InstanceAWSUtils awsUtils = null;
     DynamicConfigBoolean validateIPAddress;
     List<IPBlock> systemAllowedIPAddresses;
+    AWSAttestationValidator attestationValidator;
+    Authorizer authorizer;
+
+    @Override
+    public void setAuthorizer(Authorizer authorizer) {
+        this.authorizer = authorizer;
+    }
 
     public long getTimeOffsetInMilli() {
         return bootTimeOffsetSeconds.get() * 1000;
@@ -123,15 +130,34 @@ public class InstanceAWSProvider implements InstanceProvider {
         int certValidityDays = Integer.parseInt(System.getProperty(AWS_PROP_CERT_VALIDITY_STS_ONLY, "7"));
         certValidityTime = TimeUnit.MINUTES.convert(certValidityDays, TimeUnit.DAYS);
 
-        // get the aws region
-
-        awsRegion = System.getProperty(AWS_PROP_REGION_NAME);
-
         // check if we need to validate the IP addresses in the certificate
 
         validateIPAddress = new DynamicConfigBoolean(CONFIG_MANAGER, AWS_PROP_VALIDATE_IP_ADDRESS, false);
         final String certAllowedIPAddresses = System.getProperty(AWS_PROP_ALLOWED_IP_ADDRESSES, "");
         systemAllowedIPAddresses = InstanceUtils.parseIPBlocks(certAllowedIPAddresses);
+
+        // create our attestation validator to verify the instance identity. the
+        // validator is configurable so adopters can swap the mechanism (e.g. STS
+        // temporary credentials vs AWS web identity token) used for validation
+
+        attestationValidator = newAttestationValidatorFactory().create(sslContext, authorizer);
+    }
+
+    AWSAttestationValidatorFactory newAttestationValidatorFactory() {
+
+        final String factoryClass = System.getProperty(AWS_PROP_ATTESTATION_VALIDATOR_FACTORY_CLASS,
+                AWS_DEFAULT_ATTESTATION_VALIDATOR_FACTORY_CLASS);
+        LOGGER.info("AWS attestation validator factory class: {}", factoryClass);
+        try {
+            return (AWSAttestationValidatorFactory) Class.forName(factoryClass).getConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid AWS attestation validator factory class: {}", factoryClass, ex);
+            throw new IllegalArgumentException("Invalid AWS attestation validator factory class: " + factoryClass);
+        }
+    }
+
+    void setAttestationValidator(AWSAttestationValidator attestationValidator) {
+        this.attestationValidator = attestationValidator;
     }
 
     protected Set<String> getDnsSuffixes() {
@@ -317,12 +343,13 @@ public class InstanceAWSProvider implements InstanceProvider {
 
         setConfirmationAttributes(confirmation, instanceDocumentCreds, privateIp.toString(), instanceId.toString());
 
-        // verify that the temporary credentials specified in the request
-        // can be used to assume the given role thus verifying the
-        // instance identity
-        
-        if (!verifyInstanceIdentity(info, awsAccount)) {
-            throw error("Unable to verify instance identity credentials");
+        // verify the instance identity via the configured attestation validator.
+        // depending on the attestation data this either validates the STS
+        // temporary credentials or the AWS web identity token
+
+        StringBuilder identityErrMsg = new StringBuilder(256);
+        if (!attestationValidator.validateIdentity(confirmation, info, awsAccount, identityErrMsg)) {
+            throw error("Unable to verify instance identity credentials: " + identityErrMsg);
         }
         
         return confirmation;
@@ -394,12 +421,13 @@ public class InstanceAWSProvider implements InstanceProvider {
 
         setConfirmationAttributes(confirmation, instanceDocumentCreds, privateIp.toString(), instanceId.toString());
         
-        // verify that the temporary credentials specified in the request
-        // can be used to assume the given role thus verifying the
-        // instance identity
-        
-        if (!verifyInstanceIdentity(info, awsAccount)) {
-            throw error("Unable to verify instance identity credentials");
+        // verify the instance identity via the configured attestation validator.
+        // depending on the attestation data this either validates the STS
+        // temporary credentials or the AWS web identity token
+
+        StringBuilder identityErrMsg = new StringBuilder(256);
+        if (!attestationValidator.validateIdentity(confirmation, info, awsAccount, identityErrMsg)) {
+            throw error("Unable to verify instance identity credentials: " + identityErrMsg);
         }
         
         return confirmation;
@@ -429,67 +457,5 @@ public class InstanceAWSProvider implements InstanceProvider {
             attributes.put(InstanceProvider.ZTS_ATTESTED_SSH_CERT_PRINCIPALS, instanceId);
         }
         confirmation.setAttributes(attributes);
-    }
-
-    StsClient getInstanceClient(AWSAttestationData info) {
-        
-        final String accessKey = info.getAccess();
-        if (StringUtil.isEmpty(accessKey)) {
-            LOGGER.error("getInstanceClient: No access key available in instance document");
-            return null;
-        }
-        
-        final String secretKey = info.getSecret();
-        if (StringUtil.isEmpty(secretKey)) {
-            LOGGER.error("getInstanceClient: No secret key available in instance document");
-            return null;
-        }
-        
-        final String sessionToken = info.getToken();
-        if (StringUtil.isEmpty(sessionToken)) {
-            LOGGER.error("getInstanceClient: No session token available in instance document");
-            return null;
-        }
-
-        // Create Static Credentials Provider
-
-        StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(
-                AwsSessionCredentials.create(accessKey, secretKey, sessionToken));
-
-        // Create STS Client
-
-        return StsClient.builder().credentialsProvider(credentialsProvider).region(Region.of(awsRegion)).build();
-    }
-    
-    boolean verifyInstanceIdentity(AWSAttestationData info, final String awsAccount) {
-
-        try {
-            StsClient stsClient = getInstanceClient(info);
-            if (stsClient == null) {
-                LOGGER.error("verifyInstanceIdentity - unable to get AWS STS client object");
-                return false;
-            }
-
-            GetCallerIdentityRequest request = GetCallerIdentityRequest.builder().build();
-            GetCallerIdentityResponse response = stsClient.getCallerIdentity(request);
-            if (response == null) {
-                LOGGER.error("verifyInstanceIdentity - unable to get caller identity");
-                return false;
-            }
-             
-            String arn = "arn:aws:sts::" + awsAccount + ":assumed-role/" + info.getRole() + "/";
-            if (!response.arn().startsWith(arn)) {
-                LOGGER.error("verifyInstanceIdentity - ARN mismatch - request: {} caller-identity: {}",
-                        arn, response.arn());
-                return false;
-            }
-            
-            return true;
-            
-        } catch (Exception ex) {
-            LOGGER.error("CloudStore: verifyInstanceIdentity - unable get caller identity: {}",
-                    ex.getMessage());
-            return false;
-        }
     }
 }
