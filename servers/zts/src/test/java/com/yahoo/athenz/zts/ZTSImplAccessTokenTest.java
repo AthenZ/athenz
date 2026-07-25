@@ -196,6 +196,7 @@ public class ZTSImplAccessTokenTest {
         ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
         System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT);
         System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT);
+        System.clearProperty(ZTSConsts.ZTS_PROP_JAG_TOKEN_REFRESH_MAX_TIMEOUT);
     }
 
     private ConfigurableJWTProcessor<SecurityContext> createJAGProcessor() {
@@ -3191,6 +3192,8 @@ public class ZTSImplAccessTokenTest {
             assertEquals(claimSet.getAudience().get(0), "https://athenz.io");
             assertEquals(claimSet.getIssuer(), ztsImpl.ztsOpenIDIssuer);
             assertEquals(claimSet.getStringClaim("client_id"), "user_domain.proxy-user1");
+            assertEquals(claimSet.getLongClaim("auth_time"),
+                    SignedJWT.parse(subjectToken).getJWTClaimsSet().getLongClaim("auth_time"));
             
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
@@ -4432,7 +4435,9 @@ public class ZTSImplAccessTokenTest {
         };
 
         CloudStore cloudStore = new CloudStore();
+        System.setProperty(ZTSConsts.ZTS_PROP_JAG_TOKEN_REFRESH_MAX_TIMEOUT, "200");
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        assertEquals(ztsImpl.jagTokenRefreshMaxTimeout, 200);
         ztsImpl.userDomain = "user_domain";
         ztsImpl.tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
         ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
@@ -4468,6 +4473,10 @@ public class ZTSImplAccessTokenTest {
         AccessTokenResponse issuedResponse = ztsImpl.postAccessTokenRequest(context, issueRequest);
         String issuedToken = issuedResponse.getAccess_token();
         assertNotNull(issuedToken);
+        assertTrue(issuedResponse.getExpires_in() > 0);
+        assertTrue(issuedResponse.getExpires_in() <= 200);
+
+        ztsImpl.jagTokenRefreshMaxTimeout = 100;
 
         String refreshRequest = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
                 + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
@@ -4496,6 +4505,25 @@ public class ZTSImplAccessTokenTest {
         assertEquals(refreshedClaims.getLongClaim("auth_time"), issuedClaims.getLongClaim("auth_time"));
         assertEquals(refreshedClaims.getStringClaim("preferred_email"), "john.doe@athenz.io");
         assertEquals(refreshedClaims.getStringClaim("athenz_code"), "athenz-code");
+
+        long refreshDeadline = issuedClaims.getLongClaim("auth_time") + ztsImpl.jagTokenRefreshMaxTimeout;
+        long refreshedIssueTime = refreshedClaims.getIssueTime().toInstant().getEpochSecond();
+        long refreshedExpiryTime = refreshedClaims.getExpirationTime().toInstant().getEpochSecond();
+        assertEquals(refreshedExpiryTime, refreshDeadline);
+        assertEquals(refreshedResponse.getExpires_in().longValue(), refreshDeadline - refreshedIssueTime);
+
+        int roleTokenMaxTimeout = ztsImpl.roleTokenMaxTimeout;
+        ztsImpl.jagTokenRefreshMaxTimeout = 200;
+        ztsImpl.roleTokenMaxTimeout = 50;
+        AccessTokenResponse roleLimitedResponse = ztsImpl.postAccessTokenRequest(context, refreshRequest);
+        JWTClaimsSet roleLimitedClaims = SignedJWT.parse(roleLimitedResponse.getAccess_token()).getJWTClaimsSet();
+        long roleLimitedLifetime = roleLimitedClaims.getExpirationTime().toInstant().getEpochSecond()
+                - roleLimitedClaims.getIssueTime().toInstant().getEpochSecond();
+        assertEquals(roleLimitedResponse.getExpires_in().intValue(), 50);
+        assertEquals(roleLimitedLifetime, 50);
+        assertTrue(roleLimitedClaims.getExpirationTime().toInstant().getEpochSecond()
+                <= issuedClaims.getLongClaim("auth_time") + ztsImpl.jagTokenRefreshMaxTimeout);
+        ztsImpl.roleTokenMaxTimeout = roleTokenMaxTimeout;
 
         Principal noCertPrincipal = SimplePrincipal.create("coretech", "jwt", "token", 0, null);
         try {
@@ -4538,6 +4566,26 @@ public class ZTSImplAccessTokenTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("Unknown jag refresh issuer"));
+        }
+
+        ztsImpl.jagTokenRefreshMaxTimeout = 0;
+        try {
+            ztsImpl.postAccessTokenRequest(context, refreshRequest);
+            fail("Expected refresh period expiry error");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("ID-JAG maximum refresh period has expired"));
+        }
+
+        ztsImpl.jagTokenRefreshMaxTimeout = 200;
+        store.processSignedDomain(createSignedDomain("coretech", "weather", "storage", true), false);
+        try {
+            ztsImpl.postAccessTokenRequest(context, refreshRequest);
+            fail("Expected JAG exchange authorization error after policy removal");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains(
+                    "Principal not authorized for token exchange for the requested role"));
         }
 
         cloudStore.close();

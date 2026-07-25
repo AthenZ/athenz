@@ -275,6 +275,7 @@ public class ZTSImplTest {
         ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
         System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT);
         System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT);
+        System.clearProperty(ZTSConsts.ZTS_PROP_JAG_TOKEN_REFRESH_MAX_TIMEOUT);
         ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.remove(".instanceid.athenz.zts.athenz.cloud");
         ZTSUtils.ZTS_CERT_INSTANCE_ID_DNS_NAMES.remove(".instanceid.athenz.ostk.athenz.cloud");
     }
@@ -2857,6 +2858,15 @@ public class ZTSImplTest {
         DataCache dataCache = new DataCache();
         dataCache.setDomainData(new DomainData());
         assertEquals(zts.determineTokenTimeout(dataCache, Collections.emptySet(), 120000, null), roleTokenMaxTimeout);
+    }
+
+    @Test
+    public void testDetermineJAGTokenTimeout() {
+        zts.jagTokenRefreshMaxTimeout = 100;
+        assertEquals(zts.determineJAGTokenTimeout(50, 1000, 1000), 50);
+        assertEquals(zts.determineJAGTokenTimeout(50, 1000, 1075), 25);
+        assertEquals(zts.determineJAGTokenTimeout(50, 1000, 1100), 0);
+        assertEquals(zts.determineJAGTokenTimeout(0, 1000, 1000), 0);
     }
 
     @Test
