@@ -180,8 +180,8 @@ public class OAuthTokenScope {
             groupNames = scopeGroupNames;
         }
         if (sendScopeResponse) {
-            rolesScope = !scopeRoleNames.isEmpty();
-            groupsScope = !scopeGroupNames.isEmpty();
+            rolesScope = rolesScope || !scopeRoleNames.isEmpty();
+            groupsScope = groupsScope || !scopeGroupNames.isEmpty();
         }
     }
 
