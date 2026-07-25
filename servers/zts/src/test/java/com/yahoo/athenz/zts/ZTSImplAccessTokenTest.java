@@ -1996,6 +1996,41 @@ public class ZTSImplAccessTokenTest {
         return createJagToken(key, keyId, subject, clientId, scope, audience, expiryTime, null);
     }
 
+    private String createZTSJagToken(ServerPrivateKey serverPrivateKey, String issuer, String audience,
+            String clientId, String scope) {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = new AccessToken();
+        accessToken.setVersion(1);
+        accessToken.setJwtId(UUID.randomUUID().toString());
+        accessToken.setIssuer(issuer);
+        accessToken.setAudience(audience);
+        accessToken.setClientId(clientId);
+        accessToken.setSubject("user_domain.user");
+        accessToken.setIssueTime(now);
+        accessToken.setAuthTime(now);
+        accessToken.setExpiryTime(now + 3600);
+        accessToken.setScopeStd(scope);
+        return accessToken.getSignedToken(serverPrivateKey.getKey(), serverPrivateKey.getId(),
+                serverPrivateKey.getAlgorithm(), AccessToken.HDR_TOKEN_JAG);
+    }
+
+    private void assertJAGRefreshFailure(ZTSImpl ztsImpl, ResourceContext context, String jagToken,
+            int expectedCode, String expectedMessage) {
+
+        String refreshRequest = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + jagToken
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id-jag";
+        try {
+            ztsImpl.postAccessTokenRequest(context, refreshRequest);
+            fail("Expected ID-JAG refresh failure");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), expectedCode);
+            assertTrue(ex.getMessage().contains(expectedMessage));
+        }
+    }
+
     @Test
     public void testProcessJAGTokenExchangeRequestImpersonationSuccess() throws JOSEException {
 
@@ -3083,6 +3118,12 @@ public class ZTSImplAccessTokenTest {
 
     private String createIdToken(PrivateKey privateKey, String keyId, String subject,
             String audience, long expiryTime, String preferredEmail, String athenzCode)  {
+        return createIdToken(privateKey, keyId, subject, audience, expiryTime, preferredEmail, athenzCode, true);
+    }
+
+    private String createIdToken(PrivateKey privateKey, String keyId, String subject,
+            String audience, long expiryTime, String preferredEmail, String athenzCode,
+            boolean includeAuthTime)  {
         try {
             JWSSigner signer = JwtsHelper.getJWSSigner(privateKey);
             long now = System.currentTimeMillis() / 1000;
@@ -3092,8 +3133,10 @@ public class ZTSImplAccessTokenTest {
                     .expirationTime(Date.from(Instant.ofEpochSecond(expiryTime)))
                     .issuer("https://athenz.io:4443/zts/v1")
                     .audience(audience)
-                    .claim("ver", 1)
-                    .claim("auth_time", now);
+                    .claim("ver", 1);
+            if (includeAuthTime) {
+                builder.claim("auth_time", now);
+            }
             if (preferredEmail != null) {
                 builder.claim("preferred_email", preferredEmail);
             }
@@ -4476,6 +4519,17 @@ public class ZTSImplAccessTokenTest {
         assertTrue(issuedResponse.getExpires_in() > 0);
         assertTrue(issuedResponse.getExpires_in() <= 200);
 
+        String idTokenWithoutAuthTime = createIdToken(privateKey, "0", "user_domain.user", "coretech.jwt",
+                expiryTime, "john.doe@athenz.io", "athenz-code", false);
+        long fallbackAuthTimeStart = System.currentTimeMillis() / 1000;
+        AccessTokenResponse fallbackResponse = ztsImpl.postAccessTokenRequest(context,
+                issueRequest.replace(idToken, idTokenWithoutAuthTime));
+        long fallbackAuthTimeEnd = System.currentTimeMillis() / 1000;
+        long fallbackAuthTime = SignedJWT.parse(fallbackResponse.getAccess_token()).getJWTClaimsSet()
+                .getLongClaim("auth_time");
+        assertTrue(fallbackAuthTime >= fallbackAuthTimeStart);
+        assertTrue(fallbackAuthTime <= fallbackAuthTimeEnd);
+
         ztsImpl.jagTokenRefreshMaxTimeout = 100;
 
         String refreshRequest = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
@@ -4525,6 +4579,16 @@ public class ZTSImplAccessTokenTest {
                 <= issuedClaims.getLongClaim("auth_time") + ztsImpl.jagTokenRefreshMaxTimeout);
         ztsImpl.roleTokenMaxTimeout = roleTokenMaxTimeout;
 
+        assertJAGRefreshFailure(ztsImpl, context, createZTSJagToken(serverPrivateKey, ztsImpl.ztsOpenIDIssuer,
+                ztsImpl.ztsOAuthIssuer, "coretech.jwt", null), ResourceException.BAD_REQUEST,
+                "Invalid jag assertion - missing scope");
+        assertJAGRefreshFailure(ztsImpl, context, createZTSJagToken(serverPrivateKey, ztsImpl.ztsOpenIDIssuer,
+                ztsImpl.ztsOAuthIssuer, "coretech.jwt", "coretech:domain"), ResourceException.BAD_REQUEST,
+                "Scope value does not contain any roles");
+        assertJAGRefreshFailure(ztsImpl, context, createZTSJagToken(serverPrivateKey, ztsImpl.ztsOpenIDIssuer,
+                ztsImpl.ztsOAuthIssuer, "coretech.jwt", "unknown:role.writers"), ResourceException.NOT_FOUND,
+                "No such domain: unknown");
+
         Principal noCertPrincipal = SimplePrincipal.create("coretech", "jwt", "token", 0, null);
         try {
             ztsImpl.postAccessTokenRequest(createResourceContext(noCertPrincipal), refreshRequest);
@@ -4569,6 +4633,13 @@ public class ZTSImplAccessTokenTest {
         }
 
         ztsImpl.jagTokenRefreshMaxTimeout = 0;
+        try {
+            ztsImpl.postAccessTokenRequest(context, issueRequest);
+            fail("Expected initial ID-JAG refresh period expiry error");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("ID-JAG maximum refresh period has expired"));
+        }
         try {
             ztsImpl.postAccessTokenRequest(context, refreshRequest);
             fail("Expected refresh period expiry error");
