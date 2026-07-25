@@ -2838,9 +2838,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // validate that the requested scopes are a subset of the subject token scopes
 
-        // Legacy subject tokens contain only simple role names even when exchanged for a
-        // different audience. Target-role access and exchange authorization are checked below.
-        String[] requestedRoles = tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName, true);
+        String[] requestedRoles = tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
         if (requestedRoles == null) {
             throw requestError("Invalid scope for token exchange", caller, requestDomainName, principalDomain);
         }
@@ -2950,11 +2948,6 @@ public class ZTSImpl implements ZTSHandler {
 
     String[] tokenExchangeRequestedRoles(AccessTokenRequest accessTokenRequest, OAuth2Token subjectToken,
             final String requestDomainName) {
-        return tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName, false);
-    }
-
-    String[] tokenExchangeRequestedRoles(AccessTokenRequest accessTokenRequest, OAuth2Token subjectToken,
-            final String requestDomainName, boolean allowLegacySimpleRoles) {
 
         // first let's extract our scope claim from the subject token
         // and convert that into a set
@@ -2979,7 +2972,7 @@ public class ZTSImpl implements ZTSHandler {
         final String scope = accessTokenRequest.getScope();
         if (StringUtil.isEmpty(scope)) {
             String[] requestedRoles = getSubjectTokenRolesForDomain(scopeRoles, sourceDomainName,
-                    requestDomainName, allowLegacySimpleRoles);
+                    requestDomainName);
             if (requestedRoles == null || requestedRoles.length == 0) {
                 LOGGER.error("subject token does not contain any roles for requested domain {}", requestDomainName);
                 return null;
@@ -2998,21 +2991,20 @@ public class ZTSImpl implements ZTSHandler {
         }
 
         // and the scope roles must be a subset of the subject token roles.
-        // For backward compatibility, simple roles in the subject token belong
-        // to the subject token audience. Fully qualified roles belong to their
-        // explicitly named domain.
+        // Simple roles belong only to the subject token audience. Roles from
+        // any other domain must be fully qualified in the subject token.
 
         String[] requestedRoles = tokenScope.getRoleNames(requestDomainName);
         if (requestedRoles == null) {
             requestedRoles = getSubjectTokenRolesForDomain(scopeRoles, sourceDomainName,
-                    requestDomainName, allowLegacySimpleRoles);
+                    requestDomainName);
             if (requestedRoles == null || requestedRoles.length == 0) {
                 LOGGER.error("subject token does not contain any roles for requested domain {}", requestDomainName);
                 return null;
             }
             return requestedRoles;
         } else if (subjectTokenHasRequestedRoles(scopeRoles, sourceDomainName, requestDomainName,
-                requestedRoles, allowLegacySimpleRoles)) {
+                requestedRoles)) {
             return requestedRoles;
         } else {
             LOGGER.error("requested roles are not a subset of subject token roles");
@@ -3022,19 +3014,12 @@ public class ZTSImpl implements ZTSHandler {
 
     boolean subjectTokenHasRequestedRoles(Set<String> subjectScopes, final String sourceDomainName,
             final String requestDomainName, String[] requestedRoles) {
-        return subjectTokenHasRequestedRoles(subjectScopes, sourceDomainName, requestDomainName,
-                requestedRoles, false);
-    }
-
-    boolean subjectTokenHasRequestedRoles(Set<String> subjectScopes, final String sourceDomainName,
-            final String requestDomainName, String[] requestedRoles, boolean allowLegacySimpleRoles) {
 
         for (String requestedRole : requestedRoles) {
             if (subjectScopes.contains(requestDomainName + OAuthTokenScope.OBJECT_ROLE + requestedRole)) {
                 continue;
             }
-            if ((requestDomainName.equals(sourceDomainName) || allowLegacySimpleRoles)
-                    && subjectScopes.contains(requestedRole)) {
+            if (requestDomainName.equals(sourceDomainName) && subjectScopes.contains(requestedRole)) {
                 continue;
             }
             return false;
@@ -3044,11 +3029,6 @@ public class ZTSImpl implements ZTSHandler {
 
     String[] getSubjectTokenRolesForDomain(Set<String> subjectScopes, final String sourceDomainName,
             final String requestDomainName) {
-        return getSubjectTokenRolesForDomain(subjectScopes, sourceDomainName, requestDomainName, false);
-    }
-
-    String[] getSubjectTokenRolesForDomain(Set<String> subjectScopes, final String sourceDomainName,
-            final String requestDomainName, boolean allowLegacySimpleRoles) {
 
         Set<String> requestedRoles = new HashSet<>();
         final String roleScopePrefix = requestDomainName + OAuthTokenScope.OBJECT_ROLE;
@@ -3061,8 +3041,7 @@ public class ZTSImpl implements ZTSHandler {
                 if (!roleName.isEmpty()) {
                     requestedRoles.add(roleName);
                 }
-            } else if (!subjectScope.contains(":")
-                    && (requestDomainName.equals(sourceDomainName) || allowLegacySimpleRoles)) {
+            } else if (!subjectScope.contains(":") && requestDomainName.equals(sourceDomainName)) {
                 requestedRoles.add(subjectScope);
             }
         }
@@ -3116,9 +3095,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // validate that the requested scopes are a subset of the subject token scopes
 
-        // Legacy subject tokens contain only simple role names even when exchanged for a
-        // different audience. Target-role access and exchange authorization are checked below.
-        String[] requestedRoles = tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName, true);
+        String[] requestedRoles = tokenExchangeRequestedRoles(accessTokenRequest, subjectToken, requestDomainName);
         if (requestedRoles == null) {
             throw requestError("Invalid scope for token exchange", caller, requestDomainName, principalDomain);
         }

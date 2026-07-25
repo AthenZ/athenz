@@ -118,7 +118,8 @@ iat : token issue time in seconds (Unix time)
 exp : token expiry time in seconds (Unix time)
 scp : array of scopes granted to this access token. Roles in the audience domain
       are listed by role name, while roles from other domains are listed as
-      <domain-name>:role.<role-name>
+      <domain-name>:role.<role-name>. A simple role name always belongs to the
+      audience domain and cannot authorize a role with the same name in another domain.
 client_id : client ID (Athenz Principal) of the client that requested the access token
 ```
 

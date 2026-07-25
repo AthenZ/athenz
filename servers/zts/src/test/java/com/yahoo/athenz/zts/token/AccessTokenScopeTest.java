@@ -224,11 +224,17 @@ public class AccessTokenScopeTest {
         assertNotNull(req3);
         assertEquals(req3.getDomainNames().size(), 2);
         assertTrue(req3.sendScopeResponse());
+        assertNull(req3.getRoleNames("sports"));
+        assertEquals(req3.getRoleNames("weather"), new String[] { "role1" });
 
         AccessTokenScope req4 = new AccessTokenScope("weather:role.role2 sports:domain weather:role.role1", null);
         assertNotNull(req4);
         assertEquals(req4.getDomainNames().size(), 2);
         assertTrue(req4.sendScopeResponse());
+        assertNull(req4.getRoleNames("sports"));
+        assertEquals(req4.getRoleNames("weather").length, 2);
+        assertTrue(ZTSTestUtils.validArrayMember(req4.getRoleNames("weather"), "role1"));
+        assertTrue(ZTSTestUtils.validArrayMember(req4.getRoleNames("weather"), "role2"));
     }
 
     @Test
