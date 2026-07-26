@@ -1074,3 +1074,72 @@ func TestNewAccessTokenCache_MissingFiles(t *testing.T) {
 		t.Error("expected error for nonexistent key/cert files")
 	}
 }
+
+func TestGenerateJAGTokenIssueRequestString(test *testing.T) {
+
+	tests := []struct {
+		name               string
+		domain             string
+		roles              string
+		subjectToken       string
+		subjectTokenType   string
+		requestedTokenType string
+		audience           string
+		expiryTime         int
+		body               string
+	}{
+		{
+			"single-role",
+			"sports",
+			"readers",
+			"eyJhbGciOiJSUzI1NiJ9.testidtoken",
+			"urn:ietf:params:oauth:token-type:id_token",
+			"urn:ietf:params:oauth:token-type:id-jag",
+			"https://zts.example.com",
+			3600,
+			"audience=https%3A%2F%2Fzts.example.com&expires_in=3600&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&requested_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aid-jag&scope=sports%3Arole.readers&subject_token=eyJhbGciOiJSUzI1NiJ9.testidtoken&subject_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aid_token",
+		},
+		{
+			"multiple-roles-with-expiry",
+			"sports",
+			"readers,writers",
+			"eyJhbGciOiJSUzI1NiJ9.testidtoken2",
+			"urn:ietf:params:oauth:token-type:id_token",
+			"urn:ietf:params:oauth:token-type:id-jag",
+			"https://zts.example.com",
+			7200,
+			"audience=https%3A%2F%2Fzts.example.com&expires_in=7200&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&requested_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aid-jag&scope=sports%3Arole.readers+sports%3Arole.writers&subject_token=eyJhbGciOiJSUzI1NiJ9.testidtoken2&subject_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aid_token",
+		},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			body := GenerateJAGTokenIssueRequestString(tt.domain, tt.roles, tt.subjectToken, tt.subjectTokenType, tt.requestedTokenType, tt.audience, tt.expiryTime)
+			if body != tt.body {
+				test.Errorf("invalid body response\n  got:  %s\n  want: %s", body, tt.body)
+			}
+		})
+	}
+}
+
+func TestGenerateJAGTokenExchangeRequestString(test *testing.T) {
+
+	tests := []struct {
+		name      string
+		assertion string
+		body      string
+	}{
+		{
+			"basic-jag-exchange",
+			"eyJhbGciOiJvaCI6ImRiIn0.testjagtoken",
+			"assertion=eyJhbGciOiJvaCI6ImRiIn0.testjagtoken&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer",
+		},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			body := GenerateJAGTokenExchangeRequestString(tt.assertion)
+			if body != tt.body {
+				test.Errorf("invalid body response\n  got:  %s\n  want: %s", body, tt.body)
+			}
+		})
+	}
+}

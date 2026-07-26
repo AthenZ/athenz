@@ -441,3 +441,42 @@ func splitRoleString(roles string) []string {
 	}
 	return strings.Split(roles, ",")
 }
+
+// GenerateJAGTokenIssueRequestString generates and urlencodes a JAG token issue request.
+// This is used to exchange an external IdP ID token for an ID-JAG token.
+func GenerateJAGTokenIssueRequestString(domain, roles, subjectToken, subjectTokenType, requestedTokenType, audience string, expiryTime int) string {
+
+	params := url.Values{}
+	params.Add("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange")
+	params.Add("requested_token_type", requestedTokenType)
+	params.Add("subject_token", subjectToken)
+	params.Add("subject_token_type", subjectTokenType)
+	params.Add("audience", audience)
+
+	if expiryTime > 0 {
+		params.Add("expires_in", strconv.Itoa(expiryTime))
+	}
+
+	var scope string
+	roleList := strings.Split(roles, ",")
+	for idx, role := range roleList {
+		if idx != 0 {
+			scope += " "
+		}
+		scope += domain + ":role." + role
+	}
+	params.Add("scope", scope)
+
+	return params.Encode()
+}
+
+// GenerateJAGTokenExchangeRequestString generates and urlencodes a JAG token exchange request.
+// This is used to exchange an ID-JAG token for an access token.
+func GenerateJAGTokenExchangeRequestString(assertion string) string {
+
+	params := url.Values{}
+	params.Add("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer")
+	params.Add("assertion", assertion)
+
+	return params.Encode()
+}
