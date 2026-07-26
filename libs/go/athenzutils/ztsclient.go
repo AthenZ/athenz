@@ -442,21 +442,10 @@ func splitRoleString(roles string) []string {
 	return strings.Split(roles, ",")
 }
 
-// GenerateJAGTokenIssueRequestString generates and urlencodes a JAG token issue request.
-// This is used to exchange an external IdP ID token for an ID-JAG token.
-func GenerateJAGTokenIssueRequestString(domain, roles, subjectToken, subjectTokenType, requestedTokenType, audience string, expiryTime int) string {
-
-	params := url.Values{}
-	params.Add("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange")
-	params.Add("requested_token_type", requestedTokenType)
-	params.Add("subject_token", subjectToken)
-	params.Add("subject_token_type", subjectTokenType)
-	params.Add("audience", audience)
-
-	if expiryTime > 0 {
-		params.Add("expires_in", strconv.Itoa(expiryTime))
+func generateRoleScope(domain, roles string) string {
+	if roles == "" {
+		return ""
 	}
-
 	var scope string
 	roleList := strings.Split(roles, ",")
 	for idx, role := range roleList {
@@ -465,7 +454,43 @@ func GenerateJAGTokenIssueRequestString(domain, roles, subjectToken, subjectToke
 		}
 		scope += domain + ":role." + role
 	}
-	params.Add("scope", scope)
+	return scope
+}
+
+// GenerateJAGTokenIssueRequestString generates and urlencodes a JAG token issue request.
+// This is used to exchange an external IdP ID token for an ID-JAG token.
+func GenerateJAGTokenIssueRequestString(domain, roles, subjectToken, subjectTokenType, requestedTokenType, audience string, expiryTime int) string {
+	return GenerateTokenExchangeRequestString(domain, roles, subjectToken, subjectTokenType, requestedTokenType, audience, "", "", "", expiryTime)
+}
+
+// GenerateTokenExchangeRequestString generates and urlencodes an RFC 8693 token exchange request.
+// This supports both ID-JAG issue and access-token-to-access-token exchange requests.
+func GenerateTokenExchangeRequestString(domain, roles, subjectToken, subjectTokenType, requestedTokenType, audience, actorToken, actorTokenType, actor string, expiryTime int) string {
+	params := url.Values{}
+	params.Add("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange")
+	if requestedTokenType != "" {
+		params.Add("requested_token_type", requestedTokenType)
+	}
+	params.Add("subject_token", subjectToken)
+	params.Add("subject_token_type", subjectTokenType)
+	params.Add("audience", audience)
+
+	if expiryTime > 0 {
+		params.Add("expires_in", strconv.Itoa(expiryTime))
+	}
+
+	if scope := generateRoleScope(domain, roles); scope != "" {
+		params.Add("scope", scope)
+	}
+	if actorToken != "" {
+		params.Add("actor_token", actorToken)
+	}
+	if actorTokenType != "" {
+		params.Add("actor_token_type", actorTokenType)
+	}
+	if actor != "" {
+		params.Add("actor", actor)
+	}
 
 	return params.Encode()
 }

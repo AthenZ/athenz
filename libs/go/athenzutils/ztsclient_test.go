@@ -1143,3 +1143,58 @@ func TestGenerateJAGTokenExchangeRequestString(test *testing.T) {
 		})
 	}
 }
+
+func TestGenerateTokenExchangeRequestString(test *testing.T) {
+
+	tests := []struct {
+		name               string
+		domain             string
+		roles              string
+		subjectToken       string
+		subjectTokenType   string
+		requestedTokenType string
+		audience           string
+		actorToken         string
+		actorTokenType     string
+		actor              string
+		expiryTime         int
+		body               string
+	}{
+		{
+			"access-token-impersonation",
+			"weather",
+			"readers,writers",
+			"eyJhbGciOiJSUzI1NiJ9.testaccesstoken",
+			"urn:ietf:params:oauth:token-type:access_token",
+			"urn:ietf:params:oauth:token-type:access_token",
+			"weather",
+			"",
+			"",
+			"",
+			3600,
+			"audience=weather&expires_in=3600&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&requested_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aaccess_token&scope=weather%3Arole.readers+weather%3Arole.writers&subject_token=eyJhbGciOiJSUzI1NiJ9.testaccesstoken&subject_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aaccess_token",
+		},
+		{
+			"access-token-delegation",
+			"weather",
+			"readers",
+			"eyJhbGciOiJSUzI1NiJ9.testsubject",
+			"urn:ietf:params:oauth:token-type:access_token",
+			"urn:ietf:params:oauth:token-type:access_token",
+			"weather",
+			"eyJhbGciOiJSUzI1NiJ9.testactor",
+			"urn:ietf:params:oauth:token-type:access_token",
+			"weather.next_actor",
+			0,
+			"actor=weather.next_actor&actor_token=eyJhbGciOiJSUzI1NiJ9.testactor&actor_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aaccess_token&audience=weather&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&requested_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aaccess_token&scope=weather%3Arole.readers&subject_token=eyJhbGciOiJSUzI1NiJ9.testsubject&subject_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aaccess_token",
+		},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			body := GenerateTokenExchangeRequestString(tt.domain, tt.roles, tt.subjectToken, tt.subjectTokenType, tt.requestedTokenType, tt.audience, tt.actorToken, tt.actorTokenType, tt.actor, tt.expiryTime)
+			if body != tt.body {
+				test.Errorf("invalid body response\n  got:  %s\n  want: %s", body, tt.body)
+			}
+		})
+	}
+}
