@@ -84,8 +84,11 @@ public class AWSStsCredentialsAttestationValidator implements AWSAttestationVali
     public boolean validateIdentity(InstanceConfirmation confirmation, AWSAttestationData info,
             final String awsAccount, StringBuilder errMsg) {
 
-        try {
-            StsClient stsClient = getInstanceClient(info);
+        if (StringUtil.isEmpty(awsRegion)) {
+            errMsg.append("aws region is not configured");
+            return false;
+        }
+        try (StsClient stsClient = getInstanceClient(info)) {
             if (stsClient == null) {
                 errMsg.append("unable to get AWS STS client object");
                 return false;

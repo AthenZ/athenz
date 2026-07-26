@@ -89,6 +89,17 @@ public class AWSStsCredentialsAttestationValidatorTest {
     }
 
     @Test
+    public void testValidateIdentityNoRegion() {
+        // awsRegion is not configured - the request must be rejected before
+        // attempting to build the STS client
+        AWSStsCredentialsAttestationValidator validator = new AWSStsCredentialsAttestationValidator();
+        AWSAttestationData info = new AWSAttestationData();
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(validator.validateIdentity(null, info, "1234", errMsg));
+        assertTrue(errMsg.toString().contains("aws region is not configured"));
+    }
+
+    @Test
     public void testValidateIdentityNullClient() {
         AWSStsCredentialsAttestationValidator validator = new AWSStsCredentialsAttestationValidator();
         validator.awsRegion = "us-west-2";
@@ -108,6 +119,7 @@ public class AWSStsCredentialsAttestationValidatorTest {
                 return mockClient;
             }
         };
+        validator.awsRegion = "us-west-2";
         AWSAttestationData info = new AWSAttestationData();
         StringBuilder errMsg = new StringBuilder(256);
         assertFalse(validator.validateIdentity(null, info, "1234", errMsg));
@@ -124,6 +136,7 @@ public class AWSStsCredentialsAttestationValidatorTest {
                 return mockClient;
             }
         };
+        validator.awsRegion = "us-west-2";
         AWSAttestationData info = new AWSAttestationData();
         StringBuilder errMsg = new StringBuilder(256);
         assertFalse(validator.validateIdentity(null, info, "1234", errMsg));
@@ -141,6 +154,7 @@ public class AWSStsCredentialsAttestationValidatorTest {
                 return mockClient;
             }
         };
+        validator.awsRegion = "us-west-2";
         AWSAttestationData info = new AWSAttestationData();
         info.setRole("athenz.service");
         StringBuilder errMsg = new StringBuilder(256);
@@ -160,6 +174,7 @@ public class AWSStsCredentialsAttestationValidatorTest {
                 return mockClient;
             }
         };
+        validator.awsRegion = "us-west-2";
         AWSAttestationData info = new AWSAttestationData();
         info.setRole("athenz.service");
         StringBuilder errMsg = new StringBuilder(256);
