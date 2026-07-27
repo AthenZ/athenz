@@ -16,6 +16,9 @@
 package com.yahoo.athenz.auth.token.jwts;
 
 import com.nimbusds.jose.KeySourceException;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.source.JWKSetCacheRefreshEvaluator;
+import com.nimbusds.jose.jwk.source.JWKSetSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.yahoo.athenz.auth.util.CryptoException;
 import org.mockito.Mockito;
@@ -23,6 +26,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.text.ParseException;
 import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -253,7 +258,7 @@ public class JwtsSigningKeyResolverTest {
     @Test
     public void testConstructorListResolversNullList() {
         try {
-            new JwtsSigningKeyResolver(null, true);
+            new JwtsSigningKeyResolver((List<JwtsResolver>) null, true);
             fail();
         } catch (CryptoException ex) {
             assertTrue(ex.getMessage().contains("At least one resolver must be specified"));
@@ -356,6 +361,41 @@ public class JwtsSigningKeyResolverTest {
 
         // Should return null when key extraction fails
         assertNull(resolver.getPublicKey("malformed-ec"));
+    }
+
+    @Test
+    public void testConstructorJWKSetSourceSkipConfig() throws IOException, ParseException {
+        final URL jwksUrl = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json"));
+        final JWKSet jwkSet = JWKSet.load(jwksUrl);
+        JWKSetSource<SecurityContext> jwkSetSource = new JWKSetSource<>() {
+            @Override
+            public JWKSet getJWKSet(JWKSetCacheRefreshEvaluator refreshEvaluator, long currentTime,
+                    SecurityContext context) {
+                return jwkSet;
+            }
+
+            @Override
+            public void close() {
+            }
+        };
+
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwkSetSource, true);
+        resolver.setMillisBetweenZtsCalls(1000);
+
+        assertNotNull(resolver.getKeySource());
+        assertNotNull(resolver.getPublicKey("eckey1"));
+        assertNotNull(resolver.getPublicKey("keyId"));
+        assertNull(resolver.getPublicKey("unknown"));
+    }
+
+    @Test
+    public void testConstructorJWKSetSourceNull() {
+        try {
+            new JwtsSigningKeyResolver((JWKSetSource<SecurityContext>) null, true);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("JWK set source must be specified"));
+        }
     }
 
     @Test

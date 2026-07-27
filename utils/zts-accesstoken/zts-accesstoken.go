@@ -46,7 +46,7 @@ func printVersion() {
 func main() {
 	var domain, service, actor, svcKeyFile, svcCertFile, svcCACertFile, roles, ntokenFile, ztsURL, hdr, conf, accessToken, authzDetails, proxyPrincipalSpiffeUris string
 	var expireTime int
-	var proxy, validate, claims, tokenOnly, showVersion, roleInAudClaim bool
+	var proxy, validate, claims, tokenOnly, showVersion, roleInAudClaim, openidIssuer bool
 	flag.StringVar(&domain, "domain", "", "name of provider domain")
 	flag.StringVar(&service, "service", "", "name of provider service")
 	flag.StringVar(&roles, "roles", "", "comma separated list of provider roles")
@@ -68,6 +68,7 @@ func main() {
 	flag.BoolVar(&tokenOnly, "token-only", false, "Display the access token only")
 	flag.StringVar(&actor, "actor", "", "actor that may request on behalf of the principal")
 	flag.BoolVar(&roleInAudClaim, "role-in-aud-claim", false, "include the role name in the audience claim when a single role is returned")
+	flag.BoolVar(&openidIssuer, "openid-issuer", false, "use OpenID Connect issuer instead of default athenz issuer")
 	flag.Parse()
 
 	if showVersion {
@@ -78,7 +79,7 @@ func main() {
 	if validate {
 		validateAccessToken(accessToken, conf, claims)
 	} else {
-		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, actor, proxy, expireTime, tokenOnly, roleInAudClaim)
+		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, actor, proxy, expireTime, tokenOnly, roleInAudClaim, openidIssuer)
 	}
 }
 
@@ -124,7 +125,7 @@ func validateAccessToken(accessToken, conf string, showClaims bool) {
 	fmt.Println("Access Token successfully validated")
 }
 
-func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, actor string, proxy bool, expireTime int, tokenOnly bool, roleInAudClaim bool) {
+func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, actor string, proxy bool, expireTime int, tokenOnly bool, roleInAudClaim bool, openidIssuer bool) {
 
 	defaultConfig, _ := athenzutils.ReadDefaultConfig()
 	// check to see if we need to use zts url from our default config file
@@ -176,6 +177,11 @@ func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, s
 	if roleInAudClaim {
 		params := url.Values{}
 		params.Add("role_in_aud_claim", "true")
+		request += "&" + params.Encode()
+	}
+	if openidIssuer {
+		params := url.Values{}
+		params.Add("openid_issuer", "true")
 		request += "&" + params.Encode()
 	}
 
