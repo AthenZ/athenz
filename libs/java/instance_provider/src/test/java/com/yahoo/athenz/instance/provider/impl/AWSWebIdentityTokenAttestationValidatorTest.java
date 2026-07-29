@@ -56,11 +56,11 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @AfterMethod
     public void shutdown() {
-        System.clearProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE);
-        System.clearProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ISSUER_REGEX);
-        System.clearProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS);
-        System.clearProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_STS_CLAIM_NAME);
-        System.clearProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_PRINCIPAL_VALIDATOR_FACTORY_CLASS);
+        System.clearProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE);
+        System.clearProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ISSUER_REGEX);
+        System.clearProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS);
+        System.clearProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_STS_CLAIM_NAME);
+        System.clearProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_PRINCIPAL_VALIDATOR_FACTORY_CLASS);
     }
 
     private String generateToken(final String issuer, final String audience, final String subject,
@@ -119,8 +119,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityNoToken() {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
         AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
         AWSAttestationData info = new AWSAttestationData();
         StringBuilder errMsg = new StringBuilder(256);
@@ -130,8 +130,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityNoIssuer() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
         AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
         // token without an issuer
         final String token = generateToken(null, AUDIENCE, "sub", stsClaim("1234", "o-qwsedrftg3"));
@@ -144,8 +144,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityInvalidTokenParse() {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
         AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
         AWSAttestationData info = new AWSAttestationData();
         info.setIdentityToken("not-a-jwt");
@@ -155,8 +155,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityIssuerRegexMismatch() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
         AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
         final String token = generateToken("https://evil.example.com", AUDIENCE, "sub",
                 stsClaim("1234", "o-qwsedrftg3"));
@@ -169,8 +169,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityBadSignature() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
         // resolver points at an empty jwks so the signature cannot be verified
         final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks_empty.json")).toString();
         AWSWebIdentityTokenAttestationValidator validator = new AWSWebIdentityTokenAttestationValidator() {
@@ -190,8 +190,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityNullResolver() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
         AWSWebIdentityTokenAttestationValidator validator = new AWSWebIdentityTokenAttestationValidator() {
             @Override
             JwtsSigningKeyResolver getSigningKeyResolverForIssuer(String issuer, StringBuilder errMsg) {
@@ -245,8 +245,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityAudienceMismatch() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
         AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
         final String token = generateToken(AWS_ISSUER, "some-other-audience", "sub",
                 stsClaim("1234", "o-qwsedrftg3"));
@@ -259,8 +259,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityMissingStsClaim() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
         AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
         final String token = generateToken(AWS_ISSUER, AUDIENCE, "sub", null);
         AWSAttestationData info = new AWSAttestationData();
@@ -272,8 +272,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentitySameAccountSuccess() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
         AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
         final String token = generateToken(AWS_ISSUER, AUDIENCE,
                 "arn:aws:iam::123456789012:role/athenz.api", stsClaim("123456789012", "o-qwsedrftg3"));
@@ -285,8 +285,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityMissingAwsAccountClaim() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
         AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
         Map<String, Object> claim = new HashMap<>();
         claim.put(AWSWebIdentityTokenAttestationValidator.STS_CLAIM_ORG_ID, "o-qwsedrftg3");
@@ -300,13 +300,14 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityCrossAccountAuthorized() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Mockito.when(authorizer.access(eq("launch"), eq("athenz:api:123456789012"), any(Principal.class), any()))
                 .thenReturn(true);
         AWSWebIdentityTokenAttestationValidator validator = newValidator(authorizer);
-        final String token = generateToken(AWS_ISSUER, AUDIENCE, "sub", stsClaim("123456789012", "o-qwsedrftg3"));
+        final String token = generateToken(AWS_ISSUER, AUDIENCE, "arn:aws:iam::123456789012:role/athenz.api",
+                stsClaim("123456789012", "o-qwsedrftg3"));
         AWSAttestationData info = new AWSAttestationData();
         info.setIdentityToken(token);
         StringBuilder errMsg = new StringBuilder(256);
@@ -316,8 +317,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityCrossAccountDenied() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
         Authorizer authorizer = Mockito.mock(Authorizer.class);
         Mockito.when(authorizer.access(any(), any(), any(Principal.class), any())).thenReturn(false);
         AWSWebIdentityTokenAttestationValidator validator = newValidator(authorizer);
@@ -331,8 +332,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityCrossAccountNoAuthorizer() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
         AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
         final String token = generateToken(AWS_ISSUER, AUDIENCE, "sub", stsClaim("123456789012", "o-qwsedrftg3"));
         AWSAttestationData info = new AWSAttestationData();
@@ -344,8 +345,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityOrgIdNotAllowed() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-allowed");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-allowed");
         AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
         final String token = generateToken(AWS_ISSUER, AUDIENCE, "sub", stsClaim("1234", "o-notallowed"));
         AWSAttestationData info = new AWSAttestationData();
@@ -357,8 +358,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityOrgIdMissing() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-allowed");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-allowed");
         AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
         Map<String, Object> claim = new HashMap<>();
         claim.put(AWSWebIdentityTokenAttestationValidator.STS_CLAIM_AWS_ACCOUNT, "1234");
@@ -372,7 +373,7 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityOrgIdAllowlistNotConfigured() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
         // no allowed org ids configured -> all tokens rejected
         AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
         final String token = generateToken(AWS_ISSUER, AUDIENCE, "sub", stsClaim("1234", "o-qwsedrftg3"));
@@ -385,9 +386,9 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityPrincipalValidatorAllow() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-qwsedrftg3");
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_PRINCIPAL_VALIDATOR_FACTORY_CLASS,
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_PRINCIPAL_VALIDATOR_FACTORY_CLASS,
                 "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
         AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
         Map<String, Object> claim = stsClaim("1234", "o-qwsedrftg3");
@@ -403,9 +404,9 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
 
     @Test
     public void testValidateIdentityPrincipalValidatorDeny() throws Exception {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_ATTESTATION_AUDIENCE, AUDIENCE);
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_OIDC_ALLOWED_ORG_IDS, "o-qwsedrftg3");
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_PRINCIPAL_VALIDATOR_FACTORY_CLASS,
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_PRINCIPAL_VALIDATOR_FACTORY_CLASS,
                 "com.yahoo.athenz.instance.provider.impl.MockFailingAttrValidatorFactory");
         AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
         final String token = generateToken(AWS_ISSUER, AUDIENCE, "arn:aws:iam::1234:role/athenz.api",
@@ -418,8 +419,131 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
     }
 
     @Test
+    public void testValidateIdentityRoleMismatch() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
+        // the token was obtained by the sys.auth.cron role but the request is for the
+        // athenz.api service - the mandatory binding must reject this
+        final String token = generateToken(AWS_ISSUER, AUDIENCE,
+                "arn:aws:iam::123456789012:role/sys.auth.cron", stsClaim("123456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(validator.validateIdentity(confirmation(), info, "123456789012", errMsg));
+        assertTrue(errMsg.toString().contains("does not match requested service"));
+    }
+
+    @Test
+    public void testValidateIdentityRoleFromArnPath() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
+        // the iam path must be stripped and only the final role name compared
+        final String token = generateToken(AWS_ISSUER, AUDIENCE,
+                "arn:aws:iam::123456789012:role/team/prod/athenz.api", stsClaim("123456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+        StringBuilder errMsg = new StringBuilder(256);
+        assertTrue(validator.validateIdentity(confirmation(), info, "123456789012", errMsg));
+    }
+
+    @Test
+    public void testValidateIdentityRoleShortName() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
+        // the omitDomain form where the iam role is named for the service only
+        final String token = generateToken(AWS_ISSUER, AUDIENCE,
+                "arn:aws:iam::123456789012:role/api", stsClaim("123456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+        StringBuilder errMsg = new StringBuilder(256);
+        assertTrue(validator.validateIdentity(confirmation(), info, "123456789012", errMsg));
+    }
+
+    @Test
+    public void testValidateIdentityInvalidSubjectArn() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
+        final String token = generateToken(AWS_ISSUER, AUDIENCE, "not-an-arn",
+                stsClaim("123456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(validator.validateIdentity(confirmation(), info, "123456789012", errMsg));
+        assertTrue(errMsg.toString().contains("unable to extract iam role"));
+    }
+
+    @Test
+    public void testValidateIdentityNoSubject() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
+        // a token that passes all prior checks but carries no subject at all
+        final String token = generateToken(AWS_ISSUER, AUDIENCE, null,
+                stsClaim("123456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(validator.validateIdentity(confirmation(), info, "123456789012", errMsg));
+        assertTrue(errMsg.toString().contains("unable to extract iam role"));
+    }
+
+    @Test
+    public void testValidateIdentityEmptyRolePart() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
+        // an arn whose role portion is empty
+        final String token = generateToken(AWS_ISSUER, AUDIENCE, "arn:aws:iam::123456789012:role/",
+                stsClaim("123456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(validator.validateIdentity(confirmation(), info, "123456789012", errMsg));
+        assertTrue(errMsg.toString().contains("unable to extract iam role"));
+    }
+
+    @Test
+    public void testValidateIdentityRoleMismatchButPrincipalAllows() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        // an adopter validator is the escape hatch - when the default role binding does
+        // not match, the configured AttrValidator gets the final say and may allow it
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_PRINCIPAL_VALIDATOR_FACTORY_CLASS,
+                "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
+        final String token = generateToken(AWS_ISSUER, AUDIENCE,
+                "arn:aws:iam::123456789012:role/some-other-role", stsClaim("123456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+        StringBuilder errMsg = new StringBuilder(256);
+        assertTrue(validator.validateIdentity(confirmation(), info, "123456789012", errMsg));
+    }
+
+    @Test
+    public void testValidateIdentityRoleMismatchPrincipalDenies() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        // the default role binding does not match and the configured AttrValidator also
+        // rejects - the request must be denied with the principal validation message
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_PRINCIPAL_VALIDATOR_FACTORY_CLASS,
+                "com.yahoo.athenz.instance.provider.impl.MockFailingAttrValidatorFactory");
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
+        final String token = generateToken(AWS_ISSUER, AUDIENCE,
+                "arn:aws:iam::123456789012:role/some-other-role", stsClaim("123456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(validator.validateIdentity(confirmation(), info, "123456789012", errMsg));
+        assertTrue(errMsg.toString().contains("principal validation failed"));
+    }
+
+    @Test
     public void testNewPrincipalValidatorInvalidClass() {
-        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_PRINCIPAL_VALIDATOR_FACTORY_CLASS,
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_PRINCIPAL_VALIDATOR_FACTORY_CLASS,
                 "com.yahoo.athenz.instance.provider.impl.UnknownFactoryClass");
         AWSWebIdentityTokenAttestationValidator validator = new AWSWebIdentityTokenAttestationValidator();
         try {

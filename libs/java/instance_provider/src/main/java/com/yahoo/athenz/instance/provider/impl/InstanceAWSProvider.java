@@ -62,7 +62,7 @@ public class InstanceAWSProvider implements InstanceProvider {
     static final String AWS_PROP_VALIDATE_IP_ADDRESS    = "athenz.zts.aws_validate_ip_address";
     static final String AWS_PROP_ALLOWED_IP_ADDRESSES   = "athenz.zts.aws_allowed_ip_addresses";
 
-    static final String AWS_PROP_ATTESTATION_VALIDATOR_FACTORY_CLASS = "athenz.zts.aws.attestation_validator_factory_class";
+    static final String AWS_PROP_ATTESTATION_VALIDATOR_FACTORY_CLASS = "athenz.zts.aws_attestation_validator_factory_class";
     static final String AWS_DEFAULT_ATTESTATION_VALIDATOR_FACTORY_CLASS =
             "com.yahoo.athenz.instance.provider.impl.DefaultAWSAttestationValidatorFactory";
 
@@ -349,7 +349,8 @@ public class InstanceAWSProvider implements InstanceProvider {
 
         StringBuilder identityErrMsg = new StringBuilder(256);
         if (!attestationValidator.validateIdentity(confirmation, info, awsAccount, identityErrMsg)) {
-            throw error("Unable to verify instance identity credentials: " + identityErrMsg);
+            LOGGER.error("Unable to verify instance identity credentials: {}", identityErrMsg);
+            throw error("Unable to verify instance identity credentials");
         }
         
         return confirmation;
@@ -427,7 +428,8 @@ public class InstanceAWSProvider implements InstanceProvider {
 
         StringBuilder identityErrMsg = new StringBuilder(256);
         if (!attestationValidator.validateIdentity(confirmation, info, awsAccount, identityErrMsg)) {
-            throw error("Unable to verify instance identity credentials: " + identityErrMsg);
+            LOGGER.error("Unable to verify instance identity credentials during refresh: {}", identityErrMsg);
+            throw error("Unable to verify instance identity credentials");
         }
         
         return confirmation;

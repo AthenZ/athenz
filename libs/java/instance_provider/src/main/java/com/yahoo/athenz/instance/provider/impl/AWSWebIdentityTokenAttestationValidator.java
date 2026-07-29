@@ -56,22 +56,29 @@ import static com.yahoo.athenz.instance.provider.InstanceProvider.ZTS_INSTANCE_A
  *   <li>the audience matches the configured audience,</li>
  *   <li>the token's aws_account matches the domain's AWS account, or a launch
  *       authorization is granted for the token's account,</li>
- *   <li>the org_id is present in the configured allowlist, and</li>
- *   <li>the sub and principal_tags pass an optional adopter-supplied
- *       {@link AttrValidator}.</li>
+ *   <li>the org_id is present in the configured allowlist,</li>
+ *   <li>the iam role name in the token subject matches the requested athenz
+ *       service (the default binding that prevents one role from obtaining
+ *       another service's identity), and</li>
+ *   <li>the sub and principal_tags pass an adopter-supplied {@link AttrValidator}
+ *       if one is configured. When configured, the AttrValidator has the final
+ *       say on the principal and is the escape hatch for adopters whose iam role
+ *       names diverge from the service - it is consulted even when the default
+ *       role binding above does not match. Without one, the default binding is
+ *       strictly enforced.</li>
  * </ul>
  */
 public class AWSWebIdentityTokenAttestationValidator implements AWSAttestationValidator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AWSWebIdentityTokenAttestationValidator.class);
 
-    static final String AWS_PROP_ATTESTATION_AUDIENCE = "athenz.zts.aws.attestation_audience";
-    static final String AWS_PROP_OIDC_ISSUER_REGEX    = "athenz.zts.aws.oidc_issuer_regex";
-    static final String AWS_PROP_OIDC_ALLOWED_ORG_IDS = "athenz.zts.aws.oidc_allowed_org_ids";
-    static final String AWS_PROP_OIDC_STS_CLAIM_NAME  = "athenz.zts.aws.oidc_sts_claim_name";
-    static final String AWS_PROP_PRINCIPAL_VALIDATOR_FACTORY_CLASS = "athenz.zts.aws.oidc_principal_validator_factory_class";
+    static final String AWS_PROP_WEB_IDENTITY_AUDIENCE = "athenz.zts.aws_web_identity_audience";
+    static final String AWS_PROP_WEB_IDENTITY_ISSUER_REGEX    = "athenz.zts.aws_web_identity_issuer_regex";
+    static final String AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS = "athenz.zts.aws_web_identity_allowed_org_ids";
+    static final String AWS_PROP_WEB_IDENTITY_STS_CLAIM_NAME  = "athenz.zts.aws_web_identity_sts_claim_name";
+    static final String AWS_PROP_WEB_IDENTITY_PRINCIPAL_VALIDATOR_FACTORY_CLASS = "athenz.zts.aws_web_identity_principal_validator_factory_class";
 
-    static final String AWS_DEFAULT_OIDC_ISSUER_REGEX = "https://[a-z0-9-]+\\.tokens\\.sts\\.global\\.api\\.aws";
+    static final String AWS_DEFAULT_WEB_IDENTITY_ISSUER_REGEX = "https://[a-z0-9-]+\\.tokens\\.sts\\.global\\.api\\.aws";
     static final String AWS_DEFAULT_STS_CLAIM_NAME    = "https://sts.amazonaws.com/";
 
     static final String STS_CLAIM_AWS_ACCOUNT   = "aws_account";
@@ -79,7 +86,7 @@ public class AWSWebIdentityTokenAttestationValidator implements AWSAttestationVa
     static final String STS_CLAIM_PRINCIPAL_TAGS = "principal_tags";
 
     static final String ACTION_LAUNCH = "launch";
-    static final String AWS_PROP_PROXY_FOR_OIDC_DISCOVERY = "athenz.zts.aws.oidc_discovery_proxy";
+    static final String AWS_PROP_WEB_IDENTITY_DISCOVERY_PROXY = "athenz.zts.aws_web_identity_discovery_proxy";
 
     String audience;
     String stsClaimName;
@@ -96,16 +103,23 @@ public class AWSWebIdentityTokenAttestationValidator implements AWSAttestationVa
     public void initialize(SSLContext sslContext, Authorizer authorizer) {
 
         this.authorizer = authorizer;
-        audience = System.getProperty(AWS_PROP_ATTESTATION_AUDIENCE, "athenz.io");
-        issuerPattern = Pattern.compile(System.getProperty(AWS_PROP_OIDC_ISSUER_REGEX, AWS_DEFAULT_OIDC_ISSUER_REGEX));
-        stsClaimName = System.getProperty(AWS_PROP_OIDC_STS_CLAIM_NAME, AWS_DEFAULT_STS_CLAIM_NAME);
-        allowedOrgIds = new DynamicConfigCsv(CONFIG_MANAGER, AWS_PROP_OIDC_ALLOWED_ORG_IDS, null);
-        oidcDiscoveryProxy = System.getProperty(AWS_PROP_PROXY_FOR_OIDC_DISCOVERY, null);
+        audience = System.getProperty(AWS_PROP_WEB_IDENTITY_AUDIENCE, null);
+        issuerPattern = Pattern.compile(System.getProperty(AWS_PROP_WEB_IDENTITY_ISSUER_REGEX, AWS_DEFAULT_WEB_IDENTITY_ISSUER_REGEX));
+        stsClaimName = System.getProperty(AWS_PROP_WEB_IDENTITY_STS_CLAIM_NAME, AWS_DEFAULT_STS_CLAIM_NAME);
+        allowedOrgIds = new DynamicConfigCsv(CONFIG_MANAGER, AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, null);
+        oidcDiscoveryProxy = System.getProperty(AWS_PROP_WEB_IDENTITY_DISCOVERY_PROXY, null);
         principalValidator = newPrincipalValidator(sslContext);
+        if (audience == null) {
+            LOGGER.error("audience must be set for validation, no instance requests will be authorized.");
+        }
+        List<String> allowedOrgIdList = allowedOrgIds.getStringsList();
+        if (allowedOrgIdList == null || allowedOrgIdList.isEmpty()) {
+            LOGGER.error("one or more org ids must be set for validation, no instance requests will be authorized.");
+        }
     }
 
     static AttrValidator newPrincipalValidator(final SSLContext sslContext) {
-        final String factoryClass = System.getProperty(AWS_PROP_PRINCIPAL_VALIDATOR_FACTORY_CLASS);
+        final String factoryClass = System.getProperty(AWS_PROP_WEB_IDENTITY_PRINCIPAL_VALIDATOR_FACTORY_CLASS);
         if (StringUtil.isEmpty(factoryClass)) {
             return null;
         }
@@ -213,9 +227,64 @@ public class AWSWebIdentityTokenAttestationValidator implements AWSAttestationVa
             return false;
         }
 
-        // finally run the optional adopter specific principal validation
+        // default binding: the iam role that obtained the token (sub) must match the
+        // requested athenz service - this prevents one role in the account from
+        // obtaining a certificate for a different service identity. adopters whose iam
+        // role names diverge from the service can configure a principal AttrValidator,
+        // which is then given the final say even when this default binding does not
+        // match. without such a validator the default binding is strictly enforced.
+
+        StringBuilder roleErrMsg = new StringBuilder(256);
+        if (!validateRole(confirmation, idToken, roleErrMsg) && principalValidator == null) {
+            errMsg.append(roleErrMsg);
+            return false;
+        }
+
+        // run the adopter specific principal validation (also the escape hatch above)
 
         return validatePrincipal(confirmation, idToken, stsClaim, errMsg);
+    }
+
+    boolean validateRole(final InstanceConfirmation confirmation, final IdToken idToken, StringBuilder errMsg) {
+
+        // the token subject is the iam role arn that obtained the token; extract the
+        // role name and require it to match the requested athenz service identity -
+        // either the fully qualified <domain>.<service> or just the <service> name
+        // (mirroring the role name accepted by the sts credentials path)
+
+        final String roleName = getRoleNameFromArn(idToken.getSubject());
+        if (StringUtil.isEmpty(roleName)) {
+            errMsg.append("unable to extract iam role name from token subject: ").append(idToken.getSubject());
+            return false;
+        }
+        final String serviceName = confirmation.getService();
+        final String expectedRole = confirmation.getDomain() + "." + serviceName;
+        if (roleName.equals(expectedRole) || roleName.equals(serviceName)) {
+            return true;
+        }
+        errMsg.append("token principal role ").append(roleName)
+                .append(" does not match requested service ").append(expectedRole);
+        return false;
+    }
+
+    static String getRoleNameFromArn(final String sub) {
+
+        // expected arn format: arn:aws:iam::<account>:role/<optional/path/>/<name>
+        // the role name is the final path segment (the iam path, if any, is stripped)
+
+        if (StringUtil.isEmpty(sub)) {
+            return null;
+        }
+        final int idx = sub.indexOf(":role/");
+        if (idx < 0) {
+            return null;
+        }
+        final String rolePart = sub.substring(idx + ":role/".length());
+        if (rolePart.isEmpty()) {
+            return null;
+        }
+        final int slash = rolePart.lastIndexOf('/');
+        return slash < 0 ? rolePart : rolePart.substring(slash + 1);
     }
 
     boolean validateAwsAccount(final InstanceConfirmation confirmation, final Map<String, Object> stsClaim,

@@ -128,9 +128,19 @@ identityToken present?  ── yes ──▶ AWSWebIdentityTokenAttestationValid
      `launch` authorization is required — `authorizer.access("launch",
      "<domain>:<service>:<tokenAwsAccount>", <domain>.<service>)` (mirrors EKS).
   5. `org_id` must be present and in the configured allowlist (mandatory).
-  6. If an adopter `AttrValidator` is configured, the `sub` and `principal_tags`
-     are placed on the confirmation attributes and `attrValidator.confirm(...)` is
-     called; if none is configured this step is skipped (permissive).
+  6. **Principal role binding (default).** The IAM role name in the token `sub`
+     (`arn:aws:iam::<acct>:role/[path/]<name>` — the IAM path, if any, is stripped)
+     must equal the requested service: `<domain>.<service>` or `<service>`. This mirrors
+     the STS validator's ARN check and prevents one role in the account from obtaining a
+     certificate for a different service identity (e.g. a `sys.auth.cron` role requesting
+     `sys.auth.zts`). Since AWS only mints a token for the role a workload actually is,
+     the `sub` cannot be forged to another service.
+  7. If an adopter `AttrValidator` is configured, the `sub` and `principal_tags` are
+     placed on the confirmation attributes and `attrValidator.confirm(...)` is called.
+     When configured it has the **final say** on the principal and is the escape hatch
+     for adopters whose IAM role names diverge from the service — it is consulted even
+     when the default binding in step 6 does not match. When **not** configured, the
+     step 6 binding is strictly enforced (a mismatch is rejected).
 
 ## 5. Reused building blocks
 
@@ -147,8 +157,9 @@ existing provider extension points:
   expiry and exposes `getAudience`, `getSubject`, `getClaim(name)` (used to read the
   nested `https://sts.amazonaws.com/` claim).
 - `com.yahoo.athenz.instance.provider.AttrValidator` / `AttrValidatorFactory` — the
-  existing extension point reused for adopter-specific `sub` / `principal_tags`
-  validation (same mechanism the K8S provider uses for subject validation).
+  existing extension point reused for **additional** adopter-specific `sub` /
+  `principal_tags` validation on top of the mandatory role-name binding (same mechanism
+  the K8S provider uses for subject validation).
 - `com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv` — the
   dynamically-reloadable `org_id` allowlist.
 
@@ -160,12 +171,13 @@ path). With none set, behavior is identical to the previous STS-only implementat
 
 | Property | Purpose | Default |
 |---|---|---|
-| `athenz.zts.aws.attestation_validator_factory_class` | Fully-qualified `AWSAttestationValidatorFactory` to load | `com.yahoo.athenz.instance.provider.impl.DefaultAWSAttestationValidatorFactory` |
-| `athenz.zts.aws.attestation_audience` | Expected JWT audience (`aud`) — set to the ZTS URL | `athenz.io` |
-| `athenz.zts.aws.oidc_issuer_regex` | Allowed issuer (`iss`) host pattern | `https://[a-z0-9-]+\.tokens\.sts\.global\.api\.aws` |
-| `athenz.zts.aws.oidc_allowed_org_ids` | **Mandatory** `org_id` allowlist (CSV, dynamically reloadable) | *(empty → every token rejected)* |
-| `athenz.zts.aws.oidc_principal_validator_factory_class` | Optional adopter `AttrValidatorFactory` for `sub`/`principal_tags` | *(unset → skipped)* |
-| `athenz.zts.aws.oidc_sts_claim_name` | Nested identity claim key | `https://sts.amazonaws.com/` |
+| `athenz.zts.aws_attestation_validator_factory_class` | Fully-qualified `AWSAttestationValidatorFactory` to load | `com.yahoo.athenz.instance.provider.impl.DefaultAWSAttestationValidatorFactory` |
+| `athenz.zts.aws_web_identity_audience` | Expected JWT audience (`aud`) — set to the ZTS URL | *(unset → every token rejected)* |
+| `athenz.zts.aws_web_identity_issuer_regex` | Allowed issuer (`iss`) host pattern | `https://[a-z0-9-]+\.tokens\.sts\.global\.api\.aws` |
+| `athenz.zts.aws_web_identity_allowed_org_ids` | **Mandatory** `org_id` allowlist (CSV, dynamically reloadable) | *(empty → every token rejected)* |
+| `athenz.zts.aws_web_identity_principal_validator_factory_class` | Optional adopter `AttrValidatorFactory` for `sub`/`principal_tags`. When set it has the final say on the principal (and overrides the default role-name binding); when unset the default binding is strictly enforced | *(unset → default binding enforced)* |
+| `athenz.zts.aws_web_identity_sts_claim_name` | Nested identity claim key | `https://sts.amazonaws.com/` |
+| `athenz.zts.aws_web_identity_discovery_proxy` | Optional HTTP proxy for issuer OIDC discovery + JWKS fetch | *(none)* |
 | `athenz.zts.aws_region_name` | AWS region for the STS client (reused, pre-existing) | *(none)* |
 
 ### Attestation data schema
@@ -214,15 +226,20 @@ An adopter can plug in custom behavior at two levels without modifying this modu
 1. Implement `AWSAttestationValidator` (and optionally reuse
    `AWSStsCredentialsAttestationValidator` / `AWSWebIdentityTokenAttestationValidator`).
 2. Implement `AWSAttestationValidatorFactory.create(...)` to build + `initialize` it.
-3. Set `-Dathenz.zts.aws.attestation_validator_factory_class=<your.Factory>`.
+3. Set `-Dathenz.zts.aws_attestation_validator_factory_class=<your.Factory>`.
 
-**Principal (sub/tags) validation only** — supply an `AttrValidatorFactory` via
-`-Dathenz.zts.aws.oidc_principal_validator_factory_class=<your.Factory>`. The validator
-receives the `InstanceConfirmation` with the token `sub` in the
+**Principal (sub/tags) validation** — the default role-name binding (role in `sub` must
+equal the requested service) is enforced whenever no adopter validator is configured.
+Adopters whose IAM role names diverge from the service, or who need extra `principal_tags`
+policy, supply an `AttrValidatorFactory` via
+`-Dathenz.zts.aws_web_identity_principal_validator_factory_class=<your.Factory>`; when set it has
+the final say on the principal and is consulted even if the default binding does not match.
+The validator receives the `InstanceConfirmation` with the token `sub` in the
 `attestationDataSubject` attribute and each principal tag under the
 `awsPrincipalTag:<TagName>` attribute prefix
 (`InstanceProvider.ZTS_INSTANCE_ATTESTATION_DATA_SUBJECT` /
-`ZTS_INSTANCE_AWS_PRINCIPAL_TAG_PREFIX`).
+`ZTS_INSTANCE_AWS_PRINCIPAL_TAG_PREFIX`). Adopters who need to reject certain requests
+outright can also replace the whole validator (above).
 
 ## 9. Testing
 
@@ -232,7 +249,7 @@ Unit tests (TestNG + Mockito; module enforces 100% line coverage) under
 | Test | Covers |
 |---|---|
 | `AWSStsCredentialsAttestationValidatorTest` | STS client creation, `GetCallerIdentity`, ARN match/mismatch, null/exception paths |
-| `AWSWebIdentityTokenAttestationValidator[Test]` | Issuer extraction + regex, per-issuer JWKS resolution & cache, signature/expiry, audience, nested `sts` claim, aws_account match, cross-account launch authorization (allow/deny/no-authorizer), mandatory org_id allowlist, `AttrValidator` principal allow/deny/skip |
+| `AWSWebIdentityTokenAttestationValidator[Test]` | Issuer extraction + regex, per-issuer JWKS resolution & cache, signature/expiry, audience, nested `sts` claim, aws_account match, cross-account launch authorization (allow/deny/no-authorizer), mandatory org_id allowlist, default role-name binding (match / mismatch / IAM path / service-only / malformed / missing sub) and its `AttrValidator` override (mismatch allowed/denied), `AttrValidator` principal allow/deny/skip |
 | `CompositeAWSAttestationValidatorTest` | Routing (token → JWT, no token → STS), init delegation |
 | `DefaultAWSAttestationValidatorFactoryTest` | Factory returns an initialized composite |
 | `InstanceAWSProviderTest` | Factory selection (default/custom/invalid class), `setAuthorizer`, confirm/refresh delegation via `MockAWSAttestationValidator` |
