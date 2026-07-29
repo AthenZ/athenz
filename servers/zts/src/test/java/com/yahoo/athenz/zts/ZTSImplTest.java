@@ -13851,6 +13851,24 @@ public class ZTSImplTest {
         assertEquals(zts.getIdTokenAudience("id", Boolean.TRUE, idTokenGroups), "id");
     }
 
+    @Test
+    public void testGetAccessTokenAudience() {
+        assertEquals(zts.getAccessTokenAudience("sports", false, null), "sports");
+        assertEquals(zts.getAccessTokenAudience("sports", true, null), "sports");
+
+        List<String> roles = new ArrayList<>();
+        assertEquals(zts.getAccessTokenAudience("sports", false, roles), "sports");
+        assertEquals(zts.getAccessTokenAudience("sports", true, roles), "sports");
+
+        roles.add("writers");
+        assertEquals(zts.getAccessTokenAudience("sports", false, roles), "sports");
+        assertEquals(zts.getAccessTokenAudience("sports", true, roles), "sports:writers");
+
+        roles.add("readers");
+        assertEquals(zts.getAccessTokenAudience("sports", false, roles), "sports");
+        assertEquals(zts.getAccessTokenAudience("sports", true, roles), "sports");
+    }
+
     private ServerPrivateKey getServerPrivateKey(ZTSImpl ztsImpl, final String keyType) {
 
         // look for the preferred key type - RSA or EC.

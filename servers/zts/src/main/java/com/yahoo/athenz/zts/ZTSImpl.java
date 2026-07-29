@@ -2273,6 +2273,11 @@ public class ZTSImpl implements ZTSHandler {
                 clientId + ":" + idTokenGroups.get(0) : clientId;
     }
 
+    String getAccessTokenAudience(final String domainName, boolean roleInAudClaim, List<String> roles) {
+        return (roleInAudClaim && roles != null && roles.size() == 1) ?
+                domainName + ":" + roles.get(0) : domainName;
+    }
+
     List<String> processIdTokenGroups(final String principalName, IdTokenScope tokenRequest,
                                       final String clientIdDomainName, Boolean allScopePresent,
                                       final String principalDomain, final String caller) {
@@ -3749,13 +3754,14 @@ public class ZTSImpl implements ZTSHandler {
                     caller, domainName, principalDomain);
         }
 
+        List<String> roleList = new ArrayList<>(roles);
         int tokenTimeout = determineTokenTimeout(data, roles, null, accessTokenRequest.getExpiryTime());
         long iat = System.currentTimeMillis() / 1000;
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
         accessToken.setJwtId(UUID.randomUUID().toString());
-        accessToken.setAudience(domainName);
+        accessToken.setAudience(getAccessTokenAudience(domainName, accessTokenRequest.isRoleInAudClaim(), roleList));
         accessToken.setClientId(principalName);
         accessToken.setIssueTime(iat);
         accessToken.setAuthTime(iat);
@@ -3764,7 +3770,7 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setSubject(principalName);
         accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), accessTokenRequest.isUseOpenIDIssuer()));
         accessToken.setProxyPrincipal(proxyUser);
-        accessToken.setScope(new ArrayList<>(roles));
+        accessToken.setScope(roleList);
         accessToken.setAuthorizationDetails(accessTokenRequest.getAuthzDetails());
         accessToken.setPrincipalIssuer(principal.getIssuerIdentity());
 
