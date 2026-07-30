@@ -1493,6 +1493,42 @@ func (client ZTSClient) PostUserCertificateRequest(req *UserCertificateRequest) 
 	}
 }
 
+func (client ZTSClient) PostExternalMemberCertificateRequest(req *ExternalMemberCertificateRequest) (*ExternalMemberCertificate, error) {
+	var data *ExternalMemberCertificate
+	url := client.URL + "/extmembercert"
+	contentBytes, err := json.Marshal(req)
+	if err != nil {
+		return data, err
+	}
+	resp, err := client.httpPost(url, nil, contentBytes)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client ZTSClient) GetRdlSchema() (*rdl.Schema, error) {
 	var data *rdl.Schema
 	url := client.URL + "/schema"

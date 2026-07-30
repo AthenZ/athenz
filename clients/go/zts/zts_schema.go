@@ -588,6 +588,20 @@ func init() {
 	tUserCertificateRequest.Field("x509CertSignerKeyId", "SimpleName", true, nil, "requested x509 cert signer key id")
 	sb.AddType(tUserCertificateRequest.Build())
 
+	tExternalMemberCertificate := rdl.NewStructTypeBuilder("Struct", "ExternalMemberCertificate")
+	tExternalMemberCertificate.Comment("ExternalMemberCertificate - an external member certificate")
+	tExternalMemberCertificate.Field("x509Certificate", "String", false, nil, "")
+	sb.AddType(tExternalMemberCertificate.Build())
+
+	tExternalMemberCertificateRequest := rdl.NewStructTypeBuilder("Struct", "ExternalMemberCertificateRequest")
+	tExternalMemberCertificateRequest.Comment("ExternalMemberCertificateRequest - an external member certificate signing request")
+	tExternalMemberCertificateRequest.Field("name", "ExternalMemberName", false, nil, "name of the external member")
+	tExternalMemberCertificateRequest.Field("csr", "String", false, nil, "external member certificate signing request")
+	tExternalMemberCertificateRequest.Field("attestationData", "String", false, nil, "identity attestation data")
+	tExternalMemberCertificateRequest.Field("expiryTime", "Int32", true, nil, "expiry time in minutes for the certificate (server enforces max expiry)")
+	tExternalMemberCertificateRequest.Field("x509CertSignerKeyId", "SimpleName", true, nil, "requested x509 cert signer key id")
+	sb.AddType(tExternalMemberCertificateRequest.Build())
+
 	tRdl_Identifier := rdl.NewStringTypeBuilder("rdl.Identifier")
 	tRdl_Identifier.Comment("All names need to be of this restricted string type")
 	tRdl_Identifier.Pattern("[a-zA-Z_]+[a-zA-Z_0-9]*")
@@ -1240,6 +1254,17 @@ func init() {
 	mPostUserCertificateRequest.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mPostUserCertificateRequest.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostUserCertificateRequest.Build())
+
+	mPostExternalMemberCertificateRequest := rdl.NewResourceBuilder("ExternalMemberCertificate", "POST", "/extmembercert")
+	mPostExternalMemberCertificateRequest.Comment("Return a TLS certificate for the given external member")
+	mPostExternalMemberCertificateRequest.Name("PostExternalMemberCertificateRequest")
+	mPostExternalMemberCertificateRequest.Input("req", "ExternalMemberCertificateRequest", false, "", "", false, nil, "csr request")
+	mPostExternalMemberCertificateRequest.Exception("BAD_REQUEST", "ResourceError", "")
+	mPostExternalMemberCertificateRequest.Exception("FORBIDDEN", "ResourceError", "")
+	mPostExternalMemberCertificateRequest.Exception("NOT_FOUND", "ResourceError", "")
+	mPostExternalMemberCertificateRequest.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
+	mPostExternalMemberCertificateRequest.Exception("UNAUTHORIZED", "ResourceError", "")
+	sb.AddResource(mPostExternalMemberCertificateRequest.Build())
 
 	mGetRdlSchema := rdl.NewResourceBuilder("rdl.Schema", "GET", "/schema")
 	mGetRdlSchema.Comment("Get RDL Schema")

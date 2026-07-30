@@ -5578,6 +5578,36 @@ public class ZTSClientTest {
         client.close();
     }
 
+    @Test
+    public void testPostExternalMemberCertificateRequest() {
+        ZTSClient client = new ZTSClient("http://localhost:4080");
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        ExternalMemberCertificateRequest req = new ExternalMemberCertificateRequest()
+                .setName("email:ext.joe@athenz.io").setCsr("csr").setAttestationData("valid");
+        ExternalMemberCertificate userCert = client.postExternalMemberCertificateRequest(req);
+        assertNotNull(userCert);
+        assertEquals(userCert.getX509Certificate(), "x509cert");
+
+        try {
+            req.setAttestationData("exc");
+            client.postExternalMemberCertificateRequest(req);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        try {
+            req.setAttestationData("forbidden");
+            client.postExternalMemberCertificateRequest(req);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+        client.close();
+    }
+
     private static class CountingZTSRDLClientMock extends ZTSRDLClientMock {
         final java.util.concurrent.atomic.AtomicInteger getRoleTokenCalls = new java.util.concurrent.atomic.AtomicInteger();
         final java.util.concurrent.atomic.AtomicInteger postAccessTokenCalls = new java.util.concurrent.atomic.AtomicInteger();

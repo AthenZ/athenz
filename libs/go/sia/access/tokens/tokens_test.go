@@ -1077,15 +1077,29 @@ func assertParseJwt(a *assert.Assertions, token []byte) jwt.MapClaims {
 	return claims
 }
 
+func TestMakeTokenRequestRoleInAudClaim(t *testing.T) {
+	a := assert.New(t)
+
+	withoutFlag := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", false, false)
+	v, err := url.ParseQuery(withoutFlag)
+	a.NoError(err)
+	a.Empty(v.Get("role_in_aud_claim"), "role_in_aud_claim should be absent when flag is false")
+
+	withFlag := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", true, false)
+	v, err = url.ParseQuery(withFlag)
+	a.NoError(err)
+	a.Equal("true", v.Get("role_in_aud_claim"), "role_in_aud_claim should be 'true' when flag is set")
+}
+
 func TestMakeTokenRequestOpenIDIssuer(t *testing.T) {
 	a := assert.New(t)
 
-	withoutFlag := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", false)
+	withoutFlag := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", false, false)
 	v, err := url.ParseQuery(withoutFlag)
 	a.NoError(err)
 	a.Empty(v.Get("openid_issuer"), "openid_issuer should be absent when flag is false")
 
-	withFlag := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", true)
+	withFlag := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", false, true)
 	v, err = url.ParseQuery(withFlag)
 	a.NoError(err)
 	a.Equal("true", v.Get("openid_issuer"), "openid_issuer should be 'true' when flag is set")
