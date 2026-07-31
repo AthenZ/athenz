@@ -118,6 +118,21 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
     }
 
     @Test
+    public void testValidateIdentityNoAudience() throws Exception {
+        // audience is not configured - the request must be rejected (not NPE) even
+        // when a valid token is presented
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
+        final String token = generateToken(AWS_ISSUER, AUDIENCE,
+                "arn:aws:iam::123456789012:role/athenz.api", stsClaim("123456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(validator.validateIdentity(confirmation(), info, "123456789012", errMsg));
+        assertTrue(errMsg.toString().contains("audience is not configured"));
+    }
+
+    @Test
     public void testValidateIdentityNoToken() {
         System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
         System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");

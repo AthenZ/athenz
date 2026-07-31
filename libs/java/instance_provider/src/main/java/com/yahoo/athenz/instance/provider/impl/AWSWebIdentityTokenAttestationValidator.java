@@ -168,6 +168,12 @@ public class AWSWebIdentityTokenAttestationValidator implements AWSAttestationVa
     public boolean validateIdentity(InstanceConfirmation confirmation, AWSAttestationData info,
             final String awsAccount, StringBuilder errMsg) {
 
+        // the audience is a mandatory configuration - so we return an error immediately
+        if (audience == null) {
+            errMsg.append("audience is not configured for AWS web identity attestation");
+            return false;
+        }
+
         final String jwToken = info.getIdentityToken();
         if (StringUtil.isEmpty(jwToken)) {
             errMsg.append("no identity token provided in attestation data");
