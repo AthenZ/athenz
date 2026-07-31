@@ -15,7 +15,6 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertEquals;
@@ -26,8 +25,10 @@ import static org.testng.Assert.fail;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.instance.provider.AWSAttestationValidator;
+import com.yahoo.athenz.instance.provider.AWSAttestationValidatorFactory;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
-import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -36,9 +37,8 @@ import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.ProviderResourceException;
 
 import com.yahoo.rdl.Timestamp;
-import software.amazon.awssdk.services.sts.StsClient;
-import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
-import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
+
+import javax.net.ssl.SSLContext;
 
 public class InstanceAWSProviderTest {
     
@@ -552,46 +552,76 @@ public class InstanceAWSProviderTest {
     }
 
     @Test
-    public void testInstanceClient() {
-        
+    public void testProviderScheme() {
         InstanceAWSProvider provider = new InstanceAWSProvider();
-        provider.awsRegion = "us-west-2";
         assertEquals(provider.getProviderScheme(), InstanceProvider.Scheme.CLASS);
-
-        AWSAttestationData data = new AWSAttestationData();
-
-        // first with null and empty access point
-        
-        data.setAccess(null);
-        assertNull(provider.getInstanceClient(data));
-        
-        data.setAccess("");
-        assertNull(provider.getInstanceClient(data));
-
-        // null and empty secret
-        
-        data.setAccess("access");
-        
-        data.setSecret(null);
-        assertNull(provider.getInstanceClient(data));
-        
-        data.setSecret("");
-        assertNull(provider.getInstanceClient(data));
-        
-        // null and empty token
-        
-        data.setSecret("secret");
-        
-        data.setToken(null);
-        assertNull(provider.getInstanceClient(data));
-        
-        data.setToken("");
-        assertNull(provider.getInstanceClient(data));
-        
-        data.setToken("valid");
-        assertNotNull(provider.getInstanceClient(data));
+        provider.close();
     }
-    
+
+    @Test
+    public void testSetAuthorizer() {
+        InstanceAWSProvider provider = new InstanceAWSProvider();
+        Authorizer authorizer = (action, resource, principal, crossDomain) -> true;
+        provider.setAuthorizer(authorizer);
+        assertEquals(provider.authorizer, authorizer);
+        provider.close();
+    }
+
+    @Test
+    public void testDefaultAttestationValidatorFactory() {
+        InstanceAWSProvider provider = new InstanceAWSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+        assertNotNull(provider.attestationValidator);
+        assertTrue(provider.attestationValidator instanceof CompositeAWSAttestationValidator);
+        provider.close();
+    }
+
+    @Test
+    public void testCustomAttestationValidatorFactory() {
+        System.setProperty(InstanceAWSProvider.AWS_PROP_ATTESTATION_VALIDATOR_FACTORY_CLASS,
+                "com.yahoo.athenz.instance.provider.impl.InstanceAWSProviderTest$TestAttestationValidatorFactory");
+        InstanceAWSProvider provider = new InstanceAWSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+        assertTrue(provider.attestationValidator instanceof TestAttestationValidator);
+        provider.close();
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_ATTESTATION_VALIDATOR_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testInvalidAttestationValidatorFactory() {
+        System.setProperty(InstanceAWSProvider.AWS_PROP_ATTESTATION_VALIDATOR_FACTORY_CLASS,
+                "com.yahoo.athenz.instance.provider.impl.UnknownValidatorFactoryClass");
+        InstanceAWSProvider provider = new InstanceAWSProvider();
+        try {
+            provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().contains("Invalid AWS attestation validator factory class"));
+        }
+        provider.close();
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_ATTESTATION_VALIDATOR_FACTORY_CLASS);
+    }
+
+    public static class TestAttestationValidator implements AWSAttestationValidator {
+        @Override
+        public void initialize(SSLContext sslContext, Authorizer authorizer) {
+        }
+        @Override
+        public boolean validateIdentity(InstanceConfirmation confirmation, AWSAttestationData info,
+                String awsAccount, StringBuilder errMsg) {
+            return true;
+        }
+    }
+
+    public static class TestAttestationValidatorFactory implements AWSAttestationValidatorFactory {
+        @Override
+        public AWSAttestationValidator create(SSLContext sslContext, Authorizer authorizer) {
+            AWSAttestationValidator validator = new TestAttestationValidator();
+            validator.initialize(sslContext, authorizer);
+            return validator;
+        }
+    }
+
     @Test
     public void testValidateAWSDocumentFailures() {
         
@@ -626,69 +656,6 @@ public class InstanceAWSProviderTest {
         assertFalse(provider.validateAWSInstanceId("1234", "12345", errMsg));
         assertFalse(provider.validateAWSInstanceId("1234", null, errMsg));
         assertTrue(provider.validateAWSInstanceId("1234", "1234", errMsg));
-    }
-    
-    @Test
-    public void testVerifyInstanceIdentityNullClient() {
-        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        provider.setIdentitySuper(true);
-        AWSAttestationData info = new AWSAttestationData();
-        assertFalse(provider.verifyInstanceIdentity(info, "1234"));
-    }
-    
-    @Test
-    public void testVerifyInstanceIdentityNullIdentity() {
-        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        provider.setIdentitySuper(true);
-        StsClient mockClient = Mockito.mock(StsClient.class);
-        Mockito.when(mockClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(null);
-        provider.setStsClient(mockClient);
-        
-        AWSAttestationData info = new AWSAttestationData();
-        assertFalse(provider.verifyInstanceIdentity(info, "1234"));
-    }
-    
-    @Test
-    public void testVerifyInstanceIdentityException() {
-        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        provider.setIdentitySuper(true);
-        StsClient mockClient = Mockito.mock(StsClient.class);
-        Mockito.when(mockClient.getCallerIdentity(any(GetCallerIdentityRequest.class)))
-                .thenThrow(new IllegalArgumentException("invalid request"));
-        provider.setStsClient(mockClient);
-        
-        AWSAttestationData info = new AWSAttestationData();
-        assertFalse(provider.verifyInstanceIdentity(info, "1234"));
-    }
-    
-    @Test
-    public void testVerifyInstanceIdentityARNMismatch() {
-        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        provider.setIdentitySuper(true);
-        StsClient mockClient = Mockito.mock(StsClient.class);
-        GetCallerIdentityResponse result = Mockito.mock(GetCallerIdentityResponse.class);
-        Mockito.when(result.arn()).thenReturn("arn:aws:sts::1235:assumed-role/athenz.service/athenz.service");
-        Mockito.when(mockClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(result);
-        provider.setStsClient(mockClient);
-        
-        AWSAttestationData info = new AWSAttestationData();
-        info.setRole("athenz.service");
-        assertFalse(provider.verifyInstanceIdentity(info, "1234"));
-    }
-    
-    @Test
-    public void testVerifyInstanceIdentity() {
-        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
-        provider.setIdentitySuper(true);
-        StsClient mockClient = Mockito.mock(StsClient.class);
-        GetCallerIdentityResponse result = Mockito.mock(GetCallerIdentityResponse.class);
-        Mockito.when(result.arn()).thenReturn("arn:aws:sts::1234:assumed-role/athenz.service/athenz.service");
-        Mockito.when(mockClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(result);
-        provider.setStsClient(mockClient);
-        
-        AWSAttestationData info = new AWSAttestationData();
-        info.setRole("athenz.service");
-        assertTrue(provider.verifyInstanceIdentity(info, "1234"));
     }
     
     @Test

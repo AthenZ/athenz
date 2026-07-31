@@ -16,29 +16,21 @@
 package com.yahoo.athenz.instance.provider.impl;
 
 import com.yahoo.athenz.auth.KeyStore;
-import software.amazon.awssdk.services.sts.StsClient;
 
 import javax.net.ssl.SSLContext;
 
 public class MockInstanceAWSECSProvider extends InstanceAWSECSProvider {
 
-    boolean identityResult = true;
-    boolean identitySuper = false;
-    StsClient stsClient;
+    final MockAWSAttestationValidator mockValidator = new MockAWSAttestationValidator();
 
     @Override
     public void initialize(String provider, String providerEndpoint, SSLContext sslContext, KeyStore keyStore) {
         super.initialize(provider, providerEndpoint, sslContext, keyStore);
         awsUtils = new MockInstanceAWSUtils();
+        setAttestationValidator(mockValidator);
     }
-    
-    @Override
-    public boolean verifyInstanceIdentity(AWSAttestationData info, final String awsAccount) {
-        return identitySuper ? super.verifyInstanceIdentity(info, awsAccount) : identityResult;
-    }
-    
-    @Override
-    public StsClient getInstanceClient(AWSAttestationData info) {
-        return stsClient != null ? stsClient : super.getInstanceClient(info);
+
+    void setIdentityResult(boolean value) {
+        mockValidator.identityResult = value;
     }
 }
