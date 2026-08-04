@@ -30,12 +30,16 @@ public class AWSAttestationDataTest {
         data.setSecret("secret");
         data.setSignature("signature");
         data.setToken("token");
-        
+        data.setTaskid("taskid");
+        data.setIdentityToken("identityToken");
+
         assertEquals(data.getAccess(), "access");
         assertEquals(data.getDocument(), "document");
         assertEquals(data.getRole(), "role");
         assertEquals(data.getSecret(), "secret");
         assertEquals(data.getSignature(), "signature");
         assertEquals(data.getToken(), "token");
+        assertEquals(data.getTaskid(), "taskid");
+        assertEquals(data.getIdentityToken(), "identityToken");
     }
 }
