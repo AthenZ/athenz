@@ -67,8 +67,7 @@ func GetMetaDetailsFromCreds(serviceSuffix, accessProfileSeparator string, useRe
 // GetWebIdentityToken requests an AWS-issued OIDC web identity token via STS and returns
 // the raw JWT string. audience is set as the token's aud claim (typically the ZTS URL).
 // signingAlgorithm must be "RS256" or "ES384". durationSeconds controls token lifetime
-// (60–3600); pass 0 to use the SDK default (300 s). tags is an optional list of
-// key/value pairs to embed as custom claims in the JWT; pass nil when not needed.
+// tags is an optional list of key/value pairs to embed as custom claims in the JWT;
 func GetWebIdentityToken(useRegionalSTS bool, region, audience, signingAlgorithm string, durationSeconds int32, tags []types.Tag) (string, error) {
 	return WebIdentityTokenFetcher(useRegionalSTS, region, audience, signingAlgorithm, durationSeconds, tags)
 }
@@ -76,7 +75,7 @@ func GetWebIdentityToken(useRegionalSTS bool, region, audience, signingAlgorithm
 func fetchWebIdentityToken(useRegionalSTS bool, region, audience, signingAlgorithm string, durationSeconds int32, tags []types.Tag) (string, error) {
 	stsClient, err := New(useRegionalSTS, region)
 	if err != nil {
-		return "", fmt.Errorf("unable to create STS session for web identity token: %v", err)
+		return "", fmt.Errorf("unable to create STS session for web identity token: %w", err)
 	}
 	input := &sts.GetWebIdentityTokenInput{
 		Audience:         []string{audience},
@@ -90,7 +89,7 @@ func fetchWebIdentityToken(useRegionalSTS bool, region, audience, signingAlgorit
 	}
 	out, err := stsClient.GetWebIdentityToken(context.TODO(), input)
 	if err != nil {
-		return "", fmt.Errorf("unable to get web identity token: %v", err)
+		return "", fmt.Errorf("unable to get web identity token: %W", err)
 	}
 	if out.WebIdentityToken == nil {
 		return "", fmt.Errorf("web identity token response contained nil token")

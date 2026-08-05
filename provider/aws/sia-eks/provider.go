@@ -88,7 +88,7 @@ func (eks EKSProvider) CloudAttestationData(request *provider.AttestationRequest
 			audience = request.WebIdentityAudience
 		}
 		return attestation.NewWebIdentity(request.Domain, request.Service, request.Region,
-			audience, request.WebIdentitySigningAlgorithm, request.OmitDomain,
+			audience, request.WebIdentitySigningAlgorithm, request.UseRegionalSTS, request.OmitDomain,
 			request.WebIdentityDurationSeconds, nil, request.EC2Document, request.EC2Signature)
 	}
 	return attestation.New(request.Domain, request.Service, request.Region, request.Account, request.EC2Document, request.EC2Signature, request.UseRegionalSTS, request.OmitDomain, request.RolePath)

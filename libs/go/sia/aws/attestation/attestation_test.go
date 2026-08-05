@@ -60,7 +60,7 @@ func TestNewWebIdentity_StructHasIdentityToken(t *testing.T) {
 	}
 
 	jsonStr, err := NewWebIdentity("domain", "service", "us-east-1",
-		"https://zts.example.com", "ES384", false, 120, nil, "", "")
+		"https://zts.example.com", "ES384", false, false, 120, nil, "", "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -101,7 +101,7 @@ func TestNewWebIdentity_OmitDomain(t *testing.T) {
 	}
 
 	jsonStr, err := NewWebIdentity("domain", "svc", "us-east-1",
-		"https://zts.example.com", "ES384", true /*omitDomain*/, 120, nil, "", "")
+		"https://zts.example.com", "ES384", false, true /*omitDomain*/, 120, nil, "", "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -115,14 +115,16 @@ func TestNewWebIdentity_OmitDomain(t *testing.T) {
 	}
 }
 
-// TestNewWebIdentity_PassesAudienceToFetcher verifies the audience string is forwarded.
+// TestNewWebIdentity_PassesAudienceToFetcher verifies audience, algorithm, duration, and useRegionalSTS are forwarded.
 func TestNewWebIdentity_PassesAudienceToFetcher(t *testing.T) {
 	orig := stssession.WebIdentityTokenFetcher
 	defer func() { stssession.WebIdentityTokenFetcher = orig }()
 
+	var capturedRegionalSTS bool
 	var capturedAudience, capturedAlgorithm string
 	var capturedDuration int32
-	stssession.WebIdentityTokenFetcher = func(_ bool, _, audience, algorithm string, duration int32, _ []types.Tag) (string, error) {
+	stssession.WebIdentityTokenFetcher = func(useRegionalSTS bool, _, audience, algorithm string, duration int32, _ []types.Tag) (string, error) {
+		capturedRegionalSTS = useRegionalSTS
 		capturedAudience = audience
 		capturedAlgorithm = algorithm
 		capturedDuration = duration
@@ -130,9 +132,12 @@ func TestNewWebIdentity_PassesAudienceToFetcher(t *testing.T) {
 	}
 
 	_, err := NewWebIdentity("d", "s", "us-east-1",
-		"https://zts.custom.com", "ES384", false, 120, nil, "", "")
+		"https://zts.custom.com", "ES384", true /*useRegionalSTS*/, false, 120, nil, "", "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
+	}
+	if !capturedRegionalSTS {
+		t.Error("expected useRegionalSTS=true to be forwarded to fetcher")
 	}
 	if capturedAudience != "https://zts.custom.com" {
 		t.Errorf("expected audience 'https://zts.custom.com', got %q", capturedAudience)
@@ -155,7 +160,7 @@ func TestNewWebIdentity_FetchError(t *testing.T) {
 	}
 
 	_, err := NewWebIdentity("d", "s", "us-east-1",
-		"https://zts.example.com", "ES384", false, 120, nil, "", "")
+		"https://zts.example.com", "ES384", false, false, 120, nil, "", "")
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}

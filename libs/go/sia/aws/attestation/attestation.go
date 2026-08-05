@@ -95,9 +95,9 @@ func getSTSToken(useRegionalSTS bool, region, account, role, rolePath string) (*
 // token (JWT) instead of STS temporary credentials. ZTS routes to its local JWT
 // validation path when identityToken is non-empty. audience is the intended recipient
 // of the token (typically the ZTS URL). signingAlgorithm must be "RS256" or "ES384".
-// durationSeconds sets the token lifetime (60–3600); 0 uses the service default (120 s).
+// durationSeconds sets the token lifetime (60–3600);
 // tags is an optional list of key/value pairs added as custom claims to the JWT.
-func NewWebIdentity(domain, service, region, audience, signingAlgorithm string, omitDomain bool, durationSeconds int32, tags []types.Tag, ec2Document, ec2Signature string) (string, error) {
+func NewWebIdentity(domain, service, region, audience, signingAlgorithm string, useRegionalSTS, omitDomain bool, durationSeconds int32, tags []types.Tag, ec2Document, ec2Signature string) (string, error) {
 	commonName := fmt.Sprintf("%s.%s", domain, service)
 	var role string
 	if omitDomain {
@@ -105,7 +105,7 @@ func NewWebIdentity(domain, service, region, audience, signingAlgorithm string, 
 	} else {
 		role = commonName
 	}
-	tok, err := stssession.GetWebIdentityToken(false, region, audience, signingAlgorithm, durationSeconds, tags)
+	tok, err := stssession.GetWebIdentityToken(useRegionalSTS, region, audience, signingAlgorithm, durationSeconds, tags)
 	if err != nil {
 		return "", err
 	}
