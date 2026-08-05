@@ -23,7 +23,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/sts/types"
 )
+
+// WebIdentityTokenFetcher is a function type for fetching an AWS web identity token.
+// It is a package-level variable so tests can replace it with a stub.
+var WebIdentityTokenFetcher = fetchWebIdentityToken
 
 func New(useRegionalSTS bool, region string) (*sts.Client, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(),
@@ -57,4 +62,38 @@ func GetMetaDetailsFromCreds(serviceSuffix, accessProfileSeparator string, useRe
 		return "", "", "", "", err
 	}
 	return util.ParseAssumedRoleArn(*result.Arn, serviceSuffix, accessProfileSeparator)
+}
+
+// GetWebIdentityToken requests an AWS-issued OIDC web identity token via STS and returns
+// the raw JWT string. audience is set as the token's aud claim (typically the ZTS URL).
+// signingAlgorithm must be "RS256" or "ES384". durationSeconds controls token lifetime
+// (60–3600); pass 0 to use the SDK default (300 s). tags is an optional list of
+// key/value pairs to embed as custom claims in the JWT; pass nil when not needed.
+func GetWebIdentityToken(useRegionalSTS bool, region, audience, signingAlgorithm string, durationSeconds int32, tags []types.Tag) (string, error) {
+	return WebIdentityTokenFetcher(useRegionalSTS, region, audience, signingAlgorithm, durationSeconds, tags)
+}
+
+func fetchWebIdentityToken(useRegionalSTS bool, region, audience, signingAlgorithm string, durationSeconds int32, tags []types.Tag) (string, error) {
+	stsClient, err := New(useRegionalSTS, region)
+	if err != nil {
+		return "", fmt.Errorf("unable to create STS session for web identity token: %v", err)
+	}
+	input := &sts.GetWebIdentityTokenInput{
+		Audience:         []string{audience},
+		SigningAlgorithm: aws.String(signingAlgorithm),
+	}
+	if durationSeconds > 0 {
+		input.DurationSeconds = aws.Int32(durationSeconds)
+	}
+	if len(tags) > 0 {
+		input.Tags = tags
+	}
+	out, err := stsClient.GetWebIdentityToken(context.TODO(), input)
+	if err != nil {
+		return "", fmt.Errorf("unable to get web identity token: %v", err)
+	}
+	if out.WebIdentityToken == nil {
+		return "", fmt.Errorf("web identity token response contained nil token")
+	}
+	return *out.WebIdentityToken, nil
 }

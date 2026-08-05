@@ -81,6 +81,15 @@ func (fargate FargateProvider) GetSuffixes() []string {
 }
 
 func (fargate FargateProvider) CloudAttestationData(request *provider.AttestationRequest) (string, error) {
+	if request.UseWebIdentityToken {
+		audience := request.ZTSUrl
+		if request.WebIdentityAudience != "" {
+			audience = request.WebIdentityAudience
+		}
+		return attestation.NewWebIdentity(request.Domain, request.Service, request.Region,
+			audience, request.WebIdentitySigningAlgorithm, request.OmitDomain,
+			request.WebIdentityDurationSeconds, nil, request.EC2Document, request.EC2Signature)
+	}
 	return attestation.New(request.Domain, request.Service, request.Region, request.Account, request.EC2Document, request.EC2Signature, request.UseRegionalSTS, request.OmitDomain, request.RolePath)
 }
 

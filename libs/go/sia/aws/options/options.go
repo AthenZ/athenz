@@ -275,6 +275,27 @@ func InitEnvConfig(config *sc.Config) (*sc.Config, *sc.ConfigAccount, error) {
     if config.RolePath == "" {
         config.RolePath = os.Getenv("ATHENZ_SIA_ROLE_PATH")
     }
+	if !config.AwsWebIdentity {
+		config.AwsWebIdentity = util.ParseEnvBooleanFlag("ATHENZ_SIA_AWS_WEB_IDENTITY")
+	}
+	if config.AwsWebIdentityAudience == "" {
+		config.AwsWebIdentityAudience = os.Getenv("ATHENZ_SIA_AWS_WEB_IDENTITY_AUDIENCE")
+	}
+	if config.AwsWebIdentitySigningAlgorithm == "" {
+		config.AwsWebIdentitySigningAlgorithm = os.Getenv("ATHENZ_SIA_AWS_WEB_IDENTITY_SIGNING_ALGORITHM")
+	}
+	if config.AwsWebIdentityDurationSeconds == 0 {
+		durationSeconds := util.ParseEnvIntFlag("ATHENZ_SIA_AWS_WEB_IDENTITY_DURATION_SECONDS", 0)
+		if durationSeconds > 0 {
+			config.AwsWebIdentityDurationSeconds = int32(durationSeconds)
+		}
+	}
+	if config.AwsWebIdentitySigningAlgorithm == "" {
+		config.AwsWebIdentitySigningAlgorithm = "ES384"
+	}
+	if config.AwsWebIdentityDurationSeconds == 0 {
+		config.AwsWebIdentityDurationSeconds = 120
+	}
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 	if roleArn == "" {
@@ -402,6 +423,10 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 	roleCertsRequired := false
 	httpPort := 0
 	rolePath := ""
+	useWebIdentityToken := false
+	webIdentityAudience := ""
+	webIdentitySigningAlgorithm := ""
+	var webIdentityDurationSeconds int32
 
 	var storeTokenOption *int
 	if config != nil {
@@ -421,6 +446,11 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		roleCertsRequired = config.RoleCertsRequired
 		httpPort = config.HttpPort
 		rolePath = config.RolePath
+		useWebIdentityToken = config.AwsWebIdentity
+		webIdentityAudience = config.AwsWebIdentityAudience
+		webIdentitySigningAlgorithm = config.AwsWebIdentitySigningAlgorithm
+		webIdentityDurationSeconds = config.AwsWebIdentityDurationSeconds
+
 
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
@@ -675,6 +705,10 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		OTel:                   oTelCfg,
 		HttpPort:               httpPort,
 		RolePath:               rolePath,
+		UseWebIdentityToken:             useWebIdentityToken,
+		WebIdentityAudience:             webIdentityAudience,
+		WebIdentitySigningAlgorithm:     webIdentitySigningAlgorithm,
+		WebIdentityDurationSeconds:      webIdentityDurationSeconds,
 	}, nil
 }
 

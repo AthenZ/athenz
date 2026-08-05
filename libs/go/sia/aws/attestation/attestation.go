@@ -26,16 +26,18 @@ import (
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/stssession"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/sts/types"
 )
 
 type AttestationData struct {
-	Role       string `json:"role,omitempty"`       //the IAM role. This must match the athenz service identity
-	CommonName string `json:"commonName,omitempty"` //The common name for CSR. Different from Role if we're using service name only
-	Access     string `json:"access,omitempty"`     //the temp creds access key id
-	Secret     string `json:"secret,omitempty"`     //the temp creds secret key
-	Token      string `json:"token,omitempty"`      //the temp creds session token
-	Document   string `json:"document,omitempty"`   //for EC2 instance document
-	Signature  string `json:"signature,omitempty"`  //for EC2 instance document pkcs7 signature
+	Role          string `json:"role,omitempty"`          //the IAM role. This must match the athenz service identity
+	CommonName    string `json:"commonName,omitempty"`    //The common name for CSR. Different from Role if we're using service name only
+	Access        string `json:"access,omitempty"`        //the temp creds access key id
+	Secret        string `json:"secret,omitempty"`        //the temp creds secret key
+	Token         string `json:"token,omitempty"`         //the temp creds session token
+	Document      string `json:"document,omitempty"`      //for EC2 instance document
+	Signature     string `json:"signature,omitempty"`     //for EC2 instance document pkcs7 signature
+	IdentityToken string `json:"identityToken,omitempty"` //AWS web identity token (JWT); when set, ZTS uses the local JWT validation path
 }
 
 // New creates a new AttestationData with values fed to it and from the result of STS Assume Role.
@@ -87,6 +89,37 @@ func getSTSToken(useRegionalSTS bool, region, account, role, rolePath string) (*
 		RoleArn:         &roleArn,
 		RoleSessionName: &role,
 	})
+}
+
+// NewWebIdentity creates AttestationData populated with an AWS-issued OIDC web identity
+// token (JWT) instead of STS temporary credentials. ZTS routes to its local JWT
+// validation path when identityToken is non-empty. audience is the intended recipient
+// of the token (typically the ZTS URL). signingAlgorithm must be "RS256" or "ES384".
+// durationSeconds sets the token lifetime (60–3600); 0 uses the service default (120 s).
+// tags is an optional list of key/value pairs added as custom claims to the JWT.
+func NewWebIdentity(domain, service, region, audience, signingAlgorithm string, omitDomain bool, durationSeconds int32, tags []types.Tag, ec2Document, ec2Signature string) (string, error) {
+	commonName := fmt.Sprintf("%s.%s", domain, service)
+	var role string
+	if omitDomain {
+		role = service
+	} else {
+		role = commonName
+	}
+	tok, err := stssession.GetWebIdentityToken(false, region, audience, signingAlgorithm, durationSeconds, tags)
+	if err != nil {
+		return "", err
+	}
+	data, err := json.Marshal(&AttestationData{
+		Role:          role,
+		CommonName:    commonName,
+		Document:      ec2Document,
+		Signature:     ec2Signature,
+		IdentityToken: tok,
+	})
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }
 
 func GetECSTaskId() string {

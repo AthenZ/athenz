@@ -733,6 +733,10 @@ func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_RUN_AFTER_CERTS_ERROR", "/run-after-error.sh")
 	os.Setenv("ATHENZ_SIA_RUN_AFTER_TOKENS", "/run-after-tokens.sh")
 	os.Setenv("ATHENZ_SIA_RUN_AFTER_TOKENS_ERROR", "/run-after-tokens-error.sh")
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY", "true")
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY_AUDIENCE", "https://zts.athenz.io")
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY_SIGNING_ALGORITHM", "RS256")
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY_DURATION_SECONDS", "300")
 
 	cfg, cfgAccount, err := InitEnvConfig(nil)
 	require.Nilf(t, err, "error should be empty, error: %v", err)
@@ -776,6 +780,54 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, "/run-after-error.sh", cfg.RunAfterCertsErr)
 	assert.Equal(t, "/run-after-tokens.sh", cfg.RunAfterTokens)
 	assert.Equal(t, "/run-after-tokens-error.sh", cfg.RunAfterTokensErr)
+	assert.True(t, cfg.AwsWebIdentity)
+	assert.Equal(t, "https://zts.athenz.io", cfg.AwsWebIdentityAudience)
+	assert.Equal(t, "RS256", cfg.AwsWebIdentitySigningAlgorithm)
+	assert.Equal(t, int32(300), cfg.AwsWebIdentityDurationSeconds)
+
+	os.Clearenv()
+}
+
+func TestInitEnvConfigWebIdentityDefaults(t *testing.T) {
+	os.Clearenv()
+	os.Setenv("ATHENZ_SIA_IAM_ROLE_ARN", "arn:aws:iam::123456789012:role/athenz.api")
+
+	cfg, _, err := InitEnvConfig(nil)
+	require.Nilf(t, err, "unexpected error: %v", err)
+
+	// feature is off by default
+	assert.False(t, cfg.AwsWebIdentity)
+	assert.Equal(t, "", cfg.AwsWebIdentityAudience)
+	// signing algorithm and duration must fall back to hardcoded defaults
+	assert.Equal(t, "ES384", cfg.AwsWebIdentitySigningAlgorithm)
+	assert.Equal(t, int32(120), cfg.AwsWebIdentityDurationSeconds)
+
+	os.Clearenv()
+}
+
+func TestInitEnvConfigWebIdentityConfigFileWins(t *testing.T) {
+	os.Clearenv()
+	os.Setenv("ATHENZ_SIA_IAM_ROLE_ARN", "arn:aws:iam::123456789012:role/athenz.api")
+	// env vars set to values that should NOT win
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY", "false")
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY_AUDIENCE", "https://env-audience.example.com")
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY_SIGNING_ALGORITHM", "RS256")
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY_DURATION_SECONDS", "600")
+
+	// config already populated (simulates values read from sia config file)
+	preloaded := &sc.Config{
+		AwsWebIdentity:                 true,
+		AwsWebIdentityAudience:         "https://config-file-audience.example.com",
+		AwsWebIdentitySigningAlgorithm: "ES384",
+		AwsWebIdentityDurationSeconds:  180,
+	}
+	cfg, _, err := InitEnvConfig(preloaded)
+	require.Nilf(t, err, "unexpected error: %v", err)
+
+	assert.True(t, cfg.AwsWebIdentity)
+	assert.Equal(t, "https://config-file-audience.example.com", cfg.AwsWebIdentityAudience)
+	assert.Equal(t, "ES384", cfg.AwsWebIdentitySigningAlgorithm)
+	assert.Equal(t, int32(180), cfg.AwsWebIdentityDurationSeconds)
 
 	os.Clearenv()
 }
