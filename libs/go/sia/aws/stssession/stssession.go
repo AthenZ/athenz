@@ -67,8 +67,16 @@ func GetMetaDetailsFromCreds(serviceSuffix, accessProfileSeparator string, useRe
 // GetWebIdentityToken requests an AWS-issued OIDC web identity token via STS and returns
 // the raw JWT string. audience is set as the token's aud claim (typically the ZTS URL).
 // signingAlgorithm must be "RS256" or "ES384". durationSeconds controls token lifetime
+// and must be between 60 and 3600 (inclusive) to account for clock skew tolerance.
 // tags is an optional list of key/value pairs to embed as custom claims in the JWT;
+// pass nil when not needed.
 func GetWebIdentityToken(useRegionalSTS bool, region, audience, signingAlgorithm string, durationSeconds int32, tags []types.Tag) (string, error) {
+	if signingAlgorithm != "RS256" && signingAlgorithm != "ES384" {
+		return "", fmt.Errorf("invalid signing algorithm %q: must be RS256 or ES384", signingAlgorithm)
+	}
+	if durationSeconds < 60 || durationSeconds > 3600 {
+		return "", fmt.Errorf("invalid durationSeconds %d: must be between 60 and 3600", durationSeconds)
+	}
 	return WebIdentityTokenFetcher(useRegionalSTS, region, audience, signingAlgorithm, durationSeconds, tags)
 }
 
@@ -80,16 +88,14 @@ func fetchWebIdentityToken(useRegionalSTS bool, region, audience, signingAlgorit
 	input := &sts.GetWebIdentityTokenInput{
 		Audience:         []string{audience},
 		SigningAlgorithm: aws.String(signingAlgorithm),
-	}
-	if durationSeconds > 0 {
-		input.DurationSeconds = aws.Int32(durationSeconds)
+		DurationSeconds:  aws.Int32(durationSeconds),
 	}
 	if len(tags) > 0 {
 		input.Tags = tags
 	}
 	out, err := stsClient.GetWebIdentityToken(context.TODO(), input)
 	if err != nil {
-		return "", fmt.Errorf("unable to get web identity token: %W", err)
+		return "", fmt.Errorf("unable to get web identity token: %w", err)
 	}
 	if out.WebIdentityToken == nil {
 		return "", fmt.Errorf("web identity token response contained nil token")

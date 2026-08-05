@@ -54,7 +54,7 @@ func TestGetWebIdentityToken_PassesCorrectArgs(t *testing.T) {
 	stub, cap := stubFetcher("fake.jwt.token", nil)
 	WebIdentityTokenFetcher = stub
 
-	tok, err := GetWebIdentityToken(false, "us-east-1", "https://zts.example.com", "ES384", 120, nil)
+	tok, err := GetWebIdentityToken(false, "us-east-1", "https://zts.example.com", "ES384", 300, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -67,8 +67,8 @@ func TestGetWebIdentityToken_PassesCorrectArgs(t *testing.T) {
 	if cap.signingAlgorithm != "ES384" {
 		t.Errorf("expected signingAlgorithm 'ES384', got %q", cap.signingAlgorithm)
 	}
-	if cap.durationSeconds != 120 {
-		t.Errorf("expected durationSeconds 120, got %d", cap.durationSeconds)
+	if cap.durationSeconds != 300 {
+		t.Errorf("expected durationSeconds 300, got %d", cap.durationSeconds)
 	}
 	if len(cap.tags) != 0 {
 		t.Errorf("expected no tags, got %v", cap.tags)
@@ -82,7 +82,7 @@ func TestGetWebIdentityToken_PropagatesError(t *testing.T) {
 	stub, _ := stubFetcher("", fmt.Errorf("sts unavailable"))
 	WebIdentityTokenFetcher = stub
 
-	_, err := GetWebIdentityToken(false, "us-east-1", "https://zts.example.com", "ES384", 120, nil)
+	_, err := GetWebIdentityToken(false, "us-east-1", "https://zts.example.com", "ES384", 300, nil)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -107,5 +107,50 @@ func TestGetWebIdentityToken_WithTags(t *testing.T) {
 	}
 	if *cap.tags[0].Key != "env" || *cap.tags[0].Value != "prod" {
 		t.Errorf("unexpected tag: %v", cap.tags[0])
+	}
+}
+
+func TestGetWebIdentityToken_InvalidSigningAlgorithm(t *testing.T) {
+	_, err := GetWebIdentityToken(false, "us-east-1", "https://zts.example.com", "RS512", 300, nil)
+	if err == nil {
+		t.Fatal("expected error for invalid signing algorithm, got nil")
+	}
+	if err.Error() != `invalid signing algorithm "RS512": must be RS256 or ES384` {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+func TestGetWebIdentityToken_DurationTooShort(t *testing.T) {
+	_, err := GetWebIdentityToken(false, "us-east-1", "https://zts.example.com", "ES384", 59, nil)
+	if err == nil {
+		t.Fatal("expected error for duration < 60, got nil")
+	}
+	if err.Error() != "invalid durationSeconds 59: must be between 60 and 3600" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+func TestGetWebIdentityToken_DurationTooLong(t *testing.T) {
+	_, err := GetWebIdentityToken(false, "us-east-1", "https://zts.example.com", "ES384", 3601, nil)
+	if err == nil {
+		t.Fatal("expected error for duration > 3600, got nil")
+	}
+	if err.Error() != "invalid durationSeconds 3601: must be between 60 and 3600" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+func TestGetWebIdentityToken_BoundaryDurationsAccepted(t *testing.T) {
+	orig := WebIdentityTokenFetcher
+	defer func() { WebIdentityTokenFetcher = orig }()
+
+	stub, _ := stubFetcher("tok", nil)
+	WebIdentityTokenFetcher = stub
+
+	if _, err := GetWebIdentityToken(false, "us-east-1", "https://zts.example.com", "ES384", 60, nil); err != nil {
+		t.Errorf("expected 60s to be accepted, got: %v", err)
+	}
+	if _, err := GetWebIdentityToken(false, "us-east-1", "https://zts.example.com", "ES384", 3600, nil); err != nil {
+		t.Errorf("expected 3600s to be accepted, got: %v", err)
 	}
 }

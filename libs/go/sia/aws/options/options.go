@@ -294,7 +294,7 @@ func InitEnvConfig(config *sc.Config) (*sc.Config, *sc.ConfigAccount, error) {
 		config.AwsWebIdentitySigningAlgorithm = "ES384"
 	}
 	if config.AwsWebIdentityDurationSeconds == 0 {
-		config.AwsWebIdentityDurationSeconds = 120
+		config.AwsWebIdentityDurationSeconds = 300
 	}
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")

@@ -60,7 +60,7 @@ func TestNewWebIdentity_StructHasIdentityToken(t *testing.T) {
 	}
 
 	jsonStr, err := NewWebIdentity("domain", "service", "us-east-1",
-		"https://zts.example.com", "ES384", false, false, 120, nil, "", "")
+		"https://zts.example.com", "ES384", false, false, 300, nil, "", "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -101,7 +101,7 @@ func TestNewWebIdentity_OmitDomain(t *testing.T) {
 	}
 
 	jsonStr, err := NewWebIdentity("domain", "svc", "us-east-1",
-		"https://zts.example.com", "ES384", false, true /*omitDomain*/, 120, nil, "", "")
+		"https://zts.example.com", "ES384", false, true /*omitDomain*/, 300, nil, "", "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -132,7 +132,7 @@ func TestNewWebIdentity_PassesAudienceToFetcher(t *testing.T) {
 	}
 
 	_, err := NewWebIdentity("d", "s", "us-east-1",
-		"https://zts.custom.com", "ES384", true /*useRegionalSTS*/, false, 120, nil, "", "")
+		"https://zts.custom.com", "ES384", true /*useRegionalSTS*/, false, 300, nil, "", "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -145,8 +145,8 @@ func TestNewWebIdentity_PassesAudienceToFetcher(t *testing.T) {
 	if capturedAlgorithm != "ES384" {
 		t.Errorf("expected algorithm 'ES384', got %q", capturedAlgorithm)
 	}
-	if capturedDuration != 120 {
-		t.Errorf("expected duration 120, got %d", capturedDuration)
+	if capturedDuration != 300 {
+		t.Errorf("expected duration 300, got %d", capturedDuration)
 	}
 }
 
@@ -160,7 +160,7 @@ func TestNewWebIdentity_FetchError(t *testing.T) {
 	}
 
 	_, err := NewWebIdentity("d", "s", "us-east-1",
-		"https://zts.example.com", "ES384", false, false, 120, nil, "", "")
+		"https://zts.example.com", "ES384", false, false, 300, nil, "", "")
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}

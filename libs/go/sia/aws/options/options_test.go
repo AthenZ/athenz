@@ -800,7 +800,7 @@ func TestInitEnvConfigWebIdentityDefaults(t *testing.T) {
 	assert.Equal(t, "", cfg.AwsWebIdentityAudience)
 	// signing algorithm and duration must fall back to hardcoded defaults
 	assert.Equal(t, "ES384", cfg.AwsWebIdentitySigningAlgorithm)
-	assert.Equal(t, int32(120), cfg.AwsWebIdentityDurationSeconds)
+	assert.Equal(t, int32(300), cfg.AwsWebIdentityDurationSeconds)
 
 	os.Clearenv()
 }
