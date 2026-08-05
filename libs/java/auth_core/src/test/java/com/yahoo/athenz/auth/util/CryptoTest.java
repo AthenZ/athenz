@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.function.Function;
@@ -1482,9 +1483,11 @@ public class CryptoTest {
     }
 
     @Test
-    public void testNullSignatureValidation() throws NoSuchAlgorithmException {
+    public void testNullSignatureValidation() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
 
-        KeyPair keyPair = KeyPairGenerator.getInstance("EC").generateKeyPair();
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
+        keyPairGenerator.initialize(new ECGenParameterSpec("secp256r1"));
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
         byte[] derSignature = Crypto.sign(serviceToken.getBytes(StandardCharsets.UTF_8), keyPair.getPrivate(), Crypto.SHA256);
         assertNotNull(derSignature);

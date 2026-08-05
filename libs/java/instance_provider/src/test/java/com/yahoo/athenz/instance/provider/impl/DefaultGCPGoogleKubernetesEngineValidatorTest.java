@@ -395,6 +395,25 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
     }
 
     @Test
+    public void testValidateSanDNSEntriesSpiffeSvidNoDns() {
+        // SPIFFE SVIDs (Istio ambient workload identity) carry no DNS SANs - identity is
+        // validated upstream by ZTS via the URI SAN alone, so DNS validation must be skipped
+        DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        validator.initialize(sslContext, authorizer);
+        InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
+        instanceConfirmation.setDomain("calypso.nonprod");
+        instanceConfirmation.setService("curl");
+        instanceConfirmation.setAttributes(new HashMap<>());
+        instanceConfirmation.getAttributes().put(ZTS_INSTANCE_GCP_PROJECT, "my-project");
+        instanceConfirmation.getAttributes().put(ZTS_INSTANCE_SAN_URI,
+                "spiffe://athenz.cloud/ns/calypso-nonprod/sa/calypso.nonprod.curl");
+
+        assertTrue(validator.validateSanDNSEntries(instanceConfirmation, new StringBuilder()));
+    }
+
+    @Test
     public void testValidateSanDNSEntriesNoAccount() {
         System.setProperty(InstanceGCPProvider.GCP_PROP_DNS_SUFFIX, "gcp.athenz.cloud");
         DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();

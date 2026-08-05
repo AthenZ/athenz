@@ -23,6 +23,7 @@ type InstanceRegisterInformation Struct {
     SimpleName cloud (optional); //optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.
     SimpleName x509CertSignerKeyId (optional); //requested x509 cert signer key id
     SimpleName sshCertSignerKeyId (optional); //requested ssh cert signer key id
+    PathElement x509CertInstanceId (optional); //caller-supplied unique instance id for the x.509 cert when instance id can not be derived from CSR
     PathElement jwtSVIDInstanceId (optional); //unique instance id within provider's namespace for the jwt svid
     String jwtSVIDAudience (optional); //the audience value for the jwt svid
     EntityName jwtSVIDNonce (optional); //the nonce value for the jwt svid

@@ -31,6 +31,11 @@ public class X509ServiceCertRequest extends X509CertRequest {
         super(csr, spiffeUriManager, certificateDataValidator);
     }
 
+    public X509ServiceCertRequest(String csr, SpiffeUriManager spiffeUriManager,
+            CertificateDataValidator certificateDataValidator, final String x509CertInstanceId) throws CryptoException {
+        super(csr, spiffeUriManager, certificateDataValidator, x509CertInstanceId);
+    }
+
     public boolean validate(final String domainName, final String serviceName, final String provider,
             final Set<String> validSubjectOValues, final DataCache athenzSysDomainCache,
             final String serviceDnsSuffix, final String instanceHostname, final List<String> instanceHostCnames,
@@ -54,11 +59,18 @@ public class X509ServiceCertRequest extends X509CertRequest {
         }
 
         // validate the common name in CSR and make sure it
-        // matches to the values specified in the info object
+        // matches to the values specified in the info object.
+        // SPIFFE SVIDs carry an empty Subject by spec - for those the identity
+        // is carried solely by the SPIFFE URI, which is validated below
 
         final String infoCommonName = domainName + "." + serviceName;
-        if (!validateCommonName(infoCommonName)) {
-            errorMsg.append("Unable to validate CSR common name");
+        if (!StringUtil.isEmpty(cn)) {
+            if (!validateCommonName(infoCommonName)) {
+                errorMsg.append("Unable to validate CSR common name");
+                return false;
+            }
+        } else if (spiffeUri == null) {
+            errorMsg.append("CSR contains neither a CommonName nor a SPIFFE URI");
             return false;
         }
 

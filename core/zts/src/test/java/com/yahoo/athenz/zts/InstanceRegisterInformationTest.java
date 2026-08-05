@@ -57,6 +57,7 @@ public class InstanceRegisterInformationTest {
         i1.setJwtSVIDSpiffe("spiffe://athenz.io/service");
         i1.setJwtSVIDInstanceId("instance-id");
         i1.setJwtSVIDKeyType("rsa");
+        i1.setX509CertInstanceId("x509-instance-id");
 
         i2.setProvider("provider");
         i2.setAttestationData("doc");
@@ -81,6 +82,7 @@ public class InstanceRegisterInformationTest {
         i2.setJwtSVIDSpiffe("spiffe://athenz.io/service");
         i2.setJwtSVIDInstanceId("instance-id");
         i2.setJwtSVIDKeyType("rsa");
+        i2.setX509CertInstanceId("x509-instance-id");
 
         // getter assertion
         assertEquals(i1.getAttestationData(), "doc");
@@ -106,6 +108,7 @@ public class InstanceRegisterInformationTest {
         assertEquals(i1.getJwtSVIDSpiffe(), "spiffe://athenz.io/service");
         assertEquals(i1.getJwtSVIDInstanceId(), "instance-id");
         assertEquals(i1.getJwtSVIDKeyType(), "rsa");
+        assertEquals(i1.getX509CertInstanceId(), "x509-instance-id");
 
         assertEquals(i2, i1);
         assertEquals(i2, i2);
@@ -272,6 +275,13 @@ public class InstanceRegisterInformationTest {
         i2.setJwtSVIDInstanceId("instance-id-2");
         assertNotEquals(i1, i2);
         i2.setJwtSVIDInstanceId("instance-id");
+        assertEquals(i1, i2);
+
+        i2.setX509CertInstanceId(null);
+        assertNotEquals(i1, i2);
+        i2.setX509CertInstanceId("x509-instance-id-2");
+        assertNotEquals(i1, i2);
+        i2.setX509CertInstanceId("x509-instance-id");
         assertEquals(i1, i2);
     }
 }
