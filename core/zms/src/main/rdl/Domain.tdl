@@ -47,6 +47,7 @@ type DomainMeta Struct {
     String slackChannel (optional, x_allowempty="true"); //slack channel for any notifications in this domain
     String onCall (optional, x_allowempty="true"); //oncall team name/id for any incidents in this domain
     Bool autoDeleteTenantAssumeRoleAssertions (optional, default=false); // Indicates whether to automatically delete assertions for a tenant's assume role
+    Bool clientIdSelfUpdate (optional, default=false); // Indicates whether client ID self-update is enabled for services in this domain
     String externalMemberValidator (optional, x_allowempty="true"); //class name responsible for validating external members
     String costCenter (optional, x_allowempty="true"); //cost center for this domain for any chargebacks
 }
