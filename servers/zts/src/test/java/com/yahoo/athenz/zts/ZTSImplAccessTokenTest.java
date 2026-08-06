@@ -135,6 +135,8 @@ public class ZTSImplAccessTokenTest {
 
         ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
 
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/unit_test_zts_private.pem");
         String privKeyName = System.getProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
         File privKeyFile = new File(privKeyName);
         String privKey = Crypto.encodedFile(privKeyFile);
