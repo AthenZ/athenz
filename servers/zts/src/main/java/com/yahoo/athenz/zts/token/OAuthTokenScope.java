@@ -36,7 +36,6 @@ public class OAuthTokenScope {
     public static String OBJECT_ROLES   = "roles";
 
     Set<String> domainNames = new HashSet<>();
-    Set<String> domainScopeNames = new HashSet<>();
     String serviceName = null;
     Map<String, Set<String>> roleNames;
     Map<String, Set<String>> groupNames;
@@ -70,6 +69,7 @@ public class OAuthTokenScope {
         Set<String> userSystemAllowedRoles = null;
         Map<String, Set<String>> scopeRoleNames = new HashMap<>();
         Map<String, Set<String>> scopeGroupNames = new HashMap<>();
+        Set<String> domainScopeNames = null;
         for (String scopeItem : scopeList) {
 
             // first check if we have an openid scope requested
@@ -104,6 +104,9 @@ public class OAuthTokenScope {
             if (scopeItem.endsWith(OBJECT_DOMAIN)) {
                 final String scopeDomainName = scopeItem.substring(0, scopeItem.length() - OBJECT_DOMAIN.length());
                 addScopeDomain(scopeDomainName, scope, true);
+                if (domainScopeNames == null) {
+                    domainScopeNames = new HashSet<>();
+                }
                 domainScopeNames.add(scopeDomainName);
                 sendScopeResponse = true;
                 continue;
@@ -173,15 +176,21 @@ public class OAuthTokenScope {
         // Keep explicit role and group filters for every domain. A domain
         // scope only overrides filters for that specific domain.
 
+        if (sendScopeResponse) {
+            rolesScope = rolesScope || !scopeRoleNames.isEmpty();
+            groupsScope = groupsScope || !scopeGroupNames.isEmpty();
+        }
+        if (domainScopeNames != null) {
+            for (String domainScopeName : domainScopeNames) {
+                scopeRoleNames.remove(domainScopeName);
+                scopeGroupNames.remove(domainScopeName);
+            }
+        }
         if (!scopeRoleNames.isEmpty()) {
             roleNames = scopeRoleNames;
         }
         if (!scopeGroupNames.isEmpty()) {
             groupNames = scopeGroupNames;
-        }
-        if (sendScopeResponse) {
-            rolesScope = rolesScope || !scopeRoleNames.isEmpty();
-            groupsScope = groupsScope || !scopeGroupNames.isEmpty();
         }
     }
 
@@ -198,9 +207,6 @@ public class OAuthTokenScope {
     }
 
     public String[] getRoleNames(final String domainName) {
-        if (domainScopeNames.contains(domainName)) {
-            return null;
-        }
         if (roleNames == null) {
             return null;
         }
@@ -209,9 +215,6 @@ public class OAuthTokenScope {
     }
 
     public Set<String> getGroupNames(final String domainName) {
-        if (domainScopeNames.contains(domainName)) {
-            return null;
-        }
         if (groupNames == null) {
             return null;
         }
