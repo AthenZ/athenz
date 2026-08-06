@@ -4781,8 +4781,9 @@ func (self *UserCertificateRequest) Validate() error {
 	return nil
 }
 
-// ExternalMemberCertificate - ExternalMemberCertificate - an external member
-// certificate
+// ExternalMemberCertificate - Copyright The Athenz Authors Licensed under the
+// terms of the Apache version 2.0 license. See LICENSE file for terms.
+// ExternalMemberCertificate - an external member certificate
 type ExternalMemberCertificate struct {
 	X509Certificate string `json:"x509Certificate"`
 }

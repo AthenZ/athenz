@@ -513,7 +513,7 @@ public class ZTSSchema {
             .field("x509CertSignerKeyId", "SimpleName", true, "requested x509 cert signer key id");
 
         sb.structType("ExternalMemberCertificate")
-            .comment("ExternalMemberCertificate - an external member certificate")
+            .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. ExternalMemberCertificate - an external member certificate")
             .field("x509Certificate", "String", false, "");
 
         sb.structType("ExternalMemberCertificateRequest")
