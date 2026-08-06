@@ -1772,8 +1772,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setSshCertSignerKeyId(detail.getSshCertSignerKeyId())
                 .setSlackChannel(detail.getSlackChannel())
                 .setOnCall(detail.getOnCall())
-                .setAutoDeleteTenantAssumeRoleAssertions(detail.autoDeleteTenantAssumeRoleAssertions)
-                .setClientIdSelfUpdate(detail.clientIdSelfUpdate);
+                .setAutoDeleteTenantAssumeRoleAssertions(detail.getAutoDeleteTenantAssumeRoleAssertions())
+                .setClientIdSelfUpdate(detail.getClientIdSelfUpdate());
 
         // before processing validate the fields
 
@@ -2091,7 +2091,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setEnvironment(detail.getEnvironment())
                 .setSlackChannel(detail.getSlackChannel())
                 .setOnCall(detail.getOnCall())
-                .setClientIdSelfUpdate(detail.clientIdSelfUpdate);
+                .setClientIdSelfUpdate(detail.getClientIdSelfUpdate());
 
         // before processing validate the fields
 
@@ -2199,7 +2199,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setSshCertSignerKeyId(detail.getSshCertSignerKeyId())
                 .setSlackChannel(detail.getSlackChannel())
                 .setOnCall(detail.getOnCall())
-                .setClientIdSelfUpdate(detail.clientIdSelfUpdate);
+                .setClientIdSelfUpdate(detail.getClientIdSelfUpdate());
 
         // before processing validate the fields
 
@@ -7142,8 +7142,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return;
         }
 
-        AthenzDomain domain = getAthenzDomain(domainName, false, true);
-        if (isAllowedClientIdSelfUpdate(principal, domain, serviceName, attribute, meta)) {
+        if (clientIdSelfUpdate && ZMSConsts.SYSTEM_META_CLIENT_ID.equals(attribute) &&
+                isAllowedClientIdSelfUpdate(principal, domainName, serviceName, meta)) {
             return;
         }
 
@@ -7151,15 +7151,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 caller);
     }
 
-    boolean isAllowedClientIdSelfUpdate(Principal principal, AthenzDomain domain, String serviceName,
-            String attribute, ServiceIdentitySystemMeta meta) {
+    boolean isAllowedClientIdSelfUpdate(Principal principal, String domainName, String serviceName,
+            ServiceIdentitySystemMeta meta) {
 
-        if (!clientIdSelfUpdate || !ZMSConsts.SYSTEM_META_CLIENT_ID.equals(attribute)) {
-            return false;
-        }
-
-        if (principal == null || domain == null || domain.getDomain() == null || meta == null ||
-                !Boolean.TRUE.equals(domain.getDomain().getClientIdSelfUpdate())) {
+        if (principal == null || meta == null) {
             return false;
         }
 
@@ -7168,12 +7163,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return false;
         }
 
+        AthenzDomain domain = getAthenzDomain(domainName, false, true);
+        if (domain == null || domain.getDomain() == null ||
+                !Boolean.TRUE.equals(domain.getDomain().getClientIdSelfUpdate())) {
+            return false;
+        }
+
         final String servicePrincipal = ResourceUtils.serviceResourceName(domain.getName(), serviceName);
         if (!servicePrincipal.equalsIgnoreCase(principal.getFullName())) {
             return false;
         }
 
-        final String clientIdResource = (domain.getName() + ":service." + serviceName + ".clientid." + clientId).toLowerCase();
+        final String clientIdResource = (domain.getName() + ":service." + serviceName + ".clientid." + clientId)
+                .toLowerCase();
         return hasAccess(domain, ZMSConsts.ACTION_UPDATE, clientIdResource, principal, null) == AccessStatus.ALLOWED;
     }
 
