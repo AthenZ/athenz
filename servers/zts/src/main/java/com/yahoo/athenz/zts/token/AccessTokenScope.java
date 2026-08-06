@@ -25,7 +25,7 @@ public class AccessTokenScope extends OAuthTokenScope {
     private static boolean supportRolesWithoutDomain = Boolean.parseBoolean(
             System.getProperty(ZTSConsts.ZTS_PROP_SCOPE_ROLE_WOUT_DOMAIN, "false"));
     private static int maxDomains = Integer.parseInt(
-            System.getProperty(ZTSConsts.ZTS_PROP_ACCESS_TOKEN_MAX_DOMAINS, "20"));
+            System.getProperty(ZTSConsts.ZTS_PROP_ACCESS_TOKEN_MAX_DOMAINS, "1"));
 
     public AccessTokenScope(final String scope, final String principalDomain) {
 

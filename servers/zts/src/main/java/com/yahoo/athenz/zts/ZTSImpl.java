@@ -3016,7 +3016,7 @@ public class ZTSImpl implements ZTSHandler {
             final String requestDomainName, String[] requestedRoles) {
 
         for (String requestedRole : requestedRoles) {
-            if (subjectScopes.contains(requestDomainName + OAuthTokenScope.OBJECT_ROLE + requestedRole)) {
+            if (subjectScopes.contains(ResourceUtils.roleResourceName(requestDomainName, requestedRole))) {
                 continue;
             }
             if (requestDomainName.equals(sourceDomainName) && subjectScopes.contains(requestedRole)) {

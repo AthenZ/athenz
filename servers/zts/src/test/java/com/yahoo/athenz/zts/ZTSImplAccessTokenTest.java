@@ -179,6 +179,7 @@ public class ZTSImplAccessTokenTest {
         // enable openid scope
 
         AccessTokenScope.setSupportOpenIdScope(true);
+        AccessTokenScope.setMaxDomains(1);
     }
 
     @AfterMethod
@@ -187,6 +188,7 @@ public class ZTSImplAccessTokenTest {
         ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
         System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT);
         System.clearProperty(ZTSConsts.ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT);
+        AccessTokenScope.setMaxDomains(1);
     }
 
     private ConfigurableJWTProcessor<SecurityContext> createJAGProcessor() {
@@ -555,6 +557,7 @@ public class ZTSImplAccessTokenTest {
     @Test
     public void testPostAccessTokenRequestWithAudienceAndCrossDomainScope() throws JOSEException {
 
+        AccessTokenScope.setMaxDomains(20);
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
@@ -611,6 +614,7 @@ public class ZTSImplAccessTokenTest {
     @Test
     public void testPostAccessTokenRequestDomainScopeDoesNotWidenOtherDomainRoles() throws JOSEException {
 
+        AccessTokenScope.setMaxDomains(20);
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
@@ -654,6 +658,7 @@ public class ZTSImplAccessTokenTest {
     @Test
     public void testPostAccessTokenRequestMultipleScopeDomainsScopeDomainNotFound() {
 
+        AccessTokenScope.setMaxDomains(20);
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
