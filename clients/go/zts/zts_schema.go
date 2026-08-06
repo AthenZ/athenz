@@ -416,6 +416,7 @@ func init() {
 	tInstanceRegisterInformation.Field("cloud", "SimpleName", true, nil, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.")
 	tInstanceRegisterInformation.Field("x509CertSignerKeyId", "SimpleName", true, nil, "requested x509 cert signer key id")
 	tInstanceRegisterInformation.Field("sshCertSignerKeyId", "SimpleName", true, nil, "requested ssh cert signer key id")
+	tInstanceRegisterInformation.Field("x509CertInstanceId", "PathElement", true, nil, "caller-supplied unique instance id for the x.509 cert when instance id can not be derived from CSR")
 	tInstanceRegisterInformation.Field("jwtSVIDInstanceId", "PathElement", true, nil, "unique instance id within provider's namespace for the jwt svid")
 	tInstanceRegisterInformation.Field("jwtSVIDAudience", "String", true, nil, "the audience value for the jwt svid")
 	tInstanceRegisterInformation.Field("jwtSVIDNonce", "EntityName", true, nil, "the nonce value for the jwt svid")

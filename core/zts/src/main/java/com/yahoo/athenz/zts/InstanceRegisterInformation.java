@@ -60,6 +60,9 @@ public class InstanceRegisterInformation {
     public String sshCertSignerKeyId;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public String x509CertInstanceId;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String jwtSVIDInstanceId;
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -196,6 +199,13 @@ public class InstanceRegisterInformation {
     public String getSshCertSignerKeyId() {
         return sshCertSignerKeyId;
     }
+    public InstanceRegisterInformation setX509CertInstanceId(String x509CertInstanceId) {
+        this.x509CertInstanceId = x509CertInstanceId;
+        return this;
+    }
+    public String getX509CertInstanceId() {
+        return x509CertInstanceId;
+    }
     public InstanceRegisterInformation setJwtSVIDInstanceId(String jwtSVIDInstanceId) {
         this.jwtSVIDInstanceId = jwtSVIDInstanceId;
         return this;
@@ -295,6 +305,9 @@ public class InstanceRegisterInformation {
                 return false;
             }
             if (sshCertSignerKeyId == null ? a.sshCertSignerKeyId != null : !sshCertSignerKeyId.equals(a.sshCertSignerKeyId)) {
+                return false;
+            }
+            if (x509CertInstanceId == null ? a.x509CertInstanceId != null : !x509CertInstanceId.equals(a.x509CertInstanceId)) {
                 return false;
             }
             if (jwtSVIDInstanceId == null ? a.jwtSVIDInstanceId != null : !jwtSVIDInstanceId.equals(a.jwtSVIDInstanceId)) {

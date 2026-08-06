@@ -45,6 +45,9 @@ public class InstanceUtils {
 
     static final String K8S_SERVICE_ACCOUNT_PREFIX = "system:serviceaccount:";
 
+    static final String SPIFFE_URI_PREFIX    = "spiffe://";
+    static final String SPIFFE_URI_NAMESPACE = "/ns/";
+
     public static String getInstanceProperty(final Map<String, String> attributes,
             final String propertyName) {
 
@@ -207,11 +210,23 @@ public class InstanceUtils {
         }
         String[] hosts = hostnames.split(",");
 
-        // extract the instance id from the request
-
+        // extract the instance id from the request. if absent, fall back
+        // to ZTS_INSTANCE_ID (e.g. set by ZTS from the K8s SA token UID)
         if (!extractCertRequestInstanceId(attributes, hosts, dnsSuffixes, instanceId)) {
-            LOGGER.error("Request does not contain expected instance id entry");
-            return false;
+
+            // extractCertRequestInstanceId may have already appended a partial
+            // value (e.g. conflicting instanceid SAN entries) - do not fall back
+            if (instanceId.length() != 0) {
+                return false;
+            }
+
+            final String ztsInstanceId = getInstanceProperty(attributes, InstanceProvider.ZTS_INSTANCE_ID);
+            if (!StringUtil.isEmpty(ztsInstanceId)) {
+                instanceId.append(ztsInstanceId);
+            } else {
+                LOGGER.error("Request does not contain expected instance id entry");
+                return false;
+            }
         }
 
         // for hostnames that are included in the sanDNS entry in the certificate we have
@@ -390,6 +405,48 @@ public class InstanceUtils {
             return null;
         }
         return components[3];
+    }
+
+    public static String getNamespaceFromIdTokenSubject(final String sub) {
+        if (StringUtil.isEmpty(sub) || !sub.startsWith(K8S_SERVICE_ACCOUNT_PREFIX)) {
+            return null;
+        }
+        String[] components = sub.split(":");
+        if (components.length != 4) {
+            return null;
+        }
+        return components[2];
+    }
+
+    /**
+     * Extract the namespace component from the spiffe uri in the given list of
+     * certificate request uris. The expected format is
+     * spiffe://&lt;trust-domain&gt;/ns/&lt;namespace&gt;/sa/&lt;service-account&gt;.
+     * @param sanUri comma separated list of uris from the certificate request
+     * @return namespace from the spiffe uri, null if the request carries no
+     *      spiffe uri with a namespace component
+     */
+    public static String getNamespaceFromSpiffeUri(final String sanUri) {
+
+        if (StringUtil.isEmpty(sanUri)) {
+            return null;
+        }
+        for (String uri : sanUri.split(",")) {
+            if (!uri.startsWith(SPIFFE_URI_PREFIX)) {
+                continue;
+            }
+            int idx = uri.indexOf(SPIFFE_URI_NAMESPACE);
+            if (idx == -1) {
+                continue;
+            }
+            int startIdx = idx + SPIFFE_URI_NAMESPACE.length();
+            int endIdx = uri.indexOf('/', startIdx);
+            if (endIdx == -1) {
+                continue;
+            }
+            return uri.substring(startIdx, endIdx);
+        }
+        return null;
     }
 
     public static List<IPBlock> parseIPBlocks(final String certAllowedIPAddresses) {

@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
+import com.yahoo.athenz.auth.util.StringUtils;
 
 public class X509CertRequest {
 
@@ -57,6 +58,11 @@ public class X509CertRequest {
 
     public X509CertRequest(String csr, SpiffeUriManager spiffeUriManager,
             CertificateDataValidator certificateDataValidator) throws CryptoException {
+        this(csr, spiffeUriManager, certificateDataValidator, null);
+    }
+
+    public X509CertRequest(String csr, SpiffeUriManager spiffeUriManager,
+            CertificateDataValidator certificateDataValidator, final String x509CertInstanceId) throws CryptoException {
 
         certReq = Crypto.getPKCS10CertRequest(csr);
         if (certReq == null) {
@@ -95,24 +101,29 @@ public class X509CertRequest {
 
         uriHostname = X509CertUtils.extractItemFromURI(uris, ZTSConsts.ZTS_CERT_HOSTNAME_URI);
 
-        // extract instanceId
+        // extract instanceId: the CSR itself (athenz URI field, then the SAN
+        // dnsName list) always takes precedence; the caller-supplied value is
+        // only a last resort when the CSR carries none
 
-        // first check to see if we have the instance id is provided
-        // in the athenz uri field
-
-        instanceId = X509CertUtils.extractRequestInstanceIdFromURI(uris);
-
-        // if we have no instance id from the URI, then we're going
-        // to fetch it from the dns list
-
-        if (instanceId == null) {
-            instanceId = X509CertUtils.extractRequestInstanceIdFromDnsNames(dnsNames);
-        }
+        instanceId = extractInstanceId(x509CertInstanceId);
 
         // save the spiffe uri manager and certificate data validator objects
 
         this.spiffeUriManager = spiffeUriManager;
         this.certificateDataValidator = certificateDataValidator;
+    }
+
+    private String extractInstanceId(final String x509CertInstanceId) {
+
+        String csrInstanceId = X509CertUtils.extractRequestInstanceIdFromURI(uris);
+        if (csrInstanceId == null) {
+            csrInstanceId = X509CertUtils.extractRequestInstanceIdFromDnsNames(dnsNames);
+        }
+        if (csrInstanceId != null) {
+            return csrInstanceId;
+        }
+
+        return StringUtils.isEmpty(x509CertInstanceId) ? null : x509CertInstanceId;
     }
 
     boolean knownAthenzUri(final String uri) {
@@ -484,7 +495,7 @@ public class X509CertRequest {
 
         try {
             final String value = Crypto.extractX509CSRSubjectOField(certReq);
-            if (value == null) {
+            if (StringUtils.isEmpty(value)) {
                 return true;
             }
             boolean res = validValues.contains(value);
@@ -674,6 +685,10 @@ public class X509CertRequest {
     
     public String getInstanceId() {
         return instanceId;
+    }
+
+    public void setInstanceId(final String instanceId) {
+        this.instanceId = instanceId;
     }
 
     public String getUriHostname() {
