@@ -2872,7 +2872,9 @@ public class ZTSImpl implements ZTSHandler {
 
         final String principalName = principal.getFullName();
         for (String role : roles) {
-            if (!isPrincipalAuthorizedForTokenTargetExchange(requestDomainName, sourceDomainName, role, principal)) {
+            if (!authorizer.access(ZTSConsts.ZTS_ACTION_TOKEN_TARGET_EXCHANGE,
+                    requestDomainName + ":" + ResourceUtils.roleResourceName(sourceDomainName, role),
+                    principal, null)) {
                 LOGGER.error("processAccessTokenImpersonationRequest: access check failure for {} - {}:{}:role.{}",
                         principalName, requestDomainName, sourceDomainName, role);
                 throw forbiddenError("Principal not authorized for token exchange for the requested role",
@@ -2922,28 +2924,6 @@ public class ZTSImpl implements ZTSHandler {
         return new AccessTokenResponse().setAccess_token(accessJwts)
                 .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in(tokenTimeout)
                 .setScope(generateScopeResponse(roles, requestDomainName, false));
-    }
-
-    boolean isPrincipalAuthorizedForTokenTargetExchange(final String targetDomainName,
-            final String sourceDomainName, final String role, Principal principal) {
-
-        // Prefer the target role domain for new tokens that can carry fully qualified scopes
-        // even when their audience is a different source domain. Keep the legacy source-domain
-        // resource for existing deployments that still authorize exchanges that way.
-
-        final String targetRoleResource = targetDomainName + ":" +
-                ResourceUtils.roleResourceName(targetDomainName, role);
-        if (authorizer.access(ZTSConsts.ZTS_ACTION_TOKEN_TARGET_EXCHANGE, targetRoleResource, principal, null)) {
-            return true;
-        }
-
-        if (targetDomainName.equals(sourceDomainName)) {
-            return false;
-        }
-
-        final String sourceRoleResource = targetDomainName + ":" +
-                ResourceUtils.roleResourceName(sourceDomainName, role);
-        return authorizer.access(ZTSConsts.ZTS_ACTION_TOKEN_TARGET_EXCHANGE, sourceRoleResource, principal, null);
     }
 
     String[] tokenExchangeRequestedRoles(AccessTokenRequest accessTokenRequest, OAuth2Token subjectToken,
@@ -3120,7 +3100,9 @@ public class ZTSImpl implements ZTSHandler {
 
         final String principalName = principal.getFullName();
         for (String role : roles) {
-            if (!isPrincipalAuthorizedForTokenTargetExchange(requestDomainName, sourceDomainName, role, principal)) {
+            if (!authorizer.access(ZTSConsts.ZTS_ACTION_TOKEN_TARGET_EXCHANGE,
+                    requestDomainName + ":" + ResourceUtils.roleResourceName(sourceDomainName, role),
+                    principal, null)) {
                 LOGGER.error("processAccessTokenDelegationRequest: access check failure for {} - {}:{}:role.{}",
                         principalName, requestDomainName, sourceDomainName, role);
                 throw forbiddenError("Principal not authorized for token exchange for the requested role",
