@@ -84,6 +84,15 @@ func (ec2 EC2Provider) GetSuffixes() []string {
 }
 
 func (ec2 EC2Provider) CloudAttestationData(request *provider.AttestationRequest) (string, error) {
+	if request.UseWebIdentityToken {
+		audience := request.ZTSUrl
+		if request.WebIdentityAudience != "" {
+			audience = request.WebIdentityAudience
+		}
+		return attestation.NewWebIdentity(request.Domain, request.Service, request.Region,
+			audience, request.WebIdentitySigningAlgorithm, request.UseRegionalSTS, request.OmitDomain,
+			request.WebIdentityDurationSeconds, nil, request.EC2Document, request.EC2Signature)
+	}
 	return attestation.New(request.Domain, request.Service, request.Region, request.Account, request.EC2Document, request.EC2Signature, request.UseRegionalSTS, request.OmitDomain, request.RolePath)
 }
 

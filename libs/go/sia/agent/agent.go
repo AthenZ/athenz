@@ -400,17 +400,21 @@ func registerSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 
 func setUpAttestationRequest(opts *sc.Options, service, ztsUrl string) *provider.AttestationRequest {
 	return &provider.AttestationRequest{
-		MetaEndPoint:   opts.MetaEndPoint,
-		Domain:         opts.Domain,
-		Service:        service,
-		ZTSUrl:         ztsUrl,
-		Account:        opts.Account,
-		Region:         opts.Region,
-		OmitDomain:     opts.OmitDomain,
-		UseRegionalSTS: opts.UseRegionalSTS,
-		EC2Document:    opts.EC2Document,
-		EC2Signature:   opts.EC2Signature,
-		RolePath:       opts.RolePath,
+		MetaEndPoint:                    opts.MetaEndPoint,
+		Domain:                          opts.Domain,
+		Service:                         service,
+		ZTSUrl:                          ztsUrl,
+		Account:                         opts.Account,
+		Region:                          opts.Region,
+		OmitDomain:                      opts.OmitDomain,
+		UseRegionalSTS:                  opts.UseRegionalSTS,
+		EC2Document:                     opts.EC2Document,
+		EC2Signature:                    opts.EC2Signature,
+		RolePath:                        opts.RolePath,
+		UseWebIdentityToken:             opts.UseWebIdentityToken,
+		WebIdentityAudience:             opts.WebIdentityAudience,
+		WebIdentitySigningAlgorithm:     opts.WebIdentitySigningAlgorithm,
+		WebIdentityDurationSeconds:      opts.WebIdentityDurationSeconds,
 	}
 }
 
