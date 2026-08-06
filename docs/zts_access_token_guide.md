@@ -30,7 +30,8 @@ scope : list of scopes/roles requested in the access token. The caller
         name in id token request must match the domain name in the access token
         scope. ID token requests do not support multiple scope domains.
 audience : optional audience domain for the access token. This value is
-           required when the scope includes more than one domain.
+           required when the scope includes more than one domain. If specified,
+           it must be one of the domains in the requested scope.
 expires_in : requested expiry time for access token in seconds
 ```
 

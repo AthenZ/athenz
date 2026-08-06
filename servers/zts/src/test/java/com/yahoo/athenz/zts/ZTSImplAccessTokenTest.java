@@ -656,6 +656,31 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
+    public void testPostAccessTokenRequestAudienceMustBeScopeDomain() {
+
+        AccessTokenScope.setMaxDomains(20);
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user1",
+                "v=U1;d=user_domain;n=user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&audience=sports&scope=weather:role.readers");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Audience domain must be one of the scope domains"));
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
     public void testPostAccessTokenRequestMultipleScopeDomainsScopeDomainNotFound() {
 
         AccessTokenScope.setMaxDomains(20);

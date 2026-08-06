@@ -3828,6 +3828,10 @@ public class ZTSImpl implements ZTSHandler {
                 tokenScope.getDomainName() : accessTokenRequest.getAudience().toLowerCase();
         setRequestDomain(ctx, domainName);
         validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
+        if (!scopeDomainNames.contains(domainName)) {
+            throw requestError("Audience domain must be one of the scope domains", caller,
+                    domainName, principalDomain);
+        }
 
         DataCache audienceData = dataStore.getDataCache(domainName);
         if (audienceData == null) {
