@@ -28,17 +28,21 @@ import (
 )
 
 type AttestationRequest struct {
-	MetaEndPoint   string //meta data service endpoint
-	Domain         string //name of the domain for the identity
-	Service        string //name of the service for the identity
-	ZTSUrl         string //the ZTS to contact
-	OmitDomain     bool   //attestation role only includes service name
-	UseRegionalSTS bool   //use regional sts endpoint
-	Account        string //name of the account
-	Region         string //region name
-	EC2Document    string //EC2 instance identity document (for AWS only)
-	EC2Signature   string //EC2 instance identity document pkcs7 signature (for AWS only)
-	RolePath       string // IAM role path prefix
+	MetaEndPoint                string //meta data service endpoint
+	Domain                      string //name of the domain for the identity
+	Service                     string //name of the service for the identity
+	ZTSUrl                      string //the ZTS to contact
+	OmitDomain                  bool   //attestation role only includes service name
+	UseRegionalSTS              bool   //use regional sts endpoint
+	Account                     string //name of the account
+	Region                      string //region name
+	EC2Document                 string //EC2 instance identity document (for AWS only)
+	EC2Signature                string //EC2 instance identity document pkcs7 signature (for AWS only)
+	RolePath                    string //IAM role path prefix
+	UseWebIdentityToken         bool   //enable AWS web identity token attestation path
+	WebIdentityAudience         string //audience for the web identity token; empty defaults to ZTSUrl
+	WebIdentitySigningAlgorithm string //signing algorithm for the web identity token (RS256 or ES384)
+	WebIdentityDurationSeconds  int32  //lifetime of the web identity token in seconds (60-3600)
 }
 
 // Provider is the interface which wraps various Providers known to ZTS
