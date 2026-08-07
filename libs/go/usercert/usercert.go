@@ -60,6 +60,7 @@ type Options struct {
 	SignerKeyId        string              // signer key id for the user certificate
 	CallbackPort       int                 // local port for OAuth2 callback server
 	CallbackTimeout    int                 // seconds to wait for IdP callback
+	CloseWindowDelay   int                 // opt-in: seconds after which the success page tries to close its own browser tab (0 = disabled, static close message)
 	ExpiryTime         int                 // certificate expiry in minutes (0 = server default)
 	PKCE               bool                // enable PKCE for IdP auth flow
 	Proxy              bool                // use HTTP proxy from environment
@@ -101,8 +102,8 @@ func RequestCertificate(opts Options) (string, error) {
 	if scope == "" {
 		scope = "openid"
 	}
-	authCode, codeVerifier, err := GetAuthCode(opts.IdpEndpoint, opts.IdpClientId, scope, opts.CallbackPort,
-		opts.CallbackTimeout, opts.PKCE, opts.Verbose)
+	authCode, codeVerifier, err := getAuthCode(opts.IdpEndpoint, opts.IdpClientId, scope, opts.CallbackPort,
+		opts.CallbackTimeout, opts.CloseWindowDelay, opts.PKCE, opts.Verbose)
 	if err != nil {
 		return "", fmt.Errorf("failed to obtain IdP auth code: %v", err)
 	}
