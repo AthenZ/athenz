@@ -30,7 +30,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.41.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
 	"google.golang.org/grpc/credentials"
 )
 
@@ -147,7 +147,7 @@ func initializeOTelSDK(ctx context.Context, oTelCfg config.OTel) (ShutdownFn, er
 		setTLSClientConfig := true
 		if hasProtocolScheme(oTelCfg.CollectorEndpoint) {
 			setTLSClientConfig = strings.HasPrefix(strings.ToLower(oTelCfg.CollectorEndpoint), "https://")
-			opts = append(opts, otlpmetrichttp.WithEndpointURL(oTelCfg.CollectorEndpoint))
+			opts = append(opts, otlpmetrichttp.WithEndpointURL(metricsEndpointURL(oTelCfg.CollectorEndpoint)))
 		} else {
 			opts = append(opts, otlpmetrichttp.WithEndpoint(oTelCfg.CollectorEndpoint))
 		}
