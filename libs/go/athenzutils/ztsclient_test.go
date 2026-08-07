@@ -1115,7 +1115,7 @@ func TestGenerateJAGTokenIssueRequestString(test *testing.T) {
 		test.Run(tt.name, func(t *testing.T) {
 			body := GenerateJAGTokenIssueRequestString(tt.domain, tt.roles, tt.subjectToken, tt.subjectTokenType, tt.requestedTokenType, tt.audience, tt.expiryTime)
 			if body != tt.body {
-				test.Errorf("invalid body response\n  got:  %s\n  want: %s", body, tt.body)
+				t.Errorf("invalid body response\n  got:  %s\n  want: %s", body, tt.body)
 			}
 		})
 	}
@@ -1138,7 +1138,7 @@ func TestGenerateJAGTokenExchangeRequestString(test *testing.T) {
 		test.Run(tt.name, func(t *testing.T) {
 			body := GenerateJAGTokenExchangeRequestString(tt.assertion)
 			if body != tt.body {
-				test.Errorf("invalid body response\n  got:  %s\n  want: %s", body, tt.body)
+				t.Errorf("invalid body response\n  got:  %s\n  want: %s", body, tt.body)
 			}
 		})
 	}
@@ -1207,7 +1207,7 @@ func TestGenerateTokenExchangeRequestString(test *testing.T) {
 		test.Run(tt.name, func(t *testing.T) {
 			body := GenerateTokenExchangeRequestString(tt.domain, tt.roles, tt.subjectToken, tt.subjectTokenType, tt.requestedTokenType, tt.audience, tt.actorToken, tt.actorTokenType, tt.actor, tt.expiryTime)
 			if body != tt.body {
-				test.Errorf("invalid body response\n  got:  %s\n  want: %s", body, tt.body)
+				t.Errorf("invalid body response\n  got:  %s\n  want: %s", body, tt.body)
 			}
 		})
 	}
