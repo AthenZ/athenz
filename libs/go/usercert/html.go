@@ -19,7 +19,11 @@ func closeWindowHTML(closeDelaySeconds int) string {
 	closeMsg := "You may close this window now."
 	closeScript := ""
 	if closeDelaySeconds > 0 {
-		closeMsg = fmt.Sprintf("This window will close in %d seconds.", closeDelaySeconds)
+		unit := "seconds"
+		if closeDelaySeconds == 1 {
+			unit = "second"
+		}
+		closeMsg = fmt.Sprintf("This window will close in %d %s.", closeDelaySeconds, unit)
 		closeScript = fmt.Sprintf(closeWindowScriptTemplate, closeDelaySeconds)
 	}
 	return strings.NewReplacer(
