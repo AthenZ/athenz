@@ -846,6 +846,9 @@ func TestCloseWindowHTMLAutoClose(t *testing.T) {
 	if !strings.Contains(page, "var secs = 5;") {
 		t.Error("closeWindowHTML should embed the configured delay in the script")
 	}
+	if !strings.Contains(page, "el.textContent = 'You may close this window now.';") {
+		t.Error("closeWindowHTML script should fall back to the static close message before attempting window.close()")
+	}
 	if strings.Contains(page, "__CLOSE_MSG__") || strings.Contains(page, "__CLOSE_SCRIPT__") {
 		t.Error("closeWindowHTML should replace all template placeholders")
 	}

@@ -40,6 +40,7 @@ const closeWindowScriptTemplate = `  <script>
         secs--;
         if (secs <= 0) {
           clearInterval(iv);
+          el.textContent = 'You may close this window now.';
           window.close();
         } else {
           el.textContent = 'This window will close in ' + secs + ' second' + (secs === 1 ? '' : 's') + '.';
