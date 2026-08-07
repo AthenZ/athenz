@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"strconv"
 	"strings"
@@ -189,7 +190,7 @@ func TestGetIdpAuthURLCustomScope(t *testing.T) {
 func TestRegisterHandlersCallbackRedirect(t *testing.T) {
 	mux := http.NewServeMux()
 	codeChan := make(chan string, 1)
-	registerHandlers(mux, codeChan)
+	registerHandlers(mux, codeChan, 0)
 
 	// Find a free port
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
@@ -233,7 +234,7 @@ func TestRegisterHandlersCallbackRedirect(t *testing.T) {
 func TestRegisterHandlersCallbackFollowRedirect(t *testing.T) {
 	mux := http.NewServeMux()
 	codeChan := make(chan string, 1)
-	registerHandlers(mux, codeChan)
+	registerHandlers(mux, codeChan, 0)
 
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -289,7 +290,7 @@ func TestRegisterHandlersCallbackFollowRedirect(t *testing.T) {
 func TestRegisterHandlersCloseEndpoint(t *testing.T) {
 	mux := http.NewServeMux()
 	codeChan := make(chan string, 1)
-	registerHandlers(mux, codeChan)
+	registerHandlers(mux, codeChan, 0)
 
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -322,11 +323,31 @@ func TestRegisterHandlersCloseEndpoint(t *testing.T) {
 	}
 }
 
+func TestRegisterHandlersCloseEndpointAutoClose(t *testing.T) {
+	mux := http.NewServeMux()
+	codeChan := make(chan string, 1)
+	registerHandlers(mux, codeChan, 7)
+
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/close", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "This window will close in 7 seconds.") {
+		t.Error("expected /close to serve the countdown message when a close delay is set")
+	}
+	if !strings.Contains(body, "window.close()") {
+		t.Error("expected /close to serve the auto-close script when a close delay is set")
+	}
+}
+
 // --- getAuthCodeFromCallbackHandler tests ---
 
 func TestGetAuthCodeFromCallbackHandlerTimeout(t *testing.T) {
 	// Use port 0 to let OS pick a free port
-	result := getAuthCodeFromCallbackHandler(0, 1, false)
+	result := getAuthCodeFromCallbackHandler(0, 1, 0, false)
 	select {
 	case r := <-result:
 		if r.Error == nil {
@@ -349,7 +370,7 @@ func TestGetAuthCodeFromCallbackHandlerSuccess(t *testing.T) {
 	port := listener.Addr().(*net.TCPAddr).Port
 	listener.Close()
 
-	result := getAuthCodeFromCallbackHandler(port, 10, false)
+	result := getAuthCodeFromCallbackHandler(port, 10, 0, false)
 
 	// Wait briefly for the server to start
 	time.Sleep(200 * time.Millisecond)
@@ -796,13 +817,36 @@ func TestGetAuthCodeWithPKCEDisabled(t *testing.T) {
 // --- closeWindowHTML tests ---
 
 func TestCloseWindowHTMLContent(t *testing.T) {
-	if !strings.Contains(closeWindowHTML, "Authentication successful") {
+	page := closeWindowHTML(0)
+	if !strings.Contains(page, "Authentication successful") {
 		t.Error("closeWindowHTML should contain success message")
 	}
-	if !strings.Contains(closeWindowHTML, "close this window") {
+	if !strings.Contains(page, "close this window") {
 		t.Error("closeWindowHTML should contain close instruction")
 	}
-	if !strings.Contains(closeWindowHTML, "<!DOCTYPE html>") {
+	if !strings.Contains(page, "<!DOCTYPE html>") {
 		t.Error("closeWindowHTML should be valid HTML")
+	}
+	if strings.Contains(page, "<script>") {
+		t.Error("closeWindowHTML with no delay should not contain the auto-close script")
+	}
+}
+
+func TestCloseWindowHTMLAutoClose(t *testing.T) {
+	page := closeWindowHTML(5)
+	if !strings.Contains(page, "Authentication successful") {
+		t.Error("closeWindowHTML should contain success message")
+	}
+	if !strings.Contains(page, "This window will close in 5 seconds.") {
+		t.Error("closeWindowHTML with a delay should contain the countdown message")
+	}
+	if !strings.Contains(page, "window.close()") {
+		t.Error("closeWindowHTML with a delay should contain the auto-close script")
+	}
+	if !strings.Contains(page, "var secs = 5;") {
+		t.Error("closeWindowHTML should embed the configured delay in the script")
+	}
+	if strings.Contains(page, "__CLOSE_MSG__") || strings.Contains(page, "__CLOSE_SCRIPT__") {
+		t.Error("closeWindowHTML should replace all template placeholders")
 	}
 }

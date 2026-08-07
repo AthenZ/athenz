@@ -44,7 +44,7 @@ func main() {
 	var idpEndpoint, idpClientId, caCertFile string
 	var subjC, subjO, subjOU, spiffeTrustDomain, deviceId string
 	var scope string
-	var callbackPort, callbackTimeout, expiryTime int
+	var callbackPort, callbackTimeout, closeWindowDelay, expiryTime int
 	var pkce, proxy, verbose, showVersion bool
 
 	flag.StringVar(&ztsURL, "zts", "", "url of the ZTS Service")
@@ -61,6 +61,7 @@ func main() {
 	flag.StringVar(&scope, "scope", "openid", "OIDC scope parameter")
 	flag.IntVar(&callbackPort, "callback-port", DefaultCallbackPort, "local port for IdP OAuth2 callback")
 	flag.IntVar(&callbackTimeout, "callback-timeout", DefaultCallbackTimeout, "timeout in seconds for IdP auth flow")
+	flag.IntVar(&closeWindowDelay, "close-window-delay", 0, "opt-in: seconds after which the browser success page auto-closes its tab (0 = disabled)")
 	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes for the certificate")
 	flag.StringVar(&caCertFile, "cacert", "", "CA certificate file")
 	flag.BoolVar(&pkce, "pkce", true, "enable PKCE for IdP auth flow")
@@ -90,6 +91,7 @@ func main() {
 		Scope:             scope,
 		CallbackPort:      callbackPort,
 		CallbackTimeout:   callbackTimeout,
+		CloseWindowDelay:  closeWindowDelay,
 		ExpiryTime:        expiryTime,
 		CACertFile:        caCertFile,
 		PKCE:              pkce,

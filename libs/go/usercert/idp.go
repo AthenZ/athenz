@@ -100,7 +100,7 @@ func openIdpAuthURL(endPoint, clientId, scope, nonce, state string, callbackPort
 	return nil
 }
 
-func registerHandlers(mux *http.ServeMux, code chan<- string) {
+func registerHandlers(mux *http.ServeMux, code chan<- string, closeDelaySeconds int) {
 	authCode := make(chan string, 1)
 
 	mux.Handle("/oauth2/callback", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -110,7 +110,7 @@ func registerHandlers(mux *http.ServeMux, code chan<- string) {
 
 	mux.Handle("/close", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprint(w, closeWindowHTML)
+		fmt.Fprint(w, closeWindowHTML(closeDelaySeconds))
 		select {
 		case c := <-authCode:
 			code <- c
@@ -120,12 +120,12 @@ func registerHandlers(mux *http.ServeMux, code chan<- string) {
 	}))
 }
 
-func getAuthCodeFromCallbackHandler(port, timeoutSeconds int, verbose bool) <-chan authResult {
+func getAuthCodeFromCallbackHandler(port, timeoutSeconds, closeDelaySeconds int, verbose bool) <-chan authResult {
 	result := make(chan authResult, 1)
 	code := make(chan string, 1)
 
 	mux := http.NewServeMux()
-	registerHandlers(mux, code)
+	registerHandlers(mux, code, closeDelaySeconds)
 
 	if verbose {
 		log.Printf("Starting callback server on port %d", port)
@@ -173,8 +173,16 @@ func getAuthCodeFromCallbackHandler(port, timeoutSeconds int, verbose bool) <-ch
 // verifier is returned so the caller can include it in the token exchange.
 // Returns the raw query string containing the code and state, the PKCE code
 // verifier (empty when pkce is false), or an error if the process fails.
+// The success page shows a static close instruction; set Options.CloseWindowDelay
+// and use RequestCertificate to have the page close its own tab after a countdown.
 func GetAuthCode(endPoint, clientId, scope string, callbackPort, timeoutSeconds int, pkce, verbose bool) (string, string, error) {
-	result := getAuthCodeFromCallbackHandler(callbackPort, timeoutSeconds, verbose)
+	return getAuthCode(endPoint, clientId, scope, callbackPort, timeoutSeconds, 0, pkce, verbose)
+}
+
+// getAuthCode implements GetAuthCode with an additional closeDelaySeconds
+// parameter controlling the auto-close countdown on the success page.
+func getAuthCode(endPoint, clientId, scope string, callbackPort, timeoutSeconds, closeDelaySeconds int, pkce, verbose bool) (string, string, error) {
+	result := getAuthCodeFromCallbackHandler(callbackPort, timeoutSeconds, closeDelaySeconds, verbose)
 
 	nonce, err := newCodeVerifier(24)
 	if err != nil {
