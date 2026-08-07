@@ -11,11 +11,23 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 )
+
+// TestMain stubs out all real browser interaction for the whole package:
+// without this, any test that reaches openIdpAuthURL (e.g. the
+// RequestCertificate tests) launches a real browser tab per test on macOS
+// via /usr/bin/open. Tests that need to observe or fail these calls override
+// the vars locally and restore them afterwards.
+func TestMain(m *testing.M) {
+	browserOpen = func(string) error { return nil }
+	browserTabClose = func(string, int) {}
+	os.Exit(m.Run())
+}
 
 // --- encode tests ---
 
