@@ -142,6 +142,7 @@ public class ZTSImpl implements ZTSHandler {
     protected int idTokenDefaultTimeout;
     protected int jagTokenUserMaxTimeout;
     protected int jagTokenServiceMaxTimeout;
+    protected int jagTokenRefreshMaxTimeout;
     protected DynamicConfigLong x509CertRefreshResetTime;
     protected long signedPolicyTimeout;
     protected static String serverHostName = null;
@@ -688,6 +689,10 @@ public class ZTSImpl implements ZTSHandler {
         timeout = TimeUnit.SECONDS.convert(6, TimeUnit.HOURS);
         jagTokenServiceMaxTimeout = Integer.parseInt(
                 System.getProperty(ZTSConsts.ZTS_PROP_JAG_TOKEN_SERVICE_MAX_TIMEOUT, Long.toString(timeout)));
+
+        timeout = TimeUnit.SECONDS.convert(30, TimeUnit.DAYS);
+        jagTokenRefreshMaxTimeout = Integer.parseInt(
+                System.getProperty(ZTSConsts.ZTS_PROP_JAG_TOKEN_REFRESH_MAX_TIMEOUT, Long.toString(timeout)));
 
         // signedPolicyTimeout is in milliseconds but the config setting should be in seconds
         // to be consistent with other configuration properties
@@ -2753,6 +2758,8 @@ public class ZTSImpl implements ZTSHandler {
         switch (accessTokenRequest.getRequestType()) {
             case JAG_TOKEN_EXCHANGE:
                 return processJAGTokenIssueRequest(ctx, principal, accessTokenRequest, principalDomain, caller);
+            case JAG_TOKEN_REFRESH:
+                return processJAGTokenRefreshRequest(ctx, principal, accessTokenRequest, principalDomain, caller);
             case JAG_JWT_BEARER:
                 return processJAGTokenExchangeRequest(ctx, principal, accessTokenRequest, principalDomain, caller);
             case ID_TOKEN_EXCHANGE:
@@ -3383,15 +3390,7 @@ public class ZTSImpl implements ZTSHandler {
         // make sure our principal is authorized to request a jag token
         // exchange for the given roles
 
-        for (String requestedRole : requestedRoles) {
-            if (!authorizer.access(ZTSConsts.ZTS_ACTION_JAG_EXCHANGE,
-                    ResourceUtils.roleResourceName(domainName, requestedRole), principal, null)) {
-                LOGGER.error("processJAGTokenIssueRequest: access check failure for {} - {}:role.{}",
-                        principalName, domainName, requestedRole);
-                throw forbiddenError("Principal not authorized for token exchange for the requested role",
-                        caller, domainName, principalDomain);
-            }
-        }
+        validateJAGExchangeAccess(principal, domainName, requestedRoles, caller, principalDomain);
 
         // append the domain name to the role names to make these fully qualified
 
@@ -3400,8 +3399,16 @@ public class ZTSImpl implements ZTSHandler {
             roleList.add(ResourceUtils.roleResourceName(domainName, subjectRole));
         }
 
-        int tokenTimeout = determineTokenTimeout(data, subjectRoles, null, accessTokenRequest.getExpiryTime());
         long iat = System.currentTimeMillis() / 1000;
+        long authTime = subjectToken.getAuthTime();
+        if (authTime <= 0) {
+            authTime = iat;
+        }
+        int tokenTimeout = determineJAGTokenTimeout(
+                determineTokenTimeout(data, subjectRoles, null, accessTokenRequest.getExpiryTime()), authTime, iat);
+        if (tokenTimeout == 0) {
+            throw requestError("ID-JAG maximum refresh period has expired", caller, domainName, principalDomain);
+        }
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
@@ -3409,7 +3416,7 @@ public class ZTSImpl implements ZTSHandler {
         accessToken.setAudience(accessTokenRequest.getAudience());
         accessToken.setClientId(principalName);
         accessToken.setIssueTime(iat);
-        accessToken.setAuthTime(iat);
+        accessToken.setAuthTime(authTime);
         accessToken.setExpiryTime(iat + tokenTimeout);
         accessToken.setSubject(subjectIdentity);
         accessToken.setIssuer(issuerResolver.getAccessTokenIssuer(ctx.request(), true));
@@ -3459,6 +3466,165 @@ public class ZTSImpl implements ZTSHandler {
         return principal.getFullName().equals(subjectIdentity);
     }
 
+    AccessTokenResponse processJAGTokenRefreshRequest(ResourceContext ctx, Principal principal,
+            AccessTokenRequest accessTokenRequest, final String clientPrincipalDomain, final String caller) {
+
+        disallowAuthorizedServicePrincipal(principal.getAuthorizedService(), "jag token refresh",
+                caller, clientPrincipalDomain);
+
+        // Renewal is restricted to an Athenz service authenticated with its
+        // X.509 certificate. User certificates and non-mTLS authentication are
+        // not sufficient for extending the delegation.
+
+        if (principal.getX509Certificate() == null || userDomain.equals(clientPrincipalDomain)) {
+            throw authError("ID-JAG refresh requires X.509 authenticated service principal",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
+        }
+
+        AccessToken jagToken = accessTokenRequest.getJagTokenObj();
+        if (!issuerResolver.isOauth2Issuer(jagToken.getIssuer())) {
+            LOGGER.error("Invalid jag refresh issuer claim: {}", jagToken.getIssuer());
+            throw requestError("Unknown jag refresh issuer", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN,
+                    clientPrincipalDomain);
+        }
+
+        validateJAGTokenAudience(jagToken, clientPrincipalDomain, caller);
+
+        final String clientPrincipalName = principal.getFullName();
+        validateJAGTokenClient(jagToken, clientPrincipalName, clientPrincipalDomain, caller);
+
+        final String scope = jagToken.getScopeStd();
+        if (StringUtil.isBlank(scope)) {
+            throw requestError("Invalid jag assertion - missing scope", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN,
+                    clientPrincipalDomain);
+        }
+
+        AccessTokenScope tokenScope = new AccessTokenScope(scope, clientPrincipalDomain);
+        final String domainName = tokenScope.getDomainName();
+        setRequestDomain(ctx, domainName);
+        validate(domainName, TYPE_DOMAIN_NAME, clientPrincipalDomain, caller);
+
+        String[] requestedRoles = tokenScope.getRoleNames(domainName);
+        if (requestedRoles == null) {
+            throw requestError("Scope value does not contain any roles", caller, domainName, clientPrincipalDomain);
+        }
+
+        DataCache data = dataStore.getDataCache(domainName);
+        if (data == null) {
+            throw notFoundError("No such domain: " + domainName, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN,
+                    clientPrincipalDomain);
+        }
+
+        for (String requestedRole : requestedRoles) {
+            validate(requestedRole, TYPE_ENTITY_NAME, clientPrincipalDomain, caller);
+        }
+        validateJAGExchangeAccess(principal, domainName, requestedRoles, caller, clientPrincipalDomain);
+
+        // Preserve the lifetime originally selected by ZTS. The validated
+        // token is ZTS-issued, so its issue and expiry times are trusted. The
+        // refreshed token must honor the current token limits and end no later
+        // than the absolute refresh deadline anchored to the original
+        // auth_time.
+
+        final long originalLifetime = jagToken.getExpiryTime() - jagToken.getIssueTime();
+        final int requestedTimeout = (int) Math.min(Math.max(originalLifetime, 1), Integer.MAX_VALUE);
+        final Set<String> roles = new HashSet<>(Arrays.asList(requestedRoles));
+        final int permittedTimeout = determineTokenTimeout(data, roles, null, requestedTimeout);
+        final long issueTime = System.currentTimeMillis() / 1000;
+        final int tokenTimeout = determineJAGTokenTimeout(permittedTimeout, jagToken.getAuthTime(), issueTime);
+        if (tokenTimeout == 0) {
+            throw requestError("ID-JAG maximum refresh period has expired", caller, domainName,
+                    clientPrincipalDomain);
+        }
+
+        AccessToken refreshedToken = new AccessToken();
+        refreshedToken.setVersion(jagToken.getVersion());
+        refreshedToken.setJwtId(UUID.randomUUID().toString());
+        refreshedToken.setAudience(jagToken.getAudience());
+        refreshedToken.setClientId(jagToken.getClientId());
+        refreshedToken.setIssueTime(issueTime);
+        refreshedToken.setAuthTime(jagToken.getAuthTime());
+        refreshedToken.setExpiryTime(issueTime + tokenTimeout);
+        refreshedToken.setSubject(jagToken.getSubject());
+        refreshedToken.setIssuer(jagToken.getIssuer());
+        refreshedToken.setScope(jagToken.getScope());
+        refreshedToken.setScopeStd(jagToken.getScopeStd());
+        refreshedToken.setResource(jagToken.getResource());
+        refreshedToken.setAuthorizationDetails(jagToken.getAuthorizationDetails());
+        refreshedToken.setUserId(jagToken.getUserId());
+        refreshedToken.setProxyPrincipal(jagToken.getProxyPrincipal());
+        refreshedToken.setConfirm(jagToken.getConfirm());
+        refreshedToken.setAct(jagToken.getAct());
+        refreshedToken.setMayAct(jagToken.getMayAct());
+        refreshedToken.setPrincipalIssuer(jagToken.getPrincipalIssuer());
+        refreshedToken.copyCustomClaimsFrom(jagToken);
+
+        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
+        String refreshedJwts = refreshedToken.getSignedToken(privateKey.getKey(), privateKey.getId(),
+                privateKey.getAlgorithm(), AccessToken.HDR_TOKEN_JAG);
+
+        return new AccessTokenResponse().setAccess_token(refreshedJwts).setToken_type(OAUTH_NA_TOKEN)
+                .setIssued_token_type(OAUTH_JAG_TOKEN).setExpires_in(tokenTimeout)
+                .setScope(jagToken.getScopeStd());
+    }
+
+    int determineJAGTokenTimeout(long requestedTimeout, long authTime, long issueTime) {
+
+        if (requestedTimeout <= 0) {
+            return 0;
+        }
+
+        final long maxExpiryTime = authTime + jagTokenRefreshMaxTimeout;
+        final long remainingRefreshTime = maxExpiryTime - issueTime;
+        if (remainingRefreshTime <= 0) {
+            return 0;
+        }
+
+        return (int) Math.min(Math.min(requestedTimeout, remainingRefreshTime), Integer.MAX_VALUE);
+    }
+
+    void validateJAGExchangeAccess(Principal principal, final String domainName, String[] requestedRoles,
+            final String caller, final String principalDomain) {
+
+        for (String requestedRole : requestedRoles) {
+            if (!authorizer.access(ZTSConsts.ZTS_ACTION_JAG_EXCHANGE,
+                    ResourceUtils.roleResourceName(domainName, requestedRole), principal, null)) {
+                LOGGER.error("ID-JAG exchange access check failure for {} - {}:role.{}",
+                        principal.getFullName(), domainName, requestedRole);
+                throw forbiddenError("Principal not authorized for token exchange for the requested role",
+                        caller, domainName, principalDomain);
+            }
+        }
+    }
+
+    void validateJAGTokenAudience(AccessToken jagToken, final String clientPrincipalDomain, final String caller) {
+
+        final String jagAudience = jagToken.getAudience();
+        if (!issuerResolver.isOauth2Issuer(jagAudience)) {
+            LOGGER.error("Invalid jag assertion aud claim: {}", jagAudience);
+            throw requestError("Unknown jag assertion audience", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN,
+                    clientPrincipalDomain);
+        }
+    }
+
+    void validateJAGTokenClient(AccessToken jagToken, final String clientPrincipalName,
+            final String clientPrincipalDomain, final String caller) {
+
+        if (!clientPrincipalName.equals(jagToken.getClientId())) {
+
+            // Extract the client ID registered for the service, if present.
+
+            final String clientId = dataStore.getServiceClientId(clientPrincipalDomain, clientPrincipalName);
+            if (clientId == null || !clientId.equals(jagToken.getClientId())) {
+                LOGGER.error("Invalid jag assertion client_id claim: {}, clientPrincipalDomain {}, "
+                                + "clientPrincipalName {}, clientId {}", jagToken.getClientId(),
+                        clientPrincipalDomain, clientPrincipalName, clientId);
+                throw requestError("Invalid jag assertion client_id", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN,
+                        clientPrincipalDomain);
+            }
+        }
+    }
+
     AccessTokenResponse processJAGTokenExchangeRequest(ResourceContext ctx, Principal principal,
             AccessTokenRequest accessTokenRequest, final String clientPrincipalDomain, final String caller) {
 
@@ -3475,11 +3641,7 @@ public class ZTSImpl implements ZTSHandler {
         // next we need to validate that the aud claim MUST match
         // our server oidc/oauth issuer value
 
-        final String jagAudience = jagToken.getAudience();
-        if (!issuerResolver.isOauth2Issuer(jagAudience)) {
-            LOGGER.error("Invalid jag assertion aud claim: {}", jagAudience);
-            throw requestError("Unknown jag assertion audience", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
-        }
+        validateJAGTokenAudience(jagToken, clientPrincipalDomain, caller);
 
         // finally we need to validate that the client_id claim MUST identify
         // the same client as the client authentication in the request. If the jag
@@ -3490,17 +3652,7 @@ public class ZTSImpl implements ZTSHandler {
         // the client id in the jag token
 
         final String clientPrincipalName = principal.getFullName();
-        if (!clientPrincipalName.equals(jagToken.getClientId())) {
-
-            // extract the client-id for the service if one is defined
-
-            final String clientId = dataStore.getServiceClientId(clientPrincipalDomain, clientPrincipalName);
-            if (clientId == null || !clientId.equals(jagToken.getClientId())) {
-                LOGGER.error("Invalid jag assertion client_id claim: {}, clientPrincipalDomain {}, clientPrincipalName {}, clientId {}",
-                    jagToken.getClientId(), clientPrincipalDomain, clientPrincipalName, clientId);
-                throw requestError("Invalid jag assertion client_id", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, clientPrincipalDomain);
-            }
-        }
+        validateJAGTokenClient(jagToken, clientPrincipalName, clientPrincipalDomain, caller);
 
         // now we need to validate the requested actor parameter. In the context
         // of OAuth 2.0 Token Exchange (RFC 8693), if the actor is not defined,

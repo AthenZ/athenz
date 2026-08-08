@@ -252,6 +252,14 @@ public class AccessTokenTest {
         assertEquals(scopes.get(0), "readers");
         assertEquals(claimsSet.getClaim("preferred_email"), "noreply@athenz.io");
         assertEquals(claimsSet.getClaim("emails"), Arrays.asList(emails));
+
+        AccessToken parsedToken = new AccessToken(accessJws, publicKey);
+        AccessToken copiedToken = createAccessToken(now);
+        copiedToken.copyCustomClaimsFrom(parsedToken);
+        String copiedJws = copiedToken.getSignedToken(privateKey, "eckey1", "ES256");
+        JWTClaimsSet copiedClaims = SignedJWT.parse(copiedJws).getJWTClaimsSet();
+        assertEquals(copiedClaims.getClaim("preferred_email"), "noreply@athenz.io");
+        assertEquals(copiedClaims.getClaim("emails"), Arrays.asList(emails));
     }
 
     @Test
