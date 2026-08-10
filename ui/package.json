@@ -146,7 +146,7 @@
         "jest-junit": "16.0.0",
         "jsdom": "24.0.0",
         "mutationobserver-shim": "0.3.7",
-        "nanoid": "5.1.5",
+        "nanoid": "5.1.16",
         "node-mocks-http": "1.11.0",
         "prettier": "2.8.8",
         "react-test-renderer": "18.2.0",
