@@ -215,6 +215,7 @@ type Options struct {
 	FileDirectUpdate       bool                //update key/cert files directly instead of using rename
 	HostnameSuffix         string              //hostname suffix in case we need to auto-generate hostname
 	SshPrincipals          string              //ssh additional principals
+	SshIncludePrincipals   bool                //optional flag to include additional principals in host rsa key certs
 	AccessManagement       bool                //access management support
 	ZTSCloudDomains        []string            //list of domain prefixes for sanDNS entries
 	AddlSanDNSEntries      []string            //additional san dns entries to be added to the CSR

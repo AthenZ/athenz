@@ -1415,24 +1415,27 @@ func TestGenerateSSHHostCSR(t *testing.T) {
 	assert.Empty(t, req.Command)
 	assert.Empty(t, req.Ips)
 
-	// the legacy csr only includes the zts cloud domain based principals
-	// and does not include any x-principals
+	// the legacy csr only includes the zts cloud domain based principals and
+	// must not carry an x-principals field at all - an empty x-principals list
+	// is not the same as an absent one since the server only skips hostname
+	// validation when the field is not present
 
 	assert.Equal(t, []string{"api.athenz-prod.athenz.cloud", "api.athenz-prod.athenz.io"}, req.Principals)
-	assert.Empty(t, req.XPrincipals)
+	assert.Nil(t, req.XPrincipals)
+	assert.NotContains(t, csr, "xprincipals")
 }
 
 func TestGenerateSSHHostCSRWithXPrincipals(t *testing.T) {
 
 	// using invalid key file which should return an empty csr with no error
 
-	csr, err := GenerateSSHHostCSRWithXPrincipals("unknown-file", "athenz", "api", "hostname.athenz.io", "10.11.12.13", "i-0123", "host1.athenz.io,host2.athenz.io", []string{"athenz.cloud"})
+	csr, err := GenerateSSHHostCSRWithXPrincipals("unknown-file", "athenz", "api", "hostname.athenz.io", "10.11.12.13", "host1.athenz.io,host2.athenz.io", []string{"athenz.cloud"})
 	assert.Nil(t, err)
 	assert.Empty(t, csr)
 
 	// now let's test with real ssh pub key file
 
-	csr, err = GenerateSSHHostCSRWithXPrincipals("data/ssh-pub-key", "athenz", "api", "hostname.athenz.io", "10.11.12.13", "i-0123", "host1.athenz.io,host2.athenz.io", []string{"athenz.cloud"})
+	csr, err = GenerateSSHHostCSRWithXPrincipals("data/ssh-pub-key", "athenz", "api", "hostname.athenz.io", "10.11.12.13", "host1.athenz.io,host2.athenz.io", []string{"athenz.cloud"})
 	assert.Nil(t, err)
 
 	var req SSHKeyReq
@@ -1459,11 +1462,12 @@ func TestGenerateSSHHostCSRWithXPrincipals(t *testing.T) {
 		"10.11.12.13",
 		"api.athenz.athenz.cloud",
 	}, req.XPrincipals)
+	assert.Contains(t, csr, "xprincipals")
 
 	// now let's test with multiple zts cloud domains and a domain with
 	// multiple components which must be hyphenated in the hostnames
 
-	csr, err = GenerateSSHHostCSRWithXPrincipals("data/ssh-pub-key", "athenz.prod", "api", "hostname.athenz.io", "10.11.12.13", "i-0123", "host1.athenz.io", []string{"athenz.cloud", "athenz.io"})
+	csr, err = GenerateSSHHostCSRWithXPrincipals("data/ssh-pub-key", "athenz.prod", "api", "hostname.athenz.io", "10.11.12.13", "host1.athenz.io", []string{"athenz.cloud", "athenz.io"})
 	assert.Nil(t, err)
 
 	req = SSHKeyReq{}
@@ -1483,7 +1487,7 @@ func TestGenerateSSHHostCSRWithXPrincipals(t *testing.T) {
 	// now let's test without any of the optional arguments - hostname,
 	// ip and ssh principals
 
-	csr, err = GenerateSSHHostCSRWithXPrincipals("data/ssh-pub-key", "athenz", "api", "", "", "i-0123", "", []string{"athenz.cloud"})
+	csr, err = GenerateSSHHostCSRWithXPrincipals("data/ssh-pub-key", "athenz", "api", "", "", "", []string{"athenz.cloud"})
 	assert.Nil(t, err)
 
 	req = SSHKeyReq{}
@@ -1495,6 +1499,21 @@ func TestGenerateSSHHostCSRWithXPrincipals(t *testing.T) {
 	assert.Equal(t, "athenz.api", req.Requser)
 	assert.Equal(t, []string{"api.athenz.athenz.cloud"}, req.Principals)
 	assert.Equal(t, []string{"api.athenz.athenz.cloud"}, req.XPrincipals)
+
+	// finally with no optional arguments and no zts cloud domains there are no
+	// x-principals to report, and the field must be omitted rather than sent as
+	// an empty list which the server would validate the hostname against
+
+	csr, err = GenerateSSHHostCSRWithXPrincipals("data/ssh-pub-key", "athenz", "api", "", "", "", nil)
+	assert.Nil(t, err)
+
+	req = SSHKeyReq{}
+	err = json.Unmarshal([]byte(csr), &req)
+	assert.Nil(t, err)
+
+	assert.Empty(t, req.Principals)
+	assert.Nil(t, req.XPrincipals)
+	assert.NotContains(t, csr, "xprincipals")
 }
 
 func TestGenerateSSHHostRequest(t *testing.T) {

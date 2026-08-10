@@ -567,7 +567,11 @@ func generateSshRequest(opts *sc.Options, primaryServiceName, hostname string) (
 			}
 		}
 		if opts.SshHostKeyType == hostkey.Rsa {
-			sshCsr, err = util.GenerateSSHHostCSRWithXPrincipals(opts.SshPubKeyFile, opts.Domain, primaryServiceName, hostname, opts.PrivateIp, opts.InstanceId, sshPrincipals, opts.ZTSCloudDomains)
+			if opts.SshIncludePrincipals {
+				sshCsr, err = util.GenerateSSHHostCSRWithXPrincipals(opts.SshPubKeyFile, opts.Domain, primaryServiceName, hostname, opts.PrivateIp, sshPrincipals, opts.ZTSCloudDomains)
+			} else {
+				sshCsr, err = util.GenerateSSHHostCSR(opts.SshPubKeyFile, opts.Domain, primaryServiceName, opts.PrivateIp, opts.ZTSCloudDomains)
+			}
 		} else {
 			sshCertRequest, err = util.GenerateSSHHostRequest(opts.SshPubKeyFile, opts.Domain, primaryServiceName, hostname, opts.PrivateIp, opts.InstanceId, sshPrincipals, opts.ZTSCloudDomains)
 		}

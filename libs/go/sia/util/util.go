@@ -101,7 +101,7 @@ type RoleCertReqOptions struct {
 // SSHKeyReq - congruent with certsign-rdl/certsign.rdl
 type SSHKeyReq struct {
 	Principals  []string `json:"principals"`
-	XPrincipals []string `json:"xprincipals"`
+	XPrincipals []string `json:"xprincipals,omitempty" rdl:"optional"`
 	Ips         []string `json:"ips,omitempty" rdl:"optional"`
 	Pubkey      string   `json:"pubkey"`
 	Reqip       string   `json:"reqip"`
@@ -421,7 +421,7 @@ func GenerateRoleCertCSR(key *rsa.PrivateKey, options *RoleCertReqOptions) (stri
 	return GenerateX509CSR(key, csrDetails)
 }
 
-func GenerateSSHHostCSRWithXPrincipals(sshPubKeyFile string, domain, service, hostname, ip, instanceId, sshPrincipals string, ztsCloudDomains []string) (string, error) {
+func GenerateSSHHostCSRWithXPrincipals(sshPubKeyFile string, domain, service, hostname, ip, sshPrincipals string, ztsCloudDomains []string) (string, error) {
 
 	log.Println("Generating SSH Host Certificate CSR...")
 
