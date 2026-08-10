@@ -100,14 +100,15 @@ type RoleCertReqOptions struct {
 
 // SSHKeyReq - congruent with certsign-rdl/certsign.rdl
 type SSHKeyReq struct {
-	Principals []string `json:"principals"`
-	Ips        []string `json:"ips,omitempty" rdl:"optional"`
-	Pubkey     string   `json:"pubkey"`
-	Reqip      string   `json:"reqip"`
-	Requser    string   `json:"requser"`
-	Certtype   string   `json:"certtype"`
-	Transid    string   `json:"transid"`
-	Command    string   `json:"command,omitempty" rdl:"optional"`
+	Principals  []string `json:"principals"`
+	XPrincipals []string `json:"xprincipals"`
+	Ips         []string `json:"ips,omitempty" rdl:"optional"`
+	Pubkey      string   `json:"pubkey"`
+	Reqip       string   `json:"reqip"`
+	Requser     string   `json:"requser"`
+	Certtype    string   `json:"certtype"`
+	Transid     string   `json:"transid"`
+	Command     string   `json:"command,omitempty" rdl:"optional"`
 }
 
 const JwkConfFile = "athenz.conf"
@@ -418,6 +419,50 @@ func GenerateRoleCertCSR(key *rsa.PrivateKey, options *RoleCertReqOptions) (stri
 	}
 
 	return GenerateX509CSR(key, csrDetails)
+}
+
+func GenerateSSHHostCSRWithXPrincipals(sshPubKeyFile string, domain, service, hostname, ip, instanceId, sshPrincipals string, ztsCloudDomains []string) (string, error) {
+
+	log.Println("Generating SSH Host Certificate CSR...")
+
+	pubkey, err := os.ReadFile(sshPubKeyFile)
+	if err != nil {
+		log.Printf("Skipping SSH CSR Request - Unable to read SSH Public Key File: %v\n", err)
+		return "", nil
+	}
+	identity := domain + "." + service
+	transId := fmt.Sprintf("%x", time.Now().Unix())
+	hyphenDomain := strings.Replace(domain, ".", "-", -1)
+	principals := []string{}
+	xprincipals := []string{}
+	if hostname != "" {
+		xprincipals = append(xprincipals, hostname)
+	}
+	if sshPrincipals != "" {
+		xprincipals = append(xprincipals, strings.Split(sshPrincipals, ",")...)
+	}
+	if ip != "" {
+		xprincipals = append(xprincipals, ip)
+	}
+	for _, ztsDomain := range ztsCloudDomains {
+		host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, ztsDomain)
+		principals = append(principals, host)
+		xprincipals = append(xprincipals, host)
+	}
+	req := &SSHKeyReq{
+		Principals:  principals,
+		XPrincipals: xprincipals,
+		Pubkey:      string(pubkey),
+		Reqip:       ip,
+		Requser:     identity,
+		Certtype:    "host",
+		Transid:     transId,
+	}
+	csr, err := json.Marshal(req)
+	if err != nil {
+		return "", err
+	}
+	return string(csr), err
 }
 
 func GenerateSSHHostCSR(sshPubKeyFile string, domain, service, ip string, ztsCloudDomains []string) (string, error) {
