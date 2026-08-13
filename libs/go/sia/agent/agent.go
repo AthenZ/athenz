@@ -28,6 +28,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -575,10 +576,6 @@ func generateSshRequest(opts *sc.Options, primaryServiceName, hostname string) (
 	return sshCertRequest, sshCsr, err
 }
 
-func restartSshdService() error {
-	return exec.Command(util.GetUtilPath("systemctl"), "restart", "sshd").Run()
-}
-
 func updateSSH(sshCertFile, sshConfigFile, hostCert string, fileDirectUpdate bool) error {
 
 	//write the host cert file
@@ -587,47 +584,114 @@ func updateSSH(sshCertFile, sshConfigFile, hostCert string, fileDirectUpdate boo
 		return err
 	}
 
-	//Now update the config file, if needed. The format of the line we're going
-	//to insert is HostCertificate <sshCertFile>. so we'll see if the line exists
-	//or not and if not we'll insert one at the end of the file
-	if sshConfigFile != "" {
-		configPresent, err := hostCertificateLinePresent(sshConfigFile, sshCertFile)
-		if err != nil {
-			log.Printf("unable to check host certificate line for %s - error %v\n", sshConfigFile, err)
-			return err
-		}
-		if configPresent {
-			return nil
-		}
-		//update the sshconfig file to include HostCertificate line
-		err = updateSSHConfigFile(sshConfigFile, sshCertFile)
-		if err != nil {
-			return err
-		}
-		//and restart sshd to notice the changes.
-		return restartSshdService()
+	//if we're not asked to update the sshd config file then we're done
+	if sshConfigFile == "" {
+		return nil
 	}
-	return nil
+
+	//if our host certificate line is already present then this was a
+	//certificate refresh only and sshd does not need to be reloaded
+	configPresent, err := hostCertificateLinePresent(sshConfigFile, sshCertFile)
+	if err != nil {
+		log.Printf("unable to check host certificate line for %s - error %v\n", sshConfigFile, err)
+		return err
+	}
+	if configPresent {
+		return nil
+	}
+
+	//our host certificate line is not present which indicates the host
+	//key type has changed (or this is the initial setup). we add our host
+	//certificate line and comment out the lines of the other host key
+	//types since sia is no longer updating those certificates and sshd
+	//would keep presenting them until they expire
+	origContents, err := os.ReadFile(sshConfigFile)
+	if err != nil {
+		return err
+	}
+	err = updateSSHConfigFile(sshConfigFile, sshCertFile, fileDirectUpdate)
+	if err != nil {
+		return err
+	}
+
+	//validate the new configuration before asking sshd to re-read it. if
+	//it does not validate we restore the original configuration and leave
+	//the running daemon untouched since reloading into a broken config
+	//could lock us out of the instance
+	if err := checkSshdConfig(sshdCommand(), sshConfigFile); err != nil {
+		if restoreErr := util.UpdateFileContents(sshConfigFile, origContents, 0644, fileDirectUpdate, true); restoreErr != nil {
+			log.Printf("unable to restore %s after failed validation, error: %v\n", sshConfigFile, restoreErr)
+		}
+		return err
+	}
+
+	//and reload sshd to notice the changes
+	return reloadSshdService(util.GetUtilPath("systemctl"))
 }
 
-func updateSSHConfigFile(sshConfigFile, sshCertFile string) error {
-	//update the sshd config file to include HostCertificate line
-	file, err := os.OpenFile(sshConfigFile, os.O_APPEND|os.O_WRONLY, 0644)
+// updateSSHConfigFile updates the sshd config file to include the
+// HostCertificate line for the given cert file and comments out the host
+// certificate lines of the other host key types that sia supports
+func updateSSHConfigFile(sshConfigFile, sshCertFile string, fileDirectUpdate bool) error {
+	contents, err := os.ReadFile(sshConfigFile)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
-	certLine := fmt.Sprintf("\nHostCertificate %s\n", sshCertFile)
-	_, err = file.Write([]byte(certLine))
-	if err != nil {
-		return err
+	newContents := updatedSSHConfigContents(string(contents), sshCertFile)
+	return util.UpdateFileContents(sshConfigFile, []byte(newContents), 0644, fileDirectUpdate, true)
+}
+
+// updatedSSHConfigContents returns the sshd config contents with the
+// HostCertificate line for the given cert file added and the host
+// certificate lines of the other sia supported host key types commented
+// out. the new line is inserted before the first Match block, if present,
+// since HostCertificate is only valid in the global section of the file
+func updatedSSHConfigContents(contents, sshCertFile string) string {
+	staleCertFiles := siblingHostCertFiles(sshCertFile)
+	lines := strings.Split(contents, "\n")
+	insertIdx := len(lines)
+	for idx, line := range lines {
+		fields := strings.Fields(line)
+		if len(fields) > 0 && strings.EqualFold(fields[0], "Match") && insertIdx == len(lines) {
+			insertIdx = idx
+		}
+		certFile := hostCertificateFile(line)
+		if certFile == "" {
+			continue
+		}
+		for _, staleCertFile := range staleCertFiles {
+			if certFile == staleCertFile {
+				log.Printf("commenting out sshd configuration line: %s\n", line)
+				lines[idx] = "#" + line
+				break
+			}
+		}
 	}
-	return nil
+	certLine := fmt.Sprintf("HostCertificate %s", sshCertFile)
+	lines = append(lines[:insertIdx], append([]string{certLine}, lines[insertIdx:]...)...)
+	newContents := strings.Join(lines, "\n")
+	if !strings.HasSuffix(newContents, "\n") {
+		newContents += "\n"
+	}
+	return newContents
+}
+
+// siblingHostCertFiles returns the host certificate file paths of all the
+// sia supported host key types other than the one for the given cert file
+func siblingHostCertFiles(sshCertFile string) []string {
+	sshDir := filepath.Dir(sshCertFile)
+	var certFiles []string
+	for _, keyType := range []hostkey.KeyType{hostkey.Rsa, hostkey.Ecdsa, hostkey.Ed25519} {
+		certFile := hostkey.CertFile(sshDir, keyType)
+		if certFile != sshCertFile {
+			certFiles = append(certFiles, certFile)
+		}
+	}
+	return certFiles
 }
 
 func hostCertificateLinePresent(sshConfigFile, sshCertFile string) (bool, error) {
 
-	certLine := fmt.Sprintf("HostCertificate %s", sshCertFile)
 	file, err := os.Open(sshConfigFile)
 	if err != nil {
 		return false, err
@@ -636,13 +700,65 @@ func hostCertificateLinePresent(sshConfigFile, sshCertFile string) (bool, error)
 	scanner := bufio.NewScanner(file)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
-		line := strings.Trim(scanner.Text(), " \t")
-		if strings.HasPrefix(line, certLine) {
+		line := scanner.Text()
+		if hostCertificateFile(line) == sshCertFile {
 			log.Printf("ssh configuration file already includes expected line: %s\n", line)
 			return true, nil
 		}
 	}
-	return false, nil
+	return false, scanner.Err()
+}
+
+// hostCertificateFile returns the certificate file configured in the given
+// sshd config line if the line is an active - not commented out - host
+// certificate line, otherwise it returns an empty string. sshd config
+// keywords are case-insensitive so the keyword is matched accordingly
+func hostCertificateFile(line string) string {
+	fields := strings.Fields(line)
+	if len(fields) < 2 || !strings.EqualFold(fields[0], "HostCertificate") {
+		return ""
+	}
+	return fields[1]
+}
+
+// checkSshdConfig validates the given sshd config file so that we never ask
+// the daemon to load a configuration that does not parse. the command output
+// is captured since the exit error alone does not indicate the reason
+func checkSshdConfig(sshd, sshConfigFile string) error {
+	out, err := exec.Command(sshd, "-t", "-f", sshConfigFile).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("sshd config validation failed: %v, output: %s", err, strings.TrimSpace(string(out)))
+	}
+	return nil
+}
+
+// sshdCommand returns the path to the sshd daemon binary which is installed
+// in /usr/sbin, a directory that util.GetUtilPath does not search
+func sshdCommand() string {
+	sshd := "/usr/sbin/sshd"
+	if _, err := os.Stat(sshd); err == nil {
+		return sshd
+	}
+	return "sshd"
+}
+
+// reloadSshdService reloads the sshd service so that it picks up the new
+// configuration and host certificate. reload is preferred over restart since
+// it does not stop the listener or affect established sessions, and systemd
+// falls back to a full start if the daemon is not running. the service unit
+// is named sshd on rhel/fedora based systems and ssh on debian/ubuntu where
+// the sshd alias link only exists while the unit is enabled, so both unit
+// names are tried in order
+func reloadSshdService(systemctl string) error {
+	var errs []string
+	for _, unit := range []string{"sshd", "ssh"} {
+		out, err := exec.Command(systemctl, "reload-or-restart", unit).CombinedOutput()
+		if err == nil {
+			return nil
+		}
+		errs = append(errs, fmt.Sprintf("reload-or-restart %s: %v, output: %s", unit, err, strings.TrimSpace(string(out))))
+	}
+	return fmt.Errorf("unable to reload sshd service: %s", strings.Join(errs, "; "))
 }
 
 func SetupAgent(opts *sc.Options, siaAgentDir, siaLinkDir string) {
