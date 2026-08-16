@@ -525,6 +525,7 @@ func AppendHostname(hostList []string, hostname string) []string {
 }
 
 func AppendEmail(emailList []string, emailAddress string) []string {
+	emailAddress = strings.TrimSpace(emailAddress)
 	if emailAddress == "" {
 		return emailList
 	}
