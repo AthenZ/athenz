@@ -78,6 +78,7 @@ type Config struct {
 	SanDnsWildcard    bool                     `json:"sandns_wildcard,omitempty"`            //san dns wildcard support
 	SanDnsHostname    bool                     `json:"sandns_hostname,omitempty"`            //san dns hostname support
 	SanDnsX509Cnames  string                   `json:"sandns_x509_cnames,omitempty"`         //additional san dns entries to be added to the CSR
+	SanEmailAddresses string                   `json:"san_email_addresses,omitempty"`        //comma separated list of email addresses to be added to the CSR
 	UseRegionalSTS    bool                     `json:"regionalsts,omitempty"`                //whether to use a regional STS endpoint (default is false)
 	Account           string                   `json:"aws_account,omitempty"`                //name of the AWS account for the identity ( only applicable in AWS environment )
 	Accounts          []ConfigAccount          `json:"accounts,omitempty"`                   //array of configured accounts ( kept for backward compatibility sake )
@@ -218,6 +219,7 @@ type Options struct {
 	AccessManagement       bool                //access management support
 	ZTSCloudDomains        []string            //list of domain prefixes for sanDNS entries
 	AddlSanDNSEntries      []string            //additional san dns entries to be added to the CSR
+	EmailAddresses         []string            //email addresses to be added to the CSR as san email entries
 	FailCountForExit       int                 //number of failed counts before exiting program
 	RunAfterCertsOkParts   []string            //run after certificate parsed parts for success
 	RunAfterCertsErrParts  []string            //run after certificate parsed parts for errors

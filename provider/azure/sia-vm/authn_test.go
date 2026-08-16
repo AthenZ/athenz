@@ -114,6 +114,61 @@ func TestRegisterInstance(test *testing.T) {
 	assert.Nil(test, err, fmt.Sprintf("unable to find ca cert: %q", caCertFile))
 }
 
+func TestRegisterInstanceWithEmailAddresses(test *testing.T) {
+	siaDir := test.TempDir()
+
+	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
+	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
+
+	opts := &options.Options{
+		Domain: "athenz",
+		Services: []options.Service{
+			{
+				Name: "hockey",
+				Uid:  util.ExecIdCommand("-u"),
+				Gid:  util.ExecIdCommand("-g"),
+			},
+		},
+		KeyDir:           siaDir,
+		CertDir:          siaDir,
+		AthenzCACertFile: caCertFile,
+		ZTSAzureDomains:  []string{"zts-azure-domain"},
+		EmailAddresses:   []string{"athenz.hockey@athenz.io", "admin@athenz.io"},
+	}
+
+	a := &attestation.Data{
+		Location:          "west2",
+		Name:              "athenz.syncer",
+		ResourceGroupName: "Athenz",
+		SubscriptionId:    "12345",
+		VmId:              "12345-vm",
+		Token:             "attestation-token",
+	}
+
+	identityDocument := attestation.IdentityDocument{
+		Location:          "west2",
+		Name:              "athenz",
+		ResourceGroupName: "athenz-rg",
+		SubscriptionId:    "123456789012",
+		VmId:              "123456789012-vmid",
+		OsType:            "Linux",
+		Tags:              "athenz:athenz.api",
+		PrivateIp:         "10.0.0.1",
+		PublicIp:          "",
+		Document:          nil,
+	}
+
+	err := RegisterInstance([]*attestation.Data{a}, "http://127.0.0.1:5085/zts/v1", &identityDocument, opts)
+	assert.Nil(test, err, "unable to register instance")
+
+	certPem, err := os.ReadFile(certFile)
+	require.Nil(test, err, fmt.Sprintf("unable to read x509 cert: %q", certFile))
+
+	cert, err := util.ParseCertificate(string(certPem))
+	require.Nil(test, err, fmt.Sprintf("unable to parse x509 cert: %v", err))
+	assert.Equal(test, []string{"athenz.hockey@athenz.io", "admin@athenz.io"}, cert.EmailAddresses)
+}
+
 func TestRegisterInstanceMultiple(test *testing.T) {
 	siaDir := test.TempDir()
 
@@ -248,6 +303,66 @@ func TestRefreshInstance(test *testing.T) {
 		test.Errorf("Certificate was not refreshed")
 		return
 	}
+}
+
+func TestRefreshInstanceWithEmailAddresses(test *testing.T) {
+	siaDir := test.TempDir()
+
+	keyFile := fmt.Sprintf("%s/athenz.hockey.key.pem", siaDir)
+	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
+	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
+
+	err := copyFile("devel/data/unit_test_key.pem", keyFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/unit_test_key.pem", keyFile, err))
+
+	err = copyFile("devel/data/cert.pem", certFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/cert.pem", certFile, err))
+
+	err = copyFile("devel/data/ca.cert.pem", caCertFile)
+	require.Nil(test, err, fmt.Sprintf("unable to copy file: %q to %q, error: %v", "devel/data/ca.cert.pem", caCertFile, err))
+
+	opts := options.Options{
+		Domain: "athenz",
+		Services: []options.Service{
+			{
+				Name: "hockey",
+				Uid:  util.ExecIdCommand("-u"),
+				Gid:  util.ExecIdCommand("-g"),
+			},
+		},
+		KeyDir:           siaDir,
+		CertDir:          siaDir,
+		AthenzCACertFile: caCertFile,
+		ZTSAzureDomains:  []string{"zts-azure-domain"},
+		EmailAddresses:   []string{"athenz.hockey@athenz.io", "admin@athenz.io"},
+	}
+
+	a := &attestation.Data{
+		Token: "token",
+	}
+
+	identityDocument := attestation.IdentityDocument{
+		Location:          "west2",
+		Name:              "athenz",
+		ResourceGroupName: "athenz-rg",
+		SubscriptionId:    "123456789012",
+		VmId:              "123456789012-vmid",
+		OsType:            "Linux",
+		Tags:              "athenz:athenz.api",
+		PrivateIp:         "10.0.0.1",
+		PublicIp:          "",
+		Document:          nil,
+	}
+
+	err = RefreshInstance([]*attestation.Data{a}, "http://127.0.0.1:5085/zts/v1", &identityDocument, &opts)
+	assert.Nil(test, err, fmt.Sprintf("unable to refresh instance: %v", err))
+
+	certPem, err := os.ReadFile(certFile)
+	require.Nil(test, err, fmt.Sprintf("unable to read x509 cert: %q", certFile))
+
+	cert, err := util.ParseCertificate(string(certPem))
+	require.Nil(test, err, fmt.Sprintf("unable to parse x509 cert: %v", err))
+	assert.Equal(test, []string{"athenz.hockey@athenz.io", "admin@athenz.io"}, cert.EmailAddresses)
 }
 
 func TestRoleCertificateRequest(test *testing.T) {

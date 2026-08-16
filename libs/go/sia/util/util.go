@@ -77,6 +77,7 @@ type SvcCertReqOptions struct {
 	SpiffeTrustDomain  string
 	SpiffeNamespace    string
 	AddlSanDNSEntries  []string
+	EmailAddresses     []string
 	ZtsDomains         []string
 	IpList             []string
 	WildCardDnsName    bool
@@ -365,6 +366,14 @@ func GenerateSvcCertCSR(key *rsa.PrivateKey, options *SvcCertReqOptions) (string
 		csrDetails.URIs = AppendUri(csrDetails.URIs, instanceNameUri)
 	}
 
+	// include any email addresses requested by the caller
+	if len(options.EmailAddresses) > 0 {
+		csrDetails.EmailList = []string{}
+		for _, email := range options.EmailAddresses {
+			csrDetails.EmailList = AppendEmail(csrDetails.EmailList, email)
+		}
+	}
+
 	csrDetails.IpList = options.IpList
 	return GenerateX509CSR(key, csrDetails)
 }
@@ -513,6 +522,18 @@ func AppendHostname(hostList []string, hostname string) []string {
 		}
 	}
 	return append(hostList, hostname)
+}
+
+func AppendEmail(emailList []string, emailAddress string) []string {
+	if emailAddress == "" {
+		return emailList
+	}
+	for _, email := range emailList {
+		if email == emailAddress {
+			return emailList
+		}
+	}
+	return append(emailList, emailAddress)
 }
 
 func GetRoleCertFileName(certDir, fileName, roleName string) string {

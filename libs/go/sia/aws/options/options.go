@@ -182,6 +182,9 @@ func InitEnvConfig(config *sc.Config) (*sc.Config, *sc.ConfigAccount, error) {
 	if config.SanDnsX509Cnames == "" {
 		config.SanDnsX509Cnames = os.Getenv("ATHENZ_SIA_SANDNS_X509_CNAMES")
 	}
+	if config.SanEmailAddresses == "" {
+		config.SanEmailAddresses = os.Getenv("ATHENZ_SIA_SAN_EMAIL_ADDRESSES")
+	}
 	if config.HostnameSuffix == "" {
 		config.HostnameSuffix = os.Getenv("ATHENZ_SIA_HOSTNAME_SUFFIX")
 	}
@@ -419,6 +422,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 	runAfterTokensErr := ""
 	spiffeTrustDomain := ""
 	addlSanDNSEntries := make([]string, 0)
+	emailAddresses := make([]string, 0)
 	runAfterFailExit := false
 	roleCertsRequired := false
 	httpPort := 0
@@ -502,6 +506,10 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		if config.SanDnsX509Cnames != "" {
 			sanDSNSEntries := strings.Split(config.SanDnsX509Cnames, ",")
 			addlSanDNSEntries = append(addlSanDNSEntries, sanDSNSEntries...)
+		}
+		if config.SanEmailAddresses != "" {
+			sanEmailEntries := strings.Split(config.SanEmailAddresses, ",")
+			emailAddresses = append(emailAddresses, sanEmailEntries...)
 		}
 		//update generate role and rotate key options if config is provided
 		generateRoleKey = config.GenerateRoleKey
@@ -700,6 +708,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		OmitDomain:             account.OmitDomain,
 		StoreTokenOption:       storeTokenOption,
 		AddlSanDNSEntries:      addlSanDNSEntries,
+		EmailAddresses:         emailAddresses,
 		RunAfterFailExit:       runAfterFailExit,
 		RoleCertsRequired:      roleCertsRequired,
 		OTel:                   oTelCfg,

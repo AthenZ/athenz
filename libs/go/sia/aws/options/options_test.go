@@ -240,6 +240,8 @@ func TestOptionsWithProfileConfig(t *testing.T) {
 	assert.Equal(t, 2, len(opts.AddlSanDNSEntries))
 	assert.Equal(t, "svc1.athenz.io", opts.AddlSanDNSEntries[0])
 	assert.Equal(t, "svc2.athenz.io", opts.AddlSanDNSEntries[1])
+
+	assert.Equal(t, []string{"athenz.api@athenz.io", "admin@athenz.io"}, opts.EmailAddresses)
 }
 
 // TestOptionsWithProfileConfigAndProfileTag test the scenario when profile config file is present anbd has profile tag key
@@ -729,6 +731,7 @@ func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_STORE_TOKEN_OPTION", "2")
 	os.Setenv("ATHENZ_SIA_OMIT_DOMAIN", "true")
 	os.Setenv("ATHENZ_SIA_SANDNS_X509_CNAMES", "svc1.athenz.io,svc2.athenz.io")
+	os.Setenv("ATHENZ_SIA_SAN_EMAIL_ADDRESSES", "athenz.api@athenz.io,admin@athenz.io")
 	os.Setenv("ATHENZ_SIA_RUN_AFTER", "/run-after.sh")
 	os.Setenv("ATHENZ_SIA_RUN_AFTER_CERTS_ERROR", "/run-after-error.sh")
 	os.Setenv("ATHENZ_SIA_RUN_AFTER_TOKENS", "/run-after-tokens.sh")
@@ -760,6 +763,7 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, "zts.athenz.cloud", cfg.HostnameSuffix)
 	assert.Equal(t, "athenz.io", cfg.SpiffeTrustDomain)
 	assert.Equal(t, "svc1.athenz.io,svc2.athenz.io", cfg.SanDnsX509Cnames)
+	assert.Equal(t, "athenz.api@athenz.io,admin@athenz.io", cfg.SanEmailAddresses)
 
 	assert.Equal(t, 1, len(cfg.AccessTokens))
 	assert.Equal(t, cfg.AccessTokens["sports/api"].Service, "")
