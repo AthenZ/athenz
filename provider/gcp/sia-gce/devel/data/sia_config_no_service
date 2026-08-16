@@ -1,0 +1,8 @@
+{
+    "version": "1.0.0",
+    "domain": "athenz",
+    "user": "nobody",
+    "san_email_addresses": "athenz.api@athenz.io",
+    "expiry_time": 240,
+    "sia_key_dir": "/var/athenz/keys"
+}
