@@ -114,6 +114,7 @@ type Options struct {
 	SanDnsHostname    bool                  //san dns hostname support
 	FileDirectUpdate  bool                  //update key/cert files directly instead of using rename
 	AddlSanDNSEntries []string              //additional san dns entries to be added to the CSR
+	EmailAddresses    []string              //email addresses to be added to the CSR as san email entries
 }
 
 func initProfileConfig(identityDocument *attestation.IdentityDocument) (*ConfigAccount, error) {

@@ -35,7 +35,7 @@ func GetRunConfig(configFile, metaEndpoint, region string, provider provider.Pro
 			log.Printf("Unable to process environment settings: %v\n", err)
 			// if we do not have settings in our environment, we're going
 			// to use fallback to retrieve values from the context ( metadata etc. )
-			config, _, err = options.InitGenericProfileConfig(metaEndpoint, "", "", provider)
+			config, _, err = options.InitGenericProfileConfig(config, metaEndpoint, "", "", provider)
 			if err != nil {
 				log.Printf("Unable to determine project, domain, service etc. from context err=%v\n", err)
 				return nil, err

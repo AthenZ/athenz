@@ -16,8 +16,10 @@ import (
 )
 
 type MockGCPProvider struct {
-	Name     string
-	Hostname string
+	Name           string
+	Hostname       string
+	MetaFailure    bool
+	ProfileFailure bool
 }
 
 // GetName returns the name of the current provider
@@ -75,10 +77,16 @@ func (tp MockGCPProvider) CloudAttestationData(*provider.AttestationRequest) (st
 }
 
 func (tp MockGCPProvider) GetAccountDomainServiceFromMeta(base string) (string, string, string, error) {
+	if tp.MetaFailure {
+		return "", "", "", fmt.Errorf("unable to retrieve account, domain and service from meta")
+	}
 	return "mockGCPProject", "mockAthenzDomain", "mockAthenzService", nil
 }
 
 func (tp MockGCPProvider) GetAccessManagementProfileFromMeta(base string) (string, error) {
+	if tp.ProfileFailure {
+		return "", fmt.Errorf("unable to retrieve access management profile from meta")
+	}
 	return "testProf", nil
 }
 

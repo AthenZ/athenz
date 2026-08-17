@@ -55,6 +55,32 @@ func TestGetConfigNoConfig(t *testing.T) {
 	assert.True(t, accessProfileConfig.Profile == "access-profile")
 }
 
+// TestGetConfigNoServiceInConfig tests the scenario when /etc/sia/sia_config is
+// present but is missing the required service field. In this case the project,
+// domain and service values are retrieved from the metadata service while the
+// rest of the settings from the config file are carried over
+func TestGetConfigNoServiceInConfig(t *testing.T) {
+	provider := GCEProvider{
+		Name: fmt.Sprintf("test.gcp"),
+	}
+	config, accessProfileConfig, err := GetGCEConfig("devel/data/sia_config_no_service", "devel/data/access_profile_empty_config", "profile:Tag", "http://127.0.0.1:5082", "us-west-2", provider)
+	require.Nilf(t, err, "error should be empty, error: %v", err)
+	require.NotNil(t, config, "should be able to get config")
+	require.NotNil(t, accessProfileConfig, "should be able to get user access management config")
+
+	assert.Equal(t, "my-gcp-project", config.Account)
+	assert.Equal(t, "athenz.test", config.Domain)
+	assert.Equal(t, "my-sa", config.Service)
+	assert.Equal(t, "access-profile", accessProfileConfig.Profile)
+
+	// settings from our config file must be carried over
+
+	assert.Equal(t, "nobody", config.User)
+	assert.Equal(t, "athenz.api@athenz.io", config.SanEmailAddresses)
+	assert.Equal(t, 240, config.ExpiryTime)
+	assert.Equal(t, "/var/athenz/keys", config.SiaKeyDir)
+}
+
 // TestGetConfigWithConfig test the scenario when /etc/sia/sia_config is present
 func TestGetConfigWithConfig(t *testing.T) {
 	provider := GCEProvider{
