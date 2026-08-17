@@ -50,7 +50,7 @@ func GetGKEConfig(configFile, profileConfigFile, metaEndpoint, region string, pr
 			// if we do not have settings in our environment, we're going
 			// to use fallback to retrieve values from the context ( metadata etc )
 			config, _, err = options.InitGenericProfileConfig(config, metaEndpoint, "", "", provider)
-			if err != nil && config == nil {
+			if err != nil {
 				log.Printf("Unable to determine project, domain, service etc. from context err=%v\n", err)
 				return nil, nil, err
 			}
