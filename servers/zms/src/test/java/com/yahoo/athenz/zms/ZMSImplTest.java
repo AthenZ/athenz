@@ -1009,6 +1009,7 @@ public class ZMSImplTest {
 
         SubDomain dom2 = zmsTestInitializer.createSubDomainObject("AddSubDom2", "AddSubDom1",
                 "Test Domain2", null, zmsTestInitializer.getAdminUser());
+        dom2.setAutoDeleteTenantAssumeRoleAssertions(true);
         Domain resDom1 = zmsImpl.postSubDomain(ctx, "AddSubDom1", auditRef, null, dom2);
         assertNotNull(resDom1);
 
@@ -1017,6 +1018,7 @@ public class ZMSImplTest {
 
         assertEquals(dom2.getOrg(), "testorg");
         assertFalse(resDom2.getAuditEnabled());
+        assertTrue(resDom2.getAutoDeleteTenantAssumeRoleAssertions());
 
         zmsImpl.deleteSubDomain(ctx, "AddSubDom1", "AddSubDom2", auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, "AddSubDom1", auditRef, null);
@@ -1062,6 +1064,7 @@ public class ZMSImplTest {
 
         RsrcCtxWrapper ctx = zmsTestInitializer.contextWithMockPrincipal("postUserDomain");
         UserDomain dom1 = zmsTestInitializer.createUserDomainObject("john-doe", "Test Domain1", "testOrg");
+        dom1.setAutoDeleteTenantAssumeRoleAssertions(true);
         zmsImpl.postUserDomain(ctx, "john-doe", auditRef, null, dom1);
 
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, "user.john-doe",
@@ -1069,6 +1072,7 @@ public class ZMSImplTest {
 
         Domain resDom2 = zmsImpl.getDomain(ctx, "user.john-doe");
         assertNotNull(resDom2);
+        assertTrue(resDom2.getAutoDeleteTenantAssumeRoleAssertions());
 
         RsrcCtxWrapper deleteCtx = zmsTestInitializer.contextWithMockPrincipal("deleteUserDomain");
         zmsImpl.deleteUserDomain(deleteCtx, "john-doe", auditRef, null);
