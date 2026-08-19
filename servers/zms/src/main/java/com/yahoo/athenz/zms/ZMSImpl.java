@@ -2091,6 +2091,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setEnvironment(detail.getEnvironment())
                 .setSlackChannel(detail.getSlackChannel())
                 .setOnCall(detail.getOnCall())
+                .setAutoDeleteTenantAssumeRoleAssertions(detail.getAutoDeleteTenantAssumeRoleAssertions())
                 .setClientIdSelfUpdate(detail.getClientIdSelfUpdate());
 
         // before processing validate the fields
@@ -2199,6 +2200,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setSshCertSignerKeyId(detail.getSshCertSignerKeyId())
                 .setSlackChannel(detail.getSlackChannel())
                 .setOnCall(detail.getOnCall())
+                .setAutoDeleteTenantAssumeRoleAssertions(detail.getAutoDeleteTenantAssumeRoleAssertions())
                 .setClientIdSelfUpdate(detail.getClientIdSelfUpdate());
 
         // before processing validate the fields
