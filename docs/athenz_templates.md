@@ -30,6 +30,13 @@ The file should follow the format below
 
 A sample file can be found at `servers/zms/conf/solution_templates.json`
 
+By default, ZMS loads the solution templates file during server startup. To allow
+template additions or updates without a ZMS deployment, administrators can enable
+`athenz.zms.solution_templates_dynamic_reload=true`. When this flag is enabled,
+ZMS checks the configured templates file for changes before template operations
+and reloads it only after the updated file is parsed and validated successfully.
+If a reload fails, ZMS keeps using the last successfully loaded templates.
+
 ## Template Entities
 A Template consists of metadata, services, roles and role metadata, 
 policies with assertions. Please find the explanation for every entity below
