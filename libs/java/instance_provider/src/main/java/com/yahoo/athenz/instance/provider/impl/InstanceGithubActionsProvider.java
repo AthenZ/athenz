@@ -62,6 +62,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_RUN_ID           = "run_id";
     public static final String CLAIM_EVENT_NAME       = "event_name";
     public static final String CLAIM_REPOSITORY       = "repository";
+    public static final String CLAIM_REF              = "ref";
     public static final String CLAIM_JOB_WORKFLOW_REF = "job_workflow_ref";
 
     Set<String> dnsSuffixes = null;
@@ -368,14 +369,18 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         // if the subject based authorization check failed and we're configured to
         // support authorization checks based on the job_workflow_ref claim, then
-        // we'll extract that claim value and, if present, carry out a second
-        // authorization check based on that resource value
+        // we'll carry out a second authorization check. the job_workflow_ref claim
+        // by itself is not sufficient for the check, so we're going to combine it
+        // with the repository and ref claims to generate our resource value. if any
+        // of those claims are not present in the token, then we'll skip the check
 
         String workflowResource = null;
         if (jobWorkflowRefAuthzCheck.get()) {
+            final String repository = JwtsHelper.getStringClaim(claimsSet, CLAIM_REPOSITORY);
+            final String ref = JwtsHelper.getStringClaim(claimsSet, CLAIM_REF);
             final String jobWorkflowRef = JwtsHelper.getStringClaim(claimsSet, CLAIM_JOB_WORKFLOW_REF);
-            if (!StringUtil.isEmpty(jobWorkflowRef)) {
-                workflowResource = domainName + ":" + jobWorkflowRef;
+            if (!StringUtil.isEmpty(repository) && !StringUtil.isEmpty(ref) && !StringUtil.isEmpty(jobWorkflowRef)) {
+                workflowResource = domainName + ":" + repository + ":" + ref + ":" + jobWorkflowRef;
                 if (authorizer.access(action, workflowResource, principal, null)) {
                     return true;
                 }
