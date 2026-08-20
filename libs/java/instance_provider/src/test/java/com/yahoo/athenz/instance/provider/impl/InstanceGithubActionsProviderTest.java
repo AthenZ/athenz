@@ -59,6 +59,7 @@ public class InstanceGithubActionsProviderTest {
         System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE);
         System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ENTERPRISE);
         System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ISSUER);
+        System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JOB_WORKFLOW_REF_AUTHZ_CHECK);
     }
 
     static void createOpenIdConfigFile(File configFile, File jwksUri) throws IOException {
@@ -647,8 +648,171 @@ public class InstanceGithubActionsProviderTest {
         assertTrue(errMsg.toString().contains("authorization check failed for action"));
     }
 
+    @Test
+    public void testValidateOIDCTokenJobWorkflowRefAuthorizationDisabled() throws JOSEException {
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        // the option is disabled by default so even though the job_workflow_ref based
+        // resource is authorized, our request must be rejected and the error message
+        // must only include the subject based resource value
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal principal = SimplePrincipal.create("sports", "api", (String) null);
+        Mockito.when(authorizer.access("github.push", "sports:repo:athenz/sia:ref:refs/heads/main", principal, null))
+                .thenReturn(false);
+        Mockito.when(authorizer.access("github.push",
+                "sports:athenz/sia/.github/workflows/build.yml@refs/heads/main", principal, null))
+                .thenReturn(true);
+        provider.setAuthorizer(authorizer);
+
+        String idToken = generateIdToken("https://token.actions.githubusercontent.com",
+                System.currentTimeMillis() / 1000, false, false, false, false, false);
+
+        StringBuilder errMsg = new StringBuilder(256);
+        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        assertFalse(result);
+        assertEquals(errMsg.toString(), "authorization check failed for action: github.push"
+                + " resource: sports:repo:athenz/sia:ref:refs/heads/main");
+    }
+
+    @Test
+    public void testValidateOIDCTokenJobWorkflowRefAuthorizationSuccess() throws JOSEException {
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JOB_WORKFLOW_REF_AUTHZ_CHECK, "true");
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        // the subject based check fails but the job_workflow_ref based check is authorized
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal principal = SimplePrincipal.create("sports", "api", (String) null);
+        Mockito.when(authorizer.access("github.push", "sports:repo:athenz/sia:ref:refs/heads/main", principal, null))
+                .thenReturn(false);
+        Mockito.when(authorizer.access("github.push",
+                "sports:athenz/sia/.github/workflows/build.yml@refs/heads/main", principal, null))
+                .thenReturn(true);
+        provider.setAuthorizer(authorizer);
+
+        String idToken = generateIdToken("https://token.actions.githubusercontent.com",
+                System.currentTimeMillis() / 1000, false, false, false, false, false);
+
+        StringBuilder errMsg = new StringBuilder(256);
+        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        assertTrue(result);
+        assertEquals(errMsg.length(), 0);
+    }
+
+    @Test
+    public void testValidateOIDCTokenJobWorkflowRefSubjectAuthorizationSuccess() throws JOSEException {
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JOB_WORKFLOW_REF_AUTHZ_CHECK, "true");
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        // the subject based check is authorized so we must not carry out the
+        // job_workflow_ref based authorization check
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal principal = SimplePrincipal.create("sports", "api", (String) null);
+        Mockito.when(authorizer.access("github.push", "sports:repo:athenz/sia:ref:refs/heads/main", principal, null))
+                .thenReturn(true);
+        provider.setAuthorizer(authorizer);
+
+        String idToken = generateIdToken("https://token.actions.githubusercontent.com",
+                System.currentTimeMillis() / 1000, false, false, false, false, false);
+
+        StringBuilder errMsg = new StringBuilder(256);
+        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        assertTrue(result);
+        assertEquals(errMsg.length(), 0);
+
+        Mockito.verify(authorizer, Mockito.never()).access("github.push",
+                "sports:athenz/sia/.github/workflows/build.yml@refs/heads/main", principal, null);
+    }
+
+    @Test
+    public void testValidateOIDCTokenJobWorkflowRefAuthorizationFailure() throws JOSEException {
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JOB_WORKFLOW_REF_AUTHZ_CHECK, "true");
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        // both the subject and job_workflow_ref based checks fail so our error
+        // message must include both resource values separated by a space
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        provider.setAuthorizer(authorizer);
+
+        String idToken = generateIdToken("https://token.actions.githubusercontent.com",
+                System.currentTimeMillis() / 1000, false, false, false, false, false);
+
+        StringBuilder errMsg = new StringBuilder(256);
+        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        assertFalse(result);
+        assertEquals(errMsg.toString(), "authorization check failed for action: github.push"
+                + " resource: sports:repo:athenz/sia:ref:refs/heads/main"
+                + " sports:athenz/sia/.github/workflows/build.yml@refs/heads/main");
+    }
+
+    @Test
+    public void testValidateOIDCTokenJobWorkflowRefMissingClaim() throws JOSEException {
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE, "https://athenz.io");
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JOB_WORKFLOW_REF_AUTHZ_CHECK, "true");
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        provider.setAuthorizer(authorizer);
+
+        // our token does not include the job_workflow_ref claim, so the error
+        // message must only include the subject based resource value
+
+        String idToken = generateIdToken("https://token.actions.githubusercontent.com",
+                System.currentTimeMillis() / 1000, false, false, false, false, false, true);
+
+        StringBuilder errMsg = new StringBuilder(256);
+        boolean result = provider.validateOIDCToken(idToken, "sports", "api", "athenz:sia:0001", errMsg);
+        assertFalse(result);
+        assertEquals(errMsg.toString(), "authorization check failed for action: github.push"
+                + " resource: sports:repo:athenz/sia:ref:refs/heads/main");
+    }
+
     private String generateIdToken(final String issuer, long currentTimeSecs, boolean skipSubject,
             boolean skipEventName, boolean skipIssuedAt, boolean skipRunId, boolean skipRepository) throws JOSEException {
+        return generateIdToken(issuer, currentTimeSecs, skipSubject, skipEventName, skipIssuedAt,
+                skipRunId, skipRepository, false);
+    }
+
+    private String generateIdToken(final String issuer, long currentTimeSecs, boolean skipSubject,
+            boolean skipEventName, boolean skipIssuedAt, boolean skipRunId, boolean skipRepository,
+            boolean skipJobWorkflowRef) throws JOSEException {
 
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
 
@@ -672,6 +836,9 @@ public class InstanceGithubActionsProviderTest {
         }
         if (!skipIssuedAt) {
             claimsSetBuilder.issueTime(Date.from(Instant.ofEpochSecond(currentTimeSecs)));
+        }
+        if (!skipJobWorkflowRef) {
+            claimsSetBuilder.claim("job_workflow_ref", "athenz/sia/.github/workflows/build.yml@refs/heads/main");
         }
 
         SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("eckey1").build(),
