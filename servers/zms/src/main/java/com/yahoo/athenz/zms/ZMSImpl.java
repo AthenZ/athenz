@@ -2595,6 +2595,30 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    static final int ACCOUNT_VALUE_MAX_LEN = 2048;
+
+    void validateAwsAccountValue(final String account, final String caller) {
+        if (StringUtil.isEmpty(account)) {
+            return;
+        }
+        if (account.length() > ACCOUNT_VALUE_MAX_LEN) {
+            throw ZMSUtils.requestError("aws account value exceeds maximum length of "
+                    + ACCOUNT_VALUE_MAX_LEN, caller);
+        }
+        for (String awsAccount : Utils.parseAwsAccounts(account)) {
+            validate(awsAccount, TYPE_COMPOUND_NAME, caller);
+        }
+    }
+
+    boolean isValidAWSAccounts(final String domainName, final String account) throws ServerResourceException {
+        for (String awsAccount : Utils.parseAwsAccounts(account)) {
+            if (!domainMetaStore.isValidAWSAccount(domainName, awsAccount)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     void validateIntegerValue(final Integer value, final String fieldName) {
         if (value != null && value < 0) {
             throw ZMSUtils.requestError(fieldName + " cannot be negative", "validateMetaFields");
@@ -2614,7 +2638,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(domain.getFeatureFlags(), "featureFlags");
 
         validateString(domain.getApplicationId(), TYPE_COMPOUND_NAME, caller);
-        validateString(domain.getAccount(), TYPE_COMPOUND_NAME, caller);
+        validateAwsAccountValue(domain.getAccount(), caller);
         validateString(domain.getAzureSubscription(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAzureTenant(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAzureClient(), TYPE_COMPOUND_NAME, caller);
@@ -2631,7 +2655,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             if (!domainMetaStore.isValidBusinessService(domain.getName(), domain.getBusinessService())) {
                 throw ZMSUtils.requestError("invalid business service name for domain", caller);
             }
-            if (!domainMetaStore.isValidAWSAccount(domain.getName(), domain.getAccount())) {
+            if (!isValidAWSAccounts(domain.getName(), domain.getAccount())) {
                 throw ZMSUtils.requestError("invalid aws account for domain", caller);
             }
             if (!domainMetaStore.isValidAzureSubscription(domain.getName(), domain.getAzureSubscription())) {
@@ -2693,7 +2717,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         switch (attributeName) {
             case ZMSConsts.SYSTEM_META_ACCOUNT:
                 if (ZMSUtils.metaValueChanged(domain.getAccount(), meta.getAccount())) {
-                    if (!domainMetaStore.isValidAWSAccount(domain.getName(), meta.getAccount())) {
+                    if (!isValidAWSAccounts(domain.getName(), meta.getAccount())) {
                         throw ZMSUtils.requestError("invalid aws account for domain", caller);
                     }
                     changedAttrs.set(DomainMetaStore.META_ATTR_AWS_ACCOUNT);
@@ -2797,7 +2821,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(meta.getFeatureFlags(), "featureFlags");
 
         validateString(meta.getApplicationId(), TYPE_COMPOUND_NAME, caller);
-        validateString(meta.getAccount(), TYPE_COMPOUND_NAME, caller);
+        validateAwsAccountValue(meta.getAccount(), caller);
         validateString(meta.getX509CertSignerKeyId(), TYPE_COMPOUND_NAME, caller);
         validateString(meta.getSshCertSignerKeyId(), TYPE_COMPOUND_NAME, caller);
 
@@ -2826,7 +2850,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     domainMetaStore.setBusinessServiceDomain(domainName, (String) value);
                     break;
                 case DomainMetaStore.META_ATTR_AWS_ACCOUNT:
-                    domainMetaStore.setAWSAccountDomain(domainName, (String) value);
+                    for (String awsAccount : Utils.parseAwsAccounts((String) value)) {
+                        domainMetaStore.setAWSAccountDomain(domainName, awsAccount);
+                    }
                     break;
                 case DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION:
                     domainMetaStore.setAzureSubscriptionDomain(domainName, (String) value);

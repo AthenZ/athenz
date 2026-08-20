@@ -25,8 +25,8 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -49,14 +49,15 @@ public class AwsAssumeRoleResourceUpdater implements ResourceValueUpdater {
         // we're going to update each assertion and generate the
         // resource in the expected aws role format. however, we
         // are going to remove any assertions where we do not have a
-        // valid syntax or no aws domain
+        // valid syntax or no aws domain. since a domain may now be
+        // associated with more than one aws account, we emit one
+        // assertion per account
 
         List<ResourceAccess> resourceAccessList = accessList.getResources();
         for (ResourceAccess resourceAccess : resourceAccessList) {
-            Iterator<Assertion> assertionIterator = resourceAccess.getAssertions().iterator();
-            while (assertionIterator.hasNext()) {
 
-                Assertion assertion = assertionIterator.next();
+            List<Assertion> updatedAssertions = new ArrayList<>();
+            for (Assertion assertion : resourceAccess.getAssertions()) {
 
                 final String role = assertion.getRole();
                 final String resource = assertion.getResource();
@@ -72,28 +73,37 @@ public class AwsAssumeRoleResourceUpdater implements ResourceValueUpdater {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("assertion domain check failed, removing assertion");
                     }
-                    assertionIterator.remove();
                     continue;
                 }
 
-                final String awsAccount = cloudProviderMap.get(resourceDomain);
-                if (awsAccount == null) {
+                final String awsAccounts = cloudProviderMap.get(resourceDomain);
+                if (awsAccounts == null) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("resource without aws account: {}", resourceDomain);
                     }
-                    assertionIterator.remove();
                     continue;
                 }
 
-                if (!StringUtil.isEmpty(filter) && !awsAccount.equals(filter)) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("resource with aws account: {} not matching filter: {}", awsAccount, filter);
+                final String roleResource = resource.substring(resourceDomain.length() + 1);
+                for (String awsAccount : Utils.parseAwsAccounts(awsAccounts)) {
+
+                    if (!StringUtil.isEmpty(filter) && !awsAccount.equals(filter)) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("resource with aws account: {} not matching filter: {}", awsAccount, filter);
+                        }
+                        continue;
                     }
-                    assertionIterator.remove();
-                    continue;
+                    updatedAssertions.add(new Assertion()
+                            .setRole(assertion.getRole())
+                            .setAction(assertion.getAction())
+                            .setEffect(assertion.getEffect())
+                            .setId(assertion.getId())
+                            .setCaseSensitive(assertion.getCaseSensitive())
+                            .setConditions(assertion.getConditions())
+                            .setResource(AWS_ARN_PREFIX + awsAccount + ":role/" + roleResource));
                 }
-                assertion.setResource(AWS_ARN_PREFIX + awsAccount + ":role/" + resource.substring(resourceDomain.length() + 1));
             }
+            resourceAccess.setAssertions(updatedAssertions);
         }
     }
 

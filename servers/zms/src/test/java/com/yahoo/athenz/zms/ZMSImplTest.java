@@ -35,6 +35,7 @@ import com.yahoo.athenz.common.config.AuthzDetailsField;
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.messaging.MockDomainChangePublisher;
 import com.yahoo.athenz.common.metrics.Metric;
+import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder;
@@ -18878,6 +18879,75 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
+        zmsImpl.objectStore.clearConnections();
+    }
+
+    @Test
+    public void testValidateAwsAccountValue() {
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+
+        // null/empty values are no-ops
+
+        zmsImpl.validateAwsAccountValue(null, "unit-test");
+        zmsImpl.validateAwsAccountValue("", "unit-test");
+
+        // single account
+
+        zmsImpl.validateAwsAccountValue("1234", "unit-test");
+
+        // multiple accounts
+
+        zmsImpl.validateAwsAccountValue("1234,5678", "unit-test");
+        zmsImpl.validateAwsAccountValue(" 1234 , 5678 ", "unit-test");
+
+        // invalid account value fails compound name validation
+
+        try {
+            zmsImpl.validateAwsAccountValue("1234,invalid account", "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // value exceeding the maximum length is rejected
+
+        String tooLong = "1".repeat(ZMSImpl.ACCOUNT_VALUE_MAX_LEN + 1);
+        try {
+            zmsImpl.validateAwsAccountValue(tooLong, "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("exceeds maximum length"));
+        }
+
+        zmsImpl.objectStore.clearConnections();
+    }
+
+    @Test
+    public void testIsValidAWSAccounts() throws ServerResourceException {
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+
+        DomainMetaStore savedMetaStore = zmsImpl.domainMetaStore;
+        zmsImpl.domainMetaStore = new TestDomainMetaStore();
+
+        // no accounts specified is always valid
+
+        assertTrue(zmsImpl.isValidAWSAccounts("iaas.athenz", null));
+        assertTrue(zmsImpl.isValidAWSAccounts("iaas.athenz", ""));
+
+        // single valid account
+
+        assertTrue(zmsImpl.isValidAWSAccounts("iaas.athenz", "1234"));
+
+        // multiple valid accounts
+
+        assertTrue(zmsImpl.isValidAWSAccounts("iaas.athenz", "1234,5678"));
+
+        // one invalid account in the list fails the whole check
+
+        assertFalse(zmsImpl.isValidAWSAccounts("iaas.athenz", "1234,invalid-5678"));
+
+        zmsImpl.domainMetaStore = savedMetaStore;
         zmsImpl.objectStore.clearConnections();
     }
 

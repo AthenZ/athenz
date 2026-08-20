@@ -33,6 +33,7 @@ import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.athenz.common.server.util.IPBlock;
+import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
@@ -173,14 +174,15 @@ public class InstanceAWSProvider implements InstanceProvider {
     }
 
     boolean validateAWSAccount(final String awsAccount, final String docAccount, StringBuilder errMsg) {
-        
-        if (!awsAccount.equalsIgnoreCase(docAccount)) {
-            LOGGER.error("ZTS AWS Domain Lookup account id: {}", awsAccount);
-            errMsg.append("mismatch between account values - instance document: ").append(docAccount);
-            return false;
+
+        for (String account : Utils.parseAwsAccounts(awsAccount)) {
+            if (account.equalsIgnoreCase(docAccount)) {
+                return true;
+            }
         }
-        
-        return true;
+        LOGGER.error("ZTS AWS Domain Lookup account id: {}", awsAccount);
+        errMsg.append("mismatch between account values - instance document: ").append(docAccount);
+        return false;
     }
     
     boolean validateAWSProvider(final String provider, final String region, StringBuilder errMsg) {
