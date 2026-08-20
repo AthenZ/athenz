@@ -168,6 +168,7 @@ public class ZMSSchema {
             .field("slackChannel", "String", true, "slack channel for any notifications in this domain")
             .field("onCall", "String", true, "oncall team name/id for any incidents in this domain")
             .field("autoDeleteTenantAssumeRoleAssertions", "Bool", true, "Indicates whether to automatically delete assertions for a tenant's assume role", false)
+            .field("clientIdSelfUpdate", "Bool", true, "Indicates whether client ID self-update is enabled for services in this domain", false)
             .field("externalMemberValidator", "String", true, "class name responsible for validating external members")
             .field("costCenter", "String", true, "cost center for this domain for any chargebacks");
 
@@ -2710,13 +2711,13 @@ public class ZMSSchema {
 ;
 
         sb.resource("ServiceIdentitySystemMeta", "PUT", "/domain/{domain}/service/{service}/meta/system/{attribute}")
-            .comment("Set the specified service metadata. Caller must have update privileges on the sys.auth domain.")
+            .comment("Set the specified service metadata. Caller must have update privileges on the sys.auth domain. For OAuth DCR clientid updates, client ID self-update is also allowed when the server property and domain clientIdSelfUpdate flag are enabled, the caller is the target service principal, and the target domain policy grants update on resource service.<service>.clientid.<clientid>.")
             .pathParam("domain", "DomainName", "name of the domain")
             .pathParam("service", "SimpleName", "name of the service")
             .pathParam("attribute", "SimpleName", "name of the system attribute to be modified")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("detail", "ServiceIdentitySystemMeta", "ServiceIdentitySystemMeta object with updated attribute values")
-            .auth("update", "sys.auth:meta.service.{attribute}.{domain}")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

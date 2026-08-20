@@ -7,8 +7,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yahoo.rdl.*;
 
 //
-// ExternalMemberCertificate - ExternalMemberCertificate - an external member
-// certificate
+// ExternalMemberCertificate - Copyright The Athenz Authors Licensed under the
+// terms of the Apache version 2.0 license. See LICENSE file for terms.
+// ExternalMemberCertificate - an external member certificate
 //
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ExternalMemberCertificate {

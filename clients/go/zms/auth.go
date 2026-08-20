@@ -92,7 +92,7 @@ func (auth zmsAuthorizer) Authorize(action string, resource string, principal rd
 		return true, nil
 	}
 	if principal.GetHTTPHeaderName() != "Athenz-Principal-Auth" {
-		return false, fmt.Errorf("Authorizer using" + principal.GetHTTPHeaderName() + " not supported")
+		return false, fmt.Errorf("Authorizer using %s not supported", principal.GetHTTPHeaderName())
 	}
 	zmsClient := NewClient(auth.url, nil)
 	zmsClient.AddCredentials(principal.GetHTTPHeaderName(), principal.GetCredentials())

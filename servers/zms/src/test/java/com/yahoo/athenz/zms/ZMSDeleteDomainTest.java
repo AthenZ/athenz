@@ -572,6 +572,7 @@ public class ZMSDeleteDomainTest {
         assertEquals(dependentDomainList.getNames().size(), 0);
         ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta();
         meta.setProviderEndpoint("https://localhost/testendpoint");
+        ZMSTestUtils.setupServiceSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
         zmsImpl.putServiceIdentitySystemMeta(ctx, topLevelDomainName, "service-provider2",
                 "providerendpoint", auditRef, meta);
 

@@ -126,3 +126,42 @@ func TestHasProtocolScheme(t *testing.T) {
 		})
 	}
 }
+
+func Test_metricsEndpointURL(t *testing.T) {
+	tests := []struct {
+		name     string
+		endpoint string
+		want     string
+	}{
+		{
+			name:     "no path",
+			endpoint: "https://example.com:4318",
+			want:     "https://example.com:4318/v1/metrics",
+		},
+		{
+			name:     "root path",
+			endpoint: "http://example.com:4318/",
+			want:     "http://example.com:4318/v1/metrics",
+		},
+		{
+			name:     "default metrics path already set",
+			endpoint: "https://example.com:4318/v1/metrics",
+			want:     "https://example.com:4318/v1/metrics",
+		},
+		{
+			name:     "custom path is preserved",
+			endpoint: "https://example.com:4318/custom/metrics",
+			want:     "https://example.com:4318/custom/metrics",
+		},
+		{
+			name:     "invalid url returned as-is",
+			endpoint: "https://exa mple.com:4318",
+			want:     "https://exa mple.com:4318",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equalf(t, tt.want, metricsEndpointURL(tt.endpoint), "metricsEndpointURL(%v)", tt.endpoint)
+		})
+	}
+}

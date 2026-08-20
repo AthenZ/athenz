@@ -20,6 +20,7 @@ import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.server.cert.CertificateDataValidator;
 import com.yahoo.athenz.common.server.spiffe.SpiffeUriManager;
 import com.yahoo.athenz.zts.cache.DataCache;
+import org.bouncycastle.asn1.x509.GeneralName;
 import org.mockito.Mockito;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -28,6 +29,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
@@ -371,6 +374,29 @@ public class X509ServiceCertRequestTest {
     }
 
     @Test
+    public void testValidateEmptyCnAndNoSpiffeUriRejected() throws Exception {
+
+        // A CSR with neither a CommonName nor a SPIFFE URI carries no identity assertion
+        // at all and must be rejected outright, not silently accepted because the CN
+        // check is skipped.
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        kpg.initialize(2048);
+        KeyPair keyPair = kpg.generateKeyPair();
+        GeneralName[] sanArray = new GeneralName[]{
+                new GeneralName(GeneralName.uniformResourceIdentifier, "athenz://instanceid/provider/i-1234")
+        };
+        String csr = Crypto.generateX509CSR(keyPair.getPrivate(), keyPair.getPublic(), "", sanArray);
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager, certificateDataValidator);
+        assertNotNull(certReq);
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        assertFalse(certReq.validate("athenz", "production", "provider",
+                null, null, null, null, null, null, null, false, errorMsg));
+        assertTrue(errorMsg.toString().contains("CSR contains neither a CommonName nor a SPIFFE URI"));
+    }
+
+    @Test
     public void testValidateUnknownUriSchemeNoEnforcement() throws IOException {
 
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
@@ -414,4 +440,3 @@ public class X509ServiceCertRequestTest {
         }
     }
 }
-

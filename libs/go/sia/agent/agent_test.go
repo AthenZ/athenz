@@ -243,6 +243,47 @@ func TestRegisterInstance(test *testing.T) {
 	}
 }
 
+func TestRegisterInstanceWithEmailAddresses(test *testing.T) {
+
+	siaDir := test.TempDir()
+
+	certFile := fmt.Sprintf("%s/athenz.hockey.cert.pem", siaDir)
+	caCertFile := fmt.Sprintf("%s/ca.cert.pem", siaDir)
+
+	tp := TestProvider{
+		Name: "athenz.aws.us-west-2",
+	}
+	opts := &sc.Options{
+		Domain: "athenz",
+		Services: []sc.Service{
+			{
+				Name: "hockey",
+				Uid:  util.ExecIdCommand("-u"),
+				Gid:  util.ExecIdCommand("-g"),
+			},
+		},
+		KeyDir:           siaDir,
+		CertDir:          siaDir,
+		AthenzCACertFile: caCertFile,
+		ZTSCloudDomains:  []string{"zts-aws-cloud"},
+		Region:           "us-west-2",
+		InstanceId:       "pod-1234",
+		Provider:         tp,
+		SanDnsHostname:   true,
+		EmailAddresses:   []string{"athenz.hockey@athenz.io", "admin@athenz.io"},
+	}
+
+	err := RegisterInstance("http://127.0.0.1:5084/zts/v1", opts, false)
+	assert.Nil(test, err, "unable to register instance")
+
+	certPem, err := os.ReadFile(certFile)
+	assert.Nil(test, err, "unable to read x509 certificate file")
+
+	cert, err := util.ParseCertificate(string(certPem))
+	assert.Nil(test, err, "unable to parse x509 certificate")
+	assert.Equal(test, []string{"athenz.hockey@athenz.io", "admin@athenz.io"}, cert.EmailAddresses)
+}
+
 func copyFile(src, dst string) error {
 	data, err := os.ReadFile(src)
 	if err != nil {
@@ -317,6 +358,26 @@ func TestRefreshInstance(test *testing.T) {
 		test.Errorf("Certificate was not refreshed")
 		return
 	}
+}
+
+func TestRefreshInstanceWithEmailAddresses(test *testing.T) {
+
+	opts, certFile := refreshServiceCertSetup(test)
+	if opts == nil {
+		test.Errorf("Certificate setup was not completed successfully")
+		return
+	}
+	opts.EmailAddresses = []string{"athenz.hockey@athenz.io", "admin@athenz.io"}
+
+	err := RefreshInstance("http://127.0.0.1:5084/zts/v1", opts)
+	assert.Nil(test, err, fmt.Sprintf("unable to refresh instance: %v", err))
+
+	certPem, err := os.ReadFile(certFile)
+	assert.Nil(test, err, "unable to read x509 certificate file")
+
+	cert, err := util.ParseCertificate(string(certPem))
+	assert.Nil(test, err, "unable to parse x509 certificate")
+	assert.Equal(test, []string{"athenz.hockey@athenz.io", "admin@athenz.io"}, cert.EmailAddresses)
 }
 
 func TestRoleCertificateRequest(test *testing.T) {

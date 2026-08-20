@@ -5173,7 +5173,8 @@ public class ZTSImpl implements ZTSHandler {
 
         X509ServiceCertRequest certReq;
         try {
-            certReq = new X509ServiceCertRequest(info.getCsr(), spiffeUriManager, certificateDataValidator);
+            certReq = new X509ServiceCertRequest(info.getCsr(), spiffeUriManager, certificateDataValidator,
+                    info.getX509CertInstanceId());
         } catch (CryptoException ex) {
             throw requestError("unable to parse PKCS10 CSR: " + ex.getMessage(),
                     caller, domain, principalDomain);

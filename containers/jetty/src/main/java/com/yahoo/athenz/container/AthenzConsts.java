@@ -102,4 +102,6 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_GRACEFUL_SHUTDOWN_TIMEOUT = "athenz.graceful_shutdown_timeout";
 
     public static final String ATHENZ_PROP_RESPONSE_HEADERS_JSON_DEFAULT = "{ \"Strict-Transport-Security\": \"max-age=31536000; includeSubDomains\" }";
+
+    public static final String ATHENZ_PROP_DISABLE_TRACE_TRACK = "athenz.disable_trace_track";
 }

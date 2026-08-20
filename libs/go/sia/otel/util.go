@@ -16,7 +16,14 @@
 
 package otel
 
-import "strings"
+import (
+	"net/url"
+	"strings"
+)
+
+// defaultMetricsPath is the default OTLP/HTTP URL path for metrics.
+// Ref: https://opentelemetry.io/docs/specs/otel/protocol/exporter/
+const defaultMetricsPath = "/v1/metrics"
 
 // isGRPCProtocol checks if the endpoint is using gRPC protocol
 // Port 4317 is the default gRPC port for OpenTelemetry.
@@ -45,4 +52,19 @@ func trimScheme(s string) string {
 // hasProtocolScheme checks if the string contains a protocol scheme.
 func hasProtocolScheme(s string) bool {
 	return strings.Index(s, "://") != -1
+}
+
+// metricsEndpointURL returns the URL to be used for the OTLP/HTTP metric exporter.
+// The exporter uses the path of the given URL as-is, and an endpoint without a path
+// targets the root path, so the default metrics path is appended when the configured
+// endpoint does not carry one.
+func metricsEndpointURL(endpoint string) string {
+	u, err := url.Parse(endpoint)
+	if err != nil {
+		return endpoint
+	}
+	if u.Path == "" || u.Path == "/" {
+		u.Path = defaultMetricsPath
+	}
+	return u.String()
 }

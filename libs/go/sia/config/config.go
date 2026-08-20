@@ -78,6 +78,7 @@ type Config struct {
 	SanDnsWildcard    bool                     `json:"sandns_wildcard,omitempty"`            //san dns wildcard support
 	SanDnsHostname    bool                     `json:"sandns_hostname,omitempty"`            //san dns hostname support
 	SanDnsX509Cnames  string                   `json:"sandns_x509_cnames,omitempty"`         //additional san dns entries to be added to the CSR
+	SanEmailAddresses string                   `json:"san_email_addresses,omitempty"`        //comma separated list of email addresses to be added to the CSR
 	UseRegionalSTS    bool                     `json:"regionalsts,omitempty"`                //whether to use a regional STS endpoint (default is false)
 	Account           string                   `json:"aws_account,omitempty"`                //name of the AWS account for the identity ( only applicable in AWS environment )
 	Accounts          []ConfigAccount          `json:"accounts,omitempty"`                   //array of configured accounts ( kept for backward compatibility sake )
@@ -115,6 +116,10 @@ type Config struct {
 	OTel              OTel                     `json:"otel"`                                 //OpenTelemetry configuration
 	HttpPort          int                      `json:"http_port,omitempty"`                  //HTTP port for health check
 	RolePath          string                   `json:"role_path,omitempty"`                  //IAM role path prefix
+	AwsWebIdentity                    bool     `json:"aws_web_identity,omitempty"`                      //enable AWS web identity token attestation path
+	AwsWebIdentityAudience            string   `json:"aws_web_identity_audience,omitempty"`             //audience for the web identity token; defaults to the ZTS URL
+	AwsWebIdentitySigningAlgorithm    string   `json:"aws_web_identity_signing_algorithm,omitempty"`    //signing algorithm for the web identity token (RS256 or ES384); default ES384
+	AwsWebIdentityDurationSeconds     int32    `json:"aws_web_identity_duration_seconds,omitempty"`     //lifetime of the web identity token in seconds (60-3600); default 300
 }
 
 type AccessProfileConfig struct {
@@ -214,6 +219,7 @@ type Options struct {
 	AccessManagement       bool                //access management support
 	ZTSCloudDomains        []string            //list of domain prefixes for sanDNS entries
 	AddlSanDNSEntries      []string            //additional san dns entries to be added to the CSR
+	EmailAddresses         []string            //email addresses to be added to the CSR as san email entries
 	FailCountForExit       int                 //number of failed counts before exiting program
 	RunAfterCertsOkParts   []string            //run after certificate parsed parts for success
 	RunAfterCertsErrParts  []string            //run after certificate parsed parts for errors
@@ -229,6 +235,10 @@ type Options struct {
 	OTel                   OTel                //openTelemetry configuration
 	HttpPort               int                 //HTTP port for health check
 	RolePath               string              //IAM role path prefix
+	UseWebIdentityToken            bool        //enable AWS web identity token attestation path
+	WebIdentityAudience            string      //audience for the web identity token; defaults to the ZTS URL
+	WebIdentitySigningAlgorithm    string      //signing algorithm for the web identity token (RS256 or ES384); default ES384
+	WebIdentityDurationSeconds     int32       //lifetime of the web identity token in seconds (60-3600); default 300
 }
 
 // OTel stores the configuration for OpenTelemetry.

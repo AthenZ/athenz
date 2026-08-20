@@ -69,6 +69,7 @@ func getIdpAuthURL(endPoint, clientId, scope, nonce, state string, callbackPort 
 }
 
 var browserOpen = openBrowser
+var browserTabClose = closeBrowserTab
 
 func openBrowser(url string) error {
 	var cmd *exec.Cmd
@@ -77,6 +78,8 @@ func openBrowser(url string) error {
 		cmd = exec.Command("/usr/bin/open", url)
 	case "linux":
 		cmd = exec.Command("xdg-open", url)
+	case "windows":
+		cmd = exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", url)
 	default:
 		return fmt.Errorf("unsupported platform: %s", runtime.GOOS)
 	}
@@ -100,7 +103,55 @@ func openIdpAuthURL(endPoint, clientId, scope, nonce, state string, callbackPort
 	return nil
 }
 
-func registerHandlers(mux *http.ServeMux, code chan<- string) {
+// closeBrowserTab closes any Chrome or Safari tab whose URL starts with
+// urlPrefix. Browsers commonly refuse the success page's own window.close()
+// for tabs they consider not script-opened, so this is what reliably closes
+// the callback tab on macOS; on other platforms it is a no-op and the page's
+// countdown is the only close attempt. The AppleScript waits delaySecs+0.5
+// seconds before acting (letting the page's countdown play out) and runs
+// detached (Start, no Wait) so it outlives the calling process. Errors are
+// logged and otherwise ignored — this is best-effort cleanup. The first run
+// may trigger a one-time macOS Automation permission prompt, attributed to
+// the user's terminal application.
+func closeBrowserTab(urlPrefix string, delaySecs int) {
+	if runtime.GOOS != "darwin" {
+		return
+	}
+	script := fmt.Sprintf(`delay %.1f
+set theURL to %q
+tell application "System Events"
+	set runningApps to name of every process
+end tell
+if "Google Chrome" is in runningApps then
+	tell application "Google Chrome"
+		repeat with w in every window
+			repeat with t in every tab of w
+				if URL of t starts with theURL then
+					close t
+				end if
+			end repeat
+		end repeat
+	end tell
+end if
+if "Safari" is in runningApps then
+	tell application "Safari"
+		repeat with w in every window
+			repeat with t in every tab of w
+				if URL of t starts with theURL then
+					close t
+				end if
+			end repeat
+		end repeat
+	end tell
+end if`, float64(delaySecs)+0.5, urlPrefix)
+
+	cmd := exec.Command("/usr/bin/osascript", "-e", script)
+	if err := cmd.Start(); err != nil {
+		log.Printf("Failed to start browser tab close: %v", err)
+	}
+}
+
+func registerHandlers(mux *http.ServeMux, code chan<- string, closeDelaySeconds int) {
 	authCode := make(chan string, 1)
 
 	mux.Handle("/oauth2/callback", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -110,7 +161,7 @@ func registerHandlers(mux *http.ServeMux, code chan<- string) {
 
 	mux.Handle("/close", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprint(w, closeWindowHTML)
+		fmt.Fprint(w, closeWindowHTML(closeDelaySeconds))
 		select {
 		case c := <-authCode:
 			code <- c
@@ -120,12 +171,12 @@ func registerHandlers(mux *http.ServeMux, code chan<- string) {
 	}))
 }
 
-func getAuthCodeFromCallbackHandler(port, timeoutSeconds int, verbose bool) <-chan authResult {
+func getAuthCodeFromCallbackHandler(port, timeoutSeconds, closeDelaySeconds int, verbose bool) <-chan authResult {
 	result := make(chan authResult, 1)
 	code := make(chan string, 1)
 
 	mux := http.NewServeMux()
-	registerHandlers(mux, code)
+	registerHandlers(mux, code, closeDelaySeconds)
 
 	if verbose {
 		log.Printf("Starting callback server on port %d", port)
@@ -156,6 +207,12 @@ func getAuthCodeFromCallbackHandler(port, timeoutSeconds int, verbose bool) <-ch
 
 		select {
 		case c := <-code:
+			// The success page's own window.close() countdown is often
+			// blocked by browsers, so also close the callback tab
+			// out-of-band (macOS only, no-op elsewhere).
+			if closeDelaySeconds > 0 {
+				browserTabClose(fmt.Sprintf("http://127.0.0.1:%d", port), closeDelaySeconds)
+			}
 			result <- authResult{Code: c}
 		case <-time.After(time.Second * time.Duration(timeoutSeconds)):
 			result <- authResult{Error: fmt.Errorf("timeout waiting for IdP callback")}
@@ -173,8 +230,16 @@ func getAuthCodeFromCallbackHandler(port, timeoutSeconds int, verbose bool) <-ch
 // verifier is returned so the caller can include it in the token exchange.
 // Returns the raw query string containing the code and state, the PKCE code
 // verifier (empty when pkce is false), or an error if the process fails.
+// The success page shows a static close instruction; set Options.CloseWindowDelay
+// and use RequestCertificate to have the page close its own tab after a countdown.
 func GetAuthCode(endPoint, clientId, scope string, callbackPort, timeoutSeconds int, pkce, verbose bool) (string, string, error) {
-	result := getAuthCodeFromCallbackHandler(callbackPort, timeoutSeconds, verbose)
+	return getAuthCode(endPoint, clientId, scope, callbackPort, timeoutSeconds, 0, pkce, verbose)
+}
+
+// getAuthCode implements GetAuthCode with an additional closeDelaySeconds
+// parameter controlling the auto-close countdown on the success page.
+func getAuthCode(endPoint, clientId, scope string, callbackPort, timeoutSeconds, closeDelaySeconds int, pkce, verbose bool) (string, string, error) {
+	result := getAuthCodeFromCallbackHandler(callbackPort, timeoutSeconds, closeDelaySeconds, verbose)
 
 	nonce, err := newCodeVerifier(24)
 	if err != nil {

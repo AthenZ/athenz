@@ -348,6 +348,8 @@ func TestOptionsWithConfig(t *testing.T) {
 	assert.Equal(t, "svc1.athenz.io", opts.AddlSanDNSEntries[0])
 	assert.Equal(t, "svc2.athenz.io", opts.AddlSanDNSEntries[1])
 
+	assert.Equal(t, []string{"athenz.api@athenz.io", "admin@athenz.io"}, opts.EmailAddresses)
+
 	// Make sure services are set
 	assert.Equal(t, 3, len(opts.Services))
 	assert.Equal(t, "athenz", opts.Domain)
@@ -711,6 +713,7 @@ func TestInitEnvConfigAwsProvider(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_STORE_TOKEN_OPTION", "2")
 	os.Setenv("ATHENZ_SIA_OMIT_DOMAIN", "true")
 	os.Setenv("ATHENZ_SIA_SANDNS_X509_CNAMES", "svc1.athenz.io,svc2.athenz.io")
+	os.Setenv("ATHENZ_SIA_SAN_EMAIL_ADDRESSES", "athenz.api@athenz.io,admin@athenz.io")
 	os.Setenv("ATHENZ_SIA_RUN_AFTER", "/run-after.sh")
 	os.Setenv("ATHENZ_SIA_RUN_AFTER_CERTS_ERROR", "/run-after-error.sh")
 	os.Setenv("ATHENZ_SIA_RUN_AFTER_TOKENS", "/run-after-tokens.sh")
@@ -745,6 +748,7 @@ func TestInitEnvConfigAwsProvider(t *testing.T) {
 	assert.Equal(t, "zts.athenz.cloud", cfg.HostnameSuffix)
 	assert.Equal(t, "athenz.io", cfg.SpiffeTrustDomain)
 	assert.Equal(t, "svc1.athenz.io,svc2.athenz.io", cfg.SanDnsX509Cnames)
+	assert.Equal(t, "athenz.api@athenz.io,admin@athenz.io", cfg.SanEmailAddresses)
 
 	assert.Equal(t, 1, len(cfg.AccessTokens))
 	assert.Equal(t, cfg.AccessTokens["sports/api"].Service, "")
@@ -800,6 +804,7 @@ func TestInitEnvConfigGcpProvider(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_STORE_TOKEN_OPTION", "2")
 	os.Setenv("ATHENZ_SIA_OMIT_DOMAIN", "true")
 	os.Setenv("ATHENZ_SIA_SANDNS_X509_CNAMES", "svc1.athenz.io,svc2.athenz.io")
+	os.Setenv("ATHENZ_SIA_SAN_EMAIL_ADDRESSES", "athenz.api@athenz.io,admin@athenz.io")
 	os.Setenv("ATHENZ_SIA_DOMAIN_NAME", "athenz")
 	os.Setenv("ATHENZ_SIA_SERVICE_NAME", "api")
 	os.Setenv("OTEL_COLLECTOR_ENDPOINT", "otel-collector.svc.cluster.local:4318")
@@ -833,6 +838,7 @@ func TestInitEnvConfigGcpProvider(t *testing.T) {
 	assert.Equal(t, "zts.athenz.cloud", cfg.HostnameSuffix)
 	assert.Equal(t, "athenz.io", cfg.SpiffeTrustDomain)
 	assert.Equal(t, "svc1.athenz.io,svc2.athenz.io", cfg.SanDnsX509Cnames)
+	assert.Equal(t, "athenz.api@athenz.io,admin@athenz.io", cfg.SanEmailAddresses)
 
 	assert.Equal(t, 1, len(cfg.AccessTokens))
 	assert.Equal(t, cfg.AccessTokens["sports/api"].Service, "")
@@ -852,6 +858,120 @@ func TestInitEnvConfigGcpProvider(t *testing.T) {
 	assert.Equal(t, "otel-collector.svc.cluster.local:4318", cfg.OTel.CollectorEndpoint)
 
 	os.Clearenv()
+}
+
+func TestInitGenericProfileConfigNoConfig(t *testing.T) {
+
+	provider := MockGCPProvider{
+		Name:     "athenz.gcp.us-west-2",
+		Hostname: "",
+	}
+	cfg, profileConfig, err := InitGenericProfileConfig(nil, "http://127.0.0.1:5082", "", "", provider)
+	require.Nilf(t, err, "error should be empty, error: %v", err)
+	require.NotNil(t, cfg, "config object should be generated")
+	require.NotNil(t, profileConfig, "access profile config object should be generated")
+
+	assert.Equal(t, "mockGCPProject", cfg.Account)
+	assert.Equal(t, "mockAthenzDomain", cfg.Domain)
+	assert.Equal(t, "mockAthenzService", cfg.Service)
+	assert.Equal(t, "testProf", profileConfig.Profile)
+	assert.Equal(t, "", profileConfig.ProfileRestrictTo)
+}
+
+func TestInitGenericProfileConfigWithConfig(t *testing.T) {
+
+	provider := MockGCPProvider{
+		Name:     "athenz.gcp.us-west-2",
+		Hostname: "",
+	}
+	// the settings from the given config object must be carried over
+	// while the account, domain and service values are always updated
+	// based on the values retrieved from the metadata service
+	config := &sc.Config{
+		Account:           "gcpProject",
+		Domain:            "sports",
+		Service:           "api",
+		User:              "nobody",
+		SanEmailAddresses: "athenz.api@athenz.io",
+		SanDnsWildcard:    true,
+		ExpiryTime:        240,
+		SiaKeyDir:         "/var/athenz/keys",
+		Roles: map[string]sc.ConfigRole{
+			"sports:role.readers": {Service: "api"},
+		},
+	}
+	cfg, profileConfig, err := InitGenericProfileConfig(config, "http://127.0.0.1:5082", "", "", provider)
+	require.Nilf(t, err, "error should be empty, error: %v", err)
+	require.NotNil(t, profileConfig, "access profile config object should be generated")
+	assert.Same(t, config, cfg, "the given config object should be updated in place")
+
+	assert.Equal(t, "mockGCPProject", cfg.Account)
+	assert.Equal(t, "mockAthenzDomain", cfg.Domain)
+	assert.Equal(t, "mockAthenzService", cfg.Service)
+	assert.Equal(t, "testProf", profileConfig.Profile)
+
+	assert.Equal(t, "nobody", cfg.User)
+	assert.Equal(t, "athenz.api@athenz.io", cfg.SanEmailAddresses)
+	assert.True(t, cfg.SanDnsWildcard)
+	assert.Equal(t, 240, cfg.ExpiryTime)
+	assert.Equal(t, "/var/athenz/keys", cfg.SiaKeyDir)
+	assert.Equal(t, 1, len(cfg.Roles))
+}
+
+func TestInitGenericProfileConfigNoAccessProfile(t *testing.T) {
+
+	provider := MockGCPProvider{
+		Name:           "athenz.gcp.us-west-2",
+		Hostname:       "",
+		ProfileFailure: true,
+	}
+	// access profile failures are ignored, so we still expect our
+	// config object to be updated with the metadata values
+	config := &sc.Config{
+		User:              "nobody",
+		SanEmailAddresses: "athenz.api@athenz.io",
+	}
+	cfg, profileConfig, err := InitGenericProfileConfig(config, "http://127.0.0.1:5082", "", "", provider)
+	require.Nilf(t, err, "error should be empty, error: %v", err)
+	require.Nil(t, profileConfig, "access profile config object should not be generated")
+	assert.Same(t, config, cfg, "the given config object should be updated in place")
+
+	assert.Equal(t, "mockGCPProject", cfg.Account)
+	assert.Equal(t, "mockAthenzDomain", cfg.Domain)
+	assert.Equal(t, "mockAthenzService", cfg.Service)
+	assert.Equal(t, "nobody", cfg.User)
+	assert.Equal(t, "athenz.api@athenz.io", cfg.SanEmailAddresses)
+}
+
+func TestInitGenericProfileConfigMetaFailure(t *testing.T) {
+
+	provider := MockGCPProvider{
+		Name:        "athenz.gcp.us-west-2",
+		Hostname:    "",
+		MetaFailure: true,
+	}
+	// if we're unable to retrieve our details from the metadata service
+	// then the given config object must be returned unmodified
+	config := &sc.Config{
+		Domain: "sports",
+		User:   "nobody",
+	}
+	cfg, profileConfig, err := InitGenericProfileConfig(config, "http://127.0.0.1:5082", "", "", provider)
+	require.NotNil(t, err, "error should be returned")
+	require.Nil(t, profileConfig, "access profile config object should not be generated")
+	assert.Same(t, config, cfg, "the given config object should be returned")
+
+	assert.Equal(t, "", cfg.Account)
+	assert.Equal(t, "sports", cfg.Domain)
+	assert.Equal(t, "", cfg.Service)
+	assert.Equal(t, "nobody", cfg.User)
+
+	// without a config object we expect a nil config object back
+
+	cfg, profileConfig, err = InitGenericProfileConfig(nil, "http://127.0.0.1:5082", "", "", provider)
+	require.NotNil(t, err, "error should be returned")
+	require.Nil(t, cfg, "config object should not be generated")
+	require.Nil(t, profileConfig, "access profile config object should not be generated")
 }
 
 func TestGetConfigWithSshHostKeyType(t *testing.T) {

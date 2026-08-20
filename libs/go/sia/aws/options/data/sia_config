@@ -19,5 +19,6 @@
         }
     ],
     "ssh_principals": "host1.athenz.io,host2.athenz.io",
-    "sandns_x509_cnames": "svc1.athenz.io,svc2.athenz.io"
+    "sandns_x509_cnames": "svc1.athenz.io,svc2.athenz.io",
+    "san_email_addresses": "athenz.api@athenz.io,admin@athenz.io"
 }

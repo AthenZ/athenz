@@ -360,6 +360,7 @@ public class ZTSSchema {
             .field("cloud", "SimpleName", true, "optional cloud name where the instance is bootstrapped. e.g. aws / gcp / azure / openstack etc.")
             .field("x509CertSignerKeyId", "SimpleName", true, "requested x509 cert signer key id")
             .field("sshCertSignerKeyId", "SimpleName", true, "requested ssh cert signer key id")
+            .field("x509CertInstanceId", "PathElement", true, "caller-supplied unique instance id for the x.509 cert when instance id can not be derived from CSR")
             .field("jwtSVIDInstanceId", "PathElement", true, "unique instance id within provider's namespace for the jwt svid")
             .field("jwtSVIDAudience", "String", true, "the audience value for the jwt svid")
             .field("jwtSVIDNonce", "EntityName", true, "the nonce value for the jwt svid")
@@ -512,7 +513,7 @@ public class ZTSSchema {
             .field("x509CertSignerKeyId", "SimpleName", true, "requested x509 cert signer key id");
 
         sb.structType("ExternalMemberCertificate")
-            .comment("ExternalMemberCertificate - an external member certificate")
+            .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. ExternalMemberCertificate - an external member certificate")
             .field("x509Certificate", "String", false, "");
 
         sb.structType("ExternalMemberCertificateRequest")

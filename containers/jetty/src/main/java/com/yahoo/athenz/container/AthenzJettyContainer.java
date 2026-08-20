@@ -29,6 +29,7 @@ import com.yahoo.athenz.common.server.util.config.providers.ConfigProviderFile;
 import com.yahoo.athenz.container.config.PortConfig;
 import com.yahoo.athenz.container.config.PortUriConfiguration;
 import com.yahoo.athenz.container.config.PortUriConfigurationManager;
+import com.yahoo.athenz.container.filter.DisableTraceFilter;
 import com.yahoo.athenz.container.filter.HealthCheckFilter;
 import jakarta.servlet.DispatcherType;
 import org.eclipse.jetty.deploy.DeploymentManager;
@@ -64,7 +65,7 @@ import java.util.Map;
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
 
 public class AthenzJettyContainer {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(AthenzJettyContainer.class);
     private static String ROOT_DIR;
     private static final String DEFAULT_WEBAPP_DESCRIPTOR = "/etc/webdefault.xml";
@@ -91,7 +92,7 @@ public class AthenzJettyContainer {
 
         loadServicePrivateKey();
     }
-    
+
     Server getServer() {
         return server;
     }
@@ -99,9 +100,9 @@ public class AthenzJettyContainer {
     Handler.Sequence getHandlers() {
         return handlers;
     }
-    
+
     static String getServerHostName() {
-        
+
         String serverHostName = System.getProperty(AthenzConsts.ATHENZ_PROP_HOSTNAME);
         if (StringUtil.isEmpty(serverHostName)) {
             try {
@@ -112,26 +113,26 @@ public class AthenzJettyContainer {
                 serverHostName = "localhost";
             }
         }
-        
+
         return serverHostName;
     }
-    
+
     public static String getRootDir() {
-        
+
         if (ROOT_DIR == null) {
             ROOT_DIR = System.getProperty(AthenzConsts.ATHENZ_PROP_ROOT_DIR, AthenzConsts.STR_DEF_ROOT);
         }
 
         return ROOT_DIR;
     }
-    
+
     public void addRequestLogHandler() {
 
         // check to see if we have a slf4j logger name specified. if we don't
         // then we'll just use our NCSARequestLog extended Athenz logger
         // when using the slf4j logger we don't have the option to pass
         // our audit logger to keep track of unauthenticated requests
-        
+
         String accessSlf4jLogger = System.getProperty(AthenzConsts.ATHENZ_PROP_ACCESS_SLF4J_LOGGER);
         if (!StringUtil.isEmpty(accessSlf4jLogger)) {
 
@@ -185,7 +186,7 @@ public class AthenzJettyContainer {
         // Add response-headers, according to configuration
 
         final String responseHeadersJson = System.getProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON,
-            AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON_DEFAULT);
+                AthenzConsts.ATHENZ_PROP_RESPONSE_HEADERS_JSON_DEFAULT);
         if (!StringUtil.isEmpty(responseHeadersJson)) {
             HashMap<String, String> responseHeaders;
             try {
@@ -296,6 +297,14 @@ public class AthenzJettyContainer {
             }
         }
 
+        // Configurable DisableTraceFilter - when enabled blocks TRACE and TRACK http methods at Jetty Container level
+        // If this property is not set, Default option is to block the TRACE and TRACK method
+        if (Boolean.parseBoolean(System.getProperty(AthenzConsts.ATHENZ_PROP_DISABLE_TRACE_TRACK, "true"))) {
+            FilterHolder disableTraceFilterHolder = new FilterHolder(DisableTraceFilter.class);
+            servletCtxHandler.addFilter(disableTraceFilterHolder, "/*", EnumSet.of(DispatcherType.REQUEST));
+            LOG.info("TRACE/TRACK methods disabled via DisableTraceFilter");
+        }
+
         // PortFilter is applied to all webapps (e.g. ZTS API) via webdefault.xml; no need to add it here.
 
         contexts.addHandler(servletCtxHandler);
@@ -332,14 +341,14 @@ public class AthenzJettyContainer {
         File file = new File(webDefaultXML);
         if (!file.exists()) {
             throw new RuntimeException("webdefault.xml not found in " + webDefaultXML);
-        } 
+        }
         webappProvider.setDefaultsDescriptor(webDefaultXML);
     }
-    
+
     public HttpConfiguration newHttpConfiguration() {
 
         // HTTP Configuration
-        
+
         boolean sendServerVersion = Boolean.parseBoolean(
                 System.getProperty(AthenzConsts.ATHENZ_PROP_SEND_SERVER_VERSION, "false"));
         boolean sendDateHeader = Boolean.parseBoolean(
@@ -350,9 +359,9 @@ public class AthenzJettyContainer {
                 System.getProperty(AthenzConsts.ATHENZ_PROP_REQUEST_HEADER_SIZE, "8192"));
         int responseHeaderSize = Integer.parseInt(
                 System.getProperty(AthenzConsts.ATHENZ_PROP_RESPONSE_HEADER_SIZE, "8192"));
-        
+
         HttpConfiguration httpConfig = new HttpConfiguration();
-        
+
         httpConfig.setOutputBufferSize(outputBufferSize);
         httpConfig.setRequestHeaderSize(requestHeaderSize);
         httpConfig.setResponseHeaderSize(responseHeaderSize);
@@ -361,7 +370,7 @@ public class AthenzJettyContainer {
 
         return httpConfig;
     }
-    
+
     void loadServicePrivateKey() {
         String pkeyFactoryClass = System.getProperty(AthenzConsts.ATHENZ_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 AthenzConsts.ATHENZ_PKEY_STORE_FACTORY_CLASS);
@@ -374,9 +383,9 @@ public class AthenzJettyContainer {
         }
         this.privateKeyStore = pkeyFactory.create();
     }
-    
+
     SslContextFactory.Server createSSLContextObject(boolean needClientAuth) {
-        
+
         final String keyStorePath = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH);
         final String keyStorePasswordAppName = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD_APPNAME);
         final String keyStorePasswordKeygroupName = System.getProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD_KEYGROUPNAME);
@@ -426,15 +435,15 @@ public class AthenzJettyContainer {
         if (!StringUtil.isEmpty(includedCipherSuites)) {
             sslContextFactory.setIncludeCipherSuites(includedCipherSuites.split(","));
         }
-        
+
         if (!StringUtil.isEmpty(excludedCipherSuites)) {
             sslContextFactory.setExcludeCipherSuites(excludedCipherSuites.split(","));
         }
-        
+
         if (!excludedProtocols.isEmpty()) {
             sslContextFactory.setExcludeProtocols(excludedProtocols.split(","));
         }
-        
+
         if (needClientAuth) {
             sslContextFactory.setNeedClientAuth(true);
         } else {
@@ -446,9 +455,9 @@ public class AthenzJettyContainer {
 
         return sslContextFactory;
     }
-    
+
     void addHTTPConnector(HttpConfiguration httpConfig, int httpPort, boolean proxyProtocol,
-            String listenHost, int idleTimeout) {
+                          String listenHost, int idleTimeout) {
 
         ServerConnector connector;
         if (proxyProtocol) {
@@ -463,16 +472,16 @@ public class AthenzJettyContainer {
         connector.setIdleTimeout(idleTimeout);
         server.addConnector(connector);
     }
-    
+
     void addHTTPSConnector(HttpConfiguration httpsConfig, int httpsPort, boolean proxyProtocol,
-            String listenHost, int idleTimeout, boolean needClientAuth, JettyConnectionLogger connectionLogger) {
-        
+                           String listenHost, int idleTimeout, boolean needClientAuth, JettyConnectionLogger connectionLogger) {
+
         // SSL Context Factory
-    
+
         SslContextFactory.Server sslContextFactory = createSSLContextObject(needClientAuth);
 
         // SSL Connector
-        
+
         ServerConnector sslConnector;
         if (proxyProtocol) {
             sslConnector = new ServerConnector(server, new ProxyConnectionFactory(),
@@ -491,7 +500,7 @@ public class AthenzJettyContainer {
         if (connectionLogger != null) {
             sslConnector.addBean(connectionLogger);
         }
-        
+
         // Listen to when HTTP connections open/close/handshake.
 
         sslConnector.addBean(connectionListener);
@@ -525,7 +534,7 @@ public class AthenzJettyContainer {
     }
 
     public void addHTTPConnectors(HttpConfiguration httpConfig, int httpPort, int httpsPort,
-            int oidcPort, int statusPort) {
+                                  int oidcPort, int statusPort) {
 
         int idleTimeout = Integer.parseInt(
                 System.getProperty(AthenzConsts.ATHENZ_PROP_IDLE_TIMEOUT, "30000"));
@@ -566,7 +575,7 @@ public class AthenzJettyContainer {
      * Add HTTP/HTTPS connectors based on port-uri.json configuration
      */
     private void addConnectorsFromPortConfig(PortUriConfiguration config, HttpConfiguration httpConfig,
-            boolean proxyProtocol, String listenHost, int idleTimeout, JettyConnectionLogger connectionLogger) {
+                                             boolean proxyProtocol, String listenHost, int idleTimeout, JettyConnectionLogger connectionLogger) {
 
         for (PortConfig portConfig : config.getPorts()) {
             int port = portConfig.getPort();
@@ -640,11 +649,11 @@ public class AthenzJettyContainer {
     public void setBanner(String banner) {
         this.banner = banner;
     }
-    
+
     public void createServer(int maxThreads) {
-        
+
         // Setup Thread pool
-        
+
         QueuedThreadPool threadPool = new QueuedThreadPool();
         threadPool.setMaxThreads(maxThreads);
 
@@ -652,11 +661,11 @@ public class AthenzJettyContainer {
         handlers = new Handler.Sequence();
         server.setHandler(handlers);
     }
-    
+
     public static AthenzJettyContainer createJettyContainer() {
 
         // retrieve our http and https port numbers
-        
+
         int httpPort = ConfigProperties.getPortNumber(AthenzConsts.ATHENZ_PROP_HTTP_PORT,
                 AthenzConsts.ATHENZ_HTTP_PORT_DEFAULT);
         int httpsPort = ConfigProperties.getPortNumber(AthenzConsts.ATHENZ_PROP_HTTPS_PORT,
@@ -764,9 +773,9 @@ public class AthenzJettyContainer {
             AthenzJettyContainer container = createJettyContainer();
             container.run();
         } catch (Exception exc) {
-            
+
             // log that we are shutting down, re-throw the exception
-            
+
             LOG.error("Startup failure. Shutting down", exc);
             throw exc;
         }

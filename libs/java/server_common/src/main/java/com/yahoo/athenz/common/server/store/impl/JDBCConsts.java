@@ -142,6 +142,7 @@ public final class JDBCConsts {
     public static final String DB_COLUMN_EXTERNAL_MEMBER_VALIDATOR = "external_member_validator";
     public static final String DB_COLUMN_COST_CENTER               = "cost_center";
     public static final String DB_COLUMN_AUTO_DELETE_TENANT_ASSUME_ROLE_ASSERTIONS = "auto_delete_tenant_assume_role_assertions";
+    public static final String DB_COLUMN_CLIENT_ID_SELF_UPDATE = "client_id_self_update";
 
     public static final String DB_COLUMN_USER_AUTHORITY_FILTER           = "user_authority_filter";
     public static final String DB_COLUMN_USER_AUTHORITY_EXPIRATION       = "user_authority_expiration";

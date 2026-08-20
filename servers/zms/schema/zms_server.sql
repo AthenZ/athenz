@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS `zms_server`.`domain` (
   `slack_channel` VARCHAR(80) NOT NULL DEFAULT '',
   `on_call` VARCHAR(128) NOT NULL DEFAULT '',
   `auto_delete_tenant_assume_role_assertions` TINYINT(1) NOT NULL DEFAULT 0,
+  `client_id_self_update` TINYINT(1) NOT NULL DEFAULT 0,
   `aws_account_name` VARCHAR(128) NOT NULL DEFAULT '',
   `external_member_validator` VARCHAR(256) NOT NULL DEFAULT '',
   `cost_center` VARCHAR(64) NOT NULL DEFAULT '',

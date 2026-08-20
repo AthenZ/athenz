@@ -240,6 +240,8 @@ func TestOptionsWithProfileConfig(t *testing.T) {
 	assert.Equal(t, 2, len(opts.AddlSanDNSEntries))
 	assert.Equal(t, "svc1.athenz.io", opts.AddlSanDNSEntries[0])
 	assert.Equal(t, "svc2.athenz.io", opts.AddlSanDNSEntries[1])
+
+	assert.Equal(t, []string{"athenz.api@athenz.io", "admin@athenz.io"}, opts.EmailAddresses)
 }
 
 // TestOptionsWithProfileConfigAndProfileTag test the scenario when profile config file is present anbd has profile tag key
@@ -729,10 +731,15 @@ func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_STORE_TOKEN_OPTION", "2")
 	os.Setenv("ATHENZ_SIA_OMIT_DOMAIN", "true")
 	os.Setenv("ATHENZ_SIA_SANDNS_X509_CNAMES", "svc1.athenz.io,svc2.athenz.io")
+	os.Setenv("ATHENZ_SIA_SAN_EMAIL_ADDRESSES", "athenz.api@athenz.io,admin@athenz.io")
 	os.Setenv("ATHENZ_SIA_RUN_AFTER", "/run-after.sh")
 	os.Setenv("ATHENZ_SIA_RUN_AFTER_CERTS_ERROR", "/run-after-error.sh")
 	os.Setenv("ATHENZ_SIA_RUN_AFTER_TOKENS", "/run-after-tokens.sh")
 	os.Setenv("ATHENZ_SIA_RUN_AFTER_TOKENS_ERROR", "/run-after-tokens-error.sh")
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY", "true")
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY_AUDIENCE", "https://zts.athenz.io")
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY_SIGNING_ALGORITHM", "RS256")
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY_DURATION_SECONDS", "300")
 
 	cfg, cfgAccount, err := InitEnvConfig(nil)
 	require.Nilf(t, err, "error should be empty, error: %v", err)
@@ -756,6 +763,7 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, "zts.athenz.cloud", cfg.HostnameSuffix)
 	assert.Equal(t, "athenz.io", cfg.SpiffeTrustDomain)
 	assert.Equal(t, "svc1.athenz.io,svc2.athenz.io", cfg.SanDnsX509Cnames)
+	assert.Equal(t, "athenz.api@athenz.io,admin@athenz.io", cfg.SanEmailAddresses)
 
 	assert.Equal(t, 1, len(cfg.AccessTokens))
 	assert.Equal(t, cfg.AccessTokens["sports/api"].Service, "")
@@ -776,6 +784,54 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, "/run-after-error.sh", cfg.RunAfterCertsErr)
 	assert.Equal(t, "/run-after-tokens.sh", cfg.RunAfterTokens)
 	assert.Equal(t, "/run-after-tokens-error.sh", cfg.RunAfterTokensErr)
+	assert.True(t, cfg.AwsWebIdentity)
+	assert.Equal(t, "https://zts.athenz.io", cfg.AwsWebIdentityAudience)
+	assert.Equal(t, "RS256", cfg.AwsWebIdentitySigningAlgorithm)
+	assert.Equal(t, int32(300), cfg.AwsWebIdentityDurationSeconds)
+
+	os.Clearenv()
+}
+
+func TestInitEnvConfigWebIdentityDefaults(t *testing.T) {
+	os.Clearenv()
+	os.Setenv("ATHENZ_SIA_IAM_ROLE_ARN", "arn:aws:iam::123456789012:role/athenz.api")
+
+	cfg, _, err := InitEnvConfig(nil)
+	require.Nilf(t, err, "unexpected error: %v", err)
+
+	// feature is off by default
+	assert.False(t, cfg.AwsWebIdentity)
+	assert.Equal(t, "", cfg.AwsWebIdentityAudience)
+	// signing algorithm and duration must fall back to hardcoded defaults
+	assert.Equal(t, "ES384", cfg.AwsWebIdentitySigningAlgorithm)
+	assert.Equal(t, int32(300), cfg.AwsWebIdentityDurationSeconds)
+
+	os.Clearenv()
+}
+
+func TestInitEnvConfigWebIdentityConfigFileWins(t *testing.T) {
+	os.Clearenv()
+	os.Setenv("ATHENZ_SIA_IAM_ROLE_ARN", "arn:aws:iam::123456789012:role/athenz.api")
+	// env vars set to values that should NOT win
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY", "false")
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY_AUDIENCE", "https://env-audience.example.com")
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY_SIGNING_ALGORITHM", "RS256")
+	os.Setenv("ATHENZ_SIA_AWS_WEB_IDENTITY_DURATION_SECONDS", "600")
+
+	// config already populated (simulates values read from sia config file)
+	preloaded := &sc.Config{
+		AwsWebIdentity:                 true,
+		AwsWebIdentityAudience:         "https://config-file-audience.example.com",
+		AwsWebIdentitySigningAlgorithm: "ES384",
+		AwsWebIdentityDurationSeconds:  180,
+	}
+	cfg, _, err := InitEnvConfig(preloaded)
+	require.Nilf(t, err, "unexpected error: %v", err)
+
+	assert.True(t, cfg.AwsWebIdentity)
+	assert.Equal(t, "https://config-file-audience.example.com", cfg.AwsWebIdentityAudience)
+	assert.Equal(t, "ES384", cfg.AwsWebIdentitySigningAlgorithm)
+	assert.Equal(t, int32(180), cfg.AwsWebIdentityDurationSeconds)
 
 	os.Clearenv()
 }
