@@ -1072,7 +1072,7 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public TransportPolicySnapshot getTransportPolicySnapshot(String domainName, String serviceName, String snapshotName) throws URISyntaxException, IOException {
+    public TransportPolicySnapshot getTransportPolicySnapshot(String domainName, String serviceName, String snapshotName, Boolean recordUsage) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName)
@@ -1083,6 +1083,9 @@ public class MSDRDLGeneratedClient {
             .build();
         if (credsHeader != null) {
             httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (recordUsage != null) {
+            httpUriRequest.addHeader("MSD-Record-Snapshot-Usage", String.valueOf(recordUsage));
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -1102,12 +1105,15 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public TransportPolicySnapshot deleteTransportPolicySnapshot(String domainName, String serviceName, String snapshotName, String resourceOwner) throws URISyntaxException, IOException {
+    public TransportPolicySnapshot deleteTransportPolicySnapshot(String domainName, String serviceName, String snapshotName, Boolean force, String resourceOwner) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName)
             .resolveTemplate("snapshotName", snapshotName);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        if (force != null) {
+            uriBuilder.setParameter("force", String.valueOf(force));
+        }
         ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.delete()
             .setUri(uriBuilder.build())
             .build();

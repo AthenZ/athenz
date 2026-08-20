@@ -56,11 +56,13 @@ resource TransportPolicySnapshots GET "/domain/{domainName}/service/{serviceName
     }
 }
 
-// Api to get a specific transport policy snapshot by name
+// Api to get a specific transport policy snapshot by name. When recordUsage is true the caller's use of
+// this snapshot is recorded; otherwise previously recorded usage is returned in lastUsage.
 resource TransportPolicySnapshot GET "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}" (name=getTransportPolicySnapshot) {
     DomainName domainName; // name of the domain
     EntityName serviceName; // name of the service
     EntityName snapshotName; // name of the snapshot
+    Bool recordUsage (optional, default=false, header="MSD-Record-Snapshot-Usage"); // record the caller's use of this snapshot instead of returning recorded usage
     authorize ("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}");
     expected OK;
     exceptions {
@@ -72,11 +74,12 @@ resource TransportPolicySnapshot GET "/domain/{domainName}/service/{serviceName}
     }
 }
 
-// Api to delete a transport policy snapshot
-resource TransportPolicySnapshot DELETE "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}" (name=deleteTransportPolicySnapshot) {
+// Api to delete a transport policy snapshot. Deleting an active snapshot is rejected unless force is true.
+resource TransportPolicySnapshot DELETE "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}?force={force}" (name=deleteTransportPolicySnapshot) {
     DomainName domainName; // name of the domain
     EntityName serviceName; // name of the service
     EntityName snapshotName; // name of the snapshot
+    Bool force (optional, default=false); // delete the snapshot even if it is marked active
     String resourceOwner (header="Athenz-Resource-Owner"); // Resource owner for the request
     authorize ("msd.DeleteNetworkPolicy", "{domainName}:service.{serviceName}");
     expected NO_CONTENT;

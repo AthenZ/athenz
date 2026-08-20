@@ -4021,6 +4021,189 @@ func (self *TransportPolicySnapshotMetadata) Validate() error {
 	return nil
 }
 
+// TransportPolicySnapshotUsagePrincipal - A single principal's most recently
+// recorded use of a snapshot
+type TransportPolicySnapshotUsagePrincipal struct {
+
+	//
+	// Principal whose use of this snapshot was recorded, as a fully qualified
+	// domain.service identity
+	//
+	Name ServiceName `json:"name"`
+
+	//
+	// Server time at which this principal's use was last recorded
+	//
+	Time rdl.Timestamp `json:"time"`
+}
+
+// NewTransportPolicySnapshotUsagePrincipal - creates an initialized TransportPolicySnapshotUsagePrincipal instance, returns a pointer to it
+func NewTransportPolicySnapshotUsagePrincipal(init ...*TransportPolicySnapshotUsagePrincipal) *TransportPolicySnapshotUsagePrincipal {
+	var o *TransportPolicySnapshotUsagePrincipal
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicySnapshotUsagePrincipal)
+	}
+	return o
+}
+
+type rawTransportPolicySnapshotUsagePrincipal TransportPolicySnapshotUsagePrincipal
+
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicySnapshotUsagePrincipal
+func (self *TransportPolicySnapshotUsagePrincipal) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicySnapshotUsagePrincipal
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicySnapshotUsagePrincipal(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *TransportPolicySnapshotUsagePrincipal) Validate() error {
+	if self.Name == "" {
+		return fmt.Errorf("TransportPolicySnapshotUsagePrincipal.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "ServiceName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySnapshotUsagePrincipal.name does not contain a valid ServiceName (%v)", val.Error)
+		}
+	}
+	if self.Time.IsZero() {
+		return fmt.Errorf("TransportPolicySnapshotUsagePrincipal: Missing required field: time")
+	}
+	return nil
+}
+
+// TransportPolicySnapshotUsageWarning - Explains why recorded usage data is
+// incomplete
+type TransportPolicySnapshotUsageWarning struct {
+
+	//
+	// Upstream that could not be read, e.g. the usage store
+	//
+	Source string `json:"source"`
+
+	//
+	// Machine readable reason, e.g. UPSTREAM_UNAVAILABLE
+	//
+	Code string `json:"code"`
+}
+
+// NewTransportPolicySnapshotUsageWarning - creates an initialized TransportPolicySnapshotUsageWarning instance, returns a pointer to it
+func NewTransportPolicySnapshotUsageWarning(init ...*TransportPolicySnapshotUsageWarning) *TransportPolicySnapshotUsageWarning {
+	var o *TransportPolicySnapshotUsageWarning
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicySnapshotUsageWarning)
+	}
+	return o
+}
+
+type rawTransportPolicySnapshotUsageWarning TransportPolicySnapshotUsageWarning
+
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicySnapshotUsageWarning
+func (self *TransportPolicySnapshotUsageWarning) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicySnapshotUsageWarning
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicySnapshotUsageWarning(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *TransportPolicySnapshotUsageWarning) Validate() error {
+	if self.Source == "" {
+		return fmt.Errorf("TransportPolicySnapshotUsageWarning.source is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Source)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySnapshotUsageWarning.source does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Code == "" {
+		return fmt.Errorf("TransportPolicySnapshotUsageWarning.code is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "String", self.Code)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySnapshotUsageWarning.code does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// TransportPolicySnapshotUsage - Usage recorded for a snapshot - which
+// principals last used it, and when
+type TransportPolicySnapshotUsage struct {
+
+	//
+	// One entry per principal with recorded use of this snapshot
+	//
+	Principals []*TransportPolicySnapshotUsagePrincipal `json:"principals"`
+
+	//
+	// True when usage data could not be fully retrieved
+	//
+	Partial *bool `json:"partial,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// Set when partial is true
+	//
+	Warning *TransportPolicySnapshotUsageWarning `json:"warning,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewTransportPolicySnapshotUsage - creates an initialized TransportPolicySnapshotUsage instance, returns a pointer to it
+func NewTransportPolicySnapshotUsage(init ...*TransportPolicySnapshotUsage) *TransportPolicySnapshotUsage {
+	var o *TransportPolicySnapshotUsage
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicySnapshotUsage)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *TransportPolicySnapshotUsage) Init() *TransportPolicySnapshotUsage {
+	if self.Principals == nil {
+		self.Principals = make([]*TransportPolicySnapshotUsagePrincipal, 0)
+	}
+	if self.Partial == nil {
+		d := false
+		self.Partial = &d
+	}
+	return self
+}
+
+type rawTransportPolicySnapshotUsage TransportPolicySnapshotUsage
+
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicySnapshotUsage
+func (self *TransportPolicySnapshotUsage) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicySnapshotUsage
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicySnapshotUsage(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *TransportPolicySnapshotUsage) Validate() error {
+	if self.Principals == nil {
+		return fmt.Errorf("TransportPolicySnapshotUsage: Missing required field: principals")
+	}
+	return nil
+}
+
 // TransportPolicySnapshot - Full transport policy snapshot containing all
 // policies
 type TransportPolicySnapshot struct {
@@ -4059,6 +4242,12 @@ type TransportPolicySnapshot struct {
 	// Transport policy rules (ingress and egress) captured in this snapshot
 	//
 	TransportPolicyRules *TransportPolicyRules `json:"transportPolicyRules"`
+
+	//
+	// Usage recorded for this snapshot, omitted when usage retrieval is disabled
+	// or the caller asked to record usage instead
+	//
+	LastUsage *TransportPolicySnapshotUsage `json:"lastUsage,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewTransportPolicySnapshot - creates an initialized TransportPolicySnapshot instance, returns a pointer to it

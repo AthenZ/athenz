@@ -40,8 +40,10 @@ public class TransportPolicySnapshotTest {
                 .setCreatedTime(Timestamp.fromMillis(123456789123L))
                 .setModified(Timestamp.fromMillis(123456789456L))
                 .setActive(true)
-                .setTransportPolicyRules(rules1);
+                .setTransportPolicyRules(rules1)
+                .setLastUsage(null);
 
+        assertEquals(snapshot1.getLastUsage(), null);
         assertEquals(snapshot1.getDomainName(), "domain1");
         assertEquals(snapshot1.getServiceName(), "service1");
         assertEquals(snapshot1.getName(), "snapshot-v1");
@@ -91,6 +93,10 @@ public class TransportPolicySnapshotTest {
 
         snapshot2.setActive(true);
         snapshot2.setTransportPolicyRules(null);
+        assertNotEquals(snapshot1, snapshot2);
+
+        snapshot2.setTransportPolicyRules(rules2);
+        snapshot2.setLastUsage(new TransportPolicySnapshotUsage());
         assertNotEquals(snapshot1, snapshot2);
 
         assertFalse(snapshot1.equals("xyz"));

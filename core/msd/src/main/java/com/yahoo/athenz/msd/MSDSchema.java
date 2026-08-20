@@ -435,6 +435,22 @@ public class MSDSchema {
             .field("modified", "Timestamp", true, "Last modification timestamp of this snapshot")
             .field("active", "Bool", false, "Whether this snapshot is marked as active");
 
+        sb.structType("TransportPolicySnapshotUsagePrincipal")
+            .comment("A single principal's most recently recorded use of a snapshot")
+            .field("name", "ServiceName", false, "Principal whose use of this snapshot was recorded, as a fully qualified domain.service identity")
+            .field("time", "Timestamp", false, "Server time at which this principal's use was last recorded");
+
+        sb.structType("TransportPolicySnapshotUsageWarning")
+            .comment("Explains why recorded usage data is incomplete")
+            .field("source", "String", false, "Upstream that could not be read, e.g. the usage store")
+            .field("code", "String", false, "Machine readable reason, e.g. UPSTREAM_UNAVAILABLE");
+
+        sb.structType("TransportPolicySnapshotUsage")
+            .comment("Usage recorded for a snapshot - which principals last used it, and when")
+            .arrayField("principals", "TransportPolicySnapshotUsagePrincipal", false, "One entry per principal with recorded use of this snapshot")
+            .field("partial", "Bool", true, "True when usage data could not be fully retrieved", false)
+            .field("warning", "TransportPolicySnapshotUsageWarning", true, "Set when partial is true");
+
         sb.structType("TransportPolicySnapshot")
             .comment("Full transport policy snapshot containing all policies")
             .field("domainName", "DomainName", false, "Name of the domain")
@@ -443,7 +459,8 @@ public class MSDSchema {
             .field("createdTime", "Timestamp", false, "Snapshot creation timestamp")
             .field("modified", "Timestamp", true, "Last modification timestamp of this snapshot")
             .field("active", "Bool", false, "Whether this snapshot is marked as active")
-            .field("transportPolicyRules", "TransportPolicyRules", false, "Transport policy rules (ingress and egress) captured in this snapshot");
+            .field("transportPolicyRules", "TransportPolicyRules", false, "Transport policy rules (ingress and egress) captured in this snapshot")
+            .field("lastUsage", "TransportPolicySnapshotUsage", true, "Usage recorded for this snapshot, omitted when usage retrieval is disabled or the caller asked to record usage instead");
 
         sb.structType("TransportPolicySnapshots")
             .comment("List of transport policy snapshot metadata")
@@ -1145,11 +1162,12 @@ public class MSDSchema {
 ;
 
         sb.resource("TransportPolicySnapshot", "GET", "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}")
-            .comment("Api to get a specific transport policy snapshot by name")
+            .comment("Api to get a specific transport policy snapshot by name. When recordUsage is true the caller's use of this snapshot is recorded; otherwise previously recorded usage is returned in lastUsage.")
             .name("getTransportPolicySnapshot")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("serviceName", "EntityName", "name of the service")
             .pathParam("snapshotName", "EntityName", "name of the snapshot")
+            .headerParam("MSD-Record-Snapshot-Usage", "recordUsage", "Bool", false, "record the caller's use of this snapshot instead of returning recorded usage")
             .auth("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -1164,11 +1182,12 @@ public class MSDSchema {
 ;
 
         sb.resource("TransportPolicySnapshot", "DELETE", "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}")
-            .comment("Api to delete a transport policy snapshot")
+            .comment("Api to delete a transport policy snapshot. Deleting an active snapshot is rejected unless force is true.")
             .name("deleteTransportPolicySnapshot")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("serviceName", "EntityName", "name of the service")
             .pathParam("snapshotName", "EntityName", "name of the snapshot")
+            .queryParam("force", "force", "Bool", false, "delete the snapshot even if it is marked active")
             .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("msd.DeleteNetworkPolicy", "{domainName}:service.{serviceName}")
             .expected("NO_CONTENT")

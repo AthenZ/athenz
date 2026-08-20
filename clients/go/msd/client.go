@@ -1212,10 +1212,13 @@ func (client MSDClient) GetTransportPolicySnapshots(domainName DomainName, servi
 	}
 }
 
-func (client MSDClient) GetTransportPolicySnapshot(domainName DomainName, serviceName EntityName, snapshotName EntityName) (*TransportPolicySnapshot, error) {
+func (client MSDClient) GetTransportPolicySnapshot(domainName DomainName, serviceName EntityName, snapshotName EntityName, recordUsage *bool) (*TransportPolicySnapshot, error) {
 	var data *TransportPolicySnapshot
+	headers := map[string]string{
+		"MSD-Record-Snapshot-Usage": strconv.FormatBool(*recordUsage),
+	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/snapshot/" + fmt.Sprint(snapshotName)
-	resp, err := client.httpGet(url, nil)
+	resp, err := client.httpGet(url, headers)
 	if err != nil {
 		return data, err
 	}
@@ -1244,11 +1247,11 @@ func (client MSDClient) GetTransportPolicySnapshot(domainName DomainName, servic
 	}
 }
 
-func (client MSDClient) DeleteTransportPolicySnapshot(domainName DomainName, serviceName EntityName, snapshotName EntityName, resourceOwner string) error {
+func (client MSDClient) DeleteTransportPolicySnapshot(domainName DomainName, serviceName EntityName, snapshotName EntityName, force *bool, resourceOwner string) error {
 	headers := map[string]string{
 		"Athenz-Resource-Owner": resourceOwner,
 	}
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/snapshot/" + fmt.Sprint(snapshotName)
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/snapshot/" + fmt.Sprint(snapshotName) + encodeParams(encodeOptionalBoolParam("force", force))
 	resp, err := client.httpDelete(url, headers)
 	if err != nil {
 		return err
