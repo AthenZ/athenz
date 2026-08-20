@@ -96,6 +96,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_ID_TOKEN_MAX_TIMEOUT       = "athenz.zts.id_token_max_timeout";
     public static final String ZTS_PROP_ID_TOKEN_DEFAULT_TIMEOUT   = "athenz.zts.id_token_default_timeout";
     public static final String ZTS_PROP_ID_TOKEN_MAX_DOMAINS       = "athenz.zts.id_token_max_domains";
+    public static final String ZTS_PROP_ACCESS_TOKEN_MAX_DOMAINS   = "athenz.zts.access_token_max_domains";
     public static final String ZTS_PROD_ID_TOKEN_ALLOWED_ROLES     = "athenz.zts.id_token_allowed_roles";
     public static final String ZTS_PROP_SIGNED_POLICY_TIMEOUT      = "athenz.zts.signed_policy_timeout";
     public static final String ZTS_PROP_AUTHORIZED_PROXY_USERS     = "athenz.zts.authorized_proxy_users";
