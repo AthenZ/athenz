@@ -2605,7 +2605,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.requestError("aws account value exceeds maximum length of "
                     + ACCOUNT_VALUE_MAX_LEN, caller);
         }
-        for (String awsAccount : Utils.parseAwsAccounts(account)) {
+        Set<String> awsAccounts = Utils.parseAwsAccounts(account);
+        if (awsAccounts.isEmpty()) {
+            throw ZMSUtils.requestError("aws account value must contain at least one account", caller);
+        }
+        for (String awsAccount : awsAccounts) {
             validate(awsAccount, TYPE_COMPOUND_NAME, caller);
         }
     }
@@ -2850,9 +2854,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     domainMetaStore.setBusinessServiceDomain(domainName, (String) value);
                     break;
                 case DomainMetaStore.META_ATTR_AWS_ACCOUNT:
-                    for (String awsAccount : Utils.parseAwsAccounts((String) value)) {
-                        domainMetaStore.setAWSAccountDomain(domainName, awsAccount);
-                    }
+                    domainMetaStore.setAWSAccountDomain(domainName, Utils.parseAwsAccounts((String) value));
                     break;
                 case DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION:
                     domainMetaStore.setAzureSubscriptionDomain(domainName, (String) value);

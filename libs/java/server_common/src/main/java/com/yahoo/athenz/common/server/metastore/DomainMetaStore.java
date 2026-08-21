@@ -18,6 +18,7 @@ package com.yahoo.athenz.common.server.metastore;
 import com.yahoo.athenz.common.server.ServerResourceException;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * An interface that allows the server to verify and update domain's
@@ -85,6 +86,30 @@ public interface DomainMetaStore {
      * @throws ServerResourceException in case of any failure
      */
     void setAWSAccountDomain(final String domainName, final String awsAccountId) throws ServerResourceException;
+
+    /**
+     * Sets the athenz domain for the given set of aws account ids, replacing any
+     * previously associated accounts for the domain that are no longer present in
+     * the set. This attribute is a domain system meta attribute and can only be
+     * changed by athenz system administrators. A domain is normally associated with
+     * a single aws account, but starting with multi-account support, a domain may
+     * be associated with more than one account, hence this method receives the full
+     * new set of accounts rather than a single value, allowing the implementation to
+     * add newly associated accounts and remove any that are no longer present in one
+     * atomic operation. The default implementation is provided for backwards
+     * compatibility with existing single-account {@link DomainMetaStore} implementations,
+     * and simply calls {@link #setAWSAccountDomain(String, String)} for each account in
+     * the given set - implementations that need correct handling of accounts removed
+     * from the set (as opposed to just added) must override this method.
+     * @param domainName - name of the domain
+     * @param awsAccountIds - full set of aws account ids now associated with the domain (can be empty)
+     * @throws ServerResourceException in case of any failure
+     */
+    default void setAWSAccountDomain(final String domainName, final Set<String> awsAccountIds) throws ServerResourceException {
+        for (String awsAccountId : awsAccountIds) {
+            setAWSAccountDomain(domainName, awsAccountId);
+        }
+    }
 
     /**
      * Get a list of valid AWS Accounts

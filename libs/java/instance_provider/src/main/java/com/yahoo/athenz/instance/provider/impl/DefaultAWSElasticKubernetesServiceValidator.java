@@ -202,21 +202,23 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
 
         boolean result = false;
 
-        // get our IAM Client
+        // get our IAM Client - closed after use since each call assumes a
+        // role and opens its own set of connections
 
-        IamClient iamClient = getIamClient(awsAccount);
+        try (IamClient iamClient = getIamClient(awsAccount)) {
 
-        // Call the IAM API to get the list of OIDC issuers
+            // Call the IAM API to get the list of OIDC issuers
 
-        ListOpenIdConnectProvidersRequest request = ListOpenIdConnectProvidersRequest.builder().build();
-        ListOpenIdConnectProvidersResponse response = iamClient.listOpenIDConnectProviders(request);
-        List<OpenIDConnectProviderListEntry> oidcIssuers = response.openIDConnectProviderList();
-        if (oidcIssuers != null) {
-            String issuerWithoutProtocol = issuer.replaceFirst("^https://", "");
-            for (OpenIDConnectProviderListEntry oidcIssuer : oidcIssuers) {
-                if (oidcIssuer != null && oidcIssuer.arn() != null && oidcIssuer.arn().endsWith(issuerWithoutProtocol)) {
-                    result = true;
-                    break;
+            ListOpenIdConnectProvidersRequest request = ListOpenIdConnectProvidersRequest.builder().build();
+            ListOpenIdConnectProvidersResponse response = iamClient.listOpenIDConnectProviders(request);
+            List<OpenIDConnectProviderListEntry> oidcIssuers = response.openIDConnectProviderList();
+            if (oidcIssuers != null) {
+                String issuerWithoutProtocol = issuer.replaceFirst("^https://", "");
+                for (OpenIDConnectProviderListEntry oidcIssuer : oidcIssuers) {
+                    if (oidcIssuer != null && oidcIssuer.arn() != null && oidcIssuer.arn().endsWith(issuerWithoutProtocol)) {
+                        result = true;
+                        break;
+                    }
                 }
             }
         }
