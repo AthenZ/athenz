@@ -2595,11 +2595,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
-    static final int ACCOUNT_VALUE_MAX_LEN = 2048;
+    static final int ACCOUNT_VALUE_MAX_LEN = 512;
 
-    void validateAwsAccountValue(final String account, final String caller) {
+    /**
+     * Validates the given (possibly comma-separated) aws account value and
+     * returns its normalized form - trimmed, deduped and rejoined without any
+     * extra whitespace - so that a value like " acct1, acct2 " does not end
+     * up stored/propagated as-is with leading/trailing spaces around any of
+     * its individual accounts.
+     */
+    String validateAwsAccountValue(final String account, final String caller) {
         if (StringUtil.isEmpty(account)) {
-            return;
+            return account;
         }
         if (account.length() > ACCOUNT_VALUE_MAX_LEN) {
             throw ZMSUtils.requestError("aws account value exceeds maximum length of "
@@ -2612,6 +2619,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         for (String awsAccount : awsAccounts) {
             validate(awsAccount, TYPE_COMPOUND_NAME, caller);
         }
+        return String.join(",", awsAccounts);
     }
 
     boolean isValidAWSAccounts(final String domainName, final String account) throws ServerResourceException {
@@ -2642,7 +2650,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(domain.getFeatureFlags(), "featureFlags");
 
         validateString(domain.getApplicationId(), TYPE_COMPOUND_NAME, caller);
-        validateAwsAccountValue(domain.getAccount(), caller);
+        domain.setAccount(validateAwsAccountValue(domain.getAccount(), caller));
         validateString(domain.getAzureSubscription(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAzureTenant(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAzureClient(), TYPE_COMPOUND_NAME, caller);
@@ -2825,7 +2833,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(meta.getFeatureFlags(), "featureFlags");
 
         validateString(meta.getApplicationId(), TYPE_COMPOUND_NAME, caller);
-        validateAwsAccountValue(meta.getAccount(), caller);
+        meta.setAccount(validateAwsAccountValue(meta.getAccount(), caller));
         validateString(meta.getX509CertSignerKeyId(), TYPE_COMPOUND_NAME, caller);
         validateString(meta.getSshCertSignerKeyId(), TYPE_COMPOUND_NAME, caller);
 
@@ -2854,7 +2862,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     domainMetaStore.setBusinessServiceDomain(domainName, (String) value);
                     break;
                 case DomainMetaStore.META_ATTR_AWS_ACCOUNT:
-                    domainMetaStore.setAWSAccountDomain(domainName, Utils.parseAwsAccounts((String) value));
+                    domainMetaStore.setAWSAccountDomain(domainName, (String) value);
                     break;
                 case DomainMetaStore.META_ATTR_AZURE_SUBSCRIPTION:
                     domainMetaStore.setAzureSubscriptionDomain(domainName, (String) value);

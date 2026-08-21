@@ -18888,17 +18888,17 @@ public class ZMSImplTest {
 
         // null/empty values are no-ops
 
-        zmsImpl.validateAwsAccountValue(null, "unit-test");
-        zmsImpl.validateAwsAccountValue("", "unit-test");
+        assertNull(zmsImpl.validateAwsAccountValue(null, "unit-test"));
+        assertEquals(zmsImpl.validateAwsAccountValue("", "unit-test"), "");
 
         // single account
 
-        zmsImpl.validateAwsAccountValue("1234", "unit-test");
+        assertEquals(zmsImpl.validateAwsAccountValue("1234", "unit-test"), "1234");
 
-        // multiple accounts
+        // multiple accounts - returned value is normalized (trimmed, no spaces)
 
-        zmsImpl.validateAwsAccountValue("1234,5678", "unit-test");
-        zmsImpl.validateAwsAccountValue(" 1234 , 5678 ", "unit-test");
+        assertEquals(zmsImpl.validateAwsAccountValue("1234,5678", "unit-test"), "1234,5678");
+        assertEquals(zmsImpl.validateAwsAccountValue(" 1234 , 5678 ", "unit-test"), "1234,5678");
 
         // invalid account value fails compound name validation
 

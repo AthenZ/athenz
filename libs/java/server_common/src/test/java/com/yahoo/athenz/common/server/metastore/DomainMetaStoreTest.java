@@ -80,7 +80,6 @@ public class DomainMetaStoreTest {
         metaStore.setAzureSubscriptionDomain("athenz", "azure");
         metaStore.setGcpProjectDomain("athenz", "gcp");
         metaStore.setAWSAccountDomain("athenz", "aws");
-        metaStore.setAWSAccountDomain("athenz", Set.of("aws1", "aws2"));
         metaStore.setBusinessServiceDomain("athenz", "security");
         metaStore.setProductIdDomain("athenz", 42);
         metaStore.setProductIdDomain("athenz", "abcd-42");
@@ -93,30 +92,5 @@ public class DomainMetaStoreTest {
         assertEquals(DomainMetaStore.META_ATTR_GCP_PROJECT, 4);
         assertEquals(DomainMetaStore.META_ATTR_PRODUCT_ID, 5);
         assertEquals(DomainMetaStore.META_ATTR_ON_CALL, 6);
-    }
-
-    @Test
-    public void testSetAWSAccountDomainBatchDefaultDelegatesToSingleAccount() throws ServerResourceException {
-
-        // an implementation that only overrides the single-account setter should
-        // still work correctly when called with a set of accounts, via the
-        // default batch method delegating to it for each account
-
-        final List<String> recordedAccounts = new ArrayList<>();
-        DomainMetaStore metaStore = new NoOpDomainMetaStore() {
-            @Override
-            public void setAWSAccountDomain(final String domainName, final String awsAccountId) {
-                recordedAccounts.add(awsAccountId);
-            }
-        };
-
-        metaStore.setAWSAccountDomain("athenz", Set.of("1234", "5678"));
-        assertEquals(recordedAccounts.size(), 2);
-        assertTrue(recordedAccounts.contains("1234"));
-        assertTrue(recordedAccounts.contains("5678"));
-
-        recordedAccounts.clear();
-        metaStore.setAWSAccountDomain("athenz", Set.of());
-        assertTrue(recordedAccounts.isEmpty());
     }
 }

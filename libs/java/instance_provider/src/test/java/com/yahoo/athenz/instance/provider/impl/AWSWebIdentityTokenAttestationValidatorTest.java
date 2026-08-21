@@ -299,6 +299,20 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
     }
 
     @Test
+    public void testValidateIdentityMultipleDomainAccountsSecondMatches() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(null);
+        final String token = generateToken(AWS_ISSUER, AUDIENCE,
+                "arn:aws:iam::223456789012:role/athenz.api", stsClaim("223456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+        StringBuilder errMsg = new StringBuilder(256);
+        // domain is associated with two accounts - the token's account is the second one
+        assertTrue(validator.validateIdentity(confirmation(), info, "123456789012,223456789012", errMsg));
+    }
+
+    @Test
     public void testValidateIdentityMissingAwsAccountClaim() throws Exception {
         System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
         System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");

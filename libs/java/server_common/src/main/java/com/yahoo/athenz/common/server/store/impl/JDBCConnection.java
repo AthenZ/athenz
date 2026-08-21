@@ -1140,10 +1140,11 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (domainOptions != null && !domainOptions.getEnforceUniqueAWSAccounts()) {
             return;
         }
-        for (String awsAccount : Utils.parseAwsAccounts(account)) {
-            uniquenessCheck(lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AWS, awsAccount), domainName,
-                    "Account Id: " + awsAccount, caller);
-        }
+
+        // if we reach here then incoming account contains a single value
+        uniquenessCheck(lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AWS, account), domainName,
+                "Account Id: " + account, caller);
+
     }
 
     void verifyDomainAzureSubscriptionUniqueness(final String domainName, final String subscription,

@@ -1839,6 +1839,34 @@ public class ZMSMetaAttributeTest {
     }
 
     @Test
+    public void testPutDomainSystemMetaMultipleAwsAccountsNormalized() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "athenz-domain-with-multiple-aws-accounts";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        ZMSTestUtils.setupSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
+
+        // set a comma-separated account value with extraneous whitespace -
+        // the persisted value must be normalized (trimmed, no spaces)
+        // rather than stored as-is
+
+        DomainMeta dm = new DomainMeta().setAccount(" 12345 , 67890 ");
+        zmsImpl.putDomainSystemMeta(ctx, domainName, "account", auditRef, dm);
+
+        Domain domain = zmsImpl.getDomain(ctx, domainName);
+        assertNotNull(domain);
+        assertEquals(domain.getAccount(), "12345,67890");
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testPutDomainSystemMetaForbidden() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
