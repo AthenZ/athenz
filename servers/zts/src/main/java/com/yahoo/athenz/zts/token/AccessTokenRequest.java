@@ -48,6 +48,7 @@ public class AccessTokenRequest {
         ACCESS_TOKEN_EXCHANGE,
         ID_TOKEN_EXCHANGE,
         JAG_TOKEN_EXCHANGE,
+        JAG_TOKEN_REFRESH,
         JAG_JWT_BEARER
     }
 
@@ -216,8 +217,13 @@ public class AccessTokenRequest {
                 // https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
 
                 if (ZTSConsts.OAUTH_TOKEN_TYPE_JAG.equals(requestedTokenType)) {
-                    requestType = RequestType.JAG_TOKEN_EXCHANGE;
-                    validateJAGTokenExchangeRequest(options);
+                    if (ZTSConsts.OAUTH_TOKEN_TYPE_JAG.equals(subjectTokenType)) {
+                        requestType = RequestType.JAG_TOKEN_REFRESH;
+                        validateJAGTokenRefreshRequest(options);
+                    } else {
+                        requestType = RequestType.JAG_TOKEN_EXCHANGE;
+                        validateJAGTokenExchangeRequest(options);
+                    }
                 } else if (ZTSConsts.OAUTH_TOKEN_TYPE_ID.equals(requestedTokenType)) {
                     requestType = RequestType.ID_TOKEN_EXCHANGE;
                     validateIdTokenExchangeRequest(options);
@@ -315,6 +321,30 @@ public class AccessTokenRequest {
         // our specified token and generate a principal object
 
         validateClientAssertion(options);
+    }
+
+    void validateJAGTokenRefreshRequest(TokenConfigOptions options) {
+
+        // ID-JAG refresh preserves the authorization grant from the current
+        // ID-JAG. The client cannot request a different scope or audience.
+
+        if (!StringUtil.isBlank(scope)) {
+            throw new IllegalArgumentException("Invalid request: scope is not supported for ID-JAG refresh");
+        }
+
+        if (!StringUtil.isBlank(audience)) {
+            throw new IllegalArgumentException("Invalid request: audience is not supported for ID-JAG refresh");
+        }
+
+        if (StringUtil.isEmpty(subjectToken)) {
+            throw new IllegalArgumentException("Invalid request: no subject token provided");
+        }
+
+        try {
+            jagTokenObj = new AccessToken(subjectToken, options.getJwtJAGProcessor());
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Invalid subject ID-JAG: " + ex.getMessage());
+        }
     }
 
     void validateIdTokenExchangeRequest(TokenConfigOptions options) {
