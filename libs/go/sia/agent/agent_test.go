@@ -20,6 +20,7 @@ import (
 	"crypto"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
@@ -688,10 +689,53 @@ func TestGenerateSshRequest(test *testing.T) {
 	opts.Domain = "athenz"
 	opts.ZTSCloudDomains = []string{"athenz.io"}
 	opts.SshHostKeyType = hostkey.Rsa
+	opts.PrivateIp = "10.11.12.13"
 	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io")
 	assert.Nil(test, sshReq)
 	assert.NotEmpty(test, sshCsr)
 	assert.Nil(test, err)
+	// without the ssh include principals option the csr only carries the zts cloud
+	// domain hostnames and the x-principals field is omitted altogether
+	var keyReq util.SSHKeyReq
+	err = json.Unmarshal([]byte(sshCsr), &keyReq)
+	assert.Nil(test, err)
+	assert.Equal(test, "host", keyReq.Certtype)
+	assert.Equal(test, "athenz.api", keyReq.Requser)
+	assert.Equal(test, "10.11.12.13", keyReq.Reqip)
+	assert.Equal(test, []string{"api.athenz.athenz.io"}, keyReq.Principals)
+	assert.Nil(test, keyReq.XPrincipals)
+	assert.NotContains(test, sshCsr, "xprincipals")
+	// ssh enabled with primary service, key type is rsa and the ssh include principals
+	// option enabled - the key id principals still only carry the zts cloud domain
+	// hostnames while the x-principals carry the hostname, the provider specific
+	// principals and the ip
+	opts.SshIncludePrincipals = true
+	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io")
+	assert.Nil(test, sshReq)
+	assert.Nil(test, err)
+	keyReq = util.SSHKeyReq{}
+	err = json.Unmarshal([]byte(sshCsr), &keyReq)
+	assert.Nil(test, err)
+	assert.Equal(test, "host", keyReq.Certtype)
+	assert.Equal(test, "athenz.api", keyReq.Requser)
+	assert.Equal(test, "10.11.12.13", keyReq.Reqip)
+	assert.Equal(test, []string{"api.athenz.athenz.io"}, keyReq.Principals)
+	assert.Equal(test, []string{"hostname.athenz.io", "my-vm", "my-instance-id", "10.11.12.13", "api.athenz.athenz.io"}, keyReq.XPrincipals)
+	// ssh enabled with primary service, key type is rsa, ssh include principals enabled
+	// and opts defines sshPrincipals which must be included in the x-principals along
+	// with the provider specific principals
+	opts.SshPrincipals = "cname.athenz.io"
+	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io")
+	assert.Nil(test, sshReq)
+	assert.Nil(test, err)
+	keyReq = util.SSHKeyReq{}
+	err = json.Unmarshal([]byte(sshCsr), &keyReq)
+	assert.Nil(test, err)
+	assert.Equal(test, []string{"api.athenz.athenz.io"}, keyReq.Principals)
+	assert.Equal(test, []string{"hostname.athenz.io", "cname.athenz.io", "my-vm", "my-instance-id", "10.11.12.13", "api.athenz.athenz.io"}, keyReq.XPrincipals)
+	opts.SshPrincipals = ""
+	opts.SshIncludePrincipals = false
+	opts.PrivateIp = ""
 	// ssh enabled with primary service and key type is ecdsa - empty csr but not-nil cert request
 	opts.SshHostKeyType = hostkey.Ecdsa
 	sshReq, sshCsr, err = generateSshRequest(&opts, "api", "hostname.athenz.io")

@@ -558,19 +558,23 @@ func generateSshRequest(opts *sc.Options, primaryServiceName, hostname string) (
 	var sshCsr string
 	var sshCertRequest *zts.SSHCertRequest
 	if opts.Ssh && opts.Services[0].Name == primaryServiceName {
-		if opts.SshHostKeyType == hostkey.Rsa {
-			sshCsr, err = util.GenerateSSHHostCSR(opts.SshPubKeyFile, opts.Domain, primaryServiceName, opts.PrivateIp, opts.ZTSCloudDomains)
-		} else {
-			sshPrincipals := opts.SshPrincipals
-			// additional ssh host principals are added on best effort basis, hence error below is ignored.
-			additionalSshHostPrincipals, _ := opts.Provider.GetAdditionalSshHostPrincipals(opts.MetaEndPoint)
-			if additionalSshHostPrincipals != "" {
-				if sshPrincipals != "" {
-					sshPrincipals = sshPrincipals + "," + additionalSshHostPrincipals
-				} else {
-					sshPrincipals = additionalSshHostPrincipals
-				}
+		sshPrincipals := opts.SshPrincipals
+		// additional ssh host principals are added on best effort basis, hence error below is ignored.
+		additionalSshHostPrincipals, _ := opts.Provider.GetAdditionalSshHostPrincipals(opts.MetaEndPoint)
+		if additionalSshHostPrincipals != "" {
+			if sshPrincipals != "" {
+				sshPrincipals = sshPrincipals + "," + additionalSshHostPrincipals
+			} else {
+				sshPrincipals = additionalSshHostPrincipals
 			}
+		}
+		if opts.SshHostKeyType == hostkey.Rsa {
+			if opts.SshIncludePrincipals {
+				sshCsr, err = util.GenerateSSHHostCSRWithXPrincipals(opts.SshPubKeyFile, opts.Domain, primaryServiceName, hostname, opts.PrivateIp, sshPrincipals, opts.ZTSCloudDomains)
+			} else {
+				sshCsr, err = util.GenerateSSHHostCSR(opts.SshPubKeyFile, opts.Domain, primaryServiceName, opts.PrivateIp, opts.ZTSCloudDomains)
+			}
+		} else {
 			sshCertRequest, err = util.GenerateSSHHostRequest(opts.SshPubKeyFile, opts.Domain, primaryServiceName, hostname, opts.PrivateIp, opts.InstanceId, sshPrincipals, opts.ZTSCloudDomains)
 		}
 	}
