@@ -2595,6 +2595,42 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    static final int ACCOUNT_VALUE_MAX_LEN = 512;
+
+    /**
+     * Validates the given (possibly comma-separated) aws account value and
+     * returns its normalized form - trimmed, deduped and rejoined without any
+     * extra whitespace - so that a value like " acct1, acct2 " does not end
+     * up stored/propagated as-is with leading/trailing spaces around any of
+     * its individual accounts.
+     */
+    String validateAwsAccountValue(final String account, final String caller) {
+        if (StringUtil.isEmpty(account)) {
+            return account;
+        }
+        if (account.length() > ACCOUNT_VALUE_MAX_LEN) {
+            throw ZMSUtils.requestError("aws account value exceeds maximum length of "
+                    + ACCOUNT_VALUE_MAX_LEN, caller);
+        }
+        Set<String> awsAccounts = Utils.parseAwsAccounts(account);
+        if (awsAccounts.isEmpty()) {
+            throw ZMSUtils.requestError("aws account value must contain at least one account", caller);
+        }
+        for (String awsAccount : awsAccounts) {
+            validate(awsAccount, TYPE_COMPOUND_NAME, caller);
+        }
+        return String.join(",", awsAccounts);
+    }
+
+    boolean isValidAWSAccounts(final String domainName, final String account) throws ServerResourceException {
+        for (String awsAccount : Utils.parseAwsAccounts(account)) {
+            if (!domainMetaStore.isValidAWSAccount(domainName, awsAccount)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     void validateIntegerValue(final Integer value, final String fieldName) {
         if (value != null && value < 0) {
             throw ZMSUtils.requestError(fieldName + " cannot be negative", "validateMetaFields");
@@ -2614,7 +2650,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(domain.getFeatureFlags(), "featureFlags");
 
         validateString(domain.getApplicationId(), TYPE_COMPOUND_NAME, caller);
-        validateString(domain.getAccount(), TYPE_COMPOUND_NAME, caller);
+        domain.setAccount(validateAwsAccountValue(domain.getAccount(), caller));
         validateString(domain.getAzureSubscription(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAzureTenant(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAzureClient(), TYPE_COMPOUND_NAME, caller);
@@ -2631,7 +2667,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             if (!domainMetaStore.isValidBusinessService(domain.getName(), domain.getBusinessService())) {
                 throw ZMSUtils.requestError("invalid business service name for domain", caller);
             }
-            if (!domainMetaStore.isValidAWSAccount(domain.getName(), domain.getAccount())) {
+            if (!isValidAWSAccounts(domain.getName(), domain.getAccount())) {
                 throw ZMSUtils.requestError("invalid aws account for domain", caller);
             }
             if (!domainMetaStore.isValidAzureSubscription(domain.getName(), domain.getAzureSubscription())) {
@@ -2693,7 +2729,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         switch (attributeName) {
             case ZMSConsts.SYSTEM_META_ACCOUNT:
                 if (ZMSUtils.metaValueChanged(domain.getAccount(), meta.getAccount())) {
-                    if (!domainMetaStore.isValidAWSAccount(domain.getName(), meta.getAccount())) {
+                    if (!isValidAWSAccounts(domain.getName(), meta.getAccount())) {
                         throw ZMSUtils.requestError("invalid aws account for domain", caller);
                     }
                     changedAttrs.set(DomainMetaStore.META_ATTR_AWS_ACCOUNT);
@@ -2797,7 +2833,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(meta.getFeatureFlags(), "featureFlags");
 
         validateString(meta.getApplicationId(), TYPE_COMPOUND_NAME, caller);
-        validateString(meta.getAccount(), TYPE_COMPOUND_NAME, caller);
+        meta.setAccount(validateAwsAccountValue(meta.getAccount(), caller));
         validateString(meta.getX509CertSignerKeyId(), TYPE_COMPOUND_NAME, caller);
         validateString(meta.getSshCertSignerKeyId(), TYPE_COMPOUND_NAME, caller);
 

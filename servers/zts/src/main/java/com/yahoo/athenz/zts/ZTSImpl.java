@@ -4738,11 +4738,16 @@ public class ZTSImpl implements ZTSHandler {
 
         // now need to get the associated cloud account for the domain name
 
-        String account = cloudStore.getAwsAccount(domainName);
-        if (account == null) {
+        Set<String> accounts = cloudStore.getAwsAccounts(domainName);
+        if (accounts.isEmpty()) {
             throw requestError("Athenz Configuration Error: unable to retrieve AWS account for: "
                     + domainName, caller, domainName, principalDomain);
         }
+        if (accounts.size() > 1) {
+            throw requestError("more than one aws account found for domain: " + domainName,
+                    caller, domainName, principalDomain);
+        }
+        final String account = accounts.iterator().next();
 
         // obtain the credentials from the cloud store
 

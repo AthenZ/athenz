@@ -80,6 +80,10 @@ public interface DomainMetaStore {
     /**
      * Sets the athenz domain for the aws account id. This attribute is a domain system
      * meta attribute can only be changed by athenz system administrators.
+     * A domain is normally associated with a single aws account,
+     * but starting with multi-account support, a domain may be associated with more than
+     * one account, hence depending on whether domain has multiple aws accounts,
+     * the implementation should parse and handle the incoming string appropriately.
      * @param domainName - name of the domain
      * @param awsAccountId - aws account id (can be null)
      * @throws ServerResourceException in case of any failure

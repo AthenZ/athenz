@@ -15,11 +15,14 @@
  */
 package com.yahoo.athenz.common.server.metastore;
 
+import com.yahoo.athenz.common.server.metastore.impl.NoOpDomainMetaStore;
 import com.yahoo.athenz.common.server.metastore.impl.NoOpDomainMetaStoreFactory;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import static org.testng.Assert.*;
 

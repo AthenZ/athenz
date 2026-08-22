@@ -86,7 +86,42 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
                     OpenIDConnectProviderListEntry.builder().arn("arn:aws:iam::123456789012:oidc-provider/athenz.provider").build());
             when(iamClient.listOpenIDConnectProviders(any(ListOpenIdConnectProvidersRequest.class)))
                     .thenReturn(ListOpenIdConnectProvidersResponse.builder().openIDConnectProviderList(providers).build());
-            assertTrue(validator.verifyIssuerPresenceInDomainAWSAccount("athenz.provider", "123456789012"));
+            assertEquals(validator.verifyIssuerPresenceInDomainAWSAccount("athenz.provider", "123456789012"), "123456789012");
+        }
+    }
+
+    @Test
+    public void testVerifyIssuerPresenceInDomainAWSAccountMultipleAccountsMatch() {
+        DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
+        StsClient sts = Mockito.mock(StsClient.class);
+        validator.stsClient = sts;
+        AssumeRoleResponse assumeRoleResult = Mockito.mock(AssumeRoleResponse.class);
+        Credentials creds = Mockito.mock(Credentials.class);
+        when(creds.accessKeyId()).thenReturn("abc");
+        when(creds.secretAccessKey()).thenReturn("def");
+        when(creds.sessionToken()).thenReturn("ghi");
+        when(assumeRoleResult.credentials()).thenReturn(creds);
+        when(sts.assumeRole(any(AssumeRoleRequest.class))).thenReturn(assumeRoleResult);
+
+        try (MockedStatic<IamClient> iamClientStatic = Mockito.mockStatic(IamClient.class)) {
+            IamClientBuilder iamClientBuilder = Mockito.mock(IamClientBuilder.class);
+
+            IamClient iamClient = Mockito.mock(IamClient.class);
+
+            iamClientStatic.when(IamClient::builder).thenReturn(iamClientBuilder);
+            when(iamClientBuilder.credentialsProvider(any())).thenReturn(iamClientBuilder);
+            when(iamClientBuilder.region(any())).thenReturn(iamClientBuilder);
+            when(iamClientBuilder.build()).thenReturn(iamClient);
+
+            List<OpenIDConnectProviderListEntry> providersNoMatch = List.of(
+                    OpenIDConnectProviderListEntry.builder().arn("arn:aws:iam::111111111111:oidc-provider/xxx.zzzz").build());
+            List<OpenIDConnectProviderListEntry> providersMatch = List.of(
+                    OpenIDConnectProviderListEntry.builder().arn("arn:aws:iam::222222222222:oidc-provider/athenz.provider").build());
+            when(iamClient.listOpenIDConnectProviders(any(ListOpenIdConnectProvidersRequest.class)))
+                    .thenReturn(ListOpenIdConnectProvidersResponse.builder().openIDConnectProviderList(providersNoMatch).build())
+                    .thenReturn(ListOpenIdConnectProvidersResponse.builder().openIDConnectProviderList(providersMatch).build());
+            assertEquals(validator.verifyIssuerPresenceInDomainAWSAccount("athenz.provider", "111111111111,222222222222"),
+                    "222222222222");
         }
     }
 
@@ -117,7 +152,7 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
                     OpenIDConnectProviderListEntry.builder().arn("arn:aws:iam::123456789012:oidc-provider/xxx.zzzz").build());
             when(iamClient.listOpenIDConnectProviders(any(ListOpenIdConnectProvidersRequest.class)))
                     .thenReturn(ListOpenIdConnectProvidersResponse.builder().openIDConnectProviderList(providers).build());
-            assertFalse(validator.verifyIssuerPresenceInDomainAWSAccount("athenz.provider", "123456789012"));
+            assertNull(validator.verifyIssuerPresenceInDomainAWSAccount("athenz.provider", "123456789012"));
         }
     }
 
@@ -147,7 +182,7 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
             when(iamClient.listOpenIDConnectProviders(any(ListOpenIdConnectProvidersRequest.class)))
                     .thenReturn(ListOpenIdConnectProvidersResponse.builder()
                             .openIDConnectProviderList((Collection<OpenIDConnectProviderListEntry>) null).build());
-            assertFalse(validator.verifyIssuerPresenceInDomainAWSAccount("athenz.provider", "123456789012"));
+            assertNull(validator.verifyIssuerPresenceInDomainAWSAccount("athenz.provider", "123456789012"));
         }
     }
 
@@ -171,6 +206,7 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
         validator.initialize(sslContext, authorizer);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
+        instanceConfirmation.getAttributes().put(ZTS_INSTANCE_AWS_ACCOUNT, "123456789012");
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
         attestationData.setIdentityToken(createToken("athenz.api", "https://zts.athenz.io/zts/v1",
                 "https://oidc.eks.us-east-1.amazonaws.com/id/123456789012"));

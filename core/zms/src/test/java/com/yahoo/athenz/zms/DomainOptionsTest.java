@@ -30,12 +30,14 @@ public class DomainOptionsTest {
         opts1.setEnforceUniqueGCPProjects(true);
         opts1.setEnforceUniqueAzureSubscriptions(true);
         opts1.setEnforceUniqueProductIds(true);
+        opts1.setAllowMultipleAWSAccounts(true);
 
         DomainOptions opts2 = new DomainOptions();
         opts2.setEnforceUniqueAWSAccounts(true);
         opts2.setEnforceUniqueGCPProjects(true);
         opts2.setEnforceUniqueAzureSubscriptions(true);
         opts2.setEnforceUniqueProductIds(true);
+        opts2.setAllowMultipleAWSAccounts(true);
 
         assertEquals(opts1, opts1);
         assertEquals(opts1, opts2);
@@ -47,6 +49,7 @@ public class DomainOptionsTest {
         assertTrue(opts1.getEnforceUniqueGCPProjects());
         assertTrue(opts1.getEnforceUniqueAzureSubscriptions());
         assertTrue(opts1.getEnforceUniqueProductIds());
+        assertTrue(opts1.getAllowMultipleAWSAccounts());
 
         opts1.setEnforceUniqueAWSAccounts(false);
         assertNotEquals(opts1, opts2);
@@ -66,6 +69,11 @@ public class DomainOptionsTest {
         opts1.setEnforceUniqueProductIds(false);
         assertNotEquals(opts1, opts2);
         opts1.setEnforceUniqueProductIds(true);
+        assertEquals(opts1, opts2);
+
+        opts1.setAllowMultipleAWSAccounts(false);
+        assertNotEquals(opts1, opts2);
+        opts1.setAllowMultipleAWSAccounts(true);
         assertEquals(opts1, opts2);
     }
 }

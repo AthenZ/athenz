@@ -110,11 +110,22 @@ public class InstanceAWSProviderTest {
     
     @Test
     public void testValidateAWSAccount() {
-        
+
         StringBuilder errMsg = new StringBuilder(256);
         InstanceAWSProvider provider = new InstanceAWSProvider();
         assertTrue(provider.validateAWSAccount("1234", "1234", errMsg));
         assertFalse(provider.validateAWSAccount("1235", "1234", errMsg));
+        provider.close();
+    }
+
+    @Test
+    public void testValidateAWSAccountMultipleAccounts() {
+
+        StringBuilder errMsg = new StringBuilder(256);
+        InstanceAWSProvider provider = new InstanceAWSProvider();
+        assertTrue(provider.validateAWSAccount("1234,5678", "5678", errMsg));
+        assertTrue(provider.validateAWSAccount("1234,5678", "1234", errMsg));
+        assertFalse(provider.validateAWSAccount("1234,5678", "9999", errMsg));
         provider.close();
     }
     

@@ -78,7 +78,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_ACTIVE_DOMAIN_ID = "SELECT domain_id FROM domain WHERE name=? AND enabled=true;";
     @SuppressWarnings("SqlResolve")
     private static final String SQL_GET_DOMAINS_WITH_NAME = "SELECT name FROM domain WHERE name LIKE ?;";
-    private static final String SQL_GET_DOMAIN_WITH_AWS_ACCOUNT = "SELECT name FROM domain WHERE account=?;";
+    private static final String SQL_GET_DOMAIN_WITH_AWS_ACCOUNT = "SELECT name FROM domain WHERE FIND_IN_SET(?, account);";
     private static final String SQL_GET_DOMAIN_WITH_AZURE_SUBSCRIPTION = "SELECT name FROM domain WHERE azure_subscription=?;";
     private static final String SQL_GET_DOMAIN_WITH_GCP_PROJECT = "SELECT name FROM domain WHERE gcp_project=?;";
     private static final String SQL_LIST_DOMAINS_WITH_AWS_ACCOUNT = "SELECT name, account FROM domain WHERE account!='';";
@@ -1129,11 +1129,22 @@ public class JDBCConnection implements ObjectStoreConnection {
         if (StringUtil.isEmpty(account)) {
             return;
         }
+
+        // if multiple aws accounts per domain are allowed, then the same account
+        // may intentionally be shared across domains, so we skip the uniqueness
+        // check altogether in that case
+
+        if (domainOptions != null && domainOptions.getAllowMultipleAWSAccounts()) {
+            return;
+        }
         if (domainOptions != null && !domainOptions.getEnforceUniqueAWSAccounts()) {
             return;
         }
+
+        // if we reach here then incoming account contains a single value
         uniquenessCheck(lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AWS, account), domainName,
                 "Account Id: " + account, caller);
+
     }
 
     void verifyDomainAzureSubscriptionUniqueness(final String domainName, final String subscription,

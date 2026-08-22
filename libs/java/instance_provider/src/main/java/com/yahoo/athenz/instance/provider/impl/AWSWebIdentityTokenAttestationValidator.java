@@ -22,6 +22,7 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
+import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.instance.provider.AWSAttestationValidator;
 import com.yahoo.athenz.instance.provider.AttrValidator;
@@ -302,9 +303,10 @@ public class AWSWebIdentityTokenAttestationValidator implements AWSAttestationVa
             return false;
         }
 
-        // if the token account matches the domain account we're done
+        // if the token account matches one of the domain's (possibly
+        // comma-separated) accounts we're done
 
-        if (tokenAwsAccount.equals(awsAccount)) {
+        if (Utils.parseAwsAccounts(awsAccount).contains(tokenAwsAccount)) {
             return true;
         }
 

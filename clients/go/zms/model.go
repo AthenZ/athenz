@@ -1194,6 +1194,12 @@ type DomainOptions struct {
 	// enforce domains are associated with unique gcp projects
 	//
 	EnforceUniqueGCPProjects bool `json:"enforceUniqueGCPProjects"`
+
+	//
+	// allow a domain's account field to contain multiple comma-separated aws
+	// accounts
+	//
+	AllowMultipleAWSAccounts bool `json:"allowMultipleAWSAccounts"`
 }
 
 // NewDomainOptions - creates an initialized DomainOptions instance, returns a pointer to it
