@@ -14359,6 +14359,23 @@ public class ZMSImplTest {
         }
     }
 
+    private static class FailingReadZMSImpl extends ZMSImpl {
+
+        // the flag must be static since instance field initializers do not
+        // run until after the ZMSImpl constructor (which triggers our first
+        // template read) has already completed
+
+        static boolean failRead = false;
+
+        @Override
+        SolutionTemplates readSolutionTemplates(Path path) throws IOException {
+            if (failRead) {
+                throw new IOException("transient read failure");
+            }
+            return super.readSolutionTemplates(path);
+        }
+    }
+
     private static SolutionTemplates solutionTemplates(final String templateName, final Template template) {
         SolutionTemplates solutionTemplates = new SolutionTemplates();
         HashMap<String, Template> templates = new HashMap<>();
@@ -14851,18 +14868,6 @@ public class ZMSImplTest {
     public void testDynamicSolutionTemplatesReloadAfterStartupReadFailure()
             throws IOException {
 
-        class FailingReadZMSImpl extends ZMSImpl {
-            boolean failRead = true;
-
-            @Override
-            SolutionTemplates readSolutionTemplates(Path path) throws IOException {
-                if (failRead) {
-                    throw new IOException("transient read failure");
-                }
-                return super.readSolutionTemplates(path);
-            }
-        }
-
         File tempFile = File.createTempFile("dynamic_solution_templates_read_failure", ".json");
         String originalTemplateFile = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
         String originalDynamicReload = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD);
@@ -14871,6 +14876,7 @@ public class ZMSImplTest {
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
 
+            FailingReadZMSImpl.failRead = true;
             FailingReadZMSImpl zmsImpl = new FailingReadZMSImpl();
 
             // since our startup load failed, the empty fallback snapshot must
@@ -14884,7 +14890,7 @@ public class ZMSImplTest {
             // once reads succeed again, the next template operation must
             // automatically reload the templates without any file change
 
-            zmsImpl.failRead = false;
+            FailingReadZMSImpl.failRead = false;
             RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
             Template template = zmsImpl.getTemplate(ctx, "dynamic_recovered");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 1);

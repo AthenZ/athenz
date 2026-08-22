@@ -74,14 +74,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.crypto.SecretKey;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PublicKey;
@@ -1363,18 +1361,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             long modifiedMillis = solutionTemplatesModifiedMillis(path);
             setServerSolutionTemplates(readSolutionTemplates(path), path, modifiedMillis);
-        } catch (NoSuchFileException | FileNotFoundException ex) {
+        } catch (IOException ex) {
 
-            // we have failed to load our solution templates file, so generate
-            // an empty template list without recording any modified timestamp
-            // so the dynamic reload task will retry loading the file once it
-            // becomes available again
+            // we have failed to read our solution templates file (e.g. missing
+            // or transient io failure), so generate an empty template list
+            // without recording any modified timestamp so the dynamic reload
+            // task will retry loading the file once it becomes available.
+            // corrupted or invalid documents still fail fast since those are
+            // reported as runtime exceptions from our parser
 
-            LOG.error("Solution templates file {} not found: {}", solutionTemplatesFname, ex.getMessage());
+            LOG.error("Unable to load solution templates file {}: {}", solutionTemplatesFname, ex.getMessage());
             LOG.error("Generating empty solution template list...");
             setServerSolutionTemplates(emptySolutionTemplates(), path, -1L);
-        } catch (IOException ex) {
-            throw new RuntimeException("Unable to load solution templates file " + solutionTemplatesFname, ex);
         }
     }
 

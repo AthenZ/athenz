@@ -36,7 +36,9 @@ be parsed or contains invalid entries (for example, corrupted json content or
 null template definitions), ZMS aborts startup rather than running with an
 incomplete template set. A valid json object without any templates (e.g. `{}`)
 is treated as an intentionally empty list, and if the configured file does not
-exist at all, ZMS starts with an empty list. To allow template additions or updates
+exist at all or cannot be read due to a transient I/O error, ZMS starts with
+an empty list without recording any file timestamp so the dynamic reload task
+will retry loading it as soon as it becomes available again. To allow template additions or updates
 without a ZMS deployment, administrators can enable
 `athenz.zms.solution_templates_dynamic_reload=true`. When this flag is enabled,
 ZMS checks the configured templates file for changes before template operations
