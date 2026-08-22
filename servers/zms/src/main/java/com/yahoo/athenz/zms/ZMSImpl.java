@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zms;
 
 import com.fasterxml.jackson.core.StreamReadConstraints;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Bytes;
 import com.oath.auth.KeyRefresherException;
@@ -89,6 +90,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -104,6 +107,21 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ZMSImpl.class);
     private static final RuntimeDelegate.HeaderDelegate<EntityTag> ENTITY_TAG_HEADER_DELEGATE =
             RuntimeDelegate.getInstance().createHeaderDelegate(EntityTag.class);
+
+    static class SolutionTemplatesSnapshot {
+        final SolutionTemplates templates;
+        final List<String> templateNames;
+        final Path path;
+        final long modifiedMillis;
+
+        SolutionTemplatesSnapshot(final SolutionTemplates templates, final List<String> templateNames,
+                final Path path, final long modifiedMillis) {
+            this.templates = templates;
+            this.templateNames = templateNames;
+            this.path = path;
+            this.modifiedMillis = modifiedMillis;
+        }
+    }
 
     private static String ROOT_DIR;
 
@@ -177,8 +195,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected long signedPolicyTimeout;
     protected int domainNameMaxLen;
     protected AuthorizedServices serverAuthorizedServices = null;
-    protected SolutionTemplates serverSolutionTemplates = null;
-    protected List<String> serverSolutionTemplateNames = null;
+    protected volatile SolutionTemplates serverSolutionTemplates = null;
+    protected volatile List<String> serverSolutionTemplateNames = null;
+    protected volatile Path serverSolutionTemplatesPath = null;
+    protected volatile long serverSolutionTemplatesModifiedMillis = -1L;
+    protected boolean dynamicSolutionTemplatesReload = false;
+    private final AtomicReference<SolutionTemplatesSnapshot> solutionTemplatesSnapshot = new AtomicReference<>();
+    private final AtomicBoolean solutionTemplatesReloadInProgress = new AtomicBoolean(false);
+    private volatile Path solutionTemplatesReloadFailedPath = null;
+    private volatile long solutionTemplatesReloadFailedModifiedMillis = -1L;
     protected Map<String, String> serverPublicKeyMap = null;
     protected DynamicConfigBoolean readOnlyMode;
     protected DynamicConfigBoolean validateServiceRoleMembers;
@@ -1063,6 +1088,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // check for client ID self-update support
         clientIdSelfUpdate = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_CLIENT_ID_SELF_UPDATE, "false"));
+
+        // check for dynamic solution templates reload support
+        dynamicSolutionTemplatesReload = Boolean.parseBoolean(System.getProperty(
+                ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "false"));
     }
 
     void loadObjectStore() {
@@ -1327,49 +1356,230 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // get the configured path for the list of service templates
 
-        String solutionTemplatesFname = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
-                getRootDir() + "/conf/zms_server/solution_templates.json");
-
+        String solutionTemplatesFname = solutionTemplatesFileName();
         Path path = Paths.get(solutionTemplatesFname);
         try {
-            serverSolutionTemplates = JSON.fromBytes(Files.readAllBytes(path), SolutionTemplates.class);
+            long modifiedMillis = solutionTemplatesModifiedMillis(path);
+            setServerSolutionTemplates(readSolutionTemplates(path), path, modifiedMillis);
         } catch (IOException ex) {
-            LOG.error("Unable to parse solution templates file {}: {}",
-                    solutionTemplatesFname, ex.getMessage());
-        }
 
-        if (serverSolutionTemplates == null) {
+            // we have failed to read our solution templates file (e.g. missing
+            // or transient io failure), so generate an empty template list
+            // without recording any modified timestamp so the dynamic reload
+            // task will retry loading the file once it becomes available.
+            // corrupted or invalid documents still fail fast since those are
+            // reported as runtime exceptions from our parser
+
+            LOG.error("Unable to load solution templates file {}: {}", solutionTemplatesFname, ex.getMessage());
             LOG.error("Generating empty solution template list...");
-            serverSolutionTemplates = new SolutionTemplates();
-            serverSolutionTemplates.setTemplates(new HashMap<>());
-            serverSolutionTemplateNames = Collections.emptyList();
-        } else {
-            // validate that we don't have any roles with both members and trust attributes
+            setServerSolutionTemplates(emptySolutionTemplates(), path, -1L);
+        }
+    }
 
-            for (Map.Entry<String, Template> entry : serverSolutionTemplates.getTemplates().entrySet()) {
-                final String templateName = entry.getKey();
-                final Template template = entry.getValue();
-                if (template.getRoles() == null) {
-                    continue;
+    String solutionTemplatesFileName() {
+        return System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME,
+                getRootDir() + "/conf/zms_server/solution_templates.json");
+    }
+
+    long solutionTemplatesModifiedMillis(Path path) throws IOException {
+        return Files.getLastModifiedTime(path).toMillis();
+    }
+
+    SolutionTemplates readSolutionTemplates(Path path) throws IOException {
+        byte[] data = Files.readAllBytes(path);
+
+        // parse the document first to verify that it contains a valid json
+        // object before converting it to a SolutionTemplates object. this is
+        // required since JSON.fromBytes returns null both for empty documents
+        // and when the document is corrupted, and we must not treat a
+        // corrupted document as an empty template list
+
+        JsonNode rootNode;
+        try {
+            rootNode = jsonMapper.readTree(data);
+        } catch (Exception ex) {
+            throw new RuntimeException("Unable to parse solution templates document in file "
+                    + path + ": " + ex.getMessage(), ex);
+        }
+        if (rootNode == null || !rootNode.isObject()) {
+            throw new RuntimeException("Invalid solution templates document in file " + path);
+        }
+        SolutionTemplates solutionTemplates = JSON.fromBytes(data, SolutionTemplates.class);
+        if (solutionTemplates == null) {
+            throw new RuntimeException("Invalid solution templates content in file " + path);
+        }
+        if (solutionTemplates.getTemplates() == null) {
+            solutionTemplates.setTemplates(new HashMap<>());
+        }
+        validateSolutionTemplatesConfig(solutionTemplates);
+        return solutionTemplates;
+    }
+
+    SolutionTemplates emptySolutionTemplates() {
+        SolutionTemplates solutionTemplates = new SolutionTemplates();
+        solutionTemplates.setTemplates(new HashMap<>());
+        return solutionTemplates;
+    }
+
+    void validateSolutionTemplatesConfig(SolutionTemplates solutionTemplates) {
+
+        // validate that we don't have any null entries or roles with both
+        // members and trust attributes
+
+        for (Map.Entry<String, Template> entry : solutionTemplates.getTemplates().entrySet()) {
+            final String templateName = entry.getKey();
+            final Template template = entry.getValue();
+            if (template == null) {
+                LOG.error("Solution Template {} has a null definition", templateName);
+                throw new RuntimeException("Solution Template " + templateName + " has a null definition");
+            }
+            if (template.getRoles() == null) {
+                continue;
+            }
+            for (Role role : template.getRoles()) {
+                if (role == null) {
+                    LOG.error("Solution Template {} contains a null role", templateName);
+                    throw new RuntimeException("Solution Template " + templateName + " contains a null role");
                 }
-                for (Role role : template.getRoles()) {
-                    if (!StringUtil.isEmpty(role.getTrust()) && role.getRoleMembers() != null && !role.getRoleMembers().isEmpty()) {
-                        LOG.error("Solution Template {} role {} has both trust and members defined. Exiting...",
-                                templateName, role.getName());
-                        throw new RuntimeException("Solution Template " + templateName + " role " + role.getName() + " has both trust and members defined");
-                    }
+                if (!StringUtil.isEmpty(role.getTrust()) && role.getRoleMembers() != null
+                        && !role.getRoleMembers().isEmpty()) {
+                    LOG.error("Solution Template {} role {} has both trust and members defined",
+                            templateName, role.getName());
+                    throw new RuntimeException("Solution Template " + templateName + " role " + role.getName()
+                            + " has both trust and members defined");
                 }
             }
+        }
+    }
 
-            serverSolutionTemplateNames = new ArrayList<>(serverSolutionTemplates.names());
-            Collections.sort(serverSolutionTemplateNames);
+    SolutionTemplatesSnapshot newSolutionTemplatesSnapshot(SolutionTemplates solutionTemplates, Path path,
+            long modifiedMillis) {
+        List<String> templateNames = new ArrayList<>(solutionTemplates.names());
+        Collections.sort(templateNames);
+        return new SolutionTemplatesSnapshot(solutionTemplates, Collections.unmodifiableList(templateNames), path,
+                modifiedMillis);
+    }
+
+    void setServerSolutionTemplates(SolutionTemplates solutionTemplates, Path path, long modifiedMillis) {
+        publishSolutionTemplatesSnapshot(newSolutionTemplatesSnapshot(solutionTemplates, path, modifiedMillis), true);
+    }
+
+    void updateSolutionTemplatesCompatibilityFields(SolutionTemplatesSnapshot snapshot) {
+        serverSolutionTemplates = snapshot.templates;
+        serverSolutionTemplatesPath = snapshot.path;
+        serverSolutionTemplatesModifiedMillis = snapshot.modifiedMillis;
+        serverSolutionTemplateNames = snapshot.templateNames;
+        solutionTemplatesReloadFailedPath = null;
+        solutionTemplatesReloadFailedModifiedMillis = -1L;
+
+        if (dbService != null && dbService.zmsConfig != null) {
+            dbService.zmsConfig.setServerSolutionTemplates(snapshot.templates);
+        }
+    }
+
+    void publishSolutionTemplatesSnapshot(SolutionTemplatesSnapshot newSnapshot, boolean force) {
+        while (true) {
+            SolutionTemplatesSnapshot currentSnapshot = solutionTemplatesSnapshot.get();
+            if (!force && currentSnapshot != null && Objects.equals(currentSnapshot.path, newSnapshot.path)
+                    && currentSnapshot.modifiedMillis == newSnapshot.modifiedMillis) {
+                return;
+            }
+            if (solutionTemplatesSnapshot.compareAndSet(currentSnapshot, newSnapshot)) {
+                updateSolutionTemplatesCompatibilityFields(newSnapshot);
+                return;
+            }
+        }
+    }
+
+    SolutionTemplatesSnapshot getSolutionTemplatesSnapshot() {
+        SolutionTemplatesSnapshot snapshot = solutionTemplatesSnapshot.get();
+        if (snapshot != null) {
+            return snapshot;
+        }
+
+        SolutionTemplatesSnapshot emptySnapshot = newSolutionTemplatesSnapshot(emptySolutionTemplates(), null, -1L);
+        if (solutionTemplatesSnapshot.compareAndSet(null, emptySnapshot)) {
+            updateSolutionTemplatesCompatibilityFields(emptySnapshot);
+            return emptySnapshot;
+        }
+        return solutionTemplatesSnapshot.get();
+    }
+
+    void reloadSolutionTemplatesIfModified() {
+        if (!dynamicSolutionTemplatesReload) {
+            return;
+        }
+
+        SolutionTemplatesSnapshot currentSnapshot = getSolutionTemplatesSnapshot();
+        Path path = currentSnapshot.path;
+        if (path == null) {
+            path = Paths.get(solutionTemplatesFileName());
+        }
+
+        long modifiedMillis;
+        try {
+            modifiedMillis = solutionTemplatesModifiedMillis(path);
+        } catch (IOException ex) {
+            LOG.error("Unable to check solution templates file {} for changes: {}",
+                    path, ex.getMessage());
+            return;
+        }
+
+        if (modifiedMillis == currentSnapshot.modifiedMillis) {
+            return;
+        }
+        if (Objects.equals(path, solutionTemplatesReloadFailedPath)
+                && modifiedMillis == solutionTemplatesReloadFailedModifiedMillis) {
+            return;
+        }
+
+        if (!solutionTemplatesReloadInProgress.compareAndSet(false, true)) {
+            return;
+        }
+
+        try {
+            currentSnapshot = getSolutionTemplatesSnapshot();
+            path = currentSnapshot.path;
+            if (path == null) {
+                path = Paths.get(solutionTemplatesFileName());
+            }
+            try {
+                modifiedMillis = solutionTemplatesModifiedMillis(path);
+            } catch (IOException ex) {
+                LOG.error("Unable to check solution templates file {} for changes: {}",
+                        path, ex.getMessage());
+                return;
+            }
+            if (modifiedMillis == currentSnapshot.modifiedMillis) {
+                return;
+            }
+            if (Objects.equals(path, solutionTemplatesReloadFailedPath)
+                    && modifiedMillis == solutionTemplatesReloadFailedModifiedMillis) {
+                return;
+            }
+
+            try {
+                SolutionTemplates solutionTemplates = readSolutionTemplates(path);
+                SolutionTemplatesSnapshot newSnapshot = newSolutionTemplatesSnapshot(solutionTemplates, path,
+                        modifiedMillis);
+                publishSolutionTemplatesSnapshot(newSnapshot, false);
+                LOG.info("Reloaded solution templates file {}", path);
+            } catch (Exception ex) {
+                solutionTemplatesReloadFailedPath = path;
+                solutionTemplatesReloadFailedModifiedMillis = modifiedMillis;
+                LOG.error("Unable to reload solution templates file {}. Keeping the previous templates: {}",
+                        path, ex.getMessage());
+            }
+        } finally {
+            solutionTemplatesReloadInProgress.set(false);
         }
     }
 
     void autoApplyTemplates() {
         Map<String, Integer> eligibleTemplatesForAutoUpdate = new HashMap<>();
-        for (String templateName : serverSolutionTemplates.getTemplates().keySet()) {
-            Template template = serverSolutionTemplates.get(templateName);
+        SolutionTemplatesSnapshot snapshot = getSolutionTemplatesSnapshot();
+        for (String templateName : snapshot.templates.getTemplates().keySet()) {
+            Template template = snapshot.templates.get(templateName);
             if (template != null && template.getMetadata() != null && template.getMetadata().getAutoUpdate() == Boolean.TRUE
                     && StringUtil.isEmpty(template.getMetadata().getKeywordsToReplace())) {
                 eligibleTemplatesForAutoUpdate.put(templateName, template.getMetadata().getLatestVersion());
@@ -1378,7 +1588,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_AUTO_UPDATE_TEMPLATE_FEATURE_FLAG, "false"))
                 && !eligibleTemplatesForAutoUpdate.isEmpty()) {
             ExecutorService executor = Executors.newSingleThreadExecutor();
-            executor.execute(new AutoApplyTemplate(eligibleTemplatesForAutoUpdate));
+            executor.execute(new AutoApplyTemplate(eligibleTemplatesForAutoUpdate, snapshot.templates));
             executor.shutdown();
         }
     }
@@ -1704,10 +1914,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         AthenzObject.TOP_LEVEL_DOMAIN.convertToLowerCase(detail);
 
         List<String> solutionTemplates = null;
+        SolutionTemplatesSnapshot solutionTemplatesSnapshot = null;
         DomainTemplateList templates = detail.getTemplates();
         if (templates != null) {
             solutionTemplates = templates.getTemplateNames();
-            validateSolutionTemplates(solutionTemplates, caller);
+            solutionTemplatesSnapshot = getValidatedSolutionTemplatesSnapshot(solutionTemplates, caller);
         }
 
         // check to see if we need to validate our product id for the top
@@ -1784,8 +1995,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         ResourceDomainOwnership resourceOwnership = StringUtil.isEmpty(resourceOwner) ? null :
                 new ResourceDomainOwnership().setMetaOwner(resourceOwner).setObjectOwner(resourceOwner);
 
-        return createTopLevelDomain(ctx, topLevelDomain, adminUsers, solutionTemplates,
-                resourceOwnership, auditRef, caller);
+        return createTopLevelDomain(ctx, topLevelDomain, adminUsers, solutionTemplates, resourceOwnership, auditRef,
+                caller, solutionTemplatesSnapshot == null ? null : solutionTemplatesSnapshot.templates);
     }
 
     @Override
@@ -2064,10 +2275,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         adminUsers.add(userDomainAdmin);
 
         List<String> solutionTemplates = null;
+        SolutionTemplatesSnapshot solutionTemplatesSnapshot = null;
         DomainTemplateList templates = detail.getTemplates();
         if (templates != null) {
             solutionTemplates = templates.getTemplateNames();
-            validateSolutionTemplates(solutionTemplates, caller);
+            solutionTemplatesSnapshot = getValidatedSolutionTemplatesSnapshot(solutionTemplates, caller);
         }
 
         Domain subDomain = new Domain()
@@ -2099,7 +2311,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateDomainValues(subDomain);
         ResourceDomainOwnership resourceOwnership = StringUtil.isEmpty(resourceOwner) ? null :
                 new ResourceDomainOwnership().setMetaOwner(resourceOwner).setObjectOwner(resourceOwner);
-        return createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, resourceOwnership, auditRef, caller);
+        return createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, resourceOwnership, auditRef, caller,
+                solutionTemplatesSnapshot == null ? null : solutionTemplatesSnapshot.templates);
     }
 
     @Override
@@ -2148,10 +2361,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         List<String> solutionTemplates = null;
+        SolutionTemplatesSnapshot solutionTemplatesSnapshot = null;
         DomainTemplateList templates = detail.getTemplates();
         if (templates != null) {
             solutionTemplates = templates.getTemplateNames();
-            validateSolutionTemplates(solutionTemplates, caller);
+            solutionTemplatesSnapshot = getValidatedSolutionTemplatesSnapshot(solutionTemplates, caller);
         }
 
         // verify that the parent domain exists
@@ -2209,7 +2423,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         ResourceDomainOwnership resourceOwnership = StringUtil.isEmpty(resourceOwner) ? null :
                 new ResourceDomainOwnership().setMetaOwner(resourceOwner).setObjectOwner(resourceOwner);
-        return createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, resourceOwnership, auditRef, caller);
+        return createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, resourceOwnership, auditRef, caller,
+                solutionTemplatesSnapshot == null ? null : solutionTemplatesSnapshot.templates);
     }
 
     boolean isSysAdminUser(Principal principal) {
@@ -3165,8 +3380,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void validateSolutionTemplates(List<String> templateNames, String caller) {
+        getValidatedSolutionTemplatesSnapshot(templateNames, caller);
+    }
+
+    SolutionTemplatesSnapshot getValidatedSolutionTemplatesSnapshot(List<String> templateNames, String caller) {
+        reloadSolutionTemplatesIfModified();
+        SolutionTemplatesSnapshot snapshot = getSolutionTemplatesSnapshot();
+        validateSolutionTemplates(snapshot.templates, templateNames, caller);
+        return snapshot;
+    }
+
+    void validateSolutionTemplates(SolutionTemplates solutionTemplates, List<String> templateNames, String caller) {
         for (String templateName : templateNames) {
-            if (!serverSolutionTemplates.contains(templateName)) {
+            if (!solutionTemplates.contains(templateName)) {
                 throw ZMSUtils.notFoundError("validateSolutionTemplates: Template not found: "
                         + templateName, caller);
             }
@@ -3221,17 +3447,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (ZMSUtils.isCollectionEmpty(templateNames)) {
             throw ZMSUtils.requestError("putDomainTemplate: No templates specified", caller);
         }
-        validateSolutionTemplates(templateNames, caller);
 
         // verify that request is properly authenticated for this request
         // Make sure each template name is verified
 
+        SolutionTemplatesSnapshot snapshot = getValidatedSolutionTemplatesSnapshot(templateNames, caller);
         for (String templateName : domainTemplate.getTemplateNames()) {
             verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
                     caller, "name", templateName);
         }
 
-        dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller);
+        dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller, snapshot.templates);
     }
 
     @Override
@@ -3272,15 +3498,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (!(templateNames.size() == 1 && templateNames.get(0).equals(templateName))) {
             throw ZMSUtils.requestError("putDomainTemplateExt: template name mismatch", caller);
         }
-        validateSolutionTemplates(templateNames, caller);
 
         // verify that request is properly authenticated for this request
         // Make sure each template name is verified
 
+        SolutionTemplatesSnapshot snapshot = getValidatedSolutionTemplatesSnapshot(templateNames, caller);
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
                 caller, "name", templateName);
 
-        dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller);
+        dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller, snapshot.templates);
     }
 
     @Override
@@ -3317,12 +3543,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         List<String> templateNames = new ArrayList<>();
         templateNames.add(templateName);
-        validateSolutionTemplates(templateNames, caller);
 
         // before deleting the template, verify that template groups are not
         // referenced by roles in other domains
 
-        Template template = serverSolutionTemplates.get(templateName);
+        SolutionTemplatesSnapshot snapshot = getValidatedSolutionTemplatesSnapshot(templateNames, caller);
+        Template template = snapshot.templates.get(templateName);
         if (template != null && template.getGroups() != null) {
             for (Group group : template.getGroups()) {
                 String groupName = group.getName().replace("_domain_", domainName);
@@ -3330,7 +3556,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
 
-        dbService.executeDeleteDomainTemplate(ctx, domainName, templateName, auditRef, caller);
+        dbService.executeDeleteDomainTemplate(ctx, domainName, templateName, auditRef, caller, snapshot.templates);
     }
 
     @Override
@@ -4032,8 +4258,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         logPrincipal(ctx);
         validateRequest(ctx.request(), caller);
+        reloadSolutionTemplatesIfModified();
 
-        return new ServerTemplateList().setTemplateNames(serverSolutionTemplateNames);
+        return new ServerTemplateList().setTemplateNames(getSolutionTemplatesSnapshot().templateNames);
     }
 
     public Template getTemplate(ResourceContext ctx, String templateName) {
@@ -4050,7 +4277,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // policy, service, etc name)
 
         templateName = templateName.toLowerCase();
-        Template template = serverSolutionTemplates.get(templateName);
+        reloadSolutionTemplatesIfModified();
+        Template template = getSolutionTemplatesSnapshot().templates.get(templateName);
         if (template == null) {
             throw ZMSUtils.notFoundError("getTemplate: Template not found: '" + templateName + "'", caller);
         }
@@ -4074,9 +4302,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         List<TemplateMetaData> templateDomainMapping = dbService.getDomainTemplates(domainName);
         DomainTemplateDetailsList domainTemplateDetailsList = null;
         if (templateDomainMapping != null) {
+            reloadSolutionTemplatesIfModified();
+            SolutionTemplatesSnapshot snapshot = getSolutionTemplatesSnapshot();
             domainTemplateDetailsList = new DomainTemplateDetailsList();
             for (TemplateMetaData metaData : templateDomainMapping) {
-                Template template = serverSolutionTemplates.get(metaData.getTemplateName());
+                Template template = snapshot.templates.get(metaData.getTemplateName());
                 // there is a possibility of a stale template coming back from DB over time(caused by template clean up)
                 if (template != null) {
                     //Merging template metadata fields from solution-templates.json and template data from DB
@@ -4099,21 +4329,34 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         validateRequest(ctx.request(), caller);
+        reloadSolutionTemplatesIfModified();
 
-        List<TemplateMetaData> serverTemplateMetadataList = serverSolutionTemplates.getTemplates()
+        List<TemplateMetaData> serverTemplateMetadataList;
+        SolutionTemplatesSnapshot snapshot = getSolutionTemplatesSnapshot();
+        serverTemplateMetadataList = snapshot.templates.getTemplates()
                 .entrySet()
                 .stream()
-                .map(template -> {
-                    TemplateMetaData metadata = template.getValue().getMetadata();
-                    metadata.setTemplateName(template.getKey());
-                    return metadata;
-                })
+                .map(template -> copyTemplateMetaData(template.getKey(), template.getValue().getMetadata()))
                 .sorted(Comparator.comparing(TemplateMetaData::getTemplateName))
                 .collect(Collectors.toList());
 
         DomainTemplateDetailsList serverTemplateDetailsList = new DomainTemplateDetailsList();
         serverTemplateDetailsList.setMetaData(serverTemplateMetadataList);
         return serverTemplateDetailsList;
+    }
+
+    TemplateMetaData copyTemplateMetaData(final String templateName, final TemplateMetaData metadata) {
+        TemplateMetaData templateMetaData = new TemplateMetaData().setTemplateName(templateName);
+        if (metadata == null) {
+            return templateMetaData;
+        }
+        return templateMetaData
+                .setDescription(metadata.getDescription())
+                .setCurrentVersion(metadata.getCurrentVersion())
+                .setLatestVersion(metadata.getLatestVersion())
+                .setKeywordsToReplace(metadata.getKeywordsToReplace())
+                .setTimestamp(metadata.getTimestamp())
+                .setAutoUpdate(metadata.getAutoUpdate());
     }
 
     public RoleList getRoleList(ResourceContext ctx, String domainName, Integer limit, String skip) {
@@ -9726,9 +9969,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     Domain createTopLevelDomain(ResourceContext ctx, Domain domain, List<String> adminUsers,
                 List<String> solutionTemplates, ResourceDomainOwnership resourceOwnership,
                 final String auditRef, final String caller) {
+        return createTopLevelDomain(ctx, domain, adminUsers, solutionTemplates, resourceOwnership, auditRef, caller,
+                null);
+    }
+
+    Domain createTopLevelDomain(ResourceContext ctx, Domain domain, List<String> adminUsers,
+                List<String> solutionTemplates, ResourceDomainOwnership resourceOwnership,
+                final String auditRef, final String caller, SolutionTemplates serverSolutionTemplates) {
 
         List<String> users = validatedAdminUsers(adminUsers);
-        Domain newDomain = dbService.makeDomain(ctx, domain, users, solutionTemplates, auditRef);
+        Domain newDomain;
+        if (solutionTemplates != null) {
+            if (serverSolutionTemplates == null) {
+                serverSolutionTemplates = getValidatedSolutionTemplatesSnapshot(solutionTemplates, caller).templates;
+            } else {
+                validateSolutionTemplates(serverSolutionTemplates, solutionTemplates, caller);
+            }
+            newDomain = dbService.makeDomain(ctx, domain, users, solutionTemplates, auditRef, serverSolutionTemplates);
+        } else {
+            newDomain = dbService.makeDomain(ctx, domain, users, solutionTemplates, auditRef);
+        }
 
         // since the domain was successfully created we need to update
         // the meta attributes in the meta store if required
@@ -9745,6 +10005,12 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     Domain createSubDomain(ResourceContext ctx, Domain domain, List<String> adminUsers,
                 List<String> solutionTemplates, ResourceDomainOwnership resourceOwnership,
                 String auditRef, String caller) {
+        return createSubDomain(ctx, domain, adminUsers, solutionTemplates, resourceOwnership, auditRef, caller, null);
+    }
+
+    Domain createSubDomain(ResourceContext ctx, Domain domain, List<String> adminUsers,
+                List<String> solutionTemplates, ResourceDomainOwnership resourceOwnership,
+                String auditRef, String caller, SolutionTemplates serverSolutionTemplates) {
 
         // verify length of full sub domain name
 
@@ -9754,7 +10020,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         List<String> users = validatedAdminUsers(adminUsers);
-        Domain newDomain = dbService.makeDomain(ctx, domain, users, solutionTemplates, auditRef);
+        Domain newDomain;
+        if (solutionTemplates != null) {
+            if (serverSolutionTemplates == null) {
+                serverSolutionTemplates = getValidatedSolutionTemplatesSnapshot(solutionTemplates, caller).templates;
+            } else {
+                validateSolutionTemplates(serverSolutionTemplates, solutionTemplates, caller);
+            }
+            newDomain = dbService.makeDomain(ctx, domain, users, solutionTemplates, auditRef, serverSolutionTemplates);
+        } else {
+            newDomain = dbService.makeDomain(ctx, domain, users, solutionTemplates, auditRef);
+        }
 
         // since the domain was successfully created we need to update
         // the meta attributes in the meta store if required
@@ -13258,10 +13534,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     class AutoApplyTemplate implements Runnable {
-        Map<String, Integer> eligibleTemplatesForAutoUpdate;
+        private final Map<String, Integer> eligibleTemplatesForAutoUpdate;
+        private final SolutionTemplates serverSolutionTemplates;
 
-        public AutoApplyTemplate(Map<String, Integer> eligibleTemplatesForAutoUpdate) {
+        public AutoApplyTemplate(Map<String, Integer> eligibleTemplatesForAutoUpdate,
+                SolutionTemplates serverSolutionTemplates) {
             this.eligibleTemplatesForAutoUpdate = eligibleTemplatesForAutoUpdate;
+            this.serverSolutionTemplates = serverSolutionTemplates;
         }
 
         @Override
@@ -13269,7 +13548,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             if (LOG.isInfoEnabled()) {
                 LOG.info("List of eligible templates with version to apply .. {}", eligibleTemplatesForAutoUpdate);
             }
-            Map<String, List<String>> domainTemplateUpdateMapping = dbService.applyTemplatesForListOfDomains(eligibleTemplatesForAutoUpdate);
+            Map<String, List<String>> domainTemplateUpdateMapping = dbService.applyTemplatesForListOfDomains(
+                    eligibleTemplatesForAutoUpdate, serverSolutionTemplates);
             if (LOG.isInfoEnabled()) {
                 for (String domainName : domainTemplateUpdateMapping.keySet()) {
                     LOG.info("List of templates applied against domain {} {}", domainName, domainTemplateUpdateMapping.get(domainName));
