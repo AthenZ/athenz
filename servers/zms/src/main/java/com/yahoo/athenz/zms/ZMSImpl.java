@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zms;
 
 import com.fasterxml.jackson.core.StreamReadConstraints;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Bytes;
 import com.oath.auth.KeyRefresherException;
@@ -73,12 +74,14 @@ import org.slf4j.LoggerFactory;
 
 import javax.crypto.SecretKey;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PublicKey;
@@ -1357,22 +1360,22 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         String solutionTemplatesFname = solutionTemplatesFileName();
         Path path = Paths.get(solutionTemplatesFname);
-        long modifiedMillis = -1L;
-        SolutionTemplates solutionTemplates = null;
         try {
-            modifiedMillis = solutionTemplatesModifiedMillis(path);
-            solutionTemplates = readSolutionTemplates(path);
-        } catch (IOException ex) {
-            LOG.error("Unable to parse solution templates file {}: {}",
-                    solutionTemplatesFname, ex.getMessage());
-        }
+            long modifiedMillis = solutionTemplatesModifiedMillis(path);
+            setServerSolutionTemplates(readSolutionTemplates(path), path, modifiedMillis);
+        } catch (NoSuchFileException | FileNotFoundException ex) {
 
-        if (solutionTemplates == null) {
+            // we have failed to load our solution templates file, so generate
+            // an empty template list without recording any modified timestamp
+            // so the dynamic reload task will retry loading the file once it
+            // becomes available again
+
+            LOG.error("Solution templates file {} not found: {}", solutionTemplatesFname, ex.getMessage());
             LOG.error("Generating empty solution template list...");
-            solutionTemplates = emptySolutionTemplates();
+            setServerSolutionTemplates(emptySolutionTemplates(), path, -1L);
+        } catch (IOException ex) {
+            throw new RuntimeException("Unable to load solution templates file " + solutionTemplatesFname, ex);
         }
-
-        setServerSolutionTemplates(solutionTemplates, path, modifiedMillis);
     }
 
     String solutionTemplatesFileName() {
@@ -1385,9 +1388,27 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     SolutionTemplates readSolutionTemplates(Path path) throws IOException {
-        SolutionTemplates solutionTemplates = JSON.fromBytes(Files.readAllBytes(path), SolutionTemplates.class);
+        byte[] data = Files.readAllBytes(path);
+
+        // parse the document first to verify that it contains a valid json
+        // object before converting it to a SolutionTemplates object. this is
+        // required since JSON.fromBytes returns null both for empty documents
+        // and when the document is corrupted, and we must not treat a
+        // corrupted document as an empty template list
+
+        JsonNode rootNode;
+        try {
+            rootNode = jsonMapper.readTree(data);
+        } catch (Exception ex) {
+            throw new RuntimeException("Unable to parse solution templates document in file "
+                    + path + ": " + ex.getMessage(), ex);
+        }
+        if (rootNode == null || !rootNode.isObject()) {
+            throw new RuntimeException("Invalid solution templates document in file " + path);
+        }
+        SolutionTemplates solutionTemplates = JSON.fromBytes(data, SolutionTemplates.class);
         if (solutionTemplates == null) {
-            return emptySolutionTemplates();
+            throw new RuntimeException("Invalid solution templates content in file " + path);
         }
         if (solutionTemplates.getTemplates() == null) {
             solutionTemplates.setTemplates(new HashMap<>());
@@ -1404,17 +1425,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     void validateSolutionTemplatesConfig(SolutionTemplates solutionTemplates) {
 
-        // validate that we don't have any roles with both members and trust attributes
+        // validate that we don't have any null entries or roles with both
+        // members and trust attributes
 
         for (Map.Entry<String, Template> entry : solutionTemplates.getTemplates().entrySet()) {
             final String templateName = entry.getKey();
             final Template template = entry.getValue();
-            if (template == null || template.getRoles() == null) {
+            if (template == null) {
+                LOG.error("Solution Template {} has a null definition", templateName);
+                throw new RuntimeException("Solution Template " + templateName + " has a null definition");
+            }
+            if (template.getRoles() == null) {
                 continue;
             }
             for (Role role : template.getRoles()) {
                 if (role == null) {
-                    continue;
+                    LOG.error("Solution Template {} contains a null role", templateName);
+                    throw new RuntimeException("Solution Template " + templateName + " contains a null role");
                 }
                 if (!StringUtil.isEmpty(role.getTrust()) && role.getRoleMembers() != null
                         && !role.getRoleMembers().isEmpty()) {
