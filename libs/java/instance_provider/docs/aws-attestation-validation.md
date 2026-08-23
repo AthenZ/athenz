@@ -74,20 +74,29 @@ AWSAttestationValidatorFactory (interface)
 
 ```java
 public interface AWSAttestationValidator {
-    void initialize(SSLContext sslContext, Authorizer authorizer);
+    void initialize(SSLContext sslContext, Authorizer authorizer, Principal providerPrincipal);
     boolean validateIdentity(InstanceConfirmation confirmation, AWSAttestationData info,
             String awsAccount, StringBuilder errMsg);
 }
 
 public interface AWSAttestationValidatorFactory {
-    AWSAttestationValidator create(SSLContext sslContext, Authorizer authorizer);
+    AWSAttestationValidator create(SSLContext sslContext, Authorizer authorizer, Principal providerPrincipal);
 }
 ```
 
 `validateIdentity` returns `true` when the attestation proves the instance identity
 for the requested `confirmation` in `awsAccount`; on failure it returns `false` and
 appends a human-readable reason to `errMsg`. The `Authorizer` (supplied at init) is
-used for the cross-account launch check; the STS validator ignores it.
+used for the launch checks; the STS validator ignores it. The `providerPrincipal`
+identifies the provider service (e.g. `sys.auth.aws`) carrying out the system level
+launch check.
+
+`awsAccount` may be **empty** — the domain need not have an associated AWS account.
+Only `AWSWebIdentityTokenAttestationValidator.validateAwsAccount()` tolerates that
+(the request is then authorized purely through the launch policies below); every
+other consumer rejects an empty account as early as possible:
+`InstanceAWSProvider.validateAWSAccount()` (the instance document path) and
+`AWSStsCredentialsAttestationValidator.validateIdentity()`.
 
 ## 4. Request flow
 
@@ -124,9 +133,17 @@ identityToken present?  ── yes ──▶ AWSWebIdentityTokenAttestationValid
   2. Resolve (and cache per issuer) the issuer JWKS via its
      `/.well-known/openid-configuration`, then verify the token signature + expiry.
   3. `aud` must equal the configured audience.
-  4. The nested `aws_account` must equal the domain's AWS account; otherwise a
-     `launch` authorization is required — `authorizer.access("launch",
-     "<domain>:<service>:<tokenAwsAccount>", <domain>.<service>)` (mirrors EKS).
+  4. The nested `aws_account` must equal one of the domain's AWS accounts (the domain
+     may have none). Otherwise a **tenant** `launch` authorization is required —
+     `authorizer.access("launch", "<domain>:<service>:<tokenAwsAccount>",
+     <domain>.<service>)` (mirrors EKS). That policy is granted inside the tenant
+     domain itself, so when `athenz.zts.aws_web_identity_cross_authz_domain` is
+     configured a **system** `launch` authorization is evaluated first —
+     `authorizer.access("launch",
+     "<crossAuthzDomain>:<tokenAwsAccount>:<domain>:<service>", <providerPrincipal>)` —
+     letting the system administrators gate which account/service combinations may use
+     the cross-account path at all. Both checks must pass; when the property is unset
+     only the tenant check applies.
   5. `org_id` must be present and in the configured allowlist (mandatory).
   6. **Principal role binding (default).** The IAM role name in the token `sub`
      (`arn:aws:iam::<acct>:role/[path/]<name>` — the IAM path, if any, is stripped)
@@ -175,6 +192,7 @@ path). With none set, behavior is identical to the previous STS-only implementat
 | `athenz.zts.aws_web_identity_audience` | Expected JWT audience (`aud`) — set to the ZTS URL | *(unset → every token rejected)* |
 | `athenz.zts.aws_web_identity_issuer_regex` | Allowed issuer (`iss`) host pattern | `https://[a-z0-9-]+\.tokens\.sts\.global\.api\.aws` |
 | `athenz.zts.aws_web_identity_allowed_org_ids` | **Mandatory** `org_id` allowlist (CSV, dynamically reloadable) | *(empty → every token rejected)* |
+| `athenz.zts.aws_web_identity_cross_authz_domain` | Optional system level authorization domain for the cross-account case. When set, the provider service must additionally be granted `launch` on `<domain>:<tokenAwsAccount>:<tenantDomain>:<tenantService>` | *(unset → only the tenant launch policy is evaluated)* |
 | `athenz.zts.aws_web_identity_principal_validator_factory_class` | Optional adopter `AttrValidatorFactory` for `sub`/`principal_tags`. When set it has the final say on the principal (and overrides the default role-name binding); when unset the default binding is strictly enforced | *(unset → default binding enforced)* |
 | `athenz.zts.aws_web_identity_sts_claim_name` | Nested identity claim key | `https://sts.amazonaws.com/` |
 | `athenz.zts.aws_web_identity_discovery_proxy` | Optional HTTP proxy for issuer OIDC discovery + JWKS fetch | *(none)* |
@@ -248,11 +266,11 @@ Unit tests (TestNG + Mockito; module enforces 100% line coverage) under
 
 | Test | Covers |
 |---|---|
-| `AWSStsCredentialsAttestationValidatorTest` | STS client creation, `GetCallerIdentity`, ARN match/mismatch, null/exception paths |
-| `AWSWebIdentityTokenAttestationValidator[Test]` | Issuer extraction + regex, per-issuer JWKS resolution & cache, signature/expiry, audience, nested `sts` claim, aws_account match, cross-account launch authorization (allow/deny/no-authorizer), mandatory org_id allowlist, default role-name binding (match / mismatch / IAM path / service-only / malformed / missing sub) and its `AttrValidator` override (mismatch allowed/denied), `AttrValidator` principal allow/deny/skip |
+| `AWSStsCredentialsAttestationValidatorTest` | STS client creation, `GetCallerIdentity`, ARN match/mismatch, empty aws account, null/exception paths |
+| `AWSWebIdentityTokenAttestationValidator[Test]` | Issuer extraction + regex, per-issuer JWKS resolution & cache, signature/expiry, audience, nested `sts` claim, aws_account match, empty domain account (allowed only here), tenant cross-account launch authorization (allow/deny/no-authorizer), system cross-account launch authorization (unconfigured/allow/deny, tenant check skipped on deny), mandatory org_id allowlist, default role-name binding (match / mismatch / IAM path / service-only / malformed / missing sub) and its `AttrValidator` override (mismatch allowed/denied), `AttrValidator` principal allow/deny/skip |
 | `CompositeAWSAttestationValidatorTest` | Routing (token → JWT, no token → STS), init delegation |
 | `DefaultAWSAttestationValidatorFactoryTest` | Factory returns an initialized composite |
-| `InstanceAWSProviderTest` | Factory selection (default/custom/invalid class), `setAuthorizer`, confirm/refresh delegation via `MockAWSAttestationValidator` |
+| `InstanceAWSProviderTest` | Factory selection (default/custom/invalid class), `setAuthorizer`, provider principal creation, empty aws account (rejected with an instance document, allowed without one), confirm/refresh delegation via `MockAWSAttestationValidator` |
 | `AWSAttestationDataTest` | `identityToken` getter/setter |
 
 `MockAWSAttestationValidator` is a shared test helper whose result can be toggled so

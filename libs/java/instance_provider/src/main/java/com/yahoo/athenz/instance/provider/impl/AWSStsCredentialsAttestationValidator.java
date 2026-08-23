@@ -16,6 +16,7 @@
 package com.yahoo.athenz.instance.provider.impl;
 
 import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.athenz.instance.provider.AWSAttestationValidator;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
@@ -47,7 +48,7 @@ public class AWSStsCredentialsAttestationValidator implements AWSAttestationVali
     String awsRegion;
 
     @Override
-    public void initialize(SSLContext sslContext, Authorizer authorizer) {
+    public void initialize(SSLContext sslContext, Authorizer authorizer, Principal providerPrincipal) {
         awsRegion = System.getProperty(AWS_PROP_REGION_NAME);
     }
 
@@ -84,6 +85,14 @@ public class AWSStsCredentialsAttestationValidator implements AWSAttestationVali
     @Override
     public boolean validateIdentity(InstanceConfirmation confirmation, AWSAttestationData info,
             final String awsAccount, StringBuilder errMsg) {
+
+        // the sts credentials attestation requires the domain to have an
+        // associated aws account id to match against the caller identity arn
+
+        if (StringUtil.isEmpty(awsAccount)) {
+            errMsg.append("no aws account id associated with the domain");
+            return false;
+        }
 
         if (StringUtil.isEmpty(awsRegion)) {
             errMsg.append("aws region is not configured");

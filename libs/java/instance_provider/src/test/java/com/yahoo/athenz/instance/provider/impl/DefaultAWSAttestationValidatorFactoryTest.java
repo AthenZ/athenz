@@ -38,7 +38,7 @@ public class DefaultAWSAttestationValidatorFactoryTest {
     @Test
     public void testCreate() {
         DefaultAWSAttestationValidatorFactory factory = new DefaultAWSAttestationValidatorFactory();
-        AWSAttestationValidator validator = factory.create(null, null);
+        AWSAttestationValidator validator = factory.create(null, null, null);
         assertNotNull(validator);
         assertTrue(validator instanceof CompositeAWSAttestationValidator);
     }

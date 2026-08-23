@@ -16,6 +16,7 @@
 package com.yahoo.athenz.instance.provider.impl;
 
 import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.instance.provider.AWSAttestationValidator;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import org.eclipse.jetty.util.StringUtil;
@@ -45,9 +46,9 @@ public class CompositeAWSAttestationValidator implements AWSAttestationValidator
     }
 
     @Override
-    public void initialize(SSLContext sslContext, Authorizer authorizer) {
-        stsCredentialsValidator.initialize(sslContext, authorizer);
-        webIdentityTokenValidator.initialize(sslContext, authorizer);
+    public void initialize(SSLContext sslContext, Authorizer authorizer, Principal providerPrincipal) {
+        stsCredentialsValidator.initialize(sslContext, authorizer, providerPrincipal);
+        webIdentityTokenValidator.initialize(sslContext, authorizer, providerPrincipal);
     }
 
     @Override
