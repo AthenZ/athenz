@@ -78,7 +78,8 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_ACTIVE_DOMAIN_ID = "SELECT domain_id FROM domain WHERE name=? AND enabled=true;";
     @SuppressWarnings("SqlResolve")
     private static final String SQL_GET_DOMAINS_WITH_NAME = "SELECT name FROM domain WHERE name LIKE ?;";
-    private static final String SQL_GET_DOMAIN_WITH_AWS_ACCOUNT = "SELECT name FROM domain WHERE FIND_IN_SET(?, account);";
+    private static final String SQL_GET_DOMAIN_WITH_AWS_ACCOUNT = "SELECT name FROM domain WHERE account=?;";
+    private static final String SQL_GET_DOMAIN_WITH_AWS_ACCOUNT_MULTIPLE = "SELECT name FROM domain WHERE FIND_IN_SET(?, account);";
     private static final String SQL_GET_DOMAIN_WITH_AZURE_SUBSCRIPTION = "SELECT name FROM domain WHERE azure_subscription=?;";
     private static final String SQL_GET_DOMAIN_WITH_GCP_PROJECT = "SELECT name FROM domain WHERE gcp_project=?;";
     private static final String SQL_LIST_DOMAINS_WITH_AWS_ACCOUNT = "SELECT name, account FROM domain WHERE account!='';";
@@ -1425,7 +1426,8 @@ public class JDBCConnection implements ObjectStoreConnection {
         }
         switch (provider.toLowerCase()) {
             case ObjectStoreConnection.PROVIDER_AWS:
-                return SQL_GET_DOMAIN_WITH_AWS_ACCOUNT;
+                return (domainOptions != null && domainOptions.getAllowMultipleAWSAccounts()) ?
+                    SQL_GET_DOMAIN_WITH_AWS_ACCOUNT_MULTIPLE : SQL_GET_DOMAIN_WITH_AWS_ACCOUNT;
             case ObjectStoreConnection.PROVIDER_AZURE:
                 return SQL_GET_DOMAIN_WITH_AZURE_SUBSCRIPTION;
             case ObjectStoreConnection.PROVIDER_GCP:

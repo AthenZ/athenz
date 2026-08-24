@@ -7307,10 +7307,10 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testVerifyDomainAwsAccountUniquenessMultipleAccountsChecksEach() throws Exception {
+    public void testVerifyDomainAwsAccountUniquenessMultipleAccountsOptionDisabled() throws Exception {
 
-        // with multiple accounts allowed as a value but the flag itself off,
-        // each comma-separated account is still checked individually
+        // with the multiple accounts option off, the given value is treated as a
+        // single account and matched as-is against the account column
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
         Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString("name");
@@ -7461,10 +7461,17 @@ public class JDBCConnectionTest {
     @Test
     public void testLookupDomainByAwsAccountMultipleDomains() throws Exception {
 
+        // with the multiple aws accounts option enabled, the same account may be
+        // associated with more than one domain so we expect multiple entries back
+
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
         Mockito.when(mockResultSet.getString("name")).thenReturn("iaas.athenz").thenReturn("iaas.athenz.ci");
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        DomainOptions domainOptions = new DomainOptions();
+        domainOptions.setAllowMultipleAWSAccounts(true);
+        jdbcConn.setDomainOptions(domainOptions);
+
         List<String> domains = jdbcConn.lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AWS, "1234");
         assertEquals(domains.size(), 2);
         assertEquals(domains.get(0), "iaas.athenz");
@@ -15254,8 +15261,30 @@ public class JDBCConnectionTest {
         assertNull(jdbcConn.getCloudProviderLookupDomainSQLCommand(""));
         assertNull(jdbcConn.getCloudProviderLookupDomainSQLCommand("unknown"));
 
+        assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("aws"), "SELECT name FROM domain WHERE account=?;");
+        assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("AWS"), "SELECT name FROM domain WHERE account=?;");
+        assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("azure"), "SELECT name FROM domain WHERE azure_subscription=?;");
+        assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("gcp"), "SELECT name FROM domain WHERE gcp_project=?;");
+
+        // with the multiple aws accounts option disabled explicitly we still
+        // get our standard single account lookup command
+
+        DomainOptions domainOptions = new DomainOptions();
+        domainOptions.setAllowMultipleAWSAccounts(false);
+        jdbcConn.setDomainOptions(domainOptions);
+
+        assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("aws"), "SELECT name FROM domain WHERE account=?;");
+
+        // once the option is enabled, we're going to use the set based lookup command
+
+        domainOptions.setAllowMultipleAWSAccounts(true);
+        jdbcConn.setDomainOptions(domainOptions);
+
         assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("aws"), "SELECT name FROM domain WHERE FIND_IN_SET(?, account);");
         assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("AWS"), "SELECT name FROM domain WHERE FIND_IN_SET(?, account);");
+
+        // the other providers are not affected by the aws option
+
         assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("azure"), "SELECT name FROM domain WHERE azure_subscription=?;");
         assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("gcp"), "SELECT name FROM domain WHERE gcp_project=?;");
         jdbcConn.close();
@@ -15272,6 +15301,16 @@ public class JDBCConnectionTest {
         assertEquals(jdbcConn.getCloudProviderListDomainsSQLCommand("aws"), "SELECT name, account FROM domain WHERE account!='';");
         assertEquals(jdbcConn.getCloudProviderListDomainsSQLCommand("azure"), "SELECT name, azure_subscription FROM domain WHERE azure_subscription!='';");
         assertEquals(jdbcConn.getCloudProviderListDomainsSQLCommand("gcp"), "SELECT name, gcp_project FROM domain WHERE gcp_project!='';");
+
+        // the multiple aws accounts option has no effect on the list commands since
+        // we're returning all domains with their configured account values
+
+        DomainOptions domainOptions = new DomainOptions();
+        domainOptions.setAllowMultipleAWSAccounts(true);
+        jdbcConn.setDomainOptions(domainOptions);
+
+        assertEquals(jdbcConn.getCloudProviderListDomainsSQLCommand("aws"), "SELECT name, account FROM domain WHERE account!='';");
+        assertEquals(jdbcConn.getCloudProviderListDomainsSQLCommand("AWS"), "SELECT name, account FROM domain WHERE account!='';");
         jdbcConn.close();
     }
 
