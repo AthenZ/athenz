@@ -14667,6 +14667,59 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testValidateSolutionTemplatesConfigAllowsMissingAndEmptyCollections() throws IOException {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        File tempFile = File.createTempFile("solution_templates_optional_collections", ".json");
+        try {
+            writeSolutionTemplatesFile(tempFile, "{"
+                    + "\"templates\": {"
+                    + "\"metadata_only\": {"
+                    + "\"metadata\": {\"latestVersion\": 1}"
+                    + "},"
+                    + "\"empty_collections\": {"
+                    + "\"metadata\": {\"latestVersion\": 1},"
+                    + "\"roles\": [],"
+                    + "\"policies\": [],"
+                    + "\"groups\": [],"
+                    + "\"services\": []"
+                    + "},"
+                    + "\"valid_nested_collections\": {"
+                    + "\"metadata\": {\"latestVersion\": 1},"
+                    + "\"roles\": [{"
+                    + "\"name\": \"_domain_:role.user\","
+                    + "\"roleMembers\": [{\"memberName\": \"user.joe\"}]"
+                    + "}],"
+                    + "\"policies\": [{"
+                    + "\"name\": \"_domain_:policy.user\","
+                    + "\"assertions\": [{"
+                    + "\"resource\": \"_domain_:resource\","
+                    + "\"role\": \"_domain_:role.user\","
+                    + "\"action\": \"read\""
+                    + "}]"
+                    + "}],"
+                    + "\"groups\": [{"
+                    + "\"name\": \"_domain_:group.test\","
+                    + "\"groupMembers\": [{\"memberName\": \"user.jane\"}]"
+                    + "}],"
+                    + "\"services\": [{"
+                    + "\"name\": \"_domain_.service\","
+                    + "\"publicKeys\": [{\"id\": \"0\", \"key\": \"key\"}]"
+                    + "}]"
+                    + "}"
+                    + "}"
+                    + "}");
+
+            SolutionTemplates solutionTemplates = zmsImpl.readSolutionTemplates(tempFile.toPath());
+            assertTrue(solutionTemplates.contains("metadata_only"));
+            assertTrue(solutionTemplates.contains("empty_collections"));
+            assertTrue(solutionTemplates.contains("valid_nested_collections"));
+        } finally {
+            tempFile.delete();
+        }
+    }
+
+    @Test
     public void testSolutionTemplatesSnapshotPublishSameTimestampNoop() throws IOException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
