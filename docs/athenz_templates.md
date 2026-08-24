@@ -30,23 +30,18 @@ The file should follow the format below
 
 A sample file can be found at `servers/zms/conf/solution_templates.json`
 
-By default, ZMS loads the solution templates file during server startup. During
-startup, ZMS verifies the document before using it: if the file exists but cannot
-be parsed or contains invalid entries (for example, corrupted json content or
-null template definitions), ZMS aborts startup rather than running with an
-incomplete template set. A valid json object without any templates (e.g. `{}`)
-is treated as an intentionally empty list, and if the configured file does not
-exist at all or cannot be read due to a transient I/O error, ZMS starts with
-an empty list without recording any file timestamp so the dynamic reload task
-will retry loading it as soon as it becomes available again. To allow template additions or updates
-without a ZMS deployment, administrators can enable
+By default, ZMS loads the solution templates file during server startup. The
+default startup-only mode keeps the existing compatibility behavior: if the file
+does not exist, cannot be read, or cannot be parsed into a solution templates
+document, ZMS starts with an empty template list. To allow template additions or
+updates without a ZMS deployment, administrators can enable
 `athenz.zms.solution_templates_dynamic_reload=true`. When this flag is enabled,
 ZMS checks the configured templates file for changes before template operations
 and reloads it only after the updated file is parsed and validated successfully.
-If a dynamic reload fails, ZMS keeps using the last successfully loaded templates
-and skips further attempts until the file is modified again. Since saving a corrected
-file updates its modification time, the reload is retried automatically as soon
-as the fixed file is saved.
+Corrupted documents or invalid template entries are not published, so ZMS keeps
+using the last successfully loaded templates and skips further attempts until
+the file is modified again. Transient I/O failures are retried on later template
+operations even when the file timestamp has not changed.
 
 ## Template Entities
 A Template consists of metadata, services, roles and role metadata, 

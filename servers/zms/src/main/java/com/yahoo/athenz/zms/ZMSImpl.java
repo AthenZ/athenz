@@ -1360,15 +1360,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         Path path = Paths.get(solutionTemplatesFname);
         try {
             long modifiedMillis = solutionTemplatesModifiedMillis(path);
-            setServerSolutionTemplates(readSolutionTemplates(path), path, modifiedMillis);
+            SolutionTemplates solutionTemplates = dynamicSolutionTemplatesReload
+                    ? readSolutionTemplates(path)
+                    : readSolutionTemplatesCompatible(path);
+            setServerSolutionTemplates(solutionTemplates, path, modifiedMillis);
         } catch (IOException ex) {
 
             // we have failed to read our solution templates file (e.g. missing
             // or transient io failure), so generate an empty template list
             // without recording any modified timestamp so the dynamic reload
-            // task will retry loading the file once it becomes available.
-            // corrupted or invalid documents still fail fast since those are
-            // reported as runtime exceptions from our parser
+            // task will retry loading the file once it becomes available
 
             LOG.error("Unable to load solution templates file {}: {}", solutionTemplatesFname, ex.getMessage());
             LOG.error("Generating empty solution template list...");
@@ -1383,6 +1384,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     long solutionTemplatesModifiedMillis(Path path) throws IOException {
         return Files.getLastModifiedTime(path).toMillis();
+    }
+
+    SolutionTemplates readSolutionTemplatesCompatible(Path path) throws IOException {
+        SolutionTemplates solutionTemplates = JSON.fromBytes(Files.readAllBytes(path), SolutionTemplates.class);
+        if (solutionTemplates == null || solutionTemplates.getTemplates() == null) {
+            return emptySolutionTemplates();
+        }
+        validateSolutionTemplatesConfig(solutionTemplates, false);
+        return solutionTemplates;
     }
 
     SolutionTemplates readSolutionTemplates(Path path) throws IOException {
@@ -1411,7 +1421,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         if (solutionTemplates.getTemplates() == null) {
             solutionTemplates.setTemplates(new HashMap<>());
         }
-        validateSolutionTemplatesConfig(solutionTemplates);
+        validateSolutionTemplatesConfig(solutionTemplates, true);
         return solutionTemplates;
     }
 
@@ -1422,6 +1432,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void validateSolutionTemplatesConfig(SolutionTemplates solutionTemplates) {
+        validateSolutionTemplatesConfig(solutionTemplates, true);
+    }
+
+    void validateSolutionTemplatesConfig(SolutionTemplates solutionTemplates, boolean strictPublishedSnapshot) {
 
         // validate that we don't have any null entries or roles with both
         // members and trust attributes
@@ -1432,6 +1446,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             if (template == null) {
                 LOG.error("Solution Template {} has a null definition", templateName);
                 throw new RuntimeException("Solution Template " + templateName + " has a null definition");
+            }
+            if (strictPublishedSnapshot) {
+                validateSolutionTemplatePublishedSnapshot(templateName, template);
             }
             if (template.getRoles() == null) {
                 continue;
@@ -1448,6 +1465,49 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     throw new RuntimeException("Solution Template " + templateName + " role " + role.getName()
                             + " has both trust and members defined");
                 }
+            }
+        }
+    }
+
+    void validateSolutionTemplatePublishedSnapshot(String templateName, Template template) {
+        if (template.getMetadata() == null) {
+            LOG.error("Solution Template {} has null metadata", templateName);
+            throw new RuntimeException("Solution Template " + templateName + " has null metadata");
+        }
+        validateNoNullEntries(templateName, "role", template.getRoles());
+        validateNoNullEntries(templateName, "policy", template.getPolicies());
+        validateNoNullEntries(templateName, "group", template.getGroups());
+        validateNoNullEntries(templateName, "service", template.getServices());
+        if (template.getRoles() != null) {
+            for (Role role : template.getRoles()) {
+                validateNoNullEntries(templateName, "role member", role.getRoleMembers());
+            }
+        }
+        if (template.getPolicies() != null) {
+            for (Policy policy : template.getPolicies()) {
+                validateNoNullEntries(templateName, "policy assertion", policy.getAssertions());
+            }
+        }
+        if (template.getGroups() != null) {
+            for (Group group : template.getGroups()) {
+                validateNoNullEntries(templateName, "group member", group.getGroupMembers());
+            }
+        }
+        if (template.getServices() != null) {
+            for (ServiceIdentity service : template.getServices()) {
+                validateNoNullEntries(templateName, "service public key", service.getPublicKeys());
+            }
+        }
+    }
+
+    void validateNoNullEntries(String templateName, String entryType, Collection<?> entries) {
+        if (entries == null) {
+            return;
+        }
+        for (Object entry : entries) {
+            if (entry == null) {
+                LOG.error("Solution Template {} contains a null {}", templateName, entryType);
+                throw new RuntimeException("Solution Template " + templateName + " contains a null " + entryType);
             }
         }
     }
@@ -1560,10 +1620,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             try {
                 SolutionTemplates solutionTemplates = readSolutionTemplates(path);
+                long postReadModifiedMillis;
+                try {
+                    postReadModifiedMillis = solutionTemplatesModifiedMillis(path);
+                } catch (IOException ex) {
+                    LOG.error("Unable to check solution templates file {} after reading it. "
+                            + "Keeping the previous templates: {}", path, ex.getMessage());
+                    return;
+                }
+                if (postReadModifiedMillis != modifiedMillis) {
+                    LOG.error("Solution templates file {} changed while it was being read. "
+                            + "Keeping the previous templates and retrying later", path);
+                    return;
+                }
                 SolutionTemplatesSnapshot newSnapshot = newSolutionTemplatesSnapshot(solutionTemplates, path,
                         modifiedMillis);
                 publishSolutionTemplatesSnapshot(newSnapshot, false);
                 LOG.info("Reloaded solution templates file {}", path);
+            } catch (IOException ex) {
+                LOG.error("Unable to read solution templates file {}. Keeping the previous templates: {}",
+                        path, ex.getMessage());
             } catch (Exception ex) {
                 solutionTemplatesReloadFailedPath = path;
                 solutionTemplatesReloadFailedModifiedMillis = modifiedMillis;
