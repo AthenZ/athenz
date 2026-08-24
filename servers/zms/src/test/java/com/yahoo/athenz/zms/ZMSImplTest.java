@@ -14476,6 +14476,35 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testReadSolutionTemplatesCompatibleAllowsLegacyMetadata() throws IOException {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        File tempFile = File.createTempFile("solution_templates_compatible", ".json");
+        try {
+            writeSolutionTemplatesFile(tempFile, "{}");
+            assertTrue(zmsImpl.readSolutionTemplatesCompatible(tempFile.toPath()).getTemplates().isEmpty());
+
+            writeSolutionTemplatesFile(tempFile, "{"
+                    + "\"templates\": {"
+                    + "\"legacy\": {"
+                    + "\"roles\": ["
+                    + "{"
+                    + "\"name\": \"trusted_role\","
+                    + "\"trust\": \"trusted.domain\""
+                    + "}"
+                    + "]"
+                    + "}"
+                    + "}"
+                    + "}");
+
+            SolutionTemplates solutionTemplates = zmsImpl.readSolutionTemplatesCompatible(tempFile.toPath());
+            assertTrue(solutionTemplates.contains("legacy"));
+        } finally {
+            tempFile.delete();
+        }
+    }
+
+    @Test
     public void testLoadSolutionTemplatesCorruptFileBlocksStartupWithDynamicReload()
             throws IOException {
 
@@ -14759,6 +14788,48 @@ public class ZMSImplTest {
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
             assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
             assertFalse(solutionTemplatesReloadInProgress(zmsImpl).get());
+        } finally {
+            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, originalTemplateFile);
+            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, originalDynamicReload);
+            tempFile.delete();
+        }
+    }
+
+    @Test
+    public void testDynamicSolutionTemplatesReloadPostReadModifiedCheckFailureKeepsPreviousTemplates()
+            throws IOException {
+
+        class PostReadModifiedCheckFailZMSImpl extends ZMSImpl {
+            boolean failPostReadModifiedCheck;
+            int modifiedCalls;
+
+            @Override
+            long solutionTemplatesModifiedMillis(final Path path) throws IOException {
+                if (failPostReadModifiedCheck && ++modifiedCalls == 3) {
+                    throw new IOException("post read modified check failure");
+                }
+                return super.solutionTemplatesModifiedMillis(path);
+            }
+        }
+
+        File tempFile = File.createTempFile("dynamic_solution_templates_post_read_check", ".json");
+        String originalTemplateFile = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
+        String originalDynamicReload = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD);
+        try {
+            writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_old", 1));
+            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
+            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
+
+            PostReadModifiedCheckFailZMSImpl zmsImpl = new PostReadModifiedCheckFailZMSImpl();
+            RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+            assertEquals(zmsImpl.getTemplate(ctx, "dynamic_old").getMetadata().getLatestVersion().intValue(), 1);
+
+            writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_new", 2));
+            zmsImpl.failPostReadModifiedCheck = true;
+            zmsImpl.modifiedCalls = 0;
+
+            assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
+            assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
         } finally {
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, originalTemplateFile);
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, originalDynamicReload);
