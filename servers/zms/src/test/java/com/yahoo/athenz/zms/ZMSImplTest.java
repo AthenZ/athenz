@@ -14575,7 +14575,7 @@ public class ZMSImplTest {
 
         SolutionTemplates nullRole = new SolutionTemplates();
         HashMap<String, Template> nullRoleTemplates = new HashMap<>();
-        nullRoleTemplates.put("null_role", new Template().setRoles(Arrays.asList(null,
+        nullRoleTemplates.put("null_role", templateWithMetadata().setRoles(Arrays.asList(null,
                 new Role().setName("trusted_role").setTrust("trusted.domain"))));
         nullRole.setTemplates(nullRoleTemplates);
 
