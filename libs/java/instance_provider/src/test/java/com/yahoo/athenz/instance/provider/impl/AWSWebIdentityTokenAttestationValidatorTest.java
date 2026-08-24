@@ -23,6 +23,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
@@ -41,7 +42,9 @@ import java.util.Objects;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 public class AWSWebIdentityTokenAttestationValidatorTest {
@@ -53,6 +56,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
     private static final String AWS_ISSUER = "https://a235ce0e-ece5-7bh3-b26c-62f78631444b.tokens.sts.global.api.aws";
     private static final String AUDIENCE = "https://zts.athenz.io/zts/v1";
     private static final String STS_CLAIM = "https://sts.amazonaws.com/";
+    private static final Principal PROVIDER_PRINCIPAL = SimplePrincipal.create("sys.auth", "aws", (String) null);
+    private static final String CROSS_AUTHZ_DOMAIN = "sys.auth.aws-launch";
 
     @AfterMethod
     public void shutdown() {
@@ -60,6 +65,7 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
         System.clearProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ISSUER_REGEX);
         System.clearProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS);
         System.clearProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_STS_CLAIM_NAME);
+        System.clearProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_CROSS_AUTHZ_DOMAIN);
         System.clearProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_PRINCIPAL_VALIDATOR_FACTORY_CLASS);
     }
 
@@ -105,7 +111,8 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
                 return new JwtsSigningKeyResolver(jwksUri, null, true);
             }
         };
-        validator.initialize(null, authorizer);
+        validator.initialize(null, authorizer, PROVIDER_PRINCIPAL);
+        assertEquals(validator.providerPrincipal, PROVIDER_PRINCIPAL);
         return validator;
     }
 
@@ -194,7 +201,7 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
                 return new JwtsSigningKeyResolver(jwksUri, null, true);
             }
         };
-        validator.initialize(null, null);
+        validator.initialize(null, null, null);
         final String token = generateToken(AWS_ISSUER, AUDIENCE, "sub", stsClaim("1234", "o-qwsedrftg3"));
         AWSAttestationData info = new AWSAttestationData();
         info.setIdentityToken(token);
@@ -214,7 +221,7 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
                 return null;
             }
         };
-        validator.initialize(null, null);
+        validator.initialize(null, null, null);
         final String token = generateToken(AWS_ISSUER, AUDIENCE, "sub", stsClaim("1234", "o-qwsedrftg3"));
         AWSAttestationData info = new AWSAttestationData();
         info.setIdentityToken(token);
@@ -225,7 +232,7 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
     @Test
     public void testGetSigningKeyResolverForIssuer() throws Exception {
         AWSWebIdentityTokenAttestationValidator validator = new AWSWebIdentityTokenAttestationValidator();
-        validator.initialize(null, null);
+        validator.initialize(null, null, null);
 
         // a valid openid configuration that points at the local jwks
         File issuerDir = new File("./src/test/resources/config-openid-aws-sts/");
@@ -313,6 +320,46 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
     }
 
     @Test
+    public void testValidateIdentityNoDomainAccountAuthorized() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Mockito.when(authorizer.access(eq("launch"), eq("athenz:api:123456789012"), any(Principal.class), any()))
+                .thenReturn(true);
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(authorizer);
+        final String token = generateToken(AWS_ISSUER, AUDIENCE, "arn:aws:iam::123456789012:role/athenz.api",
+                stsClaim("123456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+
+        // the domain has no associated aws account - this is the only validation
+        // path where that is allowed and the request is authorized via the launch
+        // policy for the token's account
+
+        StringBuilder errMsg = new StringBuilder(256);
+        assertTrue(validator.validateIdentity(confirmation(), info, null, errMsg));
+
+        errMsg.setLength(0);
+        assertTrue(validator.validateIdentity(confirmation(), info, "", errMsg));
+    }
+
+    @Test
+    public void testValidateIdentityNoDomainAccountDenied() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Mockito.when(authorizer.access(any(), any(), any(Principal.class), any())).thenReturn(false);
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(authorizer);
+        final String token = generateToken(AWS_ISSUER, AUDIENCE, "arn:aws:iam::123456789012:role/athenz.api",
+                stsClaim("123456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(validator.validateIdentity(confirmation(), info, null, errMsg));
+        assertTrue(errMsg.toString().contains("launch authorization check failed"));
+    }
+
+    @Test
     public void testValidateIdentityMissingAwsAccountClaim() throws Exception {
         System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
         System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
@@ -370,6 +417,98 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
         StringBuilder errMsg = new StringBuilder(256);
         assertFalse(validator.validateIdentity(confirmation(), info, "1234", errMsg));
         assertTrue(errMsg.toString().contains("authorizer not available"));
+    }
+
+    @Test
+    public void testValidateIdentityCrossAccountNoSystemAuthzDomainConfigured() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Mockito.when(authorizer.access(eq("launch"), eq("athenz:api:123456789012"), any(Principal.class), any()))
+                .thenReturn(true);
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(authorizer);
+        assertNull(validator.crossAuthzDomain);
+        final String token = generateToken(AWS_ISSUER, AUDIENCE, "arn:aws:iam::123456789012:role/athenz.api",
+                stsClaim("123456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+        StringBuilder errMsg = new StringBuilder(256);
+        assertTrue(validator.validateIdentity(confirmation(), info, "1234", errMsg));
+
+        // without a configured cross authz domain the tenant launch check is the only one carried out
+
+        Mockito.verify(authorizer, Mockito.times(1)).access(any(), any(), any(Principal.class), any());
+    }
+
+    @Test
+    public void testValidateIdentityCrossAccountSystemAuthorized() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_CROSS_AUTHZ_DOMAIN, CROSS_AUTHZ_DOMAIN);
+        final String systemResource = CROSS_AUTHZ_DOMAIN + ":123456789012:athenz:api";
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Mockito.when(authorizer.access(eq("launch"), eq(systemResource), eq(PROVIDER_PRINCIPAL), any()))
+                .thenReturn(true);
+        Mockito.when(authorizer.access(eq("launch"), eq("athenz:api:123456789012"), any(Principal.class), any()))
+                .thenReturn(true);
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(authorizer);
+        assertEquals(validator.crossAuthzDomain, CROSS_AUTHZ_DOMAIN);
+        final String token = generateToken(AWS_ISSUER, AUDIENCE, "arn:aws:iam::123456789012:role/athenz.api",
+                stsClaim("123456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+        StringBuilder errMsg = new StringBuilder(256);
+
+        // both the system level and the tenant level launch checks are granted
+
+        assertTrue(validator.validateIdentity(confirmation(), info, "1234", errMsg));
+        Mockito.verify(authorizer).access(eq("launch"), eq(systemResource), eq(PROVIDER_PRINCIPAL), any());
+        Mockito.verify(authorizer).access(eq("launch"), eq("athenz:api:123456789012"), any(Principal.class), any());
+    }
+
+    @Test
+    public void testValidateIdentityCrossAccountSystemDenied() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_CROSS_AUTHZ_DOMAIN, CROSS_AUTHZ_DOMAIN);
+        final String systemResource = CROSS_AUTHZ_DOMAIN + ":123456789012:athenz:api";
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Mockito.when(authorizer.access(eq("launch"), eq(systemResource), eq(PROVIDER_PRINCIPAL), any()))
+                .thenReturn(false);
+        // the tenant level check is granted but it must never be reached
+        Mockito.when(authorizer.access(eq("launch"), eq("athenz:api:123456789012"), any(Principal.class), any()))
+                .thenReturn(true);
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(authorizer);
+        final String token = generateToken(AWS_ISSUER, AUDIENCE, "arn:aws:iam::123456789012:role/athenz.api",
+                stsClaim("123456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(validator.validateIdentity(confirmation(), info, "1234", errMsg));
+        assertTrue(errMsg.toString().contains("system launch authorization check failed for resource: " + systemResource));
+        Mockito.verify(authorizer, Mockito.never())
+                .access(eq("launch"), eq("athenz:api:123456789012"), any(Principal.class), any());
+    }
+
+    @Test
+    public void testValidateIdentityNoDomainAccountSystemDenied() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_CROSS_AUTHZ_DOMAIN, CROSS_AUTHZ_DOMAIN);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Mockito.when(authorizer.access(any(), any(), any(Principal.class), any())).thenReturn(false);
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(authorizer);
+        final String token = generateToken(AWS_ISSUER, AUDIENCE, "arn:aws:iam::123456789012:role/athenz.api",
+                stsClaim("123456789012", "o-qwsedrftg3"));
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+
+        // the domain has no associated aws account so the system level check applies here as well
+
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(validator.validateIdentity(confirmation(), info, null, errMsg));
+        assertTrue(errMsg.toString().contains("system launch authorization check failed for resource: "
+                + CROSS_AUTHZ_DOMAIN + ":123456789012:athenz:api"));
     }
 
     @Test
@@ -576,7 +715,7 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
                 "com.yahoo.athenz.instance.provider.impl.UnknownFactoryClass");
         AWSWebIdentityTokenAttestationValidator validator = new AWSWebIdentityTokenAttestationValidator();
         try {
-            validator.initialize(null, null);
+            validator.initialize(null, null, null);
             org.testng.Assert.fail();
         } catch (IllegalArgumentException ex) {
             assertTrue(ex.getMessage().contains("Invalid AWS web identity principal AttrValidatorFactory class"));
