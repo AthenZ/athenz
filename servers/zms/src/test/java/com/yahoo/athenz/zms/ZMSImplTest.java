@@ -14481,6 +14481,9 @@ public class ZMSImplTest {
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         File tempFile = File.createTempFile("solution_templates_compatible", ".json");
         try {
+            writeSolutionTemplatesFile(tempFile, "null");
+            assertTrue(zmsImpl.readSolutionTemplatesCompatible(tempFile.toPath()).getTemplates().isEmpty());
+
             writeSolutionTemplatesFile(tempFile, "{}");
             assertTrue(zmsImpl.readSolutionTemplatesCompatible(tempFile.toPath()).getTemplates().isEmpty());
 
@@ -14499,6 +14502,26 @@ public class ZMSImplTest {
 
             SolutionTemplates solutionTemplates = zmsImpl.readSolutionTemplatesCompatible(tempFile.toPath());
             assertTrue(solutionTemplates.contains("legacy"));
+        } finally {
+            tempFile.delete();
+        }
+    }
+
+    @Test
+    public void testReadSolutionTemplatesCompatibleRejectsInvalidLegacyRoles() throws IOException {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        File tempFile = File.createTempFile("solution_templates_compatible_invalid", ".json");
+        try {
+            writeSolutionTemplatesFile(tempFile, invalidSolutionTemplatesJson());
+            try {
+                zmsImpl.readSolutionTemplatesCompatible(tempFile.toPath());
+                fail();
+            } catch (RuntimeException ex) {
+                assertTrue(ex.getMessage().contains("has both trust and members defined"));
+                assertTrue(ex.getMessage().contains("invalid_template"));
+                assertTrue(ex.getMessage().contains("test_role"));
+            }
         } finally {
             tempFile.delete();
         }
@@ -15035,6 +15058,61 @@ public class ZMSImplTest {
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_recovered", 3));
             Template template = zmsImpl.getTemplate(ctx, "dynamic_recovered");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 3);
+        } finally {
+            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, originalTemplateFile);
+            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, originalDynamicReload);
+            tempFile.delete();
+        }
+    }
+
+    @Test
+    public void testDynamicSolutionTemplatesReloadSkipsDeterministicFailureAtSameTimestamp()
+            throws IOException {
+
+        class DeterministicFailureZMSImpl extends ZMSImpl {
+            boolean failReload;
+            int readCalls;
+
+            @Override
+            SolutionTemplates readSolutionTemplates(final Path path) throws IOException {
+                readCalls++;
+                if (failReload) {
+                    throw new RuntimeException("deterministic reload failure");
+                }
+                return super.readSolutionTemplates(path);
+            }
+        }
+
+        File tempFile = File.createTempFile("dynamic_solution_templates_failed_mtime", ".json");
+        String originalTemplateFile = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
+        String originalDynamicReload = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD);
+        try {
+            writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_old", 1));
+            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
+            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
+
+            DeterministicFailureZMSImpl zmsImpl = new DeterministicFailureZMSImpl();
+            RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+            assertEquals(zmsImpl.getTemplate(ctx, "dynamic_old").getMetadata().getLatestVersion().intValue(), 1);
+
+            writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_new", 2));
+            zmsImpl.failReload = true;
+            zmsImpl.readCalls = 0;
+
+            assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
+            assertEquals(zmsImpl.readCalls, 1);
+            assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
+
+            assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
+            assertEquals(zmsImpl.readCalls, 1);
+            assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
+
+            zmsImpl.failReload = false;
+            writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_recovered", 3));
+
+            Template template = zmsImpl.getTemplate(ctx, "dynamic_recovered");
+            assertEquals(template.getMetadata().getLatestVersion().intValue(), 3);
+            assertEquals(zmsImpl.readCalls, 2);
         } finally {
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, originalTemplateFile);
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, originalDynamicReload);
@@ -24574,6 +24652,47 @@ public class ZMSImplTest {
         for (TemplateMetaData template : templates) {
             assertTrue(template.getTemplateName().compareTo(previousTemplateName) >= 0);
             previousTemplateName = template.getTemplateName();
+        }
+    }
+
+    @Test
+    public void testGetServerTemplateDetailsListHandlesNullMetadata() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        ZMSImpl.SolutionTemplatesSnapshot originalSnapshot = zmsImpl.getSolutionTemplatesSnapshot();
+
+        try {
+            SolutionTemplates solutionTemplates = new SolutionTemplates();
+            HashMap<String, Template> templates = new HashMap<>();
+            templates.put("legacy", new Template());
+            templates.put("published", templateWithMetadata().setMetadata(new TemplateMetaData()
+                    .setCurrentVersion(2)
+                    .setLatestVersion(3)
+                    .setDescription("published template")
+                    .setKeywordsToReplace("service")
+                    .setTimestamp(Timestamp.fromMillis(1000))
+                    .setAutoUpdate(true)));
+            solutionTemplates.setTemplates(templates);
+            zmsImpl.setServerSolutionTemplates(solutionTemplates, Path.of("solution-templates-test.json"), 1000L);
+
+            DomainTemplateDetailsList serverTemplateDetailsList = zmsImpl.getServerTemplateDetailsList(ctx);
+            assertEquals(serverTemplateDetailsList.getMetaData().size(), 2);
+
+            TemplateMetaData legacyMetaData = serverTemplateDetailsList.getMetaData().get(0);
+            assertEquals(legacyMetaData.getTemplateName(), "legacy");
+            assertNull(legacyMetaData.getLatestVersion());
+            assertNull(legacyMetaData.getDescription());
+
+            TemplateMetaData publishedMetaData = serverTemplateDetailsList.getMetaData().get(1);
+            assertEquals(publishedMetaData.getTemplateName(), "published");
+            assertEquals(publishedMetaData.getCurrentVersion().intValue(), 2);
+            assertEquals(publishedMetaData.getLatestVersion().intValue(), 3);
+            assertEquals(publishedMetaData.getDescription(), "published template");
+            assertEquals(publishedMetaData.getKeywordsToReplace(), "service");
+            assertEquals(publishedMetaData.getTimestamp(), Timestamp.fromMillis(1000));
+            assertTrue(publishedMetaData.getAutoUpdate());
+        } finally {
+            zmsImpl.publishSolutionTemplatesSnapshot(originalSnapshot, true);
         }
     }
 
