@@ -1,3 +1,20 @@
+Athenz v1.12.46 Release / Aug 24, 2026
+--------------------------------------
+
+#3449 Bump nanoid from 5.1.5 to 5.1.16 in /ui
+#3451 sia: lambda identity support for web identity tokens
+#3452 sia: support san email addresses in service certificate CSRs
+#3454 Persist autoDeleteTenantAssumeRoleAssertions for subdomain and user domain creation
+#3455 ui: pin @wdio/globals and expect-webdriverio to fix ERESOLVE on fresh install
+#3457 add support for multiple aws association with domain
+#3460 GitHub actions job workflow ref authz
+#3461 aws web identity: optional empty domain account and system level laun…
+#3462 zms: use FIND_IN_SET aws account lookup only when multiple accounts are enabled
+#3463 update java and go dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20260820.sql
+
 Athenz v1.12.45 Release / Aug 07, 2026
 --------------------------------------
 
