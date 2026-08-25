@@ -21,7 +21,7 @@ $ zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] -ntoken
 The service identity ntoken can be obtained by using the zms-svctoken
 utility. The optional expire-time argument specifies how long the access
 token should be valid for. The value must be specified in minutes. The
-defualt if no value is specified is 120 minutes.
+default if no value is specified is 120 minutes.
 
 ## License
 
