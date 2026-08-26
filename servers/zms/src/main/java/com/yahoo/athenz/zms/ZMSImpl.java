@@ -1512,6 +1512,53 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    void validateSolutionTemplateReloadVersions(SolutionTemplates currentTemplates,
+            SolutionTemplates updatedTemplates) {
+
+        if (solutionTemplatesEmpty(currentTemplates) || solutionTemplatesEmpty(updatedTemplates)) {
+            return;
+        }
+
+        for (Map.Entry<String, Template> entry : updatedTemplates.getTemplates().entrySet()) {
+            final String templateName = entry.getKey();
+            final Template currentTemplate = currentTemplates.getTemplates().get(templateName);
+            final Template updatedTemplate = entry.getValue();
+            validateSolutionTemplateReloadVersion(templateName, currentTemplate, updatedTemplate);
+        }
+    }
+
+    boolean solutionTemplatesEmpty(SolutionTemplates solutionTemplates) {
+        return solutionTemplates == null || solutionTemplates.getTemplates() == null
+                || solutionTemplates.getTemplates().isEmpty();
+    }
+
+    void validateSolutionTemplateReloadVersion(String templateName, Template currentTemplate, Template updatedTemplate) {
+        if (currentTemplate == null || Objects.equals(currentTemplate, updatedTemplate)) {
+            return;
+        }
+
+        final Integer currentLatestVersion = solutionTemplateLatestVersion(currentTemplate);
+        final Integer updatedLatestVersion = solutionTemplateLatestVersion(updatedTemplate);
+        if (solutionTemplateLatestVersionIncremented(currentLatestVersion, updatedLatestVersion)) {
+            return;
+        }
+
+        LOG.error("Solution Template {} changed without incrementing latestVersion from {} to {}",
+                templateName, currentLatestVersion, updatedLatestVersion);
+        throw new RuntimeException("Solution Template " + templateName
+                + " changed without incrementing latestVersion from " + currentLatestVersion
+                + " to " + updatedLatestVersion);
+    }
+
+    boolean solutionTemplateLatestVersionIncremented(Integer currentLatestVersion, Integer updatedLatestVersion) {
+        return currentLatestVersion != null && updatedLatestVersion != null
+                && updatedLatestVersion > currentLatestVersion;
+    }
+
+    Integer solutionTemplateLatestVersion(Template template) {
+        return template == null || template.getMetadata() == null ? null : template.getMetadata().getLatestVersion();
+    }
+
     SolutionTemplatesSnapshot newSolutionTemplatesSnapshot(SolutionTemplates solutionTemplates, Path path,
             long modifiedMillis) {
         List<String> templateNames = new ArrayList<>(solutionTemplates.names());
@@ -1633,6 +1680,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                             + "Keeping the previous templates and retrying later", path);
                     return;
                 }
+                validateSolutionTemplateReloadVersions(currentSnapshot.templates, solutionTemplates);
                 SolutionTemplatesSnapshot newSnapshot = newSolutionTemplatesSnapshot(solutionTemplates, path,
                         modifiedMillis);
                 publishSolutionTemplatesSnapshot(newSnapshot, false);

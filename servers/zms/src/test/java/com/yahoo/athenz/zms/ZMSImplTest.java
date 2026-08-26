@@ -14303,13 +14303,18 @@ public class ZMSImplTest {
     }
 
     private static String solutionTemplatesJson(final String templateName, final int latestVersion) {
+        return solutionTemplatesJson(templateName, latestVersion, "Dynamic template " + latestVersion);
+    }
+
+    private static String solutionTemplatesJson(final String templateName, final int latestVersion,
+            final String description) {
         return "{"
                 + "\"templates\": {"
                 + "\"" + templateName + "\": {"
                 + "\"metadata\": {"
                 + "\"latestVersion\": " + latestVersion + ","
                 + "\"timestamp\": \"2026-08-19T00:00:00.000Z\","
-                + "\"description\": \"Dynamic template " + latestVersion + "\","
+                + "\"description\": \"" + description + "\","
                 + "\"keywordsToReplace\": \"\","
                 + "\"autoUpdate\": false"
                 + "}"
@@ -15018,6 +15023,45 @@ public class ZMSImplTest {
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 2);
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_new"));
             assertTrue(zmsImpl.dbService.zmsConfig.getServerSolutionTemplates().contains("dynamic_new"));
+        } finally {
+            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, originalTemplateFile);
+            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, originalDynamicReload);
+            tempFile.delete();
+        }
+    }
+
+    @Test
+    public void testDynamicSolutionTemplatesReloadRejectsChangedTemplateWithoutVersionIncrement() throws IOException {
+
+        File tempFile = File.createTempFile("dynamic_solution_templates_same_version", ".json");
+        String originalTemplateFile = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
+        String originalDynamicReload = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD);
+        try {
+            writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_template", 1,
+                    "original template"));
+            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
+            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
+
+            ZMSImpl zmsImpl = new ZMSImpl();
+            RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+            assertEquals(zmsImpl.getTemplate(ctx, "dynamic_template").getMetadata().getDescription(),
+                    "original template");
+
+            writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_template", 1,
+                    "changed without version increment"));
+
+            Template template = zmsImpl.getTemplate(ctx, "dynamic_template");
+            assertEquals(template.getMetadata().getLatestVersion().intValue(), 1);
+            assertEquals(template.getMetadata().getDescription(), "original template");
+            assertEquals(zmsImpl.dbService.zmsConfig.getServerSolutionTemplates().get("dynamic_template")
+                    .getMetadata().getDescription(), "original template");
+
+            writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_template", 2,
+                    "changed with version increment"));
+
+            template = zmsImpl.getTemplate(ctx, "dynamic_template");
+            assertEquals(template.getMetadata().getLatestVersion().intValue(), 2);
+            assertEquals(template.getMetadata().getDescription(), "changed with version increment");
         } finally {
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, originalTemplateFile);
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, originalDynamicReload);
