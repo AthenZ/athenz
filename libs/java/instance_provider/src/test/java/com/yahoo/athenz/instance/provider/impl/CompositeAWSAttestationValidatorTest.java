@@ -38,9 +38,9 @@ public class CompositeAWSAttestationValidatorTest {
         AWSAttestationValidator sts = Mockito.mock(AWSAttestationValidator.class);
         AWSAttestationValidator webId = Mockito.mock(AWSAttestationValidator.class);
         CompositeAWSAttestationValidator validator = new CompositeAWSAttestationValidator(sts, webId);
-        validator.initialize(null, null);
-        Mockito.verify(sts).initialize(any(), any());
-        Mockito.verify(webId).initialize(any(), any());
+        validator.initialize(null, null, null);
+        Mockito.verify(sts).initialize(any(), any(), any());
+        Mockito.verify(webId).initialize(any(), any(), any());
     }
 
     @Test

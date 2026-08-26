@@ -44,7 +44,7 @@ public class AWSStsCredentialsAttestationValidatorTest {
     @Test
     public void testInitialize() {
         AWSStsCredentialsAttestationValidator validator = new AWSStsCredentialsAttestationValidator();
-        validator.initialize(null, null);
+        validator.initialize(null, null, null);
         assertNotNull(validator.awsRegion);
     }
 
@@ -86,6 +86,23 @@ public class AWSStsCredentialsAttestationValidatorTest {
 
         data.setToken("valid");
         assertNotNull(validator.getInstanceClient(data));
+    }
+
+    @Test
+    public void testValidateIdentityNoAwsAccount() {
+        // the domain has no associated aws account - the sts credentials path
+        // requires one so the request must be rejected right away
+        AWSStsCredentialsAttestationValidator validator = new AWSStsCredentialsAttestationValidator();
+        validator.awsRegion = "us-west-2";
+        AWSAttestationData info = new AWSAttestationData();
+
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(validator.validateIdentity(null, info, null, errMsg));
+        assertTrue(errMsg.toString().contains("no aws account id associated with the domain"));
+
+        errMsg.setLength(0);
+        assertFalse(validator.validateIdentity(null, info, "", errMsg));
+        assertTrue(errMsg.toString().contains("no aws account id associated with the domain"));
     }
 
     @Test
@@ -179,5 +196,44 @@ public class AWSStsCredentialsAttestationValidatorTest {
         info.setRole("athenz.service");
         StringBuilder errMsg = new StringBuilder(256);
         assertTrue(validator.validateIdentity(null, info, "1234", errMsg));
+    }
+
+    @Test
+    public void testValidateIdentityMultipleAccountsMatch() {
+        StsClient mockClient = Mockito.mock(StsClient.class);
+        GetCallerIdentityResponse result = Mockito.mock(GetCallerIdentityResponse.class);
+        Mockito.when(result.arn()).thenReturn("arn:aws:sts::5678:assumed-role/athenz.service/athenz.service");
+        Mockito.when(mockClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(result);
+        AWSStsCredentialsAttestationValidator validator = new AWSStsCredentialsAttestationValidator() {
+            @Override
+            StsClient getInstanceClient(AWSAttestationData info) {
+                return mockClient;
+            }
+        };
+        validator.awsRegion = "us-west-2";
+        AWSAttestationData info = new AWSAttestationData();
+        info.setRole("athenz.service");
+        StringBuilder errMsg = new StringBuilder(256);
+        assertTrue(validator.validateIdentity(null, info, "1234,5678", errMsg));
+    }
+
+    @Test
+    public void testValidateIdentityMultipleAccountsNoMatch() {
+        StsClient mockClient = Mockito.mock(StsClient.class);
+        GetCallerIdentityResponse result = Mockito.mock(GetCallerIdentityResponse.class);
+        Mockito.when(result.arn()).thenReturn("arn:aws:sts::9999:assumed-role/athenz.service/athenz.service");
+        Mockito.when(mockClient.getCallerIdentity(any(GetCallerIdentityRequest.class))).thenReturn(result);
+        AWSStsCredentialsAttestationValidator validator = new AWSStsCredentialsAttestationValidator() {
+            @Override
+            StsClient getInstanceClient(AWSAttestationData info) {
+                return mockClient;
+            }
+        };
+        validator.awsRegion = "us-west-2";
+        AWSAttestationData info = new AWSAttestationData();
+        info.setRole("athenz.service");
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(validator.validateIdentity(null, info, "1234,5678", errMsg));
+        assertTrue(errMsg.toString().contains("ARN mismatch"));
     }
 }

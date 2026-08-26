@@ -196,7 +196,8 @@ public class ZMSSchema {
             .field("enforceUniqueProductIds", "Bool", false, "enforce domains are associated with unique product ids")
             .field("enforceUniqueAWSAccounts", "Bool", false, "enforce domains are associated with unique aws accounts")
             .field("enforceUniqueAzureSubscriptions", "Bool", false, "enforce domains are associated with unique azure subscriptions")
-            .field("enforceUniqueGCPProjects", "Bool", false, "enforce domains are associated with unique gcp projects");
+            .field("enforceUniqueGCPProjects", "Bool", false, "enforce domains are associated with unique gcp projects")
+            .field("allowMultipleAWSAccounts", "Bool", false, "allow a domain's account field to contain multiple comma-separated aws accounts");
 
         sb.structType("RoleList")
             .comment("The representation for an enumeration of roles in the namespace, with pagination.")

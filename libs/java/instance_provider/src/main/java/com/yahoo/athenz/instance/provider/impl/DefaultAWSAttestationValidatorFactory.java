@@ -16,6 +16,7 @@
 package com.yahoo.athenz.instance.provider.impl;
 
 import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.instance.provider.AWSAttestationValidator;
 import com.yahoo.athenz.instance.provider.AWSAttestationValidatorFactory;
 
@@ -29,9 +30,9 @@ import javax.net.ssl.SSLContext;
 public class DefaultAWSAttestationValidatorFactory implements AWSAttestationValidatorFactory {
 
     @Override
-    public AWSAttestationValidator create(SSLContext sslContext, Authorizer authorizer) {
+    public AWSAttestationValidator create(SSLContext sslContext, Authorizer authorizer, Principal providerPrincipal) {
         AWSAttestationValidator validator = new CompositeAWSAttestationValidator();
-        validator.initialize(sslContext, authorizer);
+        validator.initialize(sslContext, authorizer, providerPrincipal);
         return validator;
     }
 }

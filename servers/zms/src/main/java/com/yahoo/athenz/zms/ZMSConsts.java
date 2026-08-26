@@ -301,6 +301,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_ENFORCE_UNIQUE_AZURE_SUBSCRIPTIONS = "athenz.zms.enforce_unique_azure_subscriptions";
     public static final String ZMS_PROP_ENFORCE_UNIQUE_GCP_PROJECTS = "athenz.zms.enforce_unique_gcp_projects";
     public static final String ZMS_PROP_ENFORCE_UNIQUE_PRODUCT_IDS = "athenz.zms.enforce_unique_product_ids";
+    public static final String ZMS_PROP_ALLOW_MULTIPLE_AWS_ACCOUNTS = "athenz.zms.allow_multiple_aws_accounts";
 
     //pending member
     public static final String PENDING_REQUEST_ADD_STATE = "ADD";

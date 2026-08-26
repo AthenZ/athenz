@@ -3343,6 +3343,27 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testGetAWSTemporaryCredentialsMultipleAwsAccounts() {
+
+        Principal principal = SimplePrincipal.create("user_domain", "user101",
+                "v=U1;d=user_domain;n=user101;s=signature", 0, null);
+        CloudStore cloudStore = new MockCloudStore();
+        store.setCloudStore(cloudStore);
+        zts.cloudStore = cloudStore;
+
+        SignedDomain signedDomain = createAwsSignedDomain("athenz.product", "1234,5678");
+        store.processSignedDomain(signedDomain, false);
+
+        try {
+            zts.getAWSTemporaryCredentials(createResourceContext(principal), "athenz.product", "aws_role_name", null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("more than one aws account found"));
+        }
+    }
+
+    @Test
     public void testGetAWSTemporaryCredentials() {
 
         Principal principal = SimplePrincipal.create("user_domain", "user101",

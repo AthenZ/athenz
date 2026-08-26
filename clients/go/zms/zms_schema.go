@@ -230,6 +230,7 @@ func init() {
 	tDomainOptions.Field("enforceUniqueAWSAccounts", "Bool", false, nil, "enforce domains are associated with unique aws accounts")
 	tDomainOptions.Field("enforceUniqueAzureSubscriptions", "Bool", false, nil, "enforce domains are associated with unique azure subscriptions")
 	tDomainOptions.Field("enforceUniqueGCPProjects", "Bool", false, nil, "enforce domains are associated with unique gcp projects")
+	tDomainOptions.Field("allowMultipleAWSAccounts", "Bool", false, nil, "allow a domain's account field to contain multiple comma-separated aws accounts")
 	sb.AddType(tDomainOptions.Build())
 
 	tRoleList := rdl.NewStructTypeBuilder("Struct", "RoleList")

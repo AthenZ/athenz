@@ -16,6 +16,7 @@
 package com.yahoo.athenz.instance.provider;
 
 import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.auth.Principal;
 
 import javax.net.ssl.SSLContext;
 
@@ -30,7 +31,8 @@ public interface AWSAttestationValidatorFactory {
      * Creates and initializes an AWSAttestationValidator.
      * @param sslContext the ssl context to use for any outbound https calls
      * @param authorizer the authorizer to use for any RBAC based checks
+     * @param providerPrincipal the principal object for the provider service
      * @return an initialized AWSAttestationValidator
      */
-    AWSAttestationValidator create(SSLContext sslContext, Authorizer authorizer);
+    AWSAttestationValidator create(SSLContext sslContext, Authorizer authorizer, Principal providerPrincipal);
 }

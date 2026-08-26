@@ -27,12 +27,16 @@ import org.slf4j.LoggerFactory;
 
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.KeyStore;
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.auth.util.AthenzUtils;
 import com.yahoo.athenz.instance.provider.AWSAttestationValidator;
 import com.yahoo.athenz.instance.provider.AWSAttestationValidatorFactory;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.athenz.common.server.util.IPBlock;
+import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
@@ -78,6 +82,7 @@ public class InstanceAWSProvider implements InstanceProvider {
     List<IPBlock> systemAllowedIPAddresses;
     AWSAttestationValidator attestationValidator;
     Authorizer authorizer;
+    Principal providerPrincipal;
 
     @Override
     public void setAuthorizer(Authorizer authorizer) {
@@ -100,6 +105,12 @@ public class InstanceAWSProvider implements InstanceProvider {
         // create our helper object to validate aws documents
 
         awsUtils = new InstanceAWSUtils();
+
+        // generate our provider principal object based on the given
+        // provider service name. this is used by our attestation
+        // validators when carrying out any authorization checks
+
+        providerPrincipal = createProviderPrincipal(provider);
 
         // how long the instance must be booted in the past before we
         // stop validating the instance requests
@@ -140,7 +151,23 @@ public class InstanceAWSProvider implements InstanceProvider {
         // validator is configurable so adopters can swap the mechanism (e.g. STS
         // temporary credentials vs AWS web identity token) used for validation
 
-        attestationValidator = newAttestationValidatorFactory().create(sslContext, authorizer);
+        attestationValidator = newAttestationValidatorFactory().create(sslContext, authorizer, providerPrincipal);
+    }
+
+    static Principal createProviderPrincipal(final String provider) {
+
+        // our provider is a service identity in the <domain>.<service> format
+
+        if (StringUtil.isEmpty(provider)) {
+            LOGGER.error("No provider service name specified");
+            return null;
+        }
+        String[] providerComponents = AthenzUtils.splitPrincipalName(provider);
+        if (providerComponents == null) {
+            LOGGER.error("Invalid provider service name: {}", provider);
+            return null;
+        }
+        return SimplePrincipal.create(providerComponents[0], providerComponents[1], (String) null);
     }
 
     AWSAttestationValidatorFactory newAttestationValidatorFactory() {
@@ -173,14 +200,23 @@ public class InstanceAWSProvider implements InstanceProvider {
     }
 
     boolean validateAWSAccount(final String awsAccount, final String docAccount, StringBuilder errMsg) {
-        
-        if (!awsAccount.equalsIgnoreCase(docAccount)) {
-            LOGGER.error("ZTS AWS Domain Lookup account id: {}", awsAccount);
-            errMsg.append("mismatch between account values - instance document: ").append(docAccount);
+
+        // the instance document based attestation requires the domain to have
+        // an associated aws account id to compare the document account against
+
+        if (StringUtil.isEmpty(awsAccount)) {
+            errMsg.append("no aws account id associated with the domain");
             return false;
         }
-        
-        return true;
+
+        for (String account : Utils.parseAwsAccounts(awsAccount)) {
+            if (account.equalsIgnoreCase(docAccount)) {
+                return true;
+            }
+        }
+        LOGGER.error("ZTS AWS Domain Lookup account id: {}", awsAccount);
+        errMsg.append("mismatch between account values - instance document: ").append(docAccount);
+        return false;
     }
     
     boolean validateAWSProvider(final String provider, final String region, StringBuilder errMsg) {
@@ -294,20 +330,18 @@ public class InstanceAWSProvider implements InstanceProvider {
         final String instanceDomain = confirmation.getDomain();
         final String instanceService = confirmation.getService();
         
-        // before doing anything else we want to make sure our
-        // object has an associated aws account id
-        
+        // extract our aws account id. typically this would be a required
+        // value but if we're issuing an identity based on the oidc token
+        // with authorization, it could be empty
+
         final String awsAccount = InstanceUtils.getInstanceProperty(instanceAttributes, ZTS_INSTANCE_AWS_ACCOUNT);
-        if (StringUtil.isEmpty(awsAccount)) {
-            throw error("Unable to extract AWS Account id");
-        }
-        
+
         // validate that the domain/service given in the confirmation
         // request match the attestation data. the role can represent
         // either one of two formats: <domain>.<service> or <service>.
         // with just the <service> format we already verify the <domain>
         // component based on the aws account id in the arn
-        
+
         final String serviceName = instanceDomain + "." + instanceService;
         if (!(serviceName.equals(info.getRole()) || instanceService.equals(info.getRole()))) {
             throw error("Service name mismatch: " + info.getRole() + " vs. " + serviceName);
@@ -375,13 +409,11 @@ public class InstanceAWSProvider implements InstanceProvider {
         final String instanceDomain = confirmation.getDomain();
         final String instanceService = confirmation.getService();
         
-        // before doing anything else we want to make sure our
-        // object has an associated aws account id
-        
+        // extract our aws account id. typically this would be a required
+        // value but if we're issuing an identity based on the oidc token
+        // with authorization, it could be empty
+
         final String awsAccount = InstanceUtils.getInstanceProperty(instanceAttributes, ZTS_INSTANCE_AWS_ACCOUNT);
-        if (StringUtil.isEmpty(awsAccount)) {
-            throw error("Unable to extract AWS Account id");
-        }
 
         // validate that the domain/service given in the confirmation
         // request match the attestation data. the role can represent

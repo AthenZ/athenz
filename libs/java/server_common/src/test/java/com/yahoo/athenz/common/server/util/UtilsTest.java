@@ -17,8 +17,11 @@ package com.yahoo.athenz.common.server.util;
 
 import org.testng.annotations.Test;
 
+import java.util.Set;
+
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 public class UtilsTest {
 
@@ -31,5 +34,45 @@ public class UtilsTest {
         assertNull(Utils.assertionDomainCheck("ads:role.value", "athenz:resource.value"));
         assertNull(Utils.assertionDomainCheck("sports:role.value", "athenz:resource.value"));
         assertEquals(Utils.assertionDomainCheck("athenz:role.value", "athenz:resource.value"), "athenz");
+    }
+
+    @Test
+    public void testParseAwsAccountsNull() {
+        assertTrue(Utils.parseAwsAccounts(null).isEmpty());
+    }
+
+    @Test
+    public void testParseAwsAccountsEmpty() {
+        assertTrue(Utils.parseAwsAccounts("").isEmpty());
+    }
+
+    @Test
+    public void testParseAwsAccountsSingle() {
+        assertEquals(Utils.parseAwsAccounts("1234"), Set.of("1234"));
+    }
+
+    @Test
+    public void testParseAwsAccountsMultiple() {
+        assertEquals(Utils.parseAwsAccounts("1234,5678"), Set.of("1234", "5678"));
+    }
+
+    @Test
+    public void testParseAwsAccountsWhitespace() {
+        assertEquals(Utils.parseAwsAccounts(" 1234 , 5678 "), Set.of("1234", "5678"));
+    }
+
+    @Test
+    public void testParseAwsAccountsTrailingComma() {
+        assertEquals(Utils.parseAwsAccounts("1234,5678,"), Set.of("1234", "5678"));
+    }
+
+    @Test
+    public void testParseAwsAccountsBlankElements() {
+        assertEquals(Utils.parseAwsAccounts("1234,,5678"), Set.of("1234", "5678"));
+    }
+
+    @Test
+    public void testParseAwsAccountsOnlyCommas() {
+        assertTrue(Utils.parseAwsAccounts(",,,").isEmpty());
     }
 }

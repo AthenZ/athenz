@@ -16,6 +16,7 @@
 package com.yahoo.athenz.instance.provider.impl;
 
 import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.instance.provider.AWSAttestationValidator;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 
@@ -30,7 +31,7 @@ public class MockAWSAttestationValidator implements AWSAttestationValidator {
     boolean identityResult = true;
 
     @Override
-    public void initialize(SSLContext sslContext, Authorizer authorizer) {
+    public void initialize(SSLContext sslContext, Authorizer authorizer, Principal providerPrincipal) {
     }
 
     @Override

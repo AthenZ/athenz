@@ -86,4 +86,5 @@ type DomainOptions Struct {
     Bool enforceUniqueAWSAccounts; //enforce domains are associated with unique aws accounts
     Bool enforceUniqueAzureSubscriptions; //enforce domains are associated with unique azure subscriptions
     Bool enforceUniqueGCPProjects; //enforce domains are associated with unique gcp projects
+    Bool allowMultipleAWSAccounts; //allow a domain's account field to contain multiple comma-separated aws accounts
 }

@@ -22,6 +22,7 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.IdToken;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
+import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.instance.provider.AWSAttestationValidator;
 import com.yahoo.athenz.instance.provider.AttrValidator;
@@ -55,7 +56,9 @@ import static com.yahoo.athenz.instance.provider.InstanceProvider.ZTS_INSTANCE_A
  *   <li>the token signature and expiry (against the issuer JWKS),</li>
  *   <li>the audience matches the configured audience,</li>
  *   <li>the token's aws_account matches the domain's AWS account, or a launch
- *       authorization is granted for the token's account,</li>
+ *       authorization is granted for the token's account. when a cross authz
+ *       domain is configured, that cross-account case additionally requires a
+ *       system level launch authorization granted to the provider service,</li>
  *   <li>the org_id is present in the configured allowlist,</li>
  *   <li>the iam role name in the token subject matches the requested athenz
  *       service (the default binding that prevents one role from obtaining
@@ -76,6 +79,7 @@ public class AWSWebIdentityTokenAttestationValidator implements AWSAttestationVa
     static final String AWS_PROP_WEB_IDENTITY_ISSUER_REGEX    = "athenz.zts.aws_web_identity_issuer_regex";
     static final String AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS = "athenz.zts.aws_web_identity_allowed_org_ids";
     static final String AWS_PROP_WEB_IDENTITY_STS_CLAIM_NAME  = "athenz.zts.aws_web_identity_sts_claim_name";
+    static final String AWS_PROP_WEB_IDENTITY_CROSS_AUTHZ_DOMAIN = "athenz.zts.aws_web_identity_cross_authz_domain";
     static final String AWS_PROP_WEB_IDENTITY_PRINCIPAL_VALIDATOR_FACTORY_CLASS = "athenz.zts.aws_web_identity_principal_validator_factory_class";
 
     static final String AWS_DEFAULT_WEB_IDENTITY_ISSUER_REGEX = "https://[a-z0-9-]+\\.tokens\\.sts\\.global\\.api\\.aws";
@@ -90,9 +94,11 @@ public class AWSWebIdentityTokenAttestationValidator implements AWSAttestationVa
 
     String audience;
     String stsClaimName;
+    String crossAuthzDomain;
     Pattern issuerPattern;
     DynamicConfigCsv allowedOrgIds;
     Authorizer authorizer;
+    Principal providerPrincipal;
     AttrValidator principalValidator;
 
     final JwtsHelper jwtsHelper = new JwtsHelper();
@@ -100,12 +106,14 @@ public class AWSWebIdentityTokenAttestationValidator implements AWSAttestationVa
     String oidcDiscoveryProxy;
 
     @Override
-    public void initialize(SSLContext sslContext, Authorizer authorizer) {
+    public void initialize(SSLContext sslContext, Authorizer authorizer, Principal providerPrincipal) {
 
         this.authorizer = authorizer;
+        this.providerPrincipal = providerPrincipal;
         audience = System.getProperty(AWS_PROP_WEB_IDENTITY_AUDIENCE, null);
         issuerPattern = Pattern.compile(System.getProperty(AWS_PROP_WEB_IDENTITY_ISSUER_REGEX, AWS_DEFAULT_WEB_IDENTITY_ISSUER_REGEX));
         stsClaimName = System.getProperty(AWS_PROP_WEB_IDENTITY_STS_CLAIM_NAME, AWS_DEFAULT_STS_CLAIM_NAME);
+        crossAuthzDomain = System.getProperty(AWS_PROP_WEB_IDENTITY_CROSS_AUTHZ_DOMAIN);
         allowedOrgIds = new DynamicConfigCsv(CONFIG_MANAGER, AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, null);
         oidcDiscoveryProxy = System.getProperty(AWS_PROP_WEB_IDENTITY_DISCOVERY_PROXY, null);
         principalValidator = newPrincipalValidator(sslContext);
@@ -302,9 +310,13 @@ public class AWSWebIdentityTokenAttestationValidator implements AWSAttestationVa
             return false;
         }
 
-        // if the token account matches the domain account we're done
+        // this is the only validation path where the domain is allowed to have
+        // no associated aws account - in that case the request can only be
+        // authorized through the launch policy check below. otherwise, if the
+        // token account matches one of the domain's (possibly comma-separated)
+        // accounts we're done
 
-        if (tokenAwsAccount.equals(awsAccount)) {
+        if (!StringUtil.isEmpty(awsAccount) && Utils.parseAwsAccounts(awsAccount).contains(tokenAwsAccount)) {
             return true;
         }
 
@@ -318,6 +330,20 @@ public class AWSWebIdentityTokenAttestationValidator implements AWSAttestationVa
 
         final String domainName = confirmation.getDomain();
         final String serviceName = confirmation.getService();
+
+        // the tenant launch policy below is granted within the tenant domain itself,
+        // so when a cross authz domain is configured we first require the system
+        // administrators to have authorized this account/service combination as well
+
+        if (!StringUtil.isEmpty(crossAuthzDomain)) {
+            final String systemResource = String.format("%s:%s:%s:%s", crossAuthzDomain,
+                    tokenAwsAccount, domainName, serviceName);
+            if (!authorizer.access(ACTION_LAUNCH, systemResource, providerPrincipal, null)) {
+                errMsg.append("system launch authorization check failed for resource: ").append(systemResource);
+                return false;
+            }
+        }
+
         final String resource = String.format("%s:%s:%s", domainName, serviceName, tokenAwsAccount);
         Principal principal = SimplePrincipal.create(domainName, serviceName, (String) null);
         if (!authorizer.access(ACTION_LAUNCH, resource, principal, null)) {

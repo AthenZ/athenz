@@ -5886,6 +5886,17 @@ public class DBServiceTest {
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, 0, 5));
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, 5, 5));
         assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, 5, 0));
+
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, Set.of(), Set.of()));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, Set.of("1234"), Set.of()));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(true, Set.of("1234"), Set.of("5678")));
+
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, Set.of(), Set.of()));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, Set.of(), Set.of("1234")));
+        assertTrue(zms.dbService.isDeleteSystemMetaAllowed(false, Set.of("1234"), Set.of("1234")));
+        assertFalse(zms.dbService.isDeleteSystemMetaAllowed(false, Set.of("1234"), Set.of()));
+        assertFalse(zms.dbService.isDeleteSystemMetaAllowed(false, Set.of("1234"), Set.of("5678")));
+        assertFalse(zms.dbService.isDeleteSystemMetaAllowed(false, Set.of("1234", "5678"), Set.of("1234")));
     }
 
     @Test
