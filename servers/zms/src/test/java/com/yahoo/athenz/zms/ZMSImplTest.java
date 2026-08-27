@@ -78,6 +78,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -14398,6 +14399,36 @@ public class ZMSImplTest {
         }
     }
 
+    private static class ReloadTaskZMSImpl extends ZMSImpl {
+
+        final Queue<SolutionTemplatesReloadStatus> reloadStatuses = new ArrayDeque<>();
+        final List<Long> scheduledDelays = new ArrayList<>();
+        boolean throwReloadException;
+
+        @Override
+        SolutionTemplatesReloadStatus reloadSolutionTemplatesIfModified() {
+            if (throwReloadException) {
+                throw new RuntimeException("reload task failure");
+            }
+            return reloadStatuses.remove();
+        }
+
+        @Override
+        void scheduleSolutionTemplatesReload(long delaySeconds) {
+            scheduledDelays.add(delaySeconds);
+        }
+
+        @Override
+        long solutionTemplatesReloadFrequencySeconds() {
+            return 7;
+        }
+
+        @Override
+        long solutionTemplatesReloadRetryDelaySeconds() {
+            return 3;
+        }
+    }
+
     private static SolutionTemplates solutionTemplates(final String templateName, final Template template) {
         SolutionTemplates solutionTemplates = new SolutionTemplates();
         HashMap<String, Template> templates = new HashMap<>();
@@ -14433,6 +14464,14 @@ public class ZMSImplTest {
         java.lang.reflect.Field field = ZMSImpl.class.getDeclaredField("solutionTemplatesReloadExecutor");
         field.setAccessible(true);
         return (java.util.concurrent.ScheduledExecutorService) field.get(zmsImpl);
+    }
+
+    private static void setSolutionTemplatesReloadExecutor(final ZMSImpl zmsImpl,
+            final java.util.concurrent.ScheduledExecutorService executor) throws ReflectiveOperationException {
+
+        java.lang.reflect.Field field = ZMSImpl.class.getDeclaredField("solutionTemplatesReloadExecutor");
+        field.setAccessible(true);
+        field.set(zmsImpl, executor);
     }
 
     @Test
@@ -15087,6 +15126,90 @@ public class ZMSImplTest {
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS, originalFrequency);
             tempFile.delete();
         }
+    }
+
+    @Test
+    public void testSolutionTemplatesReloadTaskSchedulesNextRun() {
+
+        String originalDynamicReload = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD);
+        try {
+            System.clearProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD);
+            ReloadTaskZMSImpl zmsImpl = new ReloadTaskZMSImpl();
+
+            zmsImpl.reloadStatuses.add(ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
+            zmsImpl.runSolutionTemplatesReloadTask();
+
+            zmsImpl.reloadStatuses.add(ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
+            zmsImpl.runSolutionTemplatesReloadTask();
+
+            zmsImpl.throwReloadException = true;
+            zmsImpl.runSolutionTemplatesReloadTask();
+
+            assertEquals(zmsImpl.scheduledDelays, Arrays.asList(3L, 7L, 7L));
+        } finally {
+            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, originalDynamicReload);
+        }
+    }
+
+    @Test
+    public void testSolutionTemplatesReloadBackoffCalculations() {
+
+        String originalFrequency = System.getProperty(
+                ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS);
+        String originalMaxBackoff = System.getProperty(
+                ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_MAX_BACKOFF_SECONDS);
+        try {
+            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS, "5");
+            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_MAX_BACKOFF_SECONDS, "20");
+            BackoffReadZMSImpl zmsImpl = new BackoffReadZMSImpl();
+            Path path = Paths.get("solution_templates.json");
+
+            assertEquals(zmsImpl.solutionTemplatesReloadDelaySeconds(
+                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED), 5);
+            assertEquals(zmsImpl.solutionTemplatesReloadRetryDelaySeconds(), 5);
+
+            zmsImpl.recordSolutionTemplatesReloadFailure(path, 10L);
+            assertTrue(zmsImpl.solutionTemplatesReloadRetryPending(path, 10L));
+            assertFalse(zmsImpl.solutionTemplatesReloadRetryPending(path, 11L));
+            assertEquals(zmsImpl.solutionTemplatesReloadRetryDelaySeconds(), 5);
+            assertEquals(zmsImpl.solutionTemplatesReloadDelaySeconds(
+                    ZMSImpl.SolutionTemplatesReloadStatus.FAILED), 5);
+
+            zmsImpl.currentMillis += TimeUnit.SECONDS.toMillis(3);
+            assertEquals(zmsImpl.solutionTemplatesReloadRetryDelaySeconds(), 2);
+
+            zmsImpl.currentMillis += TimeUnit.SECONDS.toMillis(2);
+            assertEquals(zmsImpl.solutionTemplatesReloadRetryDelaySeconds(), 0);
+            assertFalse(zmsImpl.solutionTemplatesReloadRetryPending(path, 10L));
+
+            zmsImpl.recordSolutionTemplatesReloadFailure(path, 10L);
+            assertEquals(zmsImpl.solutionTemplatesReloadRetryDelaySeconds(), 10);
+            assertEquals(zmsImpl.solutionTemplatesReloadNextBackoffSeconds(11), 20);
+
+            zmsImpl.clearSolutionTemplatesReloadFailure();
+            assertFalse(zmsImpl.solutionTemplatesReloadRetryPending(path, 10L));
+            assertEquals(zmsImpl.solutionTemplatesReloadRetryDelaySeconds(), 5);
+        } finally {
+            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS, originalFrequency);
+            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_MAX_BACKOFF_SECONDS, originalMaxBackoff);
+        }
+    }
+
+    @Test
+    public void testScheduleSolutionTemplatesReloadSkipsMissingOrShutdownExecutor()
+            throws ReflectiveOperationException {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+
+        zmsImpl.scheduleSolutionTemplatesReload(0);
+
+        java.util.concurrent.ScheduledExecutorService executor =
+                java.util.concurrent.Executors.newSingleThreadScheduledExecutor();
+        executor.shutdownNow();
+        setSolutionTemplatesReloadExecutor(zmsImpl, executor);
+
+        zmsImpl.scheduleSolutionTemplatesReload(0);
+        assertTrue(executor.isShutdown());
     }
 
     @Test
