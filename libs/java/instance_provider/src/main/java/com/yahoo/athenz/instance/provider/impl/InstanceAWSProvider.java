@@ -325,6 +325,9 @@ public class InstanceAWSProvider implements InstanceProvider {
         
         AWSAttestationData info = JSON.fromString(confirmation.getAttestationData(),
                 AWSAttestationData.class);
+        if (info == null) {
+            throw error("Invalid attestation data provided");
+        }
         
         final Map<String, String> instanceAttributes = confirmation.getAttributes();
         final String instanceDomain = confirmation.getDomain();
@@ -404,7 +407,10 @@ public class InstanceAWSProvider implements InstanceProvider {
         }
         
         AWSAttestationData info = JSON.fromString(attestationData, AWSAttestationData.class);
-        
+        if (info == null) {
+            throw error("Invalid attestation data provided");
+        }
+
         final Map<String, String> instanceAttributes = confirmation.getAttributes();
         final String instanceDomain = confirmation.getDomain();
         final String instanceService = confirmation.getService();

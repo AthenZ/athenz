@@ -213,7 +213,31 @@ public class InstanceAWSProviderTest {
         } catch (ProviderResourceException ignored) {
         }
     }
-    
+
+    @Test
+    public void testConfirmInstanceInvalidAttestationData() {
+
+        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setAttestationData("invalid-json-data")
+                .setDomain("athenz").setProvider("provider").setService("service");
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("awsAccount", "1234");
+        attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
+        confirmation.setAttributes(attributes);
+
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Invalid attestation data"));
+        }
+    }
+
     @Test
     public void testConfirmInstanceInvalidHostnames() {
         
@@ -849,6 +873,33 @@ public class InstanceAWSProviderTest {
             fail();
         } catch (ProviderResourceException ex) {
             assertEquals(ex.getCode(), 403);
+        }
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
+    }
+
+    @Test
+    public void testRefreshInstanceInvalidAttestationData() {
+
+        System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setAttestationData("invalid-json-data")
+                .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("awsAccount", "1234");
+        attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
+        attributes.put("instanceId", "i-1234");
+        confirmation.setAttributes(attributes);
+
+        try {
+            provider.refreshInstance(confirmation);
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("Invalid attestation data"));
         }
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
