@@ -36,12 +36,13 @@ does not exist, cannot be read, or cannot be parsed into a solution templates
 document, ZMS starts with an empty template list. To allow template additions or
 updates without a ZMS deployment, administrators can enable
 `athenz.zms.solution_templates_dynamic_reload=true`. When this flag is enabled,
-ZMS checks the configured templates file for changes before template operations
-and reloads it only after the updated file is parsed and validated successfully.
-Corrupted documents or invalid template entries are not published, so ZMS keeps
-using the last successfully loaded templates and skips further attempts until
-the file is modified again. Transient I/O failures are retried on later template
-operations even when the file timestamp has not changed.
+ZMS starts a background reload task and also checks the configured templates
+file for changes before template operations. The updated file is published only
+after it is parsed and validated successfully. Corrupted documents or invalid
+template entries are not published, so ZMS keeps using the last successfully
+loaded templates. Failed reload attempts are retried with exponential backoff,
+and a new file modification timestamp allows the next check to retry without
+waiting for the previous failure's backoff window to expire.
 
 ## Template Entities
 A Template consists of metadata, services, roles and role metadata, 

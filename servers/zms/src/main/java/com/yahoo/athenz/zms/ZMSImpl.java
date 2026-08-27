@@ -89,6 +89,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -121,6 +123,15 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             this.path = path;
             this.modifiedMillis = modifiedMillis;
         }
+    }
+
+    enum SolutionTemplatesReloadStatus {
+        DISABLED,
+        IN_PROGRESS,
+        NOT_MODIFIED,
+        RELOADED,
+        RETRY_PENDING,
+        FAILED
     }
 
     private static String ROOT_DIR;
@@ -202,8 +213,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected boolean dynamicSolutionTemplatesReload = false;
     private final AtomicReference<SolutionTemplatesSnapshot> solutionTemplatesSnapshot = new AtomicReference<>();
     private final AtomicBoolean solutionTemplatesReloadInProgress = new AtomicBoolean(false);
+    private ScheduledExecutorService solutionTemplatesReloadExecutor = null;
     private volatile Path solutionTemplatesReloadFailedPath = null;
     private volatile long solutionTemplatesReloadFailedModifiedMillis = -1L;
+    private volatile long solutionTemplatesReloadFailedRetryMillis = -1L;
+    private volatile long solutionTemplatesReloadFailureBackoffSeconds = -1L;
     protected Map<String, String> serverPublicKeyMap = null;
     protected DynamicConfigBoolean readOnlyMode;
     protected DynamicConfigBoolean validateServiceRoleMembers;
@@ -746,6 +760,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // load the resource validator
 
         loadResourceValidator();
+
+        // initialize the background solution templates reload task
+
+        initializeSolutionTemplatesReloadScheduler();
     }
 
     void loadJsonMapper() {
@@ -1386,6 +1404,140 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return Files.getLastModifiedTime(path).toMillis();
     }
 
+    void initializeSolutionTemplatesReloadScheduler() {
+        if (!dynamicSolutionTemplatesReload) {
+            return;
+        }
+
+        if (solutionTemplatesReloadTimerTaskDisabled()) {
+            LOG.info("Solution templates reload timer task is disabled");
+            return;
+        }
+
+        solutionTemplatesReloadExecutor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable);
+            thread.setName("zms-solution-templates-reload");
+            thread.setDaemon(true);
+            return thread;
+        });
+        scheduleSolutionTemplatesReload(0);
+    }
+
+    boolean solutionTemplatesReloadTimerTaskDisabled() {
+        return Boolean.parseBoolean(System.getProperty(
+                ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_DISABLE_TIMER, "false"));
+    }
+
+    void shutdownSolutionTemplatesReloadScheduler() {
+        ScheduledExecutorService executor = solutionTemplatesReloadExecutor;
+        if (executor != null) {
+            executor.shutdownNow();
+        }
+    }
+
+    void scheduleSolutionTemplatesReload(long delaySeconds) {
+        ScheduledExecutorService executor = solutionTemplatesReloadExecutor;
+        if (executor == null || executor.isShutdown()) {
+            return;
+        }
+        try {
+            executor.schedule(this::runSolutionTemplatesReloadTask, delaySeconds, TimeUnit.SECONDS);
+        } catch (RejectedExecutionException ex) {
+            if (!executor.isShutdown()) {
+                LOG.error("Unable to schedule the solution templates reload task: {}", ex.getMessage());
+            }
+        }
+    }
+
+    void runSolutionTemplatesReloadTask() {
+        long delaySeconds = solutionTemplatesReloadFrequencySeconds();
+        try {
+            SolutionTemplatesReloadStatus reloadStatus = reloadSolutionTemplatesIfModified();
+            delaySeconds = solutionTemplatesReloadDelaySeconds(reloadStatus);
+        } catch (Exception ex) {
+            LOG.error("Unexpected failure while running the solution templates reload task: {}", ex.getMessage());
+        }
+        scheduleSolutionTemplatesReload(delaySeconds);
+    }
+
+    long solutionTemplatesReloadDelaySeconds(SolutionTemplatesReloadStatus reloadStatus) {
+        if (reloadStatus == SolutionTemplatesReloadStatus.FAILED
+                || reloadStatus == SolutionTemplatesReloadStatus.RETRY_PENDING) {
+            return Math.min(solutionTemplatesReloadFrequencySeconds(), solutionTemplatesReloadRetryDelaySeconds());
+        }
+        return solutionTemplatesReloadFrequencySeconds();
+    }
+
+    long solutionTemplatesReloadRetryDelaySeconds() {
+        long retryMillis = solutionTemplatesReloadFailedRetryMillis;
+        if (retryMillis <= 0) {
+            return solutionTemplatesReloadFrequencySeconds();
+        }
+
+        long remainingMillis = retryMillis - currentTimeMillis();
+        if (remainingMillis <= 0) {
+            return 0;
+        }
+        return Math.max(1, TimeUnit.MILLISECONDS.toSeconds(remainingMillis));
+    }
+
+    long solutionTemplatesReloadFrequencySeconds() {
+        return positiveLongSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS,
+                ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS_DEFAULT);
+    }
+
+    long solutionTemplatesReloadMaxBackoffSeconds() {
+        return Math.max(solutionTemplatesReloadFrequencySeconds(), positiveLongSystemProperty(
+                ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_MAX_BACKOFF_SECONDS,
+                ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_MAX_BACKOFF_SECONDS_DEFAULT));
+    }
+
+    long positiveLongSystemProperty(String propertyName, String defaultValue) {
+        long value = Long.parseLong(System.getProperty(propertyName, defaultValue));
+        return value > 0 ? value : Long.parseLong(defaultValue);
+    }
+
+    boolean solutionTemplatesReloadRetryPending(Path path, long modifiedMillis) {
+        return Objects.equals(path, solutionTemplatesReloadFailedPath)
+                && modifiedMillis == solutionTemplatesReloadFailedModifiedMillis
+                && currentTimeMillis() < solutionTemplatesReloadFailedRetryMillis;
+    }
+
+    void recordSolutionTemplatesReloadFailure(Path path, long modifiedMillis) {
+        final long backoffSeconds = solutionTemplatesReloadNextBackoffSeconds();
+        solutionTemplatesReloadFailedPath = path;
+        solutionTemplatesReloadFailedModifiedMillis = modifiedMillis;
+        solutionTemplatesReloadFailedRetryMillis = currentTimeMillis() + TimeUnit.SECONDS.toMillis(backoffSeconds);
+        solutionTemplatesReloadFailureBackoffSeconds = solutionTemplatesReloadNextBackoffSeconds(backoffSeconds);
+    }
+
+    long solutionTemplatesReloadNextBackoffSeconds() {
+        long backoffSeconds = solutionTemplatesReloadFailureBackoffSeconds;
+        if (backoffSeconds <= 0) {
+            backoffSeconds = solutionTemplatesReloadFrequencySeconds();
+        }
+        return Math.min(backoffSeconds, solutionTemplatesReloadMaxBackoffSeconds());
+    }
+
+    long solutionTemplatesReloadNextBackoffSeconds(long currentBackoffSeconds) {
+        final long maxBackoffSeconds = solutionTemplatesReloadMaxBackoffSeconds();
+        if (currentBackoffSeconds >= maxBackoffSeconds || currentBackoffSeconds > maxBackoffSeconds / 2) {
+            return maxBackoffSeconds;
+        }
+        return currentBackoffSeconds * 2;
+    }
+
+    void clearSolutionTemplatesReloadFailure() {
+        solutionTemplatesReloadFailedPath = null;
+        solutionTemplatesReloadFailedModifiedMillis = -1L;
+        solutionTemplatesReloadFailedRetryMillis = -1L;
+        solutionTemplatesReloadFailureBackoffSeconds = -1L;
+    }
+
+    long currentTimeMillis() {
+        return System.currentTimeMillis();
+    }
+
     SolutionTemplates readSolutionTemplatesCompatible(Path path) throws IOException {
         SolutionTemplates solutionTemplates = JSON.fromBytes(Files.readAllBytes(path), SolutionTemplates.class);
         if (solutionTemplates == null || solutionTemplates.getTemplates() == null) {
@@ -1576,8 +1728,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         serverSolutionTemplatesPath = snapshot.path;
         serverSolutionTemplatesModifiedMillis = snapshot.modifiedMillis;
         serverSolutionTemplateNames = snapshot.templateNames;
-        solutionTemplatesReloadFailedPath = null;
-        solutionTemplatesReloadFailedModifiedMillis = -1L;
+        clearSolutionTemplatesReloadFailure();
 
         if (dbService != null && dbService.zmsConfig != null) {
             dbService.zmsConfig.setServerSolutionTemplates(snapshot.templates);
@@ -1612,9 +1763,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         return solutionTemplatesSnapshot.get();
     }
 
-    void reloadSolutionTemplatesIfModified() {
+    SolutionTemplatesReloadStatus reloadSolutionTemplatesIfModified() {
         if (!dynamicSolutionTemplatesReload) {
-            return;
+            return SolutionTemplatesReloadStatus.DISABLED;
         }
 
         SolutionTemplatesSnapshot currentSnapshot = getSolutionTemplatesSnapshot();
@@ -1627,21 +1778,25 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         try {
             modifiedMillis = solutionTemplatesModifiedMillis(path);
         } catch (IOException ex) {
+            if (solutionTemplatesReloadRetryPending(path, -1L)) {
+                return SolutionTemplatesReloadStatus.RETRY_PENDING;
+            }
             LOG.error("Unable to check solution templates file {} for changes: {}",
                     path, ex.getMessage());
-            return;
+            recordSolutionTemplatesReloadFailure(path, -1L);
+            return SolutionTemplatesReloadStatus.FAILED;
         }
 
         if (modifiedMillis == currentSnapshot.modifiedMillis) {
-            return;
+            clearSolutionTemplatesReloadFailure();
+            return SolutionTemplatesReloadStatus.NOT_MODIFIED;
         }
-        if (Objects.equals(path, solutionTemplatesReloadFailedPath)
-                && modifiedMillis == solutionTemplatesReloadFailedModifiedMillis) {
-            return;
+        if (solutionTemplatesReloadRetryPending(path, modifiedMillis)) {
+            return SolutionTemplatesReloadStatus.RETRY_PENDING;
         }
 
         if (!solutionTemplatesReloadInProgress.compareAndSet(false, true)) {
-            return;
+            return SolutionTemplatesReloadStatus.IN_PROGRESS;
         }
 
         try {
@@ -1653,16 +1808,20 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             try {
                 modifiedMillis = solutionTemplatesModifiedMillis(path);
             } catch (IOException ex) {
+                if (solutionTemplatesReloadRetryPending(path, -1L)) {
+                    return SolutionTemplatesReloadStatus.RETRY_PENDING;
+                }
                 LOG.error("Unable to check solution templates file {} for changes: {}",
                         path, ex.getMessage());
-                return;
+                recordSolutionTemplatesReloadFailure(path, -1L);
+                return SolutionTemplatesReloadStatus.FAILED;
             }
             if (modifiedMillis == currentSnapshot.modifiedMillis) {
-                return;
+                clearSolutionTemplatesReloadFailure();
+                return SolutionTemplatesReloadStatus.NOT_MODIFIED;
             }
-            if (Objects.equals(path, solutionTemplatesReloadFailedPath)
-                    && modifiedMillis == solutionTemplatesReloadFailedModifiedMillis) {
-                return;
+            if (solutionTemplatesReloadRetryPending(path, modifiedMillis)) {
+                return SolutionTemplatesReloadStatus.RETRY_PENDING;
             }
 
             try {
@@ -1673,26 +1832,30 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 } catch (IOException ex) {
                     LOG.error("Unable to check solution templates file {} after reading it. "
                             + "Keeping the previous templates: {}", path, ex.getMessage());
-                    return;
+                    recordSolutionTemplatesReloadFailure(path, modifiedMillis);
+                    return SolutionTemplatesReloadStatus.FAILED;
                 }
                 if (postReadModifiedMillis != modifiedMillis) {
                     LOG.error("Solution templates file {} changed while it was being read. "
                             + "Keeping the previous templates and retrying later", path);
-                    return;
+                    return SolutionTemplatesReloadStatus.FAILED;
                 }
                 validateSolutionTemplateReloadVersions(currentSnapshot.templates, solutionTemplates);
                 SolutionTemplatesSnapshot newSnapshot = newSolutionTemplatesSnapshot(solutionTemplates, path,
                         modifiedMillis);
                 publishSolutionTemplatesSnapshot(newSnapshot, false);
                 LOG.info("Reloaded solution templates file {}", path);
+                return SolutionTemplatesReloadStatus.RELOADED;
             } catch (IOException ex) {
                 LOG.error("Unable to read solution templates file {}. Keeping the previous templates: {}",
                         path, ex.getMessage());
+                recordSolutionTemplatesReloadFailure(path, modifiedMillis);
+                return SolutionTemplatesReloadStatus.FAILED;
             } catch (Exception ex) {
-                solutionTemplatesReloadFailedPath = path;
-                solutionTemplatesReloadFailedModifiedMillis = modifiedMillis;
+                recordSolutionTemplatesReloadFailure(path, modifiedMillis);
                 LOG.error("Unable to reload solution templates file {}. Keeping the previous templates: {}",
                         path, ex.getMessage());
+                return SolutionTemplatesReloadStatus.FAILED;
             }
         } finally {
             solutionTemplatesReloadInProgress.set(false);
