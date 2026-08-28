@@ -28,6 +28,8 @@ import java.security.AuthProvider;
  */
 public class CloudHsmProvider extends AuthProvider {
 
+    public static boolean failLogin;
+
     public CloudHsmProvider() {
         super("CloudHsmProvider", 1.0, "Athenz unit-test stub");
         put("KeyStore.CloudHsmProvider", StubKeyStoreSpi.class.getName());
@@ -35,6 +37,9 @@ public class CloudHsmProvider extends AuthProvider {
 
     @Override
     public void login(Subject subject, CallbackHandler handler) throws LoginException {
+        if (failLogin) {
+            throw new LoginException("login denied");
+        }
         try {
             PasswordCallback callback = new PasswordCallback("pin", false);
             handler.handle(new Callback[]{callback, new PasswordCallback("other", false)});

@@ -39,6 +39,8 @@ import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
 import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.Provider;
 import java.security.Security;
 import java.security.cert.X509Certificate;
 
@@ -52,6 +54,7 @@ public class AwsCrypkiSignerFactoryTest {
     @AfterMethod
     public void resetCloudHsmStubs() {
         StubKeyStoreSpi.key = null;
+        CloudHsmProvider.failLogin = false;
         KeyStoreWithAttributes.throwOnGetInstance = false;
         KeyStoreWithAttributes.returnNonPrivateKey = false;
         KeyStoreWithAttributes.returnNullKey = false;
@@ -268,6 +271,63 @@ public class AwsCrypkiSignerFactoryTest {
     public void testCloudHsmJceAttributeLookupFailure() {
         KeyStoreWithAttributes.throwOnGetInstance = true;
         expectThrows(CrypkiException.class, () -> loadJceSigningKey("broken-label"));
+    }
+
+    @Test
+    public void testCloudHsmJceLoginFailureIsWrapped() {
+        CloudHsmProvider.failLogin = true;
+        expectThrows(CrypkiException.class, () -> loadJceSigningKey("login-label"));
+    }
+
+    @Test
+    public void testGetSigningKeyMatchesLoadedIdentifier() throws Exception {
+        var caKey = Crypto.generateRSAPrivateKey(2048);
+        String csr = Crypto.generateX509CSR(caKey, "CN=hsm-ca,O=Athenz,C=US", null);
+        X509Certificate ca = Crypto.generateX509Certificate(Crypto.getPKCS10CertRequest(csr), caKey,
+                new org.bouncycastle.asn1.x500.X500Name("CN=hsm-ca,O=Athenz,C=US"), 60, true);
+        AwsCloudHsmClient client = new AwsCloudHsmClient(
+                new SigningKey("loaded-label", caKey, ca), "configured-label");
+        assertEquals(client.getSigningKey("loaded-label").getIdentifier(), "loaded-label");
+    }
+
+    @Test
+    public void testLoadSunPkcs11WithMockedProvider() throws Exception {
+        KeyPair pair = rsaKeyPair();
+        Provider prototype = Mockito.mock(Provider.class);
+        Provider configured = Mockito.mock(Provider.class);
+        Mockito.when(configured.getName()).thenReturn("AthenzCrypkiHsm");
+        Mockito.when(prototype.configure(Mockito.anyString())).thenReturn(configured);
+        KeyStore store = Mockito.mock(KeyStore.class);
+        Mockito.when(store.getKey(Mockito.eq("pkcs11-label"), Mockito.any())).thenReturn(pair.getPrivate());
+
+        var caKey = Crypto.generateRSAPrivateKey(2048);
+        String csr = Crypto.generateX509CSR(caKey, "CN=hsm-ca,O=Athenz,C=US", null);
+        X509Certificate ca = Crypto.generateX509Certificate(Crypto.getPKCS10CertRequest(csr), caKey,
+                new org.bouncycastle.asn1.x500.X500Name("CN=hsm-ca,O=Athenz,C=US"), 60, true);
+
+        try (MockedStatic<Security> security = Mockito.mockStatic(Security.class, Mockito.CALLS_REAL_METHODS);
+                MockedStatic<KeyStore> keyStores = Mockito.mockStatic(KeyStore.class, Mockito.CALLS_REAL_METHODS)) {
+            security.when(() -> Security.getProvider("SunPKCS11")).thenReturn(prototype);
+            security.when(() -> Security.getProvider("AthenzCrypkiHsm")).thenReturn(null);
+            keyStores.when(() -> KeyStore.getInstance("PKCS11", configured)).thenReturn(store);
+
+            SigningKey key = AwsCloudHsmClient.loadSunPkcs11(
+                    "/opt/cloudhsm/lib/libcloudhsm_pkcs11.so", null, "pkcs11-label",
+                    "pin".toCharArray(), ca);
+            assertEquals(key.getPrivateKey(), pair.getPrivate());
+
+            Mockito.when(store.getKey(Mockito.eq("missing"), Mockito.any())).thenReturn(null);
+            expectThrows(CrypkiException.class, () -> AwsCloudHsmClient.loadSunPkcs11(
+                    "/opt/cloudhsm/lib/libcloudhsm_pkcs11.so", "1", "missing",
+                    "pin".toCharArray(), ca));
+
+            security.when(() -> Security.getProvider("AthenzCrypkiHsm")).thenReturn(configured);
+            assertNotNull(AwsCloudHsmClient.pkcs11Provider(
+                    "/opt/cloudhsm/lib/libcloudhsm_pkcs11.so", "1"));
+
+            security.when(() -> Security.getProvider("SunPKCS11")).thenReturn(null);
+            expectThrows(CrypkiException.class, () -> AwsCloudHsmClient.pkcs11Provider("/x.so", null));
+        }
     }
 
     private static SigningKey loadJceSigningKey(String label) throws Exception {
