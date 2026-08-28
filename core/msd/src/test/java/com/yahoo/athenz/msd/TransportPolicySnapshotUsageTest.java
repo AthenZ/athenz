@@ -140,4 +140,27 @@ public class TransportPolicySnapshotUsageTest {
 
         assertFalse(usage1.equals("xyz"));
     }
+
+    @Test
+    public void testTransportPolicySnapshotUsageRequestFields() {
+
+        TransportPolicySnapshotUsageRequest request1 = new TransportPolicySnapshotUsageRequest()
+                .setSnapshotName("v1");
+
+        assertEquals(request1.getSnapshotName(), "v1");
+
+        TransportPolicySnapshotUsageRequest request2 = new TransportPolicySnapshotUsageRequest()
+                .setSnapshotName("v1");
+
+        assertEquals(request1, request1);
+        assertEquals(request1, request2);
+
+        request2.setSnapshotName("v2");
+        assertNotEquals(request1, request2);
+
+        request2.setSnapshotName(null);
+        assertNotEquals(request1, request2);
+
+        assertFalse(request1.equals("xyz"));
+    }
 }

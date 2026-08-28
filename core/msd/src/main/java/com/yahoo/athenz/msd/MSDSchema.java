@@ -445,6 +445,10 @@ public class MSDSchema {
             .field("source", "String", false, "Upstream that could not be read, e.g. the usage store")
             .field("code", "String", false, "Machine readable reason, e.g. UPSTREAM_UNAVAILABLE");
 
+        sb.structType("TransportPolicySnapshotUsageRequest")
+            .comment("Body of a request to record snapshot usage. The principal is taken from the caller's identity and the time is stamped by the server.")
+            .field("snapshotName", "EntityName", false, "Name of the snapshot being used, must match the name in the path");
+
         sb.structType("TransportPolicySnapshotUsage")
             .comment("Usage recorded for a snapshot - which principals last used it, and when")
             .arrayField("principals", "TransportPolicySnapshotUsagePrincipal", false, "One entry per principal with recorded use of this snapshot")
@@ -459,8 +463,7 @@ public class MSDSchema {
             .field("createdTime", "Timestamp", false, "Snapshot creation timestamp")
             .field("modified", "Timestamp", true, "Last modification timestamp of this snapshot")
             .field("active", "Bool", false, "Whether this snapshot is marked as active")
-            .field("transportPolicyRules", "TransportPolicyRules", false, "Transport policy rules (ingress and egress) captured in this snapshot")
-            .field("lastUsage", "TransportPolicySnapshotUsage", true, "Usage recorded for this snapshot, omitted when usage retrieval is disabled or the caller asked to record usage instead");
+            .field("transportPolicyRules", "TransportPolicyRules", false, "Transport policy rules (ingress and egress) captured in this snapshot");
 
         sb.structType("TransportPolicySnapshots")
             .comment("List of transport policy snapshot metadata")
@@ -1162,12 +1165,11 @@ public class MSDSchema {
 ;
 
         sb.resource("TransportPolicySnapshot", "GET", "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}")
-            .comment("Api to get a specific transport policy snapshot by name. When recordUsage is true the caller's use of this snapshot is recorded; otherwise previously recorded usage is returned in lastUsage.")
+            .comment("Api to get a specific transport policy snapshot by name")
             .name("getTransportPolicySnapshot")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("serviceName", "EntityName", "name of the service")
             .pathParam("snapshotName", "EntityName", "name of the snapshot")
-            .headerParam("MSD-Record-Snapshot-Usage", "recordUsage", "Bool", false, "record the caller's use of this snapshot instead of returning recorded usage")
             .auth("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
@@ -1194,6 +1196,45 @@ public class MSDSchema {
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("TransportPolicySnapshotUsageRequest", "POST", "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}/usage")
+            .comment("Api for a caller to record that it is using a snapshot. Callers are expected to repeat this while the snapshot remains in use rather than on every fetch. The principal is taken from the caller's identity and the time is stamped by the server.")
+            .name("recordTransportPolicySnapshotUsage")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .pathParam("snapshotName", "EntityName", "name of the snapshot")
+            .input("usage", "TransportPolicySnapshotUsageRequest", "snapshot usage request object")
+            .auth("msd.RecordSnapshotHeartbeat", "{domainName}:service.{serviceName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("TransportPolicySnapshotUsage", "GET", "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}/usage")
+            .comment("Api to get the usage recorded for a snapshot - which principals last used it, and when - so that the owner can decide whether the snapshot is still needed.")
+            .name("getTransportPolicySnapshotUsage")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .pathParam("snapshotName", "EntityName", "name of the snapshot")
+            .auth("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
 

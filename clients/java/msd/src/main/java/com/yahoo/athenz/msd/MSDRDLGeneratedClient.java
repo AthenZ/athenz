@@ -1072,7 +1072,7 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public TransportPolicySnapshot getTransportPolicySnapshot(String domainName, String serviceName, String snapshotName, Boolean recordUsage) throws URISyntaxException, IOException {
+    public TransportPolicySnapshot getTransportPolicySnapshot(String domainName, String serviceName, String snapshotName) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName)
@@ -1083,9 +1083,6 @@ public class MSDRDLGeneratedClient {
             .build();
         if (credsHeader != null) {
             httpUriRequest.addHeader(credsHeader, credsToken);
-        }
-        if (recordUsage != null) {
-            httpUriRequest.addHeader("MSD-Record-Snapshot-Usage", String.valueOf(recordUsage));
         }
         HttpEntity httpResponseEntity = null;
         try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
@@ -1130,6 +1127,68 @@ public class MSDRDLGeneratedClient {
             switch (code) {
             case 204:
                 return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public TransportPolicySnapshotUsage recordTransportPolicySnapshotUsage(String domainName, String serviceName, String snapshotName, TransportPolicySnapshotUsageRequest usage) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}/usage")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("serviceName", serviceName)
+            .resolveTemplate("snapshotName", snapshotName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(usage), ContentType.APPLICATION_JSON);
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.post()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public TransportPolicySnapshotUsage getTransportPolicySnapshotUsage(String domainName, String serviceName, String snapshotName) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}/usage")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("serviceName", serviceName)
+            .resolveTemplate("snapshotName", snapshotName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), TransportPolicySnapshotUsage.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())

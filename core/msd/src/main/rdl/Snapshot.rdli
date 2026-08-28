@@ -56,13 +56,11 @@ resource TransportPolicySnapshots GET "/domain/{domainName}/service/{serviceName
     }
 }
 
-// Api to get a specific transport policy snapshot by name. When recordUsage is true the caller's use of
-// this snapshot is recorded; otherwise previously recorded usage is returned in lastUsage.
+// Api to get a specific transport policy snapshot by name
 resource TransportPolicySnapshot GET "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}" (name=getTransportPolicySnapshot) {
     DomainName domainName; // name of the domain
     EntityName serviceName; // name of the service
     EntityName snapshotName; // name of the snapshot
-    Bool recordUsage (optional, default=false, header="MSD-Record-Snapshot-Usage"); // record the caller's use of this snapshot instead of returning recorded usage
     authorize ("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}");
     expected OK;
     exceptions {
@@ -87,6 +85,42 @@ resource TransportPolicySnapshot DELETE "/domain/{domainName}/service/{serviceNa
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
         ResourceError CONFLICT;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Api for a caller to record that it is using a snapshot. Callers are expected to repeat this while
+// the snapshot remains in use rather than on every fetch. The principal is taken from the caller's
+// identity and the time is stamped by the server.
+resource TransportPolicySnapshotUsage POST "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}/usage" (name=recordTransportPolicySnapshotUsage) {
+    DomainName domainName; // name of the domain
+    EntityName serviceName; // name of the service
+    EntityName snapshotName; // name of the snapshot
+    TransportPolicySnapshotUsageRequest usage; // snapshot usage request object
+    authorize ("msd.RecordSnapshotHeartbeat", "{domainName}:service.{serviceName}");
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Api to get the usage recorded for a snapshot - which principals last used it, and when - so that
+// the owner can decide whether the snapshot is still needed.
+resource TransportPolicySnapshotUsage GET "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}/usage" (name=getTransportPolicySnapshotUsage) {
+    DomainName domainName; // name of the domain
+    EntityName serviceName; // name of the service
+    EntityName snapshotName; // name of the snapshot
+    authorize ("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}");
+    expected OK;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
         ResourceError FORBIDDEN;
         ResourceError UNAUTHORIZED;
         ResourceError TOO_MANY_REQUESTS;

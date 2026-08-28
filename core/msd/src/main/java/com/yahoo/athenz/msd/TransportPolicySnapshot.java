@@ -22,9 +22,6 @@ public class TransportPolicySnapshot {
     public Timestamp modified;
     public boolean active;
     public TransportPolicyRules transportPolicyRules;
-    @RdlOptional
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    public TransportPolicySnapshotUsage lastUsage;
 
     public TransportPolicySnapshot setDomainName(String domainName) {
         this.domainName = domainName;
@@ -75,13 +72,6 @@ public class TransportPolicySnapshot {
     public TransportPolicyRules getTransportPolicyRules() {
         return transportPolicyRules;
     }
-    public TransportPolicySnapshot setLastUsage(TransportPolicySnapshotUsage lastUsage) {
-        this.lastUsage = lastUsage;
-        return this;
-    }
-    public TransportPolicySnapshotUsage getLastUsage() {
-        return lastUsage;
-    }
 
     @Override
     public boolean equals(Object another) {
@@ -109,9 +99,6 @@ public class TransportPolicySnapshot {
                 return false;
             }
             if (transportPolicyRules == null ? a.transportPolicyRules != null : !transportPolicyRules.equals(a.transportPolicyRules)) {
-                return false;
-            }
-            if (lastUsage == null ? a.lastUsage != null : !lastUsage.equals(a.lastUsage)) {
                 return false;
             }
         }

@@ -1212,13 +1212,10 @@ func (client MSDClient) GetTransportPolicySnapshots(domainName DomainName, servi
 	}
 }
 
-func (client MSDClient) GetTransportPolicySnapshot(domainName DomainName, serviceName EntityName, snapshotName EntityName, recordUsage *bool) (*TransportPolicySnapshot, error) {
+func (client MSDClient) GetTransportPolicySnapshot(domainName DomainName, serviceName EntityName, snapshotName EntityName) (*TransportPolicySnapshot, error) {
 	var data *TransportPolicySnapshot
-	headers := map[string]string{
-		"MSD-Record-Snapshot-Usage": strconv.FormatBool(*recordUsage),
-	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/snapshot/" + fmt.Sprint(snapshotName)
-	resp, err := client.httpGet(url, headers)
+	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err
 	}
@@ -1274,6 +1271,69 @@ func (client MSDClient) DeleteTransportPolicySnapshot(domainName DomainName, ser
 			errobj.Message = string(contentBytes)
 		}
 		return errobj
+	}
+}
+
+func (client MSDClient) RecordTransportPolicySnapshotUsage(domainName DomainName, serviceName EntityName, snapshotName EntityName, usage *TransportPolicySnapshotUsageRequest) error {
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/snapshot/" + fmt.Sprint(snapshotName) + "/usage"
+	contentBytes, err := json.Marshal(usage)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPost(url, nil, contentBytes)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client MSDClient) GetTransportPolicySnapshotUsage(domainName DomainName, serviceName EntityName, snapshotName EntityName) (*TransportPolicySnapshotUsage, error) {
+	var data *TransportPolicySnapshotUsage
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/snapshot/" + fmt.Sprint(snapshotName) + "/usage"
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
 	}
 }
 

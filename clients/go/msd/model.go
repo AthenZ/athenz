@@ -4139,6 +4139,55 @@ func (self *TransportPolicySnapshotUsageWarning) Validate() error {
 	return nil
 }
 
+// TransportPolicySnapshotUsageRequest - Body of a request to record snapshot
+// usage. The principal is taken from the caller's identity and the time is
+// stamped by the server.
+type TransportPolicySnapshotUsageRequest struct {
+
+	//
+	// Name of the snapshot being used, must match the name in the path
+	//
+	SnapshotName EntityName `json:"snapshotName"`
+}
+
+// NewTransportPolicySnapshotUsageRequest - creates an initialized TransportPolicySnapshotUsageRequest instance, returns a pointer to it
+func NewTransportPolicySnapshotUsageRequest(init ...*TransportPolicySnapshotUsageRequest) *TransportPolicySnapshotUsageRequest {
+	var o *TransportPolicySnapshotUsageRequest
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicySnapshotUsageRequest)
+	}
+	return o
+}
+
+type rawTransportPolicySnapshotUsageRequest TransportPolicySnapshotUsageRequest
+
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicySnapshotUsageRequest
+func (self *TransportPolicySnapshotUsageRequest) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicySnapshotUsageRequest
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicySnapshotUsageRequest(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *TransportPolicySnapshotUsageRequest) Validate() error {
+	if self.SnapshotName == "" {
+		return fmt.Errorf("TransportPolicySnapshotUsageRequest.snapshotName is missing but is a required field")
+	} else {
+		val := rdl.Validate(MSDSchema(), "EntityName", self.SnapshotName)
+		if !val.Valid {
+			return fmt.Errorf("TransportPolicySnapshotUsageRequest.snapshotName does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
 // TransportPolicySnapshotUsage - Usage recorded for a snapshot - which
 // principals last used it, and when
 type TransportPolicySnapshotUsage struct {
@@ -4242,12 +4291,6 @@ type TransportPolicySnapshot struct {
 	// Transport policy rules (ingress and egress) captured in this snapshot
 	//
 	TransportPolicyRules *TransportPolicyRules `json:"transportPolicyRules"`
-
-	//
-	// Usage recorded for this snapshot, omitted when usage retrieval is disabled
-	// or the caller asked to record usage instead
-	//
-	LastUsage *TransportPolicySnapshotUsage `json:"lastUsage,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewTransportPolicySnapshot - creates an initialized TransportPolicySnapshot instance, returns a pointer to it
