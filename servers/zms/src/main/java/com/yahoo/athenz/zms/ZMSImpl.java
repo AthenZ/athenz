@@ -110,21 +110,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final RuntimeDelegate.HeaderDelegate<EntityTag> ENTITY_TAG_HEADER_DELEGATE =
             RuntimeDelegate.getInstance().createHeaderDelegate(EntityTag.class);
 
-    static class SolutionTemplatesSnapshot {
-        final SolutionTemplates templates;
-        final List<String> templateNames;
-        final Path path;
-        final long modifiedMillis;
-
-        SolutionTemplatesSnapshot(final SolutionTemplates templates, final List<String> templateNames,
-                final Path path, final long modifiedMillis) {
-            this.templates = templates;
-            this.templateNames = templateNames;
-            this.path = path;
-            this.modifiedMillis = modifiedMillis;
-        }
-    }
-
     enum SolutionTemplatesReloadStatus {
         DISABLED,
         IN_PROGRESS,
@@ -3671,7 +3656,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     SolutionTemplatesSnapshot getValidatedSolutionTemplatesSnapshot(List<String> templateNames, String caller) {
-        reloadSolutionTemplatesIfModified();
         SolutionTemplatesSnapshot snapshot = getSolutionTemplatesSnapshot();
         validateSolutionTemplates(snapshot.templates, templateNames, caller);
         return snapshot;
@@ -4545,7 +4529,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         logPrincipal(ctx);
         validateRequest(ctx.request(), caller);
-        reloadSolutionTemplatesIfModified();
 
         return new ServerTemplateList().setTemplateNames(getSolutionTemplatesSnapshot().templateNames);
     }
@@ -4564,7 +4547,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // policy, service, etc name)
 
         templateName = templateName.toLowerCase();
-        reloadSolutionTemplatesIfModified();
         Template template = getSolutionTemplatesSnapshot().templates.get(templateName);
         if (template == null) {
             throw ZMSUtils.notFoundError("getTemplate: Template not found: '" + templateName + "'", caller);
@@ -4589,7 +4571,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         List<TemplateMetaData> templateDomainMapping = dbService.getDomainTemplates(domainName);
         DomainTemplateDetailsList domainTemplateDetailsList = null;
         if (templateDomainMapping != null) {
-            reloadSolutionTemplatesIfModified();
             SolutionTemplatesSnapshot snapshot = getSolutionTemplatesSnapshot();
             domainTemplateDetailsList = new DomainTemplateDetailsList();
             for (TemplateMetaData metaData : templateDomainMapping) {
@@ -4616,7 +4597,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         logPrincipal(ctx);
 
         validateRequest(ctx.request(), caller);
-        reloadSolutionTemplatesIfModified();
 
         List<TemplateMetaData> serverTemplateMetadataList;
         SolutionTemplatesSnapshot snapshot = getSolutionTemplatesSnapshot();

@@ -14442,12 +14442,12 @@ public class ZMSImplTest {
     }
 
     @SuppressWarnings("unchecked")
-    private static java.util.concurrent.atomic.AtomicReference<ZMSImpl.SolutionTemplatesSnapshot>
+    private static java.util.concurrent.atomic.AtomicReference<SolutionTemplatesSnapshot>
             solutionTemplatesSnapshotReference(final ZMSImpl zmsImpl) throws ReflectiveOperationException {
 
         java.lang.reflect.Field field = ZMSImpl.class.getDeclaredField("solutionTemplatesSnapshot");
         field.setAccessible(true);
-        return (java.util.concurrent.atomic.AtomicReference<ZMSImpl.SolutionTemplatesSnapshot>) field.get(zmsImpl);
+        return (java.util.concurrent.atomic.AtomicReference<SolutionTemplatesSnapshot>) field.get(zmsImpl);
     }
 
     private static java.util.concurrent.atomic.AtomicBoolean solutionTemplatesReloadInProgress(final ZMSImpl zmsImpl)
@@ -14478,11 +14478,11 @@ public class ZMSImplTest {
     public void testGetSolutionTemplatesSnapshotCreatesEmptySnapshotWhenUnset() throws ReflectiveOperationException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        java.util.concurrent.atomic.AtomicReference<ZMSImpl.SolutionTemplatesSnapshot> snapshots =
+        java.util.concurrent.atomic.AtomicReference<SolutionTemplatesSnapshot> snapshots =
                 solutionTemplatesSnapshotReference(zmsImpl);
         snapshots.set(null);
 
-        ZMSImpl.SolutionTemplatesSnapshot snapshot = zmsImpl.getSolutionTemplatesSnapshot();
+        SolutionTemplatesSnapshot snapshot = zmsImpl.getSolutionTemplatesSnapshot();
         assertTrue(snapshot.templates.getTemplates().isEmpty());
         assertTrue(snapshot.templateNames.isEmpty());
         assertNull(snapshot.path);
@@ -14628,10 +14628,12 @@ public class ZMSImplTest {
             assertEquals(zmsObj.getTemplate(ctx, "dynamic_old").getMetadata().getLatestVersion().intValue(), 1);
             assertFalse(zmsObj.serverSolutionTemplates.contains("corrupted"));
 
-            // once the file is fixed (updated modification time), the reload
-            // picks up the recovered templates automatically
+            // once the file is fixed (updated modification time), the
+            // background reload task picks up the recovered templates
 
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_recovered", 2));
+            assertEquals(zmsObj.reloadSolutionTemplatesIfModified(),
+                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsObj.getTemplate(ctx, "dynamic_recovered");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 2);
         } finally {
@@ -14796,7 +14798,7 @@ public class ZMSImplTest {
         try {
             SolutionTemplates originalTemplates = solutionTemplates("snapshot_old", new Template());
             zmsImpl.setServerSolutionTemplates(originalTemplates, path, 100L);
-            ZMSImpl.SolutionTemplatesSnapshot originalSnapshot = zmsImpl.getSolutionTemplatesSnapshot();
+            SolutionTemplatesSnapshot originalSnapshot = zmsImpl.getSolutionTemplatesSnapshot();
 
             SolutionTemplates ignoredTemplates = solutionTemplates("snapshot_ignored", new Template());
             zmsImpl.publishSolutionTemplatesSnapshot(
@@ -14823,7 +14825,7 @@ public class ZMSImplTest {
             System.clearProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD);
 
             ZMSImpl zmsImpl = new ZMSImpl();
-            ZMSImpl.SolutionTemplatesSnapshot snapshot = zmsImpl.getSolutionTemplatesSnapshot();
+            SolutionTemplatesSnapshot snapshot = zmsImpl.getSolutionTemplatesSnapshot();
             assertTrue(snapshot.templates.getTemplates().isEmpty());
             assertEquals(snapshot.path, missingPath);
             assertEquals(snapshot.modifiedMillis, -1L);
@@ -14849,12 +14851,14 @@ public class ZMSImplTest {
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
 
             ZMSImpl zmsImpl = new ZMSImpl();
-            ZMSImpl.SolutionTemplatesSnapshot nullPathSnapshot = zmsImpl.newSolutionTemplatesSnapshot(
+            SolutionTemplatesSnapshot nullPathSnapshot = zmsImpl.newSolutionTemplatesSnapshot(
                     zmsImpl.getSolutionTemplatesSnapshot().templates, null, -1L);
             solutionTemplatesSnapshotReference(zmsImpl).set(nullPathSnapshot);
             zmsImpl.updateSolutionTemplatesCompatibilityFields(nullPathSnapshot);
 
             RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
+                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_path"));
             assertEquals(zmsImpl.getSolutionTemplatesSnapshot().path, tempFile.toPath());
             assertTrue(zmsImpl.dbService.zmsConfig.getServerSolutionTemplates().contains("dynamic_path"));
@@ -14885,6 +14889,8 @@ public class ZMSImplTest {
             java.util.concurrent.atomic.AtomicBoolean reloadInProgress = solutionTemplatesReloadInProgress(zmsImpl);
             reloadInProgress.set(true);
             try {
+                assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
+                        ZMSImpl.SolutionTemplatesReloadStatus.IN_PROGRESS);
                 assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
                 assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
             } finally {
@@ -14930,6 +14936,7 @@ public class ZMSImplTest {
             zmsImpl.failSecondCheck = true;
             zmsImpl.modifiedCalls = 0;
 
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(), ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
             assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
             assertFalse(solutionTemplatesReloadInProgress(zmsImpl).get());
@@ -14977,6 +14984,7 @@ public class ZMSImplTest {
             zmsImpl.failPostReadModifiedCheck = true;
             zmsImpl.modifiedCalls = 0;
 
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(), ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
             assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
         } finally {
@@ -15021,6 +15029,7 @@ public class ZMSImplTest {
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_new", 2));
             zmsImpl.updateDuringRead = true;
 
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(), ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
             try {
                 zmsImpl.getTemplate(ctx, "dynamic_new");
                 fail();
@@ -15030,6 +15039,8 @@ public class ZMSImplTest {
             assertTrue(zmsImpl.serverSolutionTemplates.contains("dynamic_old"));
             assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
 
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
+                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_final");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 3);
         } finally {
@@ -15087,6 +15098,16 @@ public class ZMSImplTest {
 
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_new", 2));
 
+            try {
+                zmsImpl.getTemplate(ctx, "dynamic_new");
+                fail();
+            } catch (ResourceException ex) {
+                assertEquals(ex.getCode(), 404);
+            }
+            assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
+
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
+                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_new");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 2);
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_new"));
@@ -15302,6 +15323,7 @@ public class ZMSImplTest {
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_template", 1,
                     "changed without version increment"));
 
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(), ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_template");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 1);
             assertEquals(template.getMetadata().getDescription(), "original template");
@@ -15311,6 +15333,8 @@ public class ZMSImplTest {
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_template", 2,
                     "changed with version increment"));
 
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
+                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
             template = zmsImpl.getTemplate(ctx, "dynamic_template");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 2);
             assertEquals(template.getMetadata().getDescription(), "changed with version increment");
@@ -15341,6 +15365,8 @@ public class ZMSImplTest {
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_rollback", 2),
                     initialModifiedMillis - TimeUnit.SECONDS.toMillis(10));
 
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
+                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_rollback");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 2);
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_rollback"));
@@ -15368,6 +15394,7 @@ public class ZMSImplTest {
 
             Files.deleteIfExists(tempFile.toPath());
 
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(), ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
             ServerTemplateList templateList = zmsImpl.getServerTemplateList(ctx);
             assertTrue(templateList.getTemplateNames().contains("dynamic_old"));
             assertTrue(zmsImpl.dbService.zmsConfig.getServerSolutionTemplates().contains("dynamic_old"));
@@ -15397,6 +15424,7 @@ public class ZMSImplTest {
 
             writeSolutionTemplatesFile(tempFile, invalidSolutionTemplatesJson());
 
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(), ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
             assertEquals(zmsImpl.getTemplate(ctx, "dynamic_old").getMetadata().getLatestVersion().intValue(), 1);
             try {
                 zmsImpl.getTemplate(ctx, "invalid_template");
@@ -15407,6 +15435,8 @@ public class ZMSImplTest {
             assertTrue(zmsImpl.dbService.zmsConfig.getServerSolutionTemplates().contains("dynamic_old"));
 
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_recovered", 3));
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
+                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_recovered");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 3);
         } finally {
@@ -15450,10 +15480,13 @@ public class ZMSImplTest {
             zmsImpl.failReload = true;
             zmsImpl.readCalls = 0;
 
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(), ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
             assertEquals(zmsImpl.readCalls, 1);
             assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
 
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
+                    ZMSImpl.SolutionTemplatesReloadStatus.RETRY_PENDING);
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
             assertEquals(zmsImpl.readCalls, 1);
             assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
@@ -15461,6 +15494,8 @@ public class ZMSImplTest {
             zmsImpl.failReload = false;
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_recovered", 3));
 
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
+                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_recovered");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 3);
             assertEquals(zmsImpl.readCalls, 2);
@@ -15489,16 +15524,18 @@ public class ZMSImplTest {
             // since our startup load failed, the empty fallback snapshot must
             // not be tagged with the file timestamp so a reload is not skipped
 
-            ZMSImpl.SolutionTemplatesSnapshot snapshot = zmsImpl.getSolutionTemplatesSnapshot();
+            SolutionTemplatesSnapshot snapshot = zmsImpl.getSolutionTemplatesSnapshot();
             assertTrue(snapshot.templates.getTemplates().isEmpty());
             assertEquals(snapshot.path, tempFile.toPath());
             assertEquals(snapshot.modifiedMillis, -1L);
 
-            // once reads succeed again, the next template operation must
-            // automatically reload the templates without any file change
+            // once reads succeed again, the background reload task must pick
+            // up the templates without any file change
 
             FailingReadZMSImpl.failRead = false;
             RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
+                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_recovered");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 1);
             assertEquals(zmsImpl.getSolutionTemplatesSnapshot().modifiedMillis,
@@ -15552,6 +15589,8 @@ public class ZMSImplTest {
             assertEquals(zmsImpl.readCalls, readCalls);
 
             zmsImpl.currentMillis += TimeUnit.SECONDS.toMillis(1);
+            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
+                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_new");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 2);
         } finally {
@@ -25027,7 +25066,7 @@ public class ZMSImplTest {
     public void testGetServerTemplateDetailsListHandlesNullMetadata() {
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
-        ZMSImpl.SolutionTemplatesSnapshot originalSnapshot = zmsImpl.getSolutionTemplatesSnapshot();
+        SolutionTemplatesSnapshot originalSnapshot = zmsImpl.getSolutionTemplatesSnapshot();
 
         try {
             SolutionTemplates solutionTemplates = new SolutionTemplates();
