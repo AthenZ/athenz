@@ -14381,11 +14381,17 @@ public class ZMSImplTest {
         static boolean failRead = false;
 
         @Override
-        SolutionTemplates readSolutionTemplates(Path path) throws IOException {
-            if (failRead) {
-                throw new IOException("transient read failure");
-            }
-            return super.readSolutionTemplates(path);
+        SolutionTemplatesManager newSolutionTemplatesManager() {
+            return new SolutionTemplatesManager(jsonMapper, dynamicSolutionTemplatesReload, ZMSImpl::getRootDir,
+                    this::updateSolutionTemplatesCompatibilityFields) {
+                @Override
+                SolutionTemplates readSolutionTemplates(Path path) throws IOException {
+                    if (failRead) {
+                        throw new IOException("transient read failure");
+                    }
+                    return super.readSolutionTemplates(path);
+                }
+            };
         }
     }
 
@@ -14395,14 +14401,23 @@ public class ZMSImplTest {
         int readCalls = 0;
 
         @Override
-        SolutionTemplates readSolutionTemplates(Path path) throws IOException {
-            readCalls++;
-            return super.readSolutionTemplates(path);
-        }
+        SolutionTemplatesManager newSolutionTemplatesManager() {
+            return new SolutionTemplatesManager(jsonMapper, dynamicSolutionTemplatesReload, ZMSImpl::getRootDir,
+                    this::updateSolutionTemplatesCompatibilityFields) {
+                @Override
+                SolutionTemplates readSolutionTemplates(Path path) throws IOException {
+                    readCalls++;
+                    if (failRead) {
+                        throw new IOException("transient read failure");
+                    }
+                    return super.readSolutionTemplates(path);
+                }
 
-        @Override
-        long currentTimeMillis() {
-            return currentMillis;
+                @Override
+                long currentTimeMillis() {
+                    return currentMillis;
+                }
+            };
         }
     }
 
@@ -14413,26 +14428,32 @@ public class ZMSImplTest {
         boolean throwReloadException;
 
         @Override
-        SolutionTemplatesReloadStatus reloadSolutionTemplatesIfModified() {
-            if (throwReloadException) {
-                throw new RuntimeException("reload task failure");
-            }
-            return reloadStatuses.remove();
-        }
+        SolutionTemplatesManager newSolutionTemplatesManager() {
+            return new SolutionTemplatesManager(jsonMapper, dynamicSolutionTemplatesReload, ZMSImpl::getRootDir,
+                    this::updateSolutionTemplatesCompatibilityFields) {
+                @Override
+                SolutionTemplatesReloadStatus reloadSolutionTemplatesIfModified() {
+                    if (throwReloadException) {
+                        throw new RuntimeException("reload task failure");
+                    }
+                    return reloadStatuses.remove();
+                }
 
-        @Override
-        void scheduleSolutionTemplatesReload(long delaySeconds) {
-            scheduledDelays.add(delaySeconds);
-        }
+                @Override
+                void scheduleSolutionTemplatesReload(long delaySeconds) {
+                    scheduledDelays.add(delaySeconds);
+                }
 
-        @Override
-        long solutionTemplatesReloadFrequencySeconds() {
-            return 7;
-        }
+                @Override
+                long solutionTemplatesReloadFrequencySeconds() {
+                    return 7;
+                }
 
-        @Override
-        long solutionTemplatesReloadRetryDelaySeconds() {
-            return 3;
+                @Override
+                long solutionTemplatesReloadRetryDelaySeconds() {
+                    return 3;
+                }
+            };
         }
     }
 
@@ -14448,29 +14469,21 @@ public class ZMSImplTest {
         return new Template().setMetadata(new TemplateMetaData().setLatestVersion(1));
     }
 
-    @SuppressWarnings("unchecked")
     private static java.util.concurrent.atomic.AtomicReference<SolutionTemplatesSnapshot>
-            solutionTemplatesSnapshotReference(final ZMSImpl zmsImpl) throws ReflectiveOperationException {
+            solutionTemplatesSnapshotReference(final ZMSImpl zmsImpl) {
 
-        java.lang.reflect.Field field = ZMSImpl.class.getDeclaredField("solutionTemplatesSnapshot");
-        field.setAccessible(true);
-        return (java.util.concurrent.atomic.AtomicReference<SolutionTemplatesSnapshot>) field.get(zmsImpl);
+        return zmsImpl.solutionTemplatesManager().solutionTemplatesSnapshotReference();
     }
 
-    private static java.util.concurrent.ScheduledExecutorService solutionTemplatesReloadExecutor(final ZMSImpl zmsImpl)
-            throws ReflectiveOperationException {
+    private static java.util.concurrent.ScheduledExecutorService solutionTemplatesReloadExecutor(final ZMSImpl zmsImpl) {
 
-        java.lang.reflect.Field field = ZMSImpl.class.getDeclaredField("solutionTemplatesReloadExecutor");
-        field.setAccessible(true);
-        return (java.util.concurrent.ScheduledExecutorService) field.get(zmsImpl);
+        return zmsImpl.solutionTemplatesManager().solutionTemplatesReloadExecutor();
     }
 
     private static void setSolutionTemplatesReloadExecutor(final ZMSImpl zmsImpl,
-            final java.util.concurrent.ScheduledExecutorService executor) throws ReflectiveOperationException {
+            final java.util.concurrent.ScheduledExecutorService executor) {
 
-        java.lang.reflect.Field field = ZMSImpl.class.getDeclaredField("solutionTemplatesReloadExecutor");
-        field.setAccessible(true);
-        field.set(zmsImpl, executor);
+        zmsImpl.solutionTemplatesManager().setSolutionTemplatesReloadExecutor(executor);
     }
 
     @Test
@@ -14499,10 +14512,10 @@ public class ZMSImplTest {
             // a valid json object document without any templates is empty
 
             writeSolutionTemplatesFile(tempFile, "{}");
-            assertTrue(zmsImpl.readSolutionTemplates(tempFile.toPath()).getTemplates().isEmpty());
+            assertTrue(zmsImpl.solutionTemplatesManager().readSolutionTemplates(tempFile.toPath()).getTemplates().isEmpty());
 
             writeSolutionTemplatesFile(tempFile, "{\"templates\": {}}");
-            assertTrue(zmsImpl.readSolutionTemplates(tempFile.toPath()).getTemplates().isEmpty());
+            assertTrue(zmsImpl.solutionTemplatesManager().readSolutionTemplates(tempFile.toPath()).getTemplates().isEmpty());
         } finally {
             tempFile.delete();
         }
@@ -14521,7 +14534,7 @@ public class ZMSImplTest {
             for (String invalidDocument : invalidDocuments) {
                 writeSolutionTemplatesFile(tempFile, invalidDocument);
                 try {
-                    zmsImpl.readSolutionTemplates(tempFile.toPath());
+                    zmsImpl.solutionTemplatesManager().readSolutionTemplates(tempFile.toPath());
                     fail();
                 } catch (RuntimeException ex) {
                     assertTrue(ex.getMessage().contains(tempFile.getName()));
@@ -14533,7 +14546,7 @@ public class ZMSImplTest {
 
             writeSolutionTemplatesFile(tempFile, "{\"templates\": \"invalid\"}");
             try {
-                zmsImpl.readSolutionTemplates(tempFile.toPath());
+                zmsImpl.solutionTemplatesManager().readSolutionTemplates(tempFile.toPath());
                 fail();
             } catch (RuntimeException ex) {
                 assertTrue(ex.getMessage().contains("Invalid solution templates content"));
@@ -14550,10 +14563,10 @@ public class ZMSImplTest {
         File tempFile = File.createTempFile("solution_templates_compatible", ".json");
         try {
             writeSolutionTemplatesFile(tempFile, "null");
-            assertTrue(zmsImpl.readSolutionTemplatesCompatible(tempFile.toPath()).getTemplates().isEmpty());
+            assertTrue(zmsImpl.solutionTemplatesManager().readSolutionTemplatesCompatible(tempFile.toPath()).getTemplates().isEmpty());
 
             writeSolutionTemplatesFile(tempFile, "{}");
-            assertTrue(zmsImpl.readSolutionTemplatesCompatible(tempFile.toPath()).getTemplates().isEmpty());
+            assertTrue(zmsImpl.solutionTemplatesManager().readSolutionTemplatesCompatible(tempFile.toPath()).getTemplates().isEmpty());
 
             writeSolutionTemplatesFile(tempFile, "{"
                     + "\"templates\": {"
@@ -14568,7 +14581,7 @@ public class ZMSImplTest {
                     + "}"
                     + "}");
 
-            SolutionTemplates solutionTemplates = zmsImpl.readSolutionTemplatesCompatible(tempFile.toPath());
+            SolutionTemplates solutionTemplates = zmsImpl.solutionTemplatesManager().readSolutionTemplatesCompatible(tempFile.toPath());
             assertTrue(solutionTemplates.contains("legacy"));
         } finally {
             tempFile.delete();
@@ -14583,7 +14596,7 @@ public class ZMSImplTest {
         try {
             writeSolutionTemplatesFile(tempFile, invalidSolutionTemplatesJson());
             try {
-                zmsImpl.readSolutionTemplatesCompatible(tempFile.toPath());
+                zmsImpl.solutionTemplatesManager().readSolutionTemplatesCompatible(tempFile.toPath());
                 fail();
             } catch (RuntimeException ex) {
                 assertTrue(ex.getMessage().contains("has both trust and members defined"));
@@ -14631,8 +14644,8 @@ public class ZMSImplTest {
             // background reload task picks up the recovered templates
 
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_recovered", 2));
-            assertEquals(zmsObj.reloadSolutionTemplatesIfModified(),
-                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
+            assertEquals(zmsObj.solutionTemplatesManager().reloadSolutionTemplatesIfModified(),
+                    SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsObj.getTemplate(ctx, "dynamic_recovered");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 2);
         } finally {
@@ -14677,7 +14690,7 @@ public class ZMSImplTest {
         templates.put("valid_roles", templateWithMetadata().setRoles(Collections.singletonList(
                 new Role().setName("trusted_role").setTrust("trusted.domain"))));
         solutionTemplates.setTemplates(templates);
-        zmsImpl.validateSolutionTemplatesConfig(solutionTemplates);
+        zmsImpl.solutionTemplatesManager().validateSolutionTemplatesConfig(solutionTemplates);
 
         // null template definitions are rejected
 
@@ -14687,7 +14700,7 @@ public class ZMSImplTest {
         nullTemplate.setTemplates(nullTemplates);
 
         try {
-            zmsImpl.validateSolutionTemplatesConfig(nullTemplate);
+            zmsImpl.solutionTemplatesManager().validateSolutionTemplatesConfig(nullTemplate);
             fail();
         } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("has a null definition"));
@@ -14702,7 +14715,7 @@ public class ZMSImplTest {
         nullRole.setTemplates(nullRoleTemplates);
 
         try {
-            zmsImpl.validateSolutionTemplatesConfig(nullRole);
+            zmsImpl.solutionTemplatesManager().validateSolutionTemplatesConfig(nullRole);
             fail();
         } catch (RuntimeException ex) {
             assertTrue(ex.getMessage().contains("contains a null role"));
@@ -14728,7 +14741,7 @@ public class ZMSImplTest {
             SolutionTemplates invalidSolutionTemplates = solutionTemplates(invalidTemplate.getKey(),
                     invalidTemplate.getValue());
             try {
-                zmsImpl.validateSolutionTemplatesConfig(invalidSolutionTemplates);
+                zmsImpl.solutionTemplatesManager().validateSolutionTemplatesConfig(invalidSolutionTemplates);
                 fail();
             } catch (RuntimeException ex) {
                 assertTrue(ex.getMessage().contains(invalidTemplate.getKey()));
@@ -14780,7 +14793,7 @@ public class ZMSImplTest {
                     + "}"
                     + "}");
 
-            SolutionTemplates solutionTemplates = zmsImpl.readSolutionTemplates(tempFile.toPath());
+            SolutionTemplates solutionTemplates = zmsImpl.solutionTemplatesManager().readSolutionTemplates(tempFile.toPath());
             assertTrue(solutionTemplates.contains("metadata_only"));
             assertTrue(solutionTemplates.contains("empty_collections"));
             assertTrue(solutionTemplates.contains("valid_nested_collections"));
@@ -14796,12 +14809,12 @@ public class ZMSImplTest {
         Path path = Files.createTempFile("dynamic_solution_templates_snapshot", ".json");
         try {
             SolutionTemplates originalTemplates = solutionTemplates("snapshot_old", new Template());
-            zmsImpl.setServerSolutionTemplates(originalTemplates, path, 100L);
+            zmsImpl.solutionTemplatesManager().setServerSolutionTemplates(originalTemplates, path, 100L);
             SolutionTemplatesSnapshot originalSnapshot = zmsImpl.getSolutionTemplatesSnapshot();
 
             SolutionTemplates ignoredTemplates = solutionTemplates("snapshot_ignored", new Template());
-            zmsImpl.publishSolutionTemplatesSnapshot(
-                    zmsImpl.newSolutionTemplatesSnapshot(ignoredTemplates, path, 100L), false);
+            zmsImpl.solutionTemplatesManager().publishSolutionTemplatesSnapshot(
+                    zmsImpl.solutionTemplatesManager().newSolutionTemplatesSnapshot(ignoredTemplates, path, 100L), false);
 
             assertSame(zmsImpl.getSolutionTemplatesSnapshot(), originalSnapshot);
             assertTrue(zmsImpl.serverSolutionTemplates.contains("snapshot_old"));
@@ -14850,14 +14863,14 @@ public class ZMSImplTest {
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
 
             ZMSImpl zmsImpl = new ManualReloadZMSImpl();
-            SolutionTemplatesSnapshot nullPathSnapshot = zmsImpl.newSolutionTemplatesSnapshot(
+            SolutionTemplatesSnapshot nullPathSnapshot = zmsImpl.solutionTemplatesManager().newSolutionTemplatesSnapshot(
                     zmsImpl.getSolutionTemplatesSnapshot().templates, null, -1L);
             solutionTemplatesSnapshotReference(zmsImpl).set(nullPathSnapshot);
             zmsImpl.updateSolutionTemplatesCompatibilityFields(nullPathSnapshot);
 
             RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
-                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(),
+                    SolutionTemplatesReloadStatus.RELOADED);
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_path"));
             assertEquals(zmsImpl.getSolutionTemplatesSnapshot().path, tempFile.toPath());
             assertTrue(zmsImpl.dbService.zmsConfig.getServerSolutionTemplates().contains("dynamic_path"));
@@ -14877,11 +14890,17 @@ public class ZMSImplTest {
             int modifiedCalls;
 
             @Override
-            long solutionTemplatesModifiedMillis(final Path path) throws IOException {
-                if (failPostReadModifiedCheck && ++modifiedCalls == 2) {
-                    throw new IOException("post read modified check failure");
-                }
-                return super.solutionTemplatesModifiedMillis(path);
+            SolutionTemplatesManager newSolutionTemplatesManager() {
+                return new SolutionTemplatesManager(jsonMapper, dynamicSolutionTemplatesReload, ZMSImpl::getRootDir,
+                        this::updateSolutionTemplatesCompatibilityFields) {
+                    @Override
+                    long solutionTemplatesModifiedMillis(final Path path) throws IOException {
+                        if (failPostReadModifiedCheck && ++modifiedCalls == 2) {
+                            throw new IOException("post read modified check failure");
+                        }
+                        return super.solutionTemplatesModifiedMillis(path);
+                    }
+                };
             }
         }
 
@@ -14901,7 +14920,7 @@ public class ZMSImplTest {
             zmsImpl.failPostReadModifiedCheck = true;
             zmsImpl.modifiedCalls = 0;
 
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(), ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(), SolutionTemplatesReloadStatus.FAILED);
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
             assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
         } finally {
@@ -14920,13 +14939,19 @@ public class ZMSImplTest {
             File file;
 
             @Override
-            SolutionTemplates readSolutionTemplates(final Path path) throws IOException {
-                SolutionTemplates solutionTemplates = super.readSolutionTemplates(path);
-                if (updateDuringRead) {
-                    updateDuringRead = false;
-                    writeSolutionTemplatesFile(file, solutionTemplatesJson("dynamic_final", 3));
-                }
-                return solutionTemplates;
+            SolutionTemplatesManager newSolutionTemplatesManager() {
+                return new SolutionTemplatesManager(jsonMapper, dynamicSolutionTemplatesReload, ZMSImpl::getRootDir,
+                        this::updateSolutionTemplatesCompatibilityFields) {
+                    @Override
+                    SolutionTemplates readSolutionTemplates(final Path path) throws IOException {
+                        SolutionTemplates solutionTemplates = super.readSolutionTemplates(path);
+                        if (updateDuringRead) {
+                            updateDuringRead = false;
+                            writeSolutionTemplatesFile(file, solutionTemplatesJson("dynamic_final", 3));
+                        }
+                        return solutionTemplates;
+                    }
+                };
             }
         }
 
@@ -14946,7 +14971,7 @@ public class ZMSImplTest {
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_new", 2));
             zmsImpl.updateDuringRead = true;
 
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(), ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(), SolutionTemplatesReloadStatus.FAILED);
             try {
                 zmsImpl.getTemplate(ctx, "dynamic_new");
                 fail();
@@ -14956,8 +14981,8 @@ public class ZMSImplTest {
             assertTrue(zmsImpl.serverSolutionTemplates.contains("dynamic_old"));
             assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
 
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
-                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(),
+                    SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_final");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 3);
         } finally {
@@ -15023,8 +15048,8 @@ public class ZMSImplTest {
             }
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
 
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
-                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(),
+                    SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_new");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 2);
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_new"));
@@ -15074,14 +15099,14 @@ public class ZMSImplTest {
             System.clearProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD);
             ReloadTaskZMSImpl zmsImpl = new ReloadTaskZMSImpl();
 
-            zmsImpl.reloadStatuses.add(ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
-            zmsImpl.runSolutionTemplatesReloadTask();
+            zmsImpl.reloadStatuses.add(SolutionTemplatesReloadStatus.FAILED);
+            zmsImpl.solutionTemplatesManager().runSolutionTemplatesReloadTask();
 
-            zmsImpl.reloadStatuses.add(ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
-            zmsImpl.runSolutionTemplatesReloadTask();
+            zmsImpl.reloadStatuses.add(SolutionTemplatesReloadStatus.RELOADED);
+            zmsImpl.solutionTemplatesManager().runSolutionTemplatesReloadTask();
 
             zmsImpl.throwReloadException = true;
-            zmsImpl.runSolutionTemplatesReloadTask();
+            zmsImpl.solutionTemplatesManager().runSolutionTemplatesReloadTask();
 
             assertEquals(zmsImpl.scheduledDelays, Arrays.asList(3L, 7L, 7L));
         } finally {
@@ -15102,31 +15127,31 @@ public class ZMSImplTest {
             BackoffReadZMSImpl zmsImpl = new BackoffReadZMSImpl();
             Path path = Paths.get("solution_templates.json");
 
-            assertEquals(zmsImpl.solutionTemplatesReloadDelaySeconds(
-                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED), 5);
-            assertEquals(zmsImpl.solutionTemplatesReloadRetryDelaySeconds(), 5);
+            assertEquals(zmsImpl.solutionTemplatesManager().solutionTemplatesReloadDelaySeconds(
+                    SolutionTemplatesReloadStatus.RELOADED), 5);
+            assertEquals(zmsImpl.solutionTemplatesManager().solutionTemplatesReloadRetryDelaySeconds(), 5);
 
-            zmsImpl.recordSolutionTemplatesReloadFailure(path, 10L);
-            assertTrue(zmsImpl.solutionTemplatesReloadRetryPending(path, 10L));
-            assertFalse(zmsImpl.solutionTemplatesReloadRetryPending(path, 11L));
-            assertEquals(zmsImpl.solutionTemplatesReloadRetryDelaySeconds(), 5);
-            assertEquals(zmsImpl.solutionTemplatesReloadDelaySeconds(
-                    ZMSImpl.SolutionTemplatesReloadStatus.FAILED), 5);
+            zmsImpl.solutionTemplatesManager().recordSolutionTemplatesReloadFailure(path, 10L);
+            assertTrue(zmsImpl.solutionTemplatesManager().solutionTemplatesReloadRetryPending(path, 10L));
+            assertFalse(zmsImpl.solutionTemplatesManager().solutionTemplatesReloadRetryPending(path, 11L));
+            assertEquals(zmsImpl.solutionTemplatesManager().solutionTemplatesReloadRetryDelaySeconds(), 5);
+            assertEquals(zmsImpl.solutionTemplatesManager().solutionTemplatesReloadDelaySeconds(
+                    SolutionTemplatesReloadStatus.FAILED), 5);
 
             zmsImpl.currentMillis += TimeUnit.SECONDS.toMillis(3);
-            assertEquals(zmsImpl.solutionTemplatesReloadRetryDelaySeconds(), 2);
+            assertEquals(zmsImpl.solutionTemplatesManager().solutionTemplatesReloadRetryDelaySeconds(), 2);
 
             zmsImpl.currentMillis += TimeUnit.SECONDS.toMillis(2);
-            assertEquals(zmsImpl.solutionTemplatesReloadRetryDelaySeconds(), 0);
-            assertFalse(zmsImpl.solutionTemplatesReloadRetryPending(path, 10L));
+            assertEquals(zmsImpl.solutionTemplatesManager().solutionTemplatesReloadRetryDelaySeconds(), 0);
+            assertFalse(zmsImpl.solutionTemplatesManager().solutionTemplatesReloadRetryPending(path, 10L));
 
-            zmsImpl.recordSolutionTemplatesReloadFailure(path, 10L);
-            assertEquals(zmsImpl.solutionTemplatesReloadRetryDelaySeconds(), 10);
-            assertEquals(zmsImpl.solutionTemplatesReloadNextBackoffSeconds(11), 20);
+            zmsImpl.solutionTemplatesManager().recordSolutionTemplatesReloadFailure(path, 10L);
+            assertEquals(zmsImpl.solutionTemplatesManager().solutionTemplatesReloadRetryDelaySeconds(), 10);
+            assertEquals(zmsImpl.solutionTemplatesManager().solutionTemplatesReloadNextBackoffSeconds(11), 20);
 
-            zmsImpl.clearSolutionTemplatesReloadFailure();
-            assertFalse(zmsImpl.solutionTemplatesReloadRetryPending(path, 10L));
-            assertEquals(zmsImpl.solutionTemplatesReloadRetryDelaySeconds(), 5);
+            zmsImpl.solutionTemplatesManager().clearSolutionTemplatesReloadFailure();
+            assertFalse(zmsImpl.solutionTemplatesManager().solutionTemplatesReloadRetryPending(path, 10L));
+            assertEquals(zmsImpl.solutionTemplatesManager().solutionTemplatesReloadRetryDelaySeconds(), 5);
         } finally {
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS, originalFrequency);
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_MAX_BACKOFF_SECONDS, originalMaxBackoff);
@@ -15139,14 +15164,14 @@ public class ZMSImplTest {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
 
-        zmsImpl.scheduleSolutionTemplatesReload(0);
+        zmsImpl.solutionTemplatesManager().scheduleSolutionTemplatesReload(0);
 
         java.util.concurrent.ScheduledExecutorService executor =
                 java.util.concurrent.Executors.newSingleThreadScheduledExecutor();
         executor.shutdownNow();
         setSolutionTemplatesReloadExecutor(zmsImpl, executor);
 
-        zmsImpl.scheduleSolutionTemplatesReload(0);
+        zmsImpl.solutionTemplatesManager().scheduleSolutionTemplatesReload(0);
         assertTrue(executor.isShutdown());
     }
 
@@ -15162,7 +15187,7 @@ public class ZMSImplTest {
                 .thenThrow(new java.util.concurrent.RejectedExecutionException("queue full"));
         setSolutionTemplatesReloadExecutor(zmsImpl, executor);
 
-        zmsImpl.scheduleSolutionTemplatesReload(5);
+        zmsImpl.solutionTemplatesManager().scheduleSolutionTemplatesReload(5);
 
         verify(executor).schedule(any(Runnable.class), eq(5L), eq(TimeUnit.SECONDS));
     }
@@ -15178,30 +15203,30 @@ public class ZMSImplTest {
             ZMSImpl zmsImpl = zmsTestInitializer.getZms();
 
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS, "0");
-            assertEquals(zmsImpl.solutionTemplatesReloadFrequencySeconds(),
+            assertEquals(zmsImpl.solutionTemplatesManager().solutionTemplatesReloadFrequencySeconds(),
                     Long.parseLong(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS_DEFAULT));
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS, "6");
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_MAX_BACKOFF_SECONDS, "1");
-            assertEquals(zmsImpl.solutionTemplatesReloadMaxBackoffSeconds(), 6);
-            assertTrue(zmsImpl.currentTimeMillis() > 0);
+            assertEquals(zmsImpl.solutionTemplatesManager().solutionTemplatesReloadMaxBackoffSeconds(), 6);
+            assertTrue(zmsImpl.solutionTemplatesManager().currentTimeMillis() > 0);
 
-            assertTrue(zmsImpl.solutionTemplatesEmpty(null));
-            assertTrue(zmsImpl.solutionTemplatesEmpty(new SolutionTemplates()));
+            assertTrue(zmsImpl.solutionTemplatesManager().solutionTemplatesEmpty(null));
+            assertTrue(zmsImpl.solutionTemplatesManager().solutionTemplatesEmpty(new SolutionTemplates()));
             SolutionTemplates emptyTemplates = new SolutionTemplates();
             emptyTemplates.setTemplates(new HashMap<>());
-            assertTrue(zmsImpl.solutionTemplatesEmpty(emptyTemplates));
-            assertFalse(zmsImpl.solutionTemplatesEmpty(solutionTemplates("template", templateWithMetadata())));
-            assertNull(zmsImpl.solutionTemplateLatestVersion(null));
-            assertNull(zmsImpl.solutionTemplateLatestVersion(new Template()));
-            assertFalse(zmsImpl.solutionTemplateLatestVersionIncremented(null, 2));
-            assertFalse(zmsImpl.solutionTemplateLatestVersionIncremented(2, null));
-            assertFalse(zmsImpl.solutionTemplateLatestVersionIncremented(2, 2));
-            assertTrue(zmsImpl.solutionTemplateLatestVersionIncremented(2, 3));
+            assertTrue(zmsImpl.solutionTemplatesManager().solutionTemplatesEmpty(emptyTemplates));
+            assertFalse(zmsImpl.solutionTemplatesManager().solutionTemplatesEmpty(solutionTemplates("template", templateWithMetadata())));
+            assertNull(zmsImpl.solutionTemplatesManager().solutionTemplateLatestVersion(null));
+            assertNull(zmsImpl.solutionTemplatesManager().solutionTemplateLatestVersion(new Template()));
+            assertFalse(zmsImpl.solutionTemplatesManager().solutionTemplateLatestVersionIncremented(null, 2));
+            assertFalse(zmsImpl.solutionTemplatesManager().solutionTemplateLatestVersionIncremented(2, null));
+            assertFalse(zmsImpl.solutionTemplatesManager().solutionTemplateLatestVersionIncremented(2, 2));
+            assertTrue(zmsImpl.solutionTemplatesManager().solutionTemplateLatestVersionIncremented(2, 3));
 
             Template template = templateWithMetadata();
-            zmsImpl.validateSolutionTemplateReloadVersions(null, solutionTemplates("template", template));
-            zmsImpl.validateSolutionTemplateReloadVersion("new_template", null, template);
-            zmsImpl.validateSolutionTemplateReloadVersion("same_template", template, template);
+            zmsImpl.solutionTemplatesManager().validateSolutionTemplateReloadVersions(null, solutionTemplates("template", template));
+            zmsImpl.solutionTemplatesManager().validateSolutionTemplateReloadVersion("new_template", null, template);
+            zmsImpl.solutionTemplatesManager().validateSolutionTemplateReloadVersion("same_template", template, template);
         } finally {
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS, originalFrequency);
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_MAX_BACKOFF_SECONDS, originalMaxBackoff);
@@ -15228,7 +15253,7 @@ public class ZMSImplTest {
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_template", 1,
                     "changed without version increment"));
 
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(), ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(), SolutionTemplatesReloadStatus.FAILED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_template");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 1);
             assertEquals(template.getMetadata().getDescription(), "original template");
@@ -15238,8 +15263,8 @@ public class ZMSImplTest {
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_template", 2,
                     "changed with version increment"));
 
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
-                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(),
+                    SolutionTemplatesReloadStatus.RELOADED);
             template = zmsImpl.getTemplate(ctx, "dynamic_template");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 2);
             assertEquals(template.getMetadata().getDescription(), "changed with version increment");
@@ -15270,8 +15295,8 @@ public class ZMSImplTest {
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_rollback", 2),
                     initialModifiedMillis - TimeUnit.SECONDS.toMillis(10));
 
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
-                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(),
+                    SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_rollback");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 2);
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_rollback"));
@@ -15299,12 +15324,12 @@ public class ZMSImplTest {
 
             Files.deleteIfExists(tempFile.toPath());
 
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(), ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(), SolutionTemplatesReloadStatus.FAILED);
             ServerTemplateList templateList = zmsImpl.getServerTemplateList(ctx);
             assertTrue(templateList.getTemplateNames().contains("dynamic_old"));
             assertTrue(zmsImpl.dbService.zmsConfig.getServerSolutionTemplates().contains("dynamic_old"));
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
-                    ZMSImpl.SolutionTemplatesReloadStatus.RETRY_PENDING);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(),
+                    SolutionTemplatesReloadStatus.RETRY_PENDING);
         } finally {
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, originalTemplateFile);
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, originalDynamicReload);
@@ -15329,7 +15354,7 @@ public class ZMSImplTest {
 
             writeSolutionTemplatesFile(tempFile, invalidSolutionTemplatesJson());
 
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(), ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(), SolutionTemplatesReloadStatus.FAILED);
             assertEquals(zmsImpl.getTemplate(ctx, "dynamic_old").getMetadata().getLatestVersion().intValue(), 1);
             try {
                 zmsImpl.getTemplate(ctx, "invalid_template");
@@ -15340,8 +15365,8 @@ public class ZMSImplTest {
             assertTrue(zmsImpl.dbService.zmsConfig.getServerSolutionTemplates().contains("dynamic_old"));
 
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_recovered", 3));
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
-                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(),
+                    SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_recovered");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 3);
         } finally {
@@ -15360,12 +15385,18 @@ public class ZMSImplTest {
             int readCalls;
 
             @Override
-            SolutionTemplates readSolutionTemplates(final Path path) throws IOException {
-                readCalls++;
-                if (failReload) {
-                    throw new RuntimeException("deterministic reload failure");
-                }
-                return super.readSolutionTemplates(path);
+            SolutionTemplatesManager newSolutionTemplatesManager() {
+                return new SolutionTemplatesManager(jsonMapper, dynamicSolutionTemplatesReload, ZMSImpl::getRootDir,
+                        this::updateSolutionTemplatesCompatibilityFields) {
+                    @Override
+                    SolutionTemplates readSolutionTemplates(final Path path) throws IOException {
+                        readCalls++;
+                        if (failReload) {
+                            throw new RuntimeException("deterministic reload failure");
+                        }
+                        return super.readSolutionTemplates(path);
+                    }
+                };
             }
         }
 
@@ -15385,13 +15416,13 @@ public class ZMSImplTest {
             zmsImpl.failReload = true;
             zmsImpl.readCalls = 0;
 
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(), ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(), SolutionTemplatesReloadStatus.FAILED);
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
             assertEquals(zmsImpl.readCalls, 1);
             assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
 
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
-                    ZMSImpl.SolutionTemplatesReloadStatus.RETRY_PENDING);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(),
+                    SolutionTemplatesReloadStatus.RETRY_PENDING);
             assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
             assertEquals(zmsImpl.readCalls, 1);
             assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
@@ -15399,8 +15430,8 @@ public class ZMSImplTest {
             zmsImpl.failReload = false;
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_recovered", 3));
 
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
-                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(),
+                    SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_recovered");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 3);
             assertEquals(zmsImpl.readCalls, 2);
@@ -15439,8 +15470,8 @@ public class ZMSImplTest {
 
             FailingReadZMSImpl.failRead = false;
             RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
-                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(),
+                    SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_recovered");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 1);
             assertEquals(zmsImpl.getSolutionTemplatesSnapshot().modifiedMillis,
@@ -15477,11 +15508,11 @@ public class ZMSImplTest {
 
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_new", 2));
             FailingReadZMSImpl.failRead = true;
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(), ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(), SolutionTemplatesReloadStatus.FAILED);
             int readCalls = zmsImpl.readCalls;
 
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
-                    ZMSImpl.SolutionTemplatesReloadStatus.RETRY_PENDING);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(),
+                    SolutionTemplatesReloadStatus.RETRY_PENDING);
             assertEquals(zmsImpl.readCalls, readCalls);
 
             FailingReadZMSImpl.failRead = false;
@@ -15494,8 +15525,8 @@ public class ZMSImplTest {
             assertEquals(zmsImpl.readCalls, readCalls);
 
             zmsImpl.currentMillis += TimeUnit.SECONDS.toMillis(1);
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
-                    ZMSImpl.SolutionTemplatesReloadStatus.RELOADED);
+            assertEquals(zmsImpl.solutionTemplatesManager().reloadSolutionTemplatesIfModified(),
+                    SolutionTemplatesReloadStatus.RELOADED);
             Template template = zmsImpl.getTemplate(ctx, "dynamic_new");
             assertEquals(template.getMetadata().getLatestVersion().intValue(), 2);
         } finally {
@@ -24985,7 +25016,7 @@ public class ZMSImplTest {
                     .setTimestamp(Timestamp.fromMillis(1000))
                     .setAutoUpdate(true)));
             solutionTemplates.setTemplates(templates);
-            zmsImpl.setServerSolutionTemplates(solutionTemplates, Path.of("solution-templates-test.json"), 1000L);
+            zmsImpl.solutionTemplatesManager().setServerSolutionTemplates(solutionTemplates, Path.of("solution-templates-test.json"), 1000L);
 
             DomainTemplateDetailsList serverTemplateDetailsList = zmsImpl.getServerTemplateDetailsList(ctx);
             assertEquals(serverTemplateDetailsList.getMetaData().size(), 2);
@@ -25004,7 +25035,7 @@ public class ZMSImplTest {
             assertEquals(publishedMetaData.getTimestamp(), Timestamp.fromMillis(1000));
             assertTrue(publishedMetaData.getAutoUpdate());
         } finally {
-            zmsImpl.publishSolutionTemplatesSnapshot(originalSnapshot, true);
+            zmsImpl.solutionTemplatesManager().publishSolutionTemplatesSnapshot(originalSnapshot, true);
         }
     }
 
