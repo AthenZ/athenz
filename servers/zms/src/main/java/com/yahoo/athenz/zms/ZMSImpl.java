@@ -92,7 +92,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -112,7 +111,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     enum SolutionTemplatesReloadStatus {
         DISABLED,
-        IN_PROGRESS,
         NOT_MODIFIED,
         RELOADED,
         RETRY_PENDING,
@@ -193,11 +191,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected AuthorizedServices serverAuthorizedServices = null;
     protected volatile SolutionTemplates serverSolutionTemplates = null;
     protected volatile List<String> serverSolutionTemplateNames = null;
-    protected volatile Path serverSolutionTemplatesPath = null;
-    protected volatile long serverSolutionTemplatesModifiedMillis = -1L;
     protected boolean dynamicSolutionTemplatesReload = false;
     private final AtomicReference<SolutionTemplatesSnapshot> solutionTemplatesSnapshot = new AtomicReference<>();
-    private final AtomicBoolean solutionTemplatesReloadInProgress = new AtomicBoolean(false);
     private ScheduledExecutorService solutionTemplatesReloadExecutor = null;
     private volatile Path solutionTemplatesReloadFailedPath = null;
     private volatile long solutionTemplatesReloadFailedModifiedMillis = -1L;
@@ -1394,11 +1389,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return;
         }
 
-        if (solutionTemplatesReloadTimerTaskDisabled()) {
-            LOG.info("Solution templates reload timer task is disabled");
-            return;
-        }
-
         solutionTemplatesReloadExecutor = Executors.newSingleThreadScheduledExecutor(runnable -> {
             Thread thread = new Thread(runnable);
             thread.setName("zms-solution-templates-reload");
@@ -1406,11 +1396,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return thread;
         });
         scheduleSolutionTemplatesReload(0);
-    }
-
-    boolean solutionTemplatesReloadTimerTaskDisabled() {
-        return Boolean.parseBoolean(System.getProperty(
-                ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_DISABLE_TIMER, "false"));
     }
 
     void shutdownSolutionTemplatesReloadScheduler() {
@@ -1710,8 +1695,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     void updateSolutionTemplatesCompatibilityFields(SolutionTemplatesSnapshot snapshot) {
         serverSolutionTemplates = snapshot.templates;
-        serverSolutionTemplatesPath = snapshot.path;
-        serverSolutionTemplatesModifiedMillis = snapshot.modifiedMillis;
         serverSolutionTemplateNames = snapshot.templateNames;
         clearSolutionTemplatesReloadFailure();
 
@@ -1780,70 +1763,38 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             return SolutionTemplatesReloadStatus.RETRY_PENDING;
         }
 
-        if (!solutionTemplatesReloadInProgress.compareAndSet(false, true)) {
-            return SolutionTemplatesReloadStatus.IN_PROGRESS;
-        }
-
         try {
-            currentSnapshot = getSolutionTemplatesSnapshot();
-            path = currentSnapshot.path;
-            if (path == null) {
-                path = Paths.get(solutionTemplatesFileName());
-            }
+            SolutionTemplates solutionTemplates = readSolutionTemplates(path);
+            long postReadModifiedMillis;
             try {
-                modifiedMillis = solutionTemplatesModifiedMillis(path);
+                postReadModifiedMillis = solutionTemplatesModifiedMillis(path);
             } catch (IOException ex) {
-                if (solutionTemplatesReloadRetryPending(path, -1L)) {
-                    return SolutionTemplatesReloadStatus.RETRY_PENDING;
-                }
-                LOG.error("Unable to check solution templates file {} for changes: {}",
-                        path, ex.getMessage());
-                recordSolutionTemplatesReloadFailure(path, -1L);
-                return SolutionTemplatesReloadStatus.FAILED;
-            }
-            if (modifiedMillis == currentSnapshot.modifiedMillis) {
-                clearSolutionTemplatesReloadFailure();
-                return SolutionTemplatesReloadStatus.NOT_MODIFIED;
-            }
-            if (solutionTemplatesReloadRetryPending(path, modifiedMillis)) {
-                return SolutionTemplatesReloadStatus.RETRY_PENDING;
-            }
-
-            try {
-                SolutionTemplates solutionTemplates = readSolutionTemplates(path);
-                long postReadModifiedMillis;
-                try {
-                    postReadModifiedMillis = solutionTemplatesModifiedMillis(path);
-                } catch (IOException ex) {
-                    LOG.error("Unable to check solution templates file {} after reading it. "
-                            + "Keeping the previous templates: {}", path, ex.getMessage());
-                    recordSolutionTemplatesReloadFailure(path, modifiedMillis);
-                    return SolutionTemplatesReloadStatus.FAILED;
-                }
-                if (postReadModifiedMillis != modifiedMillis) {
-                    LOG.error("Solution templates file {} changed while it was being read. "
-                            + "Keeping the previous templates and retrying later", path);
-                    return SolutionTemplatesReloadStatus.FAILED;
-                }
-                validateSolutionTemplateReloadVersions(currentSnapshot.templates, solutionTemplates);
-                SolutionTemplatesSnapshot newSnapshot = newSolutionTemplatesSnapshot(solutionTemplates, path,
-                        modifiedMillis);
-                publishSolutionTemplatesSnapshot(newSnapshot, false);
-                LOG.info("Reloaded solution templates file {}", path);
-                return SolutionTemplatesReloadStatus.RELOADED;
-            } catch (IOException ex) {
-                LOG.error("Unable to read solution templates file {}. Keeping the previous templates: {}",
-                        path, ex.getMessage());
+                LOG.error("Unable to check solution templates file {} after reading it. "
+                        + "Keeping the previous templates: {}", path, ex.getMessage());
                 recordSolutionTemplatesReloadFailure(path, modifiedMillis);
                 return SolutionTemplatesReloadStatus.FAILED;
-            } catch (Exception ex) {
-                recordSolutionTemplatesReloadFailure(path, modifiedMillis);
-                LOG.error("Unable to reload solution templates file {}. Keeping the previous templates: {}",
-                        path, ex.getMessage());
+            }
+            if (postReadModifiedMillis != modifiedMillis) {
+                LOG.error("Solution templates file {} changed while it was being read. "
+                        + "Keeping the previous templates and retrying later", path);
                 return SolutionTemplatesReloadStatus.FAILED;
             }
-        } finally {
-            solutionTemplatesReloadInProgress.set(false);
+            validateSolutionTemplateReloadVersions(currentSnapshot.templates, solutionTemplates);
+            SolutionTemplatesSnapshot newSnapshot = newSolutionTemplatesSnapshot(solutionTemplates, path,
+                    modifiedMillis);
+            publishSolutionTemplatesSnapshot(newSnapshot, false);
+            LOG.info("Reloaded solution templates file {}", path);
+            return SolutionTemplatesReloadStatus.RELOADED;
+        } catch (IOException ex) {
+            LOG.error("Unable to read solution templates file {}. Keeping the previous templates: {}",
+                    path, ex.getMessage());
+            recordSolutionTemplatesReloadFailure(path, modifiedMillis);
+            return SolutionTemplatesReloadStatus.FAILED;
+        } catch (Exception ex) {
+            recordSolutionTemplatesReloadFailure(path, modifiedMillis);
+            LOG.error("Unable to reload solution templates file {}. Keeping the previous templates: {}",
+                    path, ex.getMessage());
+            return SolutionTemplatesReloadStatus.FAILED;
         }
     }
 

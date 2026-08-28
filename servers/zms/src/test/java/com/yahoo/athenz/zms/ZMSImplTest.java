@@ -14365,7 +14365,14 @@ public class ZMSImplTest {
         }
     }
 
-    private static class FailingReadZMSImpl extends ZMSImpl {
+    private static class ManualReloadZMSImpl extends ZMSImpl {
+
+        @Override
+        void initializeSolutionTemplatesReloadScheduler() {
+        }
+    }
+
+    private static class FailingReadZMSImpl extends ManualReloadZMSImpl {
 
         // the flag must be static since instance field initializers do not
         // run until after the ZMSImpl constructor (which triggers our first
@@ -14448,14 +14455,6 @@ public class ZMSImplTest {
         java.lang.reflect.Field field = ZMSImpl.class.getDeclaredField("solutionTemplatesSnapshot");
         field.setAccessible(true);
         return (java.util.concurrent.atomic.AtomicReference<SolutionTemplatesSnapshot>) field.get(zmsImpl);
-    }
-
-    private static java.util.concurrent.atomic.AtomicBoolean solutionTemplatesReloadInProgress(final ZMSImpl zmsImpl)
-            throws ReflectiveOperationException {
-
-        java.lang.reflect.Field field = ZMSImpl.class.getDeclaredField("solutionTemplatesReloadInProgress");
-        field.setAccessible(true);
-        return (java.util.concurrent.atomic.AtomicBoolean) field.get(zmsImpl);
     }
 
     private static java.util.concurrent.ScheduledExecutorService solutionTemplatesReloadExecutor(final ZMSImpl zmsImpl)
@@ -14608,7 +14607,7 @@ public class ZMSImplTest {
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
 
-            ZMSImpl zmsObj = new ZMSImpl();
+            ZMSImpl zmsObj = new ManualReloadZMSImpl();
             RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
             assertEquals(zmsObj.getTemplate(ctx, "dynamic_old").getMetadata().getLatestVersion().intValue(), 1);
 
@@ -14850,7 +14849,7 @@ public class ZMSImplTest {
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
 
-            ZMSImpl zmsImpl = new ZMSImpl();
+            ZMSImpl zmsImpl = new ManualReloadZMSImpl();
             SolutionTemplatesSnapshot nullPathSnapshot = zmsImpl.newSolutionTemplatesSnapshot(
                     zmsImpl.getSolutionTemplatesSnapshot().templates, null, -1L);
             solutionTemplatesSnapshotReference(zmsImpl).set(nullPathSnapshot);
@@ -14870,98 +14869,16 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testDynamicSolutionTemplatesReloadInProgressSkipsReload()
-            throws IOException, ReflectiveOperationException {
-
-        File tempFile = File.createTempFile("dynamic_solution_templates_in_progress", ".json");
-        String originalTemplateFile = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
-        String originalDynamicReload = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD);
-        try {
-            writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_old", 1));
-            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
-            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
-
-            ZMSImpl zmsImpl = new ZMSImpl();
-            RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
-            assertEquals(zmsImpl.getTemplate(ctx, "dynamic_old").getMetadata().getLatestVersion().intValue(), 1);
-
-            writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_new", 2));
-            java.util.concurrent.atomic.AtomicBoolean reloadInProgress = solutionTemplatesReloadInProgress(zmsImpl);
-            reloadInProgress.set(true);
-            try {
-                assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
-                        ZMSImpl.SolutionTemplatesReloadStatus.IN_PROGRESS);
-                assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
-                assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
-            } finally {
-                reloadInProgress.set(false);
-            }
-        } finally {
-            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, originalTemplateFile);
-            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, originalDynamicReload);
-            tempFile.delete();
-        }
-    }
-
-    @Test
-    public void testDynamicSolutionTemplatesReloadMissingSecondModifiedCheckKeepsPreviousTemplates()
-            throws IOException, ReflectiveOperationException {
-
-        class MissingSecondCheckZMSImpl extends ZMSImpl {
-            boolean failSecondCheck;
-            int modifiedCalls;
-
-            @Override
-            long solutionTemplatesModifiedMillis(final Path path) throws IOException {
-                if (failSecondCheck && ++modifiedCalls == 2) {
-                    throw new IOException("missing second check");
-                }
-                return super.solutionTemplatesModifiedMillis(path);
-            }
-        }
-
-        File tempFile = File.createTempFile("dynamic_solution_templates_second_check", ".json");
-        String originalTemplateFile = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
-        String originalDynamicReload = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD);
-        try {
-            writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_old", 1));
-            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
-            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
-
-            MissingSecondCheckZMSImpl zmsImpl = new MissingSecondCheckZMSImpl();
-            RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
-            assertEquals(zmsImpl.getTemplate(ctx, "dynamic_old").getMetadata().getLatestVersion().intValue(), 1);
-
-            writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_new", 2));
-            zmsImpl.failSecondCheck = true;
-            zmsImpl.modifiedCalls = 0;
-
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(), ZMSImpl.SolutionTemplatesReloadStatus.FAILED);
-            assertTrue(zmsImpl.getServerTemplateList(ctx).getTemplateNames().contains("dynamic_old"));
-            assertFalse(zmsImpl.serverSolutionTemplates.contains("dynamic_new"));
-            assertFalse(solutionTemplatesReloadInProgress(zmsImpl).get());
-
-            zmsImpl.modifiedCalls = 0;
-            assertEquals(zmsImpl.reloadSolutionTemplatesIfModified(),
-                    ZMSImpl.SolutionTemplatesReloadStatus.RETRY_PENDING);
-        } finally {
-            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, originalTemplateFile);
-            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, originalDynamicReload);
-            tempFile.delete();
-        }
-    }
-
-    @Test
     public void testDynamicSolutionTemplatesReloadPostReadModifiedCheckFailureKeepsPreviousTemplates()
             throws IOException {
 
-        class PostReadModifiedCheckFailZMSImpl extends ZMSImpl {
+        class PostReadModifiedCheckFailZMSImpl extends ManualReloadZMSImpl {
             boolean failPostReadModifiedCheck;
             int modifiedCalls;
 
             @Override
             long solutionTemplatesModifiedMillis(final Path path) throws IOException {
-                if (failPostReadModifiedCheck && ++modifiedCalls == 3) {
+                if (failPostReadModifiedCheck && ++modifiedCalls == 2) {
                     throw new IOException("post read modified check failure");
                 }
                 return super.solutionTemplatesModifiedMillis(path);
@@ -14998,7 +14915,7 @@ public class ZMSImplTest {
     public void testDynamicSolutionTemplatesReloadSkipsPublishWhenFileChangesDuringRead()
             throws IOException {
 
-        class ModifiedDuringReadZMSImpl extends ZMSImpl {
+        class ModifiedDuringReadZMSImpl extends ManualReloadZMSImpl {
             boolean updateDuringRead;
             File file;
 
@@ -15092,7 +15009,7 @@ public class ZMSImplTest {
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
 
-            ZMSImpl zmsImpl = new ZMSImpl();
+            ZMSImpl zmsImpl = new ManualReloadZMSImpl();
             RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
             assertEquals(zmsImpl.getTemplate(ctx, "dynamic_old").getMetadata().getLatestVersion().intValue(), 1);
 
@@ -15126,8 +15043,6 @@ public class ZMSImplTest {
         File tempFile = File.createTempFile("dynamic_solution_templates_scheduler", ".json");
         String originalTemplateFile = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
         String originalDynamicReload = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD);
-        String originalDisableTimer = System.getProperty(
-                ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_DISABLE_TIMER);
         String originalFrequency = System.getProperty(
                 ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS);
         ZMSImpl zmsImpl = null;
@@ -15135,7 +15050,6 @@ public class ZMSImplTest {
             writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_scheduler", 1));
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
-            System.clearProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_DISABLE_TIMER);
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS, "60");
 
             zmsImpl = new ZMSImpl();
@@ -15147,7 +15061,6 @@ public class ZMSImplTest {
             }
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, originalTemplateFile);
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, originalDynamicReload);
-            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_DISABLE_TIMER, originalDisableTimer);
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS, originalFrequency);
             tempFile.delete();
         }
@@ -15257,19 +15170,12 @@ public class ZMSImplTest {
     @Test
     public void testSolutionTemplatesReloadHelperDefaults() {
 
-        String originalDisableTimer = System.getProperty(
-                ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_DISABLE_TIMER);
         String originalFrequency = System.getProperty(
                 ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS);
         String originalMaxBackoff = System.getProperty(
                 ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_MAX_BACKOFF_SECONDS);
         try {
             ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-
-            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_DISABLE_TIMER, "false");
-            assertFalse(zmsImpl.solutionTemplatesReloadTimerTaskDisabled());
-            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_DISABLE_TIMER, "true");
-            assertTrue(zmsImpl.solutionTemplatesReloadTimerTaskDisabled());
 
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS, "0");
             assertEquals(zmsImpl.solutionTemplatesReloadFrequencySeconds(),
@@ -15297,7 +15203,6 @@ public class ZMSImplTest {
             zmsImpl.validateSolutionTemplateReloadVersion("new_template", null, template);
             zmsImpl.validateSolutionTemplateReloadVersion("same_template", template, template);
         } finally {
-            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_DISABLE_TIMER, originalDisableTimer);
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS, originalFrequency);
             restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_MAX_BACKOFF_SECONDS, originalMaxBackoff);
         }
@@ -15315,7 +15220,7 @@ public class ZMSImplTest {
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
 
-            ZMSImpl zmsImpl = new ZMSImpl();
+            ZMSImpl zmsImpl = new ManualReloadZMSImpl();
             RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
             assertEquals(zmsImpl.getTemplate(ctx, "dynamic_template").getMetadata().getDescription(),
                     "original template");
@@ -15358,7 +15263,7 @@ public class ZMSImplTest {
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
 
-            ZMSImpl zmsImpl = new ZMSImpl();
+            ZMSImpl zmsImpl = new ManualReloadZMSImpl();
             RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
             assertEquals(zmsImpl.getTemplate(ctx, "dynamic_current").getMetadata().getLatestVersion().intValue(), 1);
 
@@ -15388,7 +15293,7 @@ public class ZMSImplTest {
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
 
-            ZMSImpl zmsImpl = new ZMSImpl();
+            ZMSImpl zmsImpl = new ManualReloadZMSImpl();
             RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
             assertEquals(zmsImpl.getTemplate(ctx, "dynamic_old").getMetadata().getLatestVersion().intValue(), 1);
 
@@ -15418,7 +15323,7 @@ public class ZMSImplTest {
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
             System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "true");
 
-            ZMSImpl zmsImpl = new ZMSImpl();
+            ZMSImpl zmsImpl = new ManualReloadZMSImpl();
             RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
             assertEquals(zmsImpl.getTemplate(ctx, "dynamic_old").getMetadata().getLatestVersion().intValue(), 1);
 
@@ -15450,7 +15355,7 @@ public class ZMSImplTest {
     public void testDynamicSolutionTemplatesReloadSkipsDeterministicFailureAtSameTimestamp()
             throws IOException {
 
-        class DeterministicFailureZMSImpl extends ZMSImpl {
+        class DeterministicFailureZMSImpl extends ManualReloadZMSImpl {
             boolean failReload;
             int readCalls;
 
