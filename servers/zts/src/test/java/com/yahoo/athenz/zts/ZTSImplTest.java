@@ -9964,6 +9964,59 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testLoadX509CertEmailValidatorInvalidClass() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_EMAIL_VALIDATOR_FACTORY_CLASS, "invalid.class");
+        try {
+            ztsImpl.loadX509CertEmailValidator();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid certificate email validator factory class"));
+        }
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_EMAIL_VALIDATOR_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testLoadX509CertEmailValidator() {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+
+        // property is not set - validator should be created with default factory
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_EMAIL_VALIDATOR_FACTORY_CLASS);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+        assertNotNull(ztsImpl.certEmailValidator);
+
+        // property is set to a valid factory class - validator should be created
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_EMAIL_VALIDATOR_FACTORY_CLASS,
+                "com.yahoo.athenz.zts.cert.impl.TestX509CertEmailValidatorFactory");
+        ztsImpl.loadX509CertEmailValidator();
+        assertNotNull(ztsImpl.certEmailValidator);
+
+        // property is set to a factory class whose create() throws - load should fail
+
+        System.setProperty(ZTSConsts.ZTS_PROP_CERT_EMAIL_VALIDATOR_FACTORY_CLASS,
+                "com.yahoo.athenz.zts.cert.impl.TestX509CertEmailValidatorFactory$FactoryThrowsException");
+        try {
+            ztsImpl.loadX509CertEmailValidator();
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("Invalid certificate email validator factory class"));
+        }
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_CERT_EMAIL_VALIDATOR_FACTORY_CLASS);
+    }
+
+    @Test
     public void testLoadMockAuthority() {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
