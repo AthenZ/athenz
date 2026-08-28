@@ -13,28 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.cert.impl.crypki;
+package com.yahoo.athenz.crypki.hsm;
 
-import java.util.List;
+import com.yahoo.athenz.crypki.signer.SigningKey;
 
-public class ProviderSignerKeys {
+/**
+ * HSM / PKCS#11 operations. AWS CloudHSM implements this in server-aws-common.
+ */
+public interface HsmClient {
 
-    private String defaultKeyId;
-    private List<ProviderSignerKey> providerKeys;
-
-    public String getDefaultKeyId() {
-        return defaultKeyId;
-    }
-
-    public void setDefaultKeyId(String defaultKeyId) {
-        this.defaultKeyId = defaultKeyId;
-    }
-
-    public List<ProviderSignerKey> getProviderKeys() {
-        return providerKeys;
-    }
-
-    public void setProviderKeys(List<ProviderSignerKey> providerKeys) {
-        this.providerKeys = providerKeys;
-    }
+    SigningKey getSigningKey(String keyId);
 }

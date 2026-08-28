@@ -13,28 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.cert.impl.crypki;
+package com.yahoo.athenz.crypki.kms;
 
-import java.util.List;
+import java.security.PublicKey;
+import java.security.cert.X509Certificate;
 
-public class ProviderSignerKey {
+/**
+ * Cloud KMS operations used by {@link com.yahoo.athenz.crypki.kms.KmsCrypkiSigner}.
+ * AWS and GCP implementations live in server-aws-common / server-gcp-common.
+ */
+public interface KmsClient {
 
-    private String keyId;
-    private List<String> providers;
+    byte[] sign(String keyId, byte[] data, String signingAlgorithm);
 
-    public String getKeyId() {
-        return keyId;
-    }
+    PublicKey getPublicKey(String keyId);
 
-    public void setKeyId(String filename) {
-        this.keyId = filename;
-    }
-
-    public List<String> getProviders() {
-        return providers;
-    }
-
-    public void setProviders(List<String> providers) {
-        this.providers = providers;
-    }
+    X509Certificate getCaCertificate(String keyId);
 }

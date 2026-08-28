@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package com.yahoo.athenz.zts.cert.impl.crypki;
+package com.yahoo.athenz.crypki.http;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.ALWAYS)
-public class X509Certificate {
+public class KeyMeta {
+    
+    public KeyMeta(String identifier) {
+        this.identifier = identifier;
+    }
+    
+    private String identifier;
 
-    private String cert;
-
-    public String getCert() {
-        return cert;
+    public String getIdentifier() {
+        return identifier;
     }
 
-    public void setCert(String cert) {
-        this.cert = cert;
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
     }
 
 }
