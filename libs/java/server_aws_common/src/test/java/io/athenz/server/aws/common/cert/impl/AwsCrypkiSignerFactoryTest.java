@@ -15,13 +15,19 @@
  */
 package io.athenz.server.aws.common.cert.impl;
 
+import com.amazonaws.cloudhsm.jce.provider.CloudHsmProvider;
+import com.amazonaws.cloudhsm.jce.provider.KeyStoreWithAttributes;
+import com.amazonaws.cloudhsm.jce.provider.StubKeyStoreSpi;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.crypki.CrypkiCertSigner;
 import com.yahoo.athenz.crypki.CrypkiException;
 import com.yahoo.athenz.crypki.CrypkiConsts;
 import com.yahoo.athenz.crypki.hsm.HsmClient;
 import com.yahoo.athenz.crypki.kms.KmsClient;
+import com.yahoo.athenz.crypki.signer.SigningKey;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.kms.model.GetPublicKeyRequest;
@@ -33,6 +39,7 @@ import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
 import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.Security;
 import java.security.cert.X509Certificate;
 
 import static org.testng.Assert.assertEquals;
@@ -41,6 +48,16 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.expectThrows;
 
 public class AwsCrypkiSignerFactoryTest {
+
+    @AfterMethod
+    public void resetCloudHsmStubs() {
+        StubKeyStoreSpi.key = null;
+        KeyStoreWithAttributes.throwOnGetInstance = false;
+        KeyStoreWithAttributes.returnNonPrivateKey = false;
+        KeyStoreWithAttributes.returnNullKey = false;
+        Security.removeProvider("CloudHsmProvider");
+        Security.removeProvider("AthenzCrypkiHsm");
+    }
 
     @Test
     public void testKmsFactoryWithInjectedClient() {
@@ -126,10 +143,9 @@ public class AwsCrypkiSignerFactoryTest {
         assertEquals(client.resolveLabel(null), "athenz-crypki-ca");
         assertEquals(client.resolveLabel(""), "athenz-crypki-ca");
         assertEquals(client.resolveLabel(CrypkiConsts.DEFAULT_KEY_ID), "athenz-crypki-ca");
-        // unit tests do not ship CloudHSM JCE
-        assertEquals(AwsCloudHsmClient.cloudHsmJcePresent(), false);
-        assertEquals(AwsCloudHsmClient.loadCloudHsmJcePrivateKeyByAttributes(
-                null, "athenz-crypki-ca", new char[]{'x'}), null);
+        assertTrue(AwsCloudHsmClient.cloudHsmJcePresent());
+        expectThrows(CrypkiException.class, () -> AwsCloudHsmClient.loadCloudHsmJcePrivateKeyByAttributes(
+                null, "athenz-crypki-ca", new char[]{'x'}));
         assertEquals(client.getSigningKey(CrypkiConsts.DEFAULT_KEY_ID).getIdentifier(), "athenz-crypki-ca");
         expectThrows(CrypkiException.class, () -> client.getSigningKey("other-label"));
         assertEquals(AwsCloudHsmClient.pkcs11Config("/opt/cloudhsm/lib/libcloudhsm_pkcs11.so", null),
@@ -137,6 +153,7 @@ public class AwsCrypkiSignerFactoryTest {
         assertEquals(AwsCloudHsmClient.pkcs11Config("/opt/cloudhsm/lib/libcloudhsm_pkcs11.so", "1"),
                 "--name=AthenzCrypkiHsm\nlibrary=/opt/cloudhsm/lib/libcloudhsm_pkcs11.so\nslot=1\n");
         expectThrows(CrypkiException.class, () -> AwsCloudHsmClient.readPin(null));
+        expectThrows(CrypkiException.class, () -> AwsCloudHsmClient.readPin("/missing-pin.txt"));
         expectThrows(CrypkiException.class, () -> AwsCloudHsmClient.loadCaCertificate(null));
         expectThrows(CrypkiException.class, () -> AwsCloudHsmClient.loadCaCertificate("/missing-ca.pem"));
         java.io.File emptyPin = java.io.File.createTempFile("pin", ".txt");
@@ -157,7 +174,15 @@ public class AwsCrypkiSignerFactoryTest {
         expectThrows(CrypkiException.class, () -> AwsCloudHsmClient.loadSigningKey(
                 modulePathForCoverage(), null, "athenz-crypki-ca", pin.getAbsolutePath(),
                 certFile.getAbsolutePath()));
+        expectThrows(CrypkiException.class, () -> AwsCloudHsmClient.pkcs11Provider(
+                modulePathForCoverage(), null));
+        expectThrows(CrypkiException.class, () -> AwsCloudHsmClient.loadSunPkcs11(
+                modulePathForCoverage(), "1", "athenz-crypki-ca",
+                "crypto-user:example-pin".toCharArray(), ca));
         assertNotNull(AwsCloudHsmClient.loadCaCertificate(certFile.getAbsolutePath()));
+        expectThrows(CrypkiException.class, AwsCloudHsmClient::new);
+        expectThrows(CrypkiException.class, () -> new AwsCloudHsmClient(
+                "/missing-module.so", null, "", pin.getAbsolutePath(), certFile.getAbsolutePath()));
     }
 
     private static String modulePathForCoverage() throws Exception {
@@ -188,5 +213,89 @@ public class AwsCrypkiSignerFactoryTest {
             }
         };
         assertNotNull(factory.create());
+    }
+
+    @Test
+    public void testAwsKmsClientInvalidPublicKeyAndDefaultCtor() throws Exception {
+        software.amazon.awssdk.services.kms.KmsClient aws = Mockito.mock(
+                software.amazon.awssdk.services.kms.KmsClient.class);
+        Mockito.when(aws.getPublicKey(Mockito.any(GetPublicKeyRequest.class))).thenReturn(
+                GetPublicKeyResponse.builder().publicKey(SdkBytes.fromByteArray(new byte[]{1, 2, 3})).build());
+        AwsKmsClient client = new AwsKmsClient(aws, null);
+        expectThrows(CrypkiException.class, () -> client.getPublicKey("kid"));
+
+        try (MockedStatic<software.amazon.awssdk.services.kms.KmsClient> mocked =
+                Mockito.mockStatic(software.amazon.awssdk.services.kms.KmsClient.class)) {
+            mocked.when(software.amazon.awssdk.services.kms.KmsClient::create).thenReturn(aws);
+            assertNotNull(new AwsKmsClient());
+            assertNotNull(new AwsKmsCrypkiSignerFactory().newKmsClient());
+        }
+    }
+
+    @Test
+    public void testCloudHsmJceLoadsPrivateKeyByAttributes() throws Exception {
+        KeyPair pair = rsaKeyPair();
+        StubKeyStoreSpi.key = pair.getPrivate();
+        CloudHsmProvider alreadyRegistered = new CloudHsmProvider();
+        Security.addProvider(alreadyRegistered);
+        try {
+            SigningKey key = loadJceSigningKey("example-hsm-label");
+            assertEquals(key.getIdentifier(), "example-hsm-label");
+            assertEquals(key.getPrivateKey(), pair.getPrivate());
+            assertNotNull(new AwsCloudHsmClient(modulePathForCoverage(), null, "",
+                    pinFile("crypto-user:example-pin"), caCertFile()).getSigningKey(null));
+        } finally {
+            Security.removeProvider(alreadyRegistered.getName());
+        }
+    }
+
+    @Test
+    public void testCloudHsmJceFallsBackToKeyStoreWhenAttributesMiss() throws Exception {
+        KeyPair pair = rsaKeyPair();
+        StubKeyStoreSpi.key = pair.getPrivate();
+        KeyStoreWithAttributes.returnNullKey = true;
+        SigningKey key = loadJceSigningKey("fallback-label");
+        assertEquals(key.getPrivateKey(), pair.getPrivate());
+    }
+
+    @Test
+    public void testCloudHsmJceIgnoresNonPrivateAttributeKey() throws Exception {
+        KeyStoreWithAttributes.returnNonPrivateKey = true;
+        expectThrows(CrypkiException.class, () -> loadJceSigningKey("missing-label"));
+    }
+
+    @Test
+    public void testCloudHsmJceAttributeLookupFailure() {
+        KeyStoreWithAttributes.throwOnGetInstance = true;
+        expectThrows(CrypkiException.class, () -> loadJceSigningKey("broken-label"));
+    }
+
+    private static SigningKey loadJceSigningKey(String label) throws Exception {
+        return AwsCloudHsmClient.loadSigningKey(modulePathForCoverage(), null, label,
+                pinFile("crypto-user:example-pin"), caCertFile());
+    }
+
+    private static KeyPair rsaKeyPair() throws Exception {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        kpg.initialize(2048);
+        return kpg.generateKeyPair();
+    }
+
+    private static String pinFile(String pin) throws Exception {
+        java.io.File file = java.io.File.createTempFile("pin", ".txt");
+        file.deleteOnExit();
+        Files.writeString(file.toPath(), pin + "\n");
+        return file.getAbsolutePath();
+    }
+
+    private static String caCertFile() throws Exception {
+        var caKey = Crypto.generateRSAPrivateKey(2048);
+        String csr = Crypto.generateX509CSR(caKey, "CN=hsm-ca,O=Athenz,C=US", null);
+        X509Certificate ca = Crypto.generateX509Certificate(Crypto.getPKCS10CertRequest(csr), caKey,
+                new org.bouncycastle.asn1.x500.X500Name("CN=hsm-ca,O=Athenz,C=US"), 60, true);
+        java.io.File certFile = java.io.File.createTempFile("hsmca", ".pem");
+        certFile.deleteOnExit();
+        Files.writeString(certFile.toPath(), Crypto.convertToPEMFormat(ca));
+        return certFile.getAbsolutePath();
     }
 }
