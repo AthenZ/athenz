@@ -33,6 +33,7 @@ import com.yahoo.athenz.common.server.store.*;
 import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.PrincipalUtils;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigInteger;
 import com.yahoo.athenz.zms.assertion.ResourceUpdaterManager;
 import com.yahoo.athenz.zms.config.MemberDueDays;
@@ -134,6 +135,8 @@ public class DBService implements RolesProvider, DomainProvider {
                 System.getProperty(ZMSConsts.ZMS_PROP_ENFORCE_UNIQUE_GCP_PROJECTS, "true")));
         domainOptions.setEnforceUniqueProductIds(Boolean.parseBoolean(
                 System.getProperty(ZMSConsts.ZMS_PROP_ENFORCE_UNIQUE_PRODUCT_IDS, "true")));
+        domainOptions.setAllowMultipleAWSAccounts(Boolean.parseBoolean(
+                System.getProperty(ZMSConsts.ZMS_PROP_ALLOW_MULTIPLE_AWS_ACCOUNTS, "false")));
 
         if (this.store != null) {
             this.store.setOperationTimeout(defaultOpTimeout);
@@ -4909,6 +4912,21 @@ public class DBService implements RolesProvider, DomainProvider {
         return oldValue.equals(newValue);
     }
 
+    boolean isDeleteSystemMetaAllowed(boolean deleteAllowed, final Set<String> oldValues, final Set<String> newValues) {
+
+        // if authorized or old value is not set, then there is
+        // no need to check any value
+
+        if (deleteAllowed || oldValues.isEmpty()) {
+            return true;
+        }
+
+        // since our old value is not empty then we will only
+        // allow if the new set of accounts is identical
+
+        return oldValues.equals(newValues);
+    }
+
     boolean isDeleteSystemMetaAllowed(boolean deleteAllowed, Integer oldValue, Integer newValue) {
 
         // if authorized or old value is not set, then there is
@@ -4934,7 +4952,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
         switch (attribute) {
             case ZMSConsts.SYSTEM_META_ACCOUNT:
-                if (!isDeleteSystemMetaAllowed(deleteAllowed, domain.getAccount(), meta.getAccount())) {
+                if (!isDeleteSystemMetaAllowed(deleteAllowed, Utils.parseAwsAccounts(domain.getAccount()),
+                        Utils.parseAwsAccounts(meta.getAccount()))) {
                     throw ZMSUtils.forbiddenError("unauthorized to reset system meta attribute: " + attribute, caller);
                 }
                 domain.setAccount(meta.getAccount());

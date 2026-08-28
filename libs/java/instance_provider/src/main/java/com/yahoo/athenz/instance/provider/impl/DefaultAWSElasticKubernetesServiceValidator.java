@@ -20,6 +20,7 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
+import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.athenz.instance.provider.AttrValidator;
 import com.yahoo.athenz.instance.provider.AttrValidatorFactory;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
@@ -140,12 +141,13 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
 
         if (useIamRoleForIssuerValidation()) {
             String awsAccount = confirmation.getAttributes().get(ZTS_INSTANCE_AWS_ACCOUNT);
-            if (!verifyIssuerPresenceInDomainAWSAccount(issuer, awsAccount)) {
+            final String matchedAccount = verifyIssuerPresenceInDomainAWSAccount(issuer, awsAccount);
+            if (matchedAccount == null) {
                 return null;
             }
             // If the issuer is present in the same AWS account as the requested identity
             // then we should use the same for the launch authorization
-            confirmation.getAttributes().put(ZTS_INSTANCE_ISSUER_AWS_ACCOUNT, awsAccount);
+            confirmation.getAttributes().put(ZTS_INSTANCE_ISSUER_AWS_ACCOUNT, matchedAccount);
         } else {
             if (attrValidator != null) {
                 confirmation.getAttributes().put(ZTS_INSTANCE_UNATTESTED_ISSUER, issuer);
@@ -196,29 +198,46 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
         return IamClient.builder().credentialsProvider(credentialsProvider).region(Region.of(serverRegion)).build();
     }
 
-    boolean verifyIssuerPresenceInDomainAWSAccount(final String issuer, final String awsAccount) {
+    boolean verifyIssuerPresenceInAWSAccount(final String issuer, final String awsAccount) {
 
         boolean result = false;
 
-        // get our IAM Client
+        // get our IAM Client - closed after use since each call assumes a
+        // role and opens its own set of connections
 
-        IamClient iamClient = getIamClient(awsAccount);
+        try (IamClient iamClient = getIamClient(awsAccount)) {
 
-        // Call the IAM API to get the list of OIDC issuers
+            // Call the IAM API to get the list of OIDC issuers
 
-        ListOpenIdConnectProvidersRequest request = ListOpenIdConnectProvidersRequest.builder().build();
-        ListOpenIdConnectProvidersResponse response = iamClient.listOpenIDConnectProviders(request);
-        List<OpenIDConnectProviderListEntry> oidcIssuers = response.openIDConnectProviderList();
-        if (oidcIssuers != null) {
-            String issuerWithoutProtocol = issuer.replaceFirst("^https://", "");
-            for (OpenIDConnectProviderListEntry oidcIssuer : oidcIssuers) {
-                if (oidcIssuer != null && oidcIssuer.arn() != null && oidcIssuer.arn().endsWith(issuerWithoutProtocol)) {
-                    result = true;
-                    break;
+            ListOpenIdConnectProvidersRequest request = ListOpenIdConnectProvidersRequest.builder().build();
+            ListOpenIdConnectProvidersResponse response = iamClient.listOpenIDConnectProviders(request);
+            List<OpenIDConnectProviderListEntry> oidcIssuers = response.openIDConnectProviderList();
+            if (oidcIssuers != null) {
+                String issuerWithoutProtocol = issuer.replaceFirst("^https://", "");
+                for (OpenIDConnectProviderListEntry oidcIssuer : oidcIssuers) {
+                    if (oidcIssuer != null && oidcIssuer.arn() != null && oidcIssuer.arn().endsWith(issuerWithoutProtocol)) {
+                        result = true;
+                        break;
+                    }
                 }
             }
         }
         return result;
+    }
+
+    /**
+     * Verifies that the given issuer is present in one of the domain's aws accounts
+     * (the value may be a comma-separated list) and returns the matched account, or
+     * null if the issuer is not found in any of them.
+     */
+    String verifyIssuerPresenceInDomainAWSAccount(final String issuer, final String awsAccount) {
+
+        for (String account : Utils.parseAwsAccounts(awsAccount)) {
+            if (verifyIssuerPresenceInAWSAccount(issuer, account)) {
+                return account;
+            }
+        }
+        return null;
     }
 
     @Override

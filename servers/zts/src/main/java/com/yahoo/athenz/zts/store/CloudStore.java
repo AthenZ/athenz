@@ -18,6 +18,7 @@ package com.yahoo.athenz.zts.store;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -26,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
+import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
 import io.athenz.server.aws.common.creds.impl.TempCredsProvider;
 import org.eclipse.jetty.util.StringUtil;
@@ -292,6 +294,10 @@ public class CloudStore {
 
     public String getAwsAccount(String domainName) {
         return awsAccountCache.get(domainName);
+    }
+
+    public Set<String> getAwsAccounts(String domainName) {
+        return Utils.parseAwsAccounts(awsAccountCache.get(domainName));
     }
 
     public String getAzureSubscription(String domainName) {
