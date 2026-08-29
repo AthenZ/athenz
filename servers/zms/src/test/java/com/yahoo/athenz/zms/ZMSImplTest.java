@@ -35,6 +35,7 @@ import com.yahoo.athenz.common.config.AuthzDetailsField;
 import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.messaging.MockDomainChangePublisher;
 import com.yahoo.athenz.common.metrics.Metric;
+import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLogMsgBuilder;
@@ -1009,6 +1010,7 @@ public class ZMSImplTest {
 
         SubDomain dom2 = zmsTestInitializer.createSubDomainObject("AddSubDom2", "AddSubDom1",
                 "Test Domain2", null, zmsTestInitializer.getAdminUser());
+        dom2.setAutoDeleteTenantAssumeRoleAssertions(true);
         Domain resDom1 = zmsImpl.postSubDomain(ctx, "AddSubDom1", auditRef, null, dom2);
         assertNotNull(resDom1);
 
@@ -1017,6 +1019,7 @@ public class ZMSImplTest {
 
         assertEquals(dom2.getOrg(), "testorg");
         assertFalse(resDom2.getAuditEnabled());
+        assertTrue(resDom2.getAutoDeleteTenantAssumeRoleAssertions());
 
         zmsImpl.deleteSubDomain(ctx, "AddSubDom1", "AddSubDom2", auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, "AddSubDom1", auditRef, null);
@@ -1062,6 +1065,7 @@ public class ZMSImplTest {
 
         RsrcCtxWrapper ctx = zmsTestInitializer.contextWithMockPrincipal("postUserDomain");
         UserDomain dom1 = zmsTestInitializer.createUserDomainObject("john-doe", "Test Domain1", "testOrg");
+        dom1.setAutoDeleteTenantAssumeRoleAssertions(true);
         zmsImpl.postUserDomain(ctx, "john-doe", auditRef, null, dom1);
 
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), DOMAIN, "user.john-doe",
@@ -1069,6 +1073,7 @@ public class ZMSImplTest {
 
         Domain resDom2 = zmsImpl.getDomain(ctx, "user.john-doe");
         assertNotNull(resDom2);
+        assertTrue(resDom2.getAutoDeleteTenantAssumeRoleAssertions());
 
         RsrcCtxWrapper deleteCtx = zmsTestInitializer.contextWithMockPrincipal("deleteUserDomain");
         zmsImpl.deleteUserDomain(deleteCtx, "john-doe", auditRef, null);
@@ -14893,7 +14898,8 @@ public class ZMSImplTest {
 
         try {
             ServiceIdentitySystemMeta meta = new ServiceIdentitySystemMeta();
-            zmsTest.putServiceIdentitySystemMeta(ctx, "ReadOnlyDom1", "Service1", "providerendpoint",
+            RsrcCtxWrapper serviceMetaCtx = zmsTestInitializer.contextWithMockPrincipal("putServiceIdentitySystemMeta");
+            zmsTest.putServiceIdentitySystemMeta(serviceMetaCtx, "ReadOnlyDom1", "Service1", "providerendpoint",
                     auditRef, meta);
             fail();
         } catch (ResourceException ex) {
@@ -18873,6 +18879,75 @@ public class ZMSImplTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
+        zmsImpl.objectStore.clearConnections();
+    }
+
+    @Test
+    public void testValidateAwsAccountValue() {
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+
+        // null/empty values are no-ops
+
+        assertNull(zmsImpl.validateAwsAccountValue(null, "unit-test"));
+        assertEquals(zmsImpl.validateAwsAccountValue("", "unit-test"), "");
+
+        // single account
+
+        assertEquals(zmsImpl.validateAwsAccountValue("1234", "unit-test"), "1234");
+
+        // multiple accounts - returned value is normalized (trimmed, no spaces)
+
+        assertEquals(zmsImpl.validateAwsAccountValue("1234,5678", "unit-test"), "1234,5678");
+        assertEquals(zmsImpl.validateAwsAccountValue(" 1234 , 5678 ", "unit-test"), "1234,5678");
+
+        // invalid account value fails compound name validation
+
+        try {
+            zmsImpl.validateAwsAccountValue("1234,invalid account", "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        // value exceeding the maximum length is rejected
+
+        String tooLong = "1".repeat(ZMSImpl.ACCOUNT_VALUE_MAX_LEN + 1);
+        try {
+            zmsImpl.validateAwsAccountValue(tooLong, "unit-test");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("exceeds maximum length"));
+        }
+
+        zmsImpl.objectStore.clearConnections();
+    }
+
+    @Test
+    public void testIsValidAWSAccounts() throws ServerResourceException {
+        ZMSImpl zmsImpl = zmsTestInitializer.zmsInit();
+
+        DomainMetaStore savedMetaStore = zmsImpl.domainMetaStore;
+        zmsImpl.domainMetaStore = new TestDomainMetaStore();
+
+        // no accounts specified is always valid
+
+        assertTrue(zmsImpl.isValidAWSAccounts("iaas.athenz", null));
+        assertTrue(zmsImpl.isValidAWSAccounts("iaas.athenz", ""));
+
+        // single valid account
+
+        assertTrue(zmsImpl.isValidAWSAccounts("iaas.athenz", "1234"));
+
+        // multiple valid accounts
+
+        assertTrue(zmsImpl.isValidAWSAccounts("iaas.athenz", "1234,5678"));
+
+        // one invalid account in the list fails the whole check
+
+        assertFalse(zmsImpl.isValidAWSAccounts("iaas.athenz", "1234,invalid-5678"));
+
+        zmsImpl.domainMetaStore = savedMetaStore;
         zmsImpl.objectStore.clearConnections();
     }
 
@@ -23266,6 +23341,7 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+        ZMSTestUtils.setupServiceSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName,
                 serviceName, "http://localhost", "/usr/bin/java", "root",
@@ -23311,6 +23387,7 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+        ZMSTestUtils.setupServiceSystemMetaAuthorization(ctx, zmsImpl, ctx.principal().getFullName(), auditRef);
 
         ServiceIdentity service = zmsTestInitializer.createServiceObject(domainName,
                 serviceName, "http://localhost", "/usr/bin/java", "root",

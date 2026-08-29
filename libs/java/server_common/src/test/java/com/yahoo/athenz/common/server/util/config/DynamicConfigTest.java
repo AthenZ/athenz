@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -237,8 +238,10 @@ public class DynamicConfigTest {
             assertEquals(dynamicConfigDurationFixed.getMilliseconds(), 123456_000L);
 
             assertEquals(Utils.jsonSerializeForLog(dynamicConfigCsvOk.getStringsList()), "[\"aaa\",\"111\",\"1234567890123456789\",\"12.34\",\"bbb\"]");
-            assertEquals(Utils.jsonSerializeForLog(dynamicConfigCsvOk.getDoublesList()), "[111.0,1.23456789012345677E18,12.34]");
-            assertEquals(Utils.jsonSerializeForLog(dynamicConfigCsvOk.getFloatsList()), "[111.0,1.23456794E18,12.34]");
+            assertEquals(Utils.jsonSerializeForLog(dynamicConfigCsvOk.getDoublesList()),
+                    Utils.jsonSerializeForLog(List.of(111.0, Double.parseDouble("1234567890123456789"), 12.34)));
+            assertEquals(Utils.jsonSerializeForLog(dynamicConfigCsvOk.getFloatsList()),
+                    Utils.jsonSerializeForLog(List.of(111.0f, Float.parseFloat("1234567890123456789"), 12.34f)));
             assertEquals(Utils.jsonSerializeForLog(dynamicConfigCsvOk.getLongsList()), "[111,1234567890123456789]");
             assertEquals(Utils.jsonSerializeForLog(dynamicConfigCsvOk.getIntegersList()), "[111]");
             assertEquals(Utils.jsonSerializeForLog(dynamicConfigCsvMissing.getStringsList()), "[\"default-value-a\",\"default-value-b\"]");

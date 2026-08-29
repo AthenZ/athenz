@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/AthenZ/athenz/libs/go/sia/aws/attestation"
@@ -38,7 +39,48 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	ssmtypes "github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	ststypes "github.com/aws/aws-sdk-go-v2/service/sts/types"
 )
+
+// AthenzIdentityRequest carries all the attributes required to fetch an Athenz
+// service identity from within an AWS Lambda function. In addition to the fields
+// supported by GetAthenzIdentity, it allows the caller to control how the
+// attestation data is generated: either with AWS temporary credentials obtained
+// from an STS assume-role call (the default), or with an AWS issued OIDC web
+// identity token when UseWebIdentityToken is set to true.
+type AthenzIdentityRequest struct {
+	AthenzDomain                string                // name of the domain for the identity
+	AthenzService               string                // name of the service for the identity
+	AthenzProvider              string                // name of the athenz provider
+	ZTSUrl                      string                // the ZTS server url to contact
+	SanDNSDomains               []string              // dns domains for the SAN dnsName entries in the csr
+	SpiffeTrustDomain           string                // spiffe trust domain for the SAN uri entry in the csr
+	CsrSubjectFields            util.CsrSubjectFields // subject fields for the csr
+	InstanceIdSanDNS            bool                  // include the instance id in the SAN dnsName entries
+	AwsAccount                  string                // aws account id; if empty it is extracted from the caller identity
+	Region                      string                // aws region name; if empty the AWS_REGION env variable is used
+	UseRegionalSTS              bool                  // use the regional sts endpoint instead of the global one
+	OmitDomain                  bool                  // the attestation iam role only includes the service name
+	RolePath                    string                // iam role path prefix (temporary credentials only)
+	UseWebIdentityToken         bool                  // use a web identity token instead of temporary credentials
+	WebIdentityAudience         string                // audience for the web identity token; if empty the zts url is used
+	WebIdentitySigningAlgorithm string                // signing algorithm for the web identity token (RS256 or ES384); default ES384
+	WebIdentityDurationSeconds  int32                 // lifetime of the web identity token in seconds (60-3600); default 300
+	WebIdentityTags             []ststypes.Tag        // optional key/value pairs added as custom claims to the web identity token
+}
+
+const (
+	defaultWebIdentitySigningAlgorithm = "ES384"
+	defaultWebIdentityDurationSeconds  = int32(300)
+)
+
+// stsAttestationData generates the attestation data based on AWS temporary credentials.
+// It is a package-level variable so tests can replace it with a stub.
+var stsAttestationData = attestation.New
+
+// awsAccountIdFetcher returns the aws account id for the current caller.
+// It is a package-level variable so tests can replace it with a stub.
+var awsAccountIdFetcher = meta.GetAccountId
 
 // ACMClientInterface defines the interface for ACM client operations
 type ACMClientInterface interface {
@@ -73,6 +115,7 @@ func getLambdaAttestationData(domain, service, account string) ([]byte, error) {
 	return json.Marshal(data)
 }
 
+// Deprecated: Use GetAthenzServiceIdentity function to get identity certificates
 func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl string, sanDNSDomains []string, spiffeTrustDomain string, csrSubjectFields util.CsrSubjectFields) (*util.SiaCertData, error) {
 	awsAccount := meta.GetAccountId()
 	athenzDomain = strings.ToLower(athenzDomain)
@@ -82,7 +125,79 @@ func GetAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl strin
 	return getInternalAthenzIdentity(athenzDomain, athenzService, athenzProvider, ztsUrl, awsAccount, sanDNSDomains, spiffeTrustDomain, csrSubjectFields, false)
 }
 
-// Deprecated: Use GetAthenzIdentity functions to get identity certificates
+// GetAthenzServiceIdentity requests an Athenz X.509 service identity certificate from
+// ZTS for the given lambda function. The attestation data presented to ZTS is generated
+// either from AWS temporary credentials or, when request.UseWebIdentityToken is enabled,
+// from an AWS issued OIDC web identity token (JWT).
+func GetAthenzServiceIdentity(request *AthenzIdentityRequest) (*util.SiaCertData, error) {
+
+	if request == nil {
+		return nil, fmt.Errorf("no athenz identity request specified")
+	}
+	athenzDomain := strings.ToLower(request.AthenzDomain)
+	athenzService := strings.ToLower(request.AthenzService)
+	athenzProvider := strings.ToLower(request.AthenzProvider)
+	if athenzDomain == "" || athenzService == "" || athenzProvider == "" || request.ZTSUrl == "" {
+		return nil, fmt.Errorf("athenz domain, service, provider and zts url must be specified")
+	}
+
+	// if the account is not given, we're going to extract it from our caller identity
+	awsAccount := request.AwsAccount
+	if awsAccount == "" {
+		awsAccount = awsAccountIdFetcher()
+		if awsAccount == "" {
+			return nil, fmt.Errorf("unable to determine aws account id")
+		}
+	}
+
+	// if the region is not given, we're going to use the one configured
+	// in our lambda runtime environment
+	region := request.Region
+	if region == "" {
+		region = os.Getenv("AWS_REGION")
+	}
+
+	privateKey, err := util.GenerateKeyPair(2048)
+	if err != nil {
+		return nil, err
+	}
+	attestationData, err := getAthenzAttestationData(request, athenzDomain, athenzService, awsAccount, region)
+	if err != nil {
+		return nil, err
+	}
+
+	instanceId := getLambdaInstance(awsAccount, athenzService)
+	return util.RegisterIdentity(athenzDomain, athenzService, athenzProvider, request.ZTSUrl, instanceId,
+		attestationData, request.SpiffeTrustDomain, request.SanDNSDomains, request.CsrSubjectFields,
+		request.InstanceIdSanDNS, privateKey)
+}
+
+func getAthenzAttestationData(request *AthenzIdentityRequest, athenzDomain, athenzService, awsAccount, region string) (string, error) {
+
+	if !request.UseWebIdentityToken {
+		// lambda functions have no ec2 instance identity document/signature, so the
+		// attestation data only carries the assumed role temporary credentials
+		return stsAttestationData(athenzDomain, athenzService, region, awsAccount, "", "",
+			request.UseRegionalSTS, request.OmitDomain, request.RolePath)
+	}
+
+	audience := request.WebIdentityAudience
+	if audience == "" {
+		audience = request.ZTSUrl
+	}
+	signingAlgorithm := request.WebIdentitySigningAlgorithm
+	if signingAlgorithm == "" {
+		signingAlgorithm = defaultWebIdentitySigningAlgorithm
+	}
+	durationSeconds := request.WebIdentityDurationSeconds
+	if durationSeconds == 0 {
+		durationSeconds = defaultWebIdentityDurationSeconds
+	}
+	return attestation.NewWebIdentity(athenzDomain, athenzService, region, audience, signingAlgorithm,
+		request.UseRegionalSTS, request.OmitDomain, durationSeconds, request.WebIdentityTags, "", "")
+}
+
+// Deprecated: Use GetAthenzServiceIdentity function to get identity certificates
 func GetAWSLambdaServiceCertificate(ztsUrl, athenzProvider, athenzDomain, service, awsAccount string, sanDNSDomains []string, instanceIdSanDNS bool) (tls.Certificate, error) {
 
 	athenzDomain = strings.ToLower(athenzDomain)

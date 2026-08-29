@@ -16,6 +16,7 @@
 package com.yahoo.athenz.instance.provider;
 
 import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.instance.provider.impl.AWSAttestationData;
 
 import javax.net.ssl.SSLContext;
@@ -31,19 +32,25 @@ import javax.net.ssl.SSLContext;
 public interface AWSAttestationValidator {
 
     /**
-     * Initialize the validator with the given ssl context and authorizer. The
-     * ssl context is used when the validator needs to fetch remote data (e.g.
-     * the issuer's JWKS); the authorizer is used for any RBAC based checks.
+     * Initialize the validator with the given ssl context, authorizer and
+     * provider principal. The ssl context is used when the validator needs to
+     * fetch remote data (e.g. the issuer's JWKS); the authorizer is used for
+     * any RBAC based checks while the provider principal identifies the
+     * provider service carrying out those checks.
      * @param sslContext the ssl context to use for any outbound https calls
      * @param authorizer the authorizer to use for any RBAC based checks
+     * @param providerPrincipal the principal object for the provider service
      */
-    void initialize(SSLContext sslContext, Authorizer authorizer);
+    void initialize(SSLContext sslContext, Authorizer authorizer, Principal providerPrincipal);
 
     /**
      * Validates that the given attestation data proves the instance identity.
      * @param confirmation the instance confirmation request (domain, service, attributes)
      * @param info the parsed AWS attestation data from the confirmation request
-     * @param awsAccount the AWS account id associated with the requested identity
+     * @param awsAccount the AWS account id(s) associated with the requested identity. this
+     *                   may be empty if the domain has no associated aws account, in which
+     *                   case the implementation must either reject the request or authorize
+     *                   it through some other mechanism (e.g. a launch policy check)
      * @param errMsg StringBuilder to append error details to on failure
      * @return true if the attestation data is valid, otherwise false
      */

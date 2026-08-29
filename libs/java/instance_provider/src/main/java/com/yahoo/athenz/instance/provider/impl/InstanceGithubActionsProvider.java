@@ -24,6 +24,7 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
@@ -52,14 +53,17 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     static final String GITHUB_ACTIONS_PROP_AUDIENCE             = "athenz.zts.github_actions.audience";
     static final String GITHUB_ACTIONS_PROP_ISSUER               = "athenz.zts.github_actions.issuer";
     static final String GITHUB_ACTIONS_PROP_JWKS_URI             = "athenz.zts.github_actions.jwks_uri";
+    static final String GITHUB_ACTIONS_PROP_JOB_WORKFLOW_REF_AUTHZ_CHECK = "athenz.zts.github_actions.job_workflow_ref_authz_check";
 
     static final String GITHUB_ACTIONS_ISSUER          = "https://token.actions.githubusercontent.com";
     static final String GITHUB_ACTIONS_ISSUER_JWKS_URI = "https://token.actions.githubusercontent.com/.well-known/jwks";
 
-    public static final String CLAIM_ENTERPRISE    = "enterprise";
-    public static final String CLAIM_RUN_ID        = "run_id";
-    public static final String CLAIM_EVENT_NAME    = "event_name";
-    public static final String CLAIM_REPOSITORY    = "repository";
+    public static final String CLAIM_ENTERPRISE       = "enterprise";
+    public static final String CLAIM_RUN_ID           = "run_id";
+    public static final String CLAIM_EVENT_NAME       = "event_name";
+    public static final String CLAIM_REPOSITORY       = "repository";
+    public static final String CLAIM_REF              = "ref";
+    public static final String CLAIM_JOB_WORKFLOW_REF = "job_workflow_ref";
 
     Set<String> dnsSuffixes = null;
     Set<String> enterprises = null;
@@ -69,6 +73,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     ConfigurableJWTProcessor<SecurityContext> jwtProcessor = null;
     Authorizer authorizer = null;
     DynamicConfigLong bootTimeOffsetSeconds;
+    DynamicConfigBoolean jobWorkflowRefAuthzCheck;
     long certExpiryTime;
 
     @Override
@@ -99,6 +104,12 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         long timeout = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
         bootTimeOffsetSeconds = new DynamicConfigLong(CONFIG_MANAGER, GITHUB_ACTIONS_PROP_BOOT_TIME_OFFSET, timeout);
+
+        // determine if we should carry out a secondary authorization check based on
+        // the job_workflow_ref claim in the token when the subject based check fails
+
+        jobWorkflowRefAuthzCheck = new DynamicConfigBoolean(CONFIG_MANAGER,
+                GITHUB_ACTIONS_PROP_JOB_WORKFLOW_REF_AUTHZ_CHECK, false);
 
         // determine if we're running in enterprise mode - supports a comma-separated list of values
 
@@ -352,11 +363,35 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
         final String resource = domainName + ":" + subject;
         Principal principal = SimplePrincipal.create(domainName, serviceName, (String) null);
-        boolean accessCheck = authorizer.access(action, resource, principal, null);
-        if (!accessCheck) {
-            errMsg.append("authorization check failed for action: ").append(action)
-                    .append(" resource: ").append(resource);
+        if (authorizer.access(action, resource, principal, null)) {
+            return true;
         }
-        return accessCheck;
+
+        // if the subject based authorization check failed and we're configured to
+        // support authorization checks based on the job_workflow_ref claim, then
+        // we'll carry out a second authorization check. the job_workflow_ref claim
+        // by itself is not sufficient for the check, so we're going to combine it
+        // with the repository and ref claims to generate our resource value. if any
+        // of those claims are not present in the token, then we'll skip the check
+
+        String workflowResource = null;
+        if (jobWorkflowRefAuthzCheck.get()) {
+            final String repository = JwtsHelper.getStringClaim(claimsSet, CLAIM_REPOSITORY);
+            final String ref = JwtsHelper.getStringClaim(claimsSet, CLAIM_REF);
+            final String jobWorkflowRef = JwtsHelper.getStringClaim(claimsSet, CLAIM_JOB_WORKFLOW_REF);
+            if (!StringUtil.isEmpty(repository) && !StringUtil.isEmpty(ref) && !StringUtil.isEmpty(jobWorkflowRef)) {
+                workflowResource = domainName + ":" + repository + ":" + ref + ":" + jobWorkflowRef;
+                if (authorizer.access(action, workflowResource, principal, null)) {
+                    return true;
+                }
+            }
+        }
+
+        errMsg.append("authorization check failed for action: ").append(action)
+                .append(" resource: ").append(resource);
+        if (workflowResource != null) {
+            errMsg.append(" ").append(workflowResource);
+        }
+        return false;
     }
 }

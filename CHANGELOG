@@ -1,3 +1,50 @@
+Athenz v1.12.46 Release / Aug 24, 2026
+--------------------------------------
+
+#3449 Bump nanoid from 5.1.5 to 5.1.16 in /ui
+#3451 sia: lambda identity support for web identity tokens
+#3452 sia: support san email addresses in service certificate CSRs
+#3454 Persist autoDeleteTenantAssumeRoleAssertions for subdomain and user domain creation
+#3455 ui: pin @wdio/globals and expect-webdriverio to fix ERESOLVE on fresh install
+#3457 add support for multiple aws association with domain
+#3460 GitHub actions job workflow ref authz
+#3461 aws web identity: optional empty domain account and system level laun…
+#3462 zms: use FIND_IN_SET aws account lookup only when multiple accounts are enabled
+#3463 update java and go dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20260820.sql
+
+Athenz v1.12.45 Release / Aug 07, 2026
+--------------------------------------
+
+#3386 Allow scoped clientId self-update for OAuth client metadata
+#3403 Allow external IDs in user certificate requests
+#3422 feat: support custom JWKSetSource in JwtsSigningKeyResolver
+#3423 Bump axios from 1.16.0 to 1.18.0 in /clients/nodejs/zts
+#3424 workaround support for CNs longer than 64 chars
+#3425 Bump axios from 1.16.0 to 1.18.0 in /ui
+#3426 zts-accesstoken/sia: add openid_issuer flag support
+#3427 Support role name in access token audience claim (role_in_aud_claim)
+#3431 add JAG token issue and exchange support to zts-accesstoken CLI
+#3432 feat:support for aws outbound identity federation
+#3433 Bump body-parser from 1.20.5 to 1.20.6 in /ui
+#3434 Bump next from 16.2.6 to 16.2.12 in /ui
+#3435 feat: support for istio ambient mode
+#3437 Bump ip-address from 10.2.0 to 10.4.0 in /ui
+#3438 Bump undici in /ui
+#3439 Bump brace-expansion from 1.1.16 to 1.1.18 in /ui
+#3440 Bump postcss and next in /ui
+#3442 Disable TRACK and TRACE methods
+#3443 aws web identity token support in SIA
+#3444 update java/go/nodejs dependencies to their latest releases
+#3445 usercert: opt-in auto-close countdown on the IdP success page
+#3446 OIDC browser support windows
+#3447 usercert: reliable tab auto-close — accurate blocked-close message + macOS out-of-band close
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20260610.sql
+
 Athenz v1.12.44 Release / Jul 18, 2026
 --------------------------------------
 

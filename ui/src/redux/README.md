@@ -8,7 +8,7 @@ to_store - using in the end of an add function in order to separate the backend 
 from_store - using in the end on a delete function in order to separate the backend delete data function and the function which delete the data from the store - (example: deleteRole, deleteRoleFromStore)
 
 Architecture:
-Store: the store seperated to 10 different reducers.
+Store: the store separated to 10 different reducers.
 each reducer in the store holds a domain name, expiry and the data. (for example the roles reducer look like: {domainData:'dom', expiry:'', roles:{} })
 in order to improve convince of writing code we transform the data from array to map (the data the server returns is an array but holds in the store as a map).
 the keys for the roles/groups/services/polices are full names (<domain-name>:role/group.<role-name>)

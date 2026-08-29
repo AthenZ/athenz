@@ -109,26 +109,28 @@ func InitProfileConfig(metaEndPoint, roleSuffix, accessProfileSeparator string) 
 		}, nil
 }
 
-func InitGenericProfileConfig(metaEndPoint, roleSuffix, accessProfileSeparator string, provider provider.Provider) (*sc.Config, *sc.AccessProfileConfig, error) {
+func InitGenericProfileConfig(config *sc.Config, metaEndPoint, roleSuffix, accessProfileSeparator string, provider provider.Provider) (*sc.Config, *sc.AccessProfileConfig, error) {
 
 	account, domain, service, err := provider.GetAccountDomainServiceFromMeta(metaEndPoint)
 	if err != nil {
-		return nil, nil, err
+		return config, nil, err
 	}
+	// it is possible that the config object was already created the
+	// config file in which case we're not going to override any
+	// of the settings.
+	if config == nil {
+		config = &sc.Config{}
+	}
+	// update our account, domain, service values from our metadata
+	config.Account = account
+	config.Domain = domain
+	config.Service = service
 	profile, err := provider.GetAccessManagementProfileFromMeta(metaEndPoint)
 	if err != nil {
 		// access profile error can be ignored for now.
-		return &sc.Config{
-			Account: account,
-			Domain:  domain,
-			Service: service,
-		}, nil, nil
+		return config, nil, nil
 	}
-	return &sc.Config{
-			Account: account,
-			Domain:  domain,
-			Service: service,
-		}, &sc.AccessProfileConfig{
+	return config, &sc.AccessProfileConfig{
 			Profile:           profile,
 			ProfileRestrictTo: "",
 		}, nil
@@ -220,6 +222,9 @@ func InitEnvConfig(config *sc.Config, provider provider.Provider) (*sc.Config, *
 	}
 	if config.SanDnsX509Cnames == "" {
 		config.SanDnsX509Cnames = os.Getenv("ATHENZ_SIA_SANDNS_X509_CNAMES")
+	}
+	if config.SanEmailAddresses == "" {
+		config.SanEmailAddresses = os.Getenv("ATHENZ_SIA_SAN_EMAIL_ADDRESSES")
 	}
 	if config.HostnameSuffix == "" {
 		config.HostnameSuffix = os.Getenv("ATHENZ_SIA_HOSTNAME_SUFFIX")
@@ -460,6 +465,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 	runAfterTokensErr := ""
 	spiffeTrustDomain := ""
 	addlSanDNSEntries := make([]string, 0)
+	emailAddresses := make([]string, 0)
 	runAfterFailExit := false
 	roleCertsRequired := false
 	httpPort := 0
@@ -533,6 +539,10 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		if config.SanDnsX509Cnames != "" {
 			sanDSNSEntries := strings.Split(config.SanDnsX509Cnames, ",")
 			addlSanDNSEntries = append(addlSanDNSEntries, sanDSNSEntries...)
+		}
+		if config.SanEmailAddresses != "" {
+			sanEmailEntries := strings.Split(config.SanEmailAddresses, ",")
+			emailAddresses = append(emailAddresses, sanEmailEntries...)
 		}
 		//update generate role and rotate key options if config is provided
 		generateRoleKey = config.GenerateRoleKey
@@ -738,6 +748,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		OmitDomain:             account.OmitDomain,
 		StoreTokenOption:       storeTokenOption,
 		AddlSanDNSEntries:      addlSanDNSEntries,
+		EmailAddresses:         emailAddresses,
 		RunAfterFailExit:       runAfterFailExit,
 		RoleCertsRequired:      roleCertsRequired,
 		OTel:                   oTelCfg,

@@ -133,6 +133,15 @@ public class DefaultGCPGoogleKubernetesEngineValidator extends CommonKubernetesD
             errMsg.append("Unable to find GCP project id");
             return false;
         }
+
+        // skip DNS validation for SPIFFE SVIDs with no DNS SANs
+        final String sanDns = InstanceUtils.getInstanceProperty(instanceAttributes, InstanceProvider.ZTS_INSTANCE_SAN_DNS);
+        final String sanUri = InstanceUtils.getInstanceProperty(instanceAttributes, InstanceProvider.ZTS_INSTANCE_SAN_URI);
+        if (StringUtil.isEmpty(sanDns) && !StringUtil.isEmpty(sanUri) && sanUri.startsWith("spiffe://")) {
+            LOGGER.info("validateSanDNSEntries: no DNS SANs, SPIFFE URI SAN present ({}), skipping DNS validation", sanUri);
+            return true;
+        }
+
         if (!InstanceUtils.validateCertRequestSanDnsNames(instanceAttributes, confirmation.getDomain(),
                 confirmation.getService(), gcpDNSSuffixes, gkeDnsSuffixes, gkeClusterNames.getStringsList(),
                 true, instanceId, null)) {

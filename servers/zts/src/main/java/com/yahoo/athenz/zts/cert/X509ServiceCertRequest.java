@@ -17,8 +17,10 @@ package com.yahoo.athenz.zts.cert;
 
 import java.util.List;
 import java.util.Set;
+import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.server.cert.CertificateDataValidator;
+import com.yahoo.athenz.common.server.cert.X509CertEmailValidator;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.spiffe.SpiffeUriManager;
 import com.yahoo.athenz.zts.cache.DataCache;
@@ -26,9 +28,20 @@ import org.eclipse.jetty.util.StringUtil;
 
 public class X509ServiceCertRequest extends X509CertRequest {
 
+    private X509CertEmailValidator emailValidator;
+
     public X509ServiceCertRequest(String csr, SpiffeUriManager spiffeUriManager,
             CertificateDataValidator certificateDataValidator) throws CryptoException {
         super(csr, spiffeUriManager, certificateDataValidator);
+    }
+
+    public X509ServiceCertRequest(String csr, SpiffeUriManager spiffeUriManager,
+            CertificateDataValidator certificateDataValidator, final String x509CertInstanceId) throws CryptoException {
+        super(csr, spiffeUriManager, certificateDataValidator, x509CertInstanceId);
+    }
+
+    public void setEmailValidator(X509CertEmailValidator emailValidator) {
+        this.emailValidator = emailValidator;
     }
 
     public boolean validate(final String domainName, final String serviceName, final String provider,
@@ -46,6 +59,17 @@ public class X509ServiceCertRequest extends X509CertRequest {
             return false;
         }
 
+        // validate email addresses in the CSR
+        // service certificates should not have any email fields
+
+        if (emailValidator != null) {
+            List<String> emails = Crypto.extractX509CSREmails(certReq);
+            if (!emailValidator.validateServiceCertificateEmails(domainName, serviceName, emails)) {
+                errorMsg.append("Invalid email addresses in service certificate request");
+                return false;
+            }
+        }
+
         // instanceId must be non-empty
 
         if (StringUtil.isEmpty(instanceId)) {
@@ -54,11 +78,18 @@ public class X509ServiceCertRequest extends X509CertRequest {
         }
 
         // validate the common name in CSR and make sure it
-        // matches to the values specified in the info object
+        // matches to the values specified in the info object.
+        // SPIFFE SVIDs carry an empty Subject by spec - for those the identity
+        // is carried solely by the SPIFFE URI, which is validated below
 
         final String infoCommonName = domainName + "." + serviceName;
-        if (!validateCommonName(infoCommonName)) {
-            errorMsg.append("Unable to validate CSR common name");
+        if (!StringUtil.isEmpty(cn)) {
+            if (!validateCommonName(infoCommonName)) {
+                errorMsg.append("Unable to validate CSR common name");
+                return false;
+            }
+        } else if (spiffeUri == null) {
+            errorMsg.append("CSR contains neither a CommonName nor a SPIFFE URI");
             return false;
         }
 

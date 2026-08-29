@@ -717,6 +717,7 @@ public class JDBCConnectionTest {
                 .setSlackChannel("athenz")
                 .setOnCall("athenz-oncall")
                 .setAutoDeleteTenantAssumeRoleAssertions(true)
+                .setClientIdSelfUpdate(true)
                 .setExternalMemberValidator("ext.validator.Class")
                 .setCostCenter("cost-center-1");
 
@@ -756,10 +757,11 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(30, "athenz");
         Mockito.verify(mockPrepStmt, times(1)).setString(31, "athenz-oncall");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(32, true);
-        Mockito.verify(mockPrepStmt, times(1)).setString(33, "aws-123456789");
-        Mockito.verify(mockPrepStmt, times(1)).setString(34, "ext.validator.Class");
-        Mockito.verify(mockPrepStmt, times(1)).setString(35, "cost-center-1");
-        Mockito.verify(mockPrepStmt, times(1)).setString(36, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(33, true);
+        Mockito.verify(mockPrepStmt, times(1)).setString(34, "aws-123456789");
+        Mockito.verify(mockPrepStmt, times(1)).setString(35, "ext.validator.Class");
+        Mockito.verify(mockPrepStmt, times(1)).setString(36, "cost-center-1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(37, "my-domain");
         jdbcConn.close();
     }
 
@@ -808,10 +810,11 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(30, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(31, "");
         Mockito.verify(mockPrepStmt, times(1)).setBoolean(32, false);
-        Mockito.verify(mockPrepStmt, times(1)).setString(33, "");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(33, false);
         Mockito.verify(mockPrepStmt, times(1)).setString(34, "");
         Mockito.verify(mockPrepStmt, times(1)).setString(35, "");
-        Mockito.verify(mockPrepStmt, times(1)).setString(36, "my-domain");
+        Mockito.verify(mockPrepStmt, times(1)).setString(36, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(37, "my-domain");
         jdbcConn.close();
     }
 
@@ -7224,7 +7227,7 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testVerifyDomainAccountUniquenessEmptyAccount() throws Exception {
+    public void testVerifyDomainAwsAccountUniquenessEmptyAccount() throws Exception {
 
         // we are going to set the code to return exception so that we can
         // verify that we're returning before making any sql calls
@@ -7239,7 +7242,7 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testVerifyDomainAccountUniquenessPass() throws Exception {
+    public void testVerifyDomainAwsAccountUniquenessPass() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
         Mockito.doReturn("iaas.athenz").when(mockResultSet).getString("name");
@@ -7250,7 +7253,7 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testVerifyDomainAccountUniquenessPassNoMatch() throws Exception {
+    public void testVerifyDomainAwsAccountUniquenessPassNoMatch() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(false);
 
@@ -7260,7 +7263,7 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testVerifyDomainAccountUniquenessFail() throws Exception {
+    public void testVerifyDomainAwsAccountUniquenessFail() throws Exception {
 
         Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
         Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString("name");
@@ -7281,6 +7284,45 @@ public class JDBCConnectionTest {
         jdbcConn.setDomainOptions(domainOptions);
         jdbcConn.verifyDomainAwsAccountUniqueness("iaas.athenz", "12345", "unitTest");
 
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testVerifyDomainAwsAccountUniquenessAllowMultipleAccounts() throws Exception {
+
+        // when multiple accounts are allowed, the uniqueness check is skipped
+        // entirely regardless of the enforce-unique flag, so no sql calls are made
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        DomainOptions domainOptions = new DomainOptions();
+        domainOptions.setEnforceUniqueAWSAccounts(true);
+        domainOptions.setAllowMultipleAWSAccounts(true);
+        jdbcConn.setDomainOptions(domainOptions);
+
+        jdbcConn.verifyDomainAwsAccountUniqueness("iaas.athenz", "12345,67890", "unitTest");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testVerifyDomainAwsAccountUniquenessMultipleAccountsOptionDisabled() throws Exception {
+
+        // with the multiple accounts option off, the given value is treated as a
+        // single account and matched as-is against the account column
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn("iaas.athenz.ci").when(mockResultSet).getString("name");
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        try {
+            jdbcConn.verifyDomainAwsAccountUniqueness("iaas.athenz", "12345,67890", "unitTest");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("iaas.athenz.ci"));
+        }
         jdbcConn.close();
     }
 
@@ -7413,6 +7455,27 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         final String domainName = jdbcConn.lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AWS, "1234").get(0);
         assertEquals(domainName, "iaas.athenz");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testLookupDomainByAwsAccountMultipleDomains() throws Exception {
+
+        // with the multiple aws accounts option enabled, the same account may be
+        // associated with more than one domain so we expect multiple entries back
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getString("name")).thenReturn("iaas.athenz").thenReturn("iaas.athenz.ci");
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        DomainOptions domainOptions = new DomainOptions();
+        domainOptions.setAllowMultipleAWSAccounts(true);
+        jdbcConn.setDomainOptions(domainOptions);
+
+        List<String> domains = jdbcConn.lookupDomainByCloudProvider(ObjectStoreConnection.PROVIDER_AWS, "1234");
+        assertEquals(domains.size(), 2);
+        assertEquals(domains.get(0), "iaas.athenz");
+        assertEquals(domains.get(1), "iaas.athenz.ci");
         jdbcConn.close();
     }
 
@@ -15202,6 +15265,28 @@ public class JDBCConnectionTest {
         assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("AWS"), "SELECT name FROM domain WHERE account=?;");
         assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("azure"), "SELECT name FROM domain WHERE azure_subscription=?;");
         assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("gcp"), "SELECT name FROM domain WHERE gcp_project=?;");
+
+        // with the multiple aws accounts option disabled explicitly we still
+        // get our standard single account lookup command
+
+        DomainOptions domainOptions = new DomainOptions();
+        domainOptions.setAllowMultipleAWSAccounts(false);
+        jdbcConn.setDomainOptions(domainOptions);
+
+        assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("aws"), "SELECT name FROM domain WHERE account=?;");
+
+        // once the option is enabled, we're going to use the set based lookup command
+
+        domainOptions.setAllowMultipleAWSAccounts(true);
+        jdbcConn.setDomainOptions(domainOptions);
+
+        assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("aws"), "SELECT name FROM domain WHERE FIND_IN_SET(?, account);");
+        assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("AWS"), "SELECT name FROM domain WHERE FIND_IN_SET(?, account);");
+
+        // the other providers are not affected by the aws option
+
+        assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("azure"), "SELECT name FROM domain WHERE azure_subscription=?;");
+        assertEquals(jdbcConn.getCloudProviderLookupDomainSQLCommand("gcp"), "SELECT name FROM domain WHERE gcp_project=?;");
         jdbcConn.close();
     }
 
@@ -15216,6 +15301,16 @@ public class JDBCConnectionTest {
         assertEquals(jdbcConn.getCloudProviderListDomainsSQLCommand("aws"), "SELECT name, account FROM domain WHERE account!='';");
         assertEquals(jdbcConn.getCloudProviderListDomainsSQLCommand("azure"), "SELECT name, azure_subscription FROM domain WHERE azure_subscription!='';");
         assertEquals(jdbcConn.getCloudProviderListDomainsSQLCommand("gcp"), "SELECT name, gcp_project FROM domain WHERE gcp_project!='';");
+
+        // the multiple aws accounts option has no effect on the list commands since
+        // we're returning all domains with their configured account values
+
+        DomainOptions domainOptions = new DomainOptions();
+        domainOptions.setAllowMultipleAWSAccounts(true);
+        jdbcConn.setDomainOptions(domainOptions);
+
+        assertEquals(jdbcConn.getCloudProviderListDomainsSQLCommand("aws"), "SELECT name, account FROM domain WHERE account!='';");
+        assertEquals(jdbcConn.getCloudProviderListDomainsSQLCommand("AWS"), "SELECT name, account FROM domain WHERE account!='';");
         jdbcConn.close();
     }
 

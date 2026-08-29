@@ -28,6 +28,8 @@ import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.athenz.zts.ZTSConsts;
 
+import java.util.Set;
+
 public class CloudStoreTest {
 
     @Test
@@ -45,6 +47,20 @@ public class CloudStoreTest {
 
         store.updateAwsAccount("iaas", "1235");
         assertEquals(store.getAwsAccount("iaas"), "1235");
+        store.close();
+    }
+
+    @Test
+    public void testGetAwsAccounts() {
+
+        CloudStore store = new CloudStore();
+        assertTrue(store.getAwsAccounts("iaas").isEmpty());
+
+        store.updateAwsAccount("iaas", "1234,5678");
+        assertEquals(store.getAwsAccounts("iaas"), Set.of("1234", "5678"));
+
+        store.updateAwsAccount("iaas", "1234");
+        assertEquals(store.getAwsAccounts("iaas"), Set.of("1234"));
         store.close();
     }
 

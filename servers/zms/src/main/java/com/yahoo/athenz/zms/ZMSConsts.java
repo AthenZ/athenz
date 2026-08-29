@@ -301,6 +301,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_ENFORCE_UNIQUE_AZURE_SUBSCRIPTIONS = "athenz.zms.enforce_unique_azure_subscriptions";
     public static final String ZMS_PROP_ENFORCE_UNIQUE_GCP_PROJECTS = "athenz.zms.enforce_unique_gcp_projects";
     public static final String ZMS_PROP_ENFORCE_UNIQUE_PRODUCT_IDS = "athenz.zms.enforce_unique_product_ids";
+    public static final String ZMS_PROP_ALLOW_MULTIPLE_AWS_ACCOUNTS = "athenz.zms.allow_multiple_aws_accounts";
 
     //pending member
     public static final String PENDING_REQUEST_ADD_STATE = "ADD";
@@ -327,6 +328,7 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_NOTIFICATION_OBJECT_STORE_FACTORY_CLASS = "athenz.zms.notification_object_store_factory_class";
     public static final String ZMS_PROP_USER_AUTHORITY_FILTER_DOC_URL = "athenz.zms.user_authority_filter_documentation_url";
     public static final String ZMS_PROP_AUTO_DELETE_TENANT_ASSUME_ROLE_ASSERTIONS = "athenz.zms.auto_delete_tenant_assume_role_assertions";
+    public static final String ZMS_PROP_CLIENT_ID_SELF_UPDATE = "athenz.zms.client_id_self_update";
 
     // Specials Tags used by ZMS itself
     public static final String ZMS_TAG_DELETE_SKIP_SERVICE_PROVIDER_CHECK = "zms.DeleteSkipServiceProviderCheck";

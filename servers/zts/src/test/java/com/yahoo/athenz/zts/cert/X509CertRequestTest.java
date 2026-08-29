@@ -150,11 +150,86 @@ public class X509CertRequestTest {
     public void testInstanceId() throws IOException {
         Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
         String csr = new String(Files.readAllBytes(path));
-        
+
         X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
         assertNotNull(certReq);
 
         assertEquals(certReq.getInstanceId(), "1001");
+    }
+
+    @Test
+    public void testInstanceIdCsrTakesPrecedenceOverCallerSupplied() throws IOException {
+
+        // CSR embeds instanceId "1001" via SAN dnsName -- the CSR-embedded value must win
+        // over the caller-supplied x509CertInstanceId when both are present. x509CertInstanceId
+        // is only a last resort, used when the CSR carries no instanceId of its own.
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator,
+                "caller-supplied-id");
+        assertNotNull(certReq);
+        assertEquals(certReq.getInstanceId(), "1001");
+    }
+
+    @Test
+    public void testInstanceIdCallerSuppliedUsedAsLastResort() throws IOException {
+
+        // CSR carries no instanceid.athenz entry at all -- the caller-supplied
+        // x509CertInstanceId is used since there's nothing to take precedence over it.
+
+        Path path = Paths.get("src/test/resources/valid_email.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator,
+                "caller-supplied-id");
+        assertNotNull(certReq);
+        assertEquals(certReq.getInstanceId(), "caller-supplied-id");
+    }
+
+    @Test
+    public void testInstanceIdFallsBackToCsrWhenCallerSuppliedEmpty() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator, null);
+        assertNotNull(certReq);
+        assertEquals(certReq.getInstanceId(), "1001");
+
+        certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator, "");
+        assertNotNull(certReq);
+        assertEquals(certReq.getInstanceId(), "1001");
+    }
+
+    @Test
+    public void testInstanceIdNoneAvailable() throws IOException {
+
+        // CSR with no instanceid.athenz entry at all, and no caller-supplied value
+
+        Path path = Paths.get("src/test/resources/valid_email.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator, null);
+        assertNotNull(certReq);
+        assertNull(certReq.getInstanceId());
+    }
+
+    @Test
+    public void testSetInstanceId() throws IOException {
+        Path path = Paths.get("src/test/resources/athenz.instanceid.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509CertRequest certReq = new X509CertRequest(csr, spiffeUriManager, certificateDataValidator);
+        assertNotNull(certReq);
+        assertEquals(certReq.getInstanceId(), "1001");
+
+        certReq.setInstanceId("override-uid");
+        assertEquals(certReq.getInstanceId(), "override-uid");
+
+        certReq.setInstanceId(null);
+        assertNull(certReq.getInstanceId());
     }
 
     @Test

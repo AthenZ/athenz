@@ -246,6 +246,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected boolean allowUserDomains = true;
     protected NotificationObjectStore notificationObjectStore = null;
     protected boolean autoDeleteTenantAssumeRoleAssertions = false;
+    protected boolean clientIdSelfUpdate = false;
     protected String zmsMetricCounterName;
     protected String zmsMetricLatencyName;
 
@@ -1059,6 +1060,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // check for auto delete tenant assume role assertions
         autoDeleteTenantAssumeRoleAssertions = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_AUTO_DELETE_TENANT_ASSUME_ROLE_ASSERTIONS, "false"));
+
+        // check for client ID self-update support
+        clientIdSelfUpdate = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_CLIENT_ID_SELF_UPDATE, "false"));
     }
 
     void loadObjectStore() {
@@ -1768,7 +1772,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setSshCertSignerKeyId(detail.getSshCertSignerKeyId())
                 .setSlackChannel(detail.getSlackChannel())
                 .setOnCall(detail.getOnCall())
-                .setAutoDeleteTenantAssumeRoleAssertions(detail.autoDeleteTenantAssumeRoleAssertions);
+                .setAutoDeleteTenantAssumeRoleAssertions(detail.getAutoDeleteTenantAssumeRoleAssertions())
+                .setClientIdSelfUpdate(detail.getClientIdSelfUpdate());
 
         // before processing validate the fields
 
@@ -2085,7 +2090,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setContacts(detail.getContacts())
                 .setEnvironment(detail.getEnvironment())
                 .setSlackChannel(detail.getSlackChannel())
-                .setOnCall(detail.getOnCall());
+                .setOnCall(detail.getOnCall())
+                .setAutoDeleteTenantAssumeRoleAssertions(detail.getAutoDeleteTenantAssumeRoleAssertions())
+                .setClientIdSelfUpdate(detail.getClientIdSelfUpdate());
 
         // before processing validate the fields
 
@@ -2192,7 +2199,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setX509CertSignerKeyId(detail.getX509CertSignerKeyId())
                 .setSshCertSignerKeyId(detail.getSshCertSignerKeyId())
                 .setSlackChannel(detail.getSlackChannel())
-                .setOnCall(detail.getOnCall());
+                .setOnCall(detail.getOnCall())
+                .setAutoDeleteTenantAssumeRoleAssertions(detail.getAutoDeleteTenantAssumeRoleAssertions())
+                .setClientIdSelfUpdate(detail.getClientIdSelfUpdate());
 
         // before processing validate the fields
 
@@ -2586,6 +2595,42 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    static final int ACCOUNT_VALUE_MAX_LEN = 512;
+
+    /**
+     * Validates the given (possibly comma-separated) aws account value and
+     * returns its normalized form - trimmed, deduped and rejoined without any
+     * extra whitespace - so that a value like " acct1, acct2 " does not end
+     * up stored/propagated as-is with leading/trailing spaces around any of
+     * its individual accounts.
+     */
+    String validateAwsAccountValue(final String account, final String caller) {
+        if (StringUtil.isEmpty(account)) {
+            return account;
+        }
+        if (account.length() > ACCOUNT_VALUE_MAX_LEN) {
+            throw ZMSUtils.requestError("aws account value exceeds maximum length of "
+                    + ACCOUNT_VALUE_MAX_LEN, caller);
+        }
+        Set<String> awsAccounts = Utils.parseAwsAccounts(account);
+        if (awsAccounts.isEmpty()) {
+            throw ZMSUtils.requestError("aws account value must contain at least one account", caller);
+        }
+        for (String awsAccount : awsAccounts) {
+            validate(awsAccount, TYPE_COMPOUND_NAME, caller);
+        }
+        return String.join(",", awsAccounts);
+    }
+
+    boolean isValidAWSAccounts(final String domainName, final String account) throws ServerResourceException {
+        for (String awsAccount : Utils.parseAwsAccounts(account)) {
+            if (!domainMetaStore.isValidAWSAccount(domainName, awsAccount)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     void validateIntegerValue(final Integer value, final String fieldName) {
         if (value != null && value < 0) {
             throw ZMSUtils.requestError(fieldName + " cannot be negative", "validateMetaFields");
@@ -2605,7 +2650,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(domain.getFeatureFlags(), "featureFlags");
 
         validateString(domain.getApplicationId(), TYPE_COMPOUND_NAME, caller);
-        validateString(domain.getAccount(), TYPE_COMPOUND_NAME, caller);
+        domain.setAccount(validateAwsAccountValue(domain.getAccount(), caller));
         validateString(domain.getAzureSubscription(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAzureTenant(), TYPE_COMPOUND_NAME, caller);
         validateString(domain.getAzureClient(), TYPE_COMPOUND_NAME, caller);
@@ -2622,7 +2667,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             if (!domainMetaStore.isValidBusinessService(domain.getName(), domain.getBusinessService())) {
                 throw ZMSUtils.requestError("invalid business service name for domain", caller);
             }
-            if (!domainMetaStore.isValidAWSAccount(domain.getName(), domain.getAccount())) {
+            if (!isValidAWSAccounts(domain.getName(), domain.getAccount())) {
                 throw ZMSUtils.requestError("invalid aws account for domain", caller);
             }
             if (!domainMetaStore.isValidAzureSubscription(domain.getName(), domain.getAzureSubscription())) {
@@ -2684,7 +2729,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         switch (attributeName) {
             case ZMSConsts.SYSTEM_META_ACCOUNT:
                 if (ZMSUtils.metaValueChanged(domain.getAccount(), meta.getAccount())) {
-                    if (!domainMetaStore.isValidAWSAccount(domain.getName(), meta.getAccount())) {
+                    if (!isValidAWSAccounts(domain.getName(), meta.getAccount())) {
                         throw ZMSUtils.requestError("invalid aws account for domain", caller);
                     }
                     changedAttrs.set(DomainMetaStore.META_ATTR_AWS_ACCOUNT);
@@ -2788,7 +2833,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validateIntegerValue(meta.getFeatureFlags(), "featureFlags");
 
         validateString(meta.getApplicationId(), TYPE_COMPOUND_NAME, caller);
-        validateString(meta.getAccount(), TYPE_COMPOUND_NAME, caller);
+        meta.setAccount(validateAwsAccountValue(meta.getAccount(), caller));
         validateString(meta.getX509CertSignerKeyId(), TYPE_COMPOUND_NAME, caller);
         validateString(meta.getSshCertSignerKeyId(), TYPE_COMPOUND_NAME, caller);
 
@@ -7116,6 +7161,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify that request is properly authenticated for this request
 
         Principal principal = ((RsrcCtxWrapper) ctx).principal();
+        verifyAuthorizedServiceIdentitySystemMetaOperation(principal, domainName, serviceName, attribute, meta, caller);
         verifyAuthorizedServiceOperation(principal.getAuthorizedService(), caller);
 
         if (LOG.isDebugEnabled()) {
@@ -7124,6 +7170,51 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         dbService.executePutServiceIdentitySystemMeta(ctx, domainName, serviceName, meta, attribute, auditRef, caller);
+    }
+
+    void verifyAuthorizedServiceIdentitySystemMetaOperation(Principal principal, String domainName,
+            String serviceName, String attribute, ServiceIdentitySystemMeta meta, String caller) {
+
+        final String systemResource = SYS_AUTH + ":meta.service." + attribute + "." + domainName;
+        if (isAllowedSystemAccess(principal, ZMSConsts.ACTION_UPDATE, systemResource)) {
+            return;
+        }
+
+        if (clientIdSelfUpdate && ZMSConsts.SYSTEM_META_CLIENT_ID.equals(attribute) &&
+                isAllowedClientIdSelfUpdate(principal, domainName, serviceName, meta)) {
+            return;
+        }
+
+        throw ZMSUtils.forbiddenError("putServiceIdentitySystemMeta: Unauthorized update for service system meta attribute",
+                caller);
+    }
+
+    boolean isAllowedClientIdSelfUpdate(Principal principal, String domainName, String serviceName,
+            ServiceIdentitySystemMeta meta) {
+
+        if (principal == null || meta == null) {
+            return false;
+        }
+
+        final String clientId = meta.getClientId();
+        if (StringUtil.isEmpty(clientId)) {
+            return false;
+        }
+
+        AthenzDomain domain = getAthenzDomain(domainName, false, true);
+        if (domain == null || domain.getDomain() == null ||
+                !Boolean.TRUE.equals(domain.getDomain().getClientIdSelfUpdate())) {
+            return false;
+        }
+
+        final String servicePrincipal = ResourceUtils.serviceResourceName(domain.getName(), serviceName);
+        if (!servicePrincipal.equalsIgnoreCase(principal.getFullName())) {
+            return false;
+        }
+
+        final String clientIdResource = (domain.getName() + ":service." + serviceName + ".clientid." + clientId)
+                .toLowerCase();
+        return hasAccess(domain, ZMSConsts.ACTION_UPDATE, clientIdResource, principal, null) == AccessStatus.ALLOWED;
     }
 
     @Override

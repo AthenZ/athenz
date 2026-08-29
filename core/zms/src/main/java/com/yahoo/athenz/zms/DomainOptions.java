@@ -15,6 +15,7 @@ public class DomainOptions {
     public boolean enforceUniqueAWSAccounts;
     public boolean enforceUniqueAzureSubscriptions;
     public boolean enforceUniqueGCPProjects;
+    public boolean allowMultipleAWSAccounts;
 
     public DomainOptions setEnforceUniqueProductIds(boolean enforceUniqueProductIds) {
         this.enforceUniqueProductIds = enforceUniqueProductIds;
@@ -44,6 +45,13 @@ public class DomainOptions {
     public boolean getEnforceUniqueGCPProjects() {
         return enforceUniqueGCPProjects;
     }
+    public DomainOptions setAllowMultipleAWSAccounts(boolean allowMultipleAWSAccounts) {
+        this.allowMultipleAWSAccounts = allowMultipleAWSAccounts;
+        return this;
+    }
+    public boolean getAllowMultipleAWSAccounts() {
+        return allowMultipleAWSAccounts;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -62,6 +70,9 @@ public class DomainOptions {
                 return false;
             }
             if (enforceUniqueGCPProjects != a.enforceUniqueGCPProjects) {
+                return false;
+            }
+            if (allowMultipleAWSAccounts != a.allowMultipleAWSAccounts) {
                 return false;
             }
         }

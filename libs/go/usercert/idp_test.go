@@ -9,12 +9,25 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 )
+
+// TestMain stubs out all real browser interaction for the whole package:
+// without this, any test that reaches openIdpAuthURL (e.g. the
+// RequestCertificate tests) launches a real browser tab per test on macOS
+// via /usr/bin/open. Tests that need to observe or fail these calls override
+// the vars locally and restore them afterwards.
+func TestMain(m *testing.M) {
+	browserOpen = func(string) error { return nil }
+	browserTabClose = func(string, int) {}
+	os.Exit(m.Run())
+}
 
 // --- encode tests ---
 
@@ -189,7 +202,7 @@ func TestGetIdpAuthURLCustomScope(t *testing.T) {
 func TestRegisterHandlersCallbackRedirect(t *testing.T) {
 	mux := http.NewServeMux()
 	codeChan := make(chan string, 1)
-	registerHandlers(mux, codeChan)
+	registerHandlers(mux, codeChan, 0)
 
 	// Find a free port
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
@@ -233,7 +246,7 @@ func TestRegisterHandlersCallbackRedirect(t *testing.T) {
 func TestRegisterHandlersCallbackFollowRedirect(t *testing.T) {
 	mux := http.NewServeMux()
 	codeChan := make(chan string, 1)
-	registerHandlers(mux, codeChan)
+	registerHandlers(mux, codeChan, 0)
 
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -289,7 +302,7 @@ func TestRegisterHandlersCallbackFollowRedirect(t *testing.T) {
 func TestRegisterHandlersCloseEndpoint(t *testing.T) {
 	mux := http.NewServeMux()
 	codeChan := make(chan string, 1)
-	registerHandlers(mux, codeChan)
+	registerHandlers(mux, codeChan, 0)
 
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -322,11 +335,31 @@ func TestRegisterHandlersCloseEndpoint(t *testing.T) {
 	}
 }
 
+func TestRegisterHandlersCloseEndpointAutoClose(t *testing.T) {
+	mux := http.NewServeMux()
+	codeChan := make(chan string, 1)
+	registerHandlers(mux, codeChan, 7)
+
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/close", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", rec.Code)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "This window will close in 7 seconds.") {
+		t.Error("expected /close to serve the countdown message when a close delay is set")
+	}
+	if !strings.Contains(body, "window.close()") {
+		t.Error("expected /close to serve the auto-close script when a close delay is set")
+	}
+}
+
 // --- getAuthCodeFromCallbackHandler tests ---
 
 func TestGetAuthCodeFromCallbackHandlerTimeout(t *testing.T) {
 	// Use port 0 to let OS pick a free port
-	result := getAuthCodeFromCallbackHandler(0, 1, false)
+	result := getAuthCodeFromCallbackHandler(0, 1, 0, false)
 	select {
 	case r := <-result:
 		if r.Error == nil {
@@ -349,7 +382,7 @@ func TestGetAuthCodeFromCallbackHandlerSuccess(t *testing.T) {
 	port := listener.Addr().(*net.TCPAddr).Port
 	listener.Close()
 
-	result := getAuthCodeFromCallbackHandler(port, 10, false)
+	result := getAuthCodeFromCallbackHandler(port, 10, 0, false)
 
 	// Wait briefly for the server to start
 	time.Sleep(200 * time.Millisecond)
@@ -371,6 +404,52 @@ func TestGetAuthCodeFromCallbackHandlerSuccess(t *testing.T) {
 		}
 	case <-time.After(5 * time.Second):
 		t.Fatal("test timed out waiting for auth result")
+	}
+}
+
+func TestGetAuthCodeFromCallbackHandlerFiresTabClose(t *testing.T) {
+	origClose := browserTabClose
+	defer func() { browserTabClose = origClose }()
+	closeCalls := make(chan string, 1)
+	browserTabClose = func(urlPrefix string, delaySecs int) {
+		closeCalls <- fmt.Sprintf("%s|%d", urlPrefix, delaySecs)
+	}
+
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("failed to get free port: %v", err)
+	}
+	port := listener.Addr().(*net.TCPAddr).Port
+	listener.Close()
+
+	result := getAuthCodeFromCallbackHandler(port, 10, 7, false)
+
+	// Wait briefly for the server to start
+	time.Sleep(200 * time.Millisecond)
+
+	resp, err := http.Get(fmt.Sprintf("http://127.0.0.1:%d/oauth2/callback?code=auth-code-123&state=nonce", port))
+	if err != nil {
+		t.Fatalf("failed to call callback: %v", err)
+	}
+	resp.Body.Close()
+
+	select {
+	case r := <-result:
+		if r.Error != nil {
+			t.Fatalf("unexpected error: %v", r.Error)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("test timed out waiting for auth result")
+	}
+
+	select {
+	case call := <-closeCalls:
+		want := fmt.Sprintf("http://127.0.0.1:%d|7", port)
+		if call != want {
+			t.Errorf("expected tab close call %q, got %q", want, call)
+		}
+	default:
+		t.Error("expected the tab close to fire when a close delay is set")
 	}
 }
 
@@ -796,13 +875,39 @@ func TestGetAuthCodeWithPKCEDisabled(t *testing.T) {
 // --- closeWindowHTML tests ---
 
 func TestCloseWindowHTMLContent(t *testing.T) {
-	if !strings.Contains(closeWindowHTML, "Authentication successful") {
+	page := closeWindowHTML(0)
+	if !strings.Contains(page, "Authentication successful") {
 		t.Error("closeWindowHTML should contain success message")
 	}
-	if !strings.Contains(closeWindowHTML, "close this window") {
+	if !strings.Contains(page, "close this window") {
 		t.Error("closeWindowHTML should contain close instruction")
 	}
-	if !strings.Contains(closeWindowHTML, "<!DOCTYPE html>") {
+	if !strings.Contains(page, "<!DOCTYPE html>") {
 		t.Error("closeWindowHTML should be valid HTML")
+	}
+	if strings.Contains(page, "<script>") {
+		t.Error("closeWindowHTML with no delay should not contain the auto-close script")
+	}
+}
+
+func TestCloseWindowHTMLAutoClose(t *testing.T) {
+	page := closeWindowHTML(5)
+	if !strings.Contains(page, "Authentication successful") {
+		t.Error("closeWindowHTML should contain success message")
+	}
+	if !strings.Contains(page, "This window will close in 5 seconds.") {
+		t.Error("closeWindowHTML with a delay should contain the countdown message")
+	}
+	if !strings.Contains(page, "window.close()") {
+		t.Error("closeWindowHTML with a delay should contain the auto-close script")
+	}
+	if !strings.Contains(page, "var secs = 5;") {
+		t.Error("closeWindowHTML should embed the configured delay in the script")
+	}
+	if !strings.Contains(page, "el.textContent = 'You may close this window now.';") {
+		t.Error("closeWindowHTML script should fall back to the static close message before attempting window.close()")
+	}
+	if strings.Contains(page, "__CLOSE_MSG__") || strings.Contains(page, "__CLOSE_SCRIPT__") {
+		t.Error("closeWindowHTML should replace all template placeholders")
 	}
 }

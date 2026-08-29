@@ -3,7 +3,54 @@
 
 package usercert
 
-const closeWindowHTML = `<!DOCTYPE html>
+import (
+	"fmt"
+	"strings"
+)
+
+// closeWindowHTML returns the HTML page served on the /close endpoint after a
+// successful IdP callback. When closeDelaySeconds > 0 the page shows a live
+// countdown and attempts to close its own tab via window.close() when the
+// countdown reaches zero; otherwise it shows a static "You may close this
+// window now" message. window.close() is best-effort: some browsers only
+// honor it for script-opened tabs, in which case the countdown message simply
+// remains on screen.
+func closeWindowHTML(closeDelaySeconds int) string {
+	closeMsg := "You may close this window now."
+	closeScript := ""
+	if closeDelaySeconds > 0 {
+		unit := "seconds"
+		if closeDelaySeconds == 1 {
+			unit = "second"
+		}
+		closeMsg = fmt.Sprintf("This window will close in %d %s.", closeDelaySeconds, unit)
+		closeScript = fmt.Sprintf(closeWindowScriptTemplate, closeDelaySeconds)
+	}
+	return strings.NewReplacer(
+		"__CLOSE_MSG__", closeMsg,
+		"__CLOSE_SCRIPT__", closeScript,
+	).Replace(closeWindowHTMLTemplate)
+}
+
+const closeWindowScriptTemplate = `  <script>
+    (function() {
+      var secs = %d;
+      var el = document.getElementById('close-msg');
+      var iv = setInterval(function() {
+        secs--;
+        if (secs <= 0) {
+          clearInterval(iv);
+          el.textContent = 'You may close this window now.';
+          window.close();
+        } else {
+          el.textContent = 'This window will close in ' + secs + ' second' + (secs === 1 ? '' : 's') + '.';
+        }
+      }, 1000);
+    })();
+  </script>
+`
+
+const closeWindowHTMLTemplate = `<!DOCTYPE html>
 <html>
 <head>
   <style>
@@ -41,7 +88,7 @@ const closeWindowHTML = `<!DOCTYPE html>
 <body>
   <div class="message-box">
     <b>Authentication successful.</b><br>
-    <span class="small-text">You may close this window now.</span>
+    <span class="small-text" id="close-msg">__CLOSE_MSG__</span>
   </div>
-</body>
+__CLOSE_SCRIPT__</body>
 </html>`

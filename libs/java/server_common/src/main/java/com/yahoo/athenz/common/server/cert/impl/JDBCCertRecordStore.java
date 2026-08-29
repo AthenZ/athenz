@@ -66,7 +66,7 @@ public class JDBCCertRecordStore implements CertRecordStore {
 
     @Override
     public void log(final Principal principal, final String ip, final String provider,
-                    final String instanceId, final X509Certificate x509Cert) {
+            final String instanceId, final X509Certificate x509Cert) {
         X509CertUtils.logCert(CERTLOGGER, principal, ip, provider, instanceId, x509Cert);
     }
 

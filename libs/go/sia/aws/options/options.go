@@ -182,6 +182,9 @@ func InitEnvConfig(config *sc.Config) (*sc.Config, *sc.ConfigAccount, error) {
 	if config.SanDnsX509Cnames == "" {
 		config.SanDnsX509Cnames = os.Getenv("ATHENZ_SIA_SANDNS_X509_CNAMES")
 	}
+	if config.SanEmailAddresses == "" {
+		config.SanEmailAddresses = os.Getenv("ATHENZ_SIA_SAN_EMAIL_ADDRESSES")
+	}
 	if config.HostnameSuffix == "" {
 		config.HostnameSuffix = os.Getenv("ATHENZ_SIA_HOSTNAME_SUFFIX")
 	}
@@ -275,6 +278,27 @@ func InitEnvConfig(config *sc.Config) (*sc.Config, *sc.ConfigAccount, error) {
     if config.RolePath == "" {
         config.RolePath = os.Getenv("ATHENZ_SIA_ROLE_PATH")
     }
+	if !config.AwsWebIdentity {
+		config.AwsWebIdentity = util.ParseEnvBooleanFlag("ATHENZ_SIA_AWS_WEB_IDENTITY")
+	}
+	if config.AwsWebIdentityAudience == "" {
+		config.AwsWebIdentityAudience = os.Getenv("ATHENZ_SIA_AWS_WEB_IDENTITY_AUDIENCE")
+	}
+	if config.AwsWebIdentitySigningAlgorithm == "" {
+		config.AwsWebIdentitySigningAlgorithm = os.Getenv("ATHENZ_SIA_AWS_WEB_IDENTITY_SIGNING_ALGORITHM")
+	}
+	if config.AwsWebIdentityDurationSeconds == 0 {
+		durationSeconds := util.ParseEnvIntFlag("ATHENZ_SIA_AWS_WEB_IDENTITY_DURATION_SECONDS", 0)
+		if durationSeconds > 0 {
+			config.AwsWebIdentityDurationSeconds = int32(durationSeconds)
+		}
+	}
+	if config.AwsWebIdentitySigningAlgorithm == "" {
+		config.AwsWebIdentitySigningAlgorithm = "ES384"
+	}
+	if config.AwsWebIdentityDurationSeconds == 0 {
+		config.AwsWebIdentityDurationSeconds = 300
+	}
 
 	roleArn := os.Getenv("ATHENZ_SIA_IAM_ROLE_ARN")
 	if roleArn == "" {
@@ -398,10 +422,15 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 	runAfterTokensErr := ""
 	spiffeTrustDomain := ""
 	addlSanDNSEntries := make([]string, 0)
+	emailAddresses := make([]string, 0)
 	runAfterFailExit := false
 	roleCertsRequired := false
 	httpPort := 0
 	rolePath := ""
+	useWebIdentityToken := false
+	webIdentityAudience := ""
+	webIdentitySigningAlgorithm := ""
+	var webIdentityDurationSeconds int32
 
 	var storeTokenOption *int
 	if config != nil {
@@ -421,6 +450,11 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		roleCertsRequired = config.RoleCertsRequired
 		httpPort = config.HttpPort
 		rolePath = config.RolePath
+		useWebIdentityToken = config.AwsWebIdentity
+		webIdentityAudience = config.AwsWebIdentityAudience
+		webIdentitySigningAlgorithm = config.AwsWebIdentitySigningAlgorithm
+		webIdentityDurationSeconds = config.AwsWebIdentityDurationSeconds
+
 
 		if config.RefreshInterval > 0 {
 			refreshInterval = config.RefreshInterval
@@ -472,6 +506,10 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		if config.SanDnsX509Cnames != "" {
 			sanDSNSEntries := strings.Split(config.SanDnsX509Cnames, ",")
 			addlSanDNSEntries = append(addlSanDNSEntries, sanDSNSEntries...)
+		}
+		if config.SanEmailAddresses != "" {
+			sanEmailEntries := strings.Split(config.SanEmailAddresses, ",")
+			emailAddresses = append(emailAddresses, sanEmailEntries...)
 		}
 		//update generate role and rotate key options if config is provided
 		generateRoleKey = config.GenerateRoleKey
@@ -670,11 +708,16 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		OmitDomain:             account.OmitDomain,
 		StoreTokenOption:       storeTokenOption,
 		AddlSanDNSEntries:      addlSanDNSEntries,
+		EmailAddresses:         emailAddresses,
 		RunAfterFailExit:       runAfterFailExit,
 		RoleCertsRequired:      roleCertsRequired,
 		OTel:                   oTelCfg,
 		HttpPort:               httpPort,
 		RolePath:               rolePath,
+		UseWebIdentityToken:             useWebIdentityToken,
+		WebIdentityAudience:             webIdentityAudience,
+		WebIdentitySigningAlgorithm:     webIdentitySigningAlgorithm,
+		WebIdentityDurationSeconds:      webIdentityDurationSeconds,
 	}, nil
 }
 

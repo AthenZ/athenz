@@ -16,6 +16,8 @@
 package com.yahoo.athenz.instance.provider.impl;
 
 import com.yahoo.athenz.auth.Authorizer;
+import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.athenz.instance.provider.AWSAttestationValidator;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import org.eclipse.jetty.util.StringUtil;
@@ -46,7 +48,7 @@ public class AWSStsCredentialsAttestationValidator implements AWSAttestationVali
     String awsRegion;
 
     @Override
-    public void initialize(SSLContext sslContext, Authorizer authorizer) {
+    public void initialize(SSLContext sslContext, Authorizer authorizer, Principal providerPrincipal) {
         awsRegion = System.getProperty(AWS_PROP_REGION_NAME);
     }
 
@@ -84,6 +86,14 @@ public class AWSStsCredentialsAttestationValidator implements AWSAttestationVali
     public boolean validateIdentity(InstanceConfirmation confirmation, AWSAttestationData info,
             final String awsAccount, StringBuilder errMsg) {
 
+        // the sts credentials attestation requires the domain to have an
+        // associated aws account id to match against the caller identity arn
+
+        if (StringUtil.isEmpty(awsAccount)) {
+            errMsg.append("no aws account id associated with the domain");
+            return false;
+        }
+
         if (StringUtil.isEmpty(awsRegion)) {
             errMsg.append("aws region is not configured");
             return false;
@@ -101,16 +111,18 @@ public class AWSStsCredentialsAttestationValidator implements AWSAttestationVali
                 return false;
             }
 
-            String arn = "arn:aws:sts::" + awsAccount + ":assumed-role/" + info.getRole() + "/";
-            if (!response.arn().startsWith(arn)) {
-                errMsg.append("ARN mismatch - request: ").append(arn)
-                        .append(" caller-identity: ").append(response.arn());
-                LOGGER.error("validateIdentity - ARN mismatch - request: {} caller-identity: {}",
-                        arn, response.arn());
-                return false;
+            for (String account : Utils.parseAwsAccounts(awsAccount)) {
+                final String arn = "arn:aws:sts::" + account + ":assumed-role/" + info.getRole() + "/";
+                if (response.arn().startsWith(arn)) {
+                    return true;
+                }
             }
 
-            return true;
+            errMsg.append("ARN mismatch - account(s): ").append(awsAccount)
+                    .append(" caller-identity: ").append(response.arn());
+            LOGGER.error("validateIdentity - ARN mismatch - account(s): {} caller-identity: {}",
+                    awsAccount, response.arn());
+            return false;
 
         } catch (Exception ex) {
             errMsg.append("unable to get caller identity: ").append(ex.getMessage());

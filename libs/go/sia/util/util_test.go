@@ -294,6 +294,80 @@ func TestGenerateSvcCertCSR(test *testing.T) {
 	}
 }
 
+func TestGenerateSvcCertCSREmailAddresses(test *testing.T) {
+
+	key, err := GenerateKeyPair(2048)
+	if err != nil {
+		test.Errorf("Cannot generate private key: %v", err)
+		return
+	}
+	svcCertReqOptions := &SvcCertReqOptions{
+		Country:    "US",
+		Domain:     "domain",
+		Service:    "service",
+		CommonName: "domain.service",
+		InstanceId: "instance001",
+		Provider:   "Athenz",
+		ZtsDomains: []string{"athenz.cloud"},
+		// the empty and duplicate entries must be skipped
+		EmailAddresses: []string{"domain.service@athenz.io", "", "domain.service@athenz.io", "admin@athenz.io"},
+	}
+	csr, err := GenerateSvcCertCSR(key, svcCertReqOptions)
+	if err != nil {
+		test.Errorf("Cannot create CSR: %v", err)
+		return
+	}
+
+	block, _ := pem.Decode([]byte(csr))
+	parsedcertreq, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		test.Errorf("Cannot parse CSR: %v", err)
+		return
+	}
+	assert.Equal(test, []string{"domain.service@athenz.io", "admin@athenz.io"}, parsedcertreq.EmailAddresses)
+}
+
+func TestGenerateSvcCertCSRInstanceIdSanDNS(test *testing.T) {
+
+	key, err := GenerateKeyPair(2048)
+	if err != nil {
+		test.Errorf("Cannot generate private key: %v", err)
+		return
+	}
+	svcCertReqOptions := &SvcCertReqOptions{
+		Country:          "US",
+		Domain:           "domain",
+		Service:          "service",
+		CommonName:       "domain.service",
+		InstanceId:       "instance001",
+		Provider:         "Athenz",
+		Hostname:         "host1.athenz.io",
+		ZtsDomains:       []string{"athenz.cloud"},
+		WildCardDnsName:  true,
+		InstanceIdSanDNS: true,
+	}
+	csr, err := GenerateSvcCertCSR(key, svcCertReqOptions)
+	if err != nil {
+		test.Errorf("Cannot create CSR: %v", err)
+		return
+	}
+
+	block, _ := pem.Decode([]byte(csr))
+	parsedcertreq, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		test.Errorf("Cannot parse CSR: %v", err)
+		return
+	}
+	expectedHosts := []string{
+		"service.domain.athenz.cloud",
+		"*.service.domain.athenz.cloud",
+		"host1.athenz.io",
+		"instance001.instanceid.athenz.athenz.cloud",
+	}
+	assert.Equal(test, expectedHosts, parsedcertreq.DNSNames)
+	assert.Nil(test, parsedcertreq.EmailAddresses)
+}
+
 func TestGenerateSvcCertCSRSpiffeTrustDomain(test *testing.T) {
 
 	key, err := GenerateKeyPair(2048)
@@ -1452,6 +1526,33 @@ func TestAppendHostname(t *testing.T) {
 	assert.Equal(t, len(list), 2)
 	assert.Equal(t, list[0], "host1.athenz.io")
 	assert.Equal(t, list[1], "host2.athenz.io")
+}
+
+func TestAppendEmail(t *testing.T) {
+	list := []string{}
+	list = AppendEmail(list, "")
+	assert.Equal(t, 0, len(list))
+
+	list = AppendEmail(list, "user1@athenz.io")
+	assert.Equal(t, 1, len(list))
+	assert.Equal(t, "user1@athenz.io", list[0])
+
+	list = AppendEmail(list, "user1@athenz.io")
+	assert.Equal(t, 1, len(list))
+	assert.Equal(t, "user1@athenz.io", list[0])
+
+	list = AppendEmail(list, "user2@athenz.io")
+	assert.Equal(t, 2, len(list))
+	assert.Equal(t, "user1@athenz.io", list[0])
+	assert.Equal(t, "user2@athenz.io", list[1])
+
+	list = AppendEmail(list, "user2@athenz.io")
+	assert.Equal(t, 2, len(list))
+	assert.Equal(t, "user1@athenz.io", list[0])
+	assert.Equal(t, "user2@athenz.io", list[1])
+
+	list = AppendEmail(list, "")
+	assert.Equal(t, 2, len(list))
 }
 
 func TestRequiredFilePerm(t *testing.T) {

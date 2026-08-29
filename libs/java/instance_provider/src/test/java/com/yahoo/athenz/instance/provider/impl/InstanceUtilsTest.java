@@ -133,6 +133,47 @@ public class InstanceUtilsTest {
     }
 
     @Test
+    public void testValidateCertRequestHostnamesWithZtsDerivedInstanceId() {
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("sanDNS", "istiod.athenz-k8s-nonprod.svc.cluster.local");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_ID, "120ed2ec-783a-41a5-af89-177b1e175312");
+        StringBuilder id = new StringBuilder(256);
+        assertTrue(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz.k8s.nonprod", "istiod",
+                Collections.singleton("svc.cluster.local"), null, null, false, id, null));
+        assertEquals(id.toString(), "120ed2ec-783a-41a5-af89-177b1e175312");
+    }
+
+    @Test
+    public void testValidateCertRequestHostnamesMultipleInstanceIdsRejectedNotFallback() {
+
+        // Two conflicting instanceid SAN DNS entries: extractCertRequestInstanceId appends
+        // the first one before detecting the conflict on the second, so instanceId is left
+        // partially populated when it returns false. The ZTS_INSTANCE_ID fallback must not
+        // then be appended on top of that partial value -- the request must be rejected
+        // outright, not issued with a corrupted, concatenated instance id.
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("sanDNS", "api.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud," +
+                "i-5678.instanceid.athenz.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_ID, "sa-uid-from-token");
+        StringBuilder id = new StringBuilder(256);
+        assertFalse(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
+                Collections.singleton("athenz.cloud"), null, null, false, id, null));
+        assertEquals(id.toString(), "i-1234", "instanceId must hold only the first conflicting " +
+                "value, not a corrupted concatenation with the ZTS-derived fallback");
+    }
+
+    @Test
+    public void testValidateCertRequestHostnamesSanInstanceIdOverridesZtsAttribute() {
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("sanDNS", "api.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_ID, "sa-uid-from-token");
+        StringBuilder id = new StringBuilder(256);
+        assertTrue(InstanceUtils.validateCertRequestSanDnsNames(attributes, "athenz", "api",
+                Collections.singleton("athenz.cloud"), null, null, false, id, null));
+        assertEquals(id.toString(), "i-1234");
+    }
+
+    @Test
     public void testValidateCertRequestHostnamesWithInstanceIdURI() {
         HashMap<String, String> attributes = new HashMap<>();
         attributes.put("sanDNS", "api.athenz.athenz.cloud");
@@ -464,6 +505,37 @@ public class InstanceUtilsTest {
         Assert.assertNull(InstanceUtils.getServiceAccountNameFromIdTokenSubject(null));
         Assert.assertNull(InstanceUtils.getServiceAccountNameFromIdTokenSubject("my:invalid:ns:xyz"));
         Assert.assertNull(InstanceUtils.getServiceAccountNameFromIdTokenSubject("system:serviceaccount:invalid"));
+    }
+
+    @Test
+    public void testGetNamespaceFromIdTokenSubject() {
+        Assert.assertEquals(InstanceUtils.getNamespaceFromIdTokenSubject("system:serviceaccount:my-ns:my-sa"), "my-ns");
+        Assert.assertEquals(InstanceUtils.getNamespaceFromIdTokenSubject("system:serviceaccount:default:athenz.api"), "default");
+        Assert.assertNull(InstanceUtils.getNamespaceFromIdTokenSubject(""));
+        Assert.assertNull(InstanceUtils.getNamespaceFromIdTokenSubject(null));
+        Assert.assertNull(InstanceUtils.getNamespaceFromIdTokenSubject("my:invalid:ns:xyz"));
+        Assert.assertNull(InstanceUtils.getNamespaceFromIdTokenSubject("system:serviceaccount:invalid"));
+    }
+
+    @Test
+    public void testGetNamespaceFromSpiffeUri() {
+
+        Assert.assertEquals(InstanceUtils.getNamespaceFromSpiffeUri(
+                "spiffe://athenz.io/ns/my-ns/sa/athenz.api"), "my-ns");
+
+        // the attribute carries all the uris from the request, and the spiffe one
+        // is not necessarily the first entry in the list
+
+        Assert.assertEquals(InstanceUtils.getNamespaceFromSpiffeUri(
+                "athenz://instanceid/sys.k8s.gcp/1001,spiffe://athenz.io/ns/my-ns/sa/athenz.api"), "my-ns");
+
+        // no spiffe uri, or a spiffe uri without a namespace component
+
+        Assert.assertNull(InstanceUtils.getNamespaceFromSpiffeUri("athenz://instanceid/sys.k8s.gcp/1001"));
+        Assert.assertNull(InstanceUtils.getNamespaceFromSpiffeUri("spiffe://athenz.io/sa/athenz.api"));
+        Assert.assertNull(InstanceUtils.getNamespaceFromSpiffeUri("spiffe://athenz.io/ns/my-ns"));
+        Assert.assertNull(InstanceUtils.getNamespaceFromSpiffeUri(""));
+        Assert.assertNull(InstanceUtils.getNamespaceFromSpiffeUri(null));
     }
 
     @Test

@@ -112,8 +112,27 @@ public class InstanceK8SProvider implements InstanceProvider {
             throw error("id_token in the attestation data is invalid. Additional details=" + errMsg);
         }
 
-        // next validate the san dns entries in the certificate request
-        if (!kubernetesDistributionValidator.validateSanDNSEntries(confirmation, errMsg)) {
+        LOGGER.debug("confirmInstance: domain={} service={} issuer={} attestationSubject={}",
+                confirmation.getDomain(), confirmation.getService(), issuer,
+                instanceAttributes.get(InstanceProvider.ZTS_INSTANCE_ATTESTATION_DATA_SUBJECT));
+
+        // if the request includes a spiffe uri then its namespace component becomes part
+        // of the issued identity, so we must verify it against the namespace of the service
+        // account that our validated id_token was issued for. the namespace in the uri is
+        // otherwise only matched against the namespace value given in the request, which
+        // is not attested
+
+        if (!validateSpiffeUriNamespace(instanceAttributes)) {
+            throw error("namespace mismatch between attestation id_token and spiffe uri");
+        }
+
+        // skip DNS validation for SPIFFE SVIDs with no DNS SANs
+        final String sanDns = instanceAttributes.get(InstanceProvider.ZTS_INSTANCE_SAN_DNS);
+        final String sanUri = instanceAttributes.get(InstanceProvider.ZTS_INSTANCE_SAN_URI);
+        boolean spiffeSvidWithNoDns = StringUtil.isEmpty(sanDns) &&
+                sanUri != null && sanUri.startsWith("spiffe://");
+
+        if (!spiffeSvidWithNoDns && !kubernetesDistributionValidator.validateSanDNSEntries(confirmation, errMsg)) {
             throw error("Unable to validate certificate request hostnames. Additional details=" + errMsg);
         }
 
@@ -123,6 +142,32 @@ public class InstanceK8SProvider implements InstanceProvider {
         confirmation.setAttributes(attributes);
 
         return confirmation;
+    }
+
+    /**
+     * Verify that the namespace in the request's spiffe uri matches the namespace from the
+     * subject of the validated id_token. Requests without a spiffe uri carry no namespace
+     * in their identity, so there is nothing to verify in that case.
+     * @param instanceAttributes attributes from the confirmation request
+     * @return true if the namespaces match or the request has no spiffe uri, false otherwise
+     */
+    boolean validateSpiffeUriNamespace(final Map<String, String> instanceAttributes) {
+
+        final String spiffeNamespace = InstanceUtils.getNamespaceFromSpiffeUri(
+                instanceAttributes.get(InstanceProvider.ZTS_INSTANCE_SAN_URI));
+        if (spiffeNamespace == null) {
+            return true;
+        }
+
+        final String tokenNamespace = InstanceUtils.getNamespaceFromIdTokenSubject(
+                instanceAttributes.get(InstanceProvider.ZTS_INSTANCE_ATTESTATION_DATA_SUBJECT));
+
+        if (!spiffeNamespace.equals(tokenNamespace)) {
+            LOGGER.error("validateSpiffeUriNamespace: namespace mismatch: spiffe-uri={} id_token={}",
+                    spiffeNamespace, tokenNamespace);
+            return false;
+        }
+        return true;
     }
 
     @Override

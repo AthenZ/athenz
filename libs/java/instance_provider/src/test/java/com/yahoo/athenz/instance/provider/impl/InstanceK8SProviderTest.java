@@ -40,6 +40,7 @@ import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.yahoo.athenz.instance.provider.InstanceProvider.ZTS_INSTANCE_SAN_DNS;
@@ -393,6 +394,136 @@ public class InstanceK8SProviderTest {
             assertTrue(ex.getMessage().contains("Unable to validate certificate request hostnames"), ex.getMessage());
         }
         provider.close();
+        System.clearProperty(ZTS_PROP_K8S_PROVIDER_DISTRIBUTION_VALIDATOR_FACTORY_CLASS);
+        System.clearProperty(AWS_PROP_REGION_NAME);
+        System.clearProperty(ZTS_PROP_K8S_ATTESTATION_EXPECTED_AUDIENCE);
+        System.clearProperty(InstanceGCPProvider.GCP_PROP_DNS_SUFFIX);
+        DefaultGCPGoogleKubernetesEngineValidator.getInstance().jwtsHelper = new JwtsHelper();
+        removeOpenIdConfigFile(configFile, jwksUri);
+    }
+
+    @Test
+    public void testConfirmInstanceSpiffeSvidNoDnsSkipsSanValidation() throws IOException {
+        // SPIFFE SVIDs (Istio ambient workload identity) carry no DNS SANs - confirmInstance
+        // must skip the distribution validator's SAN DNS check rather than reject the request
+        File configFile = new File("./src/test/resources/codesigning-openid.json");
+        File jwksUri = new File("./src/test/resources/codesigning-jwks.json");
+        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        createOpenIdConfigFileWithKey(configFile, jwksUri, true, (ECPublicKey) publicKey);
+
+        System.setProperty(InstanceGCPProvider.GCP_PROP_DNS_SUFFIX, "gcp.athenz.cloud");
+        System.setProperty(ZTS_PROP_K8S_PROVIDER_DISTRIBUTION_VALIDATOR_FACTORY_CLASS,
+                "com.yahoo.athenz.instance.provider.impl.DefaultKubernetesDistributionValidatorFactory");
+        System.setProperty(AWS_PROP_REGION_NAME, "us-west-2");
+        System.setProperty(ZTS_PROP_K8S_ATTESTATION_EXPECTED_AUDIENCE, "https://zts.athenz.io/zts/v1");
+
+        InstanceK8SProvider provider = new InstanceK8SProvider();
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
+        provider.setAuthorizer(authorizer);
+        provider.initialize("k8sprovider", "com.yahoo.athenz.instance.provider.impl.InstanceK8SProvider", null, null);
+
+        DefaultGCPGoogleKubernetesEngineValidator.getInstance().jwtsHelper = Mockito.mock(JwtsHelper.class);
+        when(DefaultGCPGoogleKubernetesEngineValidator.getInstance().jwtsHelper.extractJwksUri(any(), any()))
+                .thenReturn("file://" + jwksUri.getCanonicalPath());
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setDomain("calypso.nonprod");
+        confirmation.setService("curl");
+        confirmation.setAttributes(new HashMap<>());
+        confirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_CLOUD, "gcp");
+        confirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_GCP_PROJECT, "my-project");
+        confirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_SAN_URI,
+                "spiffe://athenz.cloud/ns/calypso-nonprod/sa/calypso.nonprod.curl");
+        confirmation.setAttestationData("{\"identityToken\": \"" + createToken("system:serviceaccount:calypso-nonprod:calypso.nonprod.curl",
+                "https://zts.athenz.io/zts/v1", "https://container.googleapis.com/v1/projects/my-project/zones/us-east1-a/clusters/my-cluster") +  "\"}");
+
+        try {
+            provider.confirmInstance(confirmation);
+        } catch (ProviderResourceException re) {
+            fail(re.getMessage());
+        }
+        provider.close();
+
+        System.clearProperty(ZTS_PROP_K8S_PROVIDER_DISTRIBUTION_VALIDATOR_FACTORY_CLASS);
+        System.clearProperty(AWS_PROP_REGION_NAME);
+        System.clearProperty(ZTS_PROP_K8S_ATTESTATION_EXPECTED_AUDIENCE);
+        System.clearProperty(InstanceGCPProvider.GCP_PROP_DNS_SUFFIX);
+        DefaultGCPGoogleKubernetesEngineValidator.getInstance().jwtsHelper = new JwtsHelper();
+        removeOpenIdConfigFile(configFile, jwksUri);
+    }
+
+    @Test
+    public void testConfirmInstanceSpiffeUriNamespaceMismatch() throws IOException {
+
+        // the spiffe uri namespace is only matched against the namespace value given in the
+        // request, which is not attested. a token issued for a service account in a different
+        // namespace must not be accepted for a request claiming another namespace, otherwise
+        // the certificate would carry a spiffe identity for a namespace the caller does not own
+
+        File configFile = new File("./src/test/resources/codesigning-openid.json");
+        File jwksUri = new File("./src/test/resources/codesigning-jwks.json");
+        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        createOpenIdConfigFileWithKey(configFile, jwksUri, true, (ECPublicKey) publicKey);
+
+        System.setProperty(InstanceGCPProvider.GCP_PROP_DNS_SUFFIX, "gcp.athenz.cloud");
+        System.setProperty(ZTS_PROP_K8S_PROVIDER_DISTRIBUTION_VALIDATOR_FACTORY_CLASS,
+                "com.yahoo.athenz.instance.provider.impl.DefaultKubernetesDistributionValidatorFactory");
+        System.setProperty(AWS_PROP_REGION_NAME, "us-west-2");
+        System.setProperty(ZTS_PROP_K8S_ATTESTATION_EXPECTED_AUDIENCE, "https://zts.athenz.io/zts/v1");
+
+        InstanceK8SProvider provider = new InstanceK8SProvider();
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
+        provider.setAuthorizer(authorizer);
+        provider.initialize("k8sprovider", "com.yahoo.athenz.instance.provider.impl.InstanceK8SProvider", null, null);
+
+        DefaultGCPGoogleKubernetesEngineValidator.getInstance().jwtsHelper = Mockito.mock(JwtsHelper.class);
+        when(DefaultGCPGoogleKubernetesEngineValidator.getInstance().jwtsHelper.extractJwksUri(any(), any()))
+                .thenReturn("file://" + jwksUri.getCanonicalPath());
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setDomain("calypso.nonprod");
+        confirmation.setService("curl");
+        confirmation.setAttributes(new HashMap<>());
+        confirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_CLOUD, "gcp");
+        confirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_GCP_PROJECT, "my-project");
+        confirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_SAN_URI,
+                "spiffe://athenz.cloud/ns/calypso-nonprod/sa/calypso.nonprod.curl");
+        confirmation.setAttestationData("{\"identityToken\": \"" + createToken("system:serviceaccount:attacker-ns:calypso.nonprod.curl",
+                "https://zts.athenz.io/zts/v1", "https://container.googleapis.com/v1/projects/my-project/zones/us-east1-a/clusters/my-cluster") +  "\"}");
+
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ProviderResourceException re) {
+            assertTrue(re.getMessage().contains("namespace mismatch"), re.getMessage());
+        }
+
+        // the check is not limited to spiffe only requests - a request that also carries
+        // dns sans (e.g. the csi driver flow) must satisfy the same requirement, otherwise
+        // the caller could claim another namespace in the spiffe uri of its certificate
+
+        confirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_SAN_DNS,
+                "curl.calypso-nonprod.svc.cluster.local");
+
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ProviderResourceException re) {
+            assertTrue(re.getMessage().contains("namespace mismatch"), re.getMessage());
+        }
+
+        // requests without any spiffe uri carry no namespace in their identity so there
+        // is nothing for us to verify against the attestation data
+
+        Map<String, String> noSpiffeUriAttributes = new HashMap<>();
+        noSpiffeUriAttributes.put(InstanceProvider.ZTS_INSTANCE_ATTESTATION_DATA_SUBJECT,
+                "system:serviceaccount:attacker-ns:calypso.nonprod.curl");
+        assertTrue(provider.validateSpiffeUriNamespace(noSpiffeUriAttributes));
+
+        provider.close();
+
         System.clearProperty(ZTS_PROP_K8S_PROVIDER_DISTRIBUTION_VALIDATOR_FACTORY_CLASS);
         System.clearProperty(AWS_PROP_REGION_NAME);
         System.clearProperty(ZTS_PROP_K8S_ATTESTATION_EXPECTED_AUDIENCE);

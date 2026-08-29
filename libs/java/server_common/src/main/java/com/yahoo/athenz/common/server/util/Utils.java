@@ -23,6 +23,9 @@ import com.yahoo.athenz.common.server.ServerResourceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 public class Utils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Utils.class);
@@ -118,5 +121,21 @@ public class Utils {
         }
 
         return null;
+    }
+
+    /** Split a comma-separated AWS account list into a set of trimmed, non-blank account ids */
+    public static Set<String> parseAwsAccounts(final String accounts) {
+
+        Set<String> awsAccounts = new LinkedHashSet<>();
+        if (accounts == null) {
+            return awsAccounts;
+        }
+        for (String account : accounts.split(",")) {
+            final String trimmedAccount = account.trim();
+            if (!trimmedAccount.isEmpty()) {
+                awsAccounts.add(trimmedAccount);
+            }
+        }
+        return awsAccounts;
     }
 }

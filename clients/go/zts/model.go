@@ -3011,6 +3011,12 @@ type InstanceRegisterInformation struct {
 	SshCertSignerKeyId SimpleName `json:"sshCertSignerKeyId,omitempty" rdl:"optional"`
 
 	//
+	// caller-supplied unique instance id for the x.509 cert when instance id can
+	// not be derived from CSR
+	//
+	X509CertInstanceId PathElement `json:"x509CertInstanceId,omitempty" rdl:"optional"`
+
+	//
 	// unique instance id within provider's namespace for the jwt svid
 	//
 	JwtSVIDInstanceId PathElement `json:"jwtSVIDInstanceId,omitempty" rdl:"optional"`
@@ -3139,6 +3145,12 @@ func (self *InstanceRegisterInformation) Validate() error {
 		val := rdl.Validate(ZTSSchema(), "SimpleName", self.SshCertSignerKeyId)
 		if !val.Valid {
 			return fmt.Errorf("InstanceRegisterInformation.sshCertSignerKeyId does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.X509CertInstanceId != "" {
+		val := rdl.Validate(ZTSSchema(), "PathElement", self.X509CertInstanceId)
+		if !val.Valid {
+			return fmt.Errorf("InstanceRegisterInformation.x509CertInstanceId does not contain a valid PathElement (%v)", val.Error)
 		}
 	}
 	if self.JwtSVIDInstanceId != "" {
@@ -4769,8 +4781,9 @@ func (self *UserCertificateRequest) Validate() error {
 	return nil
 }
 
-// ExternalMemberCertificate - ExternalMemberCertificate - an external member
-// certificate
+// ExternalMemberCertificate - Copyright The Athenz Authors Licensed under the
+// terms of the Apache version 2.0 license. See LICENSE file for terms.
+// ExternalMemberCertificate - an external member certificate
 type ExternalMemberCertificate struct {
 	X509Certificate string `json:"x509Certificate"`
 }
