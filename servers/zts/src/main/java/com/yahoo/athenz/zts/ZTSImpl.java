@@ -3091,6 +3091,18 @@ public class ZTSImpl implements ZTSHandler {
         }
         accessToken.setAct(actClaim);
 
+        // if we have a certificate used for mTLS authentication then
+        // we're going to bind the certificate to the access token
+        // and the optional proxy principals if specified
+
+        X509Certificate cert = principal.getX509Certificate();
+        if (cert != null) {
+            accessToken.setConfirmX509CertHash(cert);
+            if (accessTokenRequest.getProxyPrincipalsSpiffeUris() != null) {
+                accessToken.setConfirmProxyPrincipalSpiffeUris(accessTokenRequest.getProxyPrincipalsSpiffeUris());
+            }
+        }
+
         ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
 
@@ -3677,6 +3689,18 @@ public class ZTSImpl implements ZTSHandler {
                 } else {
                     accessToken.setCustomClaim(claim, jagToken.getClaim(claim));
                 }
+            }
+        }
+
+        // if we have a certificate used for mTLS authentication then
+        // we're going to bind the certificate to the access token
+        // and the optional proxy principals if specified
+
+        X509Certificate cert = principal.getX509Certificate();
+        if (cert != null) {
+            accessToken.setConfirmX509CertHash(cert);
+            if (accessTokenRequest.getProxyPrincipalsSpiffeUris() != null) {
+                accessToken.setConfirmProxyPrincipalSpiffeUris(accessTokenRequest.getProxyPrincipalsSpiffeUris());
             }
         }
 

@@ -99,6 +99,8 @@ public class ZTSImplAccessTokenTest {
             + "0tLS0tCg--";
 
     private static final String MOCKCLIENTADDR = "10.11.12.13";
+    private static final String MTLS_TOKEN_SPEC_CERT_HASH =
+            "A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0";
     @Mock private HttpServletRequest  mockServletRequest;
     @Mock private HttpServletResponse mockServletResponse;
 
@@ -200,6 +202,12 @@ public class ZTSImplAccessTokenTest {
         jwtProcessor.setJWSKeySelector(new JWSVerificationKeySelector<>(JwtsHelper.JWS_SUPPORTED_ALGORITHMS,
                 resolver.getKeySource()));
         return jwtProcessor;
+    }
+
+    private X509Certificate loadMtlsTokenSpecCertificate() throws IOException {
+        Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        return Crypto.loadX509Certificate(certStr);
     }
 
     private ServerPrivateKey getServerPrivateKey(ZTSImpl ztsImpl, final String keyType) {
@@ -1966,7 +1974,7 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
-    public void testProcessJAGTokenExchangeRequestImpersonationSuccess() throws JOSEException {
+    public void testProcessJAGTokenExchangeRequestImpersonationSuccess() throws IOException, JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -1989,6 +1997,7 @@ public class ZTSImplAccessTokenTest {
         Mockito.when(servletRequest.isSecure()).thenReturn(true);
         Principal principal = SimplePrincipal.create("coretech", "jwt",
                 "v=U1;d=coretech;n=jwt;s=signature", 0, null);
+        ((SimplePrincipal) principal).setX509Certificate(loadMtlsTokenSpecCertificate());
         ResourceContext context = createResourceContext(principal);
 
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
@@ -2014,6 +2023,10 @@ public class ZTSImplAccessTokenTest {
             assertEquals(claimSet.getAudience().get(0), "coretech");
             assertEquals(claimSet.getStringClaim("client_id"), "coretech.jwt");
             assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
+
+            Map<String, Object> cnfClaim = claimSet.getJSONObjectClaim("cnf");
+            assertNotNull(cnfClaim);
+            assertEquals(cnfClaim.get("x5t#S256"), MTLS_TOKEN_SPEC_CERT_HASH);
 
             // impersonation does not include `may_act` or `act` claim:
             assertNull(claimSet.getJSONObjectClaim("may_act"));
@@ -2096,6 +2109,7 @@ public class ZTSImplAccessTokenTest {
             // impersonation does not include `may_act` or `act` claim:
             assertNull(claimSet.getJSONObjectClaim("may_act"));
             assertNull(claimSet.getJSONObjectClaim("act"));
+            assertNull(claimSet.getJSONObjectClaim("cnf"));
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
@@ -2159,7 +2173,7 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
-    public void testProcessJAGTokenExchangeDelegationSuccess() throws JOSEException {
+    public void testProcessJAGTokenExchangeDelegationSuccess() throws IOException, JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
@@ -2177,10 +2191,9 @@ public class ZTSImplAccessTokenTest {
                 "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
 
         // Delegation requires mTLS (X.509 certificate)
-        java.security.cert.X509Certificate mockCert = Mockito.mock(java.security.cert.X509Certificate.class);
         Principal principal = SimplePrincipal.create("coretech", "jwt",
                 "v=U1;d=coretech;n=jwt;s=signature", 0, null);
-        ((SimplePrincipal) principal).setX509Certificate(mockCert);
+        ((SimplePrincipal) principal).setX509Certificate(loadMtlsTokenSpecCertificate());
         ResourceContext context = createResourceContext(principal);
 
         AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
@@ -2206,6 +2219,10 @@ public class ZTSImplAccessTokenTest {
             assertEquals(claimSet.getAudience().get(0), "coretech");
             assertEquals(claimSet.getStringClaim("client_id"), "coretech.jwt");
             assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
+
+            Map<String, Object> cnfClaim = claimSet.getJSONObjectClaim("cnf");
+            assertNotNull(cnfClaim);
+            assertEquals(cnfClaim.get("x5t#S256"), MTLS_TOKEN_SPEC_CERT_HASH);
 
             // Delegation includes may_act and act claims.
             java.util.Map<String, Object> mayActClaim = claimSet.getJSONObjectClaim("may_act");
@@ -4890,6 +4907,7 @@ public class ZTSImplAccessTokenTest {
 
             // not expecting `may_act` claim with "actor" not defined:
             assertNull(claimSet.getJSONObjectClaim("may_act"));
+            assertNull(claimSet.getJSONObjectClaim("cnf"));
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
@@ -5250,7 +5268,7 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
-    public void testProcessAccessTokenExchangeDelegationRequestWithMayActSuccess() throws JOSEException {
+    public void testProcessAccessTokenExchangeDelegationRequestWithMayActSuccess() throws IOException, JOSEException {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
@@ -5289,9 +5307,8 @@ public class ZTSImplAccessTokenTest {
                 "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
         assertNotNull(principal);
         
-        // Delegation with next actor requires mTLS (X.509) principal.
-        java.security.cert.X509Certificate mockCert = org.mockito.Mockito.mock(java.security.cert.X509Certificate.class);
-        ((com.yahoo.athenz.auth.impl.SimplePrincipal) principal).setX509Certificate(mockCert);
+        // Bind the delegated access token to the mTLS-authenticated principal.
+        ((SimplePrincipal) principal).setX509Certificate(loadMtlsTokenSpecCertificate());
         
         ResourceContext context = createResourceContext(principal);
         TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
@@ -5348,6 +5365,10 @@ public class ZTSImplAccessTokenTest {
             Map mayActMap = (Map) claimSet.getClaim("may_act");
             assertNotNull(mayActMap);
             assertEquals(mayActMap.get("sub"), "athenz.next-actor");
+
+            Map<String, Object> cnfClaim = claimSet.getJSONObjectClaim("cnf");
+            assertNotNull(cnfClaim);
+            assertEquals(cnfClaim.get("x5t#S256"), MTLS_TOKEN_SPEC_CERT_HASH);
 
         } catch (Exception ex) {
             fail(ex.getMessage());
