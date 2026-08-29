@@ -302,7 +302,7 @@ func fetchJAGTokenIssue(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACer
 	}
 
 	if tokenOnly {
-		fmt.Print(accessTokenResponse.Id_token)
+		fmt.Print(accessTokenResponse.Access_token)
 		return
 	}
 
