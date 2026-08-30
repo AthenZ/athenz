@@ -2934,6 +2934,19 @@ public class ZTSImpl implements ZTSHandler {
             accessToken.setCustomClaim(IdToken.CLAIM_SPIFFE, spiffeId);
         }
 
+        setAccessTokenConfirmation(accessToken, principal, accessTokenRequest);
+
+        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
+        String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
+
+        return new AccessTokenResponse().setAccess_token(accessJwts)
+                .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in(tokenTimeout)
+                .setScope(generateScopeResponse(roles, requestDomainName, false));
+    }
+
+    private void setAccessTokenConfirmation(AccessToken accessToken, Principal principal,
+            AccessTokenRequest accessTokenRequest) {
+
         // if we have a certificate used for mTLS authentication then
         // we're going to bind the certificate to the access token
         // and the optional proxy principals if specified
@@ -2945,13 +2958,6 @@ public class ZTSImpl implements ZTSHandler {
                 accessToken.setConfirmProxyPrincipalSpiffeUris(accessTokenRequest.getProxyPrincipalsSpiffeUris());
             }
         }
-
-        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
-        String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
-
-        return new AccessTokenResponse().setAccess_token(accessJwts)
-                .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in(tokenTimeout)
-                .setScope(generateScopeResponse(roles, requestDomainName, false));
     }
 
     String[] tokenExchangeRequestedRoles(AccessTokenRequest accessTokenRequest, OAuth2Token subjectToken,
@@ -3117,6 +3123,8 @@ public class ZTSImpl implements ZTSHandler {
             actClaim.put(OAuth2Token.CLAIM_ACT, subjectActClaim);
         }
         accessToken.setAct(actClaim);
+
+        setAccessTokenConfirmation(accessToken, principal, accessTokenRequest);
 
         ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
@@ -3707,6 +3715,8 @@ public class ZTSImpl implements ZTSHandler {
             }
         }
 
+        setAccessTokenConfirmation(accessToken, principal, accessTokenRequest);
+
         ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
 
@@ -3871,17 +3881,7 @@ public class ZTSImpl implements ZTSHandler {
             accessToken.setMayActEntry(AccessToken.CLAIM_SUBJECT, actor);
         }
 
-        // if we have a certificate used for mTLS authentication then
-        // we're going to bind the certificate to the access token
-        // and the optional proxy principals if specified
-
-        X509Certificate cert = principal.getX509Certificate();
-        if (cert != null) {
-            accessToken.setConfirmX509CertHash(cert);
-            if (accessTokenRequest.getProxyPrincipalsSpiffeUris() != null) {
-                accessToken.setConfirmProxyPrincipalSpiffeUris(accessTokenRequest.getProxyPrincipalsSpiffeUris());
-            }
-        }
+        setAccessTokenConfirmation(accessToken, principal, accessTokenRequest);
 
         ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
