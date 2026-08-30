@@ -101,6 +101,10 @@ public class ZTSImplAccessTokenTest {
     private static final String MOCKCLIENTADDR = "10.11.12.13";
     private static final String MTLS_TOKEN_SPEC_CERT_HASH =
             "A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0";
+    private static final String PROXY_PRINCIPAL_SPIFFE_URIS =
+            "spiffe://athenz.io/sa/proxy1,spiffe://athenz.io/sa/proxy2";
+    private static final List<String> EXPECTED_PROXY_PRINCIPAL_SPIFFE_URIS =
+            List.of("spiffe://athenz.io/sa/proxy1", "spiffe://athenz.io/sa/proxy2");
     @Mock private HttpServletRequest  mockServletRequest;
     @Mock private HttpServletResponse mockServletResponse;
 
@@ -2200,7 +2204,8 @@ public class ZTSImplAccessTokenTest {
                 "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
                         + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
                         + "&client_assertion=" + createClientAssertionToken(privateKey)
-                        + "&actor=api.mcp");
+                        + "&actor=api.mcp"
+                        + "&proxy_principal_spiffe_uris=" + PROXY_PRINCIPAL_SPIFFE_URIS);
 
         assertNotNull(resp);
         assertEquals(resp.getScope(), "coretech:role.writers");
@@ -2223,6 +2228,7 @@ public class ZTSImplAccessTokenTest {
             Map<String, Object> cnfClaim = claimSet.getJSONObjectClaim("cnf");
             assertNotNull(cnfClaim);
             assertEquals(cnfClaim.get("x5t#S256"), MTLS_TOKEN_SPEC_CERT_HASH);
+            assertEquals(cnfClaim.get("proxy-principals#spiffe"), EXPECTED_PROXY_PRINCIPAL_SPIFFE_URIS);
 
             // Delegation includes may_act and act claims.
             java.util.Map<String, Object> mayActClaim = claimSet.getJSONObjectClaim("may_act");
@@ -5325,7 +5331,8 @@ public class ZTSImplAccessTokenTest {
                         + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
                         + "&audience=targetdomain"
                         + "&scope=targetdomain:role.writers"
-                        + "&actor=athenz.next-actor"; // next actor specified
+                        + "&actor=athenz.next-actor"
+                        + "&proxy_principal_spiffe_uris=" + PROXY_PRINCIPAL_SPIFFE_URIS;
 
         AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, requestBody);
 
@@ -5369,6 +5376,7 @@ public class ZTSImplAccessTokenTest {
             Map<String, Object> cnfClaim = claimSet.getJSONObjectClaim("cnf");
             assertNotNull(cnfClaim);
             assertEquals(cnfClaim.get("x5t#S256"), MTLS_TOKEN_SPEC_CERT_HASH);
+            assertEquals(cnfClaim.get("proxy-principals#spiffe"), EXPECTED_PROXY_PRINCIPAL_SPIFFE_URIS);
 
         } catch (Exception ex) {
             fail(ex.getMessage());
