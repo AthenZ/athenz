@@ -36,6 +36,8 @@ import com.yahoo.athenz.common.server.cert.CertificateDataValidator;
 import com.yahoo.athenz.common.server.cert.CertificateDataValidatorFactory;
 import com.yahoo.athenz.common.server.cert.Priority;
 import com.yahoo.athenz.common.server.cert.X509CertRecord;
+import com.yahoo.athenz.common.server.cert.X509CertEmailValidator;
+import com.yahoo.athenz.common.server.cert.X509CertEmailValidatorFactory;
 import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
 import com.yahoo.athenz.common.server.external.ExternalCredentialsProvider;
@@ -265,6 +267,7 @@ public class ZTSImpl implements ZTSHandler {
     protected NotificationManager notificationManager = null;
     protected StatusChecker statusChecker = null;
     protected CertificateDataValidator certificateDataValidator = null;
+    protected X509CertEmailValidator certEmailValidator = null;
 
     private static final RuntimeDelegate.HeaderDelegate<EntityTag> ENTITY_TAG_HEADER_DELEGATE =
             RuntimeDelegate.getInstance().createHeaderDelegate(EntityTag.class);
@@ -416,6 +419,10 @@ public class ZTSImpl implements ZTSHandler {
         // load the certificate data validator if configured
 
         loadCertificateDataValidator();
+
+        // load the certificate email validator if configured
+
+        loadX509CertEmailValidator();
 
         // setup open id and oauth config objects
 
@@ -1153,6 +1160,26 @@ public class ZTSImpl implements ZTSHandler {
         } catch (Exception ex) {
             LOGGER.error("Invalid CertificateDataValidatorFactory class: {}", certDataValidatorFactoryClass, ex);
             throw new IllegalArgumentException("Invalid certificate data validator factory class");
+        }
+    }
+
+    void loadX509CertEmailValidator() {
+
+        final String certEmailValidatorFactoryClass = System.getProperty(
+                ZTSConsts.ZTS_PROP_CERT_EMAIL_VALIDATOR_FACTORY_CLASS,
+                ZTSConsts.ZTS_CERT_EMAIL_VALIDATOR_FACTORY_CLASS_DEFAULT);
+
+        X509CertEmailValidatorFactory certEmailValidatorFactory;
+        try {
+            certEmailValidatorFactory = (X509CertEmailValidatorFactory) Class.forName(certEmailValidatorFactoryClass)
+                    .getDeclaredConstructor().newInstance();
+
+            // create our certificate email validator
+
+            certEmailValidator = certEmailValidatorFactory.create();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid X509CertEmailValidatorFactory class: {}", certEmailValidatorFactoryClass, ex);
+            throw new IllegalArgumentException("Invalid certificate email validator factory class");
         }
     }
 
@@ -2906,6 +2933,19 @@ public class ZTSImpl implements ZTSHandler {
             accessToken.setCustomClaim(IdToken.CLAIM_SPIFFE, spiffeId);
         }
 
+        setAccessTokenConfirmation(accessToken, principal, accessTokenRequest);
+
+        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
+        String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
+
+        return new AccessTokenResponse().setAccess_token(accessJwts)
+                .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in(tokenTimeout)
+                .setScope(generateScopeResponse(roles, requestDomainName, false));
+    }
+
+    private void setAccessTokenConfirmation(AccessToken accessToken, Principal principal,
+            AccessTokenRequest accessTokenRequest) {
+
         // if we have a certificate used for mTLS authentication then
         // we're going to bind the certificate to the access token
         // and the optional proxy principals if specified
@@ -2917,13 +2957,6 @@ public class ZTSImpl implements ZTSHandler {
                 accessToken.setConfirmProxyPrincipalSpiffeUris(accessTokenRequest.getProxyPrincipalsSpiffeUris());
             }
         }
-
-        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
-        String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
-
-        return new AccessTokenResponse().setAccess_token(accessJwts)
-                .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in(tokenTimeout)
-                .setScope(generateScopeResponse(roles, requestDomainName, false));
     }
 
     String[] tokenExchangeRequestedRoles(AccessTokenRequest accessTokenRequest, OAuth2Token subjectToken,
@@ -3150,6 +3183,8 @@ public class ZTSImpl implements ZTSHandler {
             actClaim.put(OAuth2Token.CLAIM_ACT, subjectActClaim);
         }
         accessToken.setAct(actClaim);
+
+        setAccessTokenConfirmation(accessToken, principal, accessTokenRequest);
 
         ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
@@ -3767,6 +3802,8 @@ public class ZTSImpl implements ZTSHandler {
             }
         }
 
+        setAccessTokenConfirmation(accessToken, principal, accessTokenRequest);
+
         ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
 
@@ -3968,17 +4005,7 @@ public class ZTSImpl implements ZTSHandler {
             accessToken.setMayActEntry(AccessToken.CLAIM_SUBJECT, actor);
         }
 
-        // if we have a certificate used for mTLS authentication then
-        // we're going to bind the certificate to the access token
-        // and the optional proxy principals if specified
-
-        X509Certificate cert = principal.getX509Certificate();
-        if (cert != null) {
-            accessToken.setConfirmX509CertHash(cert);
-            if (accessTokenRequest.getProxyPrincipalsSpiffeUris() != null) {
-                accessToken.setConfirmProxyPrincipalSpiffeUris(accessTokenRequest.getProxyPrincipalsSpiffeUris());
-            }
-        }
+        setAccessTokenConfirmation(accessToken, principal, accessTokenRequest);
 
         ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
@@ -5180,6 +5207,7 @@ public class ZTSImpl implements ZTSHandler {
         try {
             certReq = new X509ServiceCertRequest(info.getCsr(), spiffeUriManager, certificateDataValidator,
                     info.getX509CertInstanceId());
+            certReq.setEmailValidator(certEmailValidator);
         } catch (CryptoException ex) {
             throw requestError("unable to parse PKCS10 CSR: " + ex.getMessage(),
                     caller, domain, principalDomain);
@@ -5937,6 +5965,7 @@ public class ZTSImpl implements ZTSHandler {
         X509ServiceCertRequest certReq;
         try {
             certReq = new X509ServiceCertRequest(info.getCsr(), spiffeUriManager, certificateDataValidator);
+            certReq.setEmailValidator(certEmailValidator);
         } catch (CryptoException ex) {
             throw requestError("unable to parse PKCS10 CSR", caller, domain, principalDomain);
         }
@@ -6461,6 +6490,7 @@ public class ZTSImpl implements ZTSHandler {
         X509ServiceCertRequest x509CertReq;
         try {
             x509CertReq = new X509ServiceCertRequest(req.getCsr(), spiffeUriManager, certificateDataValidator);
+            x509CertReq.setEmailValidator(certEmailValidator);
         } catch (CryptoException ex) {
             throw requestError("Unable to parse PKCS10 certificate request",
                     caller, domain, principalDomain);

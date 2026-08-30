@@ -28,7 +28,7 @@ public class ZMSConfig {
     private String userDomainPrefix;
     private String headlessUserDomainPrefix;
     private List<String> addlUserCheckDomainPrefixList;
-    private SolutionTemplates serverSolutionTemplates;
+    private volatile SolutionTemplates serverSolutionTemplates;
     private Authority userAuthority;
     private Validator validator;
 

@@ -27,7 +27,7 @@ $ zts-roletoken -domain <domain> [-role <role>] -ntoken <ntoken> -zts <ZTS url> 
 The service identity ntoken can be obtained by using the zms-svctoken
 utility. The optional expire-time argument specifies how long the role
 token should be valid for. The value must be specified in minutes. The
-defualt if no value is specified is 120 minutes.
+default if no value is specified is 120 minutes.
 
 ## License
 

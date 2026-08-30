@@ -18,6 +18,7 @@ package com.yahoo.athenz.zts.cert;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.auth.util.CryptoException;
 import com.yahoo.athenz.common.server.cert.CertificateDataValidator;
+import com.yahoo.athenz.common.server.cert.X509CertEmailValidator;
 import com.yahoo.athenz.common.server.spiffe.SpiffeUriManager;
 import com.yahoo.athenz.zts.cache.DataCache;
 import org.bouncycastle.asn1.x509.GeneralName;
@@ -438,5 +439,116 @@ public class X509ServiceCertRequestTest {
         } catch (CryptoException ex) {
             assertTrue(ex.getMessage().contains("Invalid SPIFFE URI present"));
         }
+    }
+
+    @Test
+    public void testValidateEmailValidatorNotSet() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_email.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager, certificateDataValidator);
+        assertNotNull(certReq);
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        DataCache athenzSysDomainCache = Mockito.mock(DataCache.class);
+        Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider")).thenReturn(providerDnsSuffixList);
+
+        // No email validator is set, so the validation should succeed
+        assertTrue(certReq.validate("athenz", "production", "provider",
+                null, athenzSysDomainCache, null, null, null, null, null, false, errorMsg));
+    }
+
+    @Test
+    public void testValidateEmailValidatorRejectEmails() throws IOException {
+
+        Path path = Paths.get("src/test/resources/valid_email.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager, certificateDataValidator);
+        assertNotNull(certReq);
+
+        X509CertEmailValidator validator = new X509CertEmailValidator() {
+            @Override
+            public boolean validateServiceCertificateEmails(String domainName, String serviceName, List<String> emails) {
+                // Reject if there are any emails
+                return emails == null || emails.isEmpty();
+            }
+        };
+        certReq.setEmailValidator(validator);
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        DataCache athenzSysDomainCache = Mockito.mock(DataCache.class);
+        Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider")).thenReturn(providerDnsSuffixList);
+
+        // The CSR has emails, so the validation should fail
+        assertFalse(certReq.validate("athenz", "production", "provider",
+                null, athenzSysDomainCache, null, null, null, null, null, false, errorMsg));
+        assertTrue(errorMsg.toString().contains("Invalid email addresses in service certificate request"));
+    }
+
+    @Test
+    public void testValidateEmailValidatorAcceptEmails() throws IOException {
+
+        Path path = Paths.get("src/test/resources/athenz_email.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager, certificateDataValidator);
+        assertNotNull(certReq);
+
+        X509CertEmailValidator validator = new X509CertEmailValidator() {
+            @Override
+            public boolean validateServiceCertificateEmails(String domainName, String serviceName, List<String> emails) {
+                // Always accept emails (just log them)
+                return true;
+            }
+        };
+        certReq.setEmailValidator(validator);
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        DataCache athenzSysDomainCache = Mockito.mock(DataCache.class);
+        Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider")).thenReturn(providerDnsSuffixList);
+
+        // The CSR has emails, but the validator accepts them, so validation continues
+        assertTrue(certReq.validate("athenz", "production", "provider",
+                null, athenzSysDomainCache, null, null, null, null, null, false, errorMsg));
+    }
+
+    @Test
+    public void testValidateEmptyCnWithSpiffeUri() throws Exception {
+
+        // A CSR with empty CommonName but with a valid SPIFFE URI should pass validation
+        // The identity is carried solely by the SPIFFE URI
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        kpg.initialize(2048);
+        KeyPair keyPair = kpg.generateKeyPair();
+        GeneralName[] sanArray = new GeneralName[]{
+                new GeneralName(GeneralName.uniformResourceIdentifier, "spiffe://athenz/sa/production"),
+                new GeneralName(GeneralName.dNSName, "production.athenz.ostk.athenz.cloud"),
+                new GeneralName(GeneralName.uniformResourceIdentifier, "athenz://instanceid/provider/i-1234")
+        };
+        String csr = Crypto.generateX509CSR(keyPair.getPrivate(), keyPair.getPublic(), "", sanArray);
+
+        X509ServiceCertRequest certReq = new X509ServiceCertRequest(csr, spiffeUriManager, certificateDataValidator);
+        assertNotNull(certReq);
+
+        StringBuilder errorMsg = new StringBuilder(256);
+        List<String> providerDnsSuffixList = Collections.singletonList("ostk.athenz.cloud");
+
+        DataCache athenzSysDomainCache = Mockito.mock(DataCache.class);
+        Mockito.when(athenzSysDomainCache.getProviderDnsSuffixList("provider")).thenReturn(providerDnsSuffixList);
+
+        HashSet<String> validOrgs = new HashSet<>();
+        validOrgs.add("Athenz");
+
+        // Empty CN with SPIFFE URI should validate successfully (identity from SPIFFE URI)
+        assertTrue(certReq.validate("athenz", "production", "provider",
+                validOrgs, athenzSysDomainCache, null, null, null, null, null, false, errorMsg));
     }
 }
