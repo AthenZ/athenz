@@ -98,6 +98,7 @@ type Config struct {
 	SiaCertDir        string                   `json:"sia_cert_dir,omitempty"`               //sia certs directory to override /var/lib/sia/certs
 	SiaTokenDir       string                   `json:"sia_token_dir,omitempty"`              //sia tokens directory to override /var/lib/sia/tokens
 	SiaBackupDir      string                   `json:"sia_backup_dir,omitempty"`             //sia backup directory to override /var/lib/sia/backup
+	SiaMainDir        string                   `json:"sia_main_dir,omitempty"`               //sia main directory to override /var/lib/sia
 	HostnameSuffix    string                   `json:"hostname_suffix,omitempty"`            //hostname suffix in case we need to auto-generate hostname
 	Zts               string                   `json:"zts,omitempty"`                        //the ZTS to contact
 	Roles             map[string]ConfigRole    `json:"roles,omitempty"`                      //map of roles to retrieve certificates for
@@ -184,6 +185,7 @@ type Options struct {
 	UseRegionalSTS         bool                //use regional sts endpoint
 	KeyDir                 string              //private key directory path
 	CertDir                string              //x.509 certificate directory path
+	MainDir                string              //sia main directory path (athenz.conf, done files)
 	AthenzCACertFile       string              //filename to store Athenz CA certs
 	ZTSCACertFile          string              //filename for CA certs when communicating with ZTS
 	ZTSServerName          string              //ZTS server name, if necessary for tls

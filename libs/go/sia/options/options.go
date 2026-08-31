@@ -292,6 +292,9 @@ func InitEnvConfig(config *sc.Config, provider provider.Provider) (*sc.Config, *
 	if config.SiaBackupDir == "" {
 		config.SiaBackupDir = os.Getenv("ATHENZ_SIA_BACKUP_DIR")
 	}
+	if config.SiaMainDir == "" {
+		config.SiaMainDir = os.Getenv("ATHENZ_SIA_MAIN_DIR")
+	}
 	if config.SshPrincipals == "" {
 		config.SshPrincipals = os.Getenv("ATHENZ_SIA_SSH_PRINCIPALS")
 	}
@@ -455,6 +458,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 	certDir := fmt.Sprintf("%s/certs", siaDir)
 	keyDir := fmt.Sprintf("%s/keys", siaDir)
 	backupDir := fmt.Sprintf("%s/backup", siaDir)
+	mainDir := siaDir
 	sshHostKeyType := hostkey.Rsa
 	sshPrincipals := ""
 	accessManagement := false
@@ -503,6 +507,9 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		}
 		if config.SiaBackupDir != "" {
 			backupDir = config.SiaBackupDir
+		}
+		if config.SiaMainDir != "" {
+			mainDir = config.SiaMainDir
 		}
 
 		//update account user/group settings if override provided at the config level
@@ -722,6 +729,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		TokenDir:               tokenDir,
 		CertDir:                certDir,
 		KeyDir:                 keyDir,
+		MainDir:                mainDir,
 		AthenzCACertFile:       fmt.Sprintf("%s/ca.cert.pem", certDir),
 		GenerateRoleKey:        generateRoleKey,
 		RotateKey:              rotateKey,
