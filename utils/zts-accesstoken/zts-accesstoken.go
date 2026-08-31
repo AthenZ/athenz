@@ -58,7 +58,7 @@ func printVersion() {
 }
 
 func main() {
-	var domain, service, actor, svcKeyFile, svcCertFile, svcCACertFile, roles, ntokenFile, ztsURL, hdr, conf, accessToken, authzDetails, proxyPrincipalSpiffeUris string
+	var domain, service, actor, svcKeyFile, svcCertFile, svcCACertFile, roles, ntokenFile, ztsURL, hdr, conf, accessToken, authzDetails, proxyPrincipalSpiffeUris, keyType string
 	var grantType, subjectToken, subjectTokenType, requestedTokenType, audience, assertion, actorToken, actorTokenType string
 	var expireTime int
 	var proxy, validate, claims, tokenOnly, showVersion, roleInAudClaim, openidIssuer bool
@@ -84,6 +84,7 @@ func main() {
 	flag.StringVar(&actor, "actor", "", "actor that may request on behalf of the principal")
 	flag.BoolVar(&roleInAudClaim, "role-in-aud-claim", false, "include the role name in the audience claim when a single role is returned")
 	flag.BoolVar(&openidIssuer, "openid-issuer", false, "use OpenID Connect issuer instead of default athenz issuer")
+	flag.StringVar(&keyType, "key-type", "", "signing key type for the issued token - RSA or EC")
 	flag.StringVar(&grantType, "grant-type", "", "grant type: token-exchange (for ID-JAG issue or access token exchange) or jwt-bearer (for JAG exchange)")
 	flag.StringVar(&subjectToken, "subject-token", "", "file path to the subject token for token exchange")
 	flag.StringVar(&subjectTokenType, "subject-token-type", "urn:ietf:params:oauth:token-type:id_token", "subject token type")
@@ -115,7 +116,7 @@ func main() {
 	} else if grantType == "jwt-bearer" {
 		fetchAccessTokenViaJAG(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, assertion, proxy, tokenOnly)
 	} else {
-		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, actor, proxy, expireTime, tokenOnly, roleInAudClaim, openidIssuer)
+		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, actor, proxy, expireTime, tokenOnly, roleInAudClaim, openidIssuer, keyType)
 	}
 }
 
@@ -176,7 +177,7 @@ func validateAccessToken(accessToken, conf string, showClaims bool) {
 	fmt.Println("Access Token successfully validated")
 }
 
-func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, actor string, proxy bool, expireTime int, tokenOnly bool, roleInAudClaim bool, openidIssuer bool) {
+func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, actor string, proxy bool, expireTime int, tokenOnly bool, roleInAudClaim bool, openidIssuer bool, keyType string) {
 
 	defaultConfig, _ := athenzutils.ReadDefaultConfig()
 	// check to see if we need to use zts url from our default config file
@@ -233,6 +234,11 @@ func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, s
 	if openidIssuer {
 		params := url.Values{}
 		params.Add("openid_issuer", "true")
+		request += "&" + params.Encode()
+	}
+	if keyType != "" {
+		params := url.Values{}
+		params.Add("key_type", keyType)
 		request += "&" + params.Encode()
 	}
 
