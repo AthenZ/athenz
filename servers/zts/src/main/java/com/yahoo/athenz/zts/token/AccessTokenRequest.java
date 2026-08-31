@@ -71,6 +71,7 @@ public class AccessTokenRequest {
     private static final String KEY_ACTOR_TOKEN_TYPE = "actor_token_type";
     private static final String KEY_FULL_ARN = "full_arn";
     private static final String KEY_ROLE_IN_AUD_CLAIM = "role_in_aud_claim";
+    private static final String KEY_KEY_TYPE = "key_type";
 
     private static final String OAUTH_ASSERTION_TYPE_JWT_BEARER = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 
@@ -93,6 +94,7 @@ public class AccessTokenRequest {
     String actor = null;
     String actorToken = null;
     String actorTokenType = null;
+    String keyType = null;
     List<String> proxyPrincipalsSpiffeUris = null;
     Principal principal = null;
     int expiryTime = 0;
@@ -186,6 +188,9 @@ public class AccessTokenRequest {
                     break;
                 case KEY_ACTOR_TOKEN_TYPE:
                     actorTokenType = value.toLowerCase();
+                    break;
+                case KEY_KEY_TYPE:
+                    keyType = value;
                     break;
             }
         }
@@ -481,6 +486,10 @@ public class AccessTokenRequest {
         return actorTokenType;
     }
 
+    public String getKeyType() {
+        return keyType;
+    }
+
     public RequestType getRequestType() {
         return requestType;
     }
@@ -594,6 +603,9 @@ public class AccessTokenRequest {
                 stringBuilder.append(URLEncoder.encode(uri, StandardCharsets.UTF_8)).append(',');
             }
             stringBuilder.setLength(stringBuilder.length() - 1);
+        }
+        if (!StringUtil.isEmpty(keyType)) {
+            stringBuilder.append("&key_type=").append(URLEncoder.encode(keyType, StandardCharsets.UTF_8));
         }
 
         // make sure our log line is limited to 1024 characters
