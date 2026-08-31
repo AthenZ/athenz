@@ -9573,6 +9573,204 @@ func (self *ReviewObjects) Validate() error {
 	return nil
 }
 
+// SelfServeObject - Details for a self-service role or group that a principal
+// may request access to.
+type SelfServeObject struct {
+
+	//
+	// name of the domain
+	//
+	DomainName DomainName `json:"domainName"`
+
+	//
+	// name of the role or group
+	//
+	Name EntityName `json:"name"`
+
+	//
+	// description of the role or group (roles only - groups do not carry a
+	// description)
+	//
+	Description string `json:"description" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// flag indicates whether expired members can renew their own membership
+	//
+	SelfRenew *bool `json:"selfRenew,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// number of minutes members can renew their membership if self renew is
+	// enabled
+	//
+	SelfRenewMins *int32 `json:"selfRenewMins,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// flag indicates whether membership changes require review and approval
+	//
+	ReviewEnabled *bool `json:"reviewEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// flag indicates whether membership changes require GRC approval
+	//
+	AuditEnabled *bool `json:"auditEnabled,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// flag indicates whether member removal requires confirmation
+	//
+	DeleteProtection *bool `json:"deleteProtection,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// maximum number of members allowed
+	//
+	MaxMembers *int32 `json:"maxMembers,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// all user members will have specified max expiry days
+	//
+	MemberExpiryDays *int32 `json:"memberExpiryDays,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// number of members currently in the role or group
+	//
+	MemberCount *int32 `json:"memberCount,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// creation time of the role or group
+	//
+	Created *rdl.Timestamp `json:"created,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// membership state of the calling principal for this object: member, pending
+	// or none
+	//
+	MemberStatus string `json:"memberStatus" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// expiration timestamp of the calling principal's membership, if any
+	//
+	Expiration *rdl.Timestamp `json:"expiration,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// if the caller's membership is inherited through a group, the full name of
+	// that group (roles only)
+	//
+	InheritedFrom ResourceName `json:"inheritedFrom,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewSelfServeObject - creates an initialized SelfServeObject instance, returns a pointer to it
+func NewSelfServeObject(init ...*SelfServeObject) *SelfServeObject {
+	var o *SelfServeObject
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(SelfServeObject)
+	}
+	return o
+}
+
+type rawSelfServeObject SelfServeObject
+
+// UnmarshalJSON is defined for proper JSON decoding of a SelfServeObject
+func (self *SelfServeObject) UnmarshalJSON(b []byte) error {
+	var m rawSelfServeObject
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := SelfServeObject(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *SelfServeObject) Validate() error {
+	if self.DomainName == "" {
+		return fmt.Errorf("SelfServeObject.domainName is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "DomainName", self.DomainName)
+		if !val.Valid {
+			return fmt.Errorf("SelfServeObject.domainName does not contain a valid DomainName (%v)", val.Error)
+		}
+	}
+	if self.Name == "" {
+		return fmt.Errorf("SelfServeObject.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "EntityName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("SelfServeObject.name does not contain a valid EntityName (%v)", val.Error)
+		}
+	}
+	if self.Description != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Description)
+		if !val.Valid {
+			return fmt.Errorf("SelfServeObject.description does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.MemberStatus != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.MemberStatus)
+		if !val.Valid {
+			return fmt.Errorf("SelfServeObject.memberStatus does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.InheritedFrom != "" {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.InheritedFrom)
+		if !val.Valid {
+			return fmt.Errorf("SelfServeObject.inheritedFrom does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// SelfServeObjects - The representation for a list of self-service objects.
+type SelfServeObjects struct {
+
+	//
+	// list of self-service objects
+	//
+	List []*SelfServeObject `json:"list"`
+}
+
+// NewSelfServeObjects - creates an initialized SelfServeObjects instance, returns a pointer to it
+func NewSelfServeObjects(init ...*SelfServeObjects) *SelfServeObjects {
+	var o *SelfServeObjects
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(SelfServeObjects)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *SelfServeObjects) Init() *SelfServeObjects {
+	if self.List == nil {
+		self.List = make([]*SelfServeObject, 0)
+	}
+	return self
+}
+
+type rawSelfServeObjects SelfServeObjects
+
+// UnmarshalJSON is defined for proper JSON decoding of a SelfServeObjects
+func (self *SelfServeObjects) UnmarshalJSON(b []byte) error {
+	var m rawSelfServeObjects
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := SelfServeObjects(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *SelfServeObjects) Validate() error {
+	if self.List == nil {
+		return fmt.Errorf("SelfServeObjects: Missing required field: list")
+	}
+	return nil
+}
+
 // Info - Copyright The Athenz Authors Licensed under the terms of the Apache
 // version 2.0 license. See LICENSE file for terms. The representation for an
 // info object

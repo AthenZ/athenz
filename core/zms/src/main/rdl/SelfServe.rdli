@@ -1,0 +1,62 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+include "Names.tdl";
+
+//Details for a self-service role or group that a principal may request access to.
+type SelfServeObject Struct {
+    DomainName domainName; //name of the domain
+    EntityName name; //name of the role or group
+    String description (optional); //description of the role or group (roles only - groups do not carry a description)
+    Bool selfRenew (optional); //flag indicates whether expired members can renew their own membership
+    Int32 selfRenewMins (optional); //number of minutes members can renew their membership if self renew is enabled
+    Bool reviewEnabled (optional); //flag indicates whether membership changes require review and approval
+    Bool auditEnabled (optional); //flag indicates whether membership changes require GRC approval
+    Bool deleteProtection (optional); //flag indicates whether member removal requires confirmation
+    Int32 maxMembers (optional); //maximum number of members allowed
+    Int32 memberExpiryDays (optional); //all user members will have specified max expiry days
+    Int32 memberCount (optional); //number of members currently in the role or group
+    Timestamp created (optional); //creation time of the role or group
+    String memberStatus (optional); //membership state of the calling principal for this object: member, pending or none
+    Timestamp expiration (optional); //expiration timestamp of the calling principal's membership, if any
+    ResourceName inheritedFrom (optional); //if the caller's membership is inherited through a group, the full name of that group (roles only)
+}
+
+//The representation for a list of self-service objects.
+type SelfServeObjects Struct {
+    Array<SelfServeObject> list; //list of self-service objects
+}
+
+// Fetch all self-service roles across all domains whose name or description contains the
+// given substring. The match is case-insensitive. If the substring is not specified, then
+// all self-service roles are returned. Any authenticated principal may make this call since
+// self-service roles are, by definition, discoverable and requestable by any user.
+resource SelfServeObjects GET "/selfserve/role?substring={substring}&memberOnly={memberOnly}" (name=GetSelfServeRoles) {
+    String substring (optional); //substring to match against the role name or description; if empty all self-service roles are returned
+    Bool memberOnly (optional, default=false); //if true, only return roles the calling principal is already a member of or has a pending request for
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+// Fetch all self-service groups across all domains whose name contains the given substring.
+// The match is case-insensitive. If the substring is not specified, then all self-service
+// groups are returned. Any authenticated principal may make this call since self-service
+// groups are, by definition, discoverable and requestable by any user.
+resource SelfServeObjects GET "/selfserve/group?substring={substring}&memberOnly={memberOnly}" (name=GetSelfServeGroups) {
+    String substring (optional); //substring to match against the group name; if empty all self-service groups are returned
+    Bool memberOnly (optional, default=false); //if true, only return groups the calling principal is already a member of or has a pending request for
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}

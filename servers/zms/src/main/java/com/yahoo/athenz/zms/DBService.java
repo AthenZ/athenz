@@ -3771,6 +3771,22 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
+    SelfServeObjects getSelfServeRoles(final String substring, final String principal, boolean memberOnly) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.getSelfServeRoles(substring, principal, memberOnly);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
+    }
+
+    SelfServeObjects getSelfServeGroups(final String substring, final String principal, boolean memberOnly) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.getSelfServeGroups(substring, principal, memberOnly);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
+    }
+
     ReviewObjects filterObjectsForReview(ReviewObjects reviewObjects) {
 
         List<ReviewObject> objects = reviewObjects.getList();

@@ -805,6 +805,28 @@ public class ZMSSchema {
             .comment("The representation for a list of objects with full details")
             .arrayField("list", "ReviewObject", false, "list of review objects");
 
+        sb.structType("SelfServeObject")
+            .comment("Details for a self-service role or group that a principal may request access to.")
+            .field("domainName", "DomainName", false, "name of the domain")
+            .field("name", "EntityName", false, "name of the role or group")
+            .field("description", "String", true, "description of the role or group (roles only - groups do not carry a description)")
+            .field("selfRenew", "Bool", true, "flag indicates whether expired members can renew their own membership")
+            .field("selfRenewMins", "Int32", true, "number of minutes members can renew their membership if self renew is enabled")
+            .field("reviewEnabled", "Bool", true, "flag indicates whether membership changes require review and approval")
+            .field("auditEnabled", "Bool", true, "flag indicates whether membership changes require GRC approval")
+            .field("deleteProtection", "Bool", true, "flag indicates whether member removal requires confirmation")
+            .field("maxMembers", "Int32", true, "maximum number of members allowed")
+            .field("memberExpiryDays", "Int32", true, "all user members will have specified max expiry days")
+            .field("memberCount", "Int32", true, "number of members currently in the role or group")
+            .field("created", "Timestamp", true, "creation time of the role or group")
+            .field("memberStatus", "String", true, "membership state of the calling principal for this object: member, pending or none")
+            .field("expiration", "Timestamp", true, "expiration timestamp of the calling principal's membership, if any")
+            .field("inheritedFrom", "ResourceName", true, "if the caller's membership is inherited through a group, the full name of that group (roles only)");
+
+        sb.structType("SelfServeObjects")
+            .comment("The representation for a list of self-service objects.")
+            .arrayField("list", "SelfServeObject", false, "list of self-service objects");
+
         sb.structType("Info")
             .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. The representation for an info object")
             .field("buildJdkSpec", "String", true, "jdk build version")
@@ -3469,6 +3491,42 @@ public class ZMSSchema {
             .comment("Fetch all the groups across domains for either the caller or specified principal that require a review based on the last reviewed date and configured attributes. The method requires the caller to be either the principal or authorized in system to carry out the operation for any principal (typically this would be system administrators) 1. authenticated principal is the same as the check principal 2. system authorized (\"access\", \"sys.auth:meta.review.lookup\")")
             .name("GetGroupsForReview")
             .queryParam("principal", "principal", "ResourceName", null, "If not present, will return groups for the user making the call")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("SelfServeObjects", "GET", "/selfserve/role")
+            .comment("Fetch all self-service roles across all domains whose name or description contains the given substring. The match is case-insensitive. If the substring is not specified, then all self-service roles are returned. Any authenticated principal may make this call since self-service roles are, by definition, discoverable and requestable by any user.")
+            .name("GetSelfServeRoles")
+            .queryParam("substring", "substring", "String", null, "substring to match against the role name or description; if empty all self-service roles are returned")
+            .queryParam("memberOnly", "memberOnly", "Bool", false, "if true, only return roles the calling principal is already a member of or has a pending request for")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("SelfServeObjects", "GET", "/selfserve/group")
+            .comment("Fetch all self-service groups across all domains whose name contains the given substring. The match is case-insensitive. If the substring is not specified, then all self-service groups are returned. Any authenticated principal may make this call since self-service groups are, by definition, discoverable and requestable by any user.")
+            .name("GetSelfServeGroups")
+            .queryParam("substring", "substring", "String", null, "substring to match against the group name; if empty all self-service groups are returned")
+            .queryParam("memberOnly", "memberOnly", "Bool", false, "if true, only return groups the calling principal is already a member of or has a pending request for")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
