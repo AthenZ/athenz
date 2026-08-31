@@ -49,7 +49,7 @@ import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.
  *       "sub_profile": "service"
  *     },
  *     "sub": "aiclientid12tsy8084bo8FU1d8",
-       "sub_profile": "ai_agent"
+ *     "sub_profile": "ai_agent"
  *   },
  *   "aud": "https://audience.athenz.io",
  *   "client_id": "aiclientid12tsy8084bo8FU1d8"
@@ -68,7 +68,7 @@ public class InstanceIDJAGProvider implements InstanceProvider {
     private static final String URI_SPIFFE_PREFIX      = "spiffe://";
 
     static final String ID_JAG_PROP_PROVIDER_DNS_SUFFIX = "athenz.zts.id_jag.provider_dns_suffix";
-    static final String ID_JAG_PROP_BOOT_TIME_OFFSET    = "athenz.zts.id_jag.boot_time_offset";
+    static final String ID_JAG_PROP_ISSUE_TIME_OFFSET   = "athenz.zts.id_jag.issue_time_offset";
     static final String ID_JAG_PROP_CERT_EXPIRY_TIME    = "athenz.zts.id_jag.cert_expiry_time";
     static final String ID_JAG_PROP_ACT_SUB_PROFILE     = "athenz.zts.id_jag.act_sub_profile";
     static final String ID_JAG_PROP_AUDIENCE            = "athenz.zts.id_jag.audience";
@@ -88,7 +88,7 @@ public class InstanceIDJAGProvider implements InstanceProvider {
     String actSubProfile = null;
     String audience = null;
     ConfigurableJWTProcessor<SecurityContext> jwtProcessor = null;
-    DynamicConfigLong bootTimeOffsetSeconds;
+    DynamicConfigLong issueTimeOffsetSeconds;
     long certExpiryTime;
 
     @Override
@@ -134,11 +134,11 @@ public class InstanceIDJAGProvider implements InstanceProvider {
         final String dnsSuffix = System.getProperty(ID_JAG_PROP_PROVIDER_DNS_SUFFIX, "id-jag.athenz.io");
         dnsSuffixes = Set.of(dnsSuffix.split(","));
 
-        // how long the instance must be booted in the past before we
-        // stop validating the instance requests
+        // maximum allowed age (in seconds) of the token issue time (iat). tokens issued earlier
+        // than this many seconds ago are rejected
 
         long timeout = TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES);
-        bootTimeOffsetSeconds = new DynamicConfigLong(CONFIG_MANAGER, ID_JAG_PROP_BOOT_TIME_OFFSET, timeout);
+        issueTimeOffsetSeconds = new DynamicConfigLong(CONFIG_MANAGER, ID_JAG_PROP_ISSUE_TIME_OFFSET, timeout);
 
         // get default/max expiry time for any generated certificates - 6 hours
 
@@ -313,11 +313,11 @@ public class InstanceIDJAGProvider implements InstanceProvider {
             return false;
         }
 
-        // need to verify that the issue time is within our configured bootstrap time
+        // need to verify that the issue time is within our configured offset
 
         Date issueDate = claimsSet.getIssueTime();
         if (issueDate == null || issueDate.getTime() < System.currentTimeMillis() -
-                TimeUnit.SECONDS.toMillis(bootTimeOffsetSeconds.get())) {
+                TimeUnit.SECONDS.toMillis(issueTimeOffsetSeconds.get())) {
             errMsg.append("token issue time is not recent enough, issued at: ").append(issueDate);
             return false;
         }

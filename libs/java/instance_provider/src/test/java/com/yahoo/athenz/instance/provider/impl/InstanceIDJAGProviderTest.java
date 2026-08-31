@@ -268,6 +268,30 @@ public class InstanceIDJAGProviderTest {
     }
 
     @Test
+    public void testConfirmInstanceMixedCaseSanDNS() throws ProviderResourceException {
+
+        InstanceIDJAGProvider provider = createProvider("jwt_jwks.json");
+
+        // the workload generates its CSR with the mixed case client id as the
+        // service component of the sanDNS entry while ZTS lowercases the
+        // service name in the confirmation object, so the sanDNS service
+        // component comparison must ignore case
+
+        Map<String, String> attributes = testAttributes();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, ID_JAG_CLIENT_ID + ".sports.id-jag.athenz.io");
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setDomain(ID_JAG_DOMAIN);
+        confirmation.setService(ID_JAG_SERVICE);
+        confirmation.setAttestationData(generateIdJagToken(Duration.ZERO, testClaims()));
+        confirmation.setAttributes(attributes);
+
+        InstanceConfirmation confirmResponse = provider.confirmInstance(confirmation);
+        assertNotNull(confirmResponse);
+        assertEquals(confirmResponse.getAttributes().get(InstanceProvider.ZTS_CERT_USAGE), "client");
+    }
+
+    @Test
     public void testConfirmInstanceInvalidDomain() {
 
         InstanceIDJAGProvider provider = createProvider("jwt_jwks.json");

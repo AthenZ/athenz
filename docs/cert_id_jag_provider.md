@@ -125,7 +125,7 @@ it is rejected the same way if it is explicitly configured with an empty value.
 | `athenz.zts.id_jag.act_sub_profile` | no | `ai_agent` | The expected `sub_profile` value of the outermost actor in the `act` claim. Must not be configured with an empty value. |
 | `athenz.zts.id_jag.jwks_uri` | no | none | The JWKS uri used to fetch the issuer's public keys. If not specified, the uri is extracted from the issuer's openid configuration document. |
 | `athenz.zts.id_jag.provider_dns_suffix` | no | `id-jag.athenz.io` | Comma separated list of dns suffixes allowed in the `sanDNS` entries of the certificate request. |
-| `athenz.zts.id_jag.boot_time_offset` | no | `300` | How many seconds in the past the token may have been issued (`iat` claim) and still be accepted. This is a dynamic configuration value and can be updated without restarting the server. |
+| `athenz.zts.id_jag.issue_time_offset` | no | `300` | How many seconds in the past the token may have been issued (`iat` claim) and still be accepted. This is a dynamic configuration value and can be updated without restarting the server. |
 | `athenz.zts.id_jag.cert_expiry_time` | no | `360` | Default/max expiry time in minutes for the issued certificates. |
 
 In addition, ZTS enforces IP ranges where services are authorized to request identities from a given provider, so
