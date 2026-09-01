@@ -106,6 +106,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.util.*;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -2914,7 +2915,7 @@ public class ZTSImpl implements ZTSHandler {
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
-        accessToken.setJwtId(java.util.UUID.randomUUID().toString());
+        accessToken.setJwtId(UUID.randomUUID().toString());
         accessToken.setAudience(requestDomainName);
         accessToken.setClientId(principalName);
         accessToken.setIssueTime(iat);
@@ -3148,7 +3149,7 @@ public class ZTSImpl implements ZTSHandler {
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
-        accessToken.setJwtId(java.util.UUID.randomUUID().toString());
+        accessToken.setJwtId(UUID.randomUUID().toString());
         accessToken.setAudience(requestDomainName);
         accessToken.setClientId(principalName);
         accessToken.setIssueTime(iat);
@@ -3527,7 +3528,7 @@ public class ZTSImpl implements ZTSHandler {
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
-        accessToken.setJwtId(java.util.UUID.randomUUID().toString());
+        accessToken.setJwtId(UUID.randomUUID().toString());
         accessToken.setAudience(accessTokenRequest.getAudience());
         accessToken.setClientId(principalName);
         accessToken.setIssueTime(iat);
@@ -3768,7 +3769,7 @@ public class ZTSImpl implements ZTSHandler {
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
-        accessToken.setJwtId(java.util.UUID.randomUUID().toString());
+        accessToken.setJwtId(UUID.randomUUID().toString());
         accessToken.setAudience(audience);
         accessToken.setClientId(clientPrincipalName);
         accessToken.setIssueTime(iat);
@@ -3987,7 +3988,7 @@ public class ZTSImpl implements ZTSHandler {
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
-        accessToken.setJwtId(java.util.UUID.randomUUID().toString());
+        accessToken.setJwtId(UUID.randomUUID().toString());
         accessToken.setAudience(getAccessTokenAudience(domainName, accessTokenRequest.isRoleInAudClaim(), tokenScopes));
         accessToken.setClientId(principalName);
         accessToken.setIssueTime(iat);
