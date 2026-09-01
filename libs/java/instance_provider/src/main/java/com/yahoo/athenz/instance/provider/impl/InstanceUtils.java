@@ -161,7 +161,7 @@ public class InstanceUtils {
 
         final String prefix = hostname.substring(0, suffixIdx);
         for (String comp : prefix.split("\\.")) {
-            if (service.equals(comp)) {
+            if (service.equalsIgnoreCase(comp)) {
                 return true;
             }
         }
