@@ -4048,7 +4048,7 @@ public class ZTSImpl implements ZTSHandler {
         // does not match the returned list of roles then we need to return the updated
         // set of scopes
 
-        if (scopeAdjusted || scopeDomainNames.size() > 1 || !scopeDomainNames.contains(domainName)) {
+        if (scopeAdjusted || scopeDomainNames.size() > 1) {
             if (scopeDomainNames.size() == 1) {
                 final String scopeDomainName = scopeDomainNames.iterator().next();
                 response.setScope(generateScopeResponse(rolesByDomain.get(scopeDomainName),
