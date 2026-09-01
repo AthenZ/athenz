@@ -27,8 +27,6 @@ public class AccessTokenScopeTest {
     @BeforeMethod
     public void setup() {
         AccessTokenScope.setSupportOpenIdScope(true);
-        AccessTokenScope.setSupportRolesWithoutDomain(false);
-        AccessTokenScope.setMaxDomains(20);
     }
 
     @Test
@@ -84,19 +82,6 @@ public class AccessTokenScopeTest {
         assertTrue(ZTSTestUtils.validArrayMember(req6.getRoleNames("sports"), "role2"));
         assertFalse(req6.sendScopeResponse());
         assertFalse(req6.isOpenIdScope());
-
-        AccessTokenScope req6a = new AccessTokenScope("sports:role.role1 weather:role.role2", null);
-        assertNotNull(req6a);
-        assertNull(req6a.getDomainName());
-        assertEquals(req6a.getDomainNames().size(), 2);
-        assertNotNull(req6a.getRoleNames("sports"));
-        assertEquals(req6a.getRoleNames("sports").length, 1);
-        assertEquals(req6a.getRoleNames("sports")[0], "role1");
-        assertNotNull(req6a.getRoleNames("weather"));
-        assertEquals(req6a.getRoleNames("weather").length, 1);
-        assertEquals(req6a.getRoleNames("weather")[0], "role2");
-        assertFalse(req6a.sendScopeResponse());
-        assertFalse(req6a.isOpenIdScope());
 
         AccessTokenScope.setSupportRolesWithoutDomain(true);
         AccessTokenScope req7 = new AccessTokenScope("role1 role2", "sports");
@@ -215,55 +200,89 @@ public class AccessTokenScopeTest {
         AccessTokenScope req1 = new AccessTokenScope("sports:domain sports:domain", null);
         assertNotNull(req1);
 
-        AccessTokenScope req2 = new AccessTokenScope("sports:domain weather:domain", null);
-        assertNotNull(req2);
-        assertEquals(req2.getDomainNames().size(), 2);
-        assertTrue(req2.sendScopeResponse());
+        try {
+            new AccessTokenScope("sports:domain weather:domain", null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
 
-        AccessTokenScope req3 = new AccessTokenScope("sports:domain weather:role.role1", null);
-        assertNotNull(req3);
-        assertEquals(req3.getDomainNames().size(), 2);
-        assertTrue(req3.sendScopeResponse());
-        assertNull(req3.getRoleNames("sports"));
-        assertEquals(req3.getRoleNames("weather"), new String[] { "role1" });
+        try {
+            new AccessTokenScope("sports:domain weather:role.role1", null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
 
-        AccessTokenScope req4 = new AccessTokenScope("weather:role.role2 sports:domain weather:role.role1", null);
-        assertNotNull(req4);
-        assertEquals(req4.getDomainNames().size(), 2);
-        assertTrue(req4.sendScopeResponse());
-        assertNull(req4.getRoleNames("sports"));
-        assertEquals(req4.getRoleNames("weather").length, 2);
-        assertTrue(ZTSTestUtils.validArrayMember(req4.getRoleNames("weather"), "role1"));
-        assertTrue(ZTSTestUtils.validArrayMember(req4.getRoleNames("weather"), "role2"));
+        try {
+            new AccessTokenScope("weather:role.role2 sports:domain weather:role.role1", null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+    }
+
+    @Test
+    public void testAccessTokenScopeMultipleDomainsEnabled() {
+
+        AccessTokenScope.setMaxDomains(2);
+        try {
+            AccessTokenScope req1 = new AccessTokenScope("sports:role.role1 weather:role.role2", null);
+            assertNotNull(req1);
+            assertNull(req1.getDomainName());
+            assertEquals(req1.getDomainNames().size(), 2);
+            assertNotNull(req1.getRoleNames("sports"));
+            assertEquals(req1.getRoleNames("sports").length, 1);
+            assertEquals(req1.getRoleNames("sports")[0], "role1");
+            assertNotNull(req1.getRoleNames("weather"));
+            assertEquals(req1.getRoleNames("weather").length, 1);
+            assertEquals(req1.getRoleNames("weather")[0], "role2");
+            assertFalse(req1.sendScopeResponse());
+            assertFalse(req1.isOpenIdScope());
+
+            AccessTokenScope req2 = new AccessTokenScope("sports:domain weather:domain", null);
+            assertNotNull(req2);
+            assertEquals(req2.getDomainNames().size(), 2);
+            assertTrue(req2.sendScopeResponse());
+
+            AccessTokenScope req3 = new AccessTokenScope("sports:domain weather:role.role1", null);
+            assertNotNull(req3);
+            assertEquals(req3.getDomainNames().size(), 2);
+            assertTrue(req3.sendScopeResponse());
+            assertNull(req3.getRoleNames("sports"));
+            assertEquals(req3.getRoleNames("weather"), new String[] { "role1" });
+
+            AccessTokenScope req4 = new AccessTokenScope("weather:role.role2 sports:domain weather:role.role1", null);
+            assertNotNull(req4);
+            assertEquals(req4.getDomainNames().size(), 2);
+            assertTrue(req4.sendScopeResponse());
+            assertNull(req4.getRoleNames("sports"));
+            assertEquals(req4.getRoleNames("weather").length, 2);
+            assertTrue(ZTSTestUtils.validArrayMember(req4.getRoleNames("weather"), "role1"));
+            assertTrue(ZTSTestUtils.validArrayMember(req4.getRoleNames("weather"), "role2"));
+        } finally {
+            AccessTokenScope.setMaxDomains(1);
+        }
     }
 
     @Test
     public void testAccessTokenScopeMaxDomains() {
 
         AccessTokenScope.setMaxDomains(2);
-        AccessTokenScope req1 = new AccessTokenScope("sports:domain weather:domain sports:role.role1", null);
-        assertNotNull(req1);
-        assertEquals(req1.getDomainNames().size(), 2);
-
         try {
-            new AccessTokenScope("sports:domain weather:domain news:role.role1", null);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("Domain limit: 2 has been reached"));
-        }
-    }
+            AccessTokenScope req1 = new AccessTokenScope("sports:domain weather:domain sports:role.role1", null);
+            assertNotNull(req1);
+            assertEquals(req1.getDomainNames().size(), 2);
 
-    @Test
-    public void testAccessTokenScopeMaxDomainsOneLegacyErrorMessage() {
-
-        AccessTokenScope.setMaxDomains(1);
-        try {
-            new AccessTokenScope("sports:role.role1 weather:role.role2", null);
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("Multiple domains in scope"));
+            try {
+                new AccessTokenScope("sports:domain weather:domain news:role.role1", null);
+                fail();
+            } catch (ResourceException ex) {
+                assertEquals(ex.getCode(), 400);
+                assertTrue(ex.getMessage().contains("Domain limit: 2 has been reached"));
+            }
+        } finally {
+            AccessTokenScope.setMaxDomains(1);
         }
     }
 }
