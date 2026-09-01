@@ -24,6 +24,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/AthenZ/athenz/clients/go/zts"
 	"github.com/AthenZ/athenz/libs/go/sia/util"
@@ -39,7 +40,7 @@ func main() {
 	var ztsURL, domain, service, spiffeTrustDomain, subjC, subjO, subjOU, provider string
 	var caCertFile, keyFile, certFile, signerCertFile, dnsDomain, oidcTokenAudience, oidcKeyType string
 	var showVersion, getOIDCToken bool
-	var expiryTime int
+	var expiryTime, oidcRequestTimeout, oidcRequestRetries, oidcRequestRetryDelay int
 	flag.IntVar(&expiryTime, "expiry-time", 360, "expiry time in minutes (optional)")
 	flag.StringVar(&keyFile, "key-file", "", "output private key file")
 	flag.StringVar(&certFile, "cert-file", "", "output certificate file")
@@ -57,6 +58,9 @@ func main() {
 	flag.BoolVar(&getOIDCToken, "get-oidc-token", false, "Get OIDC token from Athenz ZTS along with X.509 identity certificate")
 	flag.StringVar(&oidcTokenAudience, "oidc-token-audience", "", "OIDC token audience (optional)")
 	flag.StringVar(&oidcKeyType, "oidc-key-type", "EC", "OIDC token signing key type: RSA/EC (optional)")
+	flag.IntVar(&oidcRequestTimeout, "oidc-request-timeout", 10, "timeout in seconds for the GitHub OIDC token request (optional)")
+	flag.IntVar(&oidcRequestRetries, "oidc-request-retries", 0, "number of retries for transient GitHub OIDC token request failures (optional)")
+	flag.IntVar(&oidcRequestRetryDelay, "oidc-request-retry-delay", 1, "base delay in seconds for the backoff between GitHub OIDC token request retries (optional)")
 	flag.BoolVar(&showVersion, "version", false, "Show version")
 	flag.Parse()
 
@@ -72,8 +76,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	// get the oidc token for the GitHub actions
-	oidcToken, claims, err := sia.GetOIDCToken(ztsURL)
+	// get the oidc token for the GitHub actions. GitHub's token endpoint is
+	// occasionally slow enough to exceed the default timeout, so the timeout and
+	// an optional bounded retry of transient failures are both configurable.
+	oidcTokenOptions := sia.OIDCTokenOptions{
+		RequestTimeout: time.Duration(oidcRequestTimeout) * time.Second,
+		Retries:        oidcRequestRetries,
+		RetryDelay:     time.Duration(oidcRequestRetryDelay) * time.Second,
+	}
+	oidcToken, claims, err := sia.GetOIDCTokenWithOptions(ztsURL, oidcTokenOptions)
 	if err != nil {
 		log.Fatalf("unable to obtain oidc token from GitHub: %v\n", err)
 	}
