@@ -26,6 +26,7 @@ type Role struct {
 	ProxyPrincipalSpiffeUris string   `json:"proxy_principal_spiffe_uris,omitempty"` // Proxy Principal Spiffe URIs to be included in the token
 	RoleInAudClaim           bool     `json:"role_in_aud_claim,omitempty"`           // include the role name in the audience claim when a single role is returned
 	UseOpenIDIssuer          bool     `json:"openid_issuer,omitempty"`               // use OpenID Connect issuer instead of default athenz issuer
+	KeyType                  string   `json:"key_type,omitempty"`                    // signing key type for the issued token - RSA or EC
 }
 
 // AccessToken is the type that holds information AFTER processing the configuration
@@ -41,6 +42,7 @@ type AccessToken struct {
 	ProxyPrincipalSpiffeUris string   // Proxy Principal Spiffe URIs to be included in the token
 	RoleInAudClaim           bool     // include the role name in the audience claim when a single role is returned
 	UseOpenIDIssuer          bool     // use OpenID Connect issuer instead of default athenz issuer
+	KeyType                  string   // signing key type for the issued token - RSA or EC
 }
 
 type StoreTokenOptions int
