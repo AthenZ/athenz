@@ -3029,11 +3029,12 @@ public class ZTSImpl implements ZTSHandler {
     boolean subjectTokenHasRequestedRoles(Set<String> subjectScopes, final String sourceDomainName,
             final String requestDomainName, String[] requestedRoles) {
 
+        final boolean isSourceDomain = requestDomainName.equals(sourceDomainName);
         for (String requestedRole : requestedRoles) {
             if (subjectScopes.contains(ResourceUtils.roleResourceName(requestDomainName, requestedRole))) {
                 continue;
             }
-            if (requestDomainName.equals(sourceDomainName) && subjectScopes.contains(requestedRole)) {
+            if (isSourceDomain && subjectScopes.contains(requestedRole)) {
                 continue;
             }
             return false;
@@ -3046,6 +3047,7 @@ public class ZTSImpl implements ZTSHandler {
 
         Set<String> requestedRoles = new HashSet<>();
         final String roleScopePrefix = requestDomainName + OAuthTokenScope.OBJECT_ROLE;
+        final boolean isSourceDomain = requestDomainName.equals(sourceDomainName);
         for (String subjectScope : subjectScopes) {
             if (AccessTokenScope.OBJECT_OPENID.equals(subjectScope)) {
                 continue;
@@ -3055,7 +3057,7 @@ public class ZTSImpl implements ZTSHandler {
                 if (!roleName.isEmpty()) {
                     requestedRoles.add(roleName);
                 }
-            } else if (!subjectScope.contains(":") && requestDomainName.equals(sourceDomainName)) {
+            } else if (!subjectScope.contains(":") && isSourceDomain) {
                 requestedRoles.add(subjectScope);
             }
         }
@@ -3219,8 +3221,9 @@ public class ZTSImpl implements ZTSHandler {
 
         List<String> scopes = new ArrayList<>();
         for (String domainName : new TreeSet<>(rolesByDomain.keySet())) {
+            final boolean isAudienceDomain = domainName.equals(audienceDomainName);
             for (String role : new TreeSet<>(rolesByDomain.get(domainName))) {
-                if (domainName.equals(audienceDomainName)) {
+                if (isAudienceDomain) {
                     scopes.add(role);
                 } else {
                     scopes.add(domainName + OAuthTokenScope.OBJECT_ROLE + role);
