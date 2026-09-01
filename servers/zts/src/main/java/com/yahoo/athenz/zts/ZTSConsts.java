@@ -118,6 +118,7 @@ public final class ZTSConsts {
 
     public static final String ZTS_PROP_JAG_TOKEN_USER_MAX_TIMEOUT    = "athenz.zts.jag_token_user_max_timeout";
     public static final String ZTS_PROP_JAG_TOKEN_SERVICE_MAX_TIMEOUT = "athenz.zts.jag_token_service_max_timeout";
+    public static final String ZTS_PROP_JAG_TOKEN_REFRESH_MAX_TIMEOUT = "athenz.zts.jag_token_refresh_max_timeout";
 
     public static final String ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_FNAME    = "athenz.zts.self_signer_private_key_fname";
     public static final String ZTS_PROP_SELF_SIGNER_PRIVATE_KEY_PASSWORD = "athenz.zts.self_signer_private_key_password";
