@@ -19,17 +19,29 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.crypki.CrypkiException;
 import com.yahoo.athenz.crypki.X509SignRequest;
 import com.yahoo.athenz.crypki.signer.SigningKey;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.ExtensionsGenerator;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.testng.annotations.Test;
 
+import javax.security.auth.x500.X500Principal;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
+import java.security.Provider;
+import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.expectThrows;
@@ -90,6 +102,65 @@ public class X509CertificateMinterTest {
         assertTrue(timestamping.contains("BEGIN CERTIFICATE"));
     }
 
+    @Test
+    public void testSanIpEmailAndIgnoredTags() throws Exception {
+        SigningKey ca = rsaCa();
+        PrivateKey leafKey = Crypto.generateRSAPrivateKey(2048);
+        String csr = Crypto.generateX509CSR(leafKey, "CN=mixed.san,O=Athenz,C=US",
+                new GeneralName[]{
+                        new GeneralName(GeneralName.iPAddress, "192.0.2.10"),
+                        new GeneralName(GeneralName.rfc822Name, "ops@athenz.example"),
+                        new GeneralName(new X500Name("CN=directory-name"))
+                });
+        X509Certificate cert = new X509CertificateMinter(60).signCertificate(ca.getPrivateKey(),
+                ca.getCaCertificate(), X509SignRequest.builder().csrPem(csr).validitySeconds(0).build());
+        boolean sawIp = false;
+        boolean sawEmail = false;
+        boolean sawDirectory = false;
+        for (java.util.List<?> entry : cert.getSubjectAlternativeNames()) {
+            String value = String.valueOf(entry.get(1));
+            sawIp |= "192.0.2.10".equals(value);
+            sawEmail |= "ops@athenz.example".equals(value);
+            sawDirectory |= value.contains("directory-name");
+        }
+        assertTrue(sawIp);
+        assertTrue(sawEmail);
+        assertFalse(sawDirectory);
+    }
+
+    @Test
+    public void testExtensionRequestWithoutSan() throws Exception {
+        SigningKey ca = rsaCa();
+        KeyPair leaf = rsaKeyPair();
+        JcaPKCS10CertificationRequestBuilder builder = new JcaPKCS10CertificationRequestBuilder(
+                new X500Principal("CN=ext-only,O=Athenz,C=US"), leaf.getPublic());
+        ExtensionsGenerator extGen = new ExtensionsGenerator();
+        extGen.addExtension(Extension.basicConstraints, false, new BasicConstraints(false));
+        builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extGen.generate());
+        String csr = Crypto.convertToPEMFormat(builder.build(
+                new JcaContentSignerBuilder("SHA256withRSA").build(leaf.getPrivate())));
+        X509Certificate cert = new X509CertificateMinter(60).signCertificate(ca.getPrivateKey(),
+                ca.getCaCertificate(), X509SignRequest.builder().csrPem(csr).build());
+        assertNotNull(cert);
+        assertTrue(cert.getSubjectAlternativeNames() == null
+                || cert.getSubjectAlternativeNames().isEmpty());
+    }
+
+    @Test
+    public void testEcContentSignerAndInvalidPrivateKey() {
+        PrivateKey invalidEc = dummyPrivateKey("EC");
+        expectThrows(CrypkiException.class, () -> X509CertificateMinter.contentSigner(invalidEc));
+
+        Provider fakePkcs11 = new Provider("SunPKCS11-Test", "1.0", "test") {
+        };
+        Security.insertProviderAt(fakePkcs11, 1);
+        try {
+            expectThrows(CrypkiException.class, () -> X509CertificateMinter.contentSigner(dummyPrivateKey("RSA")));
+        } finally {
+            Security.removeProvider("SunPKCS11-Test");
+        }
+    }
+
     private static SigningKey rsaCa() throws Exception {
         PrivateKey caKey = Crypto.generateRSAPrivateKey(2048);
         String csrPem = Crypto.generateX509CSR(caKey, "CN=Athenz Test CA,O=Athenz,C=US", null);
@@ -97,5 +168,30 @@ public class X509CertificateMinterTest {
         X509Certificate caCert = Crypto.generateX509Certificate(csr, caKey,
                 new X500Name("CN=Athenz Test CA,O=Athenz,C=US"), 365 * 24 * 60, true);
         return new SigningKey("ca", caKey, caCert);
+    }
+
+    private static KeyPair rsaKeyPair() throws Exception {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+        kpg.initialize(2048);
+        return kpg.generateKeyPair();
+    }
+
+    private static PrivateKey dummyPrivateKey(String algorithm) {
+        return new PrivateKey() {
+            @Override
+            public String getAlgorithm() {
+                return algorithm;
+            }
+
+            @Override
+            public String getFormat() {
+                return "PKCS#8";
+            }
+
+            @Override
+            public byte[] getEncoded() {
+                return new byte[0];
+            }
+        };
     }
 }

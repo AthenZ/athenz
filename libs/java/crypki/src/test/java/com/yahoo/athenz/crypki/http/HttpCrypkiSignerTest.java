@@ -95,6 +95,11 @@ public class HttpCrypkiSignerTest {
         assertNotNull(signer.getX509CertSigningRequest("aws", "csr",
                 CrypkiConsts.CERT_USAGE_TIMESTAMPING, 15, Priority.High, null));
         assertNotNull(signer.getX509CertSigningRequest("aws", "csr", null, 0, Priority.High, "kid"));
+        X509CertificateSigningRequest uncapped = (X509CertificateSigningRequest) signer
+                .getX509CertSigningRequest("aws", "csr", null, signer.getMaxCertExpiryTimeMins(),
+                        Priority.High, "kid");
+        assertEquals(uncapped.getValidity(),
+                Integer.valueOf((int) TimeUnit.SECONDS.convert(30, TimeUnit.DAYS)));
         signer.close();
     }
 
@@ -173,7 +178,7 @@ public class HttpCrypkiSignerTest {
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
         signer.setHttpClient(httpClient);
 
-        CloseableHttpResponse bad = mockResponse(400, null);
+        CloseableHttpResponse bad = mockResponse(400, "error-body");
         Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(bad);
         assertNull(signer.generateX509Certificate("aws", null, "csr", null, 0,
                 Priority.Unspecified_priority, null));
@@ -274,6 +279,24 @@ public class HttpCrypkiSignerTest {
         assertNotNull(signer.createSslContextFactory(pkey));
         assertNotNull(signer.createSslContextFactory(null));
         signer.close();
+    }
+
+    @Test
+    public void testCloseSwallowsErrors() throws Exception {
+        HttpCrypkiSigner signer = new HttpCrypkiSigner();
+        CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
+        Mockito.doThrow(new IOException("closed")).when(httpClient).close();
+        signer.setHttpClient(httpClient);
+        signer.close();
+    }
+
+    @Test
+    public void testSslContextStartFailure() throws Exception {
+        java.io.File emptyStore = java.io.File.createTempFile("crypki-bad-ks", ".p12");
+        emptyStore.deleteOnExit();
+        System.setProperty(CrypkiConsts.PROP_KEYSTORE_PATH, emptyStore.getAbsolutePath());
+        System.setProperty(CrypkiConsts.PROP_KEYSTORE_PASSWORD, "changeit");
+        expectThrows(CrypkiException.class, HttpCrypkiSigner::new);
     }
 
     @Test

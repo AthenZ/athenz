@@ -23,6 +23,7 @@ import java.util.Map;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.expectThrows;
 
 public class CrypkiRequestFactoryTest {
 
@@ -48,6 +49,12 @@ public class CrypkiRequestFactoryTest {
         assertEquals(factory.resolveKeyId("unknown", ""), "x509-key");
         assertEquals(factory.resolveKeyId(null, null), "x509-key");
         assertEquals(new CrypkiRequestFactory().resolveKeyId("x", null), "x509-key");
+        assertEquals(new CrypkiRequestFactory("", Map.of(), 60).resolveKeyId(null, null),
+                CrypkiConsts.DEFAULT_KEY_ID);
+        expectThrows(NullPointerException.class, () -> X509SignRequest.builder().build());
+        assertEquals(X509SignRequest.builder().csrPem("csr").build().getPriority(),
+                Priority.Unspecified_priority);
+        assertTrue(X509SignRequest.builder().csrPem("csr").build().getExtKeyUsage().isEmpty());
     }
 
     @Test

@@ -26,6 +26,7 @@ import org.testng.annotations.Test;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.expectThrows;
 
@@ -57,5 +58,8 @@ public class DefaultCrypkiSignerTest {
         assertTrue(signer.getCACertificate("x509-key").contains("BEGIN CERTIFICATE"));
         assertTrue(signer.getMaxCertExpiryTimeMins() > 0);
         expectThrows(NullPointerException.class, () -> new SigningKey(null, ca.getPrivateKey(), ca.getCaCertificate()));
+        expectThrows(NullPointerException.class, () -> new SigningKey("id", null, ca.getCaCertificate()));
+        expectThrows(NullPointerException.class, () -> new SigningKey("id", ca.getPrivateKey(), null));
+        assertEquals(ca.getIdentifier(), "x509-key");
     }
 }
