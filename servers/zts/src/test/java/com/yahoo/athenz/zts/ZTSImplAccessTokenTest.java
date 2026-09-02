@@ -17,6 +17,12 @@ package com.yahoo.athenz.zts;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.proc.JOSEObjectTypeVerifier;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -70,6 +76,8 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.*;
@@ -209,6 +217,27 @@ public class ZTSImplAccessTokenTest {
 
         jwtProcessor.setJWSKeySelector(new JWSVerificationKeySelector<>(JwtsHelper.JWS_SUPPORTED_ALGORITHMS,
                 resolver.getKeySource()));
+        return jwtProcessor;
+    }
+
+    private ConfigurableJWTProcessor<SecurityContext> createTokenProcessor(ServerPrivateKey serverPrivateKey,
+            JOSEObjectTypeVerifier<SecurityContext> typeVerifier) {
+
+        PublicKey publicKey = Crypto.extractPublicKey(serverPrivateKey.getKey());
+        JWKSet jwkSet;
+        if (publicKey instanceof RSAPublicKey) {
+            jwkSet = new JWKSet(new RSAKey.Builder((RSAPublicKey) publicKey)
+                    .keyID(serverPrivateKey.getId()).build());
+        } else {
+            ECPublicKey ecPublicKey = (ECPublicKey) publicKey;
+            jwkSet = new JWKSet(new ECKey.Builder(Curve.forECParameterSpec(ecPublicKey.getParams()), ecPublicKey)
+                    .keyID(serverPrivateKey.getId()).build());
+        }
+
+        ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
+        jwtProcessor.setJWSTypeVerifier(typeVerifier);
+        jwtProcessor.setJWSKeySelector(new JWSVerificationKeySelector<>(JwtsHelper.JWS_SUPPORTED_ALGORITHMS,
+                new ImmutableJWKSet<>(jwkSet)));
         return jwtProcessor;
     }
 
@@ -3408,6 +3437,193 @@ public class ZTSImplAccessTokenTest {
             fail(ex.getMessage());
         }
         
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessJAGTokenIssueRequestMultipleDomains() throws JOSEException {
+        AccessTokenScope.setMaxDomains(2);
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/unit_test_zts_private.pem");
+
+        store.processSignedDomain(createSignedDomain("coretech", "weather", "storage", true), false);
+        store.processSignedDomain(createSignedDomain("weather", "coretech", "storage", true), false);
+        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+        addJAGExchangePolicy("weather", "user_domain.proxy-user1", "readers");
+        addTokenSourceExchangePolicy("coretech", "weather", "user_domain.proxy-user1");
+        addTokenTargetExchangePolicy("weather", "coretech", "user_domain.proxy-user1", "readers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.user1",
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        final String jagIssueRequest =
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + subjectToken + "&audience=" + ztsImpl.ztsOAuthIssuer
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                + "&scope=coretech:role.writers weather:role.readers";
+
+        AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, jagIssueRequest);
+
+        assertNotNull(response);
+        assertEquals(response.getScope(), "coretech:role.writers weather:role.readers");
+
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(response.getAccess_token());
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertEquals(claimSet.getAudience().get(0), ztsImpl.ztsOAuthIssuer);
+            assertEquals(claimSet.getStringClaim(AccessToken.CLAIM_SCOPE_STD),
+                    "coretech:role.writers weather:role.readers");
+            assertEquals(claimSet.getStringListClaim(AccessToken.CLAIM_SCOPE),
+                    Arrays.asList("coretech:role.writers", "weather:role.readers"));
+            assertEquals(signedJWT.getHeader().getType().toString(), "oauth-id-jag+jwt");
+
+            ztsImpl.tokenConfigOptions.setJwtJAGProcessor(
+                    createTokenProcessor(serverPrivateKey, JwtsHelper.JWT_JAG_TYPE_VERIFIER));
+            final String jagExchangeRequest =
+                    "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer"
+                    + "&assertion=" + response.getAccess_token();
+
+            AccessTokenResponse selectedScopeResponse = ztsImpl.postAccessTokenRequest(context,
+                    jagExchangeRequest + "&scope=weather:role.readers");
+            SignedJWT selectedScopeToken = SignedJWT.parse(selectedScopeResponse.getAccess_token());
+            assertTrue(selectedScopeToken.verify(verifier));
+            JWTClaimsSet selectedScopeClaims = selectedScopeToken.getJWTClaimsSet();
+            assertEquals(selectedScopeClaims.getAudience().get(0), "weather");
+            assertEquals(selectedScopeClaims.getStringClaim(AccessToken.CLAIM_SCOPE_STD), "readers");
+            assertEquals(selectedScopeClaims.getStringListClaim(AccessToken.CLAIM_SCOPE),
+                    Collections.singletonList("readers"));
+
+            AccessTokenResponse allScopesResponse = ztsImpl.postAccessTokenRequest(context,
+                    jagExchangeRequest + "&audience=coretech");
+            assertEquals(allScopesResponse.getScope(), "writers weather:role.readers");
+            SignedJWT allScopesToken = SignedJWT.parse(allScopesResponse.getAccess_token());
+            assertTrue(allScopesToken.verify(verifier));
+            JWTClaimsSet allScopesClaims = allScopesToken.getJWTClaimsSet();
+            assertEquals(allScopesClaims.getAudience().get(0), "coretech");
+            assertEquals(allScopesClaims.getStringClaim(AccessToken.CLAIM_SCOPE_STD),
+                    "writers weather:role.readers");
+            assertEquals(allScopesClaims.getStringListClaim(AccessToken.CLAIM_SCOPE),
+                    Arrays.asList("writers", "weather:role.readers"));
+
+            AccessTokenResponse fullArnResponse = ztsImpl.postAccessTokenRequest(context,
+                    jagExchangeRequest + "&audience=coretech&full_arn=true");
+            assertEquals(fullArnResponse.getScope(),
+                    "coretech:role.writers weather:role.readers");
+            SignedJWT fullArnToken = SignedJWT.parse(fullArnResponse.getAccess_token());
+            assertTrue(fullArnToken.verify(verifier));
+            JWTClaimsSet fullArnClaims = fullArnToken.getJWTClaimsSet();
+            assertEquals(fullArnClaims.getAudience().get(0), "coretech");
+            assertEquals(fullArnClaims.getStringClaim(AccessToken.CLAIM_SCOPE_STD),
+                    "coretech:role.writers weather:role.readers");
+            assertEquals(fullArnClaims.getStringListClaim(AccessToken.CLAIM_SCOPE),
+                    Arrays.asList("coretech:role.writers", "weather:role.readers"));
+            assertFalse(fullArnClaims.getStringListClaim(AccessToken.CLAIM_SCOPE)
+                    .contains("weather:role.weather:role.readers"));
+
+            ztsImpl.tokenConfigOptions.setPublicKeyProvider(
+                    getServerPublicKeyProvider(serverPrivateKey.getKey()));
+            ztsImpl.tokenConfigOptions.setJwtIDTProcessor(
+                    createTokenProcessor(serverPrivateKey, JwtsHelper.JWT_TYPE_VERIFIER));
+            AccessTokenResponse downstreamResponse = ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                    + "&subject_token=" + allScopesResponse.getAccess_token()
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                    + "&audience=weather");
+            assertEquals(downstreamResponse.getScope(), "weather:role.readers");
+            SignedJWT downstreamToken = SignedJWT.parse(downstreamResponse.getAccess_token());
+            assertTrue(downstreamToken.verify(verifier));
+            JWTClaimsSet downstreamClaims = downstreamToken.getJWTClaimsSet();
+            assertEquals(downstreamClaims.getAudience().get(0), "weather");
+            assertEquals(downstreamClaims.getStringClaim(AccessToken.CLAIM_SCOPE_STD), "readers");
+            assertEquals(downstreamClaims.getStringListClaim(AccessToken.CLAIM_SCOPE),
+                    Collections.singletonList("readers"));
+
+            try {
+                ztsImpl.postAccessTokenRequest(context, jagExchangeRequest);
+                fail();
+            } catch (ResourceException ex) {
+                assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+                assertTrue(ex.getMessage().contains("Multiple scope domains require an audience"));
+            }
+
+            try {
+                ztsImpl.postAccessTokenRequest(context, jagExchangeRequest + "&audience=storage");
+                fail();
+            } catch (ResourceException ex) {
+                assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+                assertTrue(ex.getMessage().contains("Audience domain must be one of the scope domains"));
+            }
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessJAGTokenIssueRequestMultipleDomainsRequiresAccessInEachDomain() {
+        AccessTokenScope.setMaxDomains(2);
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/unit_test_zts_private.pem");
+
+        store.processSignedDomain(createSignedDomain("coretech", "weather", "storage", true), false);
+        store.processSignedDomain(createSignedDomain("weather", "coretech", "storage", true), false);
+        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+        addJAGExchangePolicy("weather", "user_domain.proxy-user1", "readers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                + "&scope=coretech:role.writers weather:role.readers",
+                tokenConfigOptions);
+
+        try {
+            ztsImpl.processJAGTokenIssueRequest(context, principal, accessTokenRequest,
+                    "user_domain", "postAccessTokenRequest");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+        }
+
         cloudStore.close();
     }
 
