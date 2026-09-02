@@ -204,7 +204,7 @@ func oidcTokenRequest(client *http.Client, req *http.Request) ([]byte, bool, err
 
 	contents, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, false, fmt.Errorf("uanble to read response body: %v", err)
+		return nil, false, fmt.Errorf("unable to read response body: %v", err)
 	}
 	return contents, false, nil
 }
