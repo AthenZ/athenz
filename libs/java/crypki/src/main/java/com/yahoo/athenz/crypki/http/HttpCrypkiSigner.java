@@ -261,8 +261,7 @@ public class HttpCrypkiSigner implements CertSigner, CrypkiSigner {
 
     @Override
     public String sign(X509SignRequest request) {
-        return generateX509Certificate(null, null, request.getCsrPem(), null,
-                secondsToMins(request.getValiditySeconds()), request.getPriority(), request.getKeyId());
+        return postX509Certificate(null, request.getKeyId(), toHttpSigningRequest(request));
     }
 
     @Override
@@ -270,8 +269,27 @@ public class HttpCrypkiSigner implements CertSigner, CrypkiSigner {
         return getCACertificate(null, keyId);
     }
 
-    private static int secondsToMins(int seconds) {
-        return seconds <= 0 ? 0 : seconds / 60;
+    /**
+     * Map a generic {@link X509SignRequest} onto the Go Crypki HTTP model
+     * without converting seconds to minutes or dropping EKU.
+     */
+    X509CertificateSigningRequest toHttpSigningRequest(X509SignRequest request) {
+        X509CertificateSigningRequest csrCert = new X509CertificateSigningRequest();
+        csrCert.setKeyMeta(new KeyMeta(getProviderKeyId(null, request.getKeyId())));
+        csrCert.setCsr(request.getCsrPem());
+        List<Integer> extKeyUsage = request.getExtKeyUsage();
+        if (extKeyUsage != null && !extKeyUsage.isEmpty()) {
+            csrCert.setExtKeyUsage(new ArrayList<>(extKeyUsage));
+        }
+        csrCert.setPriority(request.getPriority());
+        int maxSeconds = (int) TimeUnit.SECONDS.convert(getMaxCertExpiryTimeMins(), TimeUnit.MINUTES);
+        int validity = request.getValiditySeconds();
+        if (validity > 0) {
+            csrCert.setValidity(Math.min(validity, maxSeconds));
+        } else {
+            csrCert.setValidity(DEFAULT_CERT_EXPIRE_SECS);
+        }
+        return csrCert;
     }
 
     protected SslContextFactory createSslContextFactory(PrivateKeyStore privateKeyStore) {
@@ -329,12 +347,22 @@ public class HttpCrypkiSigner implements CertSigner, CrypkiSigner {
     @Override
     public String generateX509Certificate(String provider, String certIssuer, String csr, String keyUsage,
             int expireMins, Priority priority, String signerKeyId) {
+        try {
+            return postX509Certificate(provider, signerKeyId,
+                    (X509CertificateSigningRequest) getX509CertSigningRequest(provider,
+                            csr, keyUsage, expireMins, priority, signerKeyId));
+        } catch (Exception ex) {
+            LOGGER.error("unable to generate csr", ex);
+            return null;
+        }
+    }
+
+    String postX509Certificate(String provider, String signerKeyId,
+            X509CertificateSigningRequest csrCert) {
 
         StringEntity entity;
         try {
-            final String requestContent = JACKSON_MAPPER.writeValueAsString(getX509CertSigningRequest(provider,
-                    csr, keyUsage, expireMins, priority, signerKeyId));
-            entity = new StringEntity(requestContent);
+            entity = new StringEntity(JACKSON_MAPPER.writeValueAsString(csrCert));
         } catch (Exception ex) {
             LOGGER.error("unable to generate csr", ex);
             return null;

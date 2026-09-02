@@ -21,14 +21,19 @@ import com.yahoo.athenz.crypki.CrypkiException;
 import com.yahoo.athenz.crypki.kms.KmsClient;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.kms.model.GetPublicKeyRequest;
+import software.amazon.awssdk.services.kms.model.GetPublicKeyResponse;
 import software.amazon.awssdk.services.kms.model.MessageType;
 import software.amazon.awssdk.services.kms.model.SignRequest;
 import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Map;
 
 /**
  * AWS KMS implementation of the Crypki {@link KmsClient} SPI.
@@ -60,13 +65,38 @@ public class AwsKmsClient implements KmsClient {
 
     @Override
     public PublicKey getPublicKey(String keyId) {
-        byte[] der = client.getPublicKey(GetPublicKeyRequest.builder().keyId(keyId).build())
-                .publicKey().asByteArray();
+        GetPublicKeyResponse response = client.getPublicKey(
+                GetPublicKeyRequest.builder().keyId(keyId).build());
+        byte[] der = response.publicKey().asByteArray();
         try {
-            return java.security.KeyFactory.getInstance("RSA")
-                    .generatePublic(new java.security.spec.X509EncodedKeySpec(der));
+            return KeyFactory.getInstance(publicKeyAlgorithm(response.keySpec(), der))
+                    .generatePublic(new X509EncodedKeySpec(der));
         } catch (Exception ex) {
             throw new CrypkiException("Unable to parse KMS public key for " + keyId, ex);
+        }
+    }
+
+    static String publicKeyAlgorithm(software.amazon.awssdk.services.kms.model.KeySpec keySpec,
+            byte[] der) {
+        if (keySpec != null) {
+            String name = keySpec.toString();
+            if (name.startsWith("ECC") || name.startsWith("SM2")) {
+                return "EC";
+            }
+            if (name.startsWith("RSA")) {
+                return "RSA";
+            }
+        }
+        return encodedKeyAlgorithm(der);
+    }
+
+    static String encodedKeyAlgorithm(byte[] der) {
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(der);
+        try {
+            KeyFactory.getInstance("EC").generatePublic(spec);
+            return "EC";
+        } catch (InvalidKeySpecException | java.security.NoSuchAlgorithmException ignored) {
+            return "RSA";
         }
     }
 
@@ -83,10 +113,25 @@ public class AwsKmsClient implements KmsClient {
         }
     }
 
+    private static final Map<String, SigningAlgorithmSpec> AWS_ALGORITHMS = Map.ofEntries(
+            Map.entry("SHA256withRSA", SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256),
+            Map.entry("SHA384withRSA", SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_384),
+            Map.entry("SHA512withRSA", SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_512),
+            Map.entry("SHA256withRSAandMGF1", SigningAlgorithmSpec.RSASSA_PSS_SHA_256),
+            Map.entry("SHA384withRSAandMGF1", SigningAlgorithmSpec.RSASSA_PSS_SHA_384),
+            Map.entry("SHA512withRSAandMGF1", SigningAlgorithmSpec.RSASSA_PSS_SHA_512),
+            Map.entry("SHA256withECDSA", SigningAlgorithmSpec.ECDSA_SHA_256),
+            Map.entry("SHA384withECDSA", SigningAlgorithmSpec.ECDSA_SHA_384),
+            Map.entry("SHA512withECDSA", SigningAlgorithmSpec.ECDSA_SHA_512));
+
     static SigningAlgorithmSpec toAwsAlgorithm(String signingAlgorithm) {
-        if (signingAlgorithm != null && signingAlgorithm.contains("ECDSA")) {
-            return SigningAlgorithmSpec.ECDSA_SHA_256;
+        if (signingAlgorithm == null || signingAlgorithm.isEmpty()) {
+            throw new CrypkiException("Missing KMS signing algorithm");
         }
-        return SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256;
+        SigningAlgorithmSpec spec = AWS_ALGORITHMS.get(signingAlgorithm);
+        if (spec == null) {
+            throw new CrypkiException("Unsupported KMS signing algorithm: " + signingAlgorithm);
+        }
+        return spec;
     }
 }

@@ -128,4 +128,36 @@ public class KmsAndHsmSignerTest {
         assertEquals(new CrypkiException(400, "bad").getCode(), 400);
         assertEquals(new CrypkiException("x", new IllegalStateException()).getCode(), 500);
     }
+
+    @Test
+    public void testKmsDefaultConstructorAndHsmMaxExpiry() throws Exception {
+        SigningKey ca = DefaultCrypkiSignerTest.selfSigned("x509-key");
+        KmsClient kms = new KmsClient() {
+            @Override
+            public byte[] sign(String keyId, byte[] data, String signingAlgorithm) {
+                try {
+                    Signature signature = Signature.getInstance("SHA256withRSA");
+                    signature.initSign(ca.getPrivateKey());
+                    signature.update(data);
+                    return signature.sign();
+                } catch (Exception ex) {
+                    throw new CrypkiException("sign failed", ex);
+                }
+            }
+
+            @Override
+            public PublicKey getPublicKey(String keyId) {
+                return ca.getCaCertificate().getPublicKey();
+            }
+
+            @Override
+            public X509Certificate getCaCertificate(String keyId) {
+                return ca.getCaCertificate();
+            }
+        };
+        KmsCrypkiSigner signer = new KmsCrypkiSigner(kms);
+        assertEquals(signer.getMaxCertExpiryTimeMins(), CrypkiConsts.DEFAULT_MAX_CERT_EXPIRY_TIME_MINS);
+        HsmCrypkiSigner hsm = new HsmCrypkiSigner(keyId -> ca);
+        assertTrue(hsm.getMaxCertExpiryTimeMins() > 0);
+    }
 }

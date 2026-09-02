@@ -89,14 +89,14 @@ public class AwsCloudHsmClient implements HsmClient {
 
     static SigningKey loadSigningKey(String modulePath, String slot, String label, String pinPath,
             String caCertPath) {
-        if (modulePath == null || !new File(modulePath).isFile()) {
-            throw new CrypkiException("AWS CloudHSM PKCS#11 module not found: " + modulePath);
-        }
         char[] pin = readPin(pinPath);
         X509Certificate caCertificate = loadCaCertificate(caCertPath);
         try {
             if (cloudHsmJcePresent()) {
                 return loadCloudHsmJce(label, pin, caCertificate);
+            }
+            if (modulePath == null || !new File(modulePath).isFile()) {
+                throw new CrypkiException("AWS CloudHSM PKCS#11 module not found: " + modulePath);
             }
             return loadSunPkcs11(modulePath, slot, label, pin, caCertificate);
         } catch (CrypkiException ex) {
@@ -157,30 +157,28 @@ public class AwsCloudHsmClient implements HsmClient {
         return (PrivateKey) keyStore.getKey(label, pin);
     }
 
+    /**
+     * CloudHSM Client SDK 5: {@code KeyAttributesMapBuilder.put(LABEL/OBJECT_CLASS)}
+     * and {@code KeyStoreWithAttributes.getKey(KeyAttributesMap)}.
+     */
     static PrivateKey loadCloudHsmJcePrivateKeyByAttributes(Provider provider, String label,
             char[] pin) {
         try {
             Class<?> ksClass = Class.forName(
                     "com.amazonaws.cloudhsm.jce.provider.KeyStoreWithAttributes");
+            Class<?> mapClass = Class.forName(
+                    "com.amazonaws.cloudhsm.jce.provider.attributes.KeyAttributesMap");
             Class<?> builderClass = Class.forName(
                     "com.amazonaws.cloudhsm.jce.provider.attributes.KeyAttributesMapBuilder");
             Class<?> attrClass = Class.forName(
                     "com.amazonaws.cloudhsm.jce.provider.attributes.KeyAttribute");
             Class<?> classType = Class.forName(
                     "com.amazonaws.cloudhsm.jce.provider.attributes.ObjectClassType");
-            Object builder = builderClass.getDeclaredConstructor().newInstance();
-            Object labelAttr = Enum.valueOf(attrClass.asSubclass(Enum.class), "LABEL");
-            Object classAttr = Enum.valueOf(attrClass.asSubclass(Enum.class), "OBJECT_CLASS");
-            Object privateClass = Enum.valueOf(classType.asSubclass(Enum.class), "PRIVATE_KEY");
-            builderClass.getMethod("put", attrClass, Object.class).invoke(builder, labelAttr, label);
-            builderClass.getMethod("put", attrClass, Object.class)
-                    .invoke(builder, classAttr, privateClass);
-            Object spec = builderClass.getMethod("build").invoke(builder);
-            KeyStore keyStore = (KeyStore) ksClass.getMethod("getInstance", String.class, Provider.class)
-                    .invoke(null, provider.getName(), provider);
-            keyStore.load(null, pin);
-            Object key = ksClass.getMethod("getKey", java.security.spec.KeySpec.class)
-                    .invoke(keyStore, spec);
+            Object spec = cloudHsmKeyAttributes(builderClass, attrClass, classType, label);
+            Object keyStore = ksClass.getMethod("getInstance", String.class).invoke(null, "CloudHSM");
+            ksClass.getMethod("load", java.io.InputStream.class, char[].class)
+                    .invoke(keyStore, null, pin);
+            Object key = ksClass.getMethod("getKey", mapClass).invoke(keyStore, spec);
             return key instanceof PrivateKey ? (PrivateKey) key : null;
         } catch (ClassNotFoundException ex) {
             return null;
@@ -188,6 +186,18 @@ public class AwsCloudHsmClient implements HsmClient {
             throw new CrypkiException("Unable to load CloudHSM JCE private key " + label
                     + ": " + ex.getMessage(), ex);
         }
+    }
+
+    static Object cloudHsmKeyAttributes(Class<?> builderClass, Class<?> attrClass,
+            Class<?> classType, String label) throws Exception {
+        Object builder = builderClass.getDeclaredConstructor().newInstance();
+        Object labelAttr = Enum.valueOf(attrClass.asSubclass(Enum.class), "LABEL");
+        Object classAttr = Enum.valueOf(attrClass.asSubclass(Enum.class), "OBJECT_CLASS");
+        Object privateClass = Enum.valueOf(classType.asSubclass(Enum.class), "PRIVATE_KEY");
+        builderClass.getMethod("put", attrClass, Object.class).invoke(builder, labelAttr, label);
+        builderClass.getMethod("put", attrClass, Object.class)
+                .invoke(builder, classAttr, privateClass);
+        return builderClass.getMethod("build").invoke(builder);
     }
 
     static SigningKey loadSunPkcs11(String modulePath, String slot, String label, char[] pin,

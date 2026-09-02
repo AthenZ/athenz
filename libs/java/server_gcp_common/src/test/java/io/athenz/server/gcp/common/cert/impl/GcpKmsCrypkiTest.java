@@ -26,6 +26,7 @@ import com.yahoo.athenz.crypki.CrypkiCertSigner;
 import com.yahoo.athenz.crypki.CrypkiConsts;
 import com.yahoo.athenz.crypki.CrypkiException;
 import com.yahoo.athenz.crypki.kms.KmsClient;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
@@ -34,6 +35,7 @@ import java.security.cert.X509Certificate;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.expectThrows;
 
 public class GcpKmsCrypkiTest {
@@ -114,6 +116,26 @@ public class GcpKmsCrypkiTest {
         GcpKmsClient client = new GcpKmsClient(grpc, certFile.getAbsolutePath());
         assertEquals(client.sign("projects/p/locations/l/keyRings/r/cryptoKeys/k", new byte[]{1}, "SHA256withRSA"),
                 new byte[]{4, 5});
+        ArgumentCaptor<AsymmetricSignRequest> captor = ArgumentCaptor.forClass(AsymmetricSignRequest.class);
+        Mockito.verify(grpc).asymmetricSign(captor.capture());
+        assertTrue(captor.getValue().hasDigest());
+        assertTrue(captor.getValue().getDigest().hasSha256());
+
+        client.sign("projects/p/locations/l/keyRings/r/cryptoKeys/k", new byte[]{1}, "SHA384withECDSA");
+        client.sign("projects/p/locations/l/keyRings/r/cryptoKeys/k", new byte[]{1}, "SHA512withRSA");
+        assertEquals(GcpKmsClient.digestAlgorithm("SHA256withRSA"), "SHA-256");
+        assertEquals(GcpKmsClient.digestAlgorithm("SHA384withECDSA"), "SHA-384");
+        assertEquals(GcpKmsClient.digestAlgorithm("SHA512withRSA"), "SHA-512");
+        expectThrows(CrypkiException.class, () -> GcpKmsClient.digestAlgorithm(null));
+        expectThrows(CrypkiException.class, () -> GcpKmsClient.digestAlgorithm(""));
+        expectThrows(CrypkiException.class, () -> GcpKmsClient.digestAlgorithm("MD5withRSA"));
+        assertTrue(GcpKmsClient.toDigest(new byte[]{1}, "SHA256withRSA").hasSha256());
+        assertTrue(GcpKmsClient.toDigest(new byte[]{1}, "SHA384withECDSA").hasSha384());
+        assertTrue(GcpKmsClient.toDigest(new byte[]{1}, "SHA512withRSA").hasSha512());
+        expectThrows(CrypkiException.class, () -> GcpKmsClient.toDigest(null, "SHA256withRSA"));
+        expectThrows(CrypkiException.class, () -> client.sign(
+                "projects/p/locations/l/keyRings/r/cryptoKeys/k", new byte[]{1}, "MD5withRSA"));
+
         assertNotNull(client.getPublicKey("projects/p/locations/l/keyRings/r/cryptoKeys/k"));
         assertNotNull(client.getCaCertificate("k"));
         expectThrows(CrypkiException.class, () -> new GcpKmsClient(grpc, null).getCaCertificate("k"));

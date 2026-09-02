@@ -67,7 +67,7 @@ public class KmsCrypkiSigner implements CrypkiSigner {
     }
 
     /**
-     * ZTS leaves {@code signerKeyId} empty, so {@link CrypkiRequestFactory}
+     * ZTS leaves {@code signerKeyId} empty, so {@link com.yahoo.athenz.crypki.CrypkiRequestFactory}
      * fills in the HTTP Crypki default {@code x509-key}. That name is not a
      * KMS key id (and {@code alias/...} cannot be sent as an RDL SimpleName).
      * Use the configured {@code athenz.crypki.kms.key_id} instead.

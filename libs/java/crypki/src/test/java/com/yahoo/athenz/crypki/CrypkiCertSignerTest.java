@@ -47,6 +47,25 @@ public class CrypkiCertSignerTest {
         assertEquals(certSigner.getCACertificate("p", "kid"), "CA:kid");
         assertEquals(certSigner.getMaxCertExpiryTimeMins(), 10);
         assertSame(certSigner.getSigner(), signer);
+        assertSame(certSigner.getRequestFactory().resolveKeyId(null, null), "x509-key");
         certSigner.close();
+    }
+
+    @Test
+    public void testDefaultCloseAndMaxExpiry() {
+        CrypkiSigner signer = new CrypkiSigner() {
+            @Override
+            public String sign(X509SignRequest request) {
+                return "ok";
+            }
+
+            @Override
+            public String getCACertificate(String keyId) {
+                return "ca";
+            }
+        };
+        assertEquals(signer.getMaxCertExpiryTimeMins(), 43200);
+        signer.close();
+        new CrypkiCertSigner(signer).close();
     }
 }

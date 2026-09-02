@@ -86,7 +86,12 @@ public class X509CertificateMinter {
         if (request == null || request.getCsrPem() == null || request.getCsrPem().isEmpty()) {
             throw new CrypkiException("CSR is required");
         }
-        PKCS10CertificationRequest certReq = Crypto.getPKCS10CertRequest(request.getCsrPem());
+        PKCS10CertificationRequest certReq;
+        try {
+            certReq = Crypto.getPKCS10CertRequest(request.getCsrPem());
+        } catch (Exception ex) {
+            throw new CrypkiException("Unable to parse CSR", ex);
+        }
         if (certReq == null) {
             throw new CrypkiException("Unable to parse CSR");
         }

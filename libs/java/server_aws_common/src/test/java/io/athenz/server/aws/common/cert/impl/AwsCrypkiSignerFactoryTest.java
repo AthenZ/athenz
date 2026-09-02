@@ -32,6 +32,7 @@ import org.testng.annotations.Test;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.kms.model.GetPublicKeyRequest;
 import software.amazon.awssdk.services.kms.model.GetPublicKeyResponse;
+import software.amazon.awssdk.services.kms.model.KeySpec;
 import software.amazon.awssdk.services.kms.model.SignRequest;
 import software.amazon.awssdk.services.kms.model.SignResponse;
 import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
@@ -129,9 +130,38 @@ public class AwsCrypkiSignerFactoryTest {
         assertNotNull(client.getPublicKey("kid"));
         assertNotNull(client.getCaCertificate("kid"));
         assertEquals(AwsKmsClient.toAwsAlgorithm("SHA256withECDSA"), SigningAlgorithmSpec.ECDSA_SHA_256);
+        assertEquals(AwsKmsClient.toAwsAlgorithm("SHA384withECDSA"), SigningAlgorithmSpec.ECDSA_SHA_384);
+        assertEquals(AwsKmsClient.toAwsAlgorithm("SHA512withECDSA"), SigningAlgorithmSpec.ECDSA_SHA_512);
         assertEquals(AwsKmsClient.toAwsAlgorithm("SHA256withRSA"), SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256);
+        assertEquals(AwsKmsClient.toAwsAlgorithm("SHA384withRSA"), SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_384);
+        assertEquals(AwsKmsClient.toAwsAlgorithm("SHA512withRSA"), SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_512);
+        assertEquals(AwsKmsClient.toAwsAlgorithm("SHA256withRSAandMGF1"), SigningAlgorithmSpec.RSASSA_PSS_SHA_256);
+        assertEquals(AwsKmsClient.toAwsAlgorithm("SHA384withRSAandMGF1"), SigningAlgorithmSpec.RSASSA_PSS_SHA_384);
+        assertEquals(AwsKmsClient.toAwsAlgorithm("SHA512withRSAandMGF1"), SigningAlgorithmSpec.RSASSA_PSS_SHA_512);
+        expectThrows(CrypkiException.class, () -> AwsKmsClient.toAwsAlgorithm(null));
+        expectThrows(CrypkiException.class, () -> AwsKmsClient.toAwsAlgorithm("SHA1withRSA"));
         expectThrows(CrypkiException.class, () -> new AwsKmsClient(aws, null).getCaCertificate("kid"));
         expectThrows(CrypkiException.class, () -> new AwsKmsClient(aws, "/missing.pem").getCaCertificate("kid"));
+        assertEquals(AwsKmsClient.publicKeyAlgorithm(KeySpec.RSA_2048, pair.getPublic().getEncoded()), "RSA");
+        assertEquals(AwsKmsClient.publicKeyAlgorithm(KeySpec.ECC_NIST_P256, pair.getPublic().getEncoded()), "EC");
+        assertEquals(AwsKmsClient.encodedKeyAlgorithm(pair.getPublic().getEncoded()), "RSA");
+    }
+
+    @Test
+    public void testAwsKmsClientEcPublicKey() throws Exception {
+        software.amazon.awssdk.services.kms.KmsClient aws = Mockito.mock(
+                software.amazon.awssdk.services.kms.KmsClient.class);
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("EC");
+        kpg.initialize(256);
+        KeyPair pair = kpg.generateKeyPair();
+        Mockito.when(aws.getPublicKey(Mockito.any(GetPublicKeyRequest.class))).thenReturn(
+                GetPublicKeyResponse.builder()
+                        .keySpec(KeySpec.ECC_NIST_P256)
+                        .publicKey(SdkBytes.fromByteArray(pair.getPublic().getEncoded())).build());
+        AwsKmsClient client = new AwsKmsClient(aws, null);
+        assertEquals(client.getPublicKey("kid").getAlgorithm(), "EC");
+        assertEquals(AwsKmsClient.encodedKeyAlgorithm(pair.getPublic().getEncoded()), "EC");
+        assertEquals(AwsKmsClient.encodedKeyAlgorithm(new byte[]{1, 2, 3}), "RSA");
     }
 
     @Test
@@ -147,8 +177,8 @@ public class AwsCrypkiSignerFactoryTest {
         assertEquals(client.resolveLabel(""), "athenz-crypki-ca");
         assertEquals(client.resolveLabel(CrypkiConsts.DEFAULT_KEY_ID), "athenz-crypki-ca");
         assertTrue(AwsCloudHsmClient.cloudHsmJcePresent());
-        expectThrows(CrypkiException.class, () -> AwsCloudHsmClient.loadCloudHsmJcePrivateKeyByAttributes(
-                null, "athenz-crypki-ca", new char[]{'x'}));
+        assertEquals(AwsCloudHsmClient.loadCloudHsmJcePrivateKeyByAttributes(
+                null, "athenz-crypki-ca", new char[]{'x'}), null);
         assertEquals(client.getSigningKey(CrypkiConsts.DEFAULT_KEY_ID).getIdentifier(), "athenz-crypki-ca");
         expectThrows(CrypkiException.class, () -> client.getSigningKey("other-label"));
         assertEquals(AwsCloudHsmClient.pkcs11Config("/opt/cloudhsm/lib/libcloudhsm_pkcs11.so", null),
@@ -174,6 +204,12 @@ public class AwsCrypkiSignerFactoryTest {
         expectThrows(CrypkiException.class, () -> AwsCloudHsmClient.loadSigningKey(
                 "/missing-module.so", null, "athenz-crypki-ca", pin.getAbsolutePath(),
                 certFile.getAbsolutePath()));
+        KeyPair jcePair = rsaKeyPair();
+        StubKeyStoreSpi.key = jcePair.getPrivate();
+        assertEquals(AwsCloudHsmClient.loadSigningKey("/missing-module.so", null,
+                "athenz-crypki-ca", pin.getAbsolutePath(), certFile.getAbsolutePath())
+                .getPrivateKey(), jcePair.getPrivate());
+        StubKeyStoreSpi.key = null;
         expectThrows(CrypkiException.class, () -> AwsCloudHsmClient.loadSigningKey(
                 modulePathForCoverage(), null, "athenz-crypki-ca", pin.getAbsolutePath(),
                 certFile.getAbsolutePath()));

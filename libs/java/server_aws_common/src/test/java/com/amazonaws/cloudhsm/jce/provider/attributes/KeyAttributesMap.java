@@ -15,16 +15,22 @@
  */
 package com.amazonaws.cloudhsm.jce.provider.attributes;
 
-public class KeyAttributesMapBuilder {
+import java.security.spec.KeySpec;
+import java.util.EnumMap;
+import java.util.Map;
 
-    private final KeyAttributesMap map = new KeyAttributesMap();
+/**
+ * Test double for CloudHSM Client SDK 5 {@code KeyAttributesMap}.
+ */
+public class KeyAttributesMap implements KeySpec {
 
-    public KeyAttributesMapBuilder put(KeyAttribute attribute, Object value) {
-        map.put(attribute, value);
-        return this;
+    private final Map<KeyAttribute, Object> attributes = new EnumMap<>(KeyAttribute.class);
+
+    public Object put(KeyAttribute attribute, Object value) {
+        return attributes.put(attribute, value);
     }
 
-    public KeyAttributesMap build() {
-        return map;
+    public Object get(KeyAttribute attribute) {
+        return attributes.get(attribute);
     }
 }
