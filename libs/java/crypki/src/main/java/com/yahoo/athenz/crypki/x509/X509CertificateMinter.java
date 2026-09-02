@@ -36,6 +36,7 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.X509KeyUsage;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 
@@ -103,6 +104,7 @@ public class X509CertificateMinter {
         try {
             JcaPKCS10CertificationRequest jcaReq = new JcaPKCS10CertificationRequest(certReq);
             PublicKey publicKey = jcaReq.getPublicKey();
+            verifyCsrSignature(jcaReq, publicKey);
             X509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(
                     new JcaX509CertificateHolder(caCertificate).getSubject(),
                     new BigInteger(128, new SecureRandom()),
@@ -122,6 +124,19 @@ public class X509CertificateMinter {
             throw ex;
         } catch (Exception ex) {
             throw new CrypkiException("Unable to sign X.509 certificate: " + ex.getMessage(), ex);
+        }
+    }
+
+    static void verifyCsrSignature(JcaPKCS10CertificationRequest jcaReq, PublicKey publicKey) {
+        try {
+            if (publicKey == null || !jcaReq.isSignatureValid(
+                    new JcaContentVerifierProviderBuilder().build(publicKey))) {
+                throw new CrypkiException("CSR signature is invalid");
+            }
+        } catch (CrypkiException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new CrypkiException("Unable to verify CSR signature", ex);
         }
     }
 

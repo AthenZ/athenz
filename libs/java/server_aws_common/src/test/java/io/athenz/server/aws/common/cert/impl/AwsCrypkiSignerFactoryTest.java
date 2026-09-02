@@ -281,6 +281,7 @@ public class AwsCrypkiSignerFactoryTest {
             SigningKey key = loadJceSigningKey("example-hsm-label");
             assertEquals(key.getIdentifier(), "example-hsm-label");
             assertEquals(key.getPrivateKey(), pair.getPrivate());
+            assertTrue(alreadyRegistered.loggedIn);
             assertNotNull(new AwsCloudHsmClient(modulePathForCoverage(), null, "",
                     pinFile("crypto-user:example-pin"), caCertFile()).getSigningKey(null));
         } finally {

@@ -29,6 +29,7 @@ import java.security.AuthProvider;
 public class CloudHsmProvider extends AuthProvider {
 
     public static boolean failLogin;
+    public boolean loggedIn;
 
     public CloudHsmProvider() {
         super("CloudHsmProvider", 1.0, "Athenz unit-test stub");
@@ -37,6 +38,7 @@ public class CloudHsmProvider extends AuthProvider {
 
     @Override
     public void login(Subject subject, CallbackHandler handler) throws LoginException {
+        loggedIn = true;
         if (failLogin) {
             throw new LoginException("login denied");
         }

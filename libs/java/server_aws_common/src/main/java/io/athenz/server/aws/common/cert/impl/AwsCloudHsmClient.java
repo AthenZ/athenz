@@ -121,9 +121,11 @@ public class AwsCloudHsmClient implements HsmClient {
     static SigningKey loadCloudHsmJce(String label, char[] pin, X509Certificate caCertificate)
             throws Exception {
         Class<?> providerClass = Class.forName("com.amazonaws.cloudhsm.jce.provider.CloudHsmProvider");
-        Provider provider = (Provider) providerClass.getDeclaredConstructor().newInstance();
-        if (Security.getProvider(provider.getName()) == null) {
-            Security.addProvider(provider);
+        Provider created = (Provider) providerClass.getDeclaredConstructor().newInstance();
+        Provider provider = Security.getProvider(created.getName());
+        if (provider == null) {
+            Security.addProvider(created);
+            provider = created;
         }
         if (provider instanceof AuthProvider) {
             ((AuthProvider) provider).login(null, callbacks -> {

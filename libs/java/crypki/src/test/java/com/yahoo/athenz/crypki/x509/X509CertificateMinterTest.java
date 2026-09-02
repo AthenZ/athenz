@@ -28,6 +28,7 @@ import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.testng.annotations.Test;
 
@@ -85,6 +86,12 @@ public class X509CertificateMinterTest {
                 X509SignRequest.builder().csrPem("").build()));
         expectThrows(CrypkiException.class, () -> minter.sign(rsaCa(),
                 X509SignRequest.builder().csrPem("not-a-csr").build()));
+        expectThrows(CrypkiException.class, () -> minter.sign(rsaCa(),
+                X509SignRequest.builder().csrPem(mismatchedCsr()).build()));
+        JcaPKCS10CertificationRequest parsed = new JcaPKCS10CertificationRequest(
+                Crypto.getPKCS10CertRequest(Crypto.generateX509CSR(
+                        Crypto.generateRSAPrivateKey(2048), "CN=verify,O=Athenz,C=US", null)));
+        expectThrows(CrypkiException.class, () -> X509CertificateMinter.verifyCsrSignature(parsed, null));
     }
 
     @Test
@@ -168,6 +175,14 @@ public class X509CertificateMinterTest {
         X509Certificate caCert = Crypto.generateX509Certificate(csr, caKey,
                 new X500Name("CN=Athenz Test CA,O=Athenz,C=US"), 365 * 24 * 60, true);
         return new SigningKey("ca", caKey, caCert);
+    }
+
+    private static String mismatchedCsr() throws Exception {
+        KeyPair subject = rsaKeyPair();
+        KeyPair signer = rsaKeyPair();
+        return Crypto.convertToPEMFormat(new JcaPKCS10CertificationRequestBuilder(
+                new X500Principal("CN=pop-mismatch,O=Athenz,C=US"), subject.getPublic())
+                .build(new JcaContentSignerBuilder("SHA256withRSA").build(signer.getPrivate())));
     }
 
     private static KeyPair rsaKeyPair() throws Exception {
