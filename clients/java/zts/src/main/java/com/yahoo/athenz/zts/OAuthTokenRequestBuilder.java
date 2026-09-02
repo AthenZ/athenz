@@ -56,6 +56,7 @@ public class OAuthTokenRequestBuilder {
     String actor;
     String actorToken;
     String actorTokenType;
+    String keyType;
     long expiryTime = 0;
     boolean openIdIssuer = false;
     ServiceIdentityProvider clientAssertionProvider = null;
@@ -257,6 +258,16 @@ public class OAuthTokenRequestBuilder {
     }
 
     /**
+     * Set the signature key type for the access token request.
+     * @param keyType type of the signing key - RSA or EC
+     * @return this builder instance
+     */
+    public OAuthTokenRequestBuilder keyType(String keyType) {
+        this.keyType = keyType;
+        return this;
+    }
+
+    /**
      * Set the domain name for the request
      * @param domainName request domain name
      * @return this builder instance
@@ -336,6 +347,11 @@ public class OAuthTokenRequestBuilder {
         } else if (!ZTSClient.isEmpty(clientAssertion)) {
             cacheKey.append(";a=");
             cacheKey.append(DigestUtils.md5Hex(clientAssertion));
+        }
+
+        if (!ZTSClient.isEmpty(keyType)) {
+            cacheKey.append(";k=");
+            cacheKey.append(keyType);
         }
 
         return cacheKey.toString();
@@ -444,6 +460,10 @@ public class OAuthTokenRequestBuilder {
 
         if (!ZTSClient.isEmpty(actor)) {
             body.append("&actor=").append(URLEncoder.encode(actor, StandardCharsets.UTF_8));
+        }
+
+        if (!ZTSClient.isEmpty(keyType)) {
+            body.append("&key_type=").append(URLEncoder.encode(keyType, StandardCharsets.UTF_8));
         }
 
         return body.toString();

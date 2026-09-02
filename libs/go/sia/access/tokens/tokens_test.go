@@ -1080,12 +1080,12 @@ func assertParseJwt(a *assert.Assertions, token []byte) jwt.MapClaims {
 func TestMakeTokenRequestRoleInAudClaim(t *testing.T) {
 	a := assert.New(t)
 
-	withoutFlag := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", false, false)
+	withoutFlag := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", false, false, "")
 	v, err := url.ParseQuery(withoutFlag)
 	a.NoError(err)
 	a.Empty(v.Get("role_in_aud_claim"), "role_in_aud_claim should be absent when flag is false")
 
-	withFlag := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", true, false)
+	withFlag := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", true, false, "")
 	v, err = url.ParseQuery(withFlag)
 	a.NoError(err)
 	a.Equal("true", v.Get("role_in_aud_claim"), "role_in_aud_claim should be 'true' when flag is set")
@@ -1094,15 +1094,29 @@ func TestMakeTokenRequestRoleInAudClaim(t *testing.T) {
 func TestMakeTokenRequestOpenIDIssuer(t *testing.T) {
 	a := assert.New(t)
 
-	withoutFlag := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", false, false)
+	withoutFlag := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", false, false, "")
 	v, err := url.ParseQuery(withoutFlag)
 	a.NoError(err)
 	a.Empty(v.Get("openid_issuer"), "openid_issuer should be absent when flag is false")
 
-	withFlag := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", false, true)
+	withFlag := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", false, true, "")
 	v, err = url.ParseQuery(withFlag)
 	a.NoError(err)
 	a.Equal("true", v.Get("openid_issuer"), "openid_issuer should be 'true' when flag is set")
+}
+
+func TestMakeTokenRequestKeyType(t *testing.T) {
+	a := assert.New(t)
+
+	withoutKeyType := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", false, false, "")
+	v, err := url.ParseQuery(withoutKeyType)
+	a.NoError(err)
+	a.Empty(v.Get("key_type"), "key_type should be absent when not set")
+
+	withKeyType := makeTokenRequest("athenz.demo", []string{"role1"}, 3600, "", false, false, "EC")
+	v, err = url.ParseQuery(withKeyType)
+	a.NoError(err)
+	a.Equal("EC", v.Get("key_type"), "key_type should match the requested value when set")
 }
 
 // uid returns current user's uid

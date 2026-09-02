@@ -908,6 +908,103 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
+    public void testPostAccessTokenRequestKeyTypeRSA() throws JOSEException, ParseException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY, "src/test/resources/unit_test_zts_private_ec.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        // restore back to our default single key setup
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY);
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:domain&key_type=RSA");
+        assertNotNull(resp);
+
+        String accessTokenStr = resp.getAccess_token();
+        assertNotNull(accessTokenStr);
+
+        SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+        assertEquals(signedJWT.getHeader().getAlgorithm(), JWSAlgorithm.RS256);
+
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(ztsImpl.privateRSAKey.getKey()));
+        assertTrue(signedJWT.verify(verifier));
+    }
+
+    @Test
+    public void testPostAccessTokenRequestKeyTypeInvalidFallsBackToDefault() throws JOSEException, ParseException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY, "src/test/resources/unit_test_zts_private_ec.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY);
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        // restore back to our default single key setup
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_RSA_KEY);
+        System.clearProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_EC_KEY);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        // a valid SimpleName, so it passes validation, but neither RSA
+        // nor EC - the server falls back to its default (EC) signing key
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:domain&key_type=unknown-type");
+        assertNotNull(resp);
+
+        String accessTokenStr = resp.getAccess_token();
+        assertNotNull(accessTokenStr);
+
+        SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+        assertEquals(signedJWT.getHeader().getAlgorithm(), JWSAlgorithm.ES256);
+
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(ztsImpl.privateECKey.getKey()));
+        assertTrue(signedJWT.verify(verifier));
+    }
+
+    @Test
+    public void testPostAccessTokenRequestKeyTypeInvalidSimpleName() {
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        try {
+            zts.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:domain&key_type=" +
+                            URLEncoder.encode("bad key", StandardCharsets.UTF_8));
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
+    }
+
+    @Test
     public void testPostAccessTokenRequestSingleRole() {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
