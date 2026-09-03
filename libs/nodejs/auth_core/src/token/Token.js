@@ -223,6 +223,40 @@ class Token {
     }
 
     /**
+     * Helper method to verify that the given signature component only carries
+     * characters from the ybase64 alphabet. Node's base64 decoder silently
+     * skips characters outside of the alphabet, so without this check anyone
+     * could append arbitrary data after the signature component and still
+     * have the token pass signature validation.
+     * @param signature signature component extracted from a signed token
+     * @return true if the signature is well formed, false otherwise
+     **/
+    static isValidSignature(signature) {
+        return /^[a-zA-Z0-9._-]+$/.test(signature);
+    }
+
+    /**
+     * Helper method to parse a numeric token attribute (e.g. timestamp or
+     * expiry). Number() returns NaN for non-numeric input and every
+     * comparison against NaN evaluates to false which would silently bypass
+     * all of our time based validation checks, so we must reject any value
+     * that is not a well formed integer.
+     * @param value attribute value extracted from the token
+     * @param name attribute name used for the error message
+     * @return parsed integer value
+     **/
+    static parseIntegerAttribute(value, name) {
+        if (!/^-?\d+$/.test(value)) {
+            throw new Error(
+                'SignedToken contains invalid numeric value for ' +
+                    name +
+                    ' component'
+            );
+        }
+        return Number(value);
+    }
+
+    /**
      * Helper method to parse a credential to remove the signature from the
      * raw credential string. Returning the unsigned credential.
      * @param credential full token credentials including signature

@@ -52,10 +52,6 @@ class PrincipalToken extends Token {
 
     /*eslint complexity: ["error", 24]*/
     parseSignedToken(signedToken) {
-        logger.debug(
-            'Constructing PrincipalToken with input string: ' + signedToken
-        );
-
         if (!signedToken) {
             throw new Error('Input String signedToken must not be empty');
         }
@@ -84,12 +80,46 @@ class PrincipalToken extends Token {
          *    using Service's private Key for service tokens and ZMS service's
          *    private key for user tokens and y64 encoded
          */
+        var authzSvcToken = null;
         var idx = signedToken.indexOf(';s=');
         if (idx !== -1) {
             this._unsignedToken = signedToken.substring(0, idx);
+
+            /* we might have authorized service token details after the
+             * signature so we're going to extract our signature component */
+
+            var authzIdx = signedToken.indexOf(';', idx + 3);
+            if (
+                authzIdx !== -1 &&
+                signedToken.indexOf(';bs=', idx + 3) !== -1
+            ) {
+                this._signature = signedToken.substring(idx + 3, authzIdx);
+                authzSvcToken = signedToken.substring(authzIdx);
+            } else {
+                this._signature = signedToken.substring(idx + 3);
+            }
+
+            if (!Token.isValidSignature(this._signature)) {
+                throw new Error(
+                    'SignedToken contains an invalid signature component'
+                );
+            }
         }
 
-        var item = signedToken.split(';');
+        /* we must only extract our claims from the part of the token that
+         * is covered by the signature. otherwise anyone could append
+         * additional fields after the signature component and, since our
+         * parser is last-one-wins, override the signed values */
+
+        var parseToken = this._unsignedToken
+            ? this._unsignedToken
+            : signedToken;
+
+        logger.debug(
+            'Constructing PrincipalToken with input string: ' + parseToken
+        );
+
+        var item = parseToken.split(';');
         for (var i = 0; i < item.length; i++) {
             var kv = item[i].split('=');
             if (kv.length === 2) {
@@ -100,20 +130,14 @@ class PrincipalToken extends Token {
                     case 'b':
                         this._authorizedServices = kv[1].split(',');
                         break;
-                    case 'bk':
-                        this._authorizedServiceKeyId = kv[1];
-                        break;
-                    case 'bn':
-                        this._authorizedServiceName = kv[1];
-                        break;
-                    case 'bs':
-                        this._authorizedServiceSignature = kv[1];
-                        break;
                     case 'd':
                         this._domain = kv[1];
                         break;
                     case 'e':
-                        this._expiryTime = Number(kv[1]);
+                        this._expiryTime = Token.parseIntegerAttribute(
+                            kv[1],
+                            'expiry'
+                        );
                         break;
                     case 'h':
                         this._host = kv[1];
@@ -130,11 +154,11 @@ class PrincipalToken extends Token {
                     case 'o':
                         this._originalRequestor = kv[1];
                         break;
-                    case 's':
-                        this._signature = kv[1];
-                        break;
                     case 't':
-                        this._timestamp = Number(kv[1]);
+                        this._timestamp = Token.parseIntegerAttribute(
+                            kv[1],
+                            'timestamp'
+                        );
                         break;
                     case 'v':
                         this._version = kv[1];
@@ -142,6 +166,40 @@ class PrincipalToken extends Token {
                     case 'z':
                         this._keyService = kv[1];
                         break;
+                }
+            }
+        }
+
+        /* now process the authorized service token part. the bs signature
+         * covers the "...;s=<signature>;bk=<keyid>[;bn=<name>]" string so
+         * we only parse the fields that it protects */
+
+        if (authzSvcToken) {
+            idx = authzSvcToken.indexOf(';bs=');
+            if (idx !== -1) {
+                this._authorizedServiceSignature = authzSvcToken.substring(
+                    idx + 4
+                );
+
+                if (!Token.isValidSignature(this._authorizedServiceSignature)) {
+                    throw new Error(
+                        'SignedToken contains an invalid authorized service signature component'
+                    );
+                }
+
+                var authzItem = authzSvcToken.substring(0, idx).split(';');
+                for (var j = 0; j < authzItem.length; j++) {
+                    var authzKv = authzItem[j].split('=');
+                    if (authzKv.length === 2) {
+                        switch (authzKv[0]) {
+                            case 'bk':
+                                this._authorizedServiceKeyId = authzKv[1];
+                                break;
+                            case 'bn':
+                                this._authorizedServiceName = authzKv[1];
+                                break;
+                        }
+                    }
                 }
             }
         }

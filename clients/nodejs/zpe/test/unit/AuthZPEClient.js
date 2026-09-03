@@ -384,6 +384,24 @@ describe('AuthZPEClient', function () {
         );
     });
 
+    it('should test AuthZPEClient allowAccess with malformed token expecting result DENY_ROLETOKEN_INVALID', function () {
+        var resource = 'athenz.test:testresgroup.allow';
+        var action = 'read';
+        AuthZPEClient.allowAccess(
+            {
+                roleToken: 'v=Z1;r=users;s=signature',
+                resource: resource,
+                action: action,
+            },
+            (err, accessCheckStatus) => {
+                expect(err).to.equal('ERROR: Invalid Role Token');
+                expect(accessCheckStatus).to.deep.equal(
+                    'Access denied due to invalid RoleToken'
+                );
+            }
+        );
+    });
+
     it('should test AuthZPEClient allowAccess expecting result DENY_DOMAIN_MISMATCH', function () {
         var resource = 'athenz.test:testresgroup.allow';
         var action = 'read';

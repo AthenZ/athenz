@@ -74,7 +74,24 @@ class AuthZPEClient {
         if (!rToken) {
             logger.debug('allowAccess: Role Token Cache Miss');
 
-            rToken = new RoleToken(roleToken);
+            // parse the token - the constructor throws if the token
+            // is malformed (e.g. missing required components or an
+            // invalid signature component) so we must deny access
+            // rather than let the exception propagate to the caller
+            try {
+                rToken = new RoleToken(roleToken);
+            } catch (e) {
+                logger.error(
+                    'allowAccess: Authorization denied. Unable to parse token: ' +
+                        e.message +
+                        ' token=' +
+                        RoleToken.getUnsignedToken(roleToken)
+                );
+                return cb(
+                    'ERROR: Invalid Role Token',
+                    AccessCheckStatus.DENY_ROLETOKEN_INVALID
+                );
+            }
 
             // validate the token
             if (

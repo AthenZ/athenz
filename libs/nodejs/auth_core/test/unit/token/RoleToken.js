@@ -162,4 +162,29 @@ describe('RoleToken impl', function() {
       new RoleToken(tokenObj2);
     }).to.throw(Error, 'version, domain and roles parameters must not be null.');
   });
+  it('should test RoleToken: signature component with invalid characters: result error', function() {
+    expect(function() {
+      new RoleToken(signedToken + ';d=athenz.victim;r=admins');
+    }).to.throw(Error, 'SignedToken contains an invalid signature component');
+  });
+
+  it('should test RoleToken: appended claims must not authenticate as victim domain', function() {
+    var roleToken = new RoleToken(tokenObject);
+    roleToken.sign(privateKey);
+
+    expect(function() {
+      new RoleToken(roleToken.getSignedToken() + ';d=athenz.victim;r=admins');
+    }).to.throw(Error, 'SignedToken contains an invalid signature component');
+  });
+  it('should test RoleToken: non-numeric expiry: result error', function() {
+    expect(function() {
+      new RoleToken(signedToken.replace('e=30', 'e=abc'));
+    }).to.throw(Error, 'SignedToken contains invalid numeric value for expiry component');
+  });
+
+  it('should test RoleToken: non-numeric timestamp: result error', function() {
+    expect(function() {
+      new RoleToken(signedToken.replace('t=10000', 't=1e5'));
+    }).to.throw(Error, 'SignedToken contains invalid numeric value for timestamp component');
+  });
 });

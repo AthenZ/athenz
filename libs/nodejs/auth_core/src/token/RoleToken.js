@@ -49,10 +49,6 @@ class RoleToken extends Token {
 
     /*eslint complexity: ["error", 24]*/
     parseSignedToken(signedToken) {
-        logger.debug(
-            'Constructing RoleToken with input string: ' + signedToken
-        );
-
         if (!signedToken) {
             throw new Error('Input String signedToken must not be empty');
         }
@@ -81,10 +77,28 @@ class RoleToken extends Token {
         var idx = signedToken.indexOf(';s=');
         if (idx !== -1) {
             this._unsignedToken = signedToken.substring(0, idx);
+            this._signature = signedToken.substring(idx + 3);
+
+            if (!Token.isValidSignature(this._signature)) {
+                throw new Error(
+                    'SignedToken contains an invalid signature component'
+                );
+            }
         }
 
+        /* we must only extract our claims from the part of the token that
+         * is covered by the signature. otherwise anyone could append
+         * additional fields after the signature component and, since our
+         * parser is last-one-wins, override the signed values */
+
+        var parseToken = this._unsignedToken
+            ? this._unsignedToken
+            : signedToken;
+
+        logger.debug('Constructing RoleToken with input string: ' + parseToken);
+
         var roleNames = null;
-        var item = signedToken.split(';');
+        var item = parseToken.split(';');
         for (var i = 0; i < item.length; i++) {
             var kv = item[i].split('=');
             if (kv.length === 2) {
@@ -101,7 +115,10 @@ class RoleToken extends Token {
                         this._domain = kv[1];
                         break;
                     case 'e':
-                        this._expiryTime = Number(kv[1]);
+                        this._expiryTime = Token.parseIntegerAttribute(
+                            kv[1],
+                            'expiry'
+                        );
                         break;
                     case 'h':
                         this._host = kv[1];
@@ -118,11 +135,11 @@ class RoleToken extends Token {
                     case 'r':
                         roleNames = kv[1];
                         break;
-                    case 's':
-                        this._signature = kv[1];
-                        break;
                     case 't':
-                        this._timestamp = Number(kv[1]);
+                        this._timestamp = Token.parseIntegerAttribute(
+                            kv[1],
+                            'timestamp'
+                        );
                         break;
                     case 'proxy':
                         this._proxyUser = kv[1];
