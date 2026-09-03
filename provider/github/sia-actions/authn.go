@@ -20,6 +20,8 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"io"
+	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -32,7 +34,82 @@ import (
 	"k8s.io/apimachinery/pkg/util/json"
 )
 
+const (
+	// DefaultOIDCRequestTimeout is the timeout applied to the http request
+	// carried out against the GitHub OIDC token endpoint.
+	DefaultOIDCRequestTimeout = 10 * time.Second
+
+	// DefaultOIDCRequestRetries is the number of additional attempts carried out
+	// when the OIDC token request fails with a transient error. The default of 0
+	// retains the original single attempt behavior.
+	DefaultOIDCRequestRetries = 0
+
+	// DefaultOIDCRequestRetryDelay is the base delay for the exponential backoff
+	// applied between retry attempts.
+	DefaultOIDCRequestRetryDelay = time.Second
+
+	// maxOIDCRequestRetryDelay is the ceiling applied to the exponential backoff
+	// so that the delay between attempts cannot grow without bound.
+	maxOIDCRequestRetryDelay = 30 * time.Second
+)
+
+// OIDCTokenOptions carries the tunables for the http request issued against the
+// GitHub OIDC token endpoint. Use DefaultOIDCTokenOptions to obtain a value
+// pre-populated with the defaults and override only the fields of interest.
+type OIDCTokenOptions struct {
+	// RequestTimeout is the http client timeout for a single attempt. It must be
+	// greater than 0 - a value of 0 is rejected rather than being passed through
+	// to http.Client, where it would mean no timeout at all.
+	RequestTimeout time.Duration
+
+	// Retries is the number of additional attempts carried out when the request
+	// fails with a transient error. 0 disables retries.
+	Retries int
+
+	// RetryDelay is the base delay for the exponential backoff between attempts.
+	// The effective delay is jittered and capped at maxOIDCRequestRetryDelay.
+	RetryDelay time.Duration
+}
+
+// DefaultOIDCTokenOptions returns the OIDC token request options with the
+// default settings applied.
+func DefaultOIDCTokenOptions() OIDCTokenOptions {
+	return OIDCTokenOptions{
+		RequestTimeout: DefaultOIDCRequestTimeout,
+		Retries:        DefaultOIDCRequestRetries,
+		RetryDelay:     DefaultOIDCRequestRetryDelay,
+	}
+}
+
+func (options OIDCTokenOptions) validate() error {
+	if options.RequestTimeout <= 0 {
+		return fmt.Errorf("invalid oidc request timeout: %v - must be greater than 0", options.RequestTimeout)
+	}
+	if options.Retries < 0 {
+		return fmt.Errorf("invalid oidc request retries: %d - must not be negative", options.Retries)
+	}
+	if options.Retries > 0 && options.RetryDelay <= 0 {
+		return fmt.Errorf("invalid oidc request retry delay: %v - must be greater than 0", options.RetryDelay)
+	}
+	return nil
+}
+
+// GetOIDCToken retrieves the OIDC token from the GitHub Actions token endpoint
+// for the given audience using the default request options.
 func GetOIDCToken(ztsUrl string) (string, map[string]interface{}, error) {
+	return GetOIDCTokenWithOptions(ztsUrl, DefaultOIDCTokenOptions())
+}
+
+// GetOIDCTokenWithOptions retrieves the OIDC token from the GitHub Actions token
+// endpoint for the given audience, honoring the given request options. GitHub's
+// token endpoint is occasionally slow enough to exceed the default 10 second
+// timeout, which fails the identity request outright, so the caller is given the
+// ability to extend the timeout and, optionally, to retry transient failures.
+func GetOIDCTokenWithOptions(ztsUrl string, options OIDCTokenOptions) (string, map[string]interface{}, error) {
+
+	if err := options.validate(); err != nil {
+		return "", nil, err
+	}
 
 	requestUrl := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL")
 	if requestUrl == "" {
@@ -56,20 +133,9 @@ func GetOIDCToken(ztsUrl string) (string, map[string]interface{}, error) {
 	req.Header.Add("User-Agent", "actions/oidc-client")
 	req.Header.Add("Authorization", "Bearer "+requestToken)
 
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
+	contents, err := fetchOIDCToken(req, options)
 	if err != nil {
-		return "", nil, fmt.Errorf("unable to execute http get request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", nil, fmt.Errorf("oidc token get status error: %d", resp.StatusCode)
-	}
-
-	contents, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", nil, fmt.Errorf("uanble to read response body: %v", err)
+		return "", nil, err
 	}
 
 	var jsonData map[string]interface{}
@@ -91,6 +157,92 @@ func GetOIDCToken(ztsUrl string) (string, map[string]interface{}, error) {
 		return "", nil, fmt.Errorf("unable to extract oidc token claims: %v", err)
 	}
 	return oidcToken, claims, nil
+}
+
+// fetchOIDCToken carries out the token request, retrying transient failures up
+// to options.Retries additional times. Only the token fetch is retried - the
+// caller has not written any state at this point - and only failures that stand
+// a chance of succeeding on a subsequent attempt are retried.
+func fetchOIDCToken(req *http.Request, options OIDCTokenOptions) ([]byte, error) {
+
+	client := &http.Client{Timeout: options.RequestTimeout}
+
+	var lastErr error
+	for attempt := 0; attempt <= options.Retries; attempt++ {
+		if attempt > 0 {
+			delay := oidcRetryDelay(options.RetryDelay, attempt-1)
+			log.Printf("oidc token request failed: %v - retrying in %v (attempt %d of %d)\n", lastErr, delay, attempt+1, options.Retries+1)
+			time.Sleep(delay)
+		}
+		contents, retryable, err := oidcTokenRequest(client, req)
+		if err == nil {
+			return contents, nil
+		}
+		lastErr = err
+		if !retryable {
+			return nil, err
+		}
+	}
+	return nil, lastErr
+}
+
+// oidcTokenRequest carries out a single token request attempt and reports
+// whether the failure, if any, is worth retrying.
+func oidcTokenRequest(client *http.Client, req *http.Request) ([]byte, bool, error) {
+
+	resp, err := client.Do(req)
+	if err != nil {
+		// transport level failures, which include the client timeout being
+		// exceeded, are the transient case we are guarding against
+		return nil, true, fmt.Errorf("unable to execute http get request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, retryableStatusCode(resp.StatusCode), fmt.Errorf("oidc token get status error: %d", resp.StatusCode)
+	}
+
+	contents, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, false, fmt.Errorf("unable to read response body: %v", err)
+	}
+	return contents, false, nil
+}
+
+// retryableStatusCode reports whether the given status code represents a
+// transient server side failure. Client errors - an invalid request or a
+// rejected credential - will fail identically on every attempt, so they are
+// returned to the caller right away.
+func retryableStatusCode(statusCode int) bool {
+	switch statusCode {
+	case http.StatusRequestTimeout, http.StatusTooManyRequests:
+		return true
+	}
+	return statusCode >= http.StatusInternalServerError
+}
+
+// oidcRetryDelay returns the jittered exponential backoff delay for the given
+// zero based retry attempt. The delay is doubled per attempt but capped at
+// maxOIDCRequestRetryDelay, so it cannot overflow or grow without bound, and it
+// is jittered so that concurrent jobs failing at the same instant do not march
+// back into the token endpoint in lockstep.
+func oidcRetryDelay(baseDelay time.Duration, attempt int) time.Duration {
+
+	delay := baseDelay
+	for i := 0; i < attempt && delay < maxOIDCRequestRetryDelay; i++ {
+		delay *= 2
+	}
+	if delay > maxOIDCRequestRetryDelay {
+		delay = maxOIDCRequestRetryDelay
+	}
+
+	// apply jitter over the upper half of the interval so that the delay stays
+	// within [delay/2, delay]
+	half := delay / 2
+	if half <= 0 {
+		return delay
+	}
+	return half + time.Duration(rand.Int63n(int64(half)+1))
 }
 
 func GetCSRDetails(privateKey *rsa.PrivateKey, domain, service, provider, instanceId, dnsDomain, spiffeTrustDomain, subjC, subjO, subjOU string) (string, error) {

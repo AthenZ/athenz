@@ -69,6 +69,7 @@ public class OAuthTokenScope {
         Set<String> userSystemAllowedRoles = null;
         Map<String, Set<String>> scopeRoleNames = new HashMap<>();
         Map<String, Set<String>> scopeGroupNames = new HashMap<>();
+        Set<String> domainScopeNames = null;
         for (String scopeItem : scopeList) {
 
             // first check if we have an openid scope requested
@@ -103,6 +104,10 @@ public class OAuthTokenScope {
             if (scopeItem.endsWith(OBJECT_DOMAIN)) {
                 final String scopeDomainName = scopeItem.substring(0, scopeItem.length() - OBJECT_DOMAIN.length());
                 addScopeDomain(scopeDomainName, scope, true);
+                if (domainScopeNames == null) {
+                    domainScopeNames = new HashSet<>();
+                }
+                domainScopeNames.add(scopeDomainName);
                 sendScopeResponse = true;
                 continue;
             }
@@ -168,31 +173,29 @@ public class OAuthTokenScope {
             }
         }
 
-        // if the scope response is set to true then we had
-        // an explicit request for all roles or groups in the domain
-        // then we're going to ignore the role and groups names requested,
-        // but we still need to set the role/group scope in case
-        // some role or group name was passed without the explicit scope
+        // Keep explicit role and group filters for every domain. A domain
+        // scope only overrides filters for that specific domain.
 
-        if (!sendScopeResponse) {
-            if (!scopeRoleNames.isEmpty()) {
-                roleNames = scopeRoleNames;
+        if (sendScopeResponse) {
+            rolesScope = rolesScope || !scopeRoleNames.isEmpty();
+            groupsScope = groupsScope || !scopeGroupNames.isEmpty();
+        }
+        if (domainScopeNames != null) {
+            for (String domainScopeName : domainScopeNames) {
+                scopeRoleNames.remove(domainScopeName);
+                scopeGroupNames.remove(domainScopeName);
             }
-            if (!scopeGroupNames.isEmpty()) {
-                groupNames = scopeGroupNames;
-            }
-        } else {
-            if (!scopeRoleNames.isEmpty()) {
-                rolesScope = true;
-            }
-            if (!scopeGroupNames.isEmpty()) {
-                groupsScope = true;
-            }
+        }
+        if (!scopeRoleNames.isEmpty()) {
+            roleNames = scopeRoleNames;
+        }
+        if (!scopeGroupNames.isEmpty()) {
+            groupNames = scopeGroupNames;
         }
     }
 
     public String getDomainName() {
-        return (maxDomains == 1 && !domainNames.isEmpty()) ? domainNames.stream().findFirst().get() : null;
+        return (maxDomains == 1 && domainNames.size() == 1) ? domainNames.iterator().next() : null;
     }
 
     public Set<String> getDomainNames() {
@@ -238,12 +241,11 @@ public class OAuthTokenScope {
         if (scopeDomainName.isEmpty()) {
             throw error("empty domain name", scope);
         }
-        final String domainName = getDomainName();
-        if (enforceMaxDomainCheck && domainName != null && !scopeDomainName.equals(domainName)) {
-             throw error("Multiple domains in scope", scope);
-        }
         if (!domainNames.contains(scopeDomainName)) {
-            if (enforceMaxDomainCheck && domainNames.size() == maxDomains) {
+            if (enforceMaxDomainCheck && domainNames.size() >= maxDomains) {
+                if (maxDomains == 1) {
+                    throw error("Multiple domains in scope", scope);
+                }
                 throw error("Domain limit: " + maxDomains + " has been reached", scope);
             }
             domainNames.add(scopeDomainName);

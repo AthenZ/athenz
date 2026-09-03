@@ -110,6 +110,22 @@ public class IdTokenScopeTest {
         assertTrue(req8.isGroupsScope());
         assertFalse(req8.isRolesScope());
         assertFalse(req7.sendScopeResponse());
+
+        IdTokenScope req9 = new IdTokenScope("openid groups sports:domain");
+        assertNotNull(req9);
+        assertEquals(req9.getDomainName(), "sports");
+        assertNull(req9.getGroupNames("sports"));
+        assertTrue(req9.sendScopeResponse());
+        assertTrue(req9.isGroupsScope());
+        assertFalse(req9.isRolesScope());
+
+        IdTokenScope req10 = new IdTokenScope("openid roles sports:domain");
+        assertNotNull(req10);
+        assertEquals(req10.getDomainName(), "sports");
+        assertNull(req10.getRoleNames("sports"));
+        assertTrue(req10.sendScopeResponse());
+        assertFalse(req10.isGroupsScope());
+        assertTrue(req10.isRolesScope());
     }
 
     @Test

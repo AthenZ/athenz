@@ -859,6 +859,51 @@ public class OAuthTokenRequestBuilderTest {
     }
 
     @Test
+    public void testGetRequestBodyWithKeyType() {
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .domainName("test.domain")
+                .keyType("RSA");
+        String body = builder.getRequestBody();
+        assertNotNull(body);
+        assertTrue(body.contains("&key_type=RSA"));
+    }
+
+    @Test
+    public void testGetRequestBodyWithoutKeyType() {
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .domainName("test.domain");
+        String body = builder.getRequestBody();
+        assertNotNull(body);
+        assertFalse(body.contains("key_type="));
+    }
+
+    @Test
+    public void testGetCacheKeyWithKeyType() {
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .domainName("test.domain")
+                .keyType("RSA");
+        String cacheKey = builder.getCacheKey("principal.domain", "service", null);
+        assertNotNull(cacheKey);
+        assertTrue(cacheKey.contains(";k=RSA"));
+    }
+
+    @Test
+    public void testGetCacheKeyWithoutKeyType() {
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .domainName("test.domain");
+        String cacheKey = builder.getCacheKey("principal.domain", "service", null);
+        assertNotNull(cacheKey);
+        assertFalse(cacheKey.contains(";k="));
+    }
+
+    @Test
+    public void testBuilderPatternKeyType() {
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder.newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS);
+        OAuthTokenRequestBuilder result = builder.keyType("EC");
+        assertSame(result, builder);
+    }
+
+    @Test
     public void testBuilderPatternClientAssertionProvider() {
         ServiceIdentityProvider provider = new ServiceIdentityProvider() {
             @Override

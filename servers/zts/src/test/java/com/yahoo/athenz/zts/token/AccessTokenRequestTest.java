@@ -1624,6 +1624,73 @@ public class AccessTokenRequestTest {
         }
     }
 
+    @Test
+    public void testAccessTokenRequestKeyType() {
+
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials&scope=coretech:role.writers"
+                + "&key_type=RSA", defaultConfigOptions);
+        assertNotNull(request);
+        assertEquals(request.getKeyType(), "RSA");
+
+        // value is not lower-cased since getSignPrivateKey uppercases internally
+        // and ZTSImpl validates it as a SimpleName
+
+        request = new AccessTokenRequest("grant_type=client_credentials&scope=coretech:role.writers"
+                + "&key_type=ec", defaultConfigOptions);
+        assertNotNull(request);
+        assertEquals(request.getKeyType(), "ec");
+    }
+
+    @Test
+    public void testAccessTokenRequestKeyTypeTokenExchange() {
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createToken(privateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime, null);
+
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&audience=sports&subject_token=" + subjectToken
+                + "&scope=readers&key_type=RSA"
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token", defaultConfigOptions);
+        assertNotNull(request);
+        assertEquals(request.getRequestType(), AccessTokenRequest.RequestType.JAG_TOKEN_EXCHANGE);
+        assertEquals(request.getKeyType(), "RSA");
+    }
+
+    @Test
+    public void testAccessTokenRequestKeyTypeAbsentByDefault() {
+
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials&scope=test", defaultConfigOptions);
+        assertNotNull(request);
+        assertNull(request.getKeyType());
+    }
+
+    @Test
+    public void testAccessTokenRequestQueryDataWithKeyType() {
+
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials&scope=test&key_type=RSA",
+                defaultConfigOptions);
+        String queryData = request.getQueryLogData();
+        assertNotNull(queryData);
+        assertTrue(queryData.contains("scope=test"));
+        assertTrue(queryData.contains("&key_type=RSA"));
+    }
+
+    @Test
+    public void testAccessTokenRequestQueryDataWithoutKeyType() {
+
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials&scope=test",
+                defaultConfigOptions);
+        String queryData = request.getQueryLogData();
+        assertNotNull(queryData);
+        assertTrue(queryData.contains("scope=test"));
+        assertFalse(queryData.contains("key_type="));
+    }
+
     private String createAccessTokenAssertion(PrivateKey privateKey, String keyId, String subject,
             String audience, String issuer, long expiryTime, String scope, String tokenType) {
 
