@@ -105,6 +105,16 @@ func main() {
 	log.Printf("Action: %s\n", "github."+claims["event_name"].(string))
 	log.Printf("Resource: %s\n", domain+":"+claims["sub"].(string))
 
+	// if the zts provider is configured to support authorization checks based
+	// on the job_workflow_ref claim, it combines the repository, ref and
+	// job_workflow_ref claims to generate the resource value, so we'll display
+	// that value as well when all the required claims are present in the token
+	ref, _ := claims["ref"].(string)
+	jobWorkflowRef, _ := claims["job_workflow_ref"].(string)
+	if ref != "" && jobWorkflowRef != "" {
+		log.Printf("Job Workflow Ref Resource: %s\n", domain+":"+repository+":"+ref+":"+jobWorkflowRef)
+	}
+
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		log.Fatalf("unable to generate rsa private key: %v\n", err)
