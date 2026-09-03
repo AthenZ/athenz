@@ -93,6 +93,9 @@ public class TransportPolicySnapshotTest {
         snapshot2.setTransportPolicyRules(null);
         assertNotEquals(snapshot1, snapshot2);
 
+        snapshot2.setTransportPolicyRules(rules2);
+        assertEquals(snapshot1, snapshot2);
+
         assertFalse(snapshot1.equals("xyz"));
     }
 

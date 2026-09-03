@@ -435,6 +435,26 @@ public class MSDSchema {
             .field("modified", "Timestamp", true, "Last modification timestamp of this snapshot")
             .field("active", "Bool", false, "Whether this snapshot is marked as active");
 
+        sb.structType("TransportPolicySnapshotUsagePrincipal")
+            .comment("A single principal's most recently recorded use of a snapshot")
+            .field("name", "ServiceName", false, "Principal whose use of this snapshot was recorded, as a fully qualified domain.service identity")
+            .field("time", "Timestamp", false, "Server time at which this principal's use was last recorded");
+
+        sb.structType("TransportPolicySnapshotUsageWarning")
+            .comment("Explains why recorded usage data is incomplete")
+            .field("source", "String", false, "Upstream that could not be read, e.g. the usage store")
+            .field("code", "String", false, "Machine readable reason, e.g. UPSTREAM_UNAVAILABLE");
+
+        sb.structType("TransportPolicySnapshotUsageRequest")
+            .comment("Body of a request to record snapshot usage. The principal is taken from the caller's identity and the time is stamped by the server.")
+            .field("snapshotName", "EntityName", false, "Name of the snapshot being used, must match the name in the path");
+
+        sb.structType("TransportPolicySnapshotUsage")
+            .comment("Usage recorded for a snapshot - which principals last used it, and when")
+            .arrayField("principals", "TransportPolicySnapshotUsagePrincipal", false, "One entry per principal with recorded use of this snapshot")
+            .field("partial", "Bool", true, "True when usage data could not be fully retrieved", false)
+            .field("warning", "TransportPolicySnapshotUsageWarning", true, "Set when partial is true");
+
         sb.structType("TransportPolicySnapshot")
             .comment("Full transport policy snapshot containing all policies")
             .field("domainName", "DomainName", false, "Name of the domain")
@@ -1164,17 +1184,57 @@ public class MSDSchema {
 ;
 
         sb.resource("TransportPolicySnapshot", "DELETE", "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}")
-            .comment("Api to delete a transport policy snapshot")
+            .comment("Api to delete a transport policy snapshot. Deleting an active snapshot is rejected unless force is true.")
             .name("deleteTransportPolicySnapshot")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("serviceName", "EntityName", "name of the service")
             .pathParam("snapshotName", "EntityName", "name of the snapshot")
+            .queryParam("force", "force", "Bool", false, "delete the snapshot even if it is marked active")
             .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("msd.DeleteNetworkPolicy", "{domainName}:service.{serviceName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("TransportPolicySnapshotUsageRequest", "POST", "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}/usage")
+            .comment("Api for a caller to record that it is using a snapshot. Callers are expected to repeat this while the snapshot remains in use rather than on every fetch. The principal is taken from the caller's identity and the time is stamped by the server.")
+            .name("recordTransportPolicySnapshotUsage")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .pathParam("snapshotName", "EntityName", "name of the snapshot")
+            .input("usage", "TransportPolicySnapshotUsageRequest", "snapshot usage request object")
+            .auth("msd.RecordSnapshotHeartbeat", "{domainName}:service.{serviceName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("TransportPolicySnapshotUsage", "GET", "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}/usage")
+            .comment("Api to get the usage recorded for a snapshot - which principals last used it, and when - so that the owner can decide whether the snapshot is still needed.")
+            .name("getTransportPolicySnapshotUsage")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("serviceName", "EntityName", "name of the service")
+            .pathParam("snapshotName", "EntityName", "name of the snapshot")
+            .auth("msd.GetNetworkPolicy", "{domainName}:service.{serviceName}")
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
 

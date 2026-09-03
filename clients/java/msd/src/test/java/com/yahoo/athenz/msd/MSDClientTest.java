@@ -342,4 +342,112 @@ public class MSDClientTest {
                 .loadKeyMaterial((KeyStore) null, null, null)
                 .build();
     }
+
+    @Test
+    public void testGetTransportPolicySnapshot() throws Exception {
+        MSDClient msdClient = new MSDClient("https://localhost:4443/msd/v1", createDummySslContext());
+        msdClient.client = new MSDRDLClientMock();
+
+        TransportPolicySnapshot snapshot = msdClient.getTransportPolicySnapshot("athenz", "api", "v1");
+        assertNotNull(snapshot);
+        assertEquals(snapshot.getName(), "v1");
+        assertTrue(snapshot.getActive());
+
+        try {
+            msdClient.getTransportPolicySnapshot("bad-domain", "api", "v1");
+            fail();
+        } catch (ClientResourceException re) {
+            assertEquals(re.getCode(), 404);
+        }
+        try {
+            msdClient.getTransportPolicySnapshot("bad-req", "api", "v1");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("bad request"));
+        }
+        msdClient.close();
+    }
+
+    @Test
+    public void testDeleteTransportPolicySnapshot() throws Exception {
+        MSDClient msdClient = new MSDClient("https://localhost:4443/msd/v1", createDummySslContext());
+        msdClient.client = new MSDRDLClientMock();
+
+        // the overload without force must behave exactly as the old four arg signature did
+        msdClient.deleteTransportPolicySnapshot("athenz", "api", "v1", RESOURCE_OWNER);
+        msdClient.deleteTransportPolicySnapshot("athenz", "api", "v1", true, RESOURCE_OWNER);
+
+        // an active snapshot is rejected unless the caller forces it
+        try {
+            msdClient.deleteTransportPolicySnapshot("active-domain", "api", "v1", RESOURCE_OWNER);
+            fail();
+        } catch (ClientResourceException re) {
+            assertEquals(re.getCode(), 409);
+        }
+        msdClient.deleteTransportPolicySnapshot("active-domain", "api", "v1", true, RESOURCE_OWNER);
+
+        try {
+            msdClient.deleteTransportPolicySnapshot("bad-domain", "api", "v1", RESOURCE_OWNER);
+            fail();
+        } catch (ClientResourceException re) {
+            assertEquals(re.getCode(), 404);
+        }
+        try {
+            msdClient.deleteTransportPolicySnapshot("bad-req", "api", "v1", RESOURCE_OWNER);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("bad request"));
+        }
+        msdClient.close();
+    }
+
+    @Test
+    public void testRecordTransportPolicySnapshotUsage() throws Exception {
+        MSDClient msdClient = new MSDClient("https://localhost:4443/msd/v1", createDummySslContext());
+        msdClient.client = new MSDRDLClientMock();
+
+        TransportPolicySnapshotUsageRequest usage =
+                new TransportPolicySnapshotUsageRequest().setSnapshotName("v1");
+        msdClient.recordTransportPolicySnapshotUsage("athenz", "api", "v1", usage);
+
+        try {
+            msdClient.recordTransportPolicySnapshotUsage("bad-domain", "api", "v1", usage);
+            fail();
+        } catch (ClientResourceException re) {
+            assertEquals(re.getCode(), 404);
+        }
+        try {
+            msdClient.recordTransportPolicySnapshotUsage("bad-req", "api", "v1", usage);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("bad request"));
+        }
+        msdClient.close();
+    }
+
+    @Test
+    public void testGetTransportPolicySnapshotUsage() throws Exception {
+        MSDClient msdClient = new MSDClient("https://localhost:4443/msd/v1", createDummySslContext());
+        msdClient.client = new MSDRDLClientMock();
+
+        TransportPolicySnapshotUsage usage = msdClient.getTransportPolicySnapshotUsage("athenz", "api", "v1");
+        assertNotNull(usage);
+        assertEquals(usage.getPrincipals().size(), 1);
+        assertEquals(usage.getPrincipals().get(0).getName(), "k8s.controller.msd");
+        assertFalse(usage.getPartial());
+
+        try {
+            msdClient.getTransportPolicySnapshotUsage("bad-domain", "api", "v1");
+            fail();
+        } catch (ClientResourceException re) {
+            assertEquals(re.getCode(), 404);
+        }
+        try {
+            msdClient.getTransportPolicySnapshotUsage("bad-req", "api", "v1");
+            fail();
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().contains("bad request"));
+        }
+        msdClient.close();
+    }
 }
