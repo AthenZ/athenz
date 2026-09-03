@@ -112,7 +112,7 @@ func main() {
 	ref, _ := claims["ref"].(string)
 	jobWorkflowRef, _ := claims["job_workflow_ref"].(string)
 	if ref != "" && jobWorkflowRef != "" {
-		log.Printf("Workflow Resource: %s\n", domain+":"+repository+":"+ref+":"+jobWorkflowRef)
+		log.Printf("Job Workflow Ref Resource: %s\n", domain+":"+repository+":"+ref+":"+jobWorkflowRef)
 	}
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
