@@ -50,9 +50,6 @@ public class AwsStateFileBuilder implements StateFileBuilder {
     }
 
     public AwsStateFileBuilder(S3Client s3client, DomainValidator domainValidator) {
-
-        LOGGER.error("XXXXXX creating AwsStateFileBuilder");
-
         this.s3client = s3client;
         this.domainValidator = domainValidator;
 
