@@ -4888,6 +4888,76 @@ public class ZMSResources {
     }
 
     @GET
+    @Path("/selfserve/role")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Fetch all self-service roles across all domains whose name or description contains the given substring. The match is case-insensitive. If the substring is not specified, then all self-service roles are returned. Any authenticated principal may make this call since self-service roles are, by definition, discoverable and requestable by any user.")
+    public SelfServeObjects getSelfServeRoles(
+        @Parameter(description = "substring to match against the role name or description; if empty all self-service roles are returned", required = false) @QueryParam("substring") String substring,
+        @Parameter(description = "if true, only return roles the calling principal is already a member of or has a pending request for", required = false) @QueryParam("memberOnly") @DefaultValue("false") Boolean memberOnly) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getSelfServeRoles");
+            context.authenticate();
+            return this.delegate.getSelfServeRoles(context, substring, memberOnly);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getSelfServeRoles");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/selfserve/group")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Fetch all self-service groups across all domains whose name contains the given substring. The match is case-insensitive. If the substring is not specified, then all self-service groups are returned. Any authenticated principal may make this call since self-service groups are, by definition, discoverable and requestable by any user.")
+    public SelfServeObjects getSelfServeGroups(
+        @Parameter(description = "substring to match against the group name; if empty all self-service groups are returned", required = false) @QueryParam("substring") String substring,
+        @Parameter(description = "if true, only return groups the calling principal is already a member of or has a pending request for", required = false) @QueryParam("memberOnly") @DefaultValue("false") Boolean memberOnly) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getSelfServeGroups");
+            context.authenticate();
+            return this.delegate.getSelfServeGroups(context, substring, memberOnly);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getSelfServeGroups");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
     @Path("/sys/info")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Retrieve the server info. Since we're exposing server version details, the request will require authorization")

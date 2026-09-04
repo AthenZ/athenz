@@ -720,6 +720,47 @@ public class JDBCConnection implements ObjectStoreConnection {
             + " role.domain_id=domain.domain_id JOIN role_member ON role.role_id=role_member.role_id"
             + " WHERE role_member.principal_id=? AND role_member.active=true AND role.name='admin')"
             + " ORDER BY domain.name, principal_group.name;";
+    private static final String SQL_GET_SELF_SERVE_ROLES = "SELECT domain.name AS domain_name, role.name AS role_name,"
+            + " role.description, role.self_renew, role.self_renew_mins, role.review_enabled, role.audit_enabled,"
+            + " role.delete_protection, role.max_members, role.created,"
+            + " CASE WHEN role.member_expiry_days=0 THEN domain.member_expiry_days"
+            + " WHEN domain.member_expiry_days=0 THEN role.member_expiry_days"
+            + " ELSE LEAST(role.member_expiry_days, domain.member_expiry_days) END AS member_expiry_days,"
+            + " (SELECT COUNT(*) FROM role_member WHERE role_member.role_id=role.role_id) AS member_count,"
+            + " rm.expiration AS member_expiration, CASE WHEN rm.principal_id IS NULL THEN 0 ELSE 1 END AS is_member,"
+            + " prm.principal_id AS pending_principal, prm.expiration AS pending_expiration,"
+            + " inh.inherited_from AS inherited_from, inh.inherited_expiration AS inherited_expiration FROM role"
+            + " JOIN domain ON role.domain_id=domain.domain_id"
+            + " LEFT JOIN role_member rm ON rm.role_id=role.role_id AND rm.principal_id=?"
+            + " LEFT JOIN pending_role_member prm ON prm.role_id=role.role_id AND prm.principal_id=?"
+            + " LEFT JOIN (SELECT rmg.role_id AS role_id, MIN(gp.name) AS inherited_from,"
+            + " MIN(rmg.expiration) AS inherited_expiration FROM principal_group_member pgm"
+            + " JOIN principal_group pg ON pg.group_id=pgm.group_id JOIN domain gd ON gd.domain_id=pg.domain_id"
+            + " JOIN principal gp ON gp.name=CONCAT(gd.name, ':group.', pg.name)"
+            + " JOIN role_member rmg ON rmg.principal_id=gp.principal_id WHERE pgm.principal_id=? GROUP BY rmg.role_id) inh"
+            + " ON inh.role_id=role.role_id WHERE role.self_serve=true AND role.trust=''"
+            + " AND (LOWER(role.name) LIKE ? OR LOWER(role.description) LIKE ?)";
+    private static final String SQL_GET_SELF_SERVE_ROLES_MEMBER_FILTER =
+            " AND (rm.principal_id IS NOT NULL OR prm.principal_id IS NOT NULL OR inh.role_id IS NOT NULL)";
+    private static final String SQL_GET_SELF_SERVE_ROLES_SUFFIX = " ORDER BY domain.name, role.name;";
+    private static final String SQL_GET_SELF_SERVE_GROUPS = "SELECT domain.name AS domain_name,"
+            + " principal_group.name AS group_name, principal_group.self_renew, principal_group.self_renew_mins,"
+            + " principal_group.review_enabled, principal_group.audit_enabled, principal_group.delete_protection,"
+            + " principal_group.max_members, principal_group.created,"
+            + " CASE WHEN principal_group.member_expiry_days=0 THEN domain.member_expiry_days"
+            + " WHEN domain.member_expiry_days=0 THEN principal_group.member_expiry_days"
+            + " ELSE LEAST(principal_group.member_expiry_days, domain.member_expiry_days) END AS member_expiry_days,"
+            + " (SELECT COUNT(*) FROM principal_group_member WHERE principal_group_member.group_id=principal_group.group_id)"
+            + " AS member_count, gm.expiration AS member_expiration,"
+            + " CASE WHEN gm.principal_id IS NULL THEN 0 ELSE 1 END AS is_member,"
+            + " pgm.principal_id AS pending_principal, pgm.expiration AS pending_expiration"
+            + " FROM principal_group JOIN domain ON principal_group.domain_id=domain.domain_id"
+            + " LEFT JOIN principal_group_member gm ON gm.group_id=principal_group.group_id AND gm.principal_id=?"
+            + " LEFT JOIN pending_principal_group_member pgm ON pgm.group_id=principal_group.group_id AND pgm.principal_id=?"
+            + " WHERE principal_group.self_serve=true AND LOWER(principal_group.name) LIKE ?";
+    private static final String SQL_GET_SELF_SERVE_GROUPS_MEMBER_FILTER =
+            " AND (gm.principal_id IS NOT NULL OR pgm.principal_id IS NOT NULL)";
+    private static final String SQL_GET_SELF_SERVE_GROUPS_SUFFIX = " ORDER BY domain.name, principal_group.name;";
     private static final String SQL_INSERT_DOMAIN_CONTACT = "INSERT INTO domain_contacts (domain_id, type, name) VALUES (?,?,?);";
     private static final String SQL_UPDATE_DOMAIN_CONTACT = "UPDATE domain_contacts SET name=? WHERE domain_id=? and type=?;";
     private static final String SQL_DELETE_DOMAIN_CONTACT = "DELETE FROM domain_contacts WHERE domain_id=? AND type=?;";
@@ -8300,6 +8341,123 @@ public class JDBCConnection implements ObjectStoreConnection {
             throw sqlError(ex, caller);
         }
         return new ReviewObjects().setList(reviewRoles);
+    }
+
+    static String selfServeSearchPattern(final String substring) {
+        return "%" + (substring == null ? "" : substring.toLowerCase()) + "%";
+    }
+
+    @Override
+    public SelfServeObjects getSelfServeRoles(String substring, String principal, boolean memberOnly) throws ServerResourceException {
+
+        final String caller = "getSelfServeRoles";
+
+        final String searchPattern = selfServeSearchPattern(substring);
+        final int principalId = StringUtil.isEmpty(principal) ? 0 : getPrincipalId(principal);
+        final String sql = SQL_GET_SELF_SERVE_ROLES
+                + (memberOnly ? SQL_GET_SELF_SERVE_ROLES_MEMBER_FILTER : "")
+                + SQL_GET_SELF_SERVE_ROLES_SUFFIX;
+        List<SelfServeObject> selfServeRoles = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, principalId);
+            ps.setInt(2, principalId);
+            ps.setInt(3, principalId);
+            ps.setString(4, searchPattern);
+            ps.setString(5, searchPattern);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    SelfServeObject selfServeObject = new SelfServeObject()
+                            .setDomainName(rs.getString(JDBCConsts.DB_COLUMN_DOMAIN_NAME))
+                            .setName(rs.getString(JDBCConsts.DB_COLUMN_AS_ROLE_NAME))
+                            .setDescription(rs.getString(JDBCConsts.DB_COLUMN_DESCRIPTION))
+                            .setSelfRenew(rs.getBoolean(JDBCConsts.DB_COLUMN_SELF_RENEW))
+                            .setSelfRenewMins(rs.getInt(JDBCConsts.DB_COLUMN_SELF_RENEW_MINS))
+                            .setReviewEnabled(rs.getBoolean(JDBCConsts.DB_COLUMN_REVIEW_ENABLED))
+                            .setAuditEnabled(rs.getBoolean(JDBCConsts.DB_COLUMN_AUDIT_ENABLED))
+                            .setDeleteProtection(rs.getBoolean(JDBCConsts.DB_COLUMN_DELETE_PROTECTION))
+                            .setMaxMembers(rs.getInt(JDBCConsts.DB_COLUMN_MAX_MEMBERS))
+                            .setMemberExpiryDays(rs.getInt(JDBCConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS))
+                            .setMemberCount(rs.getInt(JDBCConsts.DB_COLUMN_AS_MEMBER_COUNT))
+                            .setCreated(Timestamp.fromMillis(rs.getTimestamp(JDBCConsts.DB_COLUMN_CREATED).getTime()));
+                    applyMemberOverlay(rs, selfServeObject, true);
+                    selfServeRoles.add(selfServeObject);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return new SelfServeObjects().setList(selfServeRoles);
+    }
+
+    @Override
+    public SelfServeObjects getSelfServeGroups(String substring, String principal, boolean memberOnly) throws ServerResourceException {
+
+        final String caller = "getSelfServeGroups";
+
+        final String searchPattern = selfServeSearchPattern(substring);
+        final int principalId = StringUtil.isEmpty(principal) ? 0 : getPrincipalId(principal);
+        final String sql = SQL_GET_SELF_SERVE_GROUPS
+                + (memberOnly ? SQL_GET_SELF_SERVE_GROUPS_MEMBER_FILTER : "")
+                + SQL_GET_SELF_SERVE_GROUPS_SUFFIX;
+        List<SelfServeObject> selfServeGroups = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, principalId);
+            ps.setInt(2, principalId);
+            ps.setString(3, searchPattern);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    SelfServeObject selfServeObject = new SelfServeObject()
+                            .setDomainName(rs.getString(JDBCConsts.DB_COLUMN_DOMAIN_NAME))
+                            .setName(rs.getString(JDBCConsts.DB_COLUMN_AS_GROUP_NAME))
+                            .setSelfRenew(rs.getBoolean(JDBCConsts.DB_COLUMN_SELF_RENEW))
+                            .setSelfRenewMins(rs.getInt(JDBCConsts.DB_COLUMN_SELF_RENEW_MINS))
+                            .setReviewEnabled(rs.getBoolean(JDBCConsts.DB_COLUMN_REVIEW_ENABLED))
+                            .setAuditEnabled(rs.getBoolean(JDBCConsts.DB_COLUMN_AUDIT_ENABLED))
+                            .setDeleteProtection(rs.getBoolean(JDBCConsts.DB_COLUMN_DELETE_PROTECTION))
+                            .setMaxMembers(rs.getInt(JDBCConsts.DB_COLUMN_MAX_MEMBERS))
+                            .setMemberExpiryDays(rs.getInt(JDBCConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS))
+                            .setMemberCount(rs.getInt(JDBCConsts.DB_COLUMN_AS_MEMBER_COUNT))
+                            .setCreated(Timestamp.fromMillis(rs.getTimestamp(JDBCConsts.DB_COLUMN_CREATED).getTime()));
+                    applyMemberOverlay(rs, selfServeObject, false);
+                    selfServeGroups.add(selfServeObject);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return new SelfServeObjects().setList(selfServeGroups);
+    }
+
+    // Overlay the calling principal's membership state on a self-serve object.
+    // A direct membership wins over an inherited one; a pending request is only
+    // reported when the principal is neither a direct nor an inherited member.
+    // Groups cannot be inherited (they contain no nested groups), so the inherited
+    // columns are absent for the group query and skipped via includeInherited.
+    private void applyMemberOverlay(ResultSet rs, SelfServeObject selfServeObject, boolean includeInherited) throws SQLException {
+
+        final boolean directMember = rs.getBoolean(JDBCConsts.DB_COLUMN_AS_IS_MEMBER);
+        final java.sql.Timestamp memberExpiration = rs.getTimestamp(JDBCConsts.DB_COLUMN_AS_MEMBER_EXPIRATION);
+        final boolean pending = rs.getObject(JDBCConsts.DB_COLUMN_AS_PENDING_PRINCIPAL) != null;
+        final java.sql.Timestamp pendingExpiration = rs.getTimestamp(JDBCConsts.DB_COLUMN_AS_PENDING_EXPIRATION);
+        final String inheritedFrom = includeInherited ? rs.getString(JDBCConsts.DB_COLUMN_AS_INHERITED_FROM) : null;
+
+        java.sql.Timestamp expiration = null;
+        if (directMember) {
+            selfServeObject.setMemberStatus(JDBCConsts.SELF_SERVE_MEMBER_STATUS_MEMBER);
+            expiration = memberExpiration;
+        } else if (inheritedFrom != null) {
+            selfServeObject.setMemberStatus(JDBCConsts.SELF_SERVE_MEMBER_STATUS_MEMBER);
+            selfServeObject.setInheritedFrom(inheritedFrom);
+            expiration = rs.getTimestamp(JDBCConsts.DB_COLUMN_AS_INHERITED_EXPIRATION);
+        } else if (pending) {
+            selfServeObject.setMemberStatus(JDBCConsts.SELF_SERVE_MEMBER_STATUS_PENDING);
+            expiration = pendingExpiration;
+        } else {
+            selfServeObject.setMemberStatus(JDBCConsts.SELF_SERVE_MEMBER_STATUS_NONE);
+        }
+        if (expiration != null) {
+            selfServeObject.setExpiration(Timestamp.fromMillis(expiration.getTime()));
+        }
     }
 
     @Override

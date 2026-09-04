@@ -104,6 +104,16 @@ public final class JDBCConsts {
     public static final String DB_COLUMN_AS_ROLE_NAME       = "role_name";
     public static final String DB_COLUMN_AS_GROUP_NAME      = "group_name";
     public static final String DB_COLUMN_AS_PRINCIPAL_NAME  = "principal_name";
+    public static final String DB_COLUMN_AS_MEMBER_COUNT    = "member_count";
+    public static final String DB_COLUMN_AS_IS_MEMBER       = "is_member";
+    public static final String DB_COLUMN_AS_MEMBER_EXPIRATION = "member_expiration";
+    public static final String DB_COLUMN_AS_PENDING_PRINCIPAL = "pending_principal";
+    public static final String DB_COLUMN_AS_PENDING_EXPIRATION = "pending_expiration";
+    public static final String DB_COLUMN_AS_INHERITED_FROM  = "inherited_from";
+    public static final String DB_COLUMN_AS_INHERITED_EXPIRATION = "inherited_expiration";
+    public static final String SELF_SERVE_MEMBER_STATUS_MEMBER  = "member";
+    public static final String SELF_SERVE_MEMBER_STATUS_PENDING = "pending";
+    public static final String SELF_SERVE_MEMBER_STATUS_NONE    = "none";
     public static final String DB_COLUMN_SYSTEM_DISABLED    = "system_disabled";
     public static final String DB_COLUMN_AZURE_SUBSCRIPTION = "azure_subscription";
     public static final String DB_COLUMN_AZURE_TENANT       = "azure_tenant";

@@ -142,6 +142,8 @@ public interface ZMSHandler {
     DomainList getDependentDomainList(ResourceContext context, String service);
     ReviewObjects getRolesForReview(ResourceContext context, String principal);
     ReviewObjects getGroupsForReview(ResourceContext context, String principal);
+    SelfServeObjects getSelfServeRoles(ResourceContext context, String substring, Boolean memberOnly);
+    SelfServeObjects getSelfServeGroups(ResourceContext context, String substring, Boolean memberOnly);
     Info getInfo(ResourceContext context);
     void putPrincipalState(ResourceContext context, String principalName, String auditRef, PrincipalState principalState);
     Schema getRdlSchema(ResourceContext context);
