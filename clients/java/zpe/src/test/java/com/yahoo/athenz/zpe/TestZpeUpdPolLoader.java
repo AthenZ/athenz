@@ -20,6 +20,8 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.utils.SignUtils;
 import com.yahoo.athenz.zts.DomainSignedPolicyData;
 import com.yahoo.athenz.zts.JWSPolicyData;
+import com.yahoo.athenz.zts.Policy;
+import com.yahoo.athenz.zts.PolicyData;
 import com.yahoo.athenz.zts.SignedPolicyData;
 import com.yahoo.rdl.JSON;
 import org.apache.commons.io.FileUtils;
@@ -56,6 +58,13 @@ public class TestZpeUpdPolLoader {
 
     @BeforeClass
     public void init() {
+        // the properties must be configured before the zpe classes are loaded
+        // since the settings are processed in their static initializers
+
+        ClassLoader classLoader = this.getClass().getClassLoader();
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwk/athenz_jwks.json")).toString();
+        System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, jwksUri);
+        System.setProperty(ZpeConsts.ZPE_PROP_CHECK_POLICY_ZMS_SIGNATURE, "true");
         AuthZpeClient.init();
         try {
             Thread.sleep(5000);
@@ -273,20 +282,25 @@ public class TestZpeUpdPolLoader {
 
         boolean savedValue = ZpeUpdPolLoader.checkPolicyZMSSignature;
 
-        // verify both test cases where the zms check signature
-        // is set to true and false with signed domain policy file
+        try {
+            // verify both test cases where the zms check signature
+            // is set to true and false with signed domain policy file
 
-        testLoadDb(TEST_SIGNED_POL_GOOD_FILE, true);
-        testLoadDb(TEST_SIGNED_POL_GOOD_FILE, false);
+            testLoadDb(TEST_SIGNED_POL_GOOD_FILE, true);
+            testLoadDb(TEST_SIGNED_POL_GOOD_FILE, false);
 
-        // verify jws domain data, zms check signature does not
-        // apply to the jws case, so we'll just pass false
+            // verify jws domain data, zms check signature does not
+            // apply to the jws case, so we'll just pass false
 
-        testLoadDb(TEST_JWS_POL_GOOD_FILE, false);
+            testLoadDb(TEST_JWS_POL_GOOD_FILE, false);
 
-        // reset the config value
+        } finally {
 
-        ZpeUpdPolLoader.checkPolicyZMSSignature = savedValue;
+            // reset the config value, so we don't leak our setting
+            // into any of the other test cases
+
+            ZpeUpdPolLoader.checkPolicyZMSSignature = savedValue;
+        }
     }
 
     void testLoadDb(final String goodPolicyFile, boolean checkZMSSignature) throws Exception {
@@ -410,12 +424,24 @@ public class TestZpeUpdPolLoader {
 
         java.io.File [] files = { polFile.toFile() };
 
-        ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
-        loader.loadDb(files);
+        // the zms key version is only verified if the zms signature
+        // check is enabled, so we must configure it explicitly here
+        // and not rely on the value processed in the static initializer
 
-        java.util.Map<String, ZpeUpdPolLoader.ZpeFileStatus> fsmap = loader.getFileStatusMap();
-        ZpeUpdPolLoader.ZpeFileStatus fstat = fsmap.get(polFile.toFile().getName());
-        assertFalse(fstat.validPolFile);
+        boolean savedValue = ZpeUpdPolLoader.checkPolicyZMSSignature;
+        ZpeUpdPolLoader.checkPolicyZMSSignature = true;
+
+        try {
+            ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
+            loader.loadDb(files);
+
+            java.util.Map<String, ZpeUpdPolLoader.ZpeFileStatus> fsmap = loader.getFileStatusMap();
+            ZpeUpdPolLoader.ZpeFileStatus fstat = fsmap.get(polFile.toFile().getName());
+            assertFalse(fstat.validPolFile);
+            loader.close();
+        } finally {
+            ZpeUpdPolLoader.checkPolicyZMSSignature = savedValue;
+        }
     }
 
     @Test
@@ -546,5 +572,176 @@ public class TestZpeUpdPolLoader {
         ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
         assertNull(loader.getDERSignature("invalid-header", "signature"));
         loader.close();
+    }
+
+    @Test
+    public void testMonitorSkipPolicyDirCheck() {
+
+        boolean savedValue = ZpeUpdPolLoader.skipPolicyDirCheck;
+        ZpeUpdPolLoader.skipPolicyDirCheck = true;
+
+        try {
+            ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
+            ZpeUpdMonitor monitor = new ZpeUpdMonitor(loader);
+
+            // with the policy directory check disabled, the monitor
+            // must return without loading any policy files
+
+            monitor.run();
+            assertEquals(loader.getDomainCount(), 0);
+            loader.close();
+        } finally {
+            ZpeUpdPolLoader.skipPolicyDirCheck = savedValue;
+        }
+    }
+
+    @Test
+    public void testMonitorLoadDbFailure() {
+
+        ZpeUpdPolLoader loaderMock = Mockito.mock(ZpeUpdPolLoader.class);
+        Mockito.when(loaderMock.getDirName()).thenReturn(TEST_POL_DIR);
+        Mockito.doThrow(new IllegalArgumentException("load failure")).when(loaderMock).loadDb(Mockito.any());
+
+        // the exception from the loader must be handled by the monitor
+
+        ZpeUpdMonitor monitor = new ZpeUpdMonitor(loaderMock);
+        monitor.run();
+
+        Mockito.verify(loaderMock, Mockito.times(1)).loadDb(Mockito.any());
+    }
+
+    @Test
+    public void testStartMonitor() throws Exception {
+
+        boolean savedValue = ZpeUpdPolLoader.skipPolicyDirCheck;
+        ZpeUpdPolLoader.skipPolicyDirCheck = true;
+
+        try {
+            ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
+            loader.start();
+            loader.close();
+        } finally {
+            ZpeUpdPolLoader.skipPolicyDirCheck = savedValue;
+        }
+    }
+
+    @Test
+    public void testLoadDBUnreadableFile() {
+
+        ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
+
+        // our mock file claims to exist but there is no such file
+        // in the policy directory so the read operation must fail
+
+        File fileMock = Mockito.mock(File.class);
+        Mockito.when(fileMock.getName()).thenReturn("unreadable.pol");
+        Mockito.when(fileMock.exists()).thenReturn(true);
+        Mockito.when(fileMock.lastModified()).thenReturn(System.currentTimeMillis());
+
+        java.io.File [] files = { fileMock };
+        loader.loadDb(files);
+
+        Map<String, ZpeUpdPolLoader.ZpeFileStatus> fsmap = loader.getFileStatusMap();
+        ZpeUpdPolLoader.ZpeFileStatus fstat = fsmap.get("unreadable.pol");
+        assertNotNull(fstat);
+        assertFalse(fstat.validPolFile);
+
+        // now the file is reported as deleted. since it was never
+        // valid, there is no domain data to be removed
+
+        Mockito.when(fileMock.exists()).thenReturn(false);
+        loader.loadDb(files);
+        assertNull(fsmap.get("unreadable.pol"));
+
+        loader.close();
+    }
+
+    @Test
+    public void testLoadDBJsonInvalidZMSSignature() throws IOException {
+
+        Path path = Paths.get("./src/test/resources/unit_test_zts_private_k0.pem");
+        PrivateKey ztsPrivateKeyK0 = Crypto.loadPrivateKey(new String((Files.readAllBytes(path))));
+
+        path = Paths.get("./src/test/resources/unit_test_zms_private_k0.pem");
+        PrivateKey zmsPrivateKeyK0 = Crypto.loadPrivateKey(new String((Files.readAllBytes(path))));
+
+        // generate the signed policy file data with a valid zms key id
+        // but with a zms signature generated over different data
+
+        path = Paths.get(TEST_ORIG_POL_FILE);
+        DomainSignedPolicyData domainSignedPolicyData = JSON.fromBytes(Files.readAllBytes(path),
+                DomainSignedPolicyData.class);
+        SignedPolicyData signedPolicyData = domainSignedPolicyData.getSignedPolicyData();
+        String signature = Crypto.sign("invalid-policy-data", zmsPrivateKeyK0);
+        signedPolicyData.setZmsSignature(signature).setZmsKeyId("0");
+        signature = Crypto.sign(SignUtils.asCanonicalString(signedPolicyData), ztsPrivateKeyK0);
+        domainSignedPolicyData.setSignature(signature).setKeyId("0");
+
+        Path polFile = Paths.get(TEST_POL_DIR, "invalid_zms_signature.pol");
+        Files.write(polFile, JSON.bytes(domainSignedPolicyData));
+
+        boolean savedValue = ZpeUpdPolLoader.checkPolicyZMSSignature;
+        ZpeUpdPolLoader.checkPolicyZMSSignature = true;
+
+        try {
+            java.io.File [] files = { polFile.toFile() };
+            ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
+            loader.loadDb(files);
+
+            Map<String, ZpeUpdPolLoader.ZpeFileStatus> fsmap = loader.getFileStatusMap();
+            ZpeUpdPolLoader.ZpeFileStatus fstat = fsmap.get(polFile.toFile().getName());
+            assertFalse(fstat.validPolFile);
+            loader.close();
+        } finally {
+            ZpeUpdPolLoader.checkPolicyZMSSignature = savedValue;
+            Files.deleteIfExists(polFile);
+        }
+    }
+
+    @Test
+    public void testLoadDBJsonPolicyWithoutAssertions() throws IOException {
+
+        Path path = Paths.get("./src/test/resources/unit_test_zts_private_k0.pem");
+        PrivateKey ztsPrivateKeyK0 = Crypto.loadPrivateKey(new String((Files.readAllBytes(path))));
+
+        path = Paths.get("./src/test/resources/unit_test_zms_private_k0.pem");
+        PrivateKey zmsPrivateKeyK0 = Crypto.loadPrivateKey(new String((Files.readAllBytes(path))));
+
+        // generate the signed policy file data with an additional
+        // policy that does not have any assertions
+
+        path = Paths.get(TEST_ORIG_POL_FILE);
+        DomainSignedPolicyData domainSignedPolicyData = JSON.fromBytes(Files.readAllBytes(path),
+                DomainSignedPolicyData.class);
+        SignedPolicyData signedPolicyData = domainSignedPolicyData.getSignedPolicyData();
+        PolicyData policyData = signedPolicyData.getPolicyData();
+        policyData.getPolicies().add(new Policy().setName("angler:policy.no-assertions"));
+
+        String signature = Crypto.sign(SignUtils.asCanonicalString(policyData), zmsPrivateKeyK0);
+        signedPolicyData.setZmsSignature(signature).setZmsKeyId("0");
+        signature = Crypto.sign(SignUtils.asCanonicalString(signedPolicyData), ztsPrivateKeyK0);
+        domainSignedPolicyData.setSignature(signature).setKeyId("0");
+
+        Path polFile = Paths.get(TEST_POL_DIR, "no_assertions.pol");
+        Files.write(polFile, JSON.bytes(domainSignedPolicyData));
+
+        boolean savedValue = ZpeUpdPolLoader.checkPolicyZMSSignature;
+        ZpeUpdPolLoader.checkPolicyZMSSignature = true;
+
+        try {
+            java.io.File [] files = { polFile.toFile() };
+            ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
+            loader.loadDb(files);
+
+            Map<String, ZpeUpdPolLoader.ZpeFileStatus> fsmap = loader.getFileStatusMap();
+            ZpeUpdPolLoader.ZpeFileStatus fstat = fsmap.get(polFile.toFile().getName());
+            assertTrue(fstat.validPolFile);
+            assertEquals(fstat.domain, "angler");
+            assertNotNull(loader.getStandardRoleAllowMap("angler"));
+            loader.close();
+        } finally {
+            ZpeUpdPolLoader.checkPolicyZMSSignature = savedValue;
+            Files.deleteIfExists(polFile);
+        }
     }
 }

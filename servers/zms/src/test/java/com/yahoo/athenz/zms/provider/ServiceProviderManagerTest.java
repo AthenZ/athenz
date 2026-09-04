@@ -118,6 +118,53 @@ public class ServiceProviderManagerTest {
         System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_ROLE);
     }
 
+    @Test
+    public void testRefreshServiceProvidersEmptyRole() {
+        String testDomainName = "test.domain";
+        String testRoleName = "test_role";
+        System.setProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_DOMAIN, testDomainName);
+        System.setProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_ROLE, testRoleName);
+        DBService dbService = Mockito.mock(DBService.class);
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+
+        // a role without any members must reset the cache to an empty list
+
+        Role emptyRole = new Role().setName(testRoleName).setRoleMembers(new ArrayList<>());
+        when(dbService.getRole(testDomainName, testRoleName, false, true, false)).thenReturn(emptyRole);
+
+        ServiceProviderManager serviceProviderManager = ServiceProviderManager.getInstance(dbService, authorizer);
+        try {
+            assertTrue(serviceProviderManager.serviceProviders.isEmpty());
+            assertTrue(serviceProviderManager.getServiceProvidersWithEndpoints().isEmpty());
+            assertFalse(serviceProviderManager.isServiceProvider("service.provider.test1"));
+        } finally {
+            serviceProviderManager.shutdown();
+            System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_DOMAIN);
+            System.clearProperty(ZMS_PROP_SERVICE_PROVIDER_MANAGER_ROLE);
+        }
+    }
+
+    @Test
+    public void testDomainDependencyProviderEquality() {
+        ServiceProviderManager.DomainDependencyProvider provider1 =
+                new ServiceProviderManager.DomainDependencyProvider("athenz.provider", "https://localhost:4443", true);
+        ServiceProviderManager.DomainDependencyProvider provider2 =
+                new ServiceProviderManager.DomainDependencyProvider("athenz.provider", "https://localhost:4443", true);
+
+        assertEquals(provider1, provider1);
+        assertEquals(provider1, provider2);
+        assertEquals(provider1.hashCode(), provider2.hashCode());
+
+        assertNotEquals(provider1, null);
+        assertNotEquals(provider1, "athenz.provider");
+        assertNotEquals(provider1, new ServiceProviderManager.DomainDependencyProvider(
+                "athenz.provider", "https://localhost:4443", false));
+        assertNotEquals(provider1, new ServiceProviderManager.DomainDependencyProvider(
+                "athenz.provider2", "https://localhost:4443", true));
+        assertNotEquals(provider1, new ServiceProviderManager.DomainDependencyProvider(
+                "athenz.provider", null, true));
+    }
+
     private Role generateRoleWithMembers(List<String> memberNames, String roleName) {
         List<RoleMember> roleMembers = memberNames.stream().map(memberName -> {
             RoleMember roleMember = new RoleMember();

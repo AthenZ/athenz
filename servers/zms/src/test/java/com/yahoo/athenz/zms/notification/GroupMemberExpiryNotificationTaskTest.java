@@ -1418,4 +1418,78 @@ public class GroupMemberExpiryNotificationTaskTest {
                 "athenz;deployment;sports.api;" + currentTime + ";"
         );
     }
+
+    @Test
+    public void testConsolidateGroupMembersByDomain() {
+
+        DBService dbsvc = Mockito.mock(DBService.class);
+        GroupMemberExpiryNotificationTask task = new GroupMemberExpiryNotificationTask(
+                dbsvc, USER_DOMAIN_PREFIX, new NotificationConverterCommon(null));
+
+        Map<String, DomainGroupMember> members = new HashMap<>();
+
+        // human users are notified directly
+
+        List<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.joe").setDomainName("athenz").setGroupName("dev-team"));
+        groupMembers.add(new GroupMember().setMemberName("user.joe").setDomainName("sports").setGroupName("qa-team"));
+        members.put("user.joe", new DomainGroupMember().setMemberName("user.joe").setMemberGroups(groupMembers));
+
+        // services are consolidated under the domain of the service
+
+        groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("sports.api").setDomainName("athenz").setGroupName("dev-team"));
+        groupMembers.add(new GroupMember().setMemberName("sports.api").setDomainName("coretech").setGroupName("qa-team"));
+        members.put("sports.api", new DomainGroupMember().setMemberName("sports.api").setMemberGroups(groupMembers));
+
+        groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("sports.backend").setDomainName("weather").setGroupName("dev-team"));
+        members.put("sports.backend", new DomainGroupMember().setMemberName("sports.backend").setMemberGroups(groupMembers));
+
+        Map<String, DomainGroupMember> consolidatedMembers = task.consolidateGroupMembersByDomain(members);
+        assertEquals(consolidatedMembers.size(), 2);
+
+        DomainGroupMember domainGroupMember = consolidatedMembers.get("user.joe");
+        assertNotNull(domainGroupMember);
+        assertEquals(domainGroupMember.getMemberGroups().size(), 2);
+
+        domainGroupMember = consolidatedMembers.get("sports");
+        assertNotNull(domainGroupMember);
+        assertEquals(domainGroupMember.getMemberGroups().size(), 3);
+        List<String> expectedValues = Arrays.asList("sports.api", "sports.api", "sports.backend");
+        List<String> actualValues = domainGroupMember.getMemberGroups().stream().map(GroupMember::getMemberName)
+                .collect(Collectors.toList());
+        assertEqualsNoOrder(expectedValues, actualValues);
+    }
+
+    @Test
+    public void testConsolidateDomainAdminsByDomainEmptyNotifyRoles() {
+
+        DBService dbsvc = Mockito.mock(DBService.class);
+
+        // notify role exists but has no human members so the entry is skipped
+
+        Role notifyRole = new Role().setName("athenz:role.notify1").setRoleMembers(new ArrayList<>());
+        Mockito.when(dbsvc.getRole("athenz", "notify1", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(notifyRole);
+        Mockito.when(dbsvc.getRolesByDomain("athenz")).thenReturn(Collections.singletonList(notifyRole));
+
+        GroupMemberExpiryNotificationTask task = new GroupMemberExpiryNotificationTask(
+                dbsvc, USER_DOMAIN_PREFIX, new NotificationConverterCommon(null));
+
+        Map<String, List<GroupMember>> domainGroupMembers = new HashMap<>();
+        List<GroupMember> groupMembers = new ArrayList<>();
+        groupMembers.add(new GroupMember().setMemberName("user.user1").setDomainName("athenz").setGroupName("dev-team")
+                .setNotifyRoles("notify1"));
+        groupMembers.add(new GroupMember().setMemberName("user.user2").setDomainName("athenz").setGroupName("qa-team"));
+        domainGroupMembers.put("athenz", groupMembers);
+
+        Map<String, DomainGroupMember> consolidatedMembers = task.consolidateDomainAdminsByDomain(domainGroupMembers);
+        assertEquals(consolidatedMembers.size(), 1);
+
+        DomainGroupMember domainGroupMember = consolidatedMembers.get("athenz");
+        assertNotNull(domainGroupMember);
+        assertEquals(domainGroupMember.getMemberGroups().size(), 1);
+        assertEquals(domainGroupMember.getMemberGroups().get(0).getMemberName(), "user.user2");
+    }
 }

@@ -249,6 +249,12 @@ public class ZTSImplTest {
 
         ZTSTestUtils.deleteDirectory(new File("/tmp/zts_server_cert_store"));
         System.setProperty(ZTSConsts.ZTS_PROP_CERT_FILE_STORE_PATH, "/tmp/zts_server_cert_store");
+
+        // make sure no ssh/workload record store factory settings leaked
+        // from other test classes since the execution order is not guaranteed
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_SSH_RECORD_STORE_FACTORY_CLASS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_WORKLOAD_RECORD_STORE_FACTORY_CLASS);
         System.setProperty(ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_IDENTITY, "false");
         System.setProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER, "https://athenz.cloud:4443/zts/v1");
 

@@ -1432,6 +1432,122 @@ public class TestAuthZpe {
     }
 
     @Test
+    public void testValidateAccessTokenNotCachedWithoutMtlsBound() {
+
+        // create a new token so we're guaranteed that it's not
+        // in the cache and it must be parsed and validated without
+        // any mtls binding since no certificate is provided
+
+        List<String> roles = Collections.singletonList("matchall");
+        final String newToken = createAccessToken("angler", roles, "0", 250);
+
+        AccessToken accessToken = AuthZpeClient.validateAccessToken(newToken, null, null);
+        assertNotNull(accessToken);
+        assertEquals(accessToken.getAudience(), "angler");
+
+        // second time we should get the same token from the cache
+
+        accessToken = AuthZpeClient.validateAccessToken(newToken, null, null);
+        assertNotNull(accessToken);
+        assertEquals(accessToken.getAudience(), "angler");
+    }
+
+    @Test
+    public void testValidateAccessTokenCachedCertHashMismatch() throws IOException {
+
+        // create a new token so we're guaranteed that it's not
+        // in the cache and validate it with the matching certificate
+
+        List<String> roles = Collections.singletonList("matchall");
+        final String newToken = createAccessToken("angler", roles, "0", 350);
+
+        Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        AccessToken accessToken = AuthZpeClient.validateAccessToken(newToken, cert, null);
+        assertNotNull(accessToken);
+
+        // now the token is in the cache, so the confirmation check
+        // with a different certificate must fail
+
+        path = Paths.get("src/test/resources/mtls_token_mismatch.cert");
+        certStr = new String(Files.readAllBytes(path));
+        X509Certificate mismatchCert = Crypto.loadX509Certificate(certStr);
+
+        accessToken = AuthZpeClient.validateAccessToken(newToken, mismatchCert, null);
+        assertNull(accessToken);
+    }
+
+    @Test
+    public void testAllowAccessTokenNotCachedWithoutMtlsBound() {
+
+        String action = "all";
+        String resource = "angler:stuff";
+        StringBuilder roleName = new StringBuilder();
+
+        // create a new token so we're guaranteed that it's not
+        // in the cache and it must be parsed and validated without
+        // any mtls binding since no certificate is provided
+
+        List<String> roles = Collections.singletonList("matchall");
+        final String newToken = createAccessToken("angler", roles, "0", 450);
+
+        AccessCheckStatus status = AuthZpeClient.allowAccess(newToken, resource, action, roleName);
+        Assert.assertEquals(status, AccessCheckStatus.ALLOW);
+        Assert.assertEquals(roleName.toString(), "matchall");
+    }
+
+    @Test
+    public void testAllowAccessCachedTokenCertHashMismatch() throws IOException {
+
+        String action = "all";
+        String resource = "angler:stuff";
+        StringBuilder roleName = new StringBuilder();
+
+        // create a new token so we're guaranteed that it's not
+        // in the cache and validate it with the matching certificate
+
+        List<String> roles = Collections.singletonList("matchall");
+        final String newToken = createAccessToken("angler", roles, "0", 550);
+
+        Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        AccessCheckStatus status = AuthZpeClient.allowAccess(newToken, cert, null, resource, action, roleName);
+        Assert.assertEquals(status, AccessCheckStatus.ALLOW);
+        Assert.assertEquals(roleName.toString(), "matchall");
+
+        // now the token is in the cache, so the confirmation check
+        // with a different certificate must fail
+
+        path = Paths.get("src/test/resources/mtls_token_mismatch.cert");
+        certStr = new String(Files.readAllBytes(path));
+        X509Certificate mismatchCert = Crypto.loadX509Certificate(certStr);
+
+        status = AuthZpeClient.allowAccess(newToken, mismatchCert, null, resource, action, roleName);
+        Assert.assertEquals(status, AccessCheckStatus.DENY_CERT_HASH_MISMATCH);
+    }
+
+    @Test
+    public void testZpeUpdaterInitInterrupted() {
+
+        // the init method waits for the policy loader to be ready
+        // so if our thread is interrupted, the wait must be aborted
+        // and the interrupted exception handled
+
+        Thread.currentThread().interrupt();
+        try {
+            new ZpeUpdater().init(null);
+        } finally {
+            // make sure the interrupted status is cleared so
+            // it does not impact any other test cases
+            Thread.interrupted();
+        }
+    }
+
+    @Test
     public void testFetchPublicKeysUsingSignKeyResolver() {
         AuthZpeClient.setMillisBetweenZtsCalls(0);
         String ecKeys = "{\n" +
