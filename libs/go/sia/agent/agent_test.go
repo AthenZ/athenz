@@ -192,6 +192,16 @@ func testInternalUpdateFileExisting(test *testing.T, fileDirectUpdate bool) {
 	_ = os.Remove(fileName)
 }
 
+func TestMainDirDefault(test *testing.T) {
+	opts := &sc.Options{}
+	assert.Equal(test, "/var/lib/sia", mainDir(opts))
+}
+
+func TestMainDirOverride(test *testing.T) {
+	opts := &sc.Options{MainDir: "/custom/sia"}
+	assert.Equal(test, "/custom/sia", mainDir(opts))
+}
+
 func TestRegisterInstance(test *testing.T) {
 
 	siaDir := test.TempDir()
