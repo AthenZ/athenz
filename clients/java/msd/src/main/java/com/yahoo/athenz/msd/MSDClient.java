@@ -303,6 +303,97 @@ public class MSDClient implements Closeable {
     }
 
     /**
+     * Api to get a specific transport policy snapshot by name
+     *
+     * @param domain       name of the domain
+     * @param service      name of the service
+     * @param snapshotName name of the snapshot
+     * @return the transport policy snapshot on success. MSDClientException will be thrown in case of failure
+     */
+    public TransportPolicySnapshot getTransportPolicySnapshot(String domain, String service, String snapshotName) {
+        try {
+            return client.getTransportPolicySnapshot(domain, service, snapshotName);
+        } catch (ClientResourceException ex) {
+            throw new MSDClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new MSDClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Api to delete a transport policy snapshot. A snapshot that is marked active is not deleted;
+     * use the force overload to delete it anyway.
+     *
+     * @param domain        name of the domain
+     * @param service       name of the service
+     * @param snapshotName  name of the snapshot
+     * @param resourceOwner resource owner for the request
+     */
+    public void deleteTransportPolicySnapshot(String domain, String service, String snapshotName,
+                                              String resourceOwner) {
+        deleteTransportPolicySnapshot(domain, service, snapshotName, null, resourceOwner);
+    }
+
+    /**
+     * Api to delete a transport policy snapshot, optionally even when it is marked active
+     *
+     * @param domain        name of the domain
+     * @param service       name of the service
+     * @param snapshotName  name of the snapshot
+     * @param force         delete the snapshot even if it is marked active
+     * @param resourceOwner resource owner for the request
+     */
+    public void deleteTransportPolicySnapshot(String domain, String service, String snapshotName,
+                                              Boolean force, String resourceOwner) {
+        try {
+            client.deleteTransportPolicySnapshot(domain, service, snapshotName, force, resourceOwner);
+        } catch (ClientResourceException ex) {
+            throw new MSDClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new MSDClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Api for a caller to record that it is using the given snapshot. Callers are expected to repeat
+     * this while the snapshot remains in use rather than on every fetch.
+     *
+     * @param domain       name of the domain
+     * @param service      name of the service
+     * @param snapshotName name of the snapshot
+     * @param usage        snapshot usage request object
+     */
+    public void recordTransportPolicySnapshotUsage(String domain, String service, String snapshotName,
+                                                   TransportPolicySnapshotUsageRequest usage) {
+        try {
+            client.recordTransportPolicySnapshotUsage(domain, service, snapshotName, usage);
+        } catch (ClientResourceException ex) {
+            throw new MSDClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new MSDClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Api to get the usage recorded for a snapshot - which principals last used it, and when
+     *
+     * @param domain       name of the domain
+     * @param service      name of the service
+     * @param snapshotName name of the snapshot
+     * @return recorded usage for the snapshot. MSDClientException will be thrown in case of failure
+     */
+    public TransportPolicySnapshotUsage getTransportPolicySnapshotUsage(String domain, String service,
+                                                                       String snapshotName) {
+        try {
+            return client.getTransportPolicySnapshotUsage(domain, service, snapshotName);
+        } catch (ClientResourceException ex) {
+            throw new MSDClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new MSDClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Close the MSDClient object and release any allocated resources.
      */
     @Override

@@ -149,4 +149,60 @@ public class MSDRDLClientMock extends MSDRDLGeneratedClient implements Closeable
         }
         return new AthenzDependencyResponse().setStatus(AthenzDependencyResponseStatus.allow).setMessage("allowed");
     }
+
+    @Override
+    public TransportPolicySnapshot getTransportPolicySnapshot(String domainName, String serviceName, String snapshotName) {
+        if ("bad-domain".equals(domainName)) {
+            throw new ClientResourceException(404, "unknown domain");
+        }
+        if ("bad-req".equals(domainName)) {
+            throw new RuntimeException("bad request");
+        }
+        return new TransportPolicySnapshot().setDomainName(domainName).setServiceName(serviceName)
+                .setName(snapshotName).setActive(true)
+                .setCreatedTime(Timestamp.fromMillis(123456789123L))
+                .setTransportPolicyRules(getTransportPolicyRules(null, null));
+    }
+
+    @Override
+    public TransportPolicySnapshot deleteTransportPolicySnapshot(String domainName, String serviceName,
+            String snapshotName, Boolean force, String resourceOwner) {
+        if ("bad-domain".equals(domainName)) {
+            throw new ClientResourceException(404, "unknown domain");
+        }
+        if ("bad-req".equals(domainName)) {
+            throw new RuntimeException("bad request");
+        }
+        if ("active-domain".equals(domainName) && !Boolean.TRUE.equals(force)) {
+            throw new ClientResourceException(409, "snapshot is active");
+        }
+        return null;
+    }
+
+    @Override
+    public TransportPolicySnapshotUsage recordTransportPolicySnapshotUsage(String domainName, String serviceName,
+            String snapshotName, TransportPolicySnapshotUsageRequest usage) {
+        if ("bad-domain".equals(domainName)) {
+            throw new ClientResourceException(404, "unknown domain");
+        }
+        if ("bad-req".equals(domainName)) {
+            throw new RuntimeException("bad request");
+        }
+        return null;
+    }
+
+    @Override
+    public TransportPolicySnapshotUsage getTransportPolicySnapshotUsage(String domainName, String serviceName,
+            String snapshotName) {
+        if ("bad-domain".equals(domainName)) {
+            throw new ClientResourceException(404, "unknown domain");
+        }
+        if ("bad-req".equals(domainName)) {
+            throw new RuntimeException("bad request");
+        }
+        TransportPolicySnapshotUsagePrincipal principal = new TransportPolicySnapshotUsagePrincipal()
+                .setName("k8s.controller.msd").setTime(Timestamp.fromMillis(123456789123L));
+        return new TransportPolicySnapshotUsage().setPrincipals(Collections.singletonList(principal))
+                .setPartial(false);
+    }
 }

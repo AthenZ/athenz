@@ -2775,6 +2775,10 @@ public class ZTSImpl implements ZTSHandler {
             throw authError("Unauthenticated request", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
+        if (!StringUtil.isEmpty(accessTokenRequest.getKeyType())) {
+            validate(accessTokenRequest.getKeyType(), TYPE_SIMPLE_NAME, principalDomain, caller);
+        }
+
         // handle the request based on the type of token requested
 
         switch (accessTokenRequest.getRequestType()) {
@@ -2936,7 +2940,7 @@ public class ZTSImpl implements ZTSHandler {
 
         setAccessTokenConfirmation(accessToken, principal, accessTokenRequest);
 
-        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
+        ServerPrivateKey privateKey = getSignPrivateKey(accessTokenRequest.getKeyType());
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
 
         return new AccessTokenResponse().setAccess_token(accessJwts)
@@ -2949,14 +2953,16 @@ public class ZTSImpl implements ZTSHandler {
 
         // if we have a certificate used for mTLS authentication then
         // we're going to bind the certificate to the access token
-        // and the optional proxy principals if specified
 
         X509Certificate cert = principal.getX509Certificate();
         if (cert != null) {
             accessToken.setConfirmX509CertHash(cert);
-            if (accessTokenRequest.getProxyPrincipalsSpiffeUris() != null) {
-                accessToken.setConfirmProxyPrincipalSpiffeUris(accessTokenRequest.getProxyPrincipalsSpiffeUris());
-            }
+        }
+
+        // include the optional proxy principals if specified
+
+        if (accessTokenRequest.getProxyPrincipalsSpiffeUris() != null) {
+            accessToken.setConfirmProxyPrincipalSpiffeUris(accessTokenRequest.getProxyPrincipalsSpiffeUris());
         }
     }
 
@@ -3189,7 +3195,7 @@ public class ZTSImpl implements ZTSHandler {
 
         setAccessTokenConfirmation(accessToken, principal, accessTokenRequest);
 
-        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
+        ServerPrivateKey privateKey = getSignPrivateKey(accessTokenRequest.getKeyType());
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
 
         return new AccessTokenResponse().setAccess_token(accessJwts)
@@ -3379,7 +3385,7 @@ public class ZTSImpl implements ZTSHandler {
         int tokenTimeout = determineOIDCIdTokenTimeout(principalDomain, subjectPrincipal.getFullName(), null);
         idToken.setExpiryTime(iat + tokenTimeout);
 
-        ServerPrivateKey signPrivateKey = getSignPrivateKey(null);
+        ServerPrivateKey signPrivateKey = getSignPrivateKey(accessTokenRequest.getKeyType());
         final String signedIdToken = idToken.getSignedToken(signPrivateKey.getKey(), signPrivateKey.getId(),
                 signPrivateKey.getAlgorithm());
 
@@ -3551,7 +3557,7 @@ public class ZTSImpl implements ZTSHandler {
             }
         }
 
-        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
+        ServerPrivateKey privateKey = getSignPrivateKey(accessTokenRequest.getKeyType());
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(),
                 privateKey.getAlgorithm(), AccessToken.HDR_TOKEN_JAG);
 
@@ -3808,7 +3814,7 @@ public class ZTSImpl implements ZTSHandler {
 
         setAccessTokenConfirmation(accessToken, principal, accessTokenRequest);
 
-        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
+        ServerPrivateKey privateKey = getSignPrivateKey(accessTokenRequest.getKeyType());
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
 
         AccessTokenResponse response = new AccessTokenResponse().setAccess_token(accessJwts)
@@ -4011,7 +4017,7 @@ public class ZTSImpl implements ZTSHandler {
 
         setAccessTokenConfirmation(accessToken, principal, accessTokenRequest);
 
-        ServerPrivateKey privateKey = getServerPrivateKey(keyAlgoForJsonWebObjects);
+        ServerPrivateKey privateKey = getSignPrivateKey(accessTokenRequest.getKeyType());
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
 
         // now let's check to see if we need to create openid token

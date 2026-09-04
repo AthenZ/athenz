@@ -780,6 +780,7 @@ func processAccessTokens(config *sc.Config, processedSvcs []sc.Service) ([]ac.Ac
 			ProxyPrincipalSpiffeUris: t.ProxyPrincipalSpiffeUris,
 			RoleInAudClaim:           t.RoleInAudClaim,
 			UseOpenIDIssuer:          t.UseOpenIDIssuer,
+			KeyType:                  t.KeyType,
 		})
 	}
 	return accessTokens, nil

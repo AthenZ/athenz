@@ -25,6 +25,31 @@ type TransportPolicySnapshotMetadata Struct {
     Bool active; // Whether this snapshot is marked as active
 }
 
+// A single principal's most recently recorded use of a snapshot
+type TransportPolicySnapshotUsagePrincipal Struct {
+    ServiceName name; // Principal whose use of this snapshot was recorded, as a fully qualified domain.service identity
+    Timestamp time; // Server time at which this principal's use was last recorded
+}
+
+// Explains why recorded usage data is incomplete
+type TransportPolicySnapshotUsageWarning Struct {
+    String source; // Upstream that could not be read, e.g. the usage store
+    String code; // Machine readable reason, e.g. UPSTREAM_UNAVAILABLE
+}
+
+// Body of a request to record snapshot usage. The principal is taken from the caller's identity
+// and the time is stamped by the server.
+type TransportPolicySnapshotUsageRequest Struct {
+    EntityName snapshotName; // Name of the snapshot being used, must match the name in the path
+}
+
+// Usage recorded for a snapshot - which principals last used it, and when
+type TransportPolicySnapshotUsage Struct {
+    Array<TransportPolicySnapshotUsagePrincipal> principals; // One entry per principal with recorded use of this snapshot
+    Bool partial (optional, default=false); // True when usage data could not be fully retrieved
+    TransportPolicySnapshotUsageWarning warning (optional); // Set when partial is true
+}
+
 // Full transport policy snapshot containing all policies
 type TransportPolicySnapshot Struct {
     DomainName domainName; // Name of the domain
