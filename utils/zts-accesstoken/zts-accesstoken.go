@@ -42,7 +42,7 @@ func usage() {
 	fmt.Println("       zts-accesstoken -domain <target-domain> [-roles <roles>] -grant-type token-exchange -requested-token-type access_token -subject-token <access-token-file> -subject-token-type access_token -audience <target-domain> [-actor-token <actor-token-file> -actor-token-type access_token] <credentials> -zts <zts-server-url>")
 	fmt.Println("")
 	fmt.Println("  JAG Token Exchange (ID-JAG -> Access Token):")
-	fmt.Println("       zts-accesstoken -domain <domain> -roles <roles> -grant-type jwt-bearer -assertion <id-jag-file> <credentials> -zts <zts-server-url>")
+	fmt.Println("       zts-accesstoken -domain <domain> -roles <roles> -grant-type jwt-bearer -assertion <id-jag-file> [-audience <audience-domain>] <credentials> -zts <zts-server-url>")
 	fmt.Println("")
 	fmt.Println("  Validate:")
 	fmt.Println("       zts-accesstoken -validate -access-token <access-token> -conf <athenz-conf-path> [-claims]")
@@ -113,7 +113,7 @@ func main() {
 			usage()
 		}
 	} else if grantType == "jwt-bearer" {
-		fetchAccessTokenViaJAG(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, assertion, proxy, tokenOnly)
+		fetchAccessTokenViaJAG(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, assertion, audience, proxy, tokenOnly)
 	} else {
 		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, actor, proxy, expireTime, tokenOnly, roleInAudClaim, openidIssuer)
 	}
@@ -392,7 +392,7 @@ func fetchAccessTokenViaTokenExchange(domain, roles, ztsURL, svcKeyFile, svcCert
 	fmt.Println(string(data))
 }
 
-func fetchAccessTokenViaJAG(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, assertionFile string, proxy bool, tokenOnly bool) {
+func fetchAccessTokenViaJAG(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, assertionFile, audience string, proxy bool, tokenOnly bool) {
 
 	defaultConfig, _ := athenzutils.ReadDefaultConfig()
 	if ztsURL == "" && defaultConfig != nil {
@@ -439,6 +439,7 @@ func fetchAccessTokenViaJAG(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcC
 
 	// build the JAG token exchange request
 	request := athenzutils.GenerateJAGTokenExchangeRequestString(assertion)
+	params, _ := url.ParseQuery(request)
 
 	// optionally add scope for downscoping
 	if roles != "" {
@@ -450,10 +451,12 @@ func fetchAccessTokenViaJAG(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcC
 			}
 			scope += domain + ":role." + role
 		}
-		params, _ := url.ParseQuery(request)
 		params.Add("scope", scope)
-		request = params.Encode()
 	}
+	if audience != "" {
+		params.Add("audience", audience)
+	}
+	request = params.Encode()
 
 	accessTokenResponse, err := client.PostAccessTokenRequest(zts.AccessTokenRequest(request))
 	if err != nil {
