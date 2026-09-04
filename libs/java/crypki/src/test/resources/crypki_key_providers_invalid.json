@@ -1,0 +1,8 @@
+{
+    "defaultKeyId": "x509-key-data",
+    "providerKeys": [
+        {
+            "keyId": "x509-aws-key",
+            "providers": [
+                "athenz.aws.us-east-1",
+                "athenz.aws.us-east-2",

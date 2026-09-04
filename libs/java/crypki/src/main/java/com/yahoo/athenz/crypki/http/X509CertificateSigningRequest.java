@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yahoo.athenz.zts.cert.impl.crypki;
+package com.yahoo.athenz.crypki.http;
 
 import java.util.List;
 

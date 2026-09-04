@@ -13,28 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.cert.impl.crypki;
 
-import java.util.List;
+package com.yahoo.athenz.crypki.http;
 
-public class ProviderSignerKey {
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-    private String keyId;
-    private List<String> providers;
+@JsonInclude(JsonInclude.Include.ALWAYS)
+public class KeyMeta {
+    
+    public KeyMeta(String identifier) {
+        this.identifier = identifier;
+    }
+    
+    private String identifier;
 
-    public String getKeyId() {
-        return keyId;
+    public String getIdentifier() {
+        return identifier;
     }
 
-    public void setKeyId(String filename) {
-        this.keyId = filename;
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
     }
 
-    public List<String> getProviders() {
-        return providers;
-    }
-
-    public void setProviders(List<String> providers) {
-        this.providers = providers;
-    }
 }

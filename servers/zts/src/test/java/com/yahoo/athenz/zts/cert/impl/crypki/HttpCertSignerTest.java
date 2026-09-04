@@ -27,6 +27,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.common.server.cert.CertSigner;
+import com.yahoo.athenz.crypki.http.KeyMeta;
 import com.yahoo.athenz.zts.ZTSConsts;
 
 public class HttpCertSignerTest {

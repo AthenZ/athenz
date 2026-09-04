@@ -103,6 +103,12 @@ This signer assumes you have a certificate singing daemon that
 implements POST/GET REST /x509 and /ssh endpoints to sign and
 return x.509 certificates.
 
+This factory is a thin ZTS adapter over the `athenz-crypki` module
+(`com.yahoo.athenz.crypki.http.HttpCrypkiSigner`). Additional backends
+(AWS KMS, AWS CloudHSM, GCP KMS) implement `CrypkiSigner` /
+`KmsClient` / `HsmClient` in `athenz-server-aws-common` and
+`athenz-server-gcp-common`.
+
 The base uri of signer service and other settings can be configured by
 using the following system properties:
 

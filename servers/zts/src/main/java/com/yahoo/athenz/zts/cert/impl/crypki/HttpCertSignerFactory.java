@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.yahoo.athenz.zts.cert.impl.crypki;
 
 import com.yahoo.athenz.common.server.cert.CertSigner;
 import com.yahoo.athenz.common.server.cert.CertSignerFactory;
+import com.yahoo.athenz.crypki.CrypkiException;
+import com.yahoo.athenz.zts.ResourceException;
 
 public class HttpCertSignerFactory implements CertSignerFactory {
 
     @Override
     public CertSigner create() {
-        return new HttpCertSigner();
+        try {
+            return new HttpCertSigner();
+        } catch (CrypkiException ex) {
+            throw new ResourceException(ex.getCode() == 0 ? ResourceException.INTERNAL_SERVER_ERROR : ex.getCode(),
+                    ex.getMessage());
+        }
     }
 }

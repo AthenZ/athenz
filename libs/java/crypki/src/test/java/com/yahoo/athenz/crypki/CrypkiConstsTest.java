@@ -13,28 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yahoo.athenz.zts.cert.impl.crypki;
+package com.yahoo.athenz.crypki;
 
-import java.util.List;
+import org.testng.annotations.Test;
 
-public class ProviderSignerKeys {
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 
-    private String defaultKeyId;
-    private List<ProviderSignerKey> providerKeys;
+import static org.testng.Assert.assertTrue;
 
-    public String getDefaultKeyId() {
-        return defaultKeyId;
-    }
+public class CrypkiConstsTest {
 
-    public void setDefaultKeyId(String defaultKeyId) {
-        this.defaultKeyId = defaultKeyId;
-    }
-
-    public List<ProviderSignerKey> getProviderKeys() {
-        return providerKeys;
-    }
-
-    public void setProviderKeys(List<ProviderSignerKey> providerKeys) {
-        this.providerKeys = providerKeys;
+    @Test
+    public void testPrivateConstructor() throws Exception {
+        Constructor<CrypkiConsts> constructor = CrypkiConsts.class.getDeclaredConstructor();
+        assertTrue(Modifier.isPrivate(constructor.getModifiers()));
+        constructor.setAccessible(true);
+        constructor.newInstance();
     }
 }

@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.yahoo.athenz.crypki.http;
 
-package com.yahoo.athenz.zts.cert.impl.crypki;
+import com.yahoo.athenz.common.server.cert.CertSigner;
+import com.yahoo.athenz.common.server.cert.CertSignerFactory;
+import com.yahoo.athenz.crypki.CrypkiSigner;
+import com.yahoo.athenz.crypki.CrypkiSignerFactory;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+/**
+ * Default factory for the remote Go Crypki HTTP backend.
+ */
+public class HttpCrypkiSignerFactory implements CrypkiSignerFactory, CertSignerFactory {
 
-@JsonInclude(JsonInclude.Include.ALWAYS)
-public class KeyMeta {
-    
-    public KeyMeta(String identifier) {
-        this.identifier = identifier;
-    }
-    
-    private String identifier;
-
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
+    @Override
+    public CrypkiSigner createSigner() {
+        return new HttpCrypkiSigner();
     }
 
+    @Override
+    public CertSigner create() {
+        return new HttpCrypkiSigner();
+    }
 }

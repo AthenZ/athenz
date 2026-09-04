@@ -13,22 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.amazonaws.cloudhsm.jce.provider.attributes;
 
-package com.yahoo.athenz.zts.cert.impl.crypki;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-
-@JsonInclude(JsonInclude.Include.ALWAYS)
-public class X509Certificate {
-
-    private String cert;
-
-    public String getCert() {
-        return cert;
-    }
-
-    public void setCert(String cert) {
-        this.cert = cert;
-    }
-
+public enum ObjectClassType {
+    PRIVATE_KEY
 }

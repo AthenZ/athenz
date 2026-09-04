@@ -1,0 +1,29 @@
+{
+    "providerKeys": [
+        {
+            "keyId": "x509-aws-key",
+            "providers": [
+                "athenz.aws.us-west-1",
+                "athenz.aws.us-west-2"
+            ]
+        },
+        {
+            "providers": [
+                "athenz.aws.us-east-1"
+            ]
+        },
+        {
+            "keyId": "",
+            "providers": [
+                "athenz.aws.us-east-2"
+            ]
+        },
+        {
+            "keyId": "x509-azure-key",
+            "providers": [
+                "athenz.azure.eastus",
+                "athenz.azure.westus"
+            ]
+        }
+    ]
+}
