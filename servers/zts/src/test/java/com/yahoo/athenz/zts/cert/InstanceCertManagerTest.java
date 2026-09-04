@@ -30,6 +30,7 @@ import com.yahoo.athenz.zts.*;
 import com.yahoo.athenz.zts.cert.impl.FileSSHRecordStoreFactory;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -56,7 +57,18 @@ public class InstanceCertManagerTest {
         System.setProperty(ZTSConsts.ZTS_PROP_SSH_RECORD_STORE_FACTORY_CLASS, "com.yahoo.athenz.zts.cert.impl.FileSSHRecordStoreFactory");
         System.setProperty(ZTSConsts.ZTS_PROP_WORKLOAD_RECORD_STORE_FACTORY_CLASS, "com.yahoo.athenz.zts.workload.impl.FileWorkloadRecordStoreFactory");
     }
-    
+
+    @AfterMethod
+    public void cleanup() {
+        // clear the record store properties we set in setup so they do
+        // not leak into other test classes since the test class execution
+        // order is not guaranteed
+        System.clearProperty(ZTSConsts.ZTS_PROP_SSH_FILE_STORE_PATH);
+        System.clearProperty(ZTSConsts.ZTS_PROP_WORKLOAD_FILE_STORE_PATH);
+        System.clearProperty(ZTSConsts.ZTS_PROP_SSH_RECORD_STORE_FACTORY_CLASS);
+        System.clearProperty(ZTSConsts.ZTS_PROP_WORKLOAD_RECORD_STORE_FACTORY_CLASS);
+    }
+
     @Test
     public void testGenerateIdentity() throws ServerResourceException {
         
