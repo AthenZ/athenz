@@ -566,6 +566,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -623,6 +625,8 @@ public class ZTSImplAccessTokenTest {
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -667,6 +671,8 @@ public class ZTSImplAccessTokenTest {
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -746,6 +752,7 @@ public class ZTSImplAccessTokenTest {
                 "grant_type=client_credentials&proxy_for_principal=&scope=" + scope);
         assertNotNull(resp);
         assertEquals(resp.getScope(), "coretech:role.writers");
+        cloudStore.close();
     }
 
     @Test
@@ -788,6 +795,7 @@ public class ZTSImplAccessTokenTest {
                 "grant_type=client_credentials&scope=coretech:domain&expires_in=100");
         assertNotNull(resp);
         assertEquals(resp.getScope(), "coretech:role.readers coretech:role.writers");
+        cloudStore.close();
     }
 
     @Test
@@ -854,6 +862,7 @@ public class ZTSImplAccessTokenTest {
         }
 
         System.clearProperty(ZTSConsts.ZTS_PROP_PRINCIPAL_IDENTITY_ISSUER_MAP_FNAME);
+        cloudStore.close();
     }
 
     @Test
@@ -905,6 +914,7 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+        cloudStore.close();
     }
 
     @Test
@@ -942,6 +952,8 @@ public class ZTSImplAccessTokenTest {
 
         JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(ztsImpl.privateRSAKey.getKey()));
         assertTrue(signedJWT.verify(verifier));
+
+        cloudStore.close();
     }
 
     @Test
@@ -982,6 +994,8 @@ public class ZTSImplAccessTokenTest {
 
         JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(ztsImpl.privateECKey.getKey()));
         assertTrue(signedJWT.verify(verifier));
+
+        cloudStore.close();
     }
 
     @Test
@@ -1025,6 +1039,8 @@ public class ZTSImplAccessTokenTest {
                 "grant_type=client_credentials&scope=coretech:role.writers");
         assertNotNull(resp);
         assertNull(resp.getScope());
+
+        cloudStore.close();
     }
 
     @Test
@@ -1077,6 +1093,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -1159,6 +1177,8 @@ public class ZTSImplAccessTokenTest {
         }
         assertNotNull(claimSet);
         assertEquals(issuer, claimSet.getIssuer());
+
+        cloudStore.close();
     }
 
     @Test
@@ -1207,6 +1227,8 @@ public class ZTSImplAccessTokenTest {
         // the value should be 12 hours - the default max
 
         assertEquals(claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime(), 12 * 60 * 60 * 1000);
+
+        cloudStore.close();
     }
 
     @Test
@@ -1265,6 +1287,8 @@ public class ZTSImplAccessTokenTest {
 
         assertNotNull(resp.getAccess_token());
         assertNull(resp.getId_token());
+
+        cloudStore.close();
     }
 
     @Test
@@ -1440,6 +1464,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -1500,6 +1526,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -1618,6 +1646,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -1667,6 +1697,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -1774,6 +1806,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -1875,6 +1909,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("Authorization Details configuration mismatch"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -1972,6 +2008,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("Authorization Details configuration mismatch"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -2033,6 +2071,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -2079,6 +2119,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -2162,6 +2204,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -2259,6 +2303,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     private String createJagToken(PrivateKey key, String keyId, String subject, String clientId,
@@ -2358,6 +2404,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -2439,6 +2487,8 @@ public class ZTSImplAccessTokenTest {
         }
 
         System.clearProperty(ZTSConsts.ZTS_PROP_PROVIDER_CONFIG_FILE);
+
+        cloudStore.close();
     }
 
     @Test
@@ -2494,6 +2544,8 @@ public class ZTSImplAccessTokenTest {
 
         System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER);
         System.clearProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER);
+
+        cloudStore.close();
     }
 
     @Test
@@ -2897,6 +2949,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3091,6 +3145,8 @@ public class ZTSImplAccessTokenTest {
                 fail("Want error: " + wantErrorMessage + ", Got error: " + ex.getMessage());
             }
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3130,6 +3186,8 @@ public class ZTSImplAccessTokenTest {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("Authorized service principal forbidden for jag token exchange"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3164,6 +3222,8 @@ public class ZTSImplAccessTokenTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid assertion token"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3202,6 +3262,8 @@ public class ZTSImplAccessTokenTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Unknown jag assertion audience"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3240,6 +3302,8 @@ public class ZTSImplAccessTokenTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid jag assertion client_id"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3278,6 +3342,8 @@ public class ZTSImplAccessTokenTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid jag assertion - missing subject"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3315,6 +3381,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3354,6 +3422,8 @@ public class ZTSImplAccessTokenTest {
             assertEquals(ex.getCode(), 404);
             assertTrue(ex.getMessage().contains("No such domain"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3391,6 +3461,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3429,6 +3501,8 @@ public class ZTSImplAccessTokenTest {
         // Should return all roles user has access to
         assertTrue(resp.getScope().contains("coretech:role."));
         assertNotNull(resp.getAccess_token());
+
+        cloudStore.close();
     }
 
     @Test
@@ -3467,6 +3541,8 @@ public class ZTSImplAccessTokenTest {
         // Should return scope response since requested != returned
         assertTrue(resp.getScope().contains("coretech:role."));
         assertNotNull(resp.getAccess_token());
+
+        cloudStore.close();
     }
 
     private String createClientAssertionToken(PrivateKey privateKey) {
@@ -3985,6 +4061,8 @@ public class ZTSImplAccessTokenTest {
         } finally {
             cloudStore.close();
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -4667,6 +4745,8 @@ public class ZTSImplAccessTokenTest {
         cloudStore.close();
 
         System.clearProperty(ZTSConsts.ZTS_PROP_PROVIDER_CONFIG_FILE);
+
+        cloudStore.close();
     }
 
     @Test
