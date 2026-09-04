@@ -378,18 +378,19 @@ public class AccessToken extends OAuth2Token {
             return true;
         }
 
-        // check if we have authorization details specified for
-        // proxy access thus we can validate based on that
+        // check if the mtls binding is based on spiffe uri
+        // specified in the token
 
-        if (confirmX509CertPrincipalAuthzDetails(x509Cert, errorStore)) {
+        if (confirmX509CertProxySpiffeCheck(x509Cert, errorStore)) {
             return true;
         }
+
         // direct comparison of certificate cn and provided hash
 
         return confirmX509ProxyPrincipal(cn, x509CertHash, cnfHash, errorStore);
     }
 
-    boolean confirmX509CertPrincipalAuthzDetails(X509Certificate cert, StringBuilder errorStore) {
+    boolean confirmX509CertProxySpiffeCheck(X509Certificate cert, StringBuilder errorStore) {
 
         // make sure we have valid proxy principals specified
 
@@ -401,7 +402,6 @@ public class AccessToken extends OAuth2Token {
             return false;
         }
         if (spiffeUris == null) {
-            errorStore.append("confirmX509CertPrincipalAuthzDetails: no proxy principals in access token;");
             return false;
         }
 
@@ -411,7 +411,7 @@ public class AccessToken extends OAuth2Token {
                 return true;
             }
         }
-        errorStore.append("confirmX509CertPrincipalAuthzDetails: cert spiffe uri: ").append(certSpiffeUri)
+        errorStore.append("confirmX509CertProxySpiffeCheck: cert spiffe uri: ").append(certSpiffeUri)
                 .append(" not found in access token proxy principals: ").append(spiffeUris).append(";");
         return false;
     }
