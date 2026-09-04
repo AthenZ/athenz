@@ -4188,6 +4188,54 @@ func (self *TransportPolicySnapshotUsageRequest) Validate() error {
 	return nil
 }
 
+// TransportPolicySnapshotUsageResponse - Outcome of recording snapshot usage.
+// Recording is buffered and pushed to the usage store on a timer, so this
+// reports whether the report was accepted rather than whether it has been
+// persisted.
+type TransportPolicySnapshotUsageResponse struct {
+
+	//
+	// False when the report was accepted but discarded, e.g. reporting is
+	// disabled
+	//
+	Recorded bool `json:"recorded"`
+
+	//
+	// Set when recorded is false
+	//
+	Warning *TransportPolicySnapshotUsageWarning `json:"warning,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewTransportPolicySnapshotUsageResponse - creates an initialized TransportPolicySnapshotUsageResponse instance, returns a pointer to it
+func NewTransportPolicySnapshotUsageResponse(init ...*TransportPolicySnapshotUsageResponse) *TransportPolicySnapshotUsageResponse {
+	var o *TransportPolicySnapshotUsageResponse
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(TransportPolicySnapshotUsageResponse)
+	}
+	return o
+}
+
+type rawTransportPolicySnapshotUsageResponse TransportPolicySnapshotUsageResponse
+
+// UnmarshalJSON is defined for proper JSON decoding of a TransportPolicySnapshotUsageResponse
+func (self *TransportPolicySnapshotUsageResponse) UnmarshalJSON(b []byte) error {
+	var m rawTransportPolicySnapshotUsageResponse
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := TransportPolicySnapshotUsageResponse(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *TransportPolicySnapshotUsageResponse) Validate() error {
+	return nil
+}
+
 // TransportPolicySnapshotUsage - Usage recorded for a snapshot - which
 // principals last used it, and when
 type TransportPolicySnapshotUsage struct {

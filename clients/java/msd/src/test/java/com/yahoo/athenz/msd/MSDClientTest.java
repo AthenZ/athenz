@@ -408,7 +408,16 @@ public class MSDClientTest {
 
         TransportPolicySnapshotUsageRequest usage =
                 new TransportPolicySnapshotUsageRequest().setSnapshotName("v1");
-        msdClient.recordTransportPolicySnapshotUsage("athenz", "api", "v1", usage);
+        TransportPolicySnapshotUsageResponse recorded =
+                msdClient.recordTransportPolicySnapshotUsage("athenz", "api", "v1", usage);
+        assertTrue(recorded.getRecorded());
+        assertNull(recorded.getWarning());
+
+        // a report that was accepted but discarded says so, rather than looking like a success
+        TransportPolicySnapshotUsageResponse discarded =
+                msdClient.recordTransportPolicySnapshotUsage("disabled-domain", "api", "v1", usage);
+        assertFalse(discarded.getRecorded());
+        assertEquals(discarded.getWarning().getCode(), "REPORTING_DISABLED");
 
         try {
             msdClient.recordTransportPolicySnapshotUsage("bad-domain", "api", "v1", usage);

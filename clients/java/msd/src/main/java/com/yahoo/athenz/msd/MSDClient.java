@@ -362,11 +362,12 @@ public class MSDClient implements Closeable {
      * @param service      name of the service
      * @param snapshotName name of the snapshot
      * @param usage        snapshot usage request object
+     * @return whether the report was accepted, with a warning when it was not
      */
-    public void recordTransportPolicySnapshotUsage(String domain, String service, String snapshotName,
-                                                   TransportPolicySnapshotUsageRequest usage) {
+    public TransportPolicySnapshotUsageResponse recordTransportPolicySnapshotUsage(String domain, String service,
+            String snapshotName, TransportPolicySnapshotUsageRequest usage) {
         try {
-            client.recordTransportPolicySnapshotUsage(domain, service, snapshotName, usage);
+            return client.recordTransportPolicySnapshotUsage(domain, service, snapshotName, usage);
         } catch (ClientResourceException ex) {
             throw new MSDClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

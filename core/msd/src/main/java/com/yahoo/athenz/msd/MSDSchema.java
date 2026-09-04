@@ -449,6 +449,11 @@ public class MSDSchema {
             .comment("Body of a request to record snapshot usage. The principal is taken from the caller's identity and the time is stamped by the server.")
             .field("snapshotName", "EntityName", false, "Name of the snapshot being used, must match the name in the path");
 
+        sb.structType("TransportPolicySnapshotUsageResponse")
+            .comment("Outcome of recording snapshot usage. Recording is buffered and pushed to the usage store on a timer, so this reports whether the report was accepted rather than whether it has been persisted.")
+            .field("recorded", "Bool", false, "False when the report was accepted but discarded, e.g. reporting is disabled")
+            .field("warning", "TransportPolicySnapshotUsageWarning", true, "Set when recorded is false");
+
         sb.structType("TransportPolicySnapshotUsage")
             .comment("Usage recorded for a snapshot - which principals last used it, and when")
             .arrayField("principals", "TransportPolicySnapshotUsagePrincipal", false, "One entry per principal with recorded use of this snapshot")
@@ -1207,14 +1212,14 @@ public class MSDSchema {
 ;
 
         sb.resource("TransportPolicySnapshotUsageRequest", "POST", "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}/usage")
-            .comment("Api for a caller to record that it is using a snapshot. Callers are expected to repeat this while the snapshot remains in use rather than on every fetch. The principal is taken from the caller's identity and the time is stamped by the server.")
+            .comment("Api for a caller to record that it is using a snapshot. Callers are expected to repeat this while the snapshot remains in use rather than on every fetch. The principal is taken from the caller's identity and the time is stamped by the server. The response reports whether the report was accepted, so a caller learns at onboarding time if reporting is switched off rather than having to infer it later from an empty usage list.")
             .name("recordTransportPolicySnapshotUsage")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("serviceName", "EntityName", "name of the service")
             .pathParam("snapshotName", "EntityName", "name of the snapshot")
             .input("usage", "TransportPolicySnapshotUsageRequest", "snapshot usage request object")
             .auth("msd.RecordSnapshotHeartbeat", "{domainName}:service.{serviceName}")
-            .expected("NO_CONTENT")
+            .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")

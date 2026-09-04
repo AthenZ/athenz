@@ -1138,7 +1138,7 @@ public class MSDRDLGeneratedClient {
         }
     }
 
-    public TransportPolicySnapshotUsage recordTransportPolicySnapshotUsage(String domainName, String serviceName, String snapshotName, TransportPolicySnapshotUsageRequest usage) throws URISyntaxException, IOException {
+    public TransportPolicySnapshotUsageResponse recordTransportPolicySnapshotUsage(String domainName, String serviceName, String snapshotName, TransportPolicySnapshotUsageRequest usage) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}/usage")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("serviceName", serviceName)
@@ -1157,8 +1157,8 @@ public class MSDRDLGeneratedClient {
             int code = httpResponse.getCode();
             httpResponseEntity = httpResponse.getEntity();
             switch (code) {
-            case 204:
-                return null;
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), TransportPolicySnapshotUsageResponse.class);
             default:
                 final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
                 throw (errorData != null && !errorData.isEmpty())

@@ -180,15 +180,19 @@ public class MSDRDLClientMock extends MSDRDLGeneratedClient implements Closeable
     }
 
     @Override
-    public TransportPolicySnapshotUsage recordTransportPolicySnapshotUsage(String domainName, String serviceName,
-            String snapshotName, TransportPolicySnapshotUsageRequest usage) {
+    public TransportPolicySnapshotUsageResponse recordTransportPolicySnapshotUsage(String domainName,
+            String serviceName, String snapshotName, TransportPolicySnapshotUsageRequest usage) {
         if ("bad-domain".equals(domainName)) {
             throw new ClientResourceException(404, "unknown domain");
         }
         if ("bad-req".equals(domainName)) {
             throw new RuntimeException("bad request");
         }
-        return null;
+        if ("disabled-domain".equals(domainName)) {
+            return new TransportPolicySnapshotUsageResponse().setRecorded(false)
+                    .setWarning(new TransportPolicySnapshotUsageWarning().setSource("msd").setCode("REPORTING_DISABLED"));
+        }
+        return new TransportPolicySnapshotUsageResponse().setRecorded(true);
     }
 
     @Override
