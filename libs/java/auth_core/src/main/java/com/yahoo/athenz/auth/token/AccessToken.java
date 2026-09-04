@@ -333,7 +333,7 @@ public class AccessToken extends OAuth2Token {
 
         List<String> spiffeUris = null;
         try {
-            spiffeUris = (List<String>) confirm.get(CLAIM_CONFIRM_PROXY_SPIFFE);
+            spiffeUris = (List<String>) getConfirmEntry(CLAIM_CONFIRM_PROXY_SPIFFE);
         } catch (Exception ignored) {
         }
         return spiffeUris;
@@ -346,13 +346,12 @@ public class AccessToken extends OAuth2Token {
             return false;
         }
 
-        // extract our confirmation hash claim
+        // extract our confirmation hash claim. the token might not be
+        // bound to a certificate if the client was not authenticated
+        // with a certificate when the token was issued, so the hash
+        // could be null and the remaining checks must handle that case
 
         final String cnfHash = (String) getConfirmEntry(CLAIM_CONFIRM_X509_HASH);
-        if (cnfHash == null) {
-            LOG.error("confirmMTLSBoundToken: token does not have confirmation entry");
-            return false;
-        }
 
         // first we're going to verify our expected
         // x.509 certificate hash
@@ -373,6 +372,7 @@ public class AccessToken extends OAuth2Token {
         // check if the certificate principal matches and the
         // creation time for our cert is within our configured
         // offset timeouts
+
         StringBuilder errorStore = new StringBuilder();
         if (confirmX509CertPrincipal(x509Cert, cn, errorStore)) {
             return true;
@@ -395,12 +395,13 @@ public class AccessToken extends OAuth2Token {
 
         List<String> spiffeUris;
         try {
-            spiffeUris = (List<String>) confirm.get(CLAIM_CONFIRM_PROXY_SPIFFE);
+            spiffeUris = (List<String>) getConfirmEntry(CLAIM_CONFIRM_PROXY_SPIFFE);
         } catch (Exception ex) {
             errorStore.append("Unable to parse proxy principal claim: ").append(ex.getMessage()).append(";");
             return false;
         }
         if (spiffeUris == null) {
+            errorStore.append("confirmX509CertPrincipalAuthzDetails: no proxy principals in access token;");
             return false;
         }
 
@@ -417,6 +418,12 @@ public class AccessToken extends OAuth2Token {
 
     boolean confirmX509CertHash(X509Certificate cert, final String cnfHash) {
 
+        // if the token is not bound to a certificate then
+        // there is no hash to compare against
+
+        if (cnfHash == null) {
+            return false;
+        }
         final String certHash = getX509CertificateHash(cert);
         return cnfHash.equals(certHash);
     }
@@ -426,11 +433,22 @@ public class AccessToken extends OAuth2Token {
         // if the proxy principal set is not null then the client
         // has specified some value so we'll enforce it (even if
         // the set is empty thus rejecting all requests)
+
         if (ACCESS_TOKEN_PROXY_PRINCIPALS != null && !ACCESS_TOKEN_PROXY_PRINCIPALS.contains(cn)) {
             errorStore.append("confirmX509ProxyPrincipal: unauthorized proxy principal: ").append(cn).append(";");
             LOG.error(errorStore.toString());
             return false;
         }
+
+        // if the token is not bound to a certificate then there is
+        // no hash to compare the forwarded certificate hash against
+
+        if (cnfHash == null) {
+            errorStore.append("confirmX509ProxyPrincipal: token does not have certificate confirmation entry;");
+            LOG.error(errorStore.toString());
+            return false;
+        }
+
         if (!cnfHash.equals(certHash)) {
             LOG.error(errorStore.toString());
             return false;

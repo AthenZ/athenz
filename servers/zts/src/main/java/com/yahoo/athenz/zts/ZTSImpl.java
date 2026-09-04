@@ -2953,14 +2953,16 @@ public class ZTSImpl implements ZTSHandler {
 
         // if we have a certificate used for mTLS authentication then
         // we're going to bind the certificate to the access token
-        // and the optional proxy principals if specified
 
         X509Certificate cert = principal.getX509Certificate();
         if (cert != null) {
             accessToken.setConfirmX509CertHash(cert);
-            if (accessTokenRequest.getProxyPrincipalsSpiffeUris() != null) {
-                accessToken.setConfirmProxyPrincipalSpiffeUris(accessTokenRequest.getProxyPrincipalsSpiffeUris());
-            }
+        }
+
+        // include the optional proxy principals if specified
+
+        if (accessTokenRequest.getProxyPrincipalsSpiffeUris() != null) {
+            accessToken.setConfirmProxyPrincipalSpiffeUris(accessTokenRequest.getProxyPrincipalsSpiffeUris());
         }
     }
 
