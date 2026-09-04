@@ -99,7 +99,7 @@ describe('PrincipalToken impl', function() {
 
   it('should test PrincipalToken: using signedToken: domain Null: result error', function() {
     try {
-      var principalToken = new PrincipalToken('v=U1;n=test;h=test.athenz.com;a=01234abc;t=10000;e=30;k=0;z=zms;o=athenz.ci.service;i=172.168.0.1;s=signature;');
+      var principalToken = new PrincipalToken('v=U1;n=test;h=test.athenz.com;a=01234abc;t=10000;e=30;k=0;z=zms;o=athenz.ci.service;i=172.168.0.1;s=signature');
     } catch (e) {
       expect(e.message).to.equal('SignedToken does not contain required domain component');
       return;
@@ -109,7 +109,7 @@ describe('PrincipalToken impl', function() {
 
   it('should test PrincipalToken: using signedToken: name Null: result error', function() {
     try {
-      var principalToken = new PrincipalToken('v=U1;d=athenz;h=test.athenz.com;a=01234abc;t=10000;e=30;k=0;z=zms;o=athenz.ci.service;i=172.168.0.1;s=signature;');
+      var principalToken = new PrincipalToken('v=U1;d=athenz;h=test.athenz.com;a=01234abc;t=10000;e=30;k=0;z=zms;o=athenz.ci.service;i=172.168.0.1;s=signature');
     } catch (e) {
       expect(e.message).to.equal('SignedToken does not contain required name component');
       return;
@@ -300,7 +300,7 @@ describe('PrincipalToken impl', function() {
   });
 
   it('should test isValidAuthorizedServiceToken: authorizedServiceSignature Null: result false', function() {
-    var tokenStr = 'v=S1;d=athenz.user;n=test;a=01234abc;t=10000;e=30;k=0;b=tech.store,tech.item;s=signature;bk=0;';
+    var tokenStr = 'v=S1;d=athenz.user;n=test;a=01234abc;t=10000;e=30;k=0;b=tech.store,tech.item;s=signature';
     var principalToken = new PrincipalToken(tokenStr);
 
     expect(principalToken.isValidAuthorizedServiceToken()).to.be.false;
@@ -318,5 +318,45 @@ describe('PrincipalToken impl', function() {
     var principalToken = new PrincipalToken(tokenStr);
 
     expect(principalToken.isValidAuthorizedServiceToken()).to.be.false;
+  });
+  it('should test PrincipalToken: claims appended after the signature are ignored', function() {
+    var tokenStr = 'v=U1;d=user;n=attacker;a=01234abc;t=10000;e=30;k=0;s=signature;bk=0;bs=bsignature';
+    var principalToken = new PrincipalToken(tokenStr.replace('s=signature', 's=signature;d=user;n=athenz.ui.admin'));
+
+    expect(principalToken.getDomain()).to.equal('user');
+    expect(principalToken.getName()).to.equal('attacker');
+    expect(principalToken.getSignature()).to.equal('signature');
+  });
+
+  it('should test PrincipalToken: signature component with invalid characters: result error', function() {
+    expect(function() {
+      new PrincipalToken('v=U1;d=user;n=attacker;a=01234abc;t=10000;e=30;k=0;s=signature;d=user;n=athenz.ui.admin');
+    }).to.throw(Error, 'SignedToken contains an invalid signature component');
+  });
+
+  it('should test PrincipalToken: authorized service signature with invalid characters: result error', function() {
+    expect(function() {
+      new PrincipalToken('v=U1;d=user;n=attacker;a=01234abc;t=10000;e=30;k=0;b=tech.item;s=signature;bk=0;bs=bsignature;n=athenz.ui.admin');
+    }).to.throw(Error, 'SignedToken contains an invalid authorized service signature component');
+  });
+
+  it('should test PrincipalToken: appended claims must not impersonate another user', function() {
+    var principalToken = new PrincipalToken(tokenObject);
+    principalToken.sign(privateKey);
+
+    expect(function() {
+      new PrincipalToken(principalToken.getSignedToken() + ';d=user;n=athenz.ui.admin');
+    }).to.throw(Error, 'SignedToken contains an invalid signature component');
+  });
+  it('should test PrincipalToken: non-numeric expiry: result error', function() {
+    expect(function() {
+      new PrincipalToken(signedToken.replace('e=30', 'e=abc'));
+    }).to.throw(Error, 'SignedToken contains invalid numeric value for expiry component');
+  });
+
+  it('should test PrincipalToken: non-numeric timestamp: result error', function() {
+    expect(function() {
+      new PrincipalToken(signedToken.replace('t=10000', 't='));
+    }).to.throw(Error, 'SignedToken contains invalid numeric value for timestamp component');
   });
 });
