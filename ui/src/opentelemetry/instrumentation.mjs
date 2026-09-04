@@ -75,9 +75,9 @@ const sdk = new NodeSDK({
     }),
 
     traceExporter: new OTLPTraceExporter(exporterOptions),
-    logRecordProcessor: new BatchLogRecordProcessor(
-        new OTLPLogExporter(exporterOptions)
-    ),
+    logRecordProcessor: new BatchLogRecordProcessor({
+        exporter: new OTLPLogExporter(exporterOptions),
+    }),
     metricReader: new PeriodicExportingMetricReader({
         exporter: new OTLPMetricExporter(exporterOptions),
         exportIntervalMillis: 60000,
