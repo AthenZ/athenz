@@ -728,6 +728,107 @@ public class AccessTokenTest {
         }
     }
 
+    AccessToken createUnboundAccessToken(long now) {
+
+        // access token that is not bound to a certificate
+        // thus no x5t#S256 confirmation entry
+
+        AccessToken accessToken = new AccessToken();
+        accessToken.setAuthTime(now);
+        accessToken.setJwtId("jwt-id001");
+        accessToken.setSubject("athenz.api");
+        accessToken.setUserId("userid");
+        accessToken.setExpiryTime(now + 3600);
+        accessToken.setIssueTime(now);
+        accessToken.setClientId("mtls");
+        accessToken.setAudience("coretech");
+        accessToken.setVersion(1);
+        accessToken.setIssuer("athenz");
+        accessToken.setScope(Collections.singletonList("readers"));
+        return accessToken;
+    }
+
+    @Test
+    public void testConfirmMTLSBoundTokenNoHashWithProxyPrincipal() throws IOException {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createUnboundAccessToken(now);
+        accessToken.setConfirmProxyPrincipalSpiffeUris(Collections.singletonList("spiffe://athenz/domain1/service1"));
+        assertNull(accessToken.getConfirmEntry("x5t#S256"));
+
+        Path path = Paths.get("src/test/resources/x509_altnames_singleuri.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        // the certificate spiffe uri matches one of the proxy principals
+        // so the token must be accepted even without a certificate hash
+
+        assertTrue(accessToken.confirmMTLSBoundToken(cert, null));
+        assertTrue(accessToken.confirmMTLSBoundToken(cert, "cnf-hash"));
+
+        // now verify the same behavior with a signed token
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+
+        AccessToken checkToken = new AccessToken(accessJws, resolver, cert);
+        assertNotNull(checkToken);
+        assertNull(checkToken.getConfirmEntry("x5t#S256"));
+        List<String> spiffeUris = checkToken.getConfirmProxyPrincpalSpiffeUris();
+        assertEquals(spiffeUris.size(), 1);
+        assertEquals(spiffeUris.get(0), "spiffe://athenz/domain1/service1");
+    }
+
+    @Test
+    public void testConfirmMTLSBoundTokenNoHashWithProxyPrincipalMismatch() throws IOException {
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createUnboundAccessToken(now);
+        accessToken.setConfirmProxyPrincipalSpiffeUris(Collections.singletonList("spiffe://athenz/sports/service1"));
+
+        Path path = Paths.get("src/test/resources/x509_altnames_singleuri.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        // the certificate spiffe uri is not in the proxy principal
+        // list so the token must be rejected
+
+        assertFalse(accessToken.confirmMTLSBoundToken(cert, null));
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        JwtsSigningKeyResolver resolver = new JwtsSigningKeyResolver(jwksUri, null);
+
+        try {
+            new AccessToken(accessJws, resolver, cert);
+            fail();
+        } catch (CryptoException ex) {
+            assertTrue(ex.getMessage().contains("Confirmation failure"));
+        }
+    }
+
+    @Test
+    public void testConfirmMTLSBoundTokenNoHashNoProxyPrincipals() throws IOException {
+
+        // token has neither a certificate hash nor proxy principals
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createUnboundAccessToken(now);
+
+        Path path = Paths.get("src/test/resources/x509_altnames_singleuri.cert");
+        String certStr = new String(Files.readAllBytes(path));
+        X509Certificate cert = Crypto.loadX509Certificate(certStr);
+
+        assertFalse(accessToken.confirmMTLSBoundToken(cert, null));
+    }
+
     @Test
     public void testConfirmMTLSBoundTokenWithProxyNotAllowed() throws IOException {
 

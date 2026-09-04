@@ -566,6 +566,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -623,6 +625,8 @@ public class ZTSImplAccessTokenTest {
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -667,6 +671,8 @@ public class ZTSImplAccessTokenTest {
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -746,6 +752,7 @@ public class ZTSImplAccessTokenTest {
                 "grant_type=client_credentials&proxy_for_principal=&scope=" + scope);
         assertNotNull(resp);
         assertEquals(resp.getScope(), "coretech:role.writers");
+        cloudStore.close();
     }
 
     @Test
@@ -788,6 +795,7 @@ public class ZTSImplAccessTokenTest {
                 "grant_type=client_credentials&scope=coretech:domain&expires_in=100");
         assertNotNull(resp);
         assertEquals(resp.getScope(), "coretech:role.readers coretech:role.writers");
+        cloudStore.close();
     }
 
     @Test
@@ -854,6 +862,7 @@ public class ZTSImplAccessTokenTest {
         }
 
         System.clearProperty(ZTSConsts.ZTS_PROP_PRINCIPAL_IDENTITY_ISSUER_MAP_FNAME);
+        cloudStore.close();
     }
 
     @Test
@@ -905,6 +914,7 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+        cloudStore.close();
     }
 
     @Test
@@ -942,6 +952,8 @@ public class ZTSImplAccessTokenTest {
 
         JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(ztsImpl.privateRSAKey.getKey()));
         assertTrue(signedJWT.verify(verifier));
+
+        cloudStore.close();
     }
 
     @Test
@@ -982,6 +994,8 @@ public class ZTSImplAccessTokenTest {
 
         JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(ztsImpl.privateECKey.getKey()));
         assertTrue(signedJWT.verify(verifier));
+
+        cloudStore.close();
     }
 
     @Test
@@ -1025,6 +1039,8 @@ public class ZTSImplAccessTokenTest {
                 "grant_type=client_credentials&scope=coretech:role.writers");
         assertNotNull(resp);
         assertNull(resp.getScope());
+
+        cloudStore.close();
     }
 
     @Test
@@ -1077,6 +1093,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -1159,6 +1177,8 @@ public class ZTSImplAccessTokenTest {
         }
         assertNotNull(claimSet);
         assertEquals(issuer, claimSet.getIssuer());
+
+        cloudStore.close();
     }
 
     @Test
@@ -1207,6 +1227,8 @@ public class ZTSImplAccessTokenTest {
         // the value should be 12 hours - the default max
 
         assertEquals(claimSet.getExpirationTime().getTime() - claimSet.getIssueTime().getTime(), 12 * 60 * 60 * 1000);
+
+        cloudStore.close();
     }
 
     @Test
@@ -1265,6 +1287,8 @@ public class ZTSImplAccessTokenTest {
 
         assertNotNull(resp.getAccess_token());
         assertNull(resp.getId_token());
+
+        cloudStore.close();
     }
 
     @Test
@@ -1440,6 +1464,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -1500,6 +1526,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -1618,6 +1646,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -1667,6 +1697,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -1774,6 +1806,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -1875,6 +1909,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("Authorization Details configuration mismatch"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -1972,6 +2008,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("Authorization Details configuration mismatch"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -2024,6 +2062,7 @@ public class ZTSImplAccessTokenTest {
 
             Map<String, Object> cnf = (Map<String, Object>) claimSet.getClaim("cnf");
             assertNotNull(cnf);
+            assertNotNull(cnf.get("x5t#S256"));
             List<String> spiffeUris = (List<String>) cnf.get("proxy-principals#spiffe");
             assertNotNull(spiffeUris);
             assertEquals(spiffeUris.size(), 2);
@@ -2032,6 +2071,56 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testPostAccessTokenRequestWithProxyPrincipalsNoCertificate() throws JOSEException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        // principal is not authenticated with a certificate so the token
+        // must not be certificate bound but must still include the
+        // requested proxy principals in the confirmation claim
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:role.writers&proxy_principal_spiffe_uris="
+                + PROXY_PRINCIPAL_SPIFFE_URIS);
+        assertNotNull(resp);
+        assertNull(resp.getScope());
+
+        ServerPrivateKey privateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(privateKey.getKey()));
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(resp.getAccess_token());
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertEquals(claimSet.getAudience().get(0), "coretech");
+            assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
+
+            Map<String, Object> cnf = claimSet.getJSONObjectClaim("cnf");
+            assertNotNull(cnf);
+            assertNull(cnf.get("x5t#S256"));
+            assertEquals(cnf.get("proxy-principals#spiffe"), EXPECTED_PROXY_PRINCIPAL_SPIFFE_URIS);
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
     }
 
     @Test
@@ -2115,6 +2204,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -2212,6 +2303,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     private String createJagToken(PrivateKey key, String keyId, String subject, String clientId,
@@ -2311,6 +2404,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -2392,6 +2487,8 @@ public class ZTSImplAccessTokenTest {
         }
 
         System.clearProperty(ZTSConsts.ZTS_PROP_PROVIDER_CONFIG_FILE);
+
+        cloudStore.close();
     }
 
     @Test
@@ -2447,6 +2544,8 @@ public class ZTSImplAccessTokenTest {
 
         System.clearProperty(ZTSConsts.ZTS_PROP_OPENID_ISSUER);
         System.clearProperty(ZTSConsts.ZTS_PROP_OAUTH_ISSUER);
+
+        cloudStore.close();
     }
 
     @Test
@@ -2549,6 +2648,67 @@ public class ZTSImplAccessTokenTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
             assertTrue(ex.getMessage().contains("Actor parameter requires X.509 authenticated principal"));
+        }
+    }
+
+    @Test
+    public void testProcessJAGTokenExchangeRequestProxyPrincipalsNoCertificate() throws JOSEException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
+                "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
+
+        // client is authenticated with a client assertion and not a certificate
+        // so the token must not be certificate bound but must still include
+        // the requested proxy principals in the confirmation claim
+
+        Principal principal = SimplePrincipal.create("coretech", "jwt",
+                "v=U1;d=coretech;n=jwt;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
+                        + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                        + "&client_assertion=" + createClientAssertionToken(privateKey)
+                        + "&proxy_principal_spiffe_uris=" + PROXY_PRINCIPAL_SPIFFE_URIS);
+
+        assertNotNull(resp);
+        assertEquals(resp.getScope(), "coretech:role.writers");
+        assertNotNull(resp.getAccess_token());
+        assertEquals(resp.getToken_type(), "Bearer");
+
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(resp.getAccess_token());
+            assertTrue(signedJWT.verify(verifier));
+
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "coretech");
+            assertEquals(claimSet.getStringClaim("client_id"), "coretech.jwt");
+
+            Map<String, Object> cnfClaim = claimSet.getJSONObjectClaim("cnf");
+            assertNotNull(cnfClaim);
+            assertNull(cnfClaim.get("x5t#S256"));
+            assertEquals(cnfClaim.get("proxy-principals#spiffe"), EXPECTED_PROXY_PRINCIPAL_SPIFFE_URIS);
+
+            // impersonation does not include `may_act` or `act` claim:
+            assertNull(claimSet.getJSONObjectClaim("may_act"));
+            assertNull(claimSet.getJSONObjectClaim("act"));
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
         }
     }
 
@@ -2789,6 +2949,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ParseException ex) {
             fail(ex.getMessage());
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -2983,6 +3145,8 @@ public class ZTSImplAccessTokenTest {
                 fail("Want error: " + wantErrorMessage + ", Got error: " + ex.getMessage());
             }
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3022,6 +3186,8 @@ public class ZTSImplAccessTokenTest {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("Authorized service principal forbidden for jag token exchange"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3056,6 +3222,8 @@ public class ZTSImplAccessTokenTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid assertion token"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3094,6 +3262,8 @@ public class ZTSImplAccessTokenTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Unknown jag assertion audience"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3132,6 +3302,8 @@ public class ZTSImplAccessTokenTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid jag assertion client_id"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3170,6 +3342,8 @@ public class ZTSImplAccessTokenTest {
             assertEquals(ex.getCode(), 400);
             assertTrue(ex.getMessage().contains("Invalid jag assertion - missing subject"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3207,6 +3381,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3246,6 +3422,8 @@ public class ZTSImplAccessTokenTest {
             assertEquals(ex.getCode(), 404);
             assertTrue(ex.getMessage().contains("No such domain"));
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3283,6 +3461,8 @@ public class ZTSImplAccessTokenTest {
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 403);
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -3321,6 +3501,8 @@ public class ZTSImplAccessTokenTest {
         // Should return all roles user has access to
         assertTrue(resp.getScope().contains("coretech:role."));
         assertNotNull(resp.getAccess_token());
+
+        cloudStore.close();
     }
 
     @Test
@@ -3359,6 +3541,8 @@ public class ZTSImplAccessTokenTest {
         // Should return scope response since requested != returned
         assertTrue(resp.getScope().contains("coretech:role."));
         assertNotNull(resp.getAccess_token());
+
+        cloudStore.close();
     }
 
     private String createClientAssertionToken(PrivateKey privateKey) {
@@ -3877,6 +4061,8 @@ public class ZTSImplAccessTokenTest {
         } finally {
             cloudStore.close();
         }
+
+        cloudStore.close();
     }
 
     @Test
@@ -4559,6 +4745,8 @@ public class ZTSImplAccessTokenTest {
         cloudStore.close();
 
         System.clearProperty(ZTSConsts.ZTS_PROP_PROVIDER_CONFIG_FILE);
+
+        cloudStore.close();
     }
 
     @Test
@@ -5931,6 +6119,94 @@ public class ZTSImplAccessTokenTest {
             Map<String, Object> cnfClaim = claimSet.getJSONObjectClaim("cnf");
             assertNotNull(cnfClaim);
             assertEquals(cnfClaim.get("x5t#S256"), MTLS_TOKEN_SPEC_CERT_HASH);
+            assertEquals(cnfClaim.get("proxy-principals#spiffe"), EXPECTED_PROXY_PRINCIPAL_SPIFFE_URIS);
+
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenExchangeDelegationRequestWithProxyPrincipalsNoCertificate() throws JOSEException {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("targetdomain:role.writers");
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user",
+                "sourcedomain", subjectRoles, "user_domain.proxy-user1", null, expiryTime);
+
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1",
+                "targetdomain", expiryTime);
+
+        // principal is not authenticated with a certificate so the token
+        // must not be certificate bound but must still include the
+        // requested proxy principals in the confirmation claim
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+        ztsImpl.tokenConfigOptions = tokenConfigOptions;
+
+        final String requestBody = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                        + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                        + "&subject_token=" + subjectTokenStr
+                        + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                        + "&actor_token=" + actorTokenStr
+                        + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                        + "&audience=targetdomain"
+                        + "&scope=targetdomain:role.writers"
+                        + "&proxy_principal_spiffe_uris=" + PROXY_PRINCIPAL_SPIFFE_URIS;
+
+        AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, requestBody);
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+        assertEquals(response.getToken_type(), "Bearer");
+        assertEquals(response.getScope(), "targetdomain:role.writers");
+
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "targetdomain");
+
+            Map actMap = (Map) claimSet.getClaim("act");
+            assertNotNull(actMap);
+            assertEquals(actMap.get("sub"), "user_domain.proxy-user1");
+
+            Map<String, Object> cnfClaim = claimSet.getJSONObjectClaim("cnf");
+            assertNotNull(cnfClaim);
+            assertNull(cnfClaim.get("x5t#S256"));
             assertEquals(cnfClaim.get("proxy-principals#spiffe"), EXPECTED_PROXY_PRINCIPAL_SPIFFE_URIS);
 
         } catch (Exception ex) {
@@ -7597,7 +7873,77 @@ public class ZTSImplAccessTokenTest {
             SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
             assertTrue(signedJWT.verify(verifier));
             JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
-            assertNotNull(claimSet.getClaim("cnf"));
+            Map<String, Object> cnfClaim = claimSet.getJSONObjectClaim("cnf");
+            assertNotNull(cnfClaim);
+            assertNotNull(cnfClaim.get("x5t#S256"));
+            assertEquals(cnfClaim.get("proxy-principals#spiffe"), EXPECTED_PROXY_PRINCIPAL_SPIFFE_URIS);
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestSuccessWithProxyPrincipalsNoCertificate() throws Exception {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        KeyStore keyStore = getServerPublicKeyProvider(privateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        List<String> subjectRoles = List.of("targetdomain:role.writers");
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user",
+                "sourcedomain", subjectRoles, expiryTime);
+
+        // principal is not authenticated with a certificate so the token
+        // must not be certificate bound but must still include the
+        // requested proxy principals in the confirmation claim
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        assertNotNull(principal);
+
+        ResourceContext context = createResourceContext(principal);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(keyStore);
+
+        AccessTokenRequest accessTokenRequest = getAccessTokenRequest(subjectTokenStr, tokenConfigOptions);
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenImpersonationRequest(context, principal,
+                accessTokenRequest, "user_domain", "postAccessTokenRequest");
+
+        assertNotNull(response);
+        assertNotNull(response.getAccess_token());
+
+        String accessTokenStr = response.getAccess_token();
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(accessTokenStr);
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+            Map<String, Object> cnfClaim = claimSet.getJSONObjectClaim("cnf");
+            assertNotNull(cnfClaim);
+            assertNull(cnfClaim.get("x5t#S256"));
+            assertEquals(cnfClaim.get("proxy-principals#spiffe"), EXPECTED_PROXY_PRINCIPAL_SPIFFE_URIS);
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
