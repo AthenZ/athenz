@@ -43,6 +43,13 @@ type TransportPolicySnapshotUsageRequest Struct {
     EntityName snapshotName; // Name of the snapshot being used, must match the name in the path
 }
 
+// Outcome of recording snapshot usage. Recording is buffered and pushed to the usage store on a
+// timer, so this reports whether the report was accepted rather than whether it has been persisted.
+type TransportPolicySnapshotUsageResponse Struct {
+    Bool recorded; // False when the report was accepted but discarded, e.g. reporting is disabled
+    TransportPolicySnapshotUsageWarning warning (optional); // Set when recorded is false
+}
+
 // Usage recorded for a snapshot - which principals last used it, and when
 type TransportPolicySnapshotUsage Struct {
     Array<TransportPolicySnapshotUsagePrincipal> principals; // One entry per principal with recorded use of this snapshot

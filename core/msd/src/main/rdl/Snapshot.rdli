@@ -93,14 +93,16 @@ resource TransportPolicySnapshot DELETE "/domain/{domainName}/service/{serviceNa
 
 // Api for a caller to record that it is using a snapshot. Callers are expected to repeat this while
 // the snapshot remains in use rather than on every fetch. The principal is taken from the caller's
-// identity and the time is stamped by the server.
-resource TransportPolicySnapshotUsage POST "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}/usage" (name=recordTransportPolicySnapshotUsage) {
+// identity and the time is stamped by the server. The response reports whether the report was
+// accepted, so a caller learns at onboarding time if reporting is switched off rather than having to
+// infer it later from an empty usage list.
+resource TransportPolicySnapshotUsageResponse POST "/domain/{domainName}/service/{serviceName}/snapshot/{snapshotName}/usage" (name=recordTransportPolicySnapshotUsage) {
     DomainName domainName; // name of the domain
     EntityName serviceName; // name of the service
     EntityName snapshotName; // name of the snapshot
     TransportPolicySnapshotUsageRequest usage; // snapshot usage request object
     authorize ("msd.RecordSnapshotHeartbeat", "{domainName}:service.{serviceName}");
-    expected NO_CONTENT;
+    expected OK;
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;

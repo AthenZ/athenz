@@ -163,4 +163,35 @@ public class TransportPolicySnapshotUsageTest {
 
         assertFalse(request1.equals("xyz"));
     }
+
+    @Test
+    public void testTransportPolicySnapshotUsageResponseFields() {
+
+        TransportPolicySnapshotUsageWarning warning = new TransportPolicySnapshotUsageWarning()
+                .setSource("msd")
+                .setCode("REPORTING_DISABLED");
+
+        TransportPolicySnapshotUsageResponse response1 = new TransportPolicySnapshotUsageResponse()
+                .setRecorded(false)
+                .setWarning(warning);
+
+        assertFalse(response1.getRecorded());
+        assertEquals(response1.getWarning(), warning);
+
+        TransportPolicySnapshotUsageResponse response2 = new TransportPolicySnapshotUsageResponse()
+                .setRecorded(false)
+                .setWarning(warning);
+
+        assertEquals(response1, response1);
+        assertEquals(response1, response2);
+
+        response2.setWarning(null);
+        assertNotEquals(response1, response2);
+
+        response2.setWarning(warning);
+        response2.setRecorded(true);
+        assertNotEquals(response1, response2);
+
+        assertFalse(response1.equals("xyz"));
+    }
 }

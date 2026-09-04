@@ -1274,25 +1274,30 @@ func (client MSDClient) DeleteTransportPolicySnapshot(domainName DomainName, ser
 	}
 }
 
-func (client MSDClient) RecordTransportPolicySnapshotUsage(domainName DomainName, serviceName EntityName, snapshotName EntityName, usage *TransportPolicySnapshotUsageRequest) error {
+func (client MSDClient) RecordTransportPolicySnapshotUsage(domainName DomainName, serviceName EntityName, snapshotName EntityName, usage *TransportPolicySnapshotUsageRequest) (*TransportPolicySnapshotUsageResponse, error) {
+	var data *TransportPolicySnapshotUsageResponse
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/service/" + fmt.Sprint(serviceName) + "/snapshot/" + fmt.Sprint(snapshotName) + "/usage"
 	contentBytes, err := json.Marshal(usage)
 	if err != nil {
-		return err
+		return data, err
 	}
 	resp, err := client.httpPost(url, nil, contentBytes)
 	if err != nil {
-		return err
+		return data, err
 	}
 	defer resp.Body.Close()
 	switch resp.StatusCode {
-	case 204:
-		return nil
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
 	default:
 		var errobj rdl.ResourceError
 		contentBytes, err = io.ReadAll(resp.Body)
 		if err != nil {
-			return err
+			return data, err
 		}
 		json.Unmarshal(contentBytes, &errobj)
 		if errobj.Code == 0 {
@@ -1301,7 +1306,7 @@ func (client MSDClient) RecordTransportPolicySnapshotUsage(domainName DomainName
 		if errobj.Message == "" {
 			errobj.Message = string(contentBytes)
 		}
-		return errobj
+		return data, errobj
 	}
 }
 
