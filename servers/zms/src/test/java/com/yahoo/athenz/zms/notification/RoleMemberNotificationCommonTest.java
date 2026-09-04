@@ -1463,4 +1463,73 @@ public class RoleMemberNotificationCommonTest {
         assertEquals(notifications.get(0).getDetails().get(NOTIFICATION_DETAILS_MEMBERS_LIST),
                 "athenz;writers;ci-cd.project-123;" + expirationTs + ";");
     }
+
+    @Test
+    public void testConsolidateRoleMembersByDomainGroupLookups() {
+
+        DBService dbsvc = Mockito.mock(DBService.class);
+
+        // group without notify roles configured - notification goes to the domain
+
+        Group sportsGroup = new Group().setName("sports:group.dev-team");
+        Mockito.when(dbsvc.getGroup("sports", "dev-team", Boolean.FALSE, Boolean.FALSE)).thenReturn(sportsGroup);
+
+        // group that no longer exists - entry must be skipped
+
+        Mockito.when(dbsvc.getGroup("weather", "api-grp", Boolean.FALSE, Boolean.FALSE)).thenReturn(null);
+
+        RoleMemberNotificationCommon task = new RoleMemberNotificationCommon(dbsvc, USER_DOMAIN_PREFIX);
+
+        Map<String, DomainRoleMember> members = new HashMap<>();
+
+        List<MemberRole> memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("sports:group.dev-team").setDomainName("sports")
+                .setRoleName("readers"));
+        members.put("sports:group.dev-team", new DomainRoleMember().setMemberName("sports:group.dev-team")
+                .setMemberRoles(memberRoles));
+
+        memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("weather:group.api-grp").setDomainName("weather")
+                .setRoleName("readers"));
+        members.put("weather:group.api-grp", new DomainRoleMember().setMemberName("weather:group.api-grp")
+                .setMemberRoles(memberRoles));
+
+        Map<String, DomainRoleMember> consolidatedMembers = task.consolidateRoleMembersByDomain(members);
+        assertEquals(consolidatedMembers.size(), 1);
+
+        DomainRoleMember domainRoleMember = consolidatedMembers.get("sports");
+        assertNotNull(domainRoleMember);
+        assertEquals(domainRoleMember.getMemberRoles().size(), 1);
+        assertEquals(domainRoleMember.getMemberRoles().get(0).getMemberName(), "sports:group.dev-team");
+    }
+
+    @Test
+    public void testConsolidateDomainsEmptyNotifyRoles() {
+
+        DBService dbsvc = Mockito.mock(DBService.class);
+
+        // notify role exists but has no human members so the entry is skipped
+
+        Role notifyRole = new Role().setName("athenz:role.notify1").setRoleMembers(new ArrayList<>());
+        Mockito.when(dbsvc.getRole("athenz", "notify1", Boolean.FALSE, Boolean.TRUE, Boolean.FALSE))
+                .thenReturn(notifyRole);
+        Mockito.when(dbsvc.getRolesByDomain("athenz")).thenReturn(Collections.singletonList(notifyRole));
+
+        RoleMemberNotificationCommon task = new RoleMemberNotificationCommon(dbsvc, USER_DOMAIN_PREFIX);
+
+        Map<String, List<MemberRole>> domainRoleMembers = new HashMap<>();
+        List<MemberRole> memberRoles = new ArrayList<>();
+        memberRoles.add(new MemberRole().setMemberName("user.user1").setDomainName("athenz").setRoleName("dev-team")
+                .setNotifyRoles("notify1"));
+        memberRoles.add(new MemberRole().setMemberName("user.user2").setDomainName("athenz").setRoleName("qa-team"));
+        domainRoleMembers.put("athenz", memberRoles);
+
+        Map<String, DomainRoleMember> consolidatedMembers = task.consolidateDomains(domainRoleMembers);
+        assertEquals(consolidatedMembers.size(), 1);
+
+        DomainRoleMember domainRoleMember = consolidatedMembers.get("athenz");
+        assertNotNull(domainRoleMember);
+        assertEquals(domainRoleMember.getMemberRoles().size(), 1);
+        assertEquals(domainRoleMember.getMemberRoles().get(0).getMemberName(), "user.user2");
+    }
 }

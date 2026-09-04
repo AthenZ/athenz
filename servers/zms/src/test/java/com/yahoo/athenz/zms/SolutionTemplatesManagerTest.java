@@ -16,6 +16,7 @@
 
 package com.yahoo.athenz.zms;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.zms.config.SolutionTemplates;
 import org.testng.annotations.*;
 
@@ -1293,4 +1294,59 @@ public class SolutionTemplatesManagerTest {
         }
     }
 
+    @Test
+    public void testValidateSolutionTemplatesConfigCompatibleRejectsNullRole() {
+
+        SolutionTemplatesManager manager = new SolutionTemplatesManager(new ObjectMapper(), false,
+                () -> "", snapshot -> { });
+
+        SolutionTemplates nullRole = new SolutionTemplates();
+        HashMap<String, Template> templates = new HashMap<>();
+        templates.put("null_role", new Template().setRoles(Arrays.asList(null,
+                new Role().setName("trusted_role").setTrust("trusted.domain"))));
+        nullRole.setTemplates(templates);
+
+        // the legacy/compatible validation must also reject null role entries
+
+        try {
+            manager.validateSolutionTemplatesConfig(nullRole, false);
+            fail();
+        } catch (RuntimeException ex) {
+            assertTrue(ex.getMessage().contains("contains a null role"));
+        }
+    }
+
+    @Test
+    public void testReloadSolutionTemplatesIfModifiedDisabled() {
+
+        SolutionTemplatesManager manager = new SolutionTemplatesManager(new ObjectMapper(), false,
+                () -> "", snapshot -> { });
+        assertEquals(manager.reloadSolutionTemplatesIfModified(), SolutionTemplatesReloadStatus.DISABLED);
+    }
+
+    @Test
+    public void testReloadSolutionTemplatesIfModifiedNotModified() throws IOException {
+
+        File tempFile = File.createTempFile("dynamic_solution_templates_not_modified", ".json");
+        String originalTemplateFile = System.getProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME);
+        try {
+            writeSolutionTemplatesFile(tempFile, solutionTemplatesJson("dynamic_old", 1));
+            System.setProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, tempFile.getAbsolutePath());
+
+            List<SolutionTemplatesSnapshot> snapshots = new ArrayList<>();
+            SolutionTemplatesManager manager = new SolutionTemplatesManager(new ObjectMapper(), true,
+                    () -> "", snapshots::add);
+            manager.loadSolutionTemplates();
+            assertEquals(snapshots.size(), 1);
+            assertTrue(snapshots.get(0).templateNames.contains("dynamic_old"));
+
+            // the file has not changed since it was loaded so no new snapshot is published
+
+            assertEquals(manager.reloadSolutionTemplatesIfModified(), SolutionTemplatesReloadStatus.NOT_MODIFIED);
+            assertEquals(snapshots.size(), 1);
+        } finally {
+            restoreSystemProperty(ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_FNAME, originalTemplateFile);
+            tempFile.delete();
+        }
+    }
 }

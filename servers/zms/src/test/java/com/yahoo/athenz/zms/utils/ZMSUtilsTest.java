@@ -453,4 +453,12 @@ public class ZMSUtilsTest {
 
         assertFalse(ZMSUtils.enforceUserAuthorityFilterCheck(mockAuthority, Set.of("attr2", "attr4")));
     }
+
+    @Test
+    public void testConflictError() {
+        RuntimeException ex = ZMSUtils.conflictError("object already exists", "unittest");
+        assertTrue(ex instanceof ResourceException);
+        assertEquals(((ResourceException) ex).getCode(), ResourceException.CONFLICT);
+        assertTrue(ex.getMessage().contains("object already exists"));
+    }
 }

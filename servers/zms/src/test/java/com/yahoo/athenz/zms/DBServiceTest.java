@@ -14765,4 +14765,114 @@ public class DBServiceTest {
 
         zms.dbService.store = saveStore;
     }
+
+    private void assertStoreConnectionFailure(Runnable operation) {
+        try {
+            operation.run();
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Test
+    public void testStoreConnectionFailures() throws ServerResourceException {
+
+        final String domainName = "store-connection-failure";
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+        int saveRetryCount = zms.dbService.defaultRetryCount;
+        zms.dbService.defaultRetryCount = 2;
+
+        // all connection requests fail with a non-retryable error, so every
+        // operation must convert the exception into a resource exception
+
+        Mockito.when(mockObjStore.getConnection(anyBoolean(), anyBoolean()))
+                .thenThrow(new ServerResourceException(ServerResourceException.INTERNAL_SERVER_ERROR, "DB failure"));
+
+        // read operations
+
+        assertStoreConnectionFailure(() -> zms.dbService.lookupDomainByTag("tag-key", "tag-value"));
+        assertStoreConnectionFailure(() -> zms.dbService.listPrincipals(domainName, true));
+        assertStoreConnectionFailure(() -> zms.dbService.getServiceIdentity(domainName, "api", false));
+        assertStoreConnectionFailure(() -> zms.dbService.getDomain(domainName, false));
+        assertStoreConnectionFailure(() -> zms.dbService.listDomains(null, 0, false));
+        assertStoreConnectionFailure(() -> zms.dbService.lookupDomainByCloudProvider("aws", "1234"));
+        assertStoreConnectionFailure(() -> zms.dbService.lookupDomainByProductId(101));
+        assertStoreConnectionFailure(() -> zms.dbService.lookupDomainByProductId("abcd-101"));
+        assertStoreConnectionFailure(() -> zms.dbService.lookupDomainByBusinessService("business-service"));
+        assertStoreConnectionFailure(() -> zms.dbService.lookupDomainByRole("user.joe", "admin"));
+        assertStoreConnectionFailure(() -> zms.dbService.listGroups(domainName, false));
+        assertStoreConnectionFailure(() -> zms.dbService.getGroupMembership(domainName, "dev-team", "user.joe", 0, false));
+        assertStoreConnectionFailure(() -> zms.dbService.getRolesForReview("user.joe"));
+        assertStoreConnectionFailure(() -> zms.dbService.getGroupsForReview("user.joe"));
+        assertStoreConnectionFailure(() -> zms.dbService.getDelegatedRoleNames(new HashMap<>(), "*:role.admin", domainName));
+        assertStoreConnectionFailure(() -> zms.dbService.getPrincipalGroups("user.joe", domainName));
+        assertStoreConnectionFailure(() -> zms.dbService.getGroup(domainName, "dev-team", false, false));
+        assertStoreConnectionFailure(() -> zms.dbService.getRole(domainName, "dev-team", false, false, false));
+        assertStoreConnectionFailure(() -> zms.dbService.getPolicy(domainName, "policy1", null));
+        assertStoreConnectionFailure(() -> zms.dbService.getAssertion(domainName, "policy1", 1L));
+        assertStoreConnectionFailure(() -> zms.dbService.listEntities(domainName));
+        assertStoreConnectionFailure(() -> zms.dbService.isTrustRoleForTenant("provider", "role1", "prefix", "group1", domainName));
+        assertStoreConnectionFailure(() -> zms.dbService.isTenantRolePrefixMatch("role1", "prefix", "group1", domainName));
+        assertStoreConnectionFailure(() -> zms.dbService.listModifiedDomains(0, false));
+        assertStoreConnectionFailure(() -> zms.dbService.getQuota(domainName));
+        assertStoreConnectionFailure(() -> zms.dbService.getPendingDomainRoleMembers("user.joe", domainName));
+        assertStoreConnectionFailure(() -> zms.dbService.getPendingMembershipApproverRoles(1));
+        assertStoreConnectionFailure(() -> zms.dbService.getPendingGroupMembershipApproverRoles(1));
+        assertStoreConnectionFailure(() -> zms.dbService.getRoleExpiryMembers(1));
+        assertStoreConnectionFailure(() -> zms.dbService.getRoleReviewMembers(1));
+        assertStoreConnectionFailure(() -> zms.dbService.getGroupExpiryMembers(1));
+        assertStoreConnectionFailure(() -> zms.dbService.processExpiredPendingMembers(1, "sys.auth.monitor"));
+        assertStoreConnectionFailure(() -> zms.dbService.getDomainTemplates(domainName));
+        assertStoreConnectionFailure(() -> zms.dbService.applyTemplatesForListOfDomains(new HashMap<>(),
+                zms.serverSolutionTemplates));
+        assertStoreConnectionFailure(() -> zms.dbService.getPrincipals(0));
+        assertStoreConnectionFailure(() -> zms.dbService.getPrincipal("user.joe"));
+        assertStoreConnectionFailure(() -> zms.dbService.updatePrincipalByState(
+                Collections.singletonList(new PrincipalMember().setPrincipalName("user.joe")), true, 1, auditRef));
+        assertStoreConnectionFailure(() -> zms.dbService.listServiceDependencies(domainName, false));
+        assertStoreConnectionFailure(() -> zms.dbService.listDomainDependencies("sports.api"));
+
+        // write operations with retry handling
+
+        assertStoreConnectionFailure(() -> zms.dbService.executePutEntity(mockDomRsrcCtx, domainName, "entity1",
+                new Entity().setName(domainName + ":entity.entity1"), auditRef, "putEntity"));
+        assertStoreConnectionFailure(() -> zms.dbService.executeDeletePolicyVersion(mockDomRsrcCtx, domainName,
+                "policy1", "version1", auditRef, "deletePolicyVersion"));
+        assertStoreConnectionFailure(() -> zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName,
+                auditRef, "deleteDomain"));
+        assertStoreConnectionFailure(() -> zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName,
+                new DomainTemplate(), auditRef, "putDomainTemplate"));
+        assertStoreConnectionFailure(() -> zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName,
+                "template1", auditRef, "deleteDomainTemplate"));
+        assertStoreConnectionFailure(() -> zms.dbService.setupTenantAdminPolicy(mockDomRsrcCtx, domainName,
+                "provider", "storage", auditRef, "putTenancy"));
+        assertStoreConnectionFailure(() -> zms.dbService.executePutTenantRoles(mockDomRsrcCtx, "provider",
+                "storage", domainName, "group1", new ArrayList<>(), false, auditRef, "putTenantRoles"));
+        assertStoreConnectionFailure(() -> zms.dbService.executePutProviderRoles(mockDomRsrcCtx, domainName,
+                "provider", "storage", "group1", new ArrayList<>(), false, auditRef, "putProviderRoles"));
+        assertStoreConnectionFailure(() -> zms.dbService.executeDeleteTenancy(mockDomRsrcCtx, domainName,
+                "provider", "storage", "group1", auditRef, "deleteTenancy"));
+        assertStoreConnectionFailure(() -> zms.dbService.executeDeleteTenantRoles(mockDomRsrcCtx, "provider",
+                "storage", domainName, "group1", auditRef, "deleteTenantRoles"));
+        assertStoreConnectionFailure(() -> zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, domainName,
+                "role1", new RoleSystemMeta(), "auditenabled", auditRef, "putRoleSystemMeta"));
+        assertStoreConnectionFailure(() -> zms.dbService.executePutGroupSystemMeta(mockDomRsrcCtx, domainName,
+                "group1", new GroupSystemMeta(), "auditenabled", auditRef));
+        assertStoreConnectionFailure(() -> zms.dbService.executePutRoleMeta(mockDomRsrcCtx, domainName,
+                "role1", new Role(), new RoleMeta(), auditRef, "putRoleMeta"));
+        assertStoreConnectionFailure(() -> zms.dbService.executePutGroupMeta(mockDomRsrcCtx, domainName,
+                "group1", new Group(), new GroupMeta(), auditRef));
+        assertStoreConnectionFailure(() -> zms.dbService.executePutMembershipDecision(mockDomRsrcCtx, domainName,
+                "role1", new RoleMember().setMemberName("user.joe"), auditRef, "putMembershipDecision"));
+        assertStoreConnectionFailure(() -> zms.dbService.executePutResourceRoleOwnership(mockDomRsrcCtx, domainName,
+                "role1", new ResourceRoleOwnership(), auditRef, "putResourceRoleOwnership"));
+        assertStoreConnectionFailure(() -> zms.dbService.executePutResourceGroupOwnership(mockDomRsrcCtx, domainName,
+                "group1", new ResourceGroupOwnership(), auditRef, "putResourceGroupOwnership"));
+
+        zms.dbService.defaultRetryCount = saveRetryCount;
+        zms.dbService.store = saveStore;
+    }
 }
