@@ -18,6 +18,8 @@ Requirements:
   parameter set to `urn:ietf:params:oauth:token-type:id_token`
 - The token request must have the `scope` parameter set to the list of roles being requested in the
   format: `{domainName}:role.{roleName} {domainName}:role.{roleName} ...`
+- The scope may include roles from multiple domains when `athenz.zts.access_token_max_domains` is
+  configured to a value greater than `1`. The default value is `1`.
 - The token request must have a valid `audience` parameter specified
 - The requesting principal (service or user) must be authorized to perform the JAG token exchange
   for the evaluated subset of requested roles that the subject identity can access, with ZTS issuing
@@ -44,7 +46,7 @@ Requirements:
 - Extracts requested roles from the scope (at least one role must be present)
 - Extracts the subject identity. For ZTS-issued tokens, uses the token's subject directly.
   For external provider tokens, uses the identity provider's getTokenIdentity() method.
-- Validates that the subject identity has access to at least one of the requested roles
+- Validates that the subject identity has access to at least one requested role in each scope domain.
   The generated token will only include roles that the subject identity has access to.
 - For each subject identity access role, checks if the authenticated principal is authorized
   to perform JAG token exchange. For this authorization the following assertion must be
@@ -75,12 +77,18 @@ Requirements:
    or the registered service client ID for the principal
 - Checks that the JAG token has a non-empty scope claim. If the scope claim in the access token
   request is provided, then it must match the scope claim in the JAG token or be a subset of it.
+- A multi-domain JAG token may be downscoped to a single domain by specifying a single-domain scope.
+  If the resulting scope still includes multiple domains, the request must specify an audience that
+  matches one of those domains.
+- For a multi-domain access token, roles in the audience domain are represented by simple role names,
+  while roles in the other domains remain fully qualified. The token can then be exchanged for an
+  access token whose audience is one of those other domains.
 
 2. Role Names Validation
 
 - Extracts the subject identity. For ZTS-issued tokens, uses the token's subject directly.
   For external provider tokens, uses the identity provider's getTokenIdentity() method.
-- Validates that the subject identity has access to at least one of the requested roles
+- Validates that the subject identity has access to at least one requested role in each scope domain.
   The generated token will only include roles that the subject identity has access to.
 
 ## ID Token Exchange

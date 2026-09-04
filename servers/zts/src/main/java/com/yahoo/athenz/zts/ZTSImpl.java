@@ -3471,26 +3471,9 @@ public class ZTSImpl implements ZTSHandler {
         // before using any of our values let's validate that they
         // match our schema
 
-        final String domainName = tokenScope.getDomainName();
-        setRequestDomain(ctx, domainName);
-        validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
-
-        String[] requestedRoles = tokenScope.getRoleNames(domainName);
-        if (requestedRoles == null) {
-            throw requestError("Scope value does not contain any roles", caller, domainName, principalDomain);
-        }
-
-        for (String requestedRole : requestedRoles) {
-            validate(requestedRole, TYPE_ENTITY_NAME, principalDomain, caller);
-        }
-
-        // first retrieve our domain data object from the cache
-
-        DataCache data = dataStore.getDataCache(domainName);
-        if (data == null) {
-            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
-            throw notFoundError("No such domain: " + domainName, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-        }
+        final Set<String> scopeDomainNames = tokenScope.getDomainNames();
+        final String requestDomainName = tokenScope.getDomainName();
+        setRequestDomain(ctx, requestDomainName);
 
         // if the token was issued by ZTS then the identity is the subject
         // otherwise, we need to extract the identity from the token
@@ -3500,39 +3483,64 @@ public class ZTSImpl implements ZTSHandler {
                 identityProvider.getTokenIdentity(subjectToken);
         if (StringUtil.isEmpty(subjectIdentity)) {
             LOGGER.error("processJAGTokenIssueRequest: unable to extract subject identity from token");
-            throw requestError("Invalid subject token - missing subject", caller, domainName, principalDomain);
-        }
-        Set<String> subjectRoles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, subjectIdentity, requestedRoles, false, subjectRoles, false);
-
-        // we return failure if we don't have access to any roles
-
-        if (subjectRoles.isEmpty()) {
-            throw forbiddenError(tokenErrorMessage(caller, subjectIdentity, domainName, requestedRoles),
-                    caller, domainName, principalDomain);
+            throw requestError("Invalid subject token - missing subject", caller, requestDomainName, principalDomain);
         }
 
-        // make sure our principal is authorized to request a jag token
-        // exchange for the given roles
+        Map<String, Set<String>> subjectRolesByDomain = new HashMap<>();
+        int tokenTimeout = Integer.MAX_VALUE;
+        for (String domainName : scopeDomainNames) {
 
-        for (String requestedRole : requestedRoles) {
-            if (!authorizer.access(ZTSConsts.ZTS_ACTION_JAG_EXCHANGE,
-                    ResourceUtils.roleResourceName(domainName, requestedRole), principal, null)) {
-                LOGGER.error("processJAGTokenIssueRequest: access check failure for {} - {}:role.{}",
-                        principalName, domainName, requestedRole);
-                throw forbiddenError("Principal not authorized for token exchange for the requested role",
+            validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
+
+            String[] requestedRoles = tokenScope.getRoleNames(domainName);
+            if (requestedRoles == null) {
+                throw requestError("Scope value does not contain any roles", caller, domainName, principalDomain);
+            }
+
+            for (String requestedRole : requestedRoles) {
+                validate(requestedRole, TYPE_ENTITY_NAME, principalDomain, caller);
+            }
+
+            // first retrieve our domain data object from the cache
+
+            DataCache data = dataStore.getDataCache(domainName);
+            if (data == null) {
+                setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+                throw notFoundError("No such domain: " + domainName, caller,
+                        ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            }
+
+            Set<String> subjectRoles = new HashSet<>();
+            dataStore.getAccessibleRoles(data, domainName, subjectIdentity, requestedRoles, false,
+                    subjectRoles, false);
+
+            // we return failure if we don't have access to any roles
+
+            if (subjectRoles.isEmpty()) {
+                throw forbiddenError(tokenErrorMessage(caller, subjectIdentity, domainName, requestedRoles),
                         caller, domainName, principalDomain);
             }
+
+            // make sure our principal is authorized to request a jag token
+            // exchange for the given roles
+
+            for (String requestedRole : requestedRoles) {
+                if (!authorizer.access(ZTSConsts.ZTS_ACTION_JAG_EXCHANGE,
+                        ResourceUtils.roleResourceName(domainName, requestedRole), principal, null)) {
+                    LOGGER.error("processJAGTokenIssueRequest: access check failure for {} - {}:role.{}",
+                            principalName, domainName, requestedRole);
+                    throw forbiddenError("Principal not authorized for token exchange for the requested role",
+                            caller, domainName, principalDomain);
+                }
+            }
+
+            subjectRolesByDomain.put(domainName, subjectRoles);
+            int domainTokenTimeout = determineTokenTimeout(data, subjectRoles, null,
+                    accessTokenRequest.getExpiryTime());
+            tokenTimeout = Math.min(tokenTimeout, domainTokenTimeout);
         }
 
-        // append the domain name to the role names to make these fully qualified
-
-        List<String> roleList = new ArrayList<>();
-        for (String subjectRole : subjectRoles) {
-            roleList.add(ResourceUtils.roleResourceName(domainName, subjectRole));
-        }
-
-        int tokenTimeout = determineTokenTimeout(data, subjectRoles, null, accessTokenRequest.getExpiryTime());
+        List<String> roleList = generateAccessTokenScopeList(subjectRolesByDomain, null);
         long iat = System.currentTimeMillis() / 1000;
 
         AccessToken accessToken = new AccessToken();
@@ -3563,7 +3571,7 @@ public class ZTSImpl implements ZTSHandler {
 
         return new AccessTokenResponse().setAccess_token(accessJwts).setToken_type(OAUTH_NA_TOKEN)
                 .setIssued_token_type(OAUTH_JAG_TOKEN).setExpires_in(tokenTimeout)
-                .setScope(generateScopeResponse(subjectRoles, domainName, false));
+                .setScope(generateScopeResponse(roleList, false));
     }
 
     boolean isAuthenticatedUserSubjectToken(Principal principal, String tokenAudience, OAuth2Token subjectToken,
@@ -3715,52 +3723,79 @@ public class ZTSImpl implements ZTSHandler {
         // before using any of our values let's validate that they
         // match our schema
 
-        final String domainName = tokenScope.getDomainName();
+        Set<String> scopeDomainNames = tokenScope.getDomainNames();
+        final String requestAudience = accessTokenRequest.getAudience();
+        if (scopeDomainNames.size() > 1 && StringUtil.isEmpty(requestAudience)) {
+            throw requestError("Multiple scope domains require an audience", caller,
+                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        final String domainName = scopeDomainNames.size() == 1 ? tokenScope.getDomainName() :
+                requestAudience.toLowerCase();
         setRequestDomain(ctx, domainName);
         validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
+        if (!scopeDomainNames.contains(domainName)) {
+            throw requestError("Audience domain must be one of the scope domains", caller,
+                    domainName, principalDomain);
+        }
 
-        String[] requestedRoles = tokenScope.getRoleNames(domainName);
-        if (requestedRoles != null) {
-            for (String requestedRole : requestedRoles) {
-                validate(requestedRole, TYPE_ENTITY_NAME, principalDomain, caller);
+        Map<String, Set<String>> rolesByDomain = new HashMap<>();
+        int tokenTimeout = Integer.MAX_VALUE;
+        boolean scopeAdjusted = false;
+        for (String scopeDomainName : scopeDomainNames) {
+
+            validate(scopeDomainName, TYPE_DOMAIN_NAME, principalDomain, caller);
+
+            String[] requestedRoles = tokenScope.getRoleNames(scopeDomainName);
+            if (requestedRoles != null) {
+                for (String requestedRole : requestedRoles) {
+                    validate(requestedRole, TYPE_ENTITY_NAME, principalDomain, caller);
+                }
             }
-        }
 
-        // first retrieve our domain data object from the cache
+            // first retrieve our domain data object from the cache
 
-        DataCache data = dataStore.getDataCache(domainName);
-        if (data == null) {
-            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
-            throw notFoundError("No such domain: " + domainName, caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-        }
+            DataCache data = dataStore.getDataCache(scopeDomainName);
+            if (data == null) {
+                setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+                throw notFoundError("No such domain: " + scopeDomainName, caller,
+                        ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            }
 
-        // process our request and retrieve the roles for the principal
+            // process our request and retrieve the roles for the principal
 
-        Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoles, false,
-            roles, accessTokenRequest.isFullArn());
+            Set<String> roles = new HashSet<>();
+            dataStore.getAccessibleRoles(data, scopeDomainName, principalName, requestedRoles, false,
+                    roles, false);
 
-        // we return failure if we don't have access to any roles
+            // we return failure if we don't have access to any roles
 
-        if (roles.isEmpty()) {
-            throw forbiddenError(tokenErrorMessage(caller, principalName, domainName, requestedRoles),
-                    caller, domainName, principalDomain);
+            if (roles.isEmpty()) {
+                throw forbiddenError(tokenErrorMessage(caller, principalName, scopeDomainName, requestedRoles),
+                        caller, scopeDomainName, principalDomain);
+            }
+
+            rolesByDomain.put(scopeDomainName, roles);
+            int domainTokenTimeout = determineTokenTimeout(data, roles, null,
+                    userDomain.equals(principalDomain) ? jagTokenUserMaxTimeout : jagTokenServiceMaxTimeout);
+            tokenTimeout = Math.min(tokenTimeout, domainTokenTimeout);
+            if (tokenScope.sendScopeResponse() || requestedRoles != null && requestedRoles.length != roles.size()) {
+                scopeAdjusted = true;
+            }
         }
 
         // jag tokens are typically issued for a very short period
         // so we can't base our expiry on the jag token expiry
         // instead, we need to decide how long to issue an token for
 
-        int tokenTimeout = determineTokenTimeout(data, roles, null,
-            userDomain.equals(principalDomain) ? jagTokenUserMaxTimeout : jagTokenServiceMaxTimeout);
         long iat = System.currentTimeMillis() / 1000;
 
         // if the client has specified an audience, we'll honor it only
         // if the full arn is enabled, otherwise we'll just use the
         // role's domainName as audience as required
 
-        List<String> roleList = new ArrayList<>(roles);
-        final String requestAudience = accessTokenRequest.getAudience();
+        List<String> roleList = generateAccessTokenScopeList(rolesByDomain,
+                accessTokenRequest.isFullArn() ? null : domainName);
         String audience;
 
         // if we're asked to include role name in the audience claim then
@@ -3824,8 +3859,12 @@ public class ZTSImpl implements ZTSHandler {
         // does not match the returned list of roles then we need to return the updated
         // set of scopes
 
-        if (tokenScope.sendScopeResponse() || requestedRoles != null && requestedRoles.length != roles.size()) {
-            response.setScope(generateScopeResponse(roles, domainName, false));
+        if (scopeAdjusted || scopeDomainNames.size() > 1) {
+            if (scopeDomainNames.size() == 1) {
+                response.setScope(generateScopeResponse(rolesByDomain.get(domainName), domainName, false));
+            } else {
+                response.setScope(generateScopeResponse(roleList, false));
+            }
         }
 
         return response;
