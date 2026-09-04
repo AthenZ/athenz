@@ -56,6 +56,13 @@ public class TestZpeUpdPolLoader {
 
     @BeforeClass
     public void init() {
+        // the properties must be configured before the zpe classes are loaded
+        // since the settings are processed in their static initializers
+
+        ClassLoader classLoader = this.getClass().getClassLoader();
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwk/athenz_jwks.json")).toString();
+        System.setProperty(ZpeConsts.ZPE_PROP_JWK_URI, jwksUri);
+        System.setProperty(ZpeConsts.ZPE_PROP_CHECK_POLICY_ZMS_SIGNATURE, "true");
         AuthZpeClient.init();
         try {
             Thread.sleep(5000);

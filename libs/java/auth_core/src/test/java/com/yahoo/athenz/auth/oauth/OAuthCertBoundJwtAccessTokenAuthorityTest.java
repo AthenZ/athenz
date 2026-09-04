@@ -35,10 +35,14 @@ import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessToken;
 import com.yahoo.athenz.auth.oauth.validator.DefaultOAuthJwtAccessTokenValidator;
 import com.yahoo.athenz.auth.Principal;
 import org.mockito.Mockito;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 public class OAuthCertBoundJwtAccessTokenAuthorityTest {
+
+    private static final String PROP_JWKS_URL = "athenz.auth.oauth.jwt.parser.jwks_url";
 
     private final ClassLoader classLoader = this.getClass().getClassLoader();
     private X509Certificate[] clientCertChain = null;
@@ -49,6 +53,17 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             this.clientCertChain = new X509Certificate[]{ (X509Certificate) cf.generateCertificate(certIs) };
         }
+    }
+
+    @BeforeClass
+    public void setJwksUrl() {
+        System.setProperty(PROP_JWKS_URL,
+                Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString());
+    }
+
+    @AfterClass
+    public void clearJwksUrl() {
+        System.clearProperty(PROP_JWKS_URL);
     }
 
     @Test
@@ -285,9 +300,6 @@ public class OAuthCertBoundJwtAccessTokenAuthorityTest {
 
     @Test
     public void testAuthenticate() {
-
-        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
-        System.setProperty("athenz.auth.oauth.jwt.parser.jwks_url", jwksUri);
 
         String expiredJwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJzdWIiOiJ1c2VyLmFkbWluIiwiaXNzIjoic3lzLmF1dGgudGVzdElkUCIsImF1ZCI6Imh0dHBzOi8vem1zLmF0aGVuei5pbyIsInNjb3BlIjoic3lzLmF1dGg6cm9sZS5hZG1pbiIsImNsaWVudF9pZCI6InVpLmF0aGVuei5pbyIsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjoxNTE2MjM5MDIyfQ.cMbo1Ogwz3HTGdfncjBn3H99ehe_yT1Zhlb8vmDqvPnbjuZUnuFl3aZEIE_JyLQrGADZf9PFlqxMNQcd_AlrZ-SePW8u4kIe1mFBr6oSTzuBkLzpwlff_vWaoOGlXrjlai64ISaDXYaYFPxnNMhjFSpod6D_anaQqs3XXEqrlwHHG7zk99UvPZehtXntKcAv0it8K5_7-vtQiEqHIvy14oxLNhQa801bhaUvjgnSVhnQzfXTCYzM4B1QfF1Cp7k9ktw3tsOShZGYHYr-XOvO_199z0ZJfWkdqk_FA3Mdo_Nw_r9ghh2kCx5YhmNpaqN9BANmwv3PbREcfIt1o4V7ZTHSzBq2cuCjEmU59Nl530tUMe31npw-8i6MIGzE_Ifg4k5ea1L1JBzQkbtWeIVd8SV3j_D0TNhYmeeAYgK8UikkFIw3Uza6ZvfZKTe8cffomzzfeB5fjL9GUsqj6LpIL1R2CgCQARqlZDGl9d73j81G7r7qZPZuBW5U3c3cPrdChw1-AwgDT27-Hu3yAzxZyJmsfIkUj5VZZfb1loIsovcRr_h9VUeNEqMimKfwxRBr7EP7fw7eRQoAJIthdeMGS6hfh-ZPM85N2YN34aQ0YJKWJUgdLudCGpkmfYBBd28D1VGNTUlfEuwHXosVP1GoYLXlz8zgwWIoXuk_bj4QH-g";
         String noExpJwt = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtleUlkIn0.eyJzdWIiOiJ1c2VyLmFkbWluIiwiaXNzIjoic3lzLmF1dGgudGVzdElkUCIsImF1ZCI6Imh0dHBzOi8vem1zLmF0aGVuei5pbyIsInNjb3BlIjoic3lzLmF1dGg6cm9sZS5hZG1pbiIsImNsaWVudF9pZCI6InVpLmF0aGVuei5pbyIsImlhdCI6MTUxNjIzOTAyMn0.I8da4Q_SysUJ3O4VZQQb7v0tQHNaAWk7WGkC3AImhd6FK_g6wAFe4Nw7K5ofOCdJKjHGUmqgBpnt1vbOqia8UJhcKkByBXywVnbK655MQ3ogkBmi3tUPx6Dmq1dwiaxsVZMAnxFQeACcTEz_Q_BWiXJqSpUP0vBy2sOFTus_xmvcooewu7n-EgdrO26oYwCMp0IARaSZq6hRmF5Le4wyz8d8CEzIArjEBOBpbONsX3NOvPSox3whDvIk91Zy4ZsORAMoLgGSQTqrEYBLSsFwng01V_OW4JVfM2p9f3U2gpqF6Ja7FFXrxnrgXEjvLvcMQYgv21eTT7ELMMFFQaYLPcCXNDoGwPOOU0dxngqw9B9qqhZV-gTJ7w5ADH2knwqNN5EJxnflVU_D-dUZFNJ0ruMc3bfsLzXQhhHqdhY6h6vkqQ2IGUiGilS4hgVWa26QOstj1twf4Dj1xaHro5800evW886pwJyK3FSfULrvpiJ6Q_DkzSEG1sGRj4RTwl8Opgh27Mot5m2x-qESwbEMeazz2saIdHpt6lcH1VY2baazy322mCRXzA9SdQD-u2bjjI4Fu-AJQRbL51pvzNceXJdz9xwnbX5RgY99E6AYOlzQ5zVl7PDsxLwdJr8UppYGQmrTBZ7DBjtNXGGMelZ0M1SBJVa0JZ3K61MWnYzPL5M";

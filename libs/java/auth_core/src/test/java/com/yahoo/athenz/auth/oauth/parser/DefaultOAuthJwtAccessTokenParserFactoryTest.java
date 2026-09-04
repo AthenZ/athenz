@@ -19,11 +19,28 @@ import static org.testng.Assert.*;
 
 import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessToken;
 import com.yahoo.athenz.auth.oauth.token.OAuthJwtAccessTokenException;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import java.util.Objects;
 
 public class DefaultOAuthJwtAccessTokenParserFactoryTest {
 
+    private static final String PROP_JWKS_URL = "athenz.auth.oauth.jwt.parser.jwks_url";
+
     private final ClassLoader classLoader = this.getClass().getClassLoader();
+
+    @BeforeClass
+    public void setJwksUrl() {
+        System.setProperty(PROP_JWKS_URL,
+                Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString());
+    }
+
+    @AfterClass
+    public void clearJwksUrl() {
+        System.clearProperty(PROP_JWKS_URL);
+    }
 
     @Test
     public void testCreate() throws OAuthJwtAccessTokenException {
