@@ -3466,7 +3466,7 @@ public class ZTSImpl implements ZTSHandler {
         // match our schema
 
         final Set<String> scopeDomainNames = tokenScope.getDomainNames();
-        final String requestDomainName = tokenScope.getDomainName();
+        final String requestDomainName = scopeDomainNames.iterator().next();
         setRequestDomain(ctx, requestDomainName);
 
         // if the token was issued by ZTS then the identity is the subject

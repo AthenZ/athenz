@@ -3480,6 +3480,8 @@ public class ZTSImplAccessTokenTest {
 
         assertNotNull(response);
         assertEquals(response.getScope(), "coretech:role.writers weather:role.readers");
+        Mockito.verify((RsrcCtxWrapper) context).setRequestDomain(Mockito.argThat(
+                domain -> "coretech".equals(domain) || "weather".equals(domain)));
 
         ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
         JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
@@ -4748,6 +4750,70 @@ public class ZTSImplAccessTokenTest {
             assertTrue(ex.getMessage().contains("Invalid subject token - missing subject"));
         }
 
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessJAGTokenIssueRequestMissingSubjectWithMultipleDomains() throws JOSEException {
+
+        AccessTokenScope.setMaxDomains(2);
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/unit_test_zts_at_private.pem");
+
+        TokenExchangeIdentityProvider provider = new TokenExchangeIdentityProvider() {
+            @Override
+            public String getTokenIdentity(OAuth2Token token) {
+                return null;
+            }
+
+            @Override
+            public String getTokenAudience(OAuth2Token token) {
+                return token.getAudience();
+            }
+
+            @Override
+            public List<String> getTokenExchangeClaims() {
+                return Collections.emptyList();
+            }
+        };
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = Mockito.spy(new ZTSImpl(cloudStore, store));
+        ztsImpl.providerConfigManager.putProvider("https://athenz.io:4443/zts/v1", provider);
+        ztsImpl.tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY,
+                "src/test/resources/unit_test_zts_private.pem");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "a0001",
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        final String tokenRequest = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + subjectToken + "&audience=https://athenz.io"
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                + "&scope=coretech:role.writers weather:role.readers";
+
+        try {
+            ztsImpl.postAccessTokenRequest(context, tokenRequest);
+            fail("Expected ResourceException for invalid identity from provider");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Invalid subject token - missing subject"));
+        }
+
+        Mockito.verify(ztsImpl).requestError(
+                Mockito.eq("Invalid subject token - missing subject"),
+                Mockito.isNull(),
+                Mockito.argThat(domain -> "coretech".equals(domain) || "weather".equals(domain)),
+                Mockito.eq("user_domain"));
         cloudStore.close();
     }
 
