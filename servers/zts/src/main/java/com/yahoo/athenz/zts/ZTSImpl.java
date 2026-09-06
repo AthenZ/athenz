@@ -3516,13 +3516,13 @@ public class ZTSImpl implements ZTSHandler {
             }
 
             // make sure our principal is authorized to request a jag token
-            // exchange for the given roles
+            // exchange for the roles granted to the subject
 
-            for (String requestedRole : requestedRoles) {
+            for (String subjectRole : subjectRoles) {
                 if (!authorizer.access(ZTSConsts.ZTS_ACTION_JAG_EXCHANGE,
-                        ResourceUtils.roleResourceName(domainName, requestedRole), principal, null)) {
+                        ResourceUtils.roleResourceName(domainName, subjectRole), principal, null)) {
                     LOGGER.error("processJAGTokenIssueRequest: access check failure for {} - {}:role.{}",
-                            principalName, domainName, requestedRole);
+                            principalName, domainName, subjectRole);
                     throw forbiddenError("Principal not authorized for token exchange for the requested role",
                             caller, domainName, principalDomain);
                 }

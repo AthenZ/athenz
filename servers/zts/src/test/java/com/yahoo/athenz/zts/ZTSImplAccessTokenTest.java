@@ -4205,7 +4205,7 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
-    public void testProcessAccessTokenJAGExchangePartialAccess() {
+    public void testProcessJAGTokenIssueRequestPartialAccess() {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 
         CloudStore cloudStore = new CloudStore();
@@ -4217,8 +4217,8 @@ public class ZTSImplAccessTokenTest {
         SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
         store.processSignedDomain(signedDomain, false);
 
+        // The principal is authorized only for the role that the subject can access
         addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
-        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "readers");
 
         final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
         PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
