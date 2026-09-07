@@ -421,9 +421,10 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, hostnameUr
 			continue
 		}
 		uriptr, err := url.Parse(sanUri)
-		if err == nil {
-			template.URIs = append(template.URIs, uriptr)
+		if err != nil {
+			return "", fmt.Errorf("cannot parse SAN URI %q: %v", sanUri, err)
 		}
+		template.URIs = append(template.URIs, uriptr)
 	}
 	if ip != "" {
 		template.IPAddresses = []net.IP{net.ParseIP(ip)}
