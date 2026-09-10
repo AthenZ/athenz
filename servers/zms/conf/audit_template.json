@@ -1,0 +1,19 @@
+{
+    "domain": {
+        "memberExpiryDays": 90,
+        "serviceExpiryDays": 90,
+        "groupExpiryDays": 90
+    },
+    "role": {
+        "memberExpiryDays": 90,
+        "serviceExpiryDays": 90,
+        "groupExpiryDays": 90,
+        "memberReviewDays": 90,
+        "serviceReviewDays": 90,
+        "groupReviewDays": 90
+    },
+    "group": {
+        "memberExpiryDays": 90,
+        "serviceExpiryDays": 90
+    }
+}

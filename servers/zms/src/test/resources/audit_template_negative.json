@@ -1,0 +1,8 @@
+{
+    "domain": {
+        "memberExpiryDays": 90
+    },
+    "role": {
+        "memberExpiryDays": -90
+    }
+}

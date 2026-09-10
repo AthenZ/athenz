@@ -5021,6 +5021,13 @@ public class DBService implements RolesProvider, DomainProvider {
                 break;
             case ZMSConsts.SYSTEM_META_AUDIT_ENABLED:
                 domain.setAuditEnabled(meta.getAuditEnabled());
+
+                // if the domain is now audit enabled then we need to impose
+                // the expiry settings from our audit template, if configured
+
+                if (domain.getAuditEnabled() == Boolean.TRUE && zmsConfig.getAuditTemplate() != null) {
+                    zmsConfig.getAuditTemplate().applyDomainSettings(domain);
+                }
                 break;
             case ZMSConsts.SYSTEM_META_USER_AUTH_FILTER:
                 domain.setUserAuthorityFilter(meta.getUserAuthorityFilter());
@@ -5060,6 +5067,13 @@ public class DBService implements RolesProvider, DomainProvider {
         if (ZMSConsts.SYSTEM_META_AUDIT_ENABLED.equals(attribute)) {
             updatedRole.setAuditEnabled(meta.getAuditEnabled());
 
+            // if the role is now audit enabled then we need to impose the
+            // expiry and review settings from our audit template, if configured
+
+            if (updatedRole.getAuditEnabled() == Boolean.TRUE && zmsConfig.getAuditTemplate() != null) {
+                zmsConfig.getAuditTemplate().applyRoleSettings(updatedRole);
+            }
+
             // we also need to verify that if we have any group members
             // then those groups have the audit enabled flag as well
 
@@ -5096,6 +5110,13 @@ public class DBService implements RolesProvider, DomainProvider {
 
         if (ZMSConsts.SYSTEM_META_AUDIT_ENABLED.equals(attribute)) {
             group.setAuditEnabled(meta.getAuditEnabled());
+
+            // if the group is now audit enabled then we need to impose the
+            // expiry settings from our audit template, if configured
+
+            if (group.getAuditEnabled() == Boolean.TRUE && zmsConfig.getAuditTemplate() != null) {
+                zmsConfig.getAuditTemplate().applyGroupSettings(group);
+            }
         } else {
             throw ZMSUtils.requestError("unknown group system meta attribute: " + attribute, caller);
         }
@@ -6973,9 +6994,16 @@ public class DBService implements RolesProvider, DomainProvider {
                 auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
                         roleName, auditDetails.toString());
 
+                // if the audit template has reduced the role member expiry or review
+                // days then we're going to process all the members in the role and
+                // update the expiration and review dates accordingly
+
+                updateRoleMembersDueDates(ctx, con, domainName, roleName, originalRole,
+                        updatedRole, auditRef, caller);
+
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, roleName, DomainChangeMessage.ObjectType.ROLE);
-                
+
                 return;
 
             } catch (ServerResourceException ex) {
@@ -7050,10 +7078,17 @@ public class DBService implements RolesProvider, DomainProvider {
                 auditLogRequest(ctx, domainName, auditRef, ctx.getApiName(), ZMSConsts.HTTP_PUT,
                         groupName, auditDetails.toString());
 
+                // if the audit template has reduced the group member expiry days
+                // then we're going to process all the members in the group and
+                // update the expiration dates accordingly
+
+                updateGroupMembersDueDates(ctx, con, domainName, groupName, originalGroup,
+                        updatedGroup, auditRef);
+
                 // add domain change event
 
                 addDomainChangeMessage(ctx, domainName, groupName, DomainChangeMessage.ObjectType.GROUP);
-                
+
                 return updatedGroup;
 
             } catch (ServerResourceException ex) {

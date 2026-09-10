@@ -177,6 +177,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected long signedPolicyTimeout;
     protected int domainNameMaxLen;
     protected AuthorizedServices serverAuthorizedServices = null;
+    protected AuditTemplate auditTemplate = null;
     protected volatile SolutionTemplates serverSolutionTemplates = null;
     protected volatile List<String> serverSolutionTemplateNames = null;
     protected boolean dynamicSolutionTemplatesReload = false;
@@ -628,6 +629,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // settings
 
         loadConfigurationSettings();
+
+        // load the audit template, if configured, that specifies the
+        // expiry settings for audit enabled domains, roles and groups
+
+        loadAuditTemplate();
 
         // load our schema validator - we need this before we initialize
         // our store, if necessary
@@ -1089,6 +1095,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         zmsConfig.setServerSolutionTemplates(serverSolutionTemplates);
         zmsConfig.setUserAuthority(userAuthority);
         zmsConfig.setValidator(validator);
+        zmsConfig.setAuditTemplate(auditTemplate);
 
         ObjectStoreFactory objFactory;
         try {
@@ -1411,6 +1418,36 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             serverAuthorizedServices = new AuthorizedServices();
             serverAuthorizedServices.setTemplates(new HashMap<>());
         }
+    }
+
+    void loadAuditTemplate() {
+
+        // the audit template is optional. if it's not configured then
+        // there are no expiry requirements imposed on audit enabled objects
+
+        final String auditTemplateFname = System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_TEMPLATE_FNAME);
+        if (StringUtil.isEmpty(auditTemplateFname)) {
+            return;
+        }
+
+        // since the audit template is a security control, if it is
+        // configured but cannot be loaded then we're going to fail
+        // the server startup
+
+        Path path = Paths.get(auditTemplateFname);
+        try {
+            auditTemplate = JSON.fromBytes(Files.readAllBytes(path), AuditTemplate.class);
+        } catch (IOException ex) {
+            LOG.error("Unable to read audit template file {}: {}", auditTemplateFname, ex.getMessage());
+            throw new IllegalArgumentException("Invalid audit template file");
+        }
+
+        if (auditTemplate == null) {
+            LOG.error("Unable to parse audit template file {}", auditTemplateFname);
+            throw new IllegalArgumentException("Invalid audit template file");
+        }
+
+        auditTemplate.validate();
     }
 
     void loadStatusChecker() {
@@ -1786,6 +1823,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // before processing validate the fields
 
         validateDomainValues(topLevelDomain);
+        applyAuditTemplateDomainSettings(topLevelDomain);
 
         List<String> adminUsers = normalizedAdminUsers(domainName, detail.getAdminUsers(),
                 detail.getUserAuthorityFilter(), caller);
@@ -2106,6 +2144,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // before processing validate the fields
 
         validateDomainValues(subDomain);
+        applyAuditTemplateDomainSettings(subDomain);
+
         ResourceDomainOwnership resourceOwnership = StringUtil.isEmpty(resourceOwner) ? null :
                 new ResourceDomainOwnership().setMetaOwner(resourceOwner).setObjectOwner(resourceOwner);
         return createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, resourceOwnership, auditRef, caller,
@@ -2217,11 +2257,22 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // before processing validate the fields
 
         validateDomainValues(subDomain);
+        applyAuditTemplateDomainSettings(subDomain);
 
         ResourceDomainOwnership resourceOwnership = StringUtil.isEmpty(resourceOwner) ? null :
                 new ResourceDomainOwnership().setMetaOwner(resourceOwner).setObjectOwner(resourceOwner);
         return createSubDomain(ctx, subDomain, adminUsers, solutionTemplates, resourceOwnership, auditRef, caller,
                 solutionTemplatesSnapshot == null ? null : solutionTemplatesSnapshot.templates);
+    }
+
+    void applyAuditTemplateDomainSettings(Domain domain) {
+
+        // if the domain is audit enabled then impose the expiry settings
+        // from our audit template, if configured
+
+        if (auditTemplate != null && domain.getAuditEnabled() == Boolean.TRUE) {
+            auditTemplate.applyDomainSettings(domain);
+        }
     }
 
     boolean isSysAdminUser(Principal principal) {
@@ -2536,6 +2587,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // them against the meta store
 
         BitSet changedAttrs = validateDomainRegularMetaStoreValues(domain, meta);
+
+        // if the domain is audit enabled then impose the expiry settings
+        // from our audit template, if configured
+
+        if (auditTemplate != null && domain.getAuditEnabled() == Boolean.TRUE) {
+            auditTemplate.applyDomainMetaSettings(meta, domain);
+        }
 
         // process put domain meta request
 
@@ -4640,6 +4698,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // validate audit-enabled state for the role and reject if necessary
 
         validateRoleReviewAuditFlag(domain, role, originalRole, caller);
+
+        // if the role is audit enabled then impose the expiry and review
+        // settings from our audit template, if configured
+
+        if (auditTemplate != null && role.getAuditEnabled() == Boolean.TRUE) {
+            auditTemplate.applyRoleSettings(role);
+        }
 
         // update role expiry based on our configurations
 
@@ -10772,6 +10837,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateRoleMetaAuditEnabledFlag(meta, role, domain.getDomain(), caller);
 
+        // if the role is audit enabled then impose the expiry and review
+        // settings from our audit template, if configured
+
+        if (auditTemplate != null && meta.getAuditEnabled() == Boolean.TRUE) {
+            auditTemplate.applyRoleMetaSettings(meta, role);
+        }
+
         // validate self-renew settings for the given role
 
         validateRoleMetaSelfRenewFlag(meta, role, caller);
@@ -11822,6 +11894,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         validateGroupReviewAuditFlag(domain, group, originalGroup, caller);
 
+        // if the group is audit enabled then impose the expiry settings
+        // from our audit template, if configured
+
+        if (auditTemplate != null && group.getAuditEnabled() == Boolean.TRUE) {
+            auditTemplate.applyGroupSettings(group);
+        }
+
         // update group expiry based on our configurations
 
         MemberDueDays memberExpiryDueDays = new MemberDueDays(domain, group);
@@ -12540,6 +12619,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // validate audit enabled flag for the given role
 
         validateGroupMetaAuditEnabledFlag(meta, group, domain.getDomain(), caller);
+
+        // if the group is audit enabled then impose the expiry settings
+        // from our audit template, if configured
+
+        if (auditTemplate != null && meta.getAuditEnabled() == Boolean.TRUE) {
+            auditTemplate.applyGroupMetaSettings(meta, group);
+        }
 
         // validate self-renew settings for the given group
 

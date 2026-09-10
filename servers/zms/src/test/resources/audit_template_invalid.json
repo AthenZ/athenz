@@ -1,0 +1,5 @@
+{
+    "domain": {
+        "memberExpiryDays": 90
+    },
+    "role": "not-a-valid-role-section"
