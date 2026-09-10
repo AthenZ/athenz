@@ -75,7 +75,7 @@ func usage() {
 	fmt.Println("")
 	fmt.Println("      <service-details> := -domain <domain-name> -service <service-name>")
 	fmt.Println("")
-	fmt.Println("      <certificate-details> := -dns-domain <san-dns-domain-component> [-signer-cert-file <ca-cert-output-file>] [-spiffe] [-expiry-time <mins>] [-sub-c <subject country>] [-sub-o <subject org>] [-sub-ou <subject orgunit>] [-ip <san-ip-address>] [-hostname <hostname>] [-signer-key-id <key-id>]")
+	fmt.Println("      <certificate-details> := -dns-domain <san-dns-domain-component> [-signer-cert-file <ca-cert-output-file>] [-spiffe] [-expiry-time <mins>] [-subj-c <subject country>] [-subj-o <subject org>] [-subj-ou <subject orgunit>] [-ip <san-ip-address>] [-hostname <hostname>] [-signer-key-id <key-id>]")
 	fmt.Println("")
 	fmt.Println("      <principal-credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-cacert <ca-cert-file>] |")
 	fmt.Println("                                 -ntoken-file <ntoken-file> [-hdr <auth-header-name>] [-cacert <ca-cert-file>]")
