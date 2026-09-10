@@ -199,6 +199,10 @@ func main() {
 		instanceId = fmt.Sprintf("athenz://instanceid/%s/%s", uriProvider, instance)
 	}
 	if hostname != "" {
+		if provider == "" && !csr {
+			log.Println("Error: -hostname requires -provider for certificate requests (use -csr to only generate the CSR)")
+			usage()
+		}
 		hostnameUri = fmt.Sprintf("athenz://hostname/%s", hostname)
 	}
 	if spiffe || spiffeTrustDomain != "" {
