@@ -131,6 +131,72 @@ public class SecureBootProviderTest {
     }
 
     @Test
+    public void testConfirmInstancePrincipalAllowedWithCertHostname() throws ProviderResourceException {
+        System.setProperty(SecureBootProvider.ZTS_PROP_SB_PRINCIPAL_LIST, "media.api,sports.api");
+        System.setProperty(SecureBootProvider.ZTS_PROP_SB_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
+
+        SecureBootProvider provider = new SecureBootProvider();
+        provider.initialize("sys.auth.sb-provider", "com.yahoo.athenz.instance.provider.impl.SecureBootProvider", null, null);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setAttestationData("sample attestation data");
+        confirmation.setDomain("sports");
+        confirmation.setService("api");
+        confirmation.setProvider("sys.auth.sb-provider");
+
+        // the subject cn is not a hostname, so the hostname is validated against
+        // the cert hostname value extracted by zts
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "api.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_HOSTNAME, "athenz-examples1.abc.com");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN, "CN=issuer1");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, "CN=sports.api,OU=Testing Domain,O=Athenz,L=LA,ST=CA,C=US");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_HOSTNAME, "athenz-examples1.abc.com");
+        confirmation.setAttributes(attributes);
+
+        InstanceConfirmation result = provider.confirmInstance(confirmation);
+        assertNotNull(result);
+        assertEquals(result.getAttributes().get(InstanceProvider.ZTS_CERT_SSH), "true");
+
+        provider.close();
+        System.clearProperty(SecureBootProvider.ZTS_PROP_SB_ATTR_VALIDATOR_FACTORY_CLASS);
+        System.clearProperty(SecureBootProvider.ZTS_PROP_SB_PRINCIPAL_LIST);
+    }
+
+    @Test
+    public void testConfirmInstanceCertHostnameMismatch() {
+        System.setProperty(SecureBootProvider.ZTS_PROP_SB_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
+
+        SecureBootProvider provider = new SecureBootProvider();
+        provider.initialize("sys.auth.sb-provider", "com.yahoo.athenz.instance.provider.impl.SecureBootProvider", null, null);
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        confirmation.setAttestationData("sample attestation data");
+        confirmation.setDomain("sports");
+        confirmation.setService("api");
+        confirmation.setProvider("sys.auth.sb-provider");
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_SAN_DNS, "api.sports.zts.athenz.cloud,inst1.instanceid.athenz.zts.athenz.cloud");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_HOSTNAME, "athenz-examples1.abc.com");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN, "CN=issuer1");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, "CN=sports.api,OU=Testing Domain,O=Athenz,L=LA,ST=CA,C=US");
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_HOSTNAME, "athenz-examples2.abc.com");
+        confirmation.setAttributes(attributes);
+
+        try {
+            provider.confirmInstance(confirmation);
+            fail();
+        } catch (ProviderResourceException e) {
+            assertTrue(e.getMessage().contains("Unable to validate certificate request hostname"));
+        }
+
+        provider.close();
+        System.clearProperty(SecureBootProvider.ZTS_PROP_SB_ATTR_VALIDATOR_FACTORY_CLASS);
+    }
+
+    @Test
     public void testConfirmInstanceIssuerNotAllowed() {
         System.setProperty(SecureBootProvider.ZTS_PROP_SB_ISSUER_DN_LIST, "CN=issuer1");
         SecureBootProvider provider = new SecureBootProvider();
@@ -446,6 +512,41 @@ public class SecureBootProviderTest {
         assertFalse(SecureBootProvider.validateCnHostname("athenz-examples2.abc.com",
                 Collections.singletonMap(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, subjectDn)));
         assertFalse(SecureBootProvider.validateCnHostname("athenz-examples2.abc.com", null));
+        assertFalse(SecureBootProvider.validateCnHostname("athenz-examples2.abc.com", new HashMap<>()));
+    }
+
+    @Test
+    public void testValidateCnHostnameWithCertHostname() {
+
+        // the cn in the subject dn is not a hostname (public CAs no longer issue
+        // client certificates), so we must fall back to the cert hostname value
+        // that zts extracted from the certificate
+
+        final String subjectDn = "CN=athenz.examples.api,OU=Testing Domain,O=Athenz,L=LA,ST=CA,C=US";
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN, subjectDn);
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_HOSTNAME, "athenz-examples1.abc.com");
+
+        assertTrue(SecureBootProvider.validateCnHostname("athenz-examples1.abc.com", attributes));
+        assertFalse(SecureBootProvider.validateCnHostname("athenz-examples2.abc.com", attributes));
+
+        // with an empty cert hostname we must fail the request
+
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_HOSTNAME, "");
+        assertFalse(SecureBootProvider.validateCnHostname("athenz-examples1.abc.com", attributes));
+
+        // without any subject dn we must still match against the cert hostname
+
+        attributes.remove(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN);
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CERT_HOSTNAME, "athenz-examples1.abc.com");
+        assertTrue(SecureBootProvider.validateCnHostname("athenz-examples1.abc.com", attributes));
+
+        // the same validation must be carried out through the validateHostname
+        // register code path
+
+        assertTrue(SecureBootProvider.validateHostname("athenz-examples1.abc.com", true, attributes));
+        assertFalse(SecureBootProvider.validateHostname("athenz-examples2.abc.com", true, attributes));
     }
 
     @Test
