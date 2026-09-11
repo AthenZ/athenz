@@ -13738,6 +13738,7 @@ public class ZTSImplTest {
         assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN), "CN=self.signer.root");
         assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN), "CN=athenz.production,OU=Testing Domain,O=Athenz,L=LA,ST=CA,C=US");
         assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_RSA_MOD_HASH), "72332cafbe1f874b4d89f6277508d03494c0dd4258e32a6999a7b8328eaa0e07");
+        assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_HOSTNAME), "abc.athenz.com");
         assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_AZURE_SUBSCRIPTION), "12345");
         assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_AZURE_TENANT), "33333");
         assertEquals(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_AZURE_CLIENT), "54321");
@@ -13762,6 +13763,7 @@ public class ZTSImplTest {
         assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_ISSUER_DN));
         assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN));
         assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_RSA_MOD_HASH));
+        assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_CERT_HOSTNAME));
         assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_DOMAIN_FEATURE_FLAGS));
         assertNull(confirmation.getAttributes().get(InstanceProvider.ZTS_INSTANCE_SERVICE_FEATURE_FLAGS));
     }
