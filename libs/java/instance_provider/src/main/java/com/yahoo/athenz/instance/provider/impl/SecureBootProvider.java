@@ -229,7 +229,21 @@ public class SecureBootProvider implements InstanceProvider {
         final String subjectDn = InstanceUtils.getInstanceProperty(attributes,
                 InstanceProvider.ZTS_INSTANCE_CERT_SUBJECT_DN);
         final String cn = getSubjectCn(subjectDn);
-        return hostname.equals(cn);
+        if (hostname.equals(cn)) {
+            return true;
+        }
+
+        // if our CN is not a hostname and the public CA providers no longer
+        // issue x.509 certificates with client eku profile, it could be the
+        // hostname is specified as part of the certificate itself so we'll
+        // check that value as well
+
+        final String certHostname = InstanceUtils.getInstanceProperty(attributes,
+                InstanceProvider.ZTS_INSTANCE_CERT_HOSTNAME);
+        if (StringUtil.isEmpty(certHostname)) {
+            return false;
+        }
+        return hostname.equals(certHostname);
     }
 
     /**

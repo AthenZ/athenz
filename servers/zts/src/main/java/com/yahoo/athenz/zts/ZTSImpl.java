@@ -5876,6 +5876,8 @@ public class ZTSImpl implements ZTSHandler {
                     X509CertUtils.extractSubjectDn(certs));
             instanceConfirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_CERT_RSA_MOD_HASH,
                     X509CertUtils.hexKeyMod(certs, true));
+            instanceConfirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_CERT_HOSTNAME,
+                    X509CertUtils.extractHostname(certs[0]));
         }
 
         return instanceConfirmation;
