@@ -40,6 +40,8 @@ import static com.yahoo.athenz.instance.provider.impl.IdTokenTestsHelper.removeO
 import static com.yahoo.athenz.instance.provider.impl.InstanceGCPProvider.GCP_PROP_DNS_SUFFIX;
 import static com.yahoo.athenz.instance.provider.impl.InstanceGCPProvider.GCP_PROP_GKE_DNS_SUFFIX;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
@@ -164,7 +166,12 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
         when(authorizer.access(any(), any(), any(), any())).thenReturn(true);
         validator.authorizer = authorizer;
         AttrValidator attrValidator = Mockito.mock(AttrValidator.class);
-        when(attrValidator.confirm(any())).thenReturn(true);
+        // simulate a real attr validator that sets the issuer's project after confirming
+        when(attrValidator.confirm(any())).thenAnswer(invocation -> {
+            InstanceConfirmation ic = invocation.getArgument(0);
+            ic.getAttributes().put(ZTS_INSTANCE_ISSUER_GCP_PROJECT, "my-project");
+            return true;
+        });
         validator.attrValidator = attrValidator;
 
         try {
@@ -181,6 +188,111 @@ public class DefaultGCPGoogleKubernetesEngineValidatorTest {
             validator.attrValidator = null;
         } catch (Exception re){
             fail();
+        }
+    }
+
+    @Test
+    public void testValidateIssuerMultipleIssuerGCPProjectsFirstMatches() {
+        DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(eq("launch"), eq("my-domain:my-service:proj-a"), any(), any())).thenReturn(true);
+        validator.authorizer = authorizer;
+        AttrValidator attrValidator = Mockito.mock(AttrValidator.class);
+        // simulate a real attr validator that sets the issuer's project after confirming
+        when(attrValidator.confirm(any())).thenAnswer(invocation -> {
+            InstanceConfirmation ic = invocation.getArgument(0);
+            ic.getAttributes().put(ZTS_INSTANCE_ISSUER_GCP_PROJECT, "proj-a,proj-b");
+            return true;
+        });
+        validator.attrValidator = attrValidator;
+
+        try {
+            String testToken = IdTokenTestsHelper.createToken();
+            InstanceConfirmation confirmation = new InstanceConfirmation();
+            confirmation.setDomain("my-domain");
+            confirmation.setService("my-service");
+            confirmation.setAttributes(new HashMap<>());
+            confirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_GCP_PROJECT, "my-other-project");
+            IdTokenAttestationData attestationData = new IdTokenAttestationData();
+            attestationData.setIdentityToken(testToken);
+            String issuer = validator.validateIssuer(confirmation, attestationData, new StringBuilder());
+            assertEquals(issuer, "https://container.googleapis.com/v1/projects/my-project/zones/us-east1-a/clusters/my-cluster");
+            verify(authorizer).access(eq("launch"), eq("my-domain:my-service:proj-a"), any(), any());
+            verify(authorizer, Mockito.never()).access(eq("launch"), eq("my-domain:my-service:proj-b"), any(), any());
+            
+        } finally {
+            validator.authorizer = null;
+            validator.attrValidator = null;
+        }
+    }
+
+    @Test
+    public void testValidateIssuerMultipleIssuerGCPProjectsSecondMatches() {
+        DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(eq("launch"), eq("my-domain:my-service:proj-b"), any(), any())).thenReturn(true);
+        validator.authorizer = authorizer;
+        AttrValidator attrValidator = Mockito.mock(AttrValidator.class);
+        // simulate a real attr validator that sets the issuer's project after confirming
+        when(attrValidator.confirm(any())).thenAnswer(invocation -> {
+            InstanceConfirmation ic = invocation.getArgument(0);
+            ic.getAttributes().put(ZTS_INSTANCE_ISSUER_GCP_PROJECT, "proj-a, proj-b"); //whitespace should be tolerated here
+            return true;
+        });
+        validator.attrValidator = attrValidator;
+
+        try {
+            String testToken = IdTokenTestsHelper.createToken();
+            InstanceConfirmation confirmation = new InstanceConfirmation();
+            confirmation.setDomain("my-domain");
+            confirmation.setService("my-service");
+            confirmation.setAttributes(new HashMap<>());
+            confirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_GCP_PROJECT, "my-other-project");
+            IdTokenAttestationData attestationData = new IdTokenAttestationData();
+            attestationData.setIdentityToken(testToken);
+            String issuer = validator.validateIssuer(confirmation, attestationData, new StringBuilder());
+            assertEquals(issuer, "https://container.googleapis.com/v1/projects/my-project/zones/us-east1-a/clusters/my-cluster");
+            verify(authorizer).access(eq("launch"), eq("my-domain:my-service:proj-a"), any(), any());
+            verify(authorizer).access(eq("launch"), eq("my-domain:my-service:proj-b"), any(), any());            
+        } finally {
+            validator.authorizer = null;
+            validator.attrValidator = null;
+        }
+    }
+
+    @Test
+    public void testValidateIssuerMultipleIssuerGCPProjectsNoneMatch() {
+        DefaultGCPGoogleKubernetesEngineValidator validator = DefaultGCPGoogleKubernetesEngineValidator.getInstance();
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        validator.authorizer = authorizer;
+        AttrValidator attrValidator = Mockito.mock(AttrValidator.class);
+        // simulate a real attr validator that sets the issuer's project after confirming
+        when(attrValidator.confirm(any())).thenAnswer(invocation -> {
+            InstanceConfirmation ic = invocation.getArgument(0);
+            ic.getAttributes().put(ZTS_INSTANCE_ISSUER_GCP_PROJECT, "proj-a,proj-b");
+            return true;
+        });
+        validator.attrValidator = attrValidator;
+
+        try {
+            String testToken = IdTokenTestsHelper.createToken();
+            InstanceConfirmation confirmation = new InstanceConfirmation();
+            confirmation.setDomain("my-domain");
+            confirmation.setService("my-service");
+            confirmation.setAttributes(new HashMap<>());
+            confirmation.getAttributes().put(InstanceProvider.ZTS_INSTANCE_GCP_PROJECT, "my-other-project");
+            IdTokenAttestationData attestationData = new IdTokenAttestationData();
+            attestationData.setIdentityToken(testToken);
+            StringBuilder errMsg = new StringBuilder();
+            String issuer = validator.validateIssuer(confirmation, attestationData, errMsg);
+            assertNull(issuer);
+            verify(authorizer).access(eq("launch"), eq("my-domain:my-service:proj-a"), any(), any());
+            verify(authorizer).access(eq("launch"), eq("my-domain:my-service:proj-b"), any(), any());
+            assertTrue(errMsg.toString().contains("my-domain:my-service:proj-a,proj-b"),
+                    "error message should preserve original comma-separated value, got:" + errMsg);
+        } finally {
+            validator.authorizer = null;
+            validator.attrValidator = null;
         }
     }
 

@@ -76,3 +76,48 @@ public class UtilsTest {
         assertTrue(Utils.parseAwsAccounts(",,,").isEmpty());
     }
 }
+
+@Test
+public void testParseCsvListNull() {
+    assertTrue(Utils.parseCsvList(null).isEmpty());
+}
+
+@Test
+public void testParseCsvListEmpty() {
+    assertTrue(Utils.parseCsvList("").isEmpty());
+}
+
+@Test
+public void testParseCsvListSingle() {
+    assertEquals(Utils.parseCsvList("1112432545"), Set.of("1112432545"));
+}
+
+@Test
+public void testParseCsvListMultiple() {
+    assertEquals(Utils.parseCsvList("proj-a,proj-b"), Set.of("proj-a", "proj-b"));
+}
+
+@Test
+public void testParseCsvListWhitespace() {
+    assertEquals(Utils.parseCsvList(" proj-a, proj-b "), Set.of("proj-a", "proj-b"));
+}
+
+@Test
+public void testParseCsvListTrailingComma() {
+    assertEquals(Utils.parseCsvList("123456789,456789012,"), Set.of("123456789", "456789012"));
+}
+
+@Test
+public void testParseCsvListBlankElements() {
+    assertEquals(Utils.parseCsvList("proj-a,,proj-b"), Set.of("proj-a", "proj-b"));
+}
+
+@Test
+public void testParseCsvListOnlyCommas() {
+    assertTrue(Utils.parseCsvList(",,,").isEmpty());
+}
+
+@Test
+public void testParseCsvListDeduplicates() {
+    assertEquals(Utils.parseCsvList("proj-a,proj-a,proj-b"), Set.of("proj-a", "proj-b"));
+}

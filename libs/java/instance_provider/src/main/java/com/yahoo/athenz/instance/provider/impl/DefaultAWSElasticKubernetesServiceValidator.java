@@ -160,15 +160,24 @@ public class DefaultAWSElasticKubernetesServiceValidator extends CommonKubernete
 
         final String domainName = confirmation.getDomain();
         final String serviceName = confirmation.getService();
-        // attribute set after iam role validation or attribute validation
-        final String issuerAwsAccount = confirmation.getAttributes().get(ZTS_INSTANCE_ISSUER_AWS_ACCOUNT);
-        final String resource = String.format("%s:%s:%s", domainName, serviceName, issuerAwsAccount);
+        // attribute set after iam role validation or attribute validation; may be a comma-separated list
+        // of AWS accounts when the domain has multiple accouints
+       final String issuerAwsAccount = confirmation.getAttributes().get(ZTS_INSTANCE_ISSUER_AWS_ACCOUNT);
 
         Principal principal = SimplePrincipal.create(domainName, serviceName, (String) null);
-        boolean accessCheck = authorizer.access(ACTION_LAUNCH, resource, principal, null);
+        boolean accessCheck = false;
+        for (String account : Utils.parseAwsAccounts(issuerAwsAccount)) {
+            final String resource = String.format("%s:%s:%s", domainName, serviceName, account);
+            if (authorizer.access(ACTION_LAUNCH, resource, principal, null)) {
+                accessCheck = true;
+                break;
+            }
+        }
+
         if (!accessCheck) {
             errMsg.append("eks launch authorization check failed for action: ").append(ACTION_LAUNCH)
-                    .append(" resource: ").append(resource);
+                    .append(" resource: ").append(domainName).append(":").append(serviceName)
+                    .append(":").append(issuerAwsAccount);
             return null;
         }
 

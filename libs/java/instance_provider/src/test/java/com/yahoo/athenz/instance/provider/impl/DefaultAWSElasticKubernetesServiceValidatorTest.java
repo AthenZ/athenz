@@ -41,9 +41,12 @@ import java.util.HashMap;
 import java.util.List;
 
 import static com.yahoo.athenz.instance.provider.InstanceProvider.ZTS_INSTANCE_AWS_ACCOUNT;
+import static com.yahoo.athenz.instance.provider.InstanceProvider.ZTS_INSTANCE_ISUER_AWS_ACCOUNT;
 import static com.yahoo.athenz.instance.provider.InstanceProvider.ZTS_INSTANCE_SAN_DNS;
 import static com.yahoo.athenz.instance.provider.impl.IdTokenTestsHelper.createToken;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 import static org.testng.Assert.assertFalse;
@@ -251,6 +254,8 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
         validator.useIamRoleForIssuerAttestation = new DynamicConfigBoolean(Boolean.FALSE);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
+        // simulating what a real attr validator would set after confirming issuer
+        instanceConfirmation.getAttributes().put(ZTS_INSTANCE_ISSUER_AWS_ACCOUNT, "123456789012");
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
         attestationData.setIdentityToken(createToken("athenz.api", "https://zts.athenz.io/zts/v1", "https://oidc.eks.us-east-1.amazonaws.com/id/123456789012"));
         assertEquals(validator.validateIssuer(instanceConfirmation, attestationData, new StringBuilder()), "https://oidc.eks.us-east-1.amazonaws.com/id/123456789012");
@@ -284,9 +289,100 @@ public class DefaultAWSElasticKubernetesServiceValidatorTest {
         validator.useIamRoleForIssuerAttestation = new DynamicConfigBoolean(Boolean.FALSE);
         InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
         instanceConfirmation.setAttributes(new HashMap<>());
+        // simulating what a real attr validator would set after confirming issuer; fails as it gets denied
+        instanceConfirmation.getAttributes().put(ZTS_INSTANCE_ISSUER_AWS_ACCOUNT, "123456789012");
         IdTokenAttestationData attestationData = new IdTokenAttestationData();
         attestationData.setIdentityToken(createToken("athenz.api", "https://zts.athenz.io/zts/v1", "https://oidc.eks.us-east-1.amazonaws.com/id/123456789012"));
         assertNull(validator.validateIssuer(instanceConfirmation, attestationData, new StringBuilder()));
+        System.clearProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testValidateIssuerMultipleIssuerAWSAccountsFirstMatches() {
+        DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
+        SSLContext = Mockito.mock(SSLContext.class);
+        System.setProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(eq("launch"), eq("my-domain:my-service:1111111111111"), any(), any())).thenReturn(true);
+        validator.initialize(sslContext, authorizer);
+        validator.useIamRoleForIssuerAttestation = new DynamicConfigBoolean(Boolean.FALSE);
+        InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
+        instanceConfirmation.setDomain("my-domain");
+        instanceConfirmation.setService("my-service");
+        instanceConfirmation.setAttributes(new HashMap<>());
+        instanceConfirmation.getAttributes().put(ZTS_INSTANCE_ISSUER_AWS_ACCOUNT, "1111111111111,2222222222222");
+        IdTokenAttestationData attestationData = new IdTokenAttestationData();
+        attestationData.setIdentityToken(createToken("athenz.api", "https://zts.athenz.io/zts/v1", "https://oidc.eks.us-east-1.amazonaws.com/id/1111111111111"));
+        assertEquals(validator.validateIssuer(instanceConfirmation, attestationData, new StringBuilder()), , "https://oidc.eks.us-east-1.amazonaws.com/id/1111111111111");
+        verify(authorizer).access(eq("launch"), eq("my-domain:my-service:1111111111111"), any(), any());
+        verify(authorizer, Mockito.never()).access(eq("launch"), eq("my-domain:my-service:2222222222222"), any(), any());
+        System.clearProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testValidateIssuerMultipleIssuerAWSAccountsSecondMatches() {
+        DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
+        SSLContext = Mockito.mock(SSLContext.class);
+        System.setProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(eq("launch"), eq("my-domain:my-service:2222222222222"), any(), any())).thenReturn(true);
+        validator.initialize(sslContext, authorizer);
+        validator.useIamRoleForIssuerAttestation = new DynamicConfigBoolean(Boolean.FALSE);
+        InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
+        instanceConfirmation.setDomain("my-domain");
+        instanceConfirmation.setService("my-service");
+        instanceConfirmation.setAttributes(new HashMap<>());
+        instanceConfirmation.getAttributes().put(ZTS_INSTANCE_ISSUER_AWS_ACCOUNT, "1111111111111,2222222222222");
+        IdTokenAttestationData attestationData = new IdTokenAttestationData();
+        attestationData.setIdentityToken(createToken("athenz.api", "https://zts.athenz.io/zts/v1", "https://oidc.eks.us-east-1.amazonaws.com/id/2222222222222"));
+        assertEquals(validator.validateIssuer(instanceConfirmation, attestationData, new StringBuilder()), , "https://oidc.eks.us-east-1.amazonaws.com/id/2222222222222");
+        verify(authorizer).access(eq("launch"), eq("my-domain:my-service:1111111111111"), any(), any());
+        verify(authorizer).access(eq("launch"), eq("my-domain:my-service:2222222222222"), any(), any());
+        System.clearProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testValidateIssuerMultipleIssuerAWSAccountsNoneMatch() {
+        DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
+        SSLContext = Mockito.mock(SSLContext.class);
+        System.setProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(eq("launch"), eq("my-domain:my-service:2222222222222"), any(), any())).thenReturn(true);
+        validator.initialize(sslContext, authorizer);
+        validator.useIamRoleForIssuerAttestation = new DynamicConfigBoolean(Boolean.FALSE);
+        InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
+        instanceConfirmation.setDomain("my-domain");
+        instanceConfirmation.setService("my-service");
+        instanceConfirmation.setAttributes(new HashMap<>());
+        instanceConfirmation.getAttributes().put(ZTS_INSTANCE_ISSUER_AWS_ACCOUNT, "1111111111111,2222222222222");
+        IdTokenAttestationData attestationData = new IdTokenAttestationData();
+        attestationData.setIdentityToken(createToken("athenz.api", "https://zts.athenz.io/zts/v1", "https://oidc.eks.us-east-1.amazonaws.com/id/1111111111111"));
+        StringBuilder errMsg = new StringBuilder();
+        assertNull(validator.validateIssuer(instanceConfirmation, attestationData, errMsg));
+        verify(authorizer).access(eq("launch"), eq("my-domain:my-service:1111111111111"), any(), any());
+        verify(authorizer).access(eq("launch"), eq("my-domain:my-service:2222222222222"), any(), any());
+        assertTrue(errMsg.toString().contains("my-domain:my-service:1111111111111,2222222222222"),
+                "error message should preserve original comma-separate value, got:" + errMsg);
+        System.clearProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testValidateIssuerEmptyIssuerAWSAccount() {
+        DefaultAWSElasticKubernetesServiceValidator validator = DefaultAWSElasticKubernetesServiceValidator.getInstance();
+        SSLContext = Mockito.mock(SSLContext.class);
+        System.setProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS, "com.yahoo.athenz.instance.provider.impl.MockAttrValidatorFactory");
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        when(authorizer.access(any(), any(), any())).thenReturn(true);
+        validator.initialize(sslContext, authorizer);
+        validator.useIamRoleForIssuerAttestation = new DynamicConfigBoolean(Boolean.FALSE);
+        InstanceConfirmation instanceConfirmation = new InstanceConfirmation();
+        instanceConfirmation.setDomain("my-domain");
+        instanceConfirmation.setService("my-service");
+        instanceConfirmation.setAttributes(new HashMap<>());
+        IdTokenAttestationData attestationData = new IdTokenAttestationData();
+        attestationData.setIdentityToken(createToken("athenz.api", "https://zts.athenz.io/zts/v1", "https://oidc.eks.us-east-1.amazonaws.com/id/1111111111111"));
+        assertNull(validator.validateIssuer(instanceConfirmation, attestationData, new StringBuilder()));
+        verify(authorizer, Mockito.never()).access(any(), any(), any(), any());
         System.clearProperty(DefaultAWSElasticKubernetesServiceValidator.ZTS_PROP_K8S_PROVIDER_AWS_ATTR_VALIDATOR_FACTORY_CLASS);
     }
 

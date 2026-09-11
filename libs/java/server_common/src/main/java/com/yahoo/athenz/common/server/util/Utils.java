@@ -123,19 +123,23 @@ public class Utils {
         return null;
     }
 
-    /** Split a comma-separated AWS account list into a set of trimmed, non-blank account ids */
-    public static Set<String> parseAwsAccounts(final String accounts) {
+    /** Split a comma-separated list into a set of trimmed, non-blank values and preserving order */
+    public static Set<String> parseCsvList(final String values) {
 
-        Set<String> awsAccounts = new LinkedHashSet<>();
-        if (accounts == null) {
-            return awsAccounts;
+        Set<String> parsed = new LinkedHashSet<>();
+        if (values == null) {
+            return parsed;
         }
-        for (String account : accounts.split(",")) {
-            final String trimmedAccount = account.trim();
-            if (!trimmedAccount.isEmpty()) {
-                awsAccounts.add(trimmedAccount);
+        for (String value : values.split(",")) {
+            final String trimmed = value.trim();
+            if (!trimmed.isEmpty()) {
+                parsed.add(trimmed);
             }
         }
-        return awsAccounts;
+        return parsed;
+    }
+    /** Split a comma-separated AWS account list into a set of trimmed, non-blank account ids */
+    public static Set<String> parseAwsAccounts(final String accounts) {
+        return parseCsvList(accounts);
     }
 }

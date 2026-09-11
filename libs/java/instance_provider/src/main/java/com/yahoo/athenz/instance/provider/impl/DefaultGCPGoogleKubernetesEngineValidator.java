@@ -18,6 +18,7 @@ package com.yahoo.athenz.instance.provider.impl;
 import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.instance.provider.AttrValidator;
 import com.yahoo.athenz.instance.provider.AttrValidatorFactory;
@@ -110,15 +111,23 @@ public class DefaultGCPGoogleKubernetesEngineValidator extends CommonKubernetesD
 
         final String domainName = confirmation.getDomain();
         final String serviceName = confirmation.getService();
-        // attribute set after verification above or attribute validation
+        // attribute set after verification above or attribute validation; may be a
+        // comma-separated list of GCP projects when the domain has multiple projects attached
         final String issuerGcpProject = confirmation.getAttributes().get(ZTS_INSTANCE_ISSUER_GCP_PROJECT);
-        final String resource = String.format("%s:%s:%s", domainName, serviceName, issuerGcpProject);
 
         Principal principal = SimplePrincipal.create(domainName, serviceName, (String) null);
-        boolean accessCheck = authorizer.access(ACTION_LAUNCH, resource, principal, null);
+        boolean accessCheck = false;
+        for (String project : Utils.parseCsvList(issuerGcpProject)) {
+            final String resource = String.format("%s:%s:%s", domainName, serviceName, project);
+            if (authorizer.access(ACTION_LAUNCH, resource, principal, null)) {
+                accessCheck = true;
+                break;
+            }
+        }
         if (!accessCheck) {
             errMsg.append("gke launch authorization check failed for action: ").append(ACTION_LAUNCH)
-                    .append(" resource: ").append(resource);
+                    .append(" resource: ").append(domainName).append(":").append(serviceName)
+                    .append(":").append(issuerGcpProject);
             return null;
         }
         return issuer;
