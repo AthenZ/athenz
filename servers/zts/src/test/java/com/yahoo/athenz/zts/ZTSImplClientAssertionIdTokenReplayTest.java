@@ -87,7 +87,7 @@ import static org.testng.Assert.*;
  *   <li>{@code testOnBehalfOfTokenReplayedAsClientAssertionRejected} - a token
  *       whose audience does target the endpoint is still rejected because its
  *       {@code client_id} (holder) does not match its {@code sub}, enforced in
- *       {@code OAuth2Token.parseOAuth2Token}.</li>
+ *       {@code AccessTokenRequest.validateClientAuthToken}.</li>
  *   <li>{@code testSelfSignedAssertionForVictimIsRejected} - the pre-existing
  *       self-signed branch still rejects a forged (non-ZTS) token.</li>
  * </ul>
