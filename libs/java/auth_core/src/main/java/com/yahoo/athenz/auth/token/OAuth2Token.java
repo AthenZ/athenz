@@ -47,6 +47,7 @@ public class OAuth2Token {
     public static final String CLAIM_ACT = "act";
     public static final String CLAIM_MAY_ACT = "may_act";
     public static final String CLAIM_PRINCIPAL_ISSUER = "principal_issuer";
+    public static final String CLAIM_CLIENT_ID = "client_id";
 
     protected int version;
     protected long expiryTime;

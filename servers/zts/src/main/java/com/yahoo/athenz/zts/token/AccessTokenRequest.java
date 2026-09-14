@@ -34,6 +34,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -376,6 +377,10 @@ public class AccessTokenRequest {
             AccessToken token = new AccessToken(assertion, options.getPublicKeyProvider(),
                     options.getOauth2Issuers());
 
+            // the assertion must be a valid self-presented client credential
+
+            validateClientAuthToken(token, options);
+
             // if we have a scope parameter specified then we're good,
             // otherwise we must have our scope claim set in the token
 
@@ -470,11 +475,50 @@ public class AccessTokenRequest {
             try {
                 OAuth2Token token = new OAuth2Token(clientAssertion, options.getPublicKeyProvider(),
                         options.getOauth2Issuers());
+
+                // the assertion must be a valid self-presented client credential
+
+                validateClientAuthToken(token, options);
+
                 principal = SimplePrincipal.create(token.getClientIdDomainName(),
                         token.getClientIdServiceName(), clientAssertion, token.getIssueTime(), null);
             } catch (Exception ex) {
                 throw new IllegalArgumentException("Invalid client assertion: " + ex.getMessage());
             }
+        }
+    }
+
+    void validateClientAuthToken(OAuth2Token token, TokenConfigOptions options) {
+
+        // A JWT presented for client authentication (RFC 7521 / 7523) asserts the
+        // identity of the client that presents it. When ZTS itself signed the
+        // token we must confirm two things that the self-signed branch of
+        // OAuth2Token already guarantees for service-signed tokens, otherwise a
+        // token ZTS minted for a different purpose can be replayed here to
+        // authenticate the caller as the token's subject:
+        //
+        //  1. RFC 7523 section 3 - the aud claim MUST identify this ZTS server as
+        //     the intended audience. This rejects tokens minted for a relying
+        //     party (e.g. an OIDC id token whose audience is the relying service)
+        //     or for a resource domain (e.g. a regular access token).
+        //
+        //  2. Caller binding - an on-behalf-of / delegation token records the
+        //     acting-for user in the subject and the holder service in client_id.
+        //     The presenter authenticates as itself, so the subject must be the
+        //     holder: if a client_id claim is present it MUST match the subject.
+        //     This mirrors the client_id binding enforced for jag token exchange.
+
+        final String audience = token.getAudience();
+        Set<String> oauth2Issuers = options.getOauth2Issuers();
+        if (oauth2Issuers == null || !oauth2Issuers.contains(audience)) {
+            throw new IllegalArgumentException("audience " + audience
+                    + " does not identify the token endpoint");
+        }
+
+        final Object clientId = token.getClaim(OAuth2Token.CLAIM_CLIENT_ID);
+        if (clientId != null && !clientId.equals(token.getSubject())) {
+            throw new IllegalArgumentException("subject " + token.getSubject()
+                    + " does not match client_id " + clientId);
         }
     }
 
