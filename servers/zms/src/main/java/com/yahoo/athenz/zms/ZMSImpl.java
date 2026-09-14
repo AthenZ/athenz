@@ -5209,20 +5209,97 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
         }
-        
-        // Automatically purge tenant‑side assume_role assertions that reference the role we are about to delete.
-        if (autoDeleteTenantAssumeRoleAssertions) {
-            final String trustDomainName = role.getTrust();
-            if (!StringUtil.isEmpty(trustDomainName)) {
-                Domain domain = dbService.getDomain(trustDomainName, useMasterCopyForSignedDomains);
-                // Only proceed if the tenant domain explicitly opts‑in to the cleanup.
-                if (domain != null && Boolean.TRUE.equals(domain.getAutoDeleteTenantAssumeRoleAssertions())) {
-                    dbService.executeDeleteAssumeRoleAssertions(ctx, trustDomainName, domainName, roleName, auditRef, caller);
-                }
-            }
-        }
+
+        deleteTenantAssumeRoleAssertions(ctx, domainName, role, auditRef, caller);
 
         dbService.executeDeleteRole(ctx, domainName, roleName, auditRef, caller);
+    }
+
+    @Override
+    public void deleteRoles(ResourceContext ctx, String domainName, String roleNames, String auditRef, String resourceOwner) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode.get()) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validateResourceOwner(resourceOwner, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        List<String> roleNameList = validateEntityNameList(roleNames, "role", caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        final List<Policy> policies = validatePolicyAssertionRoles.get() == Boolean.TRUE ?
+                getPolicyList(domainName, caller) : null;
+
+        List<Role> roles = new ArrayList<>(roleNameList.size());
+        for (String roleName : roleNameList) {
+
+            ctx.authorize("delete", ResourceUtils.roleResourceName(domainName, roleName), null);
+
+            if (roleName.equalsIgnoreCase(ADMIN_ROLE_NAME)) {
+                throw ZMSUtils.requestError("deleteRoles: admin role cannot be deleted", caller);
+            }
+
+            if (policies != null) {
+                validateRoleNotAssociatedToPolicy(policies, roleName, domainName, caller, "deleteRoles");
+            }
+
+            Role role = dbService.getRole(domainName, roleName, false, false, false);
+            if (role == null) {
+                throw ZMSUtils.notFoundError("Role does not exist", caller);
+            }
+
+            try {
+                ResourceOwnership.verifyRoleDeleteResourceOwnership(role, resourceOwner, caller);
+            } catch (ServerResourceException ex) {
+                throw ZMSUtils.error(ex);
+            }
+            roles.add(role);
+        }
+
+        for (Role role : roles) {
+            deleteTenantAssumeRoleAssertions(ctx, domainName, role, auditRef, caller);
+        }
+
+        dbService.executeDeleteRoles(ctx, domainName, roleNameList, auditRef, caller);
+    }
+
+    void deleteTenantAssumeRoleAssertions(ResourceContext ctx, final String domainName, Role role,
+            final String auditRef, final String caller) {
+
+        // if enabled, automatically purge tenant side assume_role
+        // assertions that reference the role we are about to delete
+
+        if (!autoDeleteTenantAssumeRoleAssertions) {
+            return;
+        }
+
+        final String trustDomainName = role.getTrust();
+        if (StringUtil.isEmpty(trustDomainName)) {
+            return;
+        }
+
+        Domain domain = dbService.getDomain(trustDomainName, useMasterCopyForSignedDomains);
+
+        // only proceed if the tenant domain explicitly opts in to the cleanup
+
+        if (domain != null && Boolean.TRUE.equals(domain.getAutoDeleteTenantAssumeRoleAssertions())) {
+            final String roleName = ZMSUtils.removeDomainPrefix(role.getName(), domainName, ROLE_PREFIX);
+            dbService.executeDeleteAssumeRoleAssertions(ctx, trustDomainName, domainName, roleName, auditRef, caller);
+        }
     }
 
     private List<Policy> getPolicyList(final String domainName, final String caller) {
@@ -5235,6 +5312,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     void validateRoleNotAssociatedToPolicy(List<Policy> policies, final String roleName,
             final String domainName, final String caller) {
+        validateRoleNotAssociatedToPolicy(policies, roleName, domainName, caller, "deleteRole");
+    }
+
+    void validateRoleNotAssociatedToPolicy(List<Policy> policies, final String roleName,
+            final String domainName, final String caller, final String operation) {
 
         final String fullRoleName = ResourceUtils.roleResourceName(domainName, roleName);
         for (Policy policy : policies) {
@@ -5243,7 +5325,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
             for (Assertion assertion : policy.getAssertions()) {
                 if (assertion.getRole().equals(fullRoleName)) {
-                    throw ZMSUtils.requestError("deleteRole: the role: " + roleName + " associated to policy: "
+                    throw ZMSUtils.requestError(operation + ": the role: " + roleName + " associated to policy: "
                             + policy.name + ", it cannot be deleted", caller);
                 }
             }
@@ -6839,6 +6921,75 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw ZMSUtils.error(ex);
         }
         dbService.executeDeletePolicy(ctx, domainName, policyName, auditRef, caller);
+    }
+
+    @Override
+    public void deletePolicies(ResourceContext ctx, String domainName, String policyNames, String auditRef,
+            String resourceOwner) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        if (readOnlyMode.get()) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validateResourceOwner(resourceOwner, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        List<String> policyNameList = validateEntityNameList(policyNames, "policy", caller);
+
+        // verify that request is properly authenticated for this request
+
+        verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        for (String policyName : policyNameList) {
+
+            ctx.authorize("delete", ResourceUtils.policyResourceName(domainName, policyName), null);
+
+            if (policyName.equalsIgnoreCase(ADMIN_POLICY_NAME)) {
+                throw ZMSUtils.requestError("deletePolicies: admin policy cannot be deleted", caller);
+            }
+
+            Policy policy = dbService.getPolicy(domainName, policyName, null);
+            if (policy == null) {
+                throw ZMSUtils.notFoundError("Policy does not exist", caller);
+            }
+
+            try {
+                ResourceOwnership.verifyPolicyDeleteResourceOwnership(policy, resourceOwner, caller);
+            } catch (ServerResourceException ex) {
+                throw ZMSUtils.error(ex);
+            }
+        }
+
+        dbService.executeDeletePolicies(ctx, domainName, policyNameList, auditRef, caller);
+    }
+
+    List<String> validateEntityNameList(final String entityNames, final String objectType, final String caller) {
+
+        if (StringUtil.isEmpty(entityNames)) {
+            throw ZMSUtils.requestError(caller + ": no " + objectType + " names specified", caller);
+        }
+
+        Set<String> normalizedNames = new LinkedHashSet<>();
+        for (String entityName : entityNames.split(",", -1)) {
+            entityName = entityName.trim();
+            if (StringUtil.isEmpty(entityName)) {
+                throw ZMSUtils.requestError(caller + ": empty " + objectType + " name specified", caller);
+            }
+            validate(entityName, TYPE_ENTITY_NAME, caller);
+            normalizedNames.add(entityName.toLowerCase());
+        }
+
+        return new ArrayList<>(normalizedNames);
     }
 
     boolean delegatedTrust(String domainName, String roleName, String roleMember) {

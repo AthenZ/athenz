@@ -41,6 +41,7 @@ public interface ZMSHandler {
     Role getRole(ResourceContext context, String domainName, String roleName, Boolean auditLog, Boolean expand, Boolean pending);
     Response putRole(ResourceContext context, String domainName, String roleName, String auditRef, Boolean returnObj, String resourceOwner, Role role);
     void deleteRole(ResourceContext context, String domainName, String roleName, String auditRef, String resourceOwner);
+    void deleteRoles(ResourceContext context, String domainName, String roleNames, String auditRef, String resourceOwner);
     Membership getMembership(ResourceContext context, String domainName, String roleName, String memberName, String expiration);
     DomainRoleMembers getOverdueReview(ResourceContext context, String domainName);
     DomainRoleMembers getDomainRoleMembers(ResourceContext context, String domainName);
@@ -75,6 +76,7 @@ public interface ZMSHandler {
     Policy getPolicy(ResourceContext context, String domainName, String policyName);
     Response putPolicy(ResourceContext context, String domainName, String policyName, String auditRef, Boolean returnObj, String resourceOwner, Policy policy);
     void deletePolicy(ResourceContext context, String domainName, String policyName, String auditRef, String resourceOwner);
+    void deletePolicies(ResourceContext context, String domainName, String policyNames, String auditRef, String resourceOwner);
     Assertion getAssertion(ResourceContext context, String domainName, String policyName, Long assertionId);
     Assertion putAssertion(ResourceContext context, String domainName, String policyName, String auditRef, String resourceOwner, Assertion assertion);
     Assertion putAssertionPolicyVersion(ResourceContext context, String domainName, String policyName, String version, String auditRef, String resourceOwner, Assertion assertion);

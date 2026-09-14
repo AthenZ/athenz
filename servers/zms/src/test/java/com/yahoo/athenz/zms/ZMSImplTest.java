@@ -2297,6 +2297,178 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testDeleteRoles() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "delete-roles-domain1";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "Role1", null, "user.joe",
+                "user.jane");
+        zmsImpl.putRole(ctx, domainName, "Role1", auditRef, false, null, role1);
+
+        Role role2 = zmsTestInitializer.createRoleObject(domainName, "Role2", null, "user.joe",
+                "user.jane");
+        zmsImpl.putRole(ctx, domainName, "Role2", auditRef, false, null, role2);
+
+        Role role3 = zmsTestInitializer.createRoleObject(domainName, "Role3", null, "user.joe",
+                "user.jane");
+        zmsImpl.putRole(ctx, domainName, "Role3", auditRef, false, null, role3);
+
+        zmsImpl.deleteRoles(ctx, domainName, "Role1,Role2", auditRef, null);
+
+        RoleList roleList = zmsImpl.getRoleList(ctx, domainName, null, null);
+        assertNotNull(roleList);
+        assertEquals(roleList.getNames().size(), 2);
+        assertFalse(roleList.getNames().contains("role1"));
+        assertFalse(roleList.getNames().contains("role2"));
+        assertTrue(roleList.getNames().contains("role3"));
+        assertTrue(roleList.getNames().contains("admin"));
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testDeleteRolesUnknownRoleNoDelete() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "delete-roles-unknown";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "Role1", null, "user.joe",
+                "user.jane");
+        zmsImpl.putRole(ctx, domainName, "Role1", auditRef, false, null, role1);
+
+        Role role2 = zmsTestInitializer.createRoleObject(domainName, "Role2", null, "user.joe",
+                "user.jane");
+        zmsImpl.putRole(ctx, domainName, "Role2", auditRef, false, null, role2);
+
+        try {
+            zmsImpl.deleteRoles(ctx, domainName, "Role1,unknown-role", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("Role does not exist"));
+        }
+
+        RoleList roleList = zmsImpl.getRoleList(ctx, domainName, null, null);
+        assertNotNull(roleList);
+        assertEquals(roleList.getNames().size(), 3);
+        assertTrue(roleList.getNames().contains("role1"));
+        assertTrue(roleList.getNames().contains("role2"));
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testDeleteRolesMissingAuditRef() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "delete-roles-missing-audit";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        dom1.setAuditEnabled(true);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "Role1", null, "user.joe",
+                "user.jane");
+        zmsImpl.putRole(ctx, domainName, "Role1", auditRef, false, null, role1);
+
+        try {
+            zmsImpl.deleteRoles(ctx, domainName, "Role1", null, null);
+            fail("requesterror not thrown by deleteRoles.");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Audit reference required"));
+        } finally {
+            zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        }
+    }
+
+    @Test
+    public void testDeleteAdminRoles() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "delete-admin-roles";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role role1 = zmsTestInitializer.createRoleObject(domainName, "Role1", null, "user.joe",
+                "user.jane");
+        zmsImpl.putRole(ctx, domainName, "Role1", auditRef, false, null, role1);
+
+        try {
+            zmsImpl.deleteRoles(ctx, domainName, "Role1,admin", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("admin role cannot be deleted"));
+        }
+
+        assertNotNull(zmsImpl.getRole(ctx, domainName, "Role1", false, false, false));
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testDeleteRolesAssociatedToPolicy() {
+
+        final String domainName = "delete-roles-associated-policy";
+        final String roleName = "associated-role";
+        final String policyName = "policy1";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Role freeRole = zmsTestInitializer.createRoleObject(domainName, "free-role", null,
+                "user.joe", "user.jane");
+        zmsImpl.putRole(ctx, domainName, "free-role", auditRef, false, null, freeRole);
+
+        Role relatedRole = zmsTestInitializer.createRoleObject(domainName, roleName, null,
+                "user.joe", "user.jane");
+        zmsImpl.putRole(ctx, domainName, roleName, auditRef, false, null, relatedRole);
+
+        Policy policy = zmsTestInitializer.createPolicyObject(domainName, policyName, roleName,
+                "update_members", domainName + ":role." + roleName, AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, domainName, policyName, auditRef, false, null, policy);
+
+        try {
+            zmsImpl.deleteRoles(ctx, domainName, "free-role," + roleName, auditRef, null);
+            fail("should be fail");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("deleteRoles"));
+            assertTrue(ex.getMessage().contains("it cannot be deleted"));
+        }
+
+        assertNotNull(zmsImpl.getRole(ctx, domainName, "free-role", false, false, false));
+        assertNotNull(zmsImpl.getRole(ctx, domainName, roleName, false, false, false));
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testDeleteRoleMissingAuditRef() {
         String domain = "testDeleteRoleMissingAuditRef";
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
@@ -2705,6 +2877,41 @@ public class ZMSImplTest {
         policy = new Policy().setName(ResourceUtils.policyResourceName(domainName, "policy1"));
         policies = Collections.singletonList(policy);
         zmsImpl.validateRoleNotAssociatedToPolicy(policies, relatedRole, domainName, caller);
+    }
+
+    @Test
+    public void testValidateEntityNameList() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        final String caller = "testValidateEntityNameList";
+
+        assertEquals(zmsImpl.validateEntityNameList("Role1,role.two,Role1", "role", caller),
+                Arrays.asList("role1", "role.two"));
+        assertEquals(zmsImpl.validateEntityNameList(" Role1 , Role2 ", "role", caller),
+                Arrays.asList("role1", "role2"));
+
+        try {
+            zmsImpl.validateEntityNameList(null, "role", caller);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("no role names specified"));
+        }
+
+        try {
+            zmsImpl.validateEntityNameList("role1,,role2", "role", caller);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("empty role name specified"));
+        }
+
+        try {
+            zmsImpl.validateEntityNameList("role1,bad:name", "role", caller);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+        }
     }
 
     @Test
@@ -5751,6 +5958,129 @@ public class ZMSImplTest {
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, "PolicyDelDom1", auditRef, null);
+    }
+
+    @Test
+    public void testDeletePolicies() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "delete-policies-domain1";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Policy policy1 = zmsTestInitializer.createPolicyObject(domainName, "Policy1");
+        zmsImpl.putPolicy(ctx, domainName, "Policy1", auditRef, false, null, policy1);
+
+        Policy policy2 = zmsTestInitializer.createPolicyObject(domainName, "Policy2");
+        zmsImpl.putPolicy(ctx, domainName, "Policy2", auditRef, false, null, policy2);
+
+        Policy policy3 = zmsTestInitializer.createPolicyObject(domainName, "Policy3");
+        zmsImpl.putPolicy(ctx, domainName, "Policy3", auditRef, false, null, policy3);
+
+        zmsImpl.deletePolicies(ctx, domainName, "Policy1,Policy2", auditRef, null);
+
+        try {
+            zmsImpl.getPolicy(ctx, domainName, "Policy1");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        try {
+            zmsImpl.getPolicy(ctx, domainName, "Policy2");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        assertNotNull(zmsImpl.getPolicy(ctx, domainName, "Policy3"));
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testDeletePoliciesUnknownPolicyNoDelete() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "delete-policies-unknown";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Policy policy1 = zmsTestInitializer.createPolicyObject(domainName, "Policy1");
+        zmsImpl.putPolicy(ctx, domainName, "Policy1", auditRef, false, null, policy1);
+
+        try {
+            zmsImpl.deletePolicies(ctx, domainName, "Policy1,unknown-policy", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("Policy does not exist"));
+        }
+
+        assertNotNull(zmsImpl.getPolicy(ctx, domainName, "Policy1"));
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testDeletePoliciesMissingAuditRef() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "delete-policies-missing-audit";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        dom1.setAuditEnabled(true);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Policy policy1 = zmsTestInitializer.createPolicyObject(domainName, "Policy1");
+        zmsImpl.putPolicy(ctx, domainName, "Policy1", auditRef, false, null, policy1);
+
+        try {
+            zmsImpl.deletePolicies(ctx, domainName, "Policy1", null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Audit reference required"));
+        } finally {
+            zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        }
+    }
+
+    @Test
+    public void testDeleteAdminPolicies() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "delete-admin-policies";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        Policy policy1 = zmsTestInitializer.createPolicyObject(domainName, "Policy1");
+        zmsImpl.putPolicy(ctx, domainName, "Policy1", auditRef, false, null, policy1);
+
+        try {
+            zmsImpl.deletePolicies(ctx, domainName, "Policy1,admin", auditRef, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("admin policy cannot be deleted"));
+        }
+
+        assertNotNull(zmsImpl.getPolicy(ctx, domainName, "Policy1"));
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -29515,6 +29845,20 @@ public class ZMSImplTest {
         zmsImpl.deleteRole(ctx, domainName, roleName, auditRef, null);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), ROLE, domainName, roleName, "deleteRole");
 
+        // deleteRoles events
+        ctx = zmsTestInitializer.contextWithMockPrincipal("putRole");
+        Role bulkRole1 = zmsTestInitializer.createRoleObject(domainName, "bulk-role1", null, "user.user101",
+                "user.todelete");
+        zmsImpl.putRole(ctx, domainName, "bulk-role1", auditRef, false, null, bulkRole1);
+        Role bulkRole2 = zmsTestInitializer.createRoleObject(domainName, "bulk-role2", null, "user.user101",
+                "user.todelete");
+        zmsImpl.putRole(ctx, domainName, "bulk-role2", auditRef, false, null, bulkRole2);
+        ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        Mockito.clearInvocations(ctx);
+        when(ctx.getApiName()).thenReturn("deleteroles");
+        zmsImpl.deleteRoles(ctx, domainName, "bulk-role1,bulk-role2", auditRef, null);
+        assertSingleChangeMessage(ctx, DOMAIN, domainName, domainName, "deleteRoles");
+
         // putDefaultAdmins events
         ctx = zmsTestInitializer.contextWithMockPrincipal("putDefaultAdmins");
         List<String> adminList = Arrays.asList("user.newadmin", zmsTestInitializer.getAdminUser());
@@ -29700,6 +30044,18 @@ public class ZMSImplTest {
         zmsImpl.deletePolicy(ctx, domainName, policyConditionName, auditRef, null);
         assertSingleChangeMessage(ctx.getDomainChangeMessages(), POLICY, domainName,
                 policyConditionName, "deletePolicy");
+
+        // deletePolicies events
+        ctx = zmsTestInitializer.contextWithMockPrincipal("putPolicy");
+        Policy bulkPolicy1 = zmsTestInitializer.createPolicyObject(domainName, "bulk-policy1");
+        zmsImpl.putPolicy(ctx, domainName, "bulk-policy1", auditRef, false, null, bulkPolicy1);
+        Policy bulkPolicy2 = zmsTestInitializer.createPolicyObject(domainName, "bulk-policy2");
+        zmsImpl.putPolicy(ctx, domainName, "bulk-policy2", auditRef, false, null, bulkPolicy2);
+        ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        Mockito.clearInvocations(ctx);
+        when(ctx.getApiName()).thenReturn("deletepolicies");
+        zmsImpl.deletePolicies(ctx, domainName, "bulk-policy1,bulk-policy2", auditRef, null);
+        assertSingleChangeMessage(ctx, DOMAIN, domainName, domainName, "deletePolicies");
 
         // putServiceIdentity events
         String serviceName = "test-srv";
@@ -29903,6 +30259,13 @@ public class ZMSImplTest {
                                            String domainName, String objName, String apiName) {
         assertEquals(changeMsgs.size(), 1);
         ZMSTestUtils.assertChange(changeMsgs.get(0), objType, domainName, objName, apiName);
+    }
+
+    private void assertSingleChangeMessage(ResourceContext ctx, DomainChangeMessage.ObjectType objType,
+                                           String domainName, String objName, String apiName) {
+        ArgumentCaptor<DomainChangeMessage> changeCaptor = ArgumentCaptor.forClass(DomainChangeMessage.class);
+        verify(ctx, times(1)).addDomainChangeMessage(changeCaptor.capture());
+        ZMSTestUtils.assertChange(changeCaptor.getValue(), objType, domainName, objName, apiName);
     }
 
     private void assertTemplateChanges(String domainName, List<DomainChangeMessage> changeMsgs, String templateApi) {

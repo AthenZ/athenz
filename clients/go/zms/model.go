@@ -29,6 +29,9 @@ type DomainName string
 // only the domain and entity.
 type EntityName string
 
+// EntityNameList - A comma separated list of entity names
+type EntityNameList string
+
 // ServiceName - A service name will generally be a unique subdomain.
 type ServiceName string
 

@@ -2734,6 +2734,54 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
+    void executeDeleteRoles(ResourceContext ctx, String domainName, List<String> roleNames,
+            String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_ROLE);
+
+                // process our delete role requests
+
+                for (String roleName : roleNames) {
+                    if (!con.deleteRole(domainName, roleName)) {
+                        rollbackChanges(con);
+                        throw ZMSUtils.notFoundError(caller + ": unable to delete role: " + roleName, caller);
+                    }
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the requests
+
+                for (String roleName : roleNames) {
+                    auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                            roleName, null);
+                }
+
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
+
+                return;
+
+            } catch (ServerResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ZMSUtils.error(ex);
+                }
+            }
+        }
+    }
+
     void executeDeleteGroup(ResourceContext ctx, final String domainName, final String groupName, final String auditRef) {
 
         // our exception handling code does the check for retry count
@@ -2830,6 +2878,79 @@ public class DBService implements RolesProvider, DomainProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, policyName, DomainChangeMessage.ObjectType.POLICY);
                 
+                return;
+
+            } catch (ServerResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ZMSUtils.error(ex);
+                }
+            }
+        }
+    }
+
+    void executeDeletePolicies(ResourceContext ctx, String domainName, List<String> policyNames,
+            String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
+
+                // extract the current policies for audit log purposes
+
+                Map<String, String> auditDetails = new LinkedHashMap<>();
+                for (String policyName : policyNames) {
+                    List<String> versions = con.listPolicyVersions(domainName, policyName);
+                    if (versions == null || versions.isEmpty()) {
+                        rollbackChanges(con);
+                        throw ZMSUtils.notFoundError(caller + ": unable to get versions for policy: "
+                                + policyName, caller);
+                    }
+                    List<Policy> policyVersions = new ArrayList<>();
+                    for (String version : versions) {
+                        Policy policy = getPolicy(con, domainName, policyName, version);
+                        if (policy == null) {
+                            rollbackChanges(con);
+                            throw ZMSUtils.notFoundError(caller + ": unable to read policy: " + policyName
+                                    + ", with version: " + version, caller);
+                        }
+                        policyVersions.add(policy);
+                    }
+                    StringBuilder details = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                    auditLogPolicy(details, policyVersions, "deleted-policy-versions");
+                    auditDetails.put(policyName, details.toString());
+                }
+
+                // process our delete policy requests
+
+                for (String policyName : policyNames) {
+                    if (!con.deletePolicy(domainName, policyName)) {
+                        rollbackChanges(con);
+                        throw ZMSUtils.notFoundError(caller + ": unable to delete policy: " + policyName, caller);
+                    }
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the requests
+
+                for (Map.Entry<String, String> entry : auditDetails.entrySet()) {
+                    auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                            entry.getKey(), entry.getValue());
+                }
+
+                // add domain change event
+                addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
+
                 return;
 
             } catch (ServerResourceException ex) {

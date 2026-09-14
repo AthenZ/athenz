@@ -39,6 +39,14 @@
         {
             "StringTypeDef": {
                 "type": "String",
+                "name": "EntityNameList",
+                "comment": "A comma separated list of entity names",
+                "pattern": "(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*,)*([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
+            }
+        },
+        {
+            "StringTypeDef": {
+                "type": "String",
                 "name": "ServiceName",
                 "comment": "A service name will generally be a unique subdomain.",
                 "pattern": "([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*"
@@ -6166,6 +6174,73 @@
             }
         },
         {
+            "type": "RoleList",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/roles/{roleNames}",
+            "comment": "Delete the specified roles. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "roleNames",
+                    "type": "EntityNameList",
+                    "comment": "comma separated list of role names to be deleted",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "resourceOwner",
+                    "type": "String",
+                    "comment": "Resource owner for the request",
+                    "pathParam": false,
+                    "header": "Athenz-Resource-Owner",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "DeleteRoles"
+        },
+        {
             "type": "Membership",
             "method": "GET",
             "path": "/domain/{domainName}/role/{roleName}/member/{memberName}",
@@ -8427,6 +8502,73 @@
                     "type": "ResourceError"
                 }
             }
+        },
+        {
+            "type": "PolicyList",
+            "method": "DELETE",
+            "path": "/domain/{domainName}/policies/{policyNames}",
+            "comment": "Delete the specified policies. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "policyNames",
+                    "type": "EntityNameList",
+                    "comment": "comma separated list of policy names to be deleted",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "auditRef",
+                    "type": "String",
+                    "comment": "Audit param required(not empty) if domain auditEnabled is true.",
+                    "pathParam": false,
+                    "header": "Y-Audit-Ref",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "resourceOwner",
+                    "type": "String",
+                    "comment": "Resource owner for the request",
+                    "pathParam": false,
+                    "header": "Athenz-Resource-Owner",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "NO_CONTENT",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "CONFLICT": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            },
+            "name": "DeletePolicies"
         },
         {
             "type": "Assertion",

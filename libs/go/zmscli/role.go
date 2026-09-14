@@ -171,6 +171,30 @@ func (cli Zms) DeleteRole(dn string, rn string) (*string, error) {
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
+func (cli Zms) DeleteRoles(dn string, roleNames []string) (*string, error) {
+	if len(roleNames) == 0 {
+		return nil, fmt.Errorf("no role names specified")
+	}
+	for _, rn := range roleNames {
+		if rn == "admin" {
+			return nil, fmt.Errorf("cannot delete 'admin' role")
+		}
+	}
+	for _, roleNameChunk := range bulkDeleteNameChunks(roleNames) {
+		err := cli.Zms.DeleteRoles(zms.DomainName(dn), zms.EntityNameList(strings.Join(roleNameChunk, ",")), cli.AuditRef, cli.ResourceOwner)
+		if err != nil {
+			return nil, err
+		}
+	}
+	s := "[Deleted roles: " + strings.Join(roleNames, ", ") + "]"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) AddProviderRoleMembers(dn string, provider string, group string, action string, members []string) (*string, error) {
 	rn := providerRoleName(provider, group, action)
 	return cli.AddMembers(dn, rn, members)
