@@ -13558,8 +13558,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // the calling principal's own membership state (member/pending/inherited) is
         // overlaid on each object so the UI can populate the "my roles" view directly.
 
-        final String principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
-        return dbService.getSelfServeRoles(normalizeSelfServeMatchString(matchString), principal, memberOnly == Boolean.TRUE);
+        String memberPrincipal = memberOnly == Boolean.TRUE ? ((RsrcCtxWrapper) ctx).principal().getFullName() : null;
+        return dbService.getSelfServeRoles(normalizeSelfServeMatchString(matchString), memberPrincipal);
     }
 
     @Override
@@ -13576,8 +13576,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // the calling principal's own membership state (member/pending) is overlaid on
         // each object so the UI can populate the "my groups" view directly.
 
-        final String principal = ((RsrcCtxWrapper) ctx).principal().getFullName();
-        return dbService.getSelfServeGroups(normalizeSelfServeMatchString(matchString), principal, memberOnly == Boolean.TRUE);
+        String memberPrincipal = memberOnly == Boolean.TRUE ? ((RsrcCtxWrapper) ctx).principal().getFullName() : null;
+        return dbService.getSelfServeGroups(normalizeSelfServeMatchString(matchString), memberPrincipal);
     }
 
     static String normalizeSelfServeMatchString(final String matchString) {

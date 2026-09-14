@@ -1113,14 +1113,14 @@ public class DBServiceTest {
     @Test
     public void testGetSelfServeRolesFailure() throws ServerResourceException {
 
-        Mockito.when(mockJdbcConn.getSelfServeRoles("test", "user.test", false))
+        Mockito.when(mockJdbcConn.getSelfServeRoles("test", "user.test"))
                 .thenThrow(new ServerResourceException(ServerResourceException.INTERNAL_SERVER_ERROR, "sql error"));
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
         try {
-            zms.dbService.getSelfServeRoles("test", "user.test", false);
+            zms.dbService.getSelfServeRoles("test", "user.test");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
@@ -1132,14 +1132,14 @@ public class DBServiceTest {
     @Test
     public void testGetSelfServeGroupsFailure() throws ServerResourceException {
 
-        Mockito.when(mockJdbcConn.getSelfServeGroups("test", "user.test", false))
+        Mockito.when(mockJdbcConn.getSelfServeGroups("test", "user.test"))
                 .thenThrow(new ServerResourceException(ServerResourceException.INTERNAL_SERVER_ERROR, "sql error"));
 
         ObjectStore saveStore = zms.dbService.store;
         zms.dbService.store = mockObjStore;
 
         try {
-            zms.dbService.getSelfServeGroups("test", "user.test", false);
+            zms.dbService.getSelfServeGroups("test", "user.test");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
