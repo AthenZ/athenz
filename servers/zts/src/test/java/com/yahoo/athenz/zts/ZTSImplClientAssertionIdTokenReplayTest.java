@@ -83,7 +83,7 @@ import static org.testng.Assert.*;
  * <ul>
  *   <li>{@code testIdTokenReplayedAsClientAssertion} - the id token's audience is
  *       the relying party, so it fails the RFC 7523 audience check added in
- *       {@code AccessTokenRequest.validateClientAuthAudience}.</li>
+ *       {@code AccessTokenRequest.validateClientAuthToken}.</li>
  *   <li>{@code testOnBehalfOfTokenReplayedAsClientAssertionRejected} - a token
  *       whose audience does target the endpoint is still rejected because its
  *       {@code client_id} (holder) does not match its {@code sub}, enforced in
