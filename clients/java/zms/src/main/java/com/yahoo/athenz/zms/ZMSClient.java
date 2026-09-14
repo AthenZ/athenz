@@ -4579,4 +4579,55 @@ public class ZMSClient implements Closeable {
             throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
+
+    /**
+     * Fetch all self-service roles across all domains whose name or description contains
+     * the given match string. The match is case-insensitive. If the match string is not
+     * specified, then all self-service roles are returned. Any authenticated principal may
+     * make this call since self-service roles are, by definition, discoverable and
+     * requestable by any user. The calling principal's own membership state is overlaid on
+     * each returned object.
+     *
+     * @param matchString string to match against the role name or description; if empty all
+     *                    self-service roles are returned
+     * @param memberOnly if true, only return roles the calling principal is already a member
+     *                   of or has a pending request for
+     * @return list of self-service roles matching the given criteria
+     * @throws ZMSClientException in case of failure
+     */
+    public SelfServeObjects getSelfServeRoles(String matchString, Boolean memberOnly) {
+        updatePrincipal();
+        try {
+            return client.getSelfServeRoles(matchString, memberOnly);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Fetch all self-service groups across all domains whose name contains the given match
+     * string. The match is case-insensitive. If the match string is not specified, then all
+     * self-service groups are returned. Any authenticated principal may make this call since
+     * self-service groups are, by definition, discoverable and requestable by any user. The
+     * calling principal's own membership state is overlaid on each returned object.
+     *
+     * @param matchString string to match against the group name; if empty all self-service
+     *                    groups are returned
+     * @param memberOnly if true, only return groups the calling principal is already a member
+     *                   of or has a pending request for
+     * @return list of self-service groups matching the given criteria
+     * @throws ZMSClientException in case of failure
+     */
+    public SelfServeObjects getSelfServeGroups(String matchString, Boolean memberOnly) {
+        updatePrincipal();
+        try {
+            return client.getSelfServeGroups(matchString, memberOnly);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
 }

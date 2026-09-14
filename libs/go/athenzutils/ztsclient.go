@@ -505,3 +505,4 @@ func GenerateJAGTokenExchangeRequestString(assertion string) string {
 
 	return params.Encode()
 }
+

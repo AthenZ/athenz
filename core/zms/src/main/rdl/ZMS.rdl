@@ -29,6 +29,7 @@ include "Authority.rdli";
 include "Stats.rdli";
 include "Dependency.rdli";
 include "Review.rdli";
+include "SelfServe.rdli";
 include "Info.rdli";
 include "PrincipalMember.rdli";
 include "Schema.rdli";

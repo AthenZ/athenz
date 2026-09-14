@@ -3,7 +3,7 @@
 This document provides instructions on how to update the ZMS schema when new features are
 added to the Athenz service.
 
-Athenz Authors are using [MySQLWorkbenc](https://dev.mysql.com/downloads/workbench/) to
+Athenz Authors are using [MySQLWorkbench](https://downloads.mysql.com/archives/workbench/) 8.0.47 to
 manage the ZMS schema. The schema is stored in the `servers/zms/schema/zms_server.mwb` file
 and the corresponding SQL script is stored in the `servers/zms/schema/zms_server.sql` file.
 

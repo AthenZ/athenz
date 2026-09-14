@@ -5384,4 +5384,58 @@ public class ZMSClientTest {
             assertEquals(ex.getCode(), 429);
         }
     }
+
+    @Test
+    public void testGetSelfServeRoles() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        SelfServeObjects selfServeObjects = new SelfServeObjects().setList(Collections.singletonList(
+                new SelfServeObject().setDomainName("domain").setName("role")));
+        Mockito.when(c.getSelfServeRoles("platform", Boolean.FALSE)).thenReturn(selfServeObjects)
+                .thenThrow(new NullPointerException()).thenThrow(new ClientResourceException(400));
+        SelfServeObjects result = client.getSelfServeRoles("platform", Boolean.FALSE);
+        assertNotNull(result);
+        assertEquals(result.getList().size(), 1);
+        assertEquals(result.getList().get(0).getName(), "role");
+        try {
+            client.getSelfServeRoles("platform", Boolean.FALSE);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+        try {
+            client.getSelfServeRoles("platform", Boolean.FALSE);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+    }
+
+    @Test
+    public void testGetSelfServeGroups() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        SelfServeObjects selfServeObjects = new SelfServeObjects().setList(Collections.singletonList(
+                new SelfServeObject().setDomainName("domain").setName("group")));
+        Mockito.when(c.getSelfServeGroups("champions", Boolean.TRUE)).thenReturn(selfServeObjects)
+                .thenThrow(new NullPointerException()).thenThrow(new ClientResourceException(400));
+        SelfServeObjects result = client.getSelfServeGroups("champions", Boolean.TRUE);
+        assertNotNull(result);
+        assertEquals(result.getList().size(), 1);
+        assertEquals(result.getList().get(0).getName(), "group");
+        try {
+            client.getSelfServeGroups("champions", Boolean.TRUE);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+        try {
+            client.getSelfServeGroups("champions", Boolean.TRUE);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+    }
 }

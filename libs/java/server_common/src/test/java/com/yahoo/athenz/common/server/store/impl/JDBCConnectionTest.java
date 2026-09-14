@@ -16203,6 +16203,281 @@ public class JDBCConnectionTest {
     }
 
     @Test
+    public void testGetSelfServeRoles() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_DOMAIN_NAME)).thenReturn("domain1").thenReturn("domain2");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_AS_ROLE_NAME)).thenReturn("role1").thenReturn("role2");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_DESCRIPTION)).thenReturn("desc1").thenReturn("desc2");
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_SELF_RENEW)).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_SELF_RENEW_MINS)).thenReturn(30).thenReturn(0);
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_REVIEW_ENABLED)).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_AUDIT_ENABLED)).thenReturn(false).thenReturn(true);
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_DELETE_PROTECTION)).thenReturn(false).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS)).thenReturn(90).thenReturn(0);
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_AS_DOMAIN_MEMBER_EXPIRY_DAYS)).thenReturn(30).thenReturn(30);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        SelfServeObjects selfServeObjects = jdbcConn.getSelfServeRoles("platform", null, false);
+        assertNotNull(selfServeObjects);
+        List<SelfServeObject> objects = selfServeObjects.getList();
+        assertNotNull(objects);
+        assertEquals(objects.size(), 2);
+
+        SelfServeObject object1 = new SelfServeObject().setDomainName("domain1").setName("role1").setDescription("desc1")
+                .setSelfRenew(true).setSelfRenewMins(30).setReviewEnabled(true).setAuditEnabled(false)
+                .setDeleteProtection(false).setMemberStatus("none")
+                .setMemberExpiryDays(90).setDomainMemberExpiryDays(30);
+        assertEquals(objects.get(0), object1);
+
+        SelfServeObject object2 = new SelfServeObject().setDomainName("domain2").setName("role2").setDescription("desc2")
+                .setSelfRenew(false).setSelfRenewMins(0).setReviewEnabled(false).setAuditEnabled(true)
+                .setDeleteProtection(true).setMemberStatus("none")
+                .setMemberExpiryDays(0).setDomainMemberExpiryDays(30);
+        assertEquals(objects.get(1), object2);
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "%platform%");
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "%platform%");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetSelfServeRolesNullMatchString() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        SelfServeObjects selfServeObjects = jdbcConn.getSelfServeRoles(null, null, false);
+        assertNotNull(selfServeObjects);
+        assertTrue(selfServeObjects.getList().isEmpty());
+
+        // a null match string matches all self-service roles via a "%" pattern
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "%");
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "%");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetSelfServeRolesUnknownPrincipalDiscovery() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(false, true, false);
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_DOMAIN_NAME)).thenReturn("domain1");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_AS_ROLE_NAME)).thenReturn("role1");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_DESCRIPTION)).thenReturn("desc1");
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_SELF_RENEW)).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_SELF_RENEW_MINS)).thenReturn(0);
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_REVIEW_ENABLED)).thenReturn(false);
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_AUDIT_ENABLED)).thenReturn(false);
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_DELETE_PROTECTION)).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS)).thenReturn(90);
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_AS_DOMAIN_MEMBER_EXPIRY_DAYS)).thenReturn(30);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        SelfServeObjects selfServeObjects = jdbcConn.getSelfServeRoles("platform", "user.unknown", false);
+        assertNotNull(selfServeObjects);
+        assertEquals(selfServeObjects.getList().size(), 1);
+        assertEquals(selfServeObjects.getList().get(0).getMemberStatus(), "none");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.unknown");
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "%platform%");
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "%platform%");
+        Mockito.verify(mockPrepStmt, times(0)).setInt(1, 0);
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetSelfServeRolesFailure() throws Exception {
+
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        try {
+            jdbcConn.getSelfServeRoles("test", null, false);
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetSelfServeGroups() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_DOMAIN_NAME)).thenReturn("domain1");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_AS_GROUP_NAME)).thenReturn("group1");
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_SELF_RENEW)).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_SELF_RENEW_MINS)).thenReturn(60);
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_REVIEW_ENABLED)).thenReturn(true);
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_AUDIT_ENABLED)).thenReturn(false);
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_DELETE_PROTECTION)).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS)).thenReturn(45);
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_AS_DOMAIN_MEMBER_EXPIRY_DAYS)).thenReturn(30);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        // the match string reaches this layer already trimmed and lower-cased by ZMS
+        SelfServeObjects selfServeObjects = jdbcConn.getSelfServeGroups("champions", null, false);
+        assertNotNull(selfServeObjects);
+        List<SelfServeObject> objects = selfServeObjects.getList();
+        assertNotNull(objects);
+        assertEquals(objects.size(), 1);
+
+        SelfServeObject object1 = new SelfServeObject().setDomainName("domain1").setName("group1")
+                .setSelfRenew(true).setSelfRenewMins(60).setReviewEnabled(true).setAuditEnabled(false)
+                .setDeleteProtection(true).setMemberStatus("none")
+                .setMemberExpiryDays(45).setDomainMemberExpiryDays(30);
+        assertEquals(objects.get(0), object1);
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "%champions%");
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetSelfServeGroupsUnknownPrincipalDiscovery() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(false, true, false);
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_DOMAIN_NAME)).thenReturn("domain1");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_AS_GROUP_NAME)).thenReturn("group1");
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_SELF_RENEW)).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_SELF_RENEW_MINS)).thenReturn(0);
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_REVIEW_ENABLED)).thenReturn(false);
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_AUDIT_ENABLED)).thenReturn(false);
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_DELETE_PROTECTION)).thenReturn(false);
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_MEMBER_EXPIRY_DAYS)).thenReturn(45);
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_AS_DOMAIN_MEMBER_EXPIRY_DAYS)).thenReturn(30);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        SelfServeObjects selfServeObjects = jdbcConn.getSelfServeGroups("champions", "user.unknown", false);
+        assertNotNull(selfServeObjects);
+        assertEquals(selfServeObjects.getList().size(), 1);
+        assertEquals(selfServeObjects.getList().get(0).getMemberStatus(), "none");
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "user.unknown");
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "%champions%");
+        Mockito.verify(mockPrepStmt, times(0)).setInt(1, 0);
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetSelfServeGroupsFailure() throws Exception {
+
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        try {
+            jdbcConn.getSelfServeGroups("test", null, false);
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetSelfServeRolesMembershipOverlay() throws Exception {
+
+        // four rows exercising each overlay branch: direct member, inherited via
+        // group, pending request, and no relationship
+
+        Mockito.when(mockResultSet.next()).thenReturn(true, true, true, true, true, false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(101);
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_DOMAIN_NAME)).thenReturn("d");
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_AS_ROLE_NAME))
+                .thenReturn("direct", "inherited", "pending", "none");
+        Mockito.when(mockResultSet.getObject(JDBCConsts.DB_COLUMN_AS_MEMBER_PRINCIPAL))
+                .thenReturn(Integer.valueOf(5), null, null, null);
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_AS_INHERITED_FROM))
+                .thenReturn(null, "d:group.eng", null, null);
+        Mockito.when(mockResultSet.getObject(JDBCConsts.DB_COLUMN_AS_PENDING_PRINCIPAL))
+                .thenReturn(null, null, Integer.valueOf(7), null);
+        Mockito.when(mockResultSet.getTimestamp(JDBCConsts.DB_COLUMN_AS_MEMBER_EXPIRATION))
+                .thenReturn(new java.sql.Timestamp(200));
+        Mockito.when(mockResultSet.getTimestamp(JDBCConsts.DB_COLUMN_AS_INHERITED_EXPIRATION))
+                .thenReturn(new java.sql.Timestamp(300));
+        Mockito.when(mockResultSet.getTimestamp(JDBCConsts.DB_COLUMN_AS_PENDING_EXPIRATION))
+                .thenReturn(new java.sql.Timestamp(400));
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        // memberOnly=true exercises the additional filter clause
+        SelfServeObjects selfServeObjects = jdbcConn.getSelfServeRoles("x", "user.john", true);
+        List<SelfServeObject> objects = selfServeObjects.getList();
+        assertEquals(objects.size(), 4);
+
+        assertEquals(objects.get(0).getMemberStatus(), "member");
+        assertEquals(objects.get(0).getExpiration(), Timestamp.fromMillis(200));
+        assertNull(objects.get(0).getInheritedFrom());
+
+        assertEquals(objects.get(1).getMemberStatus(), "member");
+        assertEquals(objects.get(1).getInheritedFrom(), "d:group.eng");
+        assertEquals(objects.get(1).getExpiration(), Timestamp.fromMillis(300));
+
+        assertEquals(objects.get(2).getMemberStatus(), "pending");
+        assertEquals(objects.get(2).getExpiration(), Timestamp.fromMillis(400));
+        assertNull(objects.get(2).getInheritedFrom());
+
+        assertEquals(objects.get(3).getMemberStatus(), "none");
+        assertNull(objects.get(3).getExpiration());
+        assertNull(objects.get(3).getInheritedFrom());
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetSelfServeRolesMemberOnlyUnknownPrincipal() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        SelfServeObjects objects = jdbcConn.getSelfServeRoles("x", "user.unknown", true);
+        assertNotNull(objects);
+        assertTrue(objects.getList().isEmpty());
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetSelfServeGroupsMemberOnlyUnknownPrincipal() throws Exception {
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        SelfServeObjects objects = jdbcConn.getSelfServeGroups("x", "user.unknown", true);
+        assertNotNull(objects);
+        assertTrue(objects.getList().isEmpty());
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetSelfServeGroupsWithPrincipal() throws Exception {
+
+        // the first result set row resolves the principal id, the main query then
+        // returns no rows; memberOnly=true exercises the group filter clause
+
+        Mockito.when(mockResultSet.next()).thenReturn(true, false);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(101);
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        SelfServeObjects objects = jdbcConn.getSelfServeGroups("x", "user.john", true);
+        assertNotNull(objects);
+        assertTrue(objects.getList().isEmpty());
+
+        // the resolved principal id is used in the overlay joins
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 101);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 101);
+
+        jdbcConn.close();
+    }
+
+    @Test
     public void testInsertDomainContact() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
