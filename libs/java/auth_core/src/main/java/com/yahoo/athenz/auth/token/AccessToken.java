@@ -43,7 +43,6 @@ public class AccessToken extends OAuth2Token {
     public static final String CLAIM_SCOPE = "scp";
     public static final String CLAIM_SCOPE_STD = "scope";
     public static final String CLAIM_UID = "uid";
-    public static final String CLAIM_CLIENT_ID = "client_id";
     public static final String CLAIM_CONFIRM = "cnf";
     public static final String CLAIM_PROXY = "proxy";
     public static final String CLAIM_AUTHZ_DETAILS = "authorization_details";
