@@ -88,6 +88,11 @@ import static org.testng.Assert.*;
  *       whose audience does target the endpoint is still rejected because its
  *       {@code client_id} (holder) does not match its {@code sub}, enforced in
  *       {@code AccessTokenRequest.validateClientAuthToken}.</li>
+ *   <li>{@code testIdTokenReplayedAsJwtBearerAssertion} and
+ *       {@code testOnBehalfOfTokenReplayedAsJwtBearerAssertionRejected} - the
+ *       same two vectors through the {@code grant_type=jwt-bearer} authorization
+ *       grant ({@code assertion} parameter), which is validated by the separate
+ *       {@code AccessTokenRequest.validateJWTAccessTokenRequest} call site.</li>
  *   <li>{@code testSelfSignedAssertionForVictimIsRejected} - the pre-existing
  *       self-signed branch still rejects a forged (non-ZTS) token.</li>
  * </ul>
@@ -114,6 +119,8 @@ public class ZTSImplClientAssertionIdTokenReplayTest {
 
     private static final String JWT_BEARER_ASSERTION_TYPE =
             "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
+    private static final String JWT_BEARER_GRANT_TYPE =
+            "urn:ietf:params:oauth:grant-type:jwt-bearer";
 
     @Mock private HttpServletRequest mockServletRequest;
     @Mock private HttpServletResponse mockServletResponse;
@@ -269,6 +276,67 @@ public class ZTSImplClientAssertionIdTokenReplayTest {
                             + "&client_assertion_type=" + JWT_BEARER_ASSERTION_TYPE
                             + "&client_assertion=" + onBehalfOfToken);
             fail("on-behalf-of token replayed as a client assertion must be rejected");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("does not match client_id"),
+                    "expected the client_id binding check to reject it, got: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * The same id token replay, but through the RFC 7523 section 2.1
+     * authorization grant: {@code grant_type=jwt-bearer} with the token in the
+     * {@code assertion} parameter. This is routed through
+     * {@code AccessTokenRequest.validateJWTAccessTokenRequest}, a separate call
+     * site from the client_assertion path, so it needs its own regression
+     * coverage. The id token's audience is the relying party, so the RFC 7523
+     * audience check rejects it.
+     */
+    @Test
+    public void testIdTokenReplayedAsJwtBearerAssertion() throws JOSEException {
+
+        setupDomains();
+
+        final String idToken = getIdTokenForVictim();
+        JWTClaimsSet idClaims = parseAndVerify(idToken);
+        assertEquals(idClaims.getSubject(), VICTIM, "id token subject is the victim user");
+        assertEquals(idClaims.getAudience().get(0), HOLDER, "id token was issued to weather.api");
+
+        ResourceContext anonymousContext = createResourceContext(null);
+        try {
+            zts.postAccessTokenRequest(anonymousContext,
+                    "grant_type=" + JWT_BEARER_GRANT_TYPE
+                            + "&scope=" + TARGET_SCOPE
+                            + "&assertion=" + idToken);
+            fail("id token replayed as a jwt-bearer assertion must be rejected");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("does not identify the token endpoint"),
+                    "expected the audience check to reject it, got: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * The on-behalf-of replay through the {@code grant_type=jwt-bearer}
+     * authorization grant. The token's audience is the token endpoint, so it
+     * passes the audience check, and must instead be rejected because its
+     * client_id (the holder service) does not match its subject (the victim).
+     */
+    @Test
+    public void testOnBehalfOfTokenReplayedAsJwtBearerAssertionRejected() {
+
+        setupDomains();
+
+        // sub = victim, client_id = holder service, aud = the ZTS token endpoint
+        final String onBehalfOfToken = createOnBehalfOfTokenForEndpoint();
+
+        ResourceContext anonymousContext = createResourceContext(null);
+        try {
+            zts.postAccessTokenRequest(anonymousContext,
+                    "grant_type=" + JWT_BEARER_GRANT_TYPE
+                            + "&scope=" + TARGET_SCOPE
+                            + "&assertion=" + onBehalfOfToken);
+            fail("on-behalf-of token replayed as a jwt-bearer assertion must be rejected");
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("does not match client_id"),
