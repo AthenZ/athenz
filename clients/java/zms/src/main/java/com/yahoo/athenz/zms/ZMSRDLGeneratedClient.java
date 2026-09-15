@@ -1137,6 +1137,41 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
+    public RoleList deleteRoles(String domainName, String roleNames, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/roles/{roleNames}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("roleNames", roleNames);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.delete()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
     public Membership getMembership(String domainName, String roleName, String memberName, String expiration) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/role/{roleName}/member/{memberName}")
             .resolveTemplate("domainName", domainName)
@@ -2322,6 +2357,41 @@ public class ZMSRDLGeneratedClient {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policy/{policyName}")
             .resolveTemplate("domainName", domainName)
             .resolveTemplate("policyName", policyName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.delete()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (resourceOwner != null) {
+            httpUriRequest.addHeader("Athenz-Resource-Owner", resourceOwner);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public PolicyList deletePolicies(String domainName, String policyNames, String auditRef, String resourceOwner) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/policies/{policyNames}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("policyNames", policyNames);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
         ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.delete()
             .setUri(uriBuilder.build())

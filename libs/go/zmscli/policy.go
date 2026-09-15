@@ -388,6 +388,26 @@ func (cli Zms) DeletePolicy(dn string, pn string) (*string, error) {
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
+func (cli Zms) DeletePolicies(dn string, policyNames []string) (*string, error) {
+	if len(policyNames) == 0 {
+		return nil, fmt.Errorf("no policy names specified")
+	}
+	policyList := make([]zms.EntityName, 0, len(policyNames))
+	for _, policyName := range policyNames {
+		policyList = append(policyList, zms.EntityName(policyName))
+	}
+	if err := cli.Zms.DeletePolicyList(zms.DomainName(dn), policyList, cli.AuditRef, cli.ResourceOwner); err != nil {
+		return nil, err
+	}
+	s := "[Deleted policies: " + strings.Join(policyNames, ", ") + "]"
+
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) DeletePolicyVersion(dn string, pn string, version string) (*string, error) {
 	err := cli.Zms.DeletePolicyVersion(zms.DomainName(dn), zms.EntityName(pn), zms.SimpleName(version), cli.AuditRef, cli.ResourceOwner)
 	if err != nil {

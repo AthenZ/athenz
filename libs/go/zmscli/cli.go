@@ -501,6 +501,12 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 		case "delete-policy":
 			if argc == 1 {
 				return cli.DeletePolicy(dn, args[0])
+			} else if argc > 1 {
+				return cli.DeletePolicies(dn, args)
+			}
+		case "delete-policies":
+			if argc >= 1 {
+				return cli.DeletePolicies(dn, args)
 			}
 		case "delete-policy-version":
 			if argc == 2 {
@@ -637,6 +643,12 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 		case "delete-role":
 			if argc == 1 {
 				return cli.DeleteRole(dn, args[0])
+			} else if argc > 1 {
+				return cli.DeleteRoles(dn, args)
+			}
+		case "delete-roles":
+			if argc >= 1 {
+				return cli.DeleteRoles(dn, args)
 			}
 		case "delete-domain-role-member":
 			if argc == 1 {
@@ -2118,9 +2130,10 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " delete-assertion-policy-version writers_policy onprem_version grant write to writers_role on articles.sports\n")
 		buf.WriteString("   " + domainExample + " delete-assertion-policy-version readers_policy 0 grant read to readers_role on " + cli.interactiveSingleQuoteString(interactive, "articles.*") + "\n")
-	case "delete-policy":
+	case "delete-policy", "delete-policies":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " delete-policy policy\n")
+		buf.WriteString("   " + domainParam + " delete-policy policy [policy ...]\n")
+		buf.WriteString("   " + domainParam + " delete-policies policy [policy ...]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain : name of the domain that policy belongs to\n")
@@ -2128,6 +2141,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   policy : name of the policy to be deleted along with all its versions\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " delete-policy readers\n")
+		buf.WriteString("   " + domainExample + " delete-policies readers writers\n")
 	case "delete-policy-version":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " delete-policy-version policy version\n")
@@ -2388,9 +2402,10 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " delete-domain-role-member media.sports.storage\n")
 		buf.WriteString("   " + domainExample + " delete-domain-role-member user.johndoe\n")
-	case "delete-role":
+	case "delete-role", "delete-roles":
 		buf.WriteString(" syntax:\n")
-		buf.WriteString("   " + domainParam + " delete-role role\n")
+		buf.WriteString("   " + domainParam + " delete-role role [role ...]\n")
+		buf.WriteString("   " + domainParam + " delete-roles role [role ...]\n")
 		buf.WriteString(" parameters:\n")
 		if !interactive {
 			buf.WriteString("   domain : name of the domain that role belongs to\n")
@@ -2398,6 +2413,7 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   role   : name of the role to be deleted\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " delete-role readers\n")
+		buf.WriteString("   " + domainExample + " delete-roles readers writers\n")
 	case "list-domain-group-members":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " list-domain-group-members\n")
@@ -3857,7 +3873,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   add-assertion-policy-version policy version assertion [is_case_sensitive]\n")
 	buf.WriteString("   delete-assertion policy assertion\n")
 	buf.WriteString("   delete-assertion-policy-version policy assertion\n")
-	buf.WriteString("   delete-policy policy\n")
+	buf.WriteString("   delete-policy policy [policy ...]\n")
+	buf.WriteString("   delete-policies policy [policy ...]\n")
 	buf.WriteString("   delete-policy-version policy version\n")
 	buf.WriteString("   set-active-policy-version policy version\n")
 	buf.WriteString("   show-access action resource [alt_identity [trust_domain]]\n")
@@ -3886,7 +3903,8 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   delete-provider-role-member provider_service resource_group provider_role user_or_service [user_or_service ...]\n")
 	buf.WriteString("   list-domain-role-members\n")
 	buf.WriteString("   delete-domain-role-member member\n")
-	buf.WriteString("   delete-role role\n")
+	buf.WriteString("   delete-role role [role ...]\n")
+	buf.WriteString("   delete-roles role [role ...]\n")
 	buf.WriteString("   set-role-audit-enabled regular_role audit-enabled\n")
 	buf.WriteString("   set-role-review-enabled regular_role review-enabled\n")
 	buf.WriteString("   set-role-delete-protection regular_role delete-protection\n")

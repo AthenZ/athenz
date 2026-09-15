@@ -73,6 +73,8 @@ public class ZMSClient implements Closeable {
     private static final String STR_ENV_ROOT = "ROOT";
     private static final String STR_DEF_ROOT = "/home/athenz";
     private static final String HTTP_RFC1123_DATE_FORMAT = "EEE, d MMM yyyy HH:mm:ss zzz";
+    private static final int BULK_DELETE_CHUNK_SIZE = 250;
+    private static final int BULK_DELETE_MAX_PATH_PARAM_LENGTH = 6000;
 
     public static final String ZMS_CLIENT_PROP_ATHENZ_CONF = "athenz.athenz_conf";
     public static final String ZMS_CLIENT_PROP_READ_TIMEOUT = "athenz.zms.client.read_timeout";
@@ -114,10 +116,51 @@ public class ZMSClient implements Closeable {
 
     private static final PrivateKeyStore PRIVATE_KEY_STORE = loadServicePrivateKey();
 
+    @FunctionalInterface
+    private interface BulkDeleteAction {
+        void delete(String names) throws Exception;
+    }
+
     static PrivateKeyStore loadServicePrivateKey() {
         String pkeyFactoryClass = System.getProperty(ZMS_CLIENT_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 ZMS_CLIENT_PKEY_STORE_FACTORY_CLASS);
         return SSLUtils.loadServicePrivateKey(pkeyFactoryClass);
+    }
+
+    private void deleteNameListInChunks(String entityNames, BulkDeleteAction deleteAction) throws Exception {
+
+        if (entityNames == null || entityNames.trim().isEmpty()) {
+            throw new IllegalArgumentException("no entity names specified");
+        }
+
+        String[] names = entityNames.split(",", -1);
+        StringBuilder chunk = new StringBuilder();
+        int chunkCount = 0;
+
+        for (String name : names) {
+            String entityName = name.trim();
+            if (entityName.length() > BULK_DELETE_MAX_PATH_PARAM_LENGTH) {
+                throw new IllegalArgumentException("entity name exceeds maximum path parameter length");
+            }
+            int nextLength = chunk.length() + (chunkCount == 0 ? 0 : 1) + entityName.length();
+
+            if (chunkCount > 0 && (chunkCount == BULK_DELETE_CHUNK_SIZE
+                    || nextLength > BULK_DELETE_MAX_PATH_PARAM_LENGTH)) {
+                deleteAction.delete(chunk.toString());
+                chunk.setLength(0);
+                chunkCount = 0;
+            }
+
+            if (chunkCount > 0) {
+                chunk.append(',');
+            }
+            chunk.append(entityName);
+            chunkCount++;
+        }
+
+        if (chunkCount > 0) {
+            deleteAction.delete(chunk.toString());
+        }
     }
 
     /**
@@ -1399,6 +1442,39 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Delete the specified roles from domain
+     *
+     * @param domainName name of the domain
+     * @param roleNames  comma separated list of role names
+     * @param auditRef   string containing audit specification or ticket number
+     * @param resourceOwner string containing the owner of the resource
+     * @throws ZMSClientException in case of failure
+     */
+    public void deleteRoles(String domainName, String roleNames, String auditRef, String resourceOwner) {
+        updatePrincipal();
+        try {
+            deleteNameListInChunks(roleNames, names -> client.deleteRoles(domainName, names,
+                    auditRef, resourceOwner));
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Delete the specified roles from domain
+     *
+     * @param domainName name of the domain
+     * @param roleNames  comma separated list of role names
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void deleteRoles(String domainName, String roleNames, String auditRef) {
+        deleteRoles(domainName, roleNames, auditRef, null);
+    }
+
+    /**
      * Get membership details for the specified member in the given role
      * in a specified domain
      *
@@ -2138,6 +2214,39 @@ public class ZMSClient implements Closeable {
      */
     public void deletePolicy(String domainName, String policyName, String auditRef) {
         deletePolicy(domainName, policyName, auditRef, null);
+    }
+
+    /**
+     * Delete specified policies from a domain
+     *
+     * @param domainName name of the domain
+     * @param policyNames comma separated list of policy names to be deleted
+     * @param auditRef   string containing audit specification or ticket number
+     * @param resourceOwner string containing the owner of the resource
+     * @throws ZMSClientException in case of failure
+     */
+    public void deletePolicies(String domainName, String policyNames, String auditRef, String resourceOwner) {
+        updatePrincipal();
+        try {
+            deleteNameListInChunks(policyNames, names -> client.deletePolicies(domainName, names,
+                    auditRef, resourceOwner));
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Delete specified policies from a domain
+     *
+     * @param domainName name of the domain
+     * @param policyNames comma separated list of policy names to be deleted
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void deletePolicies(String domainName, String policyNames, String auditRef) {
+        deletePolicies(domainName, policyNames, auditRef, null);
     }
 
     /**
