@@ -185,7 +185,7 @@ public class ZMSUtils {
 
     public static RuntimeException error(ServerResourceException ex) {
         LOG.error("Server Common Error: {} message: {}", ex.getCode(), ex.getMessage());
-        return new ResourceException(ex.getCode(), new ResourceError().code(ex.getCode()).message(ex.getMessage()));
+        return new ResourceException(ex.getCode(), new ResourceError().code(ex.getCode()).message("Internal Server Error"));
     }
 
     public static RuntimeException error(int code, String msg, String caller) {
