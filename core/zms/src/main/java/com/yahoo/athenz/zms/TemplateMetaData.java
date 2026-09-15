@@ -33,6 +33,9 @@ public class TemplateMetaData {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public Boolean autoUpdate;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public Boolean replaceAdminWithTrust;
 
     public TemplateMetaData setTemplateName(String templateName) {
         this.templateName = templateName;
@@ -83,6 +86,13 @@ public class TemplateMetaData {
     public Boolean getAutoUpdate() {
         return autoUpdate;
     }
+    public TemplateMetaData setReplaceAdminWithTrust(Boolean replaceAdminWithTrust) {
+        this.replaceAdminWithTrust = replaceAdminWithTrust;
+        return this;
+    }
+    public Boolean getReplaceAdminWithTrust() {
+        return replaceAdminWithTrust;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -110,6 +120,9 @@ public class TemplateMetaData {
                 return false;
             }
             if (autoUpdate == null ? a.autoUpdate != null : !autoUpdate.equals(a.autoUpdate)) {
+                return false;
+            }
+            if (replaceAdminWithTrust == null ? a.replaceAdminWithTrust != null : !replaceAdminWithTrust.equals(a.replaceAdminWithTrust)) {
                 return false;
             }
         }

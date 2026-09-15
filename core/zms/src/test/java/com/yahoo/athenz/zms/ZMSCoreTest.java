@@ -1723,6 +1723,7 @@ public class ZMSCoreTest {
 
         TemplateMetaData meta = new TemplateMetaData();
         meta.setAutoUpdate(true)
+                .setReplaceAdminWithTrust(true)
                 .setTemplateName("test")
                 .setCurrentVersion(1)
                 .setDescription("test template")
@@ -1735,6 +1736,7 @@ public class ZMSCoreTest {
         Result result = validator.validate(meta, "TemplateMetaData");
         assertTrue(result.valid);
         assertTrue(meta.getAutoUpdate());
+        assertTrue(meta.getReplaceAdminWithTrust());
         assertEquals((int) meta.getCurrentVersion(), 1);
         assertEquals(meta.getDescription(), "test template");
         assertEquals((int) meta.getLatestVersion(), 2);
@@ -1744,6 +1746,7 @@ public class ZMSCoreTest {
 
         TemplateMetaData meta1 = new TemplateMetaData();
         meta1.setAutoUpdate(true)
+                .setReplaceAdminWithTrust(true)
                 .setTemplateName("test")
                 .setCurrentVersion(1)
                 .setDescription("test template")
@@ -1760,6 +1763,13 @@ public class ZMSCoreTest {
         meta1.setAutoUpdate(null);
         assertFalse(meta1.equals(meta));
         meta1.setAutoUpdate(true);
+        assertTrue(meta1.equals(meta));
+
+        meta1.setReplaceAdminWithTrust(false);
+        assertFalse(meta1.equals(meta));
+        meta1.setReplaceAdminWithTrust(null);
+        assertFalse(meta1.equals(meta));
+        meta1.setReplaceAdminWithTrust(true);
         assertTrue(meta1.equals(meta));
 
         meta1.setCurrentVersion(2);

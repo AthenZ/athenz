@@ -3195,6 +3195,22 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
     }
 
+    void validateAdminTrustReplacement(ResourceContext ctx, String domainName, DomainTemplate domainTemplate,
+            String caller, SolutionTemplates solutionTemplates) {
+
+        final String requester = ((RsrcCtxWrapper) ctx).principal().getFullName();
+        final String trustDomain = dbService.validateAdminTrustReplacement(domainName, domainTemplate,
+                requester, caller, solutionTemplates);
+        if (trustDomain == null) {
+            return;
+        }
+        final String adminRoleResource = ResourceUtils.roleResourceName(domainName, ADMIN_ROLE_NAME);
+        if (!delegatedTrust(trustDomain, adminRoleResource, requester)) {
+            throw ZMSUtils.requestError("replaceAdminWithTrust: requester does not have delegated access "
+                    + "to the admin role", caller);
+        }
+    }
+
     public DomainTemplateList getDomainTemplateList(ResourceContext ctx, String domainName) {
 
         final String caller = ctx.getApiName();
@@ -3253,6 +3269,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     caller, "name", templateName);
         }
 
+        validateAdminTrustReplacement(ctx, domainName, domainTemplate, caller, snapshot.templates);
+
         dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller, snapshot.templates);
     }
 
@@ -3301,6 +3319,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         SolutionTemplatesSnapshot snapshot = getValidatedSolutionTemplatesSnapshot(templateNames, caller);
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
                 caller, "name", templateName);
+
+        validateAdminTrustReplacement(ctx, domainName, domainTemplate, caller, snapshot.templates);
 
         dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller, snapshot.templates);
     }

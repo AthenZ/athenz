@@ -17,6 +17,7 @@ type TemplateMetaData Struct {
     String keywordsToReplace (optional); //placeholders in the template roles/policies to replace (ex:_service_)
     Timestamp timestamp (optional); //the updated timestamp of the template(solution_templates.json)
     Bool autoUpdate (optional); //flag to automatically update the roles/policies that belongs to the template
+    Bool replaceAdminWithTrust (optional); //replace the sole requesting admin member when applying a trusted admin role
 }
 
 //Solution Template object defined on the server
