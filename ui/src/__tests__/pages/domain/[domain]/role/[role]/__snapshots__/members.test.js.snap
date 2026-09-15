@@ -423,25 +423,55 @@ exports[`MemberPage should render 1`] = `
 
 .emotion-21 {
   display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 
 .emotion-23 {
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  font: 300 16px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  height: 60px;
+  margin-right: 8px;
+  padding: 0 12px;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.emotion-23:hover {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.emotion-25 {
+  display: flex;
+}
+
+.emotion-27 {
   fill: #fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-24 {
+.emotion-28 {
   position: relative;
   width: 0;
   height: 0;
 }
 
-.emotion-26 {
+.emotion-30 {
   margin-left: 15px;
 }
 
-.emotion-29 {
+.emotion-33 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -449,7 +479,7 @@ exports[`MemberPage should render 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-31 {
+.emotion-35 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -466,7 +496,7 @@ exports[`MemberPage should render 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-33 {
+.emotion-37 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -482,28 +512,28 @@ exports[`MemberPage should render 1`] = `
   flex-direction: column;
 }
 
-.emotion-37 {
+.emotion-41 {
   background: linear-gradient(to top, #f2f2f2, #fff);
   padding: 20px 30px 0;
 }
 
-.emotion-39 {
+.emotion-43 {
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 10px;
 }
 
-.emotion-41 {
+.emotion-45 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-43 {
+.emotion-47 {
   margin: 20px 0;
 }
 
-.emotion-45 {
+.emotion-49 {
   display: flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -511,21 +541,21 @@ exports[`MemberPage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-47 {
+.emotion-51 {
   padding-right: 50px;
 }
 
-.emotion-49 {
+.emotion-53 {
   font-weight: 600;
 }
 
-.emotion-51 {
+.emotion-55 {
   color: #9a9a9a;
   font-size: 12px;
   text-transform: uppercase;
 }
 
-.emotion-59 {
+.emotion-63 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -540,7 +570,7 @@ exports[`MemberPage should render 1`] = `
   position: relative;
 }
 
-.emotion-59.vertical {
+.emotion-63.vertical {
   background: #f5f8fe;
   display: flex;
   -webkit-flex-direction: column;
@@ -553,7 +583,7 @@ exports[`MemberPage should render 1`] = `
   width: 300px;
 }
 
-.emotion-60 {
+.emotion-64 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -574,11 +604,11 @@ exports[`MemberPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-60:hover {
+.emotion-64:hover {
   color: #3570f4;
 }
 
-.emotion-60.active {
+.emotion-64.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -586,11 +616,11 @@ exports[`MemberPage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-60.active:hover {
+.emotion-64.active:hover {
   color: #303030;
 }
 
-.emotion-60.vertical {
+.emotion-64.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -602,21 +632,21 @@ exports[`MemberPage should render 1`] = `
   text-align: left;
 }
 
-.emotion-60.vertical.active {
+.emotion-64.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-60.vertical.active:hover {
+.emotion-64.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-66 {
+.emotion-70 {
   margin: 20px;
 }
 
-.emotion-68 {
+.emotion-72 {
   padding-bottom: 20px;
   display: flex;
   -webkit-box-pack: justify;
@@ -633,7 +663,7 @@ exports[`MemberPage should render 1`] = `
   float: right;
 }
 
-.emotion-70 {
+.emotion-74 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px #3697f2 inset;
@@ -658,25 +688,25 @@ exports[`MemberPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-70:first-of-type {
+.emotion-74:first-of-type {
   margin-left: 0;
 }
 
-.emotion-70:disabled {
+.emotion-74:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-70:disabled {
+.emotion-74:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-70:hover:not(:disabled) {
+.emotion-74:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-71 {
+.emotion-75 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -691,7 +721,7 @@ exports[`MemberPage should render 1`] = `
   height: 50px;
 }
 
-.emotion-73 {
+.emotion-77 {
   height: 25px;
   margin-left: 10px;
   margin-top: 10px;
@@ -703,18 +733,18 @@ exports[`MemberPage should render 1`] = `
   display: table-cell;
 }
 
-.emotion-75 {
+.emotion-79 {
   margin-right: 10px;
   verticalalign: bottom;
 }
 
-.emotion-77 {
+.emotion-81 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-78 {
+.emotion-82 {
   text-align: center;
   width: 1%;
   border-bottom: 2px solid #d5d5d5;
@@ -727,7 +757,7 @@ exports[`MemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-80 {
+.emotion-84 {
   text-align: left;
   width: 18.5%;
   border-bottom: 2px solid #d5d5d5;
@@ -740,7 +770,7 @@ exports[`MemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-82 {
+.emotion-86 {
   text-align: left;
   width: 18.5%;
   border-bottom: 2px solid #d5d5d5;
@@ -753,7 +783,7 @@ exports[`MemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-86 {
+.emotion-90 {
   text-align: left;
   width: 32.5%;
   border-bottom: 2px solid #d5d5d5;
@@ -766,7 +796,7 @@ exports[`MemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-88 {
+.emotion-92 {
   text-align: center;
   width: 8%;
   border-bottom: 2px solid #d5d5d5;
@@ -779,7 +809,7 @@ exports[`MemberPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-90 {
+.emotion-94 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -802,13 +832,13 @@ exports[`MemberPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-92 {
+.emotion-96 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-93 {
+.emotion-97 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -823,7 +853,7 @@ exports[`MemberPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-95 {
+.emotion-99 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -839,28 +869,28 @@ exports[`MemberPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-97 {
+.emotion-101 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-99 {
+.emotion-103 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-101 {
+.emotion-105 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-105 {
+.emotion-109 {
   padding: 0 30px 15px 15px;
 }
 
-.emotion-107 {
+.emotion-111 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -874,7 +904,7 @@ exports[`MemberPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-107 input {
+.emotion-111 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -900,42 +930,42 @@ exports[`MemberPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-107.animated input {
+.emotion-111.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-107 input::-webkit-input-placeholder {
+.emotion-111 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-107 input::-moz-placeholder {
+.emotion-111 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-107 input:-ms-input-placeholder {
+.emotion-111 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-107 input::placeholder {
+.emotion-111 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-107 input.focused,
-.emotion-107 input:active,
-.emotion-107 input:focus {
+.emotion-111 input.focused,
+.emotion-111 input:active,
+.emotion-111 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-107 input:invalid {
+.emotion-111 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-107 .message {
+.emotion-111 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -943,22 +973,22 @@ exports[`MemberPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-107.error input,
-.emotion-107.error input.focused,
-.emotion-107.error input:active,
-.emotion-107.error input:focus {
+.emotion-111.error input,
+.emotion-111.error input.focused,
+.emotion-111.error input:active,
+.emotion-111.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-107.error .message {
+.emotion-111.error .message {
   color: #d01111;
 }
 
-.emotion-107 input {
+.emotion-111 input {
   padding-right: 28px;
 }
 
-.emotion-107 .input-icon {
+.emotion-111 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -970,31 +1000,31 @@ exports[`MemberPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-107 .input-icon[onclick] {
+.emotion-111 .input-icon[onclick] {
   cursor: pointer;
   -webkit-transition: opacity 0.2s ease-in-out;
   transition: opacity 0.2s ease-in-out;
 }
 
-.emotion-107 .input-icon[onclick]:hover {
+.emotion-111 .input-icon[onclick]:hover {
   opacity: 0.7;
 }
 
-.emotion-109 {
+.emotion-113 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-111 {
+.emotion-115 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-113 {
+.emotion-117 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-115 {
+.emotion-119 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1142,78 +1172,89 @@ exports[`MemberPage should render 1`] = `
       >
         <div
           class="emotion-21 emotion-22"
-          data-testid="header-menu"
         >
-          <svg
-            class="emotion-23"
-            data-testid="icon"
-            data-wdio=""
-            height="25px"
-            id="notifications-icon"
-            viewBox="0 0 1024 1024"
-            width="25px"
+          <a
+            class="emotion-23 emotion-24"
+            data-testid="self-service-nav"
+            href="/self-service"
           >
-            <title>
-              notification
-            </title>
-            <path
-              d="M925.867 627.2l-68.267-68.267c-15.132-16.256-24.706-37.864-25.595-61.692l-0.005-0.174v-134.4c0-172.8-115.2-320-320-320s-320 142.933-320 320v149.333c-0.424 14.075-6.029 26.765-14.962 36.297l0.028-0.030-78.933 78.933c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v153.6c0 23.564 19.103 42.667 42.667 42.667v0h236.8c12.454 70.953 73.611 124.182 147.2 124.182s134.746-53.229 147.069-123.285l0.131-0.897h236.8c23.564 0 42.667-19.103 42.667-42.667v0-153.6c-0.172-11.712-5.037-22.255-12.793-29.86l-0.007-0.007zM853.333 768h-682.667v-91.733l66.133-68.267c24.782-24.511 40.224-58.423 40.533-95.941l0-0.059v-149.333c0-113.067 61.867-234.667 234.667-234.667s234.667 125.867 234.667 234.667v134.4c0.879 47.11 19.381 89.736 49.168 121.71l-0.102-0.11 57.6 57.6z"
-            />
-          </svg>
+            Self Service
+          </a>
           <div
-            class="emotion-24 emotion-25"
-          />
-          <div
-            class="emotion-26 emotion-27"
+            class="emotion-25 emotion-26"
+            data-testid="header-menu"
           >
             <svg
-              class="emotion-23"
+              class="emotion-27"
               data-testid="icon"
               data-wdio=""
               height="25px"
-              id=""
+              id="notifications-icon"
               viewBox="0 0 1024 1024"
               width="25px"
             >
               <title>
-                help-circle
+                notification
               </title>
               <path
-                d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
-              />
-              <path
-                d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
-              />
-              <path
-                d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
+                d="M925.867 627.2l-68.267-68.267c-15.132-16.256-24.706-37.864-25.595-61.692l-0.005-0.174v-134.4c0-172.8-115.2-320-320-320s-320 142.933-320 320v149.333c-0.424 14.075-6.029 26.765-14.962 36.297l0.028-0.030-78.933 78.933c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v153.6c0 23.564 19.103 42.667 42.667 42.667v0h236.8c12.454 70.953 73.611 124.182 147.2 124.182s134.746-53.229 147.069-123.285l0.131-0.897h236.8c23.564 0 42.667-19.103 42.667-42.667v0-153.6c-0.172-11.712-5.037-22.255-12.793-29.86l-0.007-0.007zM853.333 768h-682.667v-91.733l66.133-68.267c24.782-24.511 40.224-58.423 40.533-95.941l0-0.059v-149.333c0-113.067 61.867-234.667 234.667-234.667s234.667 125.867 234.667 234.667v134.4c0.879 47.11 19.381 89.736 49.168 121.71l-0.102-0.11 57.6 57.6z"
               />
             </svg>
+            <div
+              class="emotion-28 emotion-29"
+            />
+            <div
+              class="emotion-30 emotion-31"
+            >
+              <svg
+                class="emotion-27"
+                data-testid="icon"
+                data-wdio=""
+                height="25px"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="25px"
+              >
+                <title>
+                  help-circle
+                </title>
+                <path
+                  d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
+                />
+                <path
+                  d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
+                />
+                <path
+                  d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
+                />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
   <div
-    class="emotion-29 emotion-30"
+    class="emotion-33 emotion-34"
   >
     <div
-      class="emotion-31 emotion-32"
+      class="emotion-35 emotion-36"
     >
       <div
-        class="emotion-33 emotion-34"
+        class="emotion-37 emotion-38"
       >
         <div
-          class="emotion-35 emotion-36"
+          class="emotion-39 emotion-40"
         >
           <div
-            class="emotion-37 emotion-38"
+            class="emotion-41 emotion-42"
           >
             <div
-              class="emotion-39 emotion-40"
+              class="emotion-43 emotion-44"
               data-testid="collection-name-header"
             >
               <a
-                class="emotion-41 emotion-42"
+                class="emotion-45 emotion-46"
                 href="/domain/dom/role"
               >
                 dom
@@ -1224,36 +1265,36 @@ exports[`MemberPage should render 1`] = `
               redux-role1
             </div>
             <div
-              class="emotion-43 emotion-44"
+              class="emotion-47 emotion-48"
               data-testid="collection-details"
             >
               <div
-                class="emotion-45 emotion-46"
+                class="emotion-49 emotion-50"
               >
                 <div
-                  class="emotion-47 emotion-48"
+                  class="emotion-51 emotion-52"
                 >
                   <div
-                    class="emotion-49 emotion-50"
+                    class="emotion-53 emotion-54"
                   >
                     2020-02-12 21:44 UTC
                   </div>
                   <div
-                    class="emotion-51 emotion-52"
+                    class="emotion-55 emotion-56"
                   >
                     MODIFIED DATE
                   </div>
                 </div>
                 <div
-                  class="emotion-47 emotion-48"
+                  class="emotion-51 emotion-52"
                 >
                   <div
-                    class="emotion-49 emotion-50"
+                    class="emotion-53 emotion-54"
                   >
                     N/A
                   </div>
                   <div
-                    class="emotion-51 emotion-52"
+                    class="emotion-55 emotion-56"
                   >
                     REVIEWED DATE
                   </div>
@@ -1261,41 +1302,41 @@ exports[`MemberPage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-59 denali-tab-group"
+              class="emotion-63 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-60 denali-tab active"
+                class="emotion-64 denali-tab active"
                 data-active="true"
               >
                 Members
               </div>
               <div
-                class="emotion-60 denali-tab"
+                class="emotion-64 denali-tab"
                 data-active="false"
               >
                 Review
               </div>
               <div
-                class="emotion-60 denali-tab"
+                class="emotion-64 denali-tab"
                 data-active="false"
               >
                 Policy Rules
               </div>
               <div
-                class="emotion-60 denali-tab"
+                class="emotion-64 denali-tab"
                 data-active="false"
               >
                 Tags
               </div>
               <div
-                class="emotion-60 denali-tab"
+                class="emotion-64 denali-tab"
                 data-active="false"
               >
                 Settings
               </div>
               <div
-                class="emotion-60 denali-tab"
+                class="emotion-64 denali-tab"
                 data-active="false"
               >
                 History
@@ -1303,35 +1344,35 @@ exports[`MemberPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-66 emotion-67"
+            class="emotion-70 emotion-71"
             data-testid="member-list"
           >
             <div
-              class="emotion-68 emotion-69"
+              class="emotion-72 emotion-73"
             >
               <div>
                 <button
-                  class="emotion-70 denali-button"
+                  class="emotion-74 denali-button"
                 >
                   Add Member
                 </button>
               </div>
             </div>
             <table
-              class="emotion-71 emotion-72"
+              class="emotion-75 emotion-76"
               data-testid="member-table"
             >
               <thead>
                 <tr>
                   <th
-                    class="emotion-73 emotion-74"
+                    class="emotion-77 emotion-78"
                     colspan="3"
                   >
                     <span
-                      class="emotion-75 emotion-76"
+                      class="emotion-79 emotion-80"
                     >
                       <svg
-                        class="emotion-77"
+                        class="emotion-81"
                         data-testid="icon"
                         data-wdio=""
                         height="1.25em"
@@ -1352,35 +1393,35 @@ exports[`MemberPage should render 1`] = `
                 </tr>
                 <tr>
                   <th
-                    class="emotion-78 emotion-79"
+                    class="emotion-82 emotion-83"
                     width="1"
                   />
                   <th
-                    class="emotion-80 emotion-81"
+                    class="emotion-84 emotion-85"
                     width="18.5"
                   >
                     User Name
                   </th>
                   <th
-                    class="emotion-82 emotion-79"
+                    class="emotion-86 emotion-83"
                     width="18.5"
                   >
                     Name of User
                   </th>
                   <th
-                    class="emotion-82 emotion-79"
+                    class="emotion-86 emotion-83"
                     width="18.5"
                   >
                     Expiration Date
                   </th>
                   <th
-                    class="emotion-86 emotion-79"
+                    class="emotion-90 emotion-83"
                     width="32.5"
                   >
                     Review Reminder Date
                   </th>
                   <th
-                    class="emotion-88 emotion-79"
+                    class="emotion-92 emotion-83"
                     width="8"
                   >
                     Delete
@@ -1397,11 +1438,11 @@ exports[`MemberPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-90 emotion-91"
+          class="emotion-94 emotion-95"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-92"
+            class="emotion-96"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -1418,30 +1459,30 @@ exports[`MemberPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-93 emotion-94"
+          class="emotion-97 emotion-98"
         >
           <div
-            class="emotion-95 emotion-96"
+            class="emotion-99 emotion-100"
           >
             <div
-              class="emotion-97 emotion-98"
+              class="emotion-101 emotion-102"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-103 emotion-104"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-101 emotion-102"
+                class="emotion-105 emotion-106"
               >
                  | 
               </span>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-103 emotion-104"
                 href="/domain/manage"
               >
                 Manage
@@ -1449,10 +1490,10 @@ exports[`MemberPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-105 emotion-106"
+            class="emotion-109 emotion-110"
           >
             <div
-              class="emotion-107 denali-input animated"
+              class="emotion-111 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -1493,17 +1534,17 @@ exports[`MemberPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-109 emotion-110"
+            class="emotion-113 emotion-114"
             data-testid="domain-list"
           >
             <div
-              class="emotion-111 emotion-112"
+              class="emotion-115 emotion-116"
             >
               <div
-                class="emotion-113 emotion-114"
+                class="emotion-117 emotion-118"
               >
                 <svg
-                  class="emotion-115"
+                  class="emotion-119"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1526,20 +1567,20 @@ exports[`MemberPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-103 emotion-104"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-111 emotion-112"
+              class="emotion-115 emotion-116"
             >
               <div
-                class="emotion-113 emotion-114"
+                class="emotion-117 emotion-118"
               >
                 <svg
-                  class="emotion-115"
+                  class="emotion-119"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1562,7 +1603,7 @@ exports[`MemberPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-99 emotion-100"
+                class="emotion-103 emotion-104"
                 href="/domain/athens.ci/role"
               >
                 athens.ci

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`GroupRolesPage should render 1`] = `
+exports[`Self Service page should render 1`] = `
 .emotion-0 {
   height: 60px;
   position: relative;
@@ -475,87 +475,31 @@ exports[`GroupRolesPage should render 1`] = `
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
-  overflow: hidden;
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  overflow: hidden;
 }
 
 .emotion-35 {
-  -webkit-align-items: stretch;
-  -webkit-box-align: stretch;
-  -ms-flex-align: stretch;
-  align-items: stretch;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  height: 100%;
-  display: flex;
-  -webkit-box-pack: start;
-  -ms-flex-pack: start;
-  -webkit-justify-content: flex-start;
-  justify-content: flex-start;
+  height: calc(100vh - 60px);
+  overflow: auto;
 }
 
 .emotion-37 {
-  -webkit-align-items: stretch;
-  -webkit-box-align: stretch;
-  -ms-flex-align: stretch;
-  align-items: stretch;
-  -webkit-flex: 1 1;
-  -ms-flex: 1 1;
-  flex: 1 1;
-  height: calc(100vh - 60px);
-  overflow: auto;
-  display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-}
-
-.emotion-41 {
   background: linear-gradient(to top, #f2f2f2, #fff);
   padding: 20px 30px 0;
 }
 
-.emotion-43 {
+.emotion-39 {
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
-  margin-bottom: 10px;
 }
 
-.emotion-45 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.emotion-47 {
-  margin: 20px 0;
-}
-
-.emotion-49 {
-  display: flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-}
-
-.emotion-51 {
-  padding-right: 50px;
-}
-
-.emotion-53 {
-  font-weight: 600;
-}
-
-.emotion-55 {
+.emotion-41 {
   color: #9a9a9a;
-  font-size: 12px;
-  text-transform: uppercase;
+  font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  margin: 8px 0 16px;
 }
 
-.emotion-63 {
+.emotion-43 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -564,13 +508,13 @@ exports[`GroupRolesPage should render 1`] = `
   border-radius: 2px;
   box-sizing: border-box;
   display: inline-grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(2, auto);
   margin-top: 0;
   min-width: 80px;
   position: relative;
 }
 
-.emotion-63.vertical {
+.emotion-43.vertical {
   background: #f5f8fe;
   display: flex;
   -webkit-flex-direction: column;
@@ -583,7 +527,7 @@ exports[`GroupRolesPage should render 1`] = `
   width: 300px;
 }
 
-.emotion-64 {
+.emotion-44 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -600,15 +544,17 @@ exports[`GroupRolesPage should render 1`] = `
   -webkit-justify-content: center;
   justify-content: center;
   padding: 8px 20px;
+  -webkit-transition: all 0.4s ease;
+  transition: all 0.4s ease;
   white-space: nowrap;
   z-index: 1;
 }
 
-.emotion-64:hover {
+.emotion-44:hover {
   color: #3570f4;
 }
 
-.emotion-64.active {
+.emotion-44.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -616,11 +562,11 @@ exports[`GroupRolesPage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-64.active:hover {
+.emotion-44.active:hover {
   color: #303030;
 }
 
-.emotion-64.vertical {
+.emotion-44.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -632,132 +578,38 @@ exports[`GroupRolesPage should render 1`] = `
   text-align: left;
 }
 
-.emotion-64.vertical.active {
+.emotion-44.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-64.vertical.active:hover {
+.emotion-44.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-70 {
-  padding-bottom: 20px;
+.emotion-46 {
+  padding: 24px 30px 48px;
+}
+
+.emotion-48 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
   display: flex;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  justify-content: space-between;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
+  gap: 8px;
+  width: 100%;
 }
 
-.emotion-72 {
-  width: 50%;
-  margin-top: 20px;
-  margin-left: 30px;
+.emotion-50 {
+  -webkit-flex: 1 1 auto;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.emotion-76 {
-  width: 95%;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  justify-content: space-between;
-  padding-left: 2%;
-}
-
-.emotion-78 {
-  padding-top: 20px;
-}
-
-.emotion-80 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  background-color: #fff;
-  border-bottom: 1px solid #d5d5d5;
-  border-left: 1px solid #d5d5d5;
-  border-top: 1px solid #d5d5d5;
-  cursor: pointer;
-  display: flex;
-  height: 20px;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  -webkit-justify-content: center;
-  justify-content: center;
-  margin-left: -21px;
-  margin-top: 20px;
-  position: absolute;
-  text-align: center;
-  width: 20px;
-}
-
-.emotion-82 {
-  fill: #303030;
-  cursor: inherit;
-  vertical-align: text-bottom;
-}
-
-.emotion-83 {
-  margin-right: 0;
-  border-left: 1px solid #d5d5d5;
-  -webkit-flex: 0 0 350px;
-  -ms-flex: 0 0 350px;
-  flex: 0 0 350px;
-  height: calc(100vh - 60px);
-  overflow: auto;
-  -webkit-transition: margin 0.4s ease-in-out;
-  transition: margin 0.4s ease-in-out;
-  display: block;
-  min-width: 350px;
-  width: 350px;
-}
-
-.emotion-85 {
-  -webkit-align-items: baseline;
-  -webkit-box-align: baseline;
-  -ms-flex-align: baseline;
-  align-items: baseline;
-  display: flex;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  justify-content: space-between;
-  padding: 20px 30px 20px 15px;
-}
-
-.emotion-87 {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.emotion-89 {
-  color: #3570f4;
-  -webkit-text-decoration: none;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.emotion-91 {
-  padding: 0 5px;
-  color: #d5d5d5;
-}
-
-.emotion-95 {
-  padding: 0 30px 15px 15px;
-}
-
-.emotion-97 {
+.emotion-52 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -771,7 +623,7 @@ exports[`GroupRolesPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-97 input {
+.emotion-52 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -789,7 +641,7 @@ exports[`GroupRolesPage should render 1`] = `
   -ms-flex: 1 0 auto;
   flex: 1 0 auto;
   font: inherit;
-  height: 28px;
+  height: 36px;
   margin: 0;
   outline: none;
   padding: 0 1rem;
@@ -797,42 +649,42 @@ exports[`GroupRolesPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-97.animated input {
+.emotion-52.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-97 input::-webkit-input-placeholder {
+.emotion-52 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-97 input::-moz-placeholder {
+.emotion-52 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-97 input:-ms-input-placeholder {
+.emotion-52 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-97 input::placeholder {
+.emotion-52 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-97 input.focused,
-.emotion-97 input:active,
-.emotion-97 input:focus {
+.emotion-52 input.focused,
+.emotion-52 input:active,
+.emotion-52 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-97 input:invalid {
+.emotion-52 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-97 .message {
+.emotion-52 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -840,65 +692,71 @@ exports[`GroupRolesPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-97.error input,
-.emotion-97.error input.focused,
-.emotion-97.error input:active,
-.emotion-97.error input:focus {
+.emotion-52.error input,
+.emotion-52.error input.focused,
+.emotion-52.error input:active,
+.emotion-52.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-97.error .message {
+.emotion-52.error .message {
   color: #d01111;
 }
 
-.emotion-97 input {
-  padding-right: 28px;
-}
-
-.emotion-97 .input-icon {
+.emotion-53 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: flex;
-  height: 28px;
-  position: absolute;
-  right: 6px;
-  z-index: 1;
-}
-
-.emotion-97 .input-icon[onclick] {
+  background: linear-gradient(
+          to right,
+          #3697f2,
+          #3570f4
+      );
+  border: none;
+  border-radius: 2px;
   cursor: pointer;
-  -webkit-transition: opacity 0.2s ease-in-out;
-  transition: opacity 0.2s ease-in-out;
-}
-
-.emotion-97 .input-icon[onclick]:hover {
-  opacity: 0.7;
-}
-
-.emotion-99 {
-  padding: 0 30px 0 15px;
-}
-
-.emotion-101 {
-  padding: 10px 0;
   display: flex;
+  -webkit-flex: 0 0 42px;
+  -ms-flex: 0 0 42px;
+  flex: 0 0 42px;
+  height: 36px;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  width: 42px;
 }
 
-.emotion-103 {
-  font-size: 1.25em;
-  margin-right: 5px;
+.emotion-53:hover {
+  background: linear-gradient(
+              to right,
+              #3570f4,
+              #3448f7
+          );
 }
 
-.emotion-105 {
-  fill: #303030;
+.emotion-55 {
+  fill: #fff;
   cursor: inherit;
-  vertical-align: baseline;
+  vertical-align: text-bottom;
+}
+
+.emotion-56 {
+  -webkit-flex: 0 0 180px;
+  -ms-flex: 0 0 180px;
+  flex: 0 0 180px;
+}
+
+.emotion-61 {
+  color: #9a9a9a;
+  padding: 32px 0;
 }
 
 <div
-  data-testid="group-role"
+  data-testid="self-service"
 >
   <div
     class="emotion-0 emotion-1"
@@ -937,7 +795,7 @@ exports[`GroupRolesPage should render 1`] = `
               <div
                 aria-expanded="false"
                 aria-haspopup="listbox"
-                aria-labelledby="downshift-1-label"
+                aria-labelledby="downshift-0-label"
                 class="emotion-13 denali-input-dropdown"
                 data-testid="input-dropdown"
                 role="combobox"
@@ -948,11 +806,11 @@ exports[`GroupRolesPage should render 1`] = `
                 >
                   <input
                     aria-autocomplete="list"
-                    aria-labelledby="downshift-1-label"
+                    aria-labelledby="downshift-0-label"
                     autocomplete="off"
                     autocorrect="off"
                     data-testid="input-node"
-                    id="downshift-1-input"
+                    id="downshift-0-input"
                     name="search-type"
                     readonly=""
                     spellcheck="false"
@@ -1113,143 +971,132 @@ exports[`GroupRolesPage should render 1`] = `
         <div
           class="emotion-39 emotion-40"
         >
+          Self Service
+        </div>
+        <div
+          class="emotion-41 emotion-42"
+        >
+          Find roles and groups you can request without a ticket, and manage the ones you already hold.
+        </div>
+        <div
+          class="emotion-43 denali-tab-group"
+          data-testid="tabgroup"
+        >
           <div
-            class="emotion-41 emotion-42"
+            class="emotion-44 denali-tab active"
+            data-active="true"
           >
-            <div
-              class="emotion-43 emotion-44"
-              data-testid="collection-name-header"
-            >
-              <a
-                class="emotion-45 emotion-46"
-                href="/domain/dom/group"
-              >
-                dom
-              </a>
-              :
-              group
-              .
-              grp
-            </div>
-            <div
-              class="emotion-47 emotion-48"
-              data-testid="collection-details"
-            >
-              <div
-                class="emotion-49 emotion-50"
-              >
-                <div
-                  class="emotion-51 emotion-52"
-                >
-                  <div
-                    class="emotion-53 emotion-54"
-                  >
-                    2020-02-12 21:44 UTC
-                  </div>
-                  <div
-                    class="emotion-55 emotion-56"
-                  >
-                    MODIFIED DATE
-                  </div>
-                </div>
-                <div
-                  class="emotion-51 emotion-52"
-                >
-                  <div
-                    class="emotion-53 emotion-54"
-                  >
-                    N/A
-                  </div>
-                  <div
-                    class="emotion-55 emotion-56"
-                  >
-                    REVIEWED DATE
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div
-              class="emotion-63 denali-tab-group"
-              data-testid="tabgroup"
-            >
-              <div
-                class="emotion-64 denali-tab"
-                data-active="false"
-              >
-                Members
-              </div>
-              <div
-                class="emotion-64 denali-tab"
-                data-active="false"
-              >
-                Review
-              </div>
-              <div
-                class="emotion-64 denali-tab active"
-                data-active="true"
-              >
-                Roles
-              </div>
-              <div
-                class="emotion-64 denali-tab"
-                data-active="false"
-              >
-                Tags
-              </div>
-              <div
-                class="emotion-64 denali-tab"
-                data-active="false"
-              >
-                Settings
-              </div>
-              <div
-                class="emotion-64 denali-tab"
-                data-active="false"
-              >
-                History
-              </div>
-            </div>
+            Find Roles & Groups
           </div>
           <div
-            class="emotion-70 emotion-71"
+            class="emotion-44 denali-tab"
+            data-active="false"
+          >
+            <span>
+              My Roles & Groups (
+              0
+              )
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="emotion-46 emotion-47"
+      >
+        <div
+          class="emotion-48 emotion-49"
+          data-testid="self-service-search-bar"
+        >
+          <div
+            class="emotion-50 emotion-51"
           >
             <div
-              class="emotion-72 emotion-73"
+              class="emotion-52 denali-input animated"
+              data-testid="input-wrapper"
+            >
+              <input
+                autocomplete="off"
+                data-testid="input-node"
+                id="self-service-search"
+                name="self-service-search"
+                placeholder="Search by name or description"
+                value=""
+              />
+              <div
+                class="message"
+                data-testid="message"
+              />
+            </div>
+          </div>
+          <button
+            aria-label="Search"
+            class="emotion-53 emotion-54"
+            data-testid="self-service-search-button"
+            type="button"
+          >
+            <svg
+              class="emotion-55"
+              data-testid="icon"
+              data-wdio=""
+              height="18px"
+              id=""
+              viewBox="0 0 1024 1024"
+              width="18px"
+            >
+              <title>
+                search
+              </title>
+              <path
+                d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
+              />
+            </svg>
+          </button>
+          <div
+            class="emotion-56 emotion-57"
+          >
+            <div
+              aria-expanded="false"
+              aria-haspopup="listbox"
+              aria-labelledby="downshift-1-label"
+              class="emotion-13 denali-input-dropdown"
+              data-testid="input-dropdown"
+              role="combobox"
             >
               <div
-                class="emotion-14 denali-input animated"
+                class="emotion-14 denali-input"
                 data-testid="input-wrapper"
               >
                 <input
+                  aria-autocomplete="list"
+                  aria-labelledby="downshift-1-label"
                   autocomplete="off"
+                  autocorrect="off"
                   data-testid="input-node"
-                  name="search"
-                  placeholder="Enter role name"
-                  value=""
+                  id="downshift-1-input"
+                  name="self-service-domain"
+                  readonly=""
+                  spellcheck="false"
+                  value="All domains"
                 />
                 <div
                   class="input-icon"
                 >
-                  <div
-                    class="input-icon"
+                  <svg
+                    class="emotion-15"
+                    data-testid="icon"
+                    data-wdio=""
+                    height="24px"
+                    id=""
+                    viewBox="0 0 1024 1024"
+                    width="24px"
                   >
-                    <svg
-                      class="emotion-19"
-                      data-testid="icon"
-                      data-wdio=""
-                      height="24px"
-                      id=""
-                      viewBox="0 0 1024 1024"
-                      width="24px"
-                    >
-                      <title>
-                        search
-                      </title>
-                      <path
-                        d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
-                      />
-                    </svg>
-                  </div>
+                    <title>
+                      arrowhead-down
+                    </title>
+                    <path
+                      d="M512 580.267l-226.133-226.133c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 256 253.867c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 256-253.867c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
+                    />
+                  </svg>
                 </div>
                 <div
                   class="message"
@@ -1258,193 +1105,11 @@ exports[`GroupRolesPage should render 1`] = `
               </div>
             </div>
           </div>
-          <div
-            class="emotion-76 emotion-77"
-          >
-            <div
-              class="emotion-78 emotion-79"
-            >
-              The group isn't a member of any role.
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        data-testid="user-domains"
-      >
-        <div
-          class="emotion-80 emotion-81"
-          data-testid="toggle-domain"
-        >
-          <svg
-            class="emotion-82"
-            data-testid="icon"
-            data-wdio=""
-            height="1em"
-            id=""
-            viewBox="0 0 1024 1024"
-            width="1em"
-          >
-            <title>
-              arrow-right
-            </title>
-            <path
-              d="M579.627 512l-225.707 226.133c-7.425 7.668-12.002 18.133-12.002 29.667 0 14.028 6.77 26.476 17.222 34.252l0.114 0.081c6.877 4.635 15.35 7.398 24.467 7.398 12.618 0 24-5.292 32.048-13.778l0.019-0.020 254.293-253.653c7.731-7.723 12.514-18.396 12.514-30.187s-4.782-22.464-12.513-30.186l-0-0-254.293-254.507c-8.066-8.506-19.448-13.798-32.066-13.798-9.118 0-17.59 2.763-24.625 7.498l0.158-0.1c-10.919 7.83-17.949 20.483-17.949 34.778 0 11.841 4.824 22.556 12.613 30.286l0.003 0.003z"
-            />
-          </svg>
         </div>
         <div
-          class="emotion-83 emotion-84"
+          class="emotion-61 emotion-62"
         >
-          <div
-            class="emotion-85 emotion-86"
-          >
-            <div
-              class="emotion-87 emotion-88"
-            >
-              My Domains
-            </div>
-            <div>
-              <a
-                class="emotion-89 emotion-90"
-                href="/domain/create"
-              >
-                Create
-              </a>
-              <span
-                class="emotion-91 emotion-92"
-              >
-                 | 
-              </span>
-              <a
-                class="emotion-89 emotion-90"
-                href="/domain/manage"
-              >
-                Manage
-              </a>
-            </div>
-          </div>
-          <div
-            class="emotion-95 emotion-96"
-          >
-            <div
-              class="emotion-97 denali-input animated"
-              data-testid="input-wrapper"
-            >
-              <input
-                autocomplete="off"
-                data-testid="input-node"
-                name="domain-search"
-                placeholder="Search domains"
-                value=""
-              />
-              <div
-                class="input-icon"
-              >
-                <div
-                  class="input-icon"
-                >
-                  <svg
-                    class="emotion-19"
-                    data-testid="icon"
-                    data-wdio=""
-                    height="20px"
-                    id=""
-                    viewBox="0 0 1024 1024"
-                    width="20px"
-                  >
-                    <title>
-                      search
-                    </title>
-                    <path
-                      d="M659.413 599.68c40.125-53.054 64.27-120.136 64.27-192.857 0-177.556-143.937-321.493-321.493-321.493s-321.493 143.937-321.493 321.493c0 177.556 143.937 321.493 321.493 321.493 74.297 0 142.708-25.203 197.149-67.525l-0.726 0.543 267.307 264.96c7.723 7.731 18.396 12.514 30.187 12.514s22.464-4.782 30.186-12.513l0-0c7.795-7.733 12.621-18.45 12.621-30.293s-4.826-22.56-12.618-30.291l-0.003-0.003zM444.8 637.227c-11.829 2.113-25.446 3.322-39.345 3.322-129.603 0-234.667-105.064-234.667-234.667s105.064-234.667 234.667-234.667c129.603 0 234.667 105.064 234.667 234.667 0 13.899-1.208 27.516-3.526 40.752l0.204-1.407c-17.178 98.349-93.651 174.822-190.593 191.796l-1.407 0.204z"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <div
-                class="message"
-                data-testid="message"
-              />
-            </div>
-          </div>
-          <div
-            class="emotion-99 emotion-100"
-            data-testid="domain-list"
-          >
-            <div
-              class="emotion-101 emotion-102"
-            >
-              <div
-                class="emotion-103 emotion-104"
-              >
-                <svg
-                  class="emotion-105"
-                  data-testid="icon"
-                  data-wdio=""
-                  height="1em"
-                  id=""
-                  viewBox="0 0 1024 1024"
-                  width="1em"
-                >
-                  <title>
-                    user-group
-                  </title>
-                  <path
-                    d="M320 512c106.039 0 192-85.961 192-192s-85.961-192-192-192c-106.039 0-192 85.961-192 192v0c0 106.039 85.961 192 192 192v0zM320 213.333c58.91 0 106.667 47.756 106.667 106.667s-47.756 106.667-106.667 106.667c-58.91 0-106.667-47.756-106.667-106.667v0c0-58.91 47.756-106.667 106.667-106.667v0z"
-                  />
-                  <path
-                    d="M746.667 512c82.475 0 149.333-66.859 149.333-149.333s-66.859-149.333-149.333-149.333c-82.475 0-149.333 66.859-149.333 149.333v0c0 82.475 66.859 149.333 149.333 149.333v0zM746.667 298.667c35.346 0 64 28.654 64 64s-28.654 64-64 64c-35.346 0-64-28.654-64-64v0c-0.024-0.647-0.038-1.408-0.038-2.171 0-34.168 27.699-61.867 61.867-61.867 0.764 0 1.524 0.014 2.281 0.041l-0.11-0.003z"
-                  />
-                  <path
-                    d="M981.333 627.2l-19.2-12.8c-61.484-37.554-135.879-59.79-215.467-59.79s-153.983 22.236-217.31 60.834l1.843-1.044-17.067 12.8c-51.435-18.731-110.808-29.656-172.706-29.866l-0.094-0c-1.041-0.008-2.273-0.012-3.505-0.012-102.805 0-198.352 31.076-277.759 84.348l1.797-1.135-19.2 12.8v160c0 23.564 19.103 42.667 42.667 42.667v0h512c23.564 0 42.667-19.103 42.667-42.667v0-42.667h298.667c23.564 0 42.667-19.103 42.667-42.667v0zM554.667 810.667h-426.667v-70.4c60.429-36.199 133.319-57.605 211.209-57.605 0.747 0 1.493 0.002 2.239 0.006l-0.115-0c0.631-0.003 1.377-0.005 2.124-0.005 77.89 0 150.78 21.406 213.108 58.657l-1.899-1.052zM896 725.333h-256v-32l-32-21.333c40.883-19.81 88.92-31.389 139.661-31.389 54.141 0 105.204 13.182 150.153 36.512l-1.814-0.857z"
-                  />
-                </svg>
-              </div>
-              <a
-                class="emotion-89 emotion-90"
-                href="/domain/athens/role"
-              >
-                athens
-              </a>
-            </div>
-            <div
-              class="emotion-101 emotion-102"
-            >
-              <div
-                class="emotion-103 emotion-104"
-              >
-                <svg
-                  class="emotion-105"
-                  data-testid="icon"
-                  data-wdio=""
-                  height="1em"
-                  id=""
-                  viewBox="0 0 1024 1024"
-                  width="1em"
-                >
-                  <title>
-                    user-group
-                  </title>
-                  <path
-                    d="M320 512c106.039 0 192-85.961 192-192s-85.961-192-192-192c-106.039 0-192 85.961-192 192v0c0 106.039 85.961 192 192 192v0zM320 213.333c58.91 0 106.667 47.756 106.667 106.667s-47.756 106.667-106.667 106.667c-58.91 0-106.667-47.756-106.667-106.667v0c0-58.91 47.756-106.667 106.667-106.667v0z"
-                  />
-                  <path
-                    d="M746.667 512c82.475 0 149.333-66.859 149.333-149.333s-66.859-149.333-149.333-149.333c-82.475 0-149.333 66.859-149.333 149.333v0c0 82.475 66.859 149.333 149.333 149.333v0zM746.667 298.667c35.346 0 64 28.654 64 64s-28.654 64-64 64c-35.346 0-64-28.654-64-64v0c-0.024-0.647-0.038-1.408-0.038-2.171 0-34.168 27.699-61.867 61.867-61.867 0.764 0 1.524 0.014 2.281 0.041l-0.11-0.003z"
-                  />
-                  <path
-                    d="M981.333 627.2l-19.2-12.8c-61.484-37.554-135.879-59.79-215.467-59.79s-153.983 22.236-217.31 60.834l1.843-1.044-17.067 12.8c-51.435-18.731-110.808-29.656-172.706-29.866l-0.094-0c-1.041-0.008-2.273-0.012-3.505-0.012-102.805 0-198.352 31.076-277.759 84.348l1.797-1.135-19.2 12.8v160c0 23.564 19.103 42.667 42.667 42.667v0h512c23.564 0 42.667-19.103 42.667-42.667v0-42.667h298.667c23.564 0 42.667-19.103 42.667-42.667v0zM554.667 810.667h-426.667v-70.4c60.429-36.199 133.319-57.605 211.209-57.605 0.747 0 1.493 0.002 2.239 0.006l-0.115-0c0.631-0.003 1.377-0.005 2.124-0.005 77.89 0 150.78 21.406 213.108 58.657l-1.899-1.052zM896 725.333h-256v-32l-32-21.333c40.883-19.81 88.92-31.389 139.661-31.389 54.141 0 105.204 13.182 150.153 36.512l-1.814-0.857z"
-                  />
-                </svg>
-              </div>
-              <a
-                class="emotion-89 emotion-90"
-                href="/domain/athens.ci/role"
-              >
-                athens.ci
-              </a>
-            </div>
-          </div>
+          Search by name or description to find self-service roles and groups.
         </div>
       </div>
     </div>

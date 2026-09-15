@@ -19,6 +19,7 @@ let CLIENTS = require('../clients');
 const errorHandler = require('../utils/errorHandler');
 const userService = require('../services/userService');
 const apiUtils = require('../utils/apiUtils');
+const selfServeZms = require('../utils/selfServeZms');
 const debug = require('debug')('AthenzUI:server:handlers:api');
 const cytoscape = require('cytoscape');
 let dagre = require('cytoscape-dagre');
@@ -1961,6 +1962,44 @@ Fetchr.registerService({
                     // 404 from domainRoleMemberList is ok, no pending approvals.
                     callback(null, 0);
                 }
+            });
+    },
+});
+
+Fetchr.registerService({
+    name: 'self-serve-search',
+    read(req, resource, params, config, callback) {
+        selfServeZms
+            .search(req.clients.zms, params)
+            .then((data) => callback(null, data))
+            .catch((err) => {
+                debug(
+                    `principal: ${req.session.shortId} rid: ${
+                        req.headers.rid
+                    } Error while searching self-serve catalog: ${JSON.stringify(
+                        err
+                    )}`
+                );
+                callback(errorHandler.fetcherError(err));
+            });
+    },
+    create(req, resource, params, body, config, callback) {
+        let memberName = `${appConfig.userDomain}.${req.session.shortId}`;
+        if (req.session.shortId && req.session.shortId.indexOf('.') !== -1) {
+            memberName = req.session.shortId;
+        }
+        selfServeZms
+            .applyAction(req.clients.zms, params, memberName)
+            .then((data) => callback(null, data))
+            .catch((err) => {
+                debug(
+                    `principal: ${req.session.shortId} rid: ${
+                        req.headers.rid
+                    } Error while updating self-serve catalog: ${JSON.stringify(
+                        err
+                    )}`
+                );
+                callback(errorHandler.fetcherError(err));
             });
     },
 });

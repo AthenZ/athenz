@@ -93,7 +93,7 @@ const makeAlertClass = (props) => css`
         flex: 0 0 28px;
         padding: 14px;
         & .alert-icon {
-            align-items: flex-start;
+            align-items: center;
             display: flex;
             justify-content: center;
         }
@@ -111,6 +111,10 @@ const makeAlertClass = (props) => css`
             padding: 14px 14px 14px 0;
             & .title {
                 ${cssFontWeights.bold};
+            }
+            & .close-button {
+                align-items: center;
+                display: flex;
             }
         }
         & .description {

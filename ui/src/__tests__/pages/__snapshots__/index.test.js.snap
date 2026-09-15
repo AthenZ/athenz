@@ -266,25 +266,55 @@ exports[`Home should render 1`] = `
 
 .emotion-10 {
   display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 
 .emotion-12 {
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  font: 300 16px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  height: 60px;
+  margin-right: 8px;
+  padding: 0 12px;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.emotion-12:hover {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.emotion-14 {
+  display: flex;
+}
+
+.emotion-16 {
   fill: #fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-13 {
+.emotion-17 {
   position: relative;
   width: 0;
   height: 0;
 }
 
-.emotion-15 {
+.emotion-19 {
   margin-left: 15px;
 }
 
-.emotion-18 {
+.emotion-22 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -292,7 +322,7 @@ exports[`Home should render 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-20 {
+.emotion-24 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -309,13 +339,13 @@ exports[`Home should render 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-22 {
+.emotion-26 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
 }
 
-.emotion-24 {
+.emotion-28 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -332,16 +362,16 @@ exports[`Home should render 1`] = `
   flex-direction: column;
 }
 
-.emotion-26 {
+.emotion-30 {
   padding-top: 20px;
 }
 
-.emotion-28 {
+.emotion-32 {
   height: 100px;
   width: 100px;
 }
 
-.emotion-30 {
+.emotion-34 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -352,38 +382,38 @@ exports[`Home should render 1`] = `
   width: 650px;
 }
 
-.emotion-32 {
+.emotion-36 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-34 {
+.emotion-38 {
   padding: 20px 0 0 0;
   width: 600px;
 }
 
-.emotion-36 {
+.emotion-40 {
   display: flex;
   width: 100%;
 }
 
-.emotion-38 {
+.emotion-42 {
   background: #ffffff;
   width: 35%;
 }
 
-.emotion-40 {
+.emotion-44 {
   position: relative;
   width: 100%;
 }
 
-.emotion-40 input {
+.emotion-44 input {
   cursor: pointer;
 }
 
-.emotion-41 {
+.emotion-45 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -397,7 +427,7 @@ exports[`Home should render 1`] = `
   width: 100%;
 }
 
-.emotion-41 input {
+.emotion-45 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -423,42 +453,42 @@ exports[`Home should render 1`] = `
   width: 100%;
 }
 
-.emotion-41.animated input {
+.emotion-45.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-41 input::-webkit-input-placeholder {
+.emotion-45 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-41 input::-moz-placeholder {
+.emotion-45 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-41 input:-ms-input-placeholder {
+.emotion-45 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-41 input::placeholder {
+.emotion-45 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-41 input.focused,
-.emotion-41 input:active,
-.emotion-41 input:focus {
+.emotion-45 input.focused,
+.emotion-45 input:active,
+.emotion-45 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-41 input:invalid {
+.emotion-45 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-41 .message {
+.emotion-45 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -466,22 +496,22 @@ exports[`Home should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-41.error input,
-.emotion-41.error input.focused,
-.emotion-41.error input:active,
-.emotion-41.error input:focus {
+.emotion-45.error input,
+.emotion-45.error input.focused,
+.emotion-45.error input:active,
+.emotion-45.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-41.error .message {
+.emotion-45.error .message {
   color: #d01111;
 }
 
-.emotion-41 input {
+.emotion-45 input {
   padding-right: 36px;
 }
 
-.emotion-41 .input-icon {
+.emotion-45 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -493,35 +523,35 @@ exports[`Home should render 1`] = `
   z-index: 1;
 }
 
-.emotion-41 .input-icon[onclick] {
+.emotion-45 .input-icon[onclick] {
   cursor: pointer;
   -webkit-transition: opacity 0.2s ease-in-out;
   transition: opacity 0.2s ease-in-out;
 }
 
-.emotion-41 .input-icon[onclick]:hover {
+.emotion-45 .input-icon[onclick]:hover {
   opacity: 0.7;
 }
 
-.emotion-42 {
+.emotion-46 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-43 {
+.emotion-47 {
   background: #ffffff;
   width: 65%;
   margin-left: 5px;
 }
 
-.emotion-46 {
+.emotion-50 {
   fill: #3570f4;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-47 {
+.emotion-51 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -544,13 +574,13 @@ exports[`Home should render 1`] = `
   width: 20px;
 }
 
-.emotion-49 {
+.emotion-53 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-50 {
+.emotion-54 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -565,7 +595,7 @@ exports[`Home should render 1`] = `
   width: 350px;
 }
 
-.emotion-52 {
+.emotion-56 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -581,28 +611,28 @@ exports[`Home should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-54 {
+.emotion-58 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-56 {
+.emotion-60 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-58 {
+.emotion-62 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-62 {
+.emotion-66 {
   padding: 0 30px 15px 15px;
 }
 
-.emotion-64 {
+.emotion-68 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -616,7 +646,7 @@ exports[`Home should render 1`] = `
   width: 100%;
 }
 
-.emotion-64 input {
+.emotion-68 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -642,42 +672,42 @@ exports[`Home should render 1`] = `
   width: 100%;
 }
 
-.emotion-64.animated input {
+.emotion-68.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-64 input::-webkit-input-placeholder {
+.emotion-68 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-64 input::-moz-placeholder {
+.emotion-68 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-64 input:-ms-input-placeholder {
+.emotion-68 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-64 input::placeholder {
+.emotion-68 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-64 input.focused,
-.emotion-64 input:active,
-.emotion-64 input:focus {
+.emotion-68 input.focused,
+.emotion-68 input:active,
+.emotion-68 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-64 input:invalid {
+.emotion-68 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-64 .message {
+.emotion-68 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -685,22 +715,22 @@ exports[`Home should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-64.error input,
-.emotion-64.error input.focused,
-.emotion-64.error input:active,
-.emotion-64.error input:focus {
+.emotion-68.error input,
+.emotion-68.error input.focused,
+.emotion-68.error input:active,
+.emotion-68.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-64.error .message {
+.emotion-68.error .message {
   color: #d01111;
 }
 
-.emotion-64 input {
+.emotion-68 input {
   padding-right: 28px;
 }
 
-.emotion-64 .input-icon {
+.emotion-68 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -712,31 +742,31 @@ exports[`Home should render 1`] = `
   z-index: 1;
 }
 
-.emotion-64 .input-icon[onclick] {
+.emotion-68 .input-icon[onclick] {
   cursor: pointer;
   -webkit-transition: opacity 0.2s ease-in-out;
   transition: opacity 0.2s ease-in-out;
 }
 
-.emotion-64 .input-icon[onclick]:hover {
+.emotion-68 .input-icon[onclick]:hover {
   opacity: 0.7;
 }
 
-.emotion-66 {
+.emotion-70 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-68 {
+.emotion-72 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-70 {
+.emotion-74 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-72 {
+.emotion-76 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -780,85 +810,96 @@ exports[`Home should render 1`] = `
       >
         <div
           class="emotion-10 emotion-11"
-          data-testid="header-menu"
         >
-          <svg
-            class="emotion-12"
-            data-testid="icon"
-            data-wdio=""
-            height="25px"
-            id="notifications-icon"
-            viewBox="0 0 1024 1024"
-            width="25px"
+          <a
+            class="emotion-12 emotion-13"
+            data-testid="self-service-nav"
+            href="/self-service"
           >
-            <title>
-              notification
-            </title>
-            <path
-              d="M925.867 627.2l-68.267-68.267c-15.132-16.256-24.706-37.864-25.595-61.692l-0.005-0.174v-134.4c0-172.8-115.2-320-320-320s-320 142.933-320 320v149.333c-0.424 14.075-6.029 26.765-14.962 36.297l0.028-0.030-78.933 78.933c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v153.6c0 23.564 19.103 42.667 42.667 42.667v0h236.8c12.454 70.953 73.611 124.182 147.2 124.182s134.746-53.229 147.069-123.285l0.131-0.897h236.8c23.564 0 42.667-19.103 42.667-42.667v0-153.6c-0.172-11.712-5.037-22.255-12.793-29.86l-0.007-0.007zM853.333 768h-682.667v-91.733l66.133-68.267c24.782-24.511 40.224-58.423 40.533-95.941l0-0.059v-149.333c0-113.067 61.867-234.667 234.667-234.667s234.667 125.867 234.667 234.667v134.4c0.879 47.11 19.381 89.736 49.168 121.71l-0.102-0.11 57.6 57.6z"
-            />
-          </svg>
+            Self Service
+          </a>
           <div
-            class="emotion-13 emotion-14"
-          />
-          <div
-            class="emotion-15 emotion-16"
+            class="emotion-14 emotion-15"
+            data-testid="header-menu"
           >
             <svg
-              class="emotion-12"
+              class="emotion-16"
               data-testid="icon"
               data-wdio=""
               height="25px"
-              id=""
+              id="notifications-icon"
               viewBox="0 0 1024 1024"
               width="25px"
             >
               <title>
-                help-circle
+                notification
               </title>
               <path
-                d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
-              />
-              <path
-                d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
-              />
-              <path
-                d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
+                d="M925.867 627.2l-68.267-68.267c-15.132-16.256-24.706-37.864-25.595-61.692l-0.005-0.174v-134.4c0-172.8-115.2-320-320-320s-320 142.933-320 320v149.333c-0.424 14.075-6.029 26.765-14.962 36.297l0.028-0.030-78.933 78.933c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v153.6c0 23.564 19.103 42.667 42.667 42.667v0h236.8c12.454 70.953 73.611 124.182 147.2 124.182s134.746-53.229 147.069-123.285l0.131-0.897h236.8c23.564 0 42.667-19.103 42.667-42.667v0-153.6c-0.172-11.712-5.037-22.255-12.793-29.86l-0.007-0.007zM853.333 768h-682.667v-91.733l66.133-68.267c24.782-24.511 40.224-58.423 40.533-95.941l0-0.059v-149.333c0-113.067 61.867-234.667 234.667-234.667s234.667 125.867 234.667 234.667v134.4c0.879 47.11 19.381 89.736 49.168 121.71l-0.102-0.11 57.6 57.6z"
               />
             </svg>
+            <div
+              class="emotion-17 emotion-18"
+            />
+            <div
+              class="emotion-19 emotion-20"
+            >
+              <svg
+                class="emotion-16"
+                data-testid="icon"
+                data-wdio=""
+                height="25px"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="25px"
+              >
+                <title>
+                  help-circle
+                </title>
+                <path
+                  d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
+                />
+                <path
+                  d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
+                />
+                <path
+                  d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
+                />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
   <div
-    class="emotion-18 emotion-19"
+    class="emotion-22 emotion-23"
   >
     <div
-      class="emotion-20 emotion-21"
+      class="emotion-24 emotion-25"
     >
       <div
-        class="emotion-22 emotion-23"
+        class="emotion-26 emotion-27"
       >
         <div
-          class="emotion-24 emotion-25"
+          class="emotion-28 emotion-29"
         >
           <div
-            class="emotion-26 emotion-27"
+            class="emotion-30 emotion-31"
           >
             <img
-              class="emotion-28 emotion-29"
+              class="emotion-32 emotion-33"
               src="/static/athenz-logo.png"
             />
           </div>
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             <span>
               Athenz is an open source platform which provides secure identity in the form of X.509 certificate to every workload for service authentication (mutual TLS authentication) and provides fine-grained Role Based Access Control (RBAC) for authorization.
             </span>
             <a
-              class="emotion-32 emotion-33"
+              class="emotion-36 emotion-37"
               href="https://git.ouroath.com/pages/athens/athenz-guide/"
               rel="noopener"
               target="_blank"
@@ -867,24 +908,24 @@ exports[`Home should render 1`] = `
             </a>
           </div>
           <div
-            class="emotion-34 emotion-35"
+            class="emotion-38 emotion-39"
           >
             <div
-              class="emotion-36 emotion-37"
+              class="emotion-40 emotion-41"
             >
               <div
-                class="emotion-38 emotion-39"
+                class="emotion-42 emotion-43"
               >
                 <div
                   aria-expanded="false"
                   aria-haspopup="listbox"
                   aria-labelledby="downshift-1-label"
-                  class="emotion-40 denali-input-dropdown"
+                  class="emotion-44 denali-input-dropdown"
                   data-testid="input-dropdown"
                   role="combobox"
                 >
                   <div
-                    class="emotion-41 denali-input animated"
+                    class="emotion-45 denali-input animated"
                     data-testid="input-wrapper"
                   >
                     <input
@@ -903,7 +944,7 @@ exports[`Home should render 1`] = `
                       class="input-icon"
                     >
                       <svg
-                        class="emotion-42"
+                        class="emotion-46"
                         data-testid="icon"
                         data-wdio=""
                         height="24px"
@@ -927,10 +968,10 @@ exports[`Home should render 1`] = `
                 </div>
               </div>
               <div
-                class="emotion-43 emotion-44"
+                class="emotion-47 emotion-48"
               >
                 <div
-                  class="emotion-41 denali-input animated"
+                  class="emotion-45 denali-input animated"
                   data-testid="input-wrapper"
                 >
                   <input
@@ -948,7 +989,7 @@ exports[`Home should render 1`] = `
                       style="cursor: pointer;"
                     >
                       <svg
-                        class="emotion-46"
+                        class="emotion-50"
                         data-testid="icon"
                         data-wdio=""
                         height="24px"
@@ -979,11 +1020,11 @@ exports[`Home should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-47 emotion-48"
+          class="emotion-51 emotion-52"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-49"
+            class="emotion-53"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -1000,30 +1041,30 @@ exports[`Home should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-50 emotion-51"
+          class="emotion-54 emotion-55"
         >
           <div
-            class="emotion-52 emotion-53"
+            class="emotion-56 emotion-57"
           >
             <div
-              class="emotion-54 emotion-55"
+              class="emotion-58 emotion-59"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-56 emotion-57"
+                class="emotion-60 emotion-61"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-58 emotion-59"
+                class="emotion-62 emotion-63"
               >
                  | 
               </span>
               <a
-                class="emotion-56 emotion-57"
+                class="emotion-60 emotion-61"
                 href="/domain/manage"
               >
                 Manage
@@ -1031,10 +1072,10 @@ exports[`Home should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-62 emotion-63"
+            class="emotion-66 emotion-67"
           >
             <div
-              class="emotion-64 denali-input animated"
+              class="emotion-68 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -1051,7 +1092,7 @@ exports[`Home should render 1`] = `
                   class="input-icon"
                 >
                   <svg
-                    class="emotion-46"
+                    class="emotion-50"
                     data-testid="icon"
                     data-wdio=""
                     height="20px"
@@ -1075,17 +1116,17 @@ exports[`Home should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-66 emotion-67"
+            class="emotion-70 emotion-71"
             data-testid="domain-list"
           >
             <div
-              class="emotion-68 emotion-69"
+              class="emotion-72 emotion-73"
             >
               <div
-                class="emotion-70 emotion-71"
+                class="emotion-74 emotion-75"
               >
                 <svg
-                  class="emotion-72"
+                  class="emotion-76"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1108,20 +1149,20 @@ exports[`Home should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-56 emotion-57"
+                class="emotion-60 emotion-61"
                 href="/domain/dom1/role"
               >
                 dom1
               </a>
             </div>
             <div
-              class="emotion-68 emotion-69"
+              class="emotion-72 emotion-73"
             >
               <div
-                class="emotion-70 emotion-71"
+                class="emotion-74 emotion-75"
               >
                 <svg
-                  class="emotion-72"
+                  class="emotion-76"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1144,7 +1185,7 @@ exports[`Home should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-56 emotion-57"
+                class="emotion-60 emotion-61"
                 href="/domain/dom2/role"
               >
                 dom2
@@ -1439,39 +1480,99 @@ exports[`Home should render 2`] = `
 
 .emotion-10 {
   display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 
 .emotion-10 {
   display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 
 .emotion-12 {
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  font: 300 16px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  height: 60px;
+  margin-right: 8px;
+  padding: 0 12px;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.emotion-12:hover {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.emotion-12 {
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  font: 300 16px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  height: 60px;
+  margin-right: 8px;
+  padding: 0 12px;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.emotion-12:hover {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.emotion-14 {
+  display: flex;
+}
+
+.emotion-14 {
+  display: flex;
+}
+
+.emotion-16 {
   fill: #fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-13 {
+.emotion-17 {
   position: relative;
   width: 0;
   height: 0;
 }
 
-.emotion-13 {
+.emotion-17 {
   position: relative;
   width: 0;
   height: 0;
 }
 
-.emotion-15 {
+.emotion-19 {
   margin-left: 15px;
 }
 
-.emotion-15 {
+.emotion-19 {
   margin-left: 15px;
 }
 
-.emotion-18 {
+.emotion-22 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -1479,7 +1580,7 @@ exports[`Home should render 2`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-18 {
+.emotion-22 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -1487,7 +1588,7 @@ exports[`Home should render 2`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-20 {
+.emotion-24 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -1504,7 +1605,7 @@ exports[`Home should render 2`] = `
   justify-content: flex-start;
 }
 
-.emotion-20 {
+.emotion-24 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -1521,19 +1622,19 @@ exports[`Home should render 2`] = `
   justify-content: flex-start;
 }
 
-.emotion-22 {
+.emotion-26 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
 }
 
-.emotion-22 {
+.emotion-26 {
   -webkit-flex: 1 1;
   -ms-flex: 1 1;
   flex: 1 1;
 }
 
-.emotion-24 {
+.emotion-28 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1550,7 +1651,7 @@ exports[`Home should render 2`] = `
   flex-direction: column;
 }
 
-.emotion-24 {
+.emotion-28 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1567,25 +1668,25 @@ exports[`Home should render 2`] = `
   flex-direction: column;
 }
 
-.emotion-26 {
+.emotion-30 {
   padding-top: 20px;
-}
-
-.emotion-26 {
-  padding-top: 20px;
-}
-
-.emotion-28 {
-  height: 100px;
-  width: 100px;
-}
-
-.emotion-28 {
-  height: 100px;
-  width: 100px;
 }
 
 .emotion-30 {
+  padding-top: 20px;
+}
+
+.emotion-32 {
+  height: 100px;
+  width: 100px;
+}
+
+.emotion-32 {
+  height: 100px;
+  width: 100px;
+}
+
+.emotion-34 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -1596,7 +1697,7 @@ exports[`Home should render 2`] = `
   width: 650px;
 }
 
-.emotion-30 {
+.emotion-34 {
   -webkit-align-items: flex-start;
   -webkit-box-align: flex-start;
   -ms-flex-align: flex-start;
@@ -1607,60 +1708,60 @@ exports[`Home should render 2`] = `
   width: 650px;
 }
 
-.emotion-32 {
+.emotion-36 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-32 {
+.emotion-36 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-34 {
+.emotion-38 {
   padding: 20px 0 0 0;
   width: 600px;
 }
 
-.emotion-34 {
+.emotion-38 {
   padding: 20px 0 0 0;
   width: 600px;
-}
-
-.emotion-36 {
-  display: flex;
-  width: 100%;
-}
-
-.emotion-36 {
-  display: flex;
-  width: 100%;
-}
-
-.emotion-38 {
-  background: #ffffff;
-  width: 35%;
-}
-
-.emotion-38 {
-  background: #ffffff;
-  width: 35%;
 }
 
 .emotion-40 {
+  display: flex;
+  width: 100%;
+}
+
+.emotion-40 {
+  display: flex;
+  width: 100%;
+}
+
+.emotion-42 {
+  background: #ffffff;
+  width: 35%;
+}
+
+.emotion-42 {
+  background: #ffffff;
+  width: 35%;
+}
+
+.emotion-44 {
   position: relative;
   width: 100%;
 }
 
-.emotion-40 input {
+.emotion-44 input {
   cursor: pointer;
 }
 
-.emotion-41 {
+.emotion-45 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -1674,7 +1775,7 @@ exports[`Home should render 2`] = `
   width: 100%;
 }
 
-.emotion-41 input {
+.emotion-45 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -1700,42 +1801,42 @@ exports[`Home should render 2`] = `
   width: 100%;
 }
 
-.emotion-41.animated input {
+.emotion-45.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-41 input::-webkit-input-placeholder {
+.emotion-45 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-41 input::-moz-placeholder {
+.emotion-45 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-41 input:-ms-input-placeholder {
+.emotion-45 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-41 input::placeholder {
+.emotion-45 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-41 input.focused,
-.emotion-41 input:active,
-.emotion-41 input:focus {
+.emotion-45 input.focused,
+.emotion-45 input:active,
+.emotion-45 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-41 input:invalid {
+.emotion-45 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-41 .message {
+.emotion-45 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1743,22 +1844,22 @@ exports[`Home should render 2`] = `
   top: 2.571rem;
 }
 
-.emotion-41.error input,
-.emotion-41.error input.focused,
-.emotion-41.error input:active,
-.emotion-41.error input:focus {
+.emotion-45.error input,
+.emotion-45.error input.focused,
+.emotion-45.error input:active,
+.emotion-45.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-41.error .message {
+.emotion-45.error .message {
   color: #d01111;
 }
 
-.emotion-41 input {
+.emotion-45 input {
   padding-right: 36px;
 }
 
-.emotion-41 .input-icon {
+.emotion-45 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1770,41 +1871,41 @@ exports[`Home should render 2`] = `
   z-index: 1;
 }
 
-.emotion-41 .input-icon[onclick] {
+.emotion-45 .input-icon[onclick] {
   cursor: pointer;
   -webkit-transition: opacity 0.2s ease-in-out;
   transition: opacity 0.2s ease-in-out;
 }
 
-.emotion-41 .input-icon[onclick]:hover {
+.emotion-45 .input-icon[onclick]:hover {
   opacity: 0.7;
 }
 
-.emotion-42 {
+.emotion-46 {
   fill: #d5d5d5;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-43 {
+.emotion-47 {
   background: #ffffff;
   width: 65%;
   margin-left: 5px;
 }
 
-.emotion-43 {
+.emotion-47 {
   background: #ffffff;
   width: 65%;
   margin-left: 5px;
 }
 
-.emotion-46 {
+.emotion-50 {
   fill: #3570f4;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-47 {
+.emotion-51 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1827,7 +1928,7 @@ exports[`Home should render 2`] = `
   width: 20px;
 }
 
-.emotion-47 {
+.emotion-51 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1850,13 +1951,13 @@ exports[`Home should render 2`] = `
   width: 20px;
 }
 
-.emotion-49 {
+.emotion-53 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-50 {
+.emotion-54 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -1871,7 +1972,7 @@ exports[`Home should render 2`] = `
   width: 350px;
 }
 
-.emotion-50 {
+.emotion-54 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -1886,7 +1987,7 @@ exports[`Home should render 2`] = `
   width: 350px;
 }
 
-.emotion-52 {
+.emotion-56 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1902,7 +2003,7 @@ exports[`Home should render 2`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-52 {
+.emotion-56 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1918,49 +2019,49 @@ exports[`Home should render 2`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-54 {
+.emotion-58 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-54 {
+.emotion-58 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-56 {
+.emotion-60 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-56 {
+.emotion-60 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-58 {
-  padding: 0 5px;
-  color: #d5d5d5;
-}
-
-.emotion-58 {
+.emotion-62 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
 .emotion-62 {
+  padding: 0 5px;
+  color: #d5d5d5;
+}
+
+.emotion-66 {
   padding: 0 30px 15px 15px;
 }
 
-.emotion-62 {
+.emotion-66 {
   padding: 0 30px 15px 15px;
 }
 
-.emotion-64 {
+.emotion-68 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -1974,7 +2075,7 @@ exports[`Home should render 2`] = `
   width: 100%;
 }
 
-.emotion-64 input {
+.emotion-68 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -2000,42 +2101,42 @@ exports[`Home should render 2`] = `
   width: 100%;
 }
 
-.emotion-64.animated input {
+.emotion-68.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-64 input::-webkit-input-placeholder {
+.emotion-68 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-64 input::-moz-placeholder {
+.emotion-68 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-64 input:-ms-input-placeholder {
+.emotion-68 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-64 input::placeholder {
+.emotion-68 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-64 input.focused,
-.emotion-64 input:active,
-.emotion-64 input:focus {
+.emotion-68 input.focused,
+.emotion-68 input:active,
+.emotion-68 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-64 input:invalid {
+.emotion-68 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-64 .message {
+.emotion-68 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -2043,22 +2144,22 @@ exports[`Home should render 2`] = `
   top: 2.571rem;
 }
 
-.emotion-64.error input,
-.emotion-64.error input.focused,
-.emotion-64.error input:active,
-.emotion-64.error input:focus {
+.emotion-68.error input,
+.emotion-68.error input.focused,
+.emotion-68.error input:active,
+.emotion-68.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-64.error .message {
+.emotion-68.error .message {
   color: #d01111;
 }
 
-.emotion-64 input {
+.emotion-68 input {
   padding-right: 28px;
 }
 
-.emotion-64 .input-icon {
+.emotion-68 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -2070,45 +2171,45 @@ exports[`Home should render 2`] = `
   z-index: 1;
 }
 
-.emotion-64 .input-icon[onclick] {
+.emotion-68 .input-icon[onclick] {
   cursor: pointer;
   -webkit-transition: opacity 0.2s ease-in-out;
   transition: opacity 0.2s ease-in-out;
 }
 
-.emotion-64 .input-icon[onclick]:hover {
+.emotion-68 .input-icon[onclick]:hover {
   opacity: 0.7;
 }
 
-.emotion-66 {
+.emotion-70 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-66 {
+.emotion-70 {
   padding: 0 30px 0 15px;
-}
-
-.emotion-68 {
-  padding: 10px 0;
-  display: flex;
-}
-
-.emotion-68 {
-  padding: 10px 0;
-  display: flex;
-}
-
-.emotion-70 {
-  font-size: 1.25em;
-  margin-right: 5px;
-}
-
-.emotion-70 {
-  font-size: 1.25em;
-  margin-right: 5px;
 }
 
 .emotion-72 {
+  padding: 10px 0;
+  display: flex;
+}
+
+.emotion-72 {
+  padding: 10px 0;
+  display: flex;
+}
+
+.emotion-74 {
+  font-size: 1.25em;
+  margin-right: 5px;
+}
+
+.emotion-74 {
+  font-size: 1.25em;
+  margin-right: 5px;
+}
+
+.emotion-76 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -2152,85 +2253,96 @@ exports[`Home should render 2`] = `
       >
         <div
           class="emotion-10 emotion-11"
-          data-testid="header-menu"
         >
-          <svg
-            class="emotion-12"
-            data-testid="icon"
-            data-wdio=""
-            height="25px"
-            id="notifications-icon"
-            viewBox="0 0 1024 1024"
-            width="25px"
+          <a
+            class="emotion-12 emotion-13"
+            data-testid="self-service-nav"
+            href="/self-service"
           >
-            <title>
-              notification
-            </title>
-            <path
-              d="M925.867 627.2l-68.267-68.267c-15.132-16.256-24.706-37.864-25.595-61.692l-0.005-0.174v-134.4c0-172.8-115.2-320-320-320s-320 142.933-320 320v149.333c-0.424 14.075-6.029 26.765-14.962 36.297l0.028-0.030-78.933 78.933c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v153.6c0 23.564 19.103 42.667 42.667 42.667v0h236.8c12.454 70.953 73.611 124.182 147.2 124.182s134.746-53.229 147.069-123.285l0.131-0.897h236.8c23.564 0 42.667-19.103 42.667-42.667v0-153.6c-0.172-11.712-5.037-22.255-12.793-29.86l-0.007-0.007zM853.333 768h-682.667v-91.733l66.133-68.267c24.782-24.511 40.224-58.423 40.533-95.941l0-0.059v-149.333c0-113.067 61.867-234.667 234.667-234.667s234.667 125.867 234.667 234.667v134.4c0.879 47.11 19.381 89.736 49.168 121.71l-0.102-0.11 57.6 57.6z"
-            />
-          </svg>
+            Self Service
+          </a>
           <div
-            class="emotion-13 emotion-14"
-          />
-          <div
-            class="emotion-15 emotion-16"
+            class="emotion-14 emotion-15"
+            data-testid="header-menu"
           >
             <svg
-              class="emotion-12"
+              class="emotion-16"
               data-testid="icon"
               data-wdio=""
               height="25px"
-              id=""
+              id="notifications-icon"
               viewBox="0 0 1024 1024"
               width="25px"
             >
               <title>
-                help-circle
+                notification
               </title>
               <path
-                d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
-              />
-              <path
-                d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
-              />
-              <path
-                d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
+                d="M925.867 627.2l-68.267-68.267c-15.132-16.256-24.706-37.864-25.595-61.692l-0.005-0.174v-134.4c0-172.8-115.2-320-320-320s-320 142.933-320 320v149.333c-0.424 14.075-6.029 26.765-14.962 36.297l0.028-0.030-78.933 78.933c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v153.6c0 23.564 19.103 42.667 42.667 42.667v0h236.8c12.454 70.953 73.611 124.182 147.2 124.182s134.746-53.229 147.069-123.285l0.131-0.897h236.8c23.564 0 42.667-19.103 42.667-42.667v0-153.6c-0.172-11.712-5.037-22.255-12.793-29.86l-0.007-0.007zM853.333 768h-682.667v-91.733l66.133-68.267c24.782-24.511 40.224-58.423 40.533-95.941l0-0.059v-149.333c0-113.067 61.867-234.667 234.667-234.667s234.667 125.867 234.667 234.667v134.4c0.879 47.11 19.381 89.736 49.168 121.71l-0.102-0.11 57.6 57.6z"
               />
             </svg>
+            <div
+              class="emotion-17 emotion-18"
+            />
+            <div
+              class="emotion-19 emotion-20"
+            >
+              <svg
+                class="emotion-16"
+                data-testid="icon"
+                data-wdio=""
+                height="25px"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="25px"
+              >
+                <title>
+                  help-circle
+                </title>
+                <path
+                  d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
+                />
+                <path
+                  d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
+                />
+                <path
+                  d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
+                />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
   <div
-    class="emotion-18 emotion-19"
+    class="emotion-22 emotion-23"
   >
     <div
-      class="emotion-20 emotion-21"
+      class="emotion-24 emotion-25"
     >
       <div
-        class="emotion-22 emotion-23"
+        class="emotion-26 emotion-27"
       >
         <div
-          class="emotion-24 emotion-25"
+          class="emotion-28 emotion-29"
         >
           <div
-            class="emotion-26 emotion-27"
+            class="emotion-30 emotion-31"
           >
             <img
-              class="emotion-28 emotion-29"
+              class="emotion-32 emotion-33"
               src="/static/athenz-logo.png"
             />
           </div>
           <div
-            class="emotion-30 emotion-31"
+            class="emotion-34 emotion-35"
           >
             <span>
               Athenz is an open source platform which provides secure identity in the form of X.509 certificate to every workload for service authentication (mutual TLS authentication) and provides fine-grained Role Based Access Control (RBAC) for authorization.
             </span>
             <a
-              class="emotion-32 emotion-33"
+              class="emotion-36 emotion-37"
               href="https://git.ouroath.com/pages/athens/athenz-guide/"
               rel="noopener"
               target="_blank"
@@ -2239,24 +2351,24 @@ exports[`Home should render 2`] = `
             </a>
           </div>
           <div
-            class="emotion-34 emotion-35"
+            class="emotion-38 emotion-39"
           >
             <div
-              class="emotion-36 emotion-37"
+              class="emotion-40 emotion-41"
             >
               <div
-                class="emotion-38 emotion-39"
+                class="emotion-42 emotion-43"
               >
                 <div
                   aria-expanded="false"
                   aria-haspopup="listbox"
                   aria-labelledby="downshift-3-label"
-                  class="emotion-40 denali-input-dropdown"
+                  class="emotion-44 denali-input-dropdown"
                   data-testid="input-dropdown"
                   role="combobox"
                 >
                   <div
-                    class="emotion-41 denali-input animated"
+                    class="emotion-45 denali-input animated"
                     data-testid="input-wrapper"
                   >
                     <input
@@ -2275,7 +2387,7 @@ exports[`Home should render 2`] = `
                       class="input-icon"
                     >
                       <svg
-                        class="emotion-42"
+                        class="emotion-46"
                         data-testid="icon"
                         data-wdio=""
                         height="24px"
@@ -2299,10 +2411,10 @@ exports[`Home should render 2`] = `
                 </div>
               </div>
               <div
-                class="emotion-43 emotion-44"
+                class="emotion-47 emotion-48"
               >
                 <div
-                  class="emotion-41 denali-input animated"
+                  class="emotion-45 denali-input animated"
                   data-testid="input-wrapper"
                 >
                   <input
@@ -2320,7 +2432,7 @@ exports[`Home should render 2`] = `
                       style="cursor: pointer;"
                     >
                       <svg
-                        class="emotion-46"
+                        class="emotion-50"
                         data-testid="icon"
                         data-wdio=""
                         height="24px"
@@ -2351,11 +2463,11 @@ exports[`Home should render 2`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-47 emotion-48"
+          class="emotion-51 emotion-52"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-49"
+            class="emotion-53"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -2372,30 +2484,30 @@ exports[`Home should render 2`] = `
           </svg>
         </div>
         <div
-          class="emotion-50 emotion-51"
+          class="emotion-54 emotion-55"
         >
           <div
-            class="emotion-52 emotion-53"
+            class="emotion-56 emotion-57"
           >
             <div
-              class="emotion-54 emotion-55"
+              class="emotion-58 emotion-59"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-56 emotion-57"
+                class="emotion-60 emotion-61"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-58 emotion-59"
+                class="emotion-62 emotion-63"
               >
                  | 
               </span>
               <a
-                class="emotion-56 emotion-57"
+                class="emotion-60 emotion-61"
                 href="/domain/manage"
               >
                 Manage
@@ -2403,10 +2515,10 @@ exports[`Home should render 2`] = `
             </div>
           </div>
           <div
-            class="emotion-62 emotion-63"
+            class="emotion-66 emotion-67"
           >
             <div
-              class="emotion-64 denali-input animated"
+              class="emotion-68 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -2423,7 +2535,7 @@ exports[`Home should render 2`] = `
                   class="input-icon"
                 >
                   <svg
-                    class="emotion-46"
+                    class="emotion-50"
                     data-testid="icon"
                     data-wdio=""
                     height="20px"
@@ -2447,17 +2559,17 @@ exports[`Home should render 2`] = `
             </div>
           </div>
           <div
-            class="emotion-66 emotion-67"
+            class="emotion-70 emotion-71"
             data-testid="domain-list"
           >
             <div
-              class="emotion-68 emotion-69"
+              class="emotion-72 emotion-73"
             >
               <div
-                class="emotion-70 emotion-71"
+                class="emotion-74 emotion-75"
               >
                 <svg
-                  class="emotion-72"
+                  class="emotion-76"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -2480,20 +2592,20 @@ exports[`Home should render 2`] = `
                 </svg>
               </div>
               <a
-                class="emotion-56 emotion-57"
+                class="emotion-60 emotion-61"
                 href="/domain/dom1/role"
               >
                 dom1
               </a>
             </div>
             <div
-              class="emotion-68 emotion-69"
+              class="emotion-72 emotion-73"
             >
               <div
-                class="emotion-70 emotion-71"
+                class="emotion-74 emotion-75"
               >
                 <svg
-                  class="emotion-72"
+                  class="emotion-76"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -2516,7 +2628,7 @@ exports[`Home should render 2`] = `
                 </svg>
               </div>
               <a
-                class="emotion-56 emotion-57"
+                class="emotion-60 emotion-61"
                 href="/domain/dom2/role"
               >
                 dom2

@@ -829,6 +829,41 @@ const Api = (req) => {
             });
         },
 
+        searchSelfServe(matchString, domain, member) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('self-serve-search')
+                    .params({ matchString, domain, member })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data ?? { list: [], domains: [] });
+                        }
+                    });
+            });
+        },
+
+        updateSelfServe(params, _csrf) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .create('self-serve-search')
+                    .params(params)
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         getServices(domainName, publickeys, hosts) {
             return new Promise((resolve, reject) => {
                 fetchr

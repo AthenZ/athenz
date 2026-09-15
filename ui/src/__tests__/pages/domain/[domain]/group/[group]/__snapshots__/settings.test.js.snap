@@ -423,25 +423,55 @@ exports[`GroupSettingPage should render 1`] = `
 
 .emotion-21 {
   display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 
 .emotion-23 {
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  font: 300 16px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  height: 60px;
+  margin-right: 8px;
+  padding: 0 12px;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.emotion-23:hover {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.emotion-25 {
+  display: flex;
+}
+
+.emotion-27 {
   fill: #fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-24 {
+.emotion-28 {
   position: relative;
   width: 0;
   height: 0;
 }
 
-.emotion-26 {
+.emotion-30 {
   margin-left: 15px;
 }
 
-.emotion-29 {
+.emotion-33 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -449,7 +479,7 @@ exports[`GroupSettingPage should render 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-31 {
+.emotion-35 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -466,7 +496,7 @@ exports[`GroupSettingPage should render 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-33 {
+.emotion-37 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -482,28 +512,28 @@ exports[`GroupSettingPage should render 1`] = `
   flex-direction: column;
 }
 
-.emotion-37 {
+.emotion-41 {
   background: linear-gradient(to top, #f2f2f2, #fff);
   padding: 20px 30px 0;
 }
 
-.emotion-39 {
+.emotion-43 {
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 10px;
 }
 
-.emotion-41 {
+.emotion-45 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-43 {
+.emotion-47 {
   margin: 20px 0;
 }
 
-.emotion-45 {
+.emotion-49 {
   display: flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -511,21 +541,21 @@ exports[`GroupSettingPage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-47 {
+.emotion-51 {
   padding-right: 50px;
 }
 
-.emotion-49 {
+.emotion-53 {
   font-weight: 600;
 }
 
-.emotion-51 {
+.emotion-55 {
   color: #9a9a9a;
   font-size: 12px;
   text-transform: uppercase;
 }
 
-.emotion-59 {
+.emotion-63 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -540,7 +570,7 @@ exports[`GroupSettingPage should render 1`] = `
   position: relative;
 }
 
-.emotion-59.vertical {
+.emotion-63.vertical {
   background: #f5f8fe;
   display: flex;
   -webkit-flex-direction: column;
@@ -553,7 +583,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 300px;
 }
 
-.emotion-60 {
+.emotion-64 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -574,11 +604,11 @@ exports[`GroupSettingPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-60:hover {
+.emotion-64:hover {
   color: #3570f4;
 }
 
-.emotion-60.active {
+.emotion-64.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -586,11 +616,11 @@ exports[`GroupSettingPage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-60.active:hover {
+.emotion-64.active:hover {
   color: #303030;
 }
 
-.emotion-60.vertical {
+.emotion-64.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -602,21 +632,21 @@ exports[`GroupSettingPage should render 1`] = `
   text-align: left;
 }
 
-.emotion-60.vertical.active {
+.emotion-64.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-60.vertical.active:hover {
+.emotion-64.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-66 {
+.emotion-70 {
   margin: 20px;
 }
 
-.emotion-68 {
+.emotion-72 {
   width: 100%;
   border-spacing: 0 20px;
   display: table;
@@ -624,7 +654,7 @@ exports[`GroupSettingPage should render 1`] = `
   border-color: grey;
 }
 
-.emotion-70 {
+.emotion-74 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -634,7 +664,7 @@ exports[`GroupSettingPage should render 1`] = `
   height: 50px;
 }
 
-.emotion-72 {
+.emotion-76 {
   text-align: left;
   width: auto;
   padding: 5px 0 5px 15px;
@@ -642,7 +672,7 @@ exports[`GroupSettingPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-76 {
+.emotion-80 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -656,7 +686,7 @@ exports[`GroupSettingPage should render 1`] = `
   position: relative;
 }
 
-.emotion-76>input[type='checkbox'] {
+.emotion-80>input[type='checkbox'] {
   box-sizing: border-box;
   cursor: pointer;
   position: absolute;
@@ -664,7 +694,7 @@ exports[`GroupSettingPage should render 1`] = `
   visibility: hidden;
 }
 
-.emotion-76>input[type='checkbox']+label {
+.emotion-80>input[type='checkbox']+label {
   box-sizing: border-box;
   cursor: pointer;
   font-family: Helvetica,Arial,sans-serif;
@@ -675,18 +705,18 @@ exports[`GroupSettingPage should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-76>input[type='checkbox']+label .label-content {
+.emotion-80>input[type='checkbox']+label .label-content {
   display: inline-flex;
   margin-left: 6px;
 }
 
 @-moz-document url-prefix() {
-  .emotion-76>input[type='checkbox']+label .label-content {
+  .emotion-80>input[type='checkbox']+label .label-content {
     margin-top: 1px;
   }
 }
 
-.emotion-76>input[type='checkbox']+label:before {
+.emotion-80>input[type='checkbox']+label:before {
   background: #d5d5d5;
   border-radius: 9px;
   box-sizing: border-box;
@@ -702,7 +732,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 34px;
 }
 
-.emotion-76>input[type='checkbox']+label::after {
+.emotion-80>input[type='checkbox']+label::after {
   background-color: #fff;
   border: 2px solid rgba(54,151,242,0.5);
   border-radius: 50%;
@@ -719,40 +749,40 @@ exports[`GroupSettingPage should render 1`] = `
   width: 18px;
 }
 
-.emotion-76>input[type='checkbox']:checked+label::before {
+.emotion-80>input[type='checkbox']:checked+label::before {
   background-color: rgba(21,192,70,0.45);
 }
 
-.emotion-76>input[type='checkbox']:checked+label::after {
+.emotion-80>input[type='checkbox']:checked+label::after {
   background-color: #15c046;
   border-color: #15c046;
   left: 16px;
 }
 
-.emotion-76>input[type='checkbox']:disabled+label {
+.emotion-80>input[type='checkbox']:disabled+label {
   color: #9a9a9a;
   cursor: not-allowed;
 }
 
-.emotion-76>input[type='checkbox']:disabled+label::before {
+.emotion-80>input[type='checkbox']:disabled+label::before {
   background-color: #e8e8e8;
   cursor: not-allowed;
 }
 
-.emotion-76>input[type='checkbox']:disabled+label::after {
+.emotion-80>input[type='checkbox']:disabled+label::after {
   border-color: #d5d5d5;
   cursor: not-allowed;
 }
 
-.emotion-76>input[type='checkbox']:checked:disabled+label::after {
+.emotion-80>input[type='checkbox']:checked:disabled+label::after {
   background: #d5d5d5;
 }
 
-.emotion-112 {
+.emotion-116 {
   display: flex;
 }
 
-.emotion-114 {
+.emotion-118 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -766,7 +796,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-114 input {
+.emotion-118 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -792,42 +822,42 @@ exports[`GroupSettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-114.animated input {
+.emotion-118.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-114 input::-webkit-input-placeholder {
+.emotion-118 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-114 input::-moz-placeholder {
+.emotion-118 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-114 input:-ms-input-placeholder {
+.emotion-118 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-114 input::placeholder {
+.emotion-118 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-114 input.focused,
-.emotion-114 input:active,
-.emotion-114 input:focus {
+.emotion-118 input.focused,
+.emotion-118 input:active,
+.emotion-118 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-114 input:invalid {
+.emotion-118 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-114 .message {
+.emotion-118 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -835,29 +865,29 @@ exports[`GroupSettingPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-114.error input,
-.emotion-114.error input.focused,
-.emotion-114.error input:active,
-.emotion-114.error input:focus {
+.emotion-118.error input,
+.emotion-118.error input.focused,
+.emotion-118.error input:active,
+.emotion-118.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-114.error .message {
+.emotion-118.error .message {
   color: #d01111;
 }
 
-.emotion-114 input[disabled] {
+.emotion-118 input[disabled] {
   background: rgba(48,48,48,0.05);
   border-bottom: 2px solid rgba(48,48,48,0.05);
   color: rgba(48,48,48,0.25);
   cursor: not-allowed;
 }
 
-.emotion-115 {
+.emotion-119 {
   margin-top: 5px;
 }
 
-.emotion-127 {
+.emotion-131 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -871,7 +901,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-127 input {
+.emotion-131 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -897,42 +927,42 @@ exports[`GroupSettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-127.animated input {
+.emotion-131.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-127 input::-webkit-input-placeholder {
+.emotion-131 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-127 input::-moz-placeholder {
+.emotion-131 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-127 input:-ms-input-placeholder {
+.emotion-131 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-127 input::placeholder {
+.emotion-131 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-127 input.focused,
-.emotion-127 input:active,
-.emotion-127 input:focus {
+.emotion-131 input.focused,
+.emotion-131 input:active,
+.emotion-131 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-127 input:invalid {
+.emotion-131 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-127 .message {
+.emotion-131 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -940,24 +970,24 @@ exports[`GroupSettingPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-127.error input,
-.emotion-127.error input.focused,
-.emotion-127.error input:active,
-.emotion-127.error input:focus {
+.emotion-131.error input,
+.emotion-131.error input.focused,
+.emotion-131.error input:active,
+.emotion-131.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-127.error .message {
+.emotion-131.error .message {
   color: #d01111;
 }
 
-.emotion-151 .denali-multiselect__control {
+.emotion-155 .denali-multiselect__control {
   min-height: 36px!important;
   width: auto;
   padding: 0px 10px!important;
 }
 
-.emotion-151>.denali-multiselect__control {
+.emotion-155>.denali-multiselect__control {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -971,11 +1001,11 @@ exports[`GroupSettingPage should render 1`] = `
   position: relative;
 }
 
-.emotion-151 .denali-multiselect__control--menu-is-open {
+.emotion-155 .denali-multiselect__control--menu-is-open {
   box-shadow: 0px 2px 0px #016eff!important;
 }
 
-.emotion-151>.denali-multiselect__control--is-focused {
+.emotion-155>.denali-multiselect__control--is-focused {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -991,11 +1021,11 @@ exports[`GroupSettingPage should render 1`] = `
   position: relative;
 }
 
-.emotion-151 .denali-multiselect__value-container {
+.emotion-155 .denali-multiselect__value-container {
   padding: 0%!important;
 }
 
-.emotion-151>.denali-multiselect__control--menu-is-open {
+.emotion-155>.denali-multiselect__control--menu-is-open {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1011,14 +1041,14 @@ exports[`GroupSettingPage should render 1`] = `
   position: relative;
 }
 
-.emotion-151 .denali-multiselect__multi-value__label {
+.emotion-155 .denali-multiselect__multi-value__label {
   font-size: 1.4rem!important;
   padding: 0!important;
   padding-left: 7px!important;
   margin: 0;
 }
 
-.emotion-151 .denali-multiselect__multi-value__remove {
+.emotion-155 .denali-multiselect__multi-value__remove {
   content: '';
   height: 20px;
   width: 20px;
@@ -1030,29 +1060,29 @@ exports[`GroupSettingPage should render 1`] = `
   margin-left: 5px;
 }
 
-.emotion-151 .denali-multiselect__multi-value__remove>svg {
+.emotion-155 .denali-multiselect__multi-value__remove>svg {
   display: none;
 }
 
-.emotion-151 .denali-multiselect__multi-value__remove:hover {
+.emotion-155 .denali-multiselect__multi-value__remove:hover {
   background-color: transparent!important;
   cursor: pointer;
 }
 
-.emotion-151 .denali-multiselect__dropdown-indicator {
+.emotion-155 .denali-multiselect__dropdown-indicator {
   content: '';
   right: 10px;
 }
 
-.emotion-151 .denali-multiselect__clear-indicator>svg {
+.emotion-155 .denali-multiselect__clear-indicator>svg {
   display: none;
 }
 
-.emotion-151 .denali-multiselect__clear-indicator:before {
+.emotion-155 .denali-multiselect__clear-indicator:before {
   content: 'Clear all';
 }
 
-.emotion-151 .denali-multiselect__clear-indicator {
+.emotion-155 .denali-multiselect__clear-indicator {
   display: block;
   color: #016eff!important;
   -webkit-text-decoration: none;
@@ -1061,17 +1091,17 @@ exports[`GroupSettingPage should render 1`] = `
   cursor: pointer;
 }
 
-.emotion-151 .denali-multiselect__clear-indicator:hover {
+.emotion-155 .denali-multiselect__clear-indicator:hover {
   color: #004cb3!important;
 }
 
-.emotion-151 .denali-multiselect__menu-list {
+.emotion-155 .denali-multiselect__menu-list {
   padding: 0!important;
   font-size: 1.4rem;
   font-family: Helvetica,'Arial',sans-serif;
 }
 
-.emotion-151 .denali-multiselect__control {
+.emotion-155 .denali-multiselect__control {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1088,11 +1118,11 @@ exports[`GroupSettingPage should render 1`] = `
   position: relative;
 }
 
-.emotion-151 .denali-multiselect__indicator-separator {
+.emotion-155 .denali-multiselect__indicator-separator {
   display: none!important;
 }
 
-.emotion-151 .denali-multiselect__multi-value {
+.emotion-155 .denali-multiselect__multi-value {
   display: inline-flex;
   -webkit-align-items: center;
   -webkit-box-align: center;
@@ -1115,22 +1145,22 @@ exports[`GroupSettingPage should render 1`] = `
   font-family: Helvetica,'Arial',sans-serif;
 }
 
-.emotion-151 .denali-multiselect__multi-value__remove {
+.emotion-155 .denali-multiselect__multi-value__remove {
   padding: 0!important;
 }
 
-.emotion-151 .denali-multiselect__multi-value__remove :hover {
+.emotion-155 .denali-multiselect__multi-value__remove :hover {
   background-color: #cce2ff!important;
   color: #3d4042!important;
   cursor: pointer;
 }
 
-.emotion-152 {
+.emotion-156 {
   position: relative;
   box-sizing: border-box;
 }
 
-.emotion-153 {
+.emotion-157 {
   z-index: 9999;
   border: 0;
   clip: rect(1px, 1px, 1px, 1px);
@@ -1142,7 +1172,7 @@ exports[`GroupSettingPage should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-155 {
+.emotion-159 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1169,11 +1199,11 @@ exports[`GroupSettingPage should render 1`] = `
   box-sizing: border-box;
 }
 
-.emotion-155:hover {
+.emotion-159:hover {
   border-color: hsl(0, 0%, 70%);
 }
 
-.emotion-156 {
+.emotion-160 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1193,7 +1223,7 @@ exports[`GroupSettingPage should render 1`] = `
   box-sizing: border-box;
 }
 
-.emotion-157 {
+.emotion-161 {
   grid-area: 1/1/2/3;
   color: hsl(0, 0%, 50%);
   margin-left: 2px;
@@ -1201,7 +1231,7 @@ exports[`GroupSettingPage should render 1`] = `
   box-sizing: border-box;
 }
 
-.emotion-158 {
+.emotion-162 {
   background: 0;
   border: 0;
   caret-color: transparent;
@@ -1220,7 +1250,7 @@ exports[`GroupSettingPage should render 1`] = `
   transform: scale(.01);
 }
 
-.emotion-159 {
+.emotion-163 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1235,7 +1265,7 @@ exports[`GroupSettingPage should render 1`] = `
   box-sizing: border-box;
 }
 
-.emotion-160 {
+.emotion-164 {
   -webkit-align-self: stretch;
   -ms-flex-item-align: stretch;
   align-self: stretch;
@@ -1246,7 +1276,7 @@ exports[`GroupSettingPage should render 1`] = `
   box-sizing: border-box;
 }
 
-.emotion-161 {
+.emotion-165 {
   display: flex;
   -webkit-transition: color 150ms;
   transition: color 150ms;
@@ -1255,11 +1285,11 @@ exports[`GroupSettingPage should render 1`] = `
   box-sizing: border-box;
 }
 
-.emotion-161:hover {
+.emotion-165:hover {
   color: hsl(0, 0%, 60%);
 }
 
-.emotion-162 {
+.emotion-166 {
   display: inline-block;
   fill: currentColor;
   line-height: 1;
@@ -1267,21 +1297,21 @@ exports[`GroupSettingPage should render 1`] = `
   stroke-width: 0;
 }
 
-.emotion-173 {
+.emotion-177 {
   position: relative;
   width: 100%;
 }
 
-.emotion-173 input {
+.emotion-177 input {
   cursor: inherit;
 }
 
-.emotion-174 {
+.emotion-178 {
   margin-top: 5px;
   display: block;
 }
 
-.emotion-206 {
+.emotion-210 {
   padding-bottom: 20px;
   display: flex;
   -webkit-box-pack: justify;
@@ -1297,7 +1327,7 @@ exports[`GroupSettingPage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-208 {
+.emotion-212 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px #3697f2 inset;
@@ -1322,25 +1352,25 @@ exports[`GroupSettingPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-208:first-of-type {
+.emotion-212:first-of-type {
   margin-left: 0;
 }
 
-.emotion-208:disabled {
+.emotion-212:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-208:disabled {
+.emotion-212:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-208:hover:not(:disabled) {
+.emotion-212:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-210 {
+.emotion-214 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1363,13 +1393,13 @@ exports[`GroupSettingPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-212 {
+.emotion-216 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-213 {
+.emotion-217 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -1384,7 +1414,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-215 {
+.emotion-219 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1400,28 +1430,28 @@ exports[`GroupSettingPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-217 {
+.emotion-221 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-219 {
+.emotion-223 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-221 {
+.emotion-225 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-225 {
+.emotion-229 {
   padding: 0 30px 15px 15px;
 }
 
-.emotion-227 {
+.emotion-231 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -1435,7 +1465,7 @@ exports[`GroupSettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-227 input {
+.emotion-231 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -1461,42 +1491,42 @@ exports[`GroupSettingPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-227.animated input {
+.emotion-231.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-227 input::-webkit-input-placeholder {
+.emotion-231 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-227 input::-moz-placeholder {
+.emotion-231 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-227 input:-ms-input-placeholder {
+.emotion-231 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-227 input::placeholder {
+.emotion-231 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-227 input.focused,
-.emotion-227 input:active,
-.emotion-227 input:focus {
+.emotion-231 input.focused,
+.emotion-231 input:active,
+.emotion-231 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-227 input:invalid {
+.emotion-231 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-227 .message {
+.emotion-231 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1504,22 +1534,22 @@ exports[`GroupSettingPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-227.error input,
-.emotion-227.error input.focused,
-.emotion-227.error input:active,
-.emotion-227.error input:focus {
+.emotion-231.error input,
+.emotion-231.error input.focused,
+.emotion-231.error input:active,
+.emotion-231.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-227.error .message {
+.emotion-231.error .message {
   color: #d01111;
 }
 
-.emotion-227 input {
+.emotion-231 input {
   padding-right: 28px;
 }
 
-.emotion-227 .input-icon {
+.emotion-231 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1531,31 +1561,31 @@ exports[`GroupSettingPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-227 .input-icon[onclick] {
+.emotion-231 .input-icon[onclick] {
   cursor: pointer;
   -webkit-transition: opacity 0.2s ease-in-out;
   transition: opacity 0.2s ease-in-out;
 }
 
-.emotion-227 .input-icon[onclick]:hover {
+.emotion-231 .input-icon[onclick]:hover {
   opacity: 0.7;
 }
 
-.emotion-229 {
+.emotion-233 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-231 {
+.emotion-235 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-233 {
+.emotion-237 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-235 {
+.emotion-239 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1703,78 +1733,89 @@ exports[`GroupSettingPage should render 1`] = `
       >
         <div
           class="emotion-21 emotion-22"
-          data-testid="header-menu"
         >
-          <svg
-            class="emotion-23"
-            data-testid="icon"
-            data-wdio=""
-            height="25px"
-            id="notifications-icon"
-            viewBox="0 0 1024 1024"
-            width="25px"
+          <a
+            class="emotion-23 emotion-24"
+            data-testid="self-service-nav"
+            href="/self-service"
           >
-            <title>
-              notification
-            </title>
-            <path
-              d="M925.867 627.2l-68.267-68.267c-15.132-16.256-24.706-37.864-25.595-61.692l-0.005-0.174v-134.4c0-172.8-115.2-320-320-320s-320 142.933-320 320v149.333c-0.424 14.075-6.029 26.765-14.962 36.297l0.028-0.030-78.933 78.933c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v153.6c0 23.564 19.103 42.667 42.667 42.667v0h236.8c12.454 70.953 73.611 124.182 147.2 124.182s134.746-53.229 147.069-123.285l0.131-0.897h236.8c23.564 0 42.667-19.103 42.667-42.667v0-153.6c-0.172-11.712-5.037-22.255-12.793-29.86l-0.007-0.007zM853.333 768h-682.667v-91.733l66.133-68.267c24.782-24.511 40.224-58.423 40.533-95.941l0-0.059v-149.333c0-113.067 61.867-234.667 234.667-234.667s234.667 125.867 234.667 234.667v134.4c0.879 47.11 19.381 89.736 49.168 121.71l-0.102-0.11 57.6 57.6z"
-            />
-          </svg>
+            Self Service
+          </a>
           <div
-            class="emotion-24 emotion-25"
-          />
-          <div
-            class="emotion-26 emotion-27"
+            class="emotion-25 emotion-26"
+            data-testid="header-menu"
           >
             <svg
-              class="emotion-23"
+              class="emotion-27"
               data-testid="icon"
               data-wdio=""
               height="25px"
-              id=""
+              id="notifications-icon"
               viewBox="0 0 1024 1024"
               width="25px"
             >
               <title>
-                help-circle
+                notification
               </title>
               <path
-                d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
-              />
-              <path
-                d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
-              />
-              <path
-                d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
+                d="M925.867 627.2l-68.267-68.267c-15.132-16.256-24.706-37.864-25.595-61.692l-0.005-0.174v-134.4c0-172.8-115.2-320-320-320s-320 142.933-320 320v149.333c-0.424 14.075-6.029 26.765-14.962 36.297l0.028-0.030-78.933 78.933c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v153.6c0 23.564 19.103 42.667 42.667 42.667v0h236.8c12.454 70.953 73.611 124.182 147.2 124.182s134.746-53.229 147.069-123.285l0.131-0.897h236.8c23.564 0 42.667-19.103 42.667-42.667v0-153.6c-0.172-11.712-5.037-22.255-12.793-29.86l-0.007-0.007zM853.333 768h-682.667v-91.733l66.133-68.267c24.782-24.511 40.224-58.423 40.533-95.941l0-0.059v-149.333c0-113.067 61.867-234.667 234.667-234.667s234.667 125.867 234.667 234.667v134.4c0.879 47.11 19.381 89.736 49.168 121.71l-0.102-0.11 57.6 57.6z"
               />
             </svg>
+            <div
+              class="emotion-28 emotion-29"
+            />
+            <div
+              class="emotion-30 emotion-31"
+            >
+              <svg
+                class="emotion-27"
+                data-testid="icon"
+                data-wdio=""
+                height="25px"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="25px"
+              >
+                <title>
+                  help-circle
+                </title>
+                <path
+                  d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
+                />
+                <path
+                  d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
+                />
+                <path
+                  d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
+                />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
   <div
-    class="emotion-29 emotion-30"
+    class="emotion-33 emotion-34"
   >
     <div
-      class="emotion-31 emotion-32"
+      class="emotion-35 emotion-36"
     >
       <div
-        class="emotion-33 emotion-34"
+        class="emotion-37 emotion-38"
       >
         <div
-          class="emotion-35 emotion-36"
+          class="emotion-39 emotion-40"
         >
           <div
-            class="emotion-37 emotion-38"
+            class="emotion-41 emotion-42"
           >
             <div
-              class="emotion-39 emotion-40"
+              class="emotion-43 emotion-44"
               data-testid="collection-name-header"
             >
               <a
-                class="emotion-41 emotion-42"
+                class="emotion-45 emotion-46"
                 href="/domain/dom/group"
               >
                 dom
@@ -1785,36 +1826,36 @@ exports[`GroupSettingPage should render 1`] = `
               groupName
             </div>
             <div
-              class="emotion-43 emotion-44"
+              class="emotion-47 emotion-48"
               data-testid="collection-details"
             >
               <div
-                class="emotion-45 emotion-46"
+                class="emotion-49 emotion-50"
               >
                 <div
-                  class="emotion-47 emotion-48"
+                  class="emotion-51 emotion-52"
                 >
                   <div
-                    class="emotion-49 emotion-50"
+                    class="emotion-53 emotion-54"
                   >
                     2020-02-12 21:44 UTC
                   </div>
                   <div
-                    class="emotion-51 emotion-52"
+                    class="emotion-55 emotion-56"
                   >
                     MODIFIED DATE
                   </div>
                 </div>
                 <div
-                  class="emotion-47 emotion-48"
+                  class="emotion-51 emotion-52"
                 >
                   <div
-                    class="emotion-49 emotion-50"
+                    class="emotion-53 emotion-54"
                   >
                     N/A
                   </div>
                   <div
-                    class="emotion-51 emotion-52"
+                    class="emotion-55 emotion-56"
                   >
                     REVIEWED DATE
                   </div>
@@ -1822,41 +1863,41 @@ exports[`GroupSettingPage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-59 denali-tab-group"
+              class="emotion-63 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-60 denali-tab"
+                class="emotion-64 denali-tab"
                 data-active="false"
               >
                 Members
               </div>
               <div
-                class="emotion-60 denali-tab"
+                class="emotion-64 denali-tab"
                 data-active="false"
               >
                 Review
               </div>
               <div
-                class="emotion-60 denali-tab"
+                class="emotion-64 denali-tab"
                 data-active="false"
               >
                 Roles
               </div>
               <div
-                class="emotion-60 denali-tab"
+                class="emotion-64 denali-tab"
                 data-active="false"
               >
                 Tags
               </div>
               <div
-                class="emotion-60 denali-tab active"
+                class="emotion-64 denali-tab active"
                 data-active="true"
               >
                 Settings
               </div>
               <div
-                class="emotion-60 denali-tab"
+                class="emotion-64 denali-tab"
                 data-active="false"
               >
                 History
@@ -1864,29 +1905,29 @@ exports[`GroupSettingPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-66 emotion-67"
+            class="emotion-70 emotion-71"
           >
             <table
-              class="emotion-68 emotion-69"
+              class="emotion-72 emotion-73"
               data-testid="setting-table"
             >
               <tbody>
                 <tr
-                  class="emotion-70 emotion-71"
+                  class="emotion-74 emotion-75"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Review
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     <div
-                      class="emotion-76 denali-switch"
+                      class="emotion-80 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -1902,28 +1943,28 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Flag indicates whether or not group updates require another review and approval
                   </td>
                 </tr>
                 <tr
-                  class="emotion-70 emotion-71"
+                  class="emotion-74 emotion-75"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Delete Protection
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     <div
-                      class="emotion-76 denali-switch"
+                      class="emotion-80 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -1939,28 +1980,28 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Flag indicates whether or not the group will be protected from accidental deletions
                   </td>
                 </tr>
                 <tr
-                  class="emotion-70 emotion-71"
+                  class="emotion-74 emotion-75"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Self-Service
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     <div
-                      class="emotion-76 denali-switch"
+                      class="emotion-80 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -1976,28 +2017,28 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Flag indicates whether or not group allows self service
                   </td>
                 </tr>
                 <tr
-                  class="emotion-70 emotion-71"
+                  class="emotion-74 emotion-75"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Self-Renew
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     <div
-                      class="emotion-76 denali-switch"
+                      class="emotion-80 denali-switch"
                       data-testid="switch-wrapper"
                     >
                       <input
@@ -2013,31 +2054,31 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Flag indicates whether or not group allows self renew
                   </td>
                 </tr>
                 <tr
-                  class="emotion-70 emotion-71"
+                  class="emotion-74 emotion-75"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Self Renew (Mins)
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     <div
-                      class="emotion-112 emotion-113"
+                      class="emotion-116 emotion-117"
                     >
                       <div
-                        class="emotion-114 denali-input animated emotion-115 emotion-116"
+                        class="emotion-118 denali-input animated emotion-119 emotion-120"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -2057,31 +2098,31 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Number of minutes members can renew their membership if self review option is enabled
                   </td>
                 </tr>
                 <tr
-                  class="emotion-70 emotion-71"
+                  class="emotion-74 emotion-75"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     User Expiry (Days)
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     <div
-                      class="emotion-112 emotion-113"
+                      class="emotion-116 emotion-117"
                     >
                       <div
-                        class="emotion-127 denali-input animated emotion-115 emotion-116"
+                        class="emotion-131 denali-input animated emotion-119 emotion-120"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -2100,31 +2141,31 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     All user members in the group will have specified max expiry days
                   </td>
                 </tr>
                 <tr
-                  class="emotion-70 emotion-71"
+                  class="emotion-74 emotion-75"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Service Expiry (Days)
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     <div
-                      class="emotion-112 emotion-113"
+                      class="emotion-116 emotion-117"
                     >
                       <div
-                        class="emotion-127 denali-input animated emotion-115 emotion-116"
+                        class="emotion-131 denali-input animated emotion-119 emotion-120"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -2143,51 +2184,51 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     All services in the group will have specified max expiry days
                   </td>
                 </tr>
                 <tr
-                  class="emotion-70 emotion-71"
+                  class="emotion-74 emotion-75"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     User Authority Filters
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     <div
                       data-testid="denali-multiselect"
                     >
                       <div
-                        class="emotion-151 denali-multiselect emotion-152"
+                        class="emotion-155 denali-multiselect emotion-156"
                       >
                         <span
-                          class="emotion-153"
+                          class="emotion-157"
                           id="react-select-3-live-region"
                         />
                         <span
                           aria-atomic="false"
                           aria-live="polite"
                           aria-relevant="additions text"
-                          class="emotion-153"
+                          class="emotion-157"
                           role="log"
                         />
                         <div
-                          class="denali-multiselect__control emotion-155"
+                          class="denali-multiselect__control emotion-159"
                         >
                           <div
-                            class="denali-multiselect__value-container denali-multiselect__value-container--is-multi emotion-156"
+                            class="denali-multiselect__value-container denali-multiselect__value-container--is-multi emotion-160"
                           >
                             <div
-                              class="denali-multiselect__placeholder emotion-157"
+                              class="denali-multiselect__placeholder emotion-161"
                               id="react-select-3-placeholder"
                             >
                               User Authority Filters
@@ -2199,7 +2240,7 @@ exports[`GroupSettingPage should render 1`] = `
                               aria-expanded="false"
                               aria-haspopup="true"
                               aria-readonly="true"
-                              class="emotion-158"
+                              class="emotion-162"
                               id="react-select-3-input"
                               inputmode="none"
                               role="combobox"
@@ -2208,18 +2249,18 @@ exports[`GroupSettingPage should render 1`] = `
                             />
                           </div>
                           <div
-                            class="denali-multiselect__indicators emotion-159"
+                            class="denali-multiselect__indicators emotion-163"
                           >
                             <span
-                              class="denali-multiselect__indicator-separator emotion-160"
+                              class="denali-multiselect__indicator-separator emotion-164"
                             />
                             <div
                               aria-hidden="true"
-                              class="denali-multiselect__indicator denali-multiselect__dropdown-indicator emotion-161"
+                              class="denali-multiselect__indicator denali-multiselect__dropdown-indicator emotion-165"
                             >
                               <svg
                                 aria-hidden="true"
-                                class="emotion-162"
+                                class="emotion-166"
                                 focusable="false"
                                 height="20"
                                 viewBox="0 0 20 20"
@@ -2243,34 +2284,34 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Membership filtered based on user authority configured attributes
                   </td>
                 </tr>
                 <tr
-                  class="emotion-70 emotion-71"
+                  class="emotion-74 emotion-75"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     User Authority Expiration
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     <div
-                      class="emotion-112 emotion-113"
+                      class="emotion-116 emotion-117"
                     >
                       <div
                         aria-expanded="false"
                         aria-haspopup="listbox"
                         aria-labelledby="downshift-3-label"
-                        class="emotion-173 denali-input-dropdown emotion-174 emotion-175"
+                        class="emotion-177 denali-input-dropdown emotion-178 emotion-179"
                         data-testid="input-dropdown"
                         role="combobox"
                       >
@@ -2319,31 +2360,31 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Expiration enforced by a user authority configured attribute
                   </td>
                 </tr>
                 <tr
-                  class="emotion-70 emotion-71"
+                  class="emotion-74 emotion-75"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Max Members (Number)
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     <div
-                      class="emotion-112 emotion-113"
+                      class="emotion-116 emotion-117"
                     >
                       <div
-                        class="emotion-127 denali-input animated emotion-115 emotion-116"
+                        class="emotion-131 denali-input animated emotion-119 emotion-120"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -2362,31 +2403,31 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Maximum number of members allowed in the group
                   </td>
                 </tr>
                 <tr
-                  class="emotion-70 emotion-71"
+                  class="emotion-74 emotion-75"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Domain Filter
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     <div
-                      class="emotion-112 emotion-113"
+                      class="emotion-116 emotion-117"
                     >
                       <div
-                        class="emotion-127 denali-input animated emotion-115 emotion-116"
+                        class="emotion-131 denali-input animated emotion-119 emotion-120"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -2403,7 +2444,7 @@ exports[`GroupSettingPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-72 emotion-73"
+                    class="emotion-76 emotion-77"
                     width="auto"
                   >
                     Membership filtered based on configured principal domains
@@ -2412,17 +2453,17 @@ exports[`GroupSettingPage should render 1`] = `
               </tbody>
             </table>
             <div
-              class="emotion-206 emotion-207"
+              class="emotion-210 emotion-211"
             >
               <div>
                 <button
-                  class="emotion-208 denali-button"
+                  class="emotion-212 denali-button"
                   disabled=""
                 >
                   Submit
                 </button>
                 <button
-                  class="emotion-208 denali-button"
+                  class="emotion-212 denali-button"
                 >
                   Reset
                 </button>
@@ -2435,11 +2476,11 @@ exports[`GroupSettingPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-210 emotion-211"
+          class="emotion-214 emotion-215"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-212"
+            class="emotion-216"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -2456,30 +2497,30 @@ exports[`GroupSettingPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-213 emotion-214"
+          class="emotion-217 emotion-218"
         >
           <div
-            class="emotion-215 emotion-216"
+            class="emotion-219 emotion-220"
           >
             <div
-              class="emotion-217 emotion-218"
+              class="emotion-221 emotion-222"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-219 emotion-220"
+                class="emotion-223 emotion-224"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-221 emotion-222"
+                class="emotion-225 emotion-226"
               >
                  | 
               </span>
               <a
-                class="emotion-219 emotion-220"
+                class="emotion-223 emotion-224"
                 href="/domain/manage"
               >
                 Manage
@@ -2487,10 +2528,10 @@ exports[`GroupSettingPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-225 emotion-226"
+            class="emotion-229 emotion-230"
           >
             <div
-              class="emotion-227 denali-input animated"
+              class="emotion-231 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -2531,17 +2572,17 @@ exports[`GroupSettingPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-229 emotion-230"
+            class="emotion-233 emotion-234"
             data-testid="domain-list"
           >
             <div
-              class="emotion-231 emotion-232"
+              class="emotion-235 emotion-236"
             >
               <div
-                class="emotion-233 emotion-234"
+                class="emotion-237 emotion-238"
               >
                 <svg
-                  class="emotion-235"
+                  class="emotion-239"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -2564,20 +2605,20 @@ exports[`GroupSettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-219 emotion-220"
+                class="emotion-223 emotion-224"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-231 emotion-232"
+              class="emotion-235 emotion-236"
             >
               <div
-                class="emotion-233 emotion-234"
+                class="emotion-237 emotion-238"
               >
                 <svg
-                  class="emotion-235"
+                  class="emotion-239"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -2600,7 +2641,7 @@ exports[`GroupSettingPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-219 emotion-220"
+                class="emotion-223 emotion-224"
                 href="/domain/athens.ci/role"
               >
                 athens.ci

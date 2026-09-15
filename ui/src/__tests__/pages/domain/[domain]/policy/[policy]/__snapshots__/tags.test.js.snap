@@ -423,25 +423,55 @@ exports[`Policies Tag Page should render 1`] = `
 
 .emotion-21 {
   display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 
 .emotion-23 {
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  font: 300 16px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
+  height: 60px;
+  margin-right: 8px;
+  padding: 0 12px;
+  -webkit-text-decoration: none;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.emotion-23:hover {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.emotion-25 {
+  display: flex;
+}
+
+.emotion-27 {
   fill: #fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-24 {
+.emotion-28 {
   position: relative;
   width: 0;
   height: 0;
 }
 
-.emotion-26 {
+.emotion-30 {
   margin-left: 15px;
 }
 
-.emotion-29 {
+.emotion-33 {
   -webkit-flex: 1 1 calc(100vh - 60px);
   -ms-flex: 1 1 calc(100vh - 60px);
   flex: 1 1 calc(100vh - 60px);
@@ -449,7 +479,7 @@ exports[`Policies Tag Page should render 1`] = `
   font: 300 14px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
 }
 
-.emotion-31 {
+.emotion-35 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -466,7 +496,7 @@ exports[`Policies Tag Page should render 1`] = `
   justify-content: flex-start;
 }
 
-.emotion-33 {
+.emotion-37 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -482,28 +512,28 @@ exports[`Policies Tag Page should render 1`] = `
   flex-direction: column;
 }
 
-.emotion-37 {
+.emotion-41 {
   background: linear-gradient(to top, #f2f2f2, #fff);
   padding: 20px 30px 0;
 }
 
-.emotion-39 {
+.emotion-43 {
   font: 600 20px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 10px;
 }
 
-.emotion-41 {
+.emotion-45 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-43 {
+.emotion-47 {
   margin: 20px 0;
 }
 
-.emotion-45 {
+.emotion-49 {
   display: flex;
   -webkit-box-flex-flow: row nowrap;
   -webkit-flex-flow: row nowrap;
@@ -511,21 +541,21 @@ exports[`Policies Tag Page should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-47 {
+.emotion-51 {
   padding-right: 50px;
 }
 
-.emotion-49 {
+.emotion-53 {
   font-weight: 600;
 }
 
-.emotion-51 {
+.emotion-55 {
   color: #9a9a9a;
   font-size: 12px;
   text-transform: uppercase;
 }
 
-.emotion-65 {
+.emotion-69 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -540,7 +570,7 @@ exports[`Policies Tag Page should render 1`] = `
   position: relative;
 }
 
-.emotion-65.vertical {
+.emotion-69.vertical {
   background: #f5f8fe;
   display: flex;
   -webkit-flex-direction: column;
@@ -553,7 +583,7 @@ exports[`Policies Tag Page should render 1`] = `
   width: 300px;
 }
 
-.emotion-66 {
+.emotion-70 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -574,11 +604,11 @@ exports[`Policies Tag Page should render 1`] = `
   z-index: 1;
 }
 
-.emotion-66:hover {
+.emotion-70:hover {
   color: #3570f4;
 }
 
-.emotion-66.active {
+.emotion-70.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -586,11 +616,11 @@ exports[`Policies Tag Page should render 1`] = `
   cursor: initial;
 }
 
-.emotion-66.active:hover {
+.emotion-70.active:hover {
   color: #303030;
 }
 
-.emotion-66.vertical {
+.emotion-70.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -602,21 +632,21 @@ exports[`Policies Tag Page should render 1`] = `
   text-align: left;
 }
 
-.emotion-66.vertical.active {
+.emotion-70.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-66.vertical.active:hover {
+.emotion-70.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-67 {
+.emotion-71 {
   margin: 20px;
 }
 
-.emotion-69 {
+.emotion-73 {
   padding-bottom: 20px;
   display: flex;
   -webkit-box-pack: justify;
@@ -633,7 +663,7 @@ exports[`Policies Tag Page should render 1`] = `
   float: right;
 }
 
-.emotion-71 {
+.emotion-75 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px #3697f2 inset;
@@ -658,25 +688,25 @@ exports[`Policies Tag Page should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-71:first-of-type {
+.emotion-75:first-of-type {
   margin-left: 0;
 }
 
-.emotion-71:disabled {
+.emotion-75:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-71:disabled {
+.emotion-75:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-71:hover:not(:disabled) {
+.emotion-75:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
-.emotion-72 {
+.emotion-76 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -684,7 +714,7 @@ exports[`Policies Tag Page should render 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-74 {
+.emotion-78 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -696,7 +726,7 @@ exports[`Policies Tag Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-78 {
+.emotion-82 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -708,7 +738,7 @@ exports[`Policies Tag Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-84 {
+.emotion-88 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -716,7 +746,7 @@ exports[`Policies Tag Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-88 {
+.emotion-92 {
   font-family: Helvetica,Arial,sans-serif;
   background: rgba(53, 112, 244, 0.08);
   border-radius: 14px;
@@ -739,11 +769,11 @@ exports[`Policies Tag Page should render 1`] = `
   white-space: nowrap;
 }
 
-.emotion-88:hover {
+.emotion-92:hover {
   background: #cbd9f9;
 }
 
-.emotion-88 .tag-remove {
+.emotion-92 .tag-remove {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -768,13 +798,13 @@ exports[`Policies Tag Page should render 1`] = `
   width: 28px;
 }
 
-.emotion-88:hover .tag-remove {
+.emotion-92:hover .tag-remove {
   box-shadow: -4px 0 5px -1px rgba(48,48,48,0.2);
   opacity: 1;
   right: 0;
 }
 
-.emotion-89 {
+.emotion-93 {
   color: #d5d5d5;
   font-size: 14px;
   height: 28px;
@@ -784,22 +814,22 @@ exports[`Policies Tag Page should render 1`] = `
   background: rgba(53, 112, 244, 0.08);
 }
 
-.emotion-89:hover {
+.emotion-93:hover {
   background: #ffffff;
 }
 
-.emotion-91 {
+.emotion-95 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.emotion-93 {
+.emotion-97 {
   fill: rgba(48,48,48,0.6);
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-100 {
+.emotion-104 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -807,27 +837,27 @@ exports[`Policies Tag Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-102 {
+.emotion-106 {
   fill: #188fff;
   cursor: pointer;
   vertical-align: text-bottom;
 }
 
-.emotion-108 {
+.emotion-112 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-118 {
+.emotion-122 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-124 {
+.emotion-128 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -850,13 +880,13 @@ exports[`Policies Tag Page should render 1`] = `
   width: 20px;
 }
 
-.emotion-126 {
+.emotion-130 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-127 {
+.emotion-131 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -871,7 +901,7 @@ exports[`Policies Tag Page should render 1`] = `
   width: 350px;
 }
 
-.emotion-129 {
+.emotion-133 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -887,28 +917,28 @@ exports[`Policies Tag Page should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-131 {
+.emotion-135 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-133 {
+.emotion-137 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-135 {
+.emotion-139 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-139 {
+.emotion-143 {
   padding: 0 30px 15px 15px;
 }
 
-.emotion-141 {
+.emotion-145 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -922,7 +952,7 @@ exports[`Policies Tag Page should render 1`] = `
   width: 100%;
 }
 
-.emotion-141 input {
+.emotion-145 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -948,42 +978,42 @@ exports[`Policies Tag Page should render 1`] = `
   width: 100%;
 }
 
-.emotion-141.animated input {
+.emotion-145.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-141 input::-webkit-input-placeholder {
+.emotion-145 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-141 input::-moz-placeholder {
+.emotion-145 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-141 input:-ms-input-placeholder {
+.emotion-145 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-141 input::placeholder {
+.emotion-145 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-141 input.focused,
-.emotion-141 input:active,
-.emotion-141 input:focus {
+.emotion-145 input.focused,
+.emotion-145 input:active,
+.emotion-145 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-141 input:invalid {
+.emotion-145 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-141 .message {
+.emotion-145 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -991,22 +1021,22 @@ exports[`Policies Tag Page should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-141.error input,
-.emotion-141.error input.focused,
-.emotion-141.error input:active,
-.emotion-141.error input:focus {
+.emotion-145.error input,
+.emotion-145.error input.focused,
+.emotion-145.error input:active,
+.emotion-145.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-141.error .message {
+.emotion-145.error .message {
   color: #d01111;
 }
 
-.emotion-141 input {
+.emotion-145 input {
   padding-right: 28px;
 }
 
-.emotion-141 .input-icon {
+.emotion-145 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1018,31 +1048,31 @@ exports[`Policies Tag Page should render 1`] = `
   z-index: 1;
 }
 
-.emotion-141 .input-icon[onclick] {
+.emotion-145 .input-icon[onclick] {
   cursor: pointer;
   -webkit-transition: opacity 0.2s ease-in-out;
   transition: opacity 0.2s ease-in-out;
 }
 
-.emotion-141 .input-icon[onclick]:hover {
+.emotion-145 .input-icon[onclick]:hover {
   opacity: 0.7;
 }
 
-.emotion-143 {
+.emotion-147 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-145 {
+.emotion-149 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-147 {
+.emotion-151 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-149 {
+.emotion-153 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1190,78 +1220,89 @@ exports[`Policies Tag Page should render 1`] = `
       >
         <div
           class="emotion-21 emotion-22"
-          data-testid="header-menu"
         >
-          <svg
-            class="emotion-23"
-            data-testid="icon"
-            data-wdio=""
-            height="25px"
-            id="notifications-icon"
-            viewBox="0 0 1024 1024"
-            width="25px"
+          <a
+            class="emotion-23 emotion-24"
+            data-testid="self-service-nav"
+            href="/self-service"
           >
-            <title>
-              notification
-            </title>
-            <path
-              d="M925.867 627.2l-68.267-68.267c-15.132-16.256-24.706-37.864-25.595-61.692l-0.005-0.174v-134.4c0-172.8-115.2-320-320-320s-320 142.933-320 320v149.333c-0.424 14.075-6.029 26.765-14.962 36.297l0.028-0.030-78.933 78.933c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v153.6c0 23.564 19.103 42.667 42.667 42.667v0h236.8c12.454 70.953 73.611 124.182 147.2 124.182s134.746-53.229 147.069-123.285l0.131-0.897h236.8c23.564 0 42.667-19.103 42.667-42.667v0-153.6c-0.172-11.712-5.037-22.255-12.793-29.86l-0.007-0.007zM853.333 768h-682.667v-91.733l66.133-68.267c24.782-24.511 40.224-58.423 40.533-95.941l0-0.059v-149.333c0-113.067 61.867-234.667 234.667-234.667s234.667 125.867 234.667 234.667v134.4c0.879 47.11 19.381 89.736 49.168 121.71l-0.102-0.11 57.6 57.6z"
-            />
-          </svg>
+            Self Service
+          </a>
           <div
-            class="emotion-24 emotion-25"
-          />
-          <div
-            class="emotion-26 emotion-27"
+            class="emotion-25 emotion-26"
+            data-testid="header-menu"
           >
             <svg
-              class="emotion-23"
+              class="emotion-27"
               data-testid="icon"
               data-wdio=""
               height="25px"
-              id=""
+              id="notifications-icon"
               viewBox="0 0 1024 1024"
               width="25px"
             >
               <title>
-                help-circle
+                notification
               </title>
               <path
-                d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
-              />
-              <path
-                d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
-              />
-              <path
-                d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
+                d="M925.867 627.2l-68.267-68.267c-15.132-16.256-24.706-37.864-25.595-61.692l-0.005-0.174v-134.4c0-172.8-115.2-320-320-320s-320 142.933-320 320v149.333c-0.424 14.075-6.029 26.765-14.962 36.297l0.028-0.030-78.933 78.933c-7.763 7.612-12.628 18.155-12.8 29.835l-0 0.032v153.6c0 23.564 19.103 42.667 42.667 42.667v0h236.8c12.454 70.953 73.611 124.182 147.2 124.182s134.746-53.229 147.069-123.285l0.131-0.897h236.8c23.564 0 42.667-19.103 42.667-42.667v0-153.6c-0.172-11.712-5.037-22.255-12.793-29.86l-0.007-0.007zM853.333 768h-682.667v-91.733l66.133-68.267c24.782-24.511 40.224-58.423 40.533-95.941l0-0.059v-149.333c0-113.067 61.867-234.667 234.667-234.667s234.667 125.867 234.667 234.667v134.4c0.879 47.11 19.381 89.736 49.168 121.71l-0.102-0.11 57.6 57.6z"
               />
             </svg>
+            <div
+              class="emotion-28 emotion-29"
+            />
+            <div
+              class="emotion-30 emotion-31"
+            >
+              <svg
+                class="emotion-27"
+                data-testid="icon"
+                data-wdio=""
+                height="25px"
+                id=""
+                viewBox="0 0 1024 1024"
+                width="25px"
+              >
+                <title>
+                  help-circle
+                </title>
+                <path
+                  d="M512 42.667c-259.206 0-469.333 210.128-469.333 469.333s210.128 469.333 469.333 469.333c259.206 0 469.333-210.128 469.333-469.333v0c0-259.206-210.128-469.333-469.333-469.333v0zM512 896c-212.077 0-384-171.923-384-384s171.923-384 384-384c212.077 0 384 171.923 384 384v0c0 212.077-171.923 384-384 384v0z"
+                />
+                <path
+                  d="M554.667 768c0 23.564-19.103 42.667-42.667 42.667s-42.667-19.103-42.667-42.667c0-23.564 19.103-42.667 42.667-42.667s42.667 19.103 42.667 42.667z"
+                />
+                <path
+                  d="M549.333 219.52c-11.244-2.339-24.166-3.678-37.4-3.678-71.49 0-133.854 39.072-166.904 97.027l-0.496 0.945c-3.783 6.395-6.018 14.093-6.018 22.313 0 14.468 6.924 27.319 17.64 35.419l0.112 0.081c6.829 4.846 15.334 7.747 24.517 7.747 15.995 0 29.934-8.801 37.239-21.826l0.111-0.215c12.111-22.947 31.869-40.492 55.815-49.471l0.718-0.236c98.133-33.707 187.52 72.32 120.96 170.667-16.346 22.524-42.587 37.002-72.21 37.002-4.025 0-7.988-0.267-11.871-0.785l0.455 0.050c-1.281-0.156-2.763-0.245-4.267-0.245s-2.986 0.089-4.443 0.262l0.176-0.017c-19.477 4.079-33.927 21.016-34.133 41.364l-0 0.022s0 0 0 1.28v82.773c-0.004 0.232-0.007 0.505-0.007 0.78 0 21.42 15.032 39.329 35.123 43.752l0.297 0.055c2.182 0.396 4.694 0.622 7.258 0.622 23.564 0 42.667-19.103 42.667-42.667 0-0.219-0.002-0.437-0.005-0.655l0 0.033v-31.147c0.196-9.48 6.547-17.425 15.209-20.015l0.151-0.039c78.046-25.561 133.424-97.737 133.424-182.847 0-92.861-65.924-170.325-153.523-188.144l-1.234-0.21z"
+                />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
   <div
-    class="emotion-29 emotion-30"
+    class="emotion-33 emotion-34"
   >
     <div
-      class="emotion-31 emotion-32"
+      class="emotion-35 emotion-36"
     >
       <div
-        class="emotion-33 emotion-34"
+        class="emotion-37 emotion-38"
       >
         <div
-          class="emotion-35 emotion-36"
+          class="emotion-39 emotion-40"
         >
           <div
-            class="emotion-37 emotion-38"
+            class="emotion-41 emotion-42"
           >
             <div
-              class="emotion-39 emotion-40"
+              class="emotion-43 emotion-44"
               data-testid="collection-name-header"
             >
               <a
-                class="emotion-41 emotion-42"
+                class="emotion-45 emotion-46"
                 href="/domain/dom/service"
               >
                 dom
@@ -1272,62 +1313,62 @@ exports[`Policies Tag Page should render 1`] = `
               policy1
             </div>
             <div
-              class="emotion-43 emotion-44"
+              class="emotion-47 emotion-48"
               data-testid="collection-details"
             >
               <div
-                class="emotion-45 emotion-46"
+                class="emotion-49 emotion-50"
               >
                 <div
-                  class="emotion-47 emotion-48"
+                  class="emotion-51 emotion-52"
                 >
                   <div
-                    class="emotion-49 emotion-50"
+                    class="emotion-53 emotion-54"
                   >
                     2022-10-02 14:37 UTC
                   </div>
                   <div
-                    class="emotion-51 emotion-52"
+                    class="emotion-55 emotion-56"
                   >
                     MODIFIED DATE
                   </div>
                 </div>
                 <div
-                  class="emotion-47 emotion-48"
+                  class="emotion-51 emotion-52"
                 >
                   <div
-                    class="emotion-49 emotion-50"
+                    class="emotion-53 emotion-54"
                   >
                     N/A
                   </div>
                   <div
-                    class="emotion-51 emotion-52"
+                    class="emotion-55 emotion-56"
                   >
                     REVIEWED DATE
                   </div>
                 </div>
               </div>
               <div
-                class="emotion-47 emotion-48"
+                class="emotion-51 emotion-52"
               >
                 <div
-                  class="emotion-49 emotion-50"
+                  class="emotion-53 emotion-54"
                 >
                   2
                 </div>
                 <div
-                  class="emotion-51 emotion-52"
+                  class="emotion-55 emotion-56"
                 >
                   POLICY VERSION
                 </div>
               </div>
             </div>
             <div
-              class="emotion-65 denali-tab-group"
+              class="emotion-69 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-66 denali-tab active"
+                class="emotion-70 denali-tab active"
                 data-active="true"
               >
                 Tags
@@ -1335,42 +1376,42 @@ exports[`Policies Tag Page should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-67 emotion-68"
+            class="emotion-71 emotion-72"
             data-testid="tag-list"
           >
             <div
-              class="emotion-69 emotion-70"
+              class="emotion-73 emotion-74"
             >
               <div>
                 <button
-                  class="emotion-71 denali-button"
+                  class="emotion-75 denali-button"
                 >
                   Add Tag
                 </button>
               </div>
             </div>
             <table
-              class="emotion-72 emotion-73"
+              class="emotion-76 emotion-77"
             >
               <thead>
                 <tr>
                   <th
-                    class="emotion-74 emotion-75"
+                    class="emotion-78 emotion-79"
                   >
                     TAG NAME
                   </th>
                   <th
-                    class="emotion-74 emotion-75"
+                    class="emotion-78 emotion-79"
                   >
                     TAG VALUES
                   </th>
                   <th
-                    class="emotion-78 emotion-75"
+                    class="emotion-82 emotion-79"
                   >
                     EDIT
                   </th>
                   <th
-                    class="emotion-78 emotion-75"
+                    class="emotion-82 emotion-79"
                   >
                     DELETE
                   </th>
@@ -1378,25 +1419,25 @@ exports[`Policies Tag Page should render 1`] = `
               </thead>
               <tbody>
                 <tr
-                  class="emotion-82 emotion-83"
+                  class="emotion-86 emotion-87"
                   data-testid="tag-row"
                 >
                   <td
-                    class="emotion-84 emotion-85"
+                    class="emotion-88 emotion-89"
                     color="#3570f40D"
                   >
                     tag
                   </td>
                   <td
-                    class="emotion-84 emotion-85"
+                    class="emotion-88 emotion-89"
                     color="#3570f40D"
                   >
                     <div
-                      class="emotion-88 denali-tag emotion-89 emotion-90"
+                      class="emotion-92 denali-tag emotion-93 emotion-94"
                       data-testid="tag"
                     >
                       <a
-                        class="emotion-91 emotion-92"
+                        class="emotion-95 emotion-96"
                         style="color: rgb(53, 112, 244);"
                       >
                          
@@ -1407,7 +1448,7 @@ exports[`Policies Tag Page should render 1`] = `
                         class="tag-remove"
                       >
                         <svg
-                          class="emotion-93"
+                          class="emotion-97"
                           data-testid="icon"
                           data-wdio=""
                           height="20px"
@@ -1425,11 +1466,11 @@ exports[`Policies Tag Page should render 1`] = `
                       </div>
                     </div>
                     <div
-                      class="emotion-88 denali-tag emotion-89 emotion-90"
+                      class="emotion-92 denali-tag emotion-93 emotion-94"
                       data-testid="tag"
                     >
                       <a
-                        class="emotion-91 emotion-92"
+                        class="emotion-95 emotion-96"
                         style="color: rgb(53, 112, 244);"
                       >
                          
@@ -1440,7 +1481,7 @@ exports[`Policies Tag Page should render 1`] = `
                         class="tag-remove"
                       >
                         <svg
-                          class="emotion-93"
+                          class="emotion-97"
                           data-testid="icon"
                           data-wdio=""
                           height="20px"
@@ -1459,12 +1500,12 @@ exports[`Policies Tag Page should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-100 emotion-85"
+                    class="emotion-104 emotion-89"
                     color="#3570f40D"
                   >
                     <span>
                       <svg
-                        class="emotion-102"
+                        class="emotion-106"
                         data-testid="icon"
                         data-wdio=""
                         height="1.25em"
@@ -1482,12 +1523,12 @@ exports[`Policies Tag Page should render 1`] = `
                     </span>
                   </td>
                   <td
-                    class="emotion-100 emotion-85"
+                    class="emotion-104 emotion-89"
                     color="#3570f40D"
                   >
                     <span>
                       <svg
-                        class="emotion-102"
+                        class="emotion-106"
                         data-testid="icon"
                         data-wdio=""
                         height="1.25em"
@@ -1509,25 +1550,25 @@ exports[`Policies Tag Page should render 1`] = `
                   </td>
                 </tr>
                 <tr
-                  class="emotion-82 emotion-83"
+                  class="emotion-86 emotion-87"
                   data-testid="tag-row"
                 >
                   <td
-                    class="emotion-108 emotion-85"
+                    class="emotion-112 emotion-89"
                     color=""
                   >
                     tag2
                   </td>
                   <td
-                    class="emotion-108 emotion-85"
+                    class="emotion-112 emotion-89"
                     color=""
                   >
                     <div
-                      class="emotion-88 denali-tag emotion-89 emotion-90"
+                      class="emotion-92 denali-tag emotion-93 emotion-94"
                       data-testid="tag"
                     >
                       <a
-                        class="emotion-91 emotion-92"
+                        class="emotion-95 emotion-96"
                         style="color: rgb(53, 112, 244);"
                       >
                          
@@ -1538,7 +1579,7 @@ exports[`Policies Tag Page should render 1`] = `
                         class="tag-remove"
                       >
                         <svg
-                          class="emotion-93"
+                          class="emotion-97"
                           data-testid="icon"
                           data-wdio=""
                           height="20px"
@@ -1557,12 +1598,12 @@ exports[`Policies Tag Page should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-118 emotion-85"
+                    class="emotion-122 emotion-89"
                     color=""
                   >
                     <span>
                       <svg
-                        class="emotion-102"
+                        class="emotion-106"
                         data-testid="icon"
                         data-wdio=""
                         height="1.25em"
@@ -1580,12 +1621,12 @@ exports[`Policies Tag Page should render 1`] = `
                     </span>
                   </td>
                   <td
-                    class="emotion-118 emotion-85"
+                    class="emotion-122 emotion-89"
                     color=""
                   >
                     <span>
                       <svg
-                        class="emotion-102"
+                        class="emotion-106"
                         data-testid="icon"
                         data-wdio=""
                         height="1.25em"
@@ -1615,11 +1656,11 @@ exports[`Policies Tag Page should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-124 emotion-125"
+          class="emotion-128 emotion-129"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-126"
+            class="emotion-130"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -1636,30 +1677,30 @@ exports[`Policies Tag Page should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-127 emotion-128"
+          class="emotion-131 emotion-132"
         >
           <div
-            class="emotion-129 emotion-130"
+            class="emotion-133 emotion-134"
           >
             <div
-              class="emotion-131 emotion-132"
+              class="emotion-135 emotion-136"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-133 emotion-134"
+                class="emotion-137 emotion-138"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-135 emotion-136"
+                class="emotion-139 emotion-140"
               >
                  | 
               </span>
               <a
-                class="emotion-133 emotion-134"
+                class="emotion-137 emotion-138"
                 href="/domain/manage"
               >
                 Manage
@@ -1667,10 +1708,10 @@ exports[`Policies Tag Page should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-139 emotion-140"
+            class="emotion-143 emotion-144"
           >
             <div
-              class="emotion-141 denali-input animated"
+              class="emotion-145 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -1711,17 +1752,17 @@ exports[`Policies Tag Page should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-143 emotion-144"
+            class="emotion-147 emotion-148"
             data-testid="domain-list"
           >
             <div
-              class="emotion-145 emotion-146"
+              class="emotion-149 emotion-150"
             >
               <div
-                class="emotion-147 emotion-148"
+                class="emotion-151 emotion-152"
               >
                 <svg
-                  class="emotion-149"
+                  class="emotion-153"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1744,20 +1785,20 @@ exports[`Policies Tag Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-133 emotion-134"
+                class="emotion-137 emotion-138"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-145 emotion-146"
+              class="emotion-149 emotion-150"
             >
               <div
-                class="emotion-147 emotion-148"
+                class="emotion-151 emotion-152"
               >
                 <svg
-                  class="emotion-149"
+                  class="emotion-153"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1780,7 +1821,7 @@ exports[`Policies Tag Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-133 emotion-134"
+                class="emotion-137 emotion-138"
                 href="/domain/athens.ci/role"
               >
                 athens.ci

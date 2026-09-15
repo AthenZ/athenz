@@ -20,6 +20,8 @@ import HeaderMenu from './HeaderMenu';
 import Search from '../search/Search';
 import Link from 'next/link';
 import PageUtils from '../utils/PageUtils';
+import { useRouter } from 'next/router';
+import { colors } from '../denali/styles';
 
 const Logo = ({ className }) => (
     <img src='/static/athenz-logo-full.png' className={className} />
@@ -40,11 +42,38 @@ const NavBarItemDiv = styled.div`
     width: 50%;
 `;
 
+const HeaderRightDiv = styled.div`
+    display: flex;
+    align-items: center;
+`;
+
+const SelfServiceLink = styled('a', {
+    shouldForwardProp: (prop) => prop !== 'active',
+})`
+    color: ${colors.white};
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font: 300 16px HelveticaNeue-Reg, Helvetica, Arial, sans-serif;
+    height: 60px;
+    margin-right: 8px;
+    padding: 0 12px;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: ${(props) =>
+        props.active ? `inset 0 -4px 0 ${colors.brand600}` : 'none'};
+    &:hover {
+        color: rgba(255, 255, 255, 0.75);
+    }
+`;
+
 const Header = (props) => {
+    const router = useRouter();
     let search = '';
     if (props.showSearch) {
         search = <Search isHeader={true} searchData={props.searchData} />;
     }
+    const selfServiceActive = router?.pathname === '/self-service';
     return (
         <NavBarDiv data-testid='header'>
             <NavBar background={'#002339'}>
@@ -57,7 +86,21 @@ const Header = (props) => {
                     <NavBarItem width='100%'>{search}</NavBarItem>
                 </NavBarItemDiv>
                 <NavBarItem right>
-                    <HeaderMenu />
+                    <HeaderRightDiv>
+                        <Link
+                            href={PageUtils.selfServicePage()}
+                            passHref
+                            legacyBehavior
+                        >
+                            <SelfServiceLink
+                                active={selfServiceActive}
+                                data-testid='self-service-nav'
+                            >
+                                Self Service
+                            </SelfServiceLink>
+                        </Link>
+                        <HeaderMenu />
+                    </HeaderRightDiv>
                 </NavBarItem>
             </NavBar>
         </NavBarDiv>

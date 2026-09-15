@@ -97,6 +97,9 @@ export default class FlatPicker extends React.Component {
             altInput: true,
             altFormat: 'Y-m-d h:i K',
             minDate: this.state.minDate,
+            // when a maxDate is provided, flatpickr disables (greys out) every
+            // day after it, so the selectable range is also shown visually
+            ...(this.state.maxDate ? { maxDate: this.state.maxDate } : {}),
             defaultDate: this.state.value,
             wrap: true,
         });

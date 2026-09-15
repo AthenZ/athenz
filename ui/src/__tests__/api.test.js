@@ -1862,5 +1862,66 @@ describe('Fetchr Client API Test', () => {
             result = await api.getResourceAccessList('dummy');
             expect(result).toEqual(DATA);
         });
+        afterEach(() => fetchrStub.restore());
+    });
+    describe('searchSelfServe test', () => {
+        it('searchSelfServe test success', async () => {
+            myDataService = {
+                name: 'self-serve-search',
+                read: function (req, resource, params, config, callback) {
+                    callback(null, DATA);
+                },
+            };
+            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
+            fetchrStub.returns(myDataService);
+            result = await api.searchSelfServe('security-platform', '', false);
+            expect(result).toEqual(DATA);
+        });
+        it('searchSelfServe test error', async () => {
+            myDataServiceErr = {
+                name: 'self-serve-search',
+                read: function (req, resource, params, config, callback) {
+                    callback({}, null);
+                },
+            };
+            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
+            fetchrStub.returns(myDataServiceErr);
+            await api
+                .searchSelfServe('security-platform', '', false)
+                .catch((err) => {
+                    expect(err).not.toBeNull();
+                });
+        });
+        afterEach(() => fetchrStub.restore());
+    });
+    describe('updateSelfServe test', () => {
+        it('updateSelfServe test success', async () => {
+            myDataService = {
+                name: 'self-serve-search',
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
+                    callback(null, DATA);
+                },
+            };
+            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
+            fetchrStub.returns(myDataService);
+            result = await api.updateSelfServe(
+                {
+                    domainName: 'paranoids.tools',
+                    name: 'security-platform-users',
+                    type: 'role',
+                    action: 'request',
+                },
+                'csrf'
+            );
+            expect(result).toEqual(DATA);
+        });
+        afterEach(() => fetchrStub.restore());
     });
 });

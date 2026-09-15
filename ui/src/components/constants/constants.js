@@ -294,6 +294,17 @@ export const PERCENTAGE_OF_DAYS_TILL_NEXT_REVIEW = 0.2;
 export const SEARCH_MAX_100_RESULTS_CAN_BE_DISPLAYED =
     'Maximum 100 results can be searched for at a time. Specify more characters in the search criteria to get better results.';
 
+export const SELF_SERVICE_TABS = {
+    FIND: 'find',
+    MINE: 'mine',
+};
+
+export const SELF_SERVICE_MEMBER_STATUS = {
+    NONE: 'none',
+    PENDING: 'pending',
+    MEMBER: 'member',
+};
+
 export const ONCALL_URL = CLIENT_CONFIG.onCallUrl;
 const _ORGANIZATION_DOMAIN = CLIENT_CONFIG.organizationDomain;
 export function getOrganizationDomain() {
