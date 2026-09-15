@@ -2648,6 +2648,70 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testDeleteRolesAutoDeleteTenantAssumeRoleAssertions() {
+
+        final String providerDomain = "provider-bulk-autodelete";
+        final String tenantDomain   = "tenant-bulk-autodelete";
+        final String roleName1      = "role1";
+        final String roleName2      = "role2";
+        final String policyName     = "tenant-assume-role-policy";
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        boolean autoDeleteTenantAssumeRoleAssertions = zmsImpl.autoDeleteTenantAssumeRoleAssertions;
+        zmsImpl.autoDeleteTenantAssumeRoleAssertions = true;
+
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        TopLevelDomain providerDom = zmsTestInitializer.createTopLevelDomainObject(
+                providerDomain, "Provider Domain", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, providerDom);
+
+        TopLevelDomain tenantDom = zmsTestInitializer.createTopLevelDomainObject(
+                tenantDomain, "Tenant Domain", "testOrg", zmsTestInitializer.getAdminUser());
+        tenantDom.setAutoDeleteTenantAssumeRoleAssertions(true);
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, tenantDom);
+
+        try {
+            Role providerRole1 = zmsTestInitializer.createRoleObject(
+                    providerDomain, roleName1, tenantDomain, null, null);
+            zmsImpl.putRole(ctx, providerDomain, roleName1, auditRef, false, null, providerRole1);
+
+            Role providerRole2 = zmsTestInitializer.createRoleObject(
+                    providerDomain, roleName2, tenantDomain, null, null);
+            zmsImpl.putRole(ctx, providerDomain, roleName2, auditRef, false, null, providerRole2);
+
+            Role tenantRole = zmsTestInitializer.createRoleObject(
+                    tenantDomain, "tenancy-" + providerDomain, null, "user.joe", "user.jane");
+            zmsImpl.putRole(ctx, tenantDomain, "tenancy-" + providerDomain, auditRef, false, null, tenantRole);
+
+            Policy tenantPolicy = zmsTestInitializer.createPolicyObject(
+                    tenantDomain, policyName,
+                    "tenancy-" + providerDomain, "assume_role",
+                    providerDomain + ":role." + roleName1, AssertionEffect.ALLOW);
+            tenantPolicy.getAssertions().add(new Assertion()
+                    .setRole(ResourceUtils.roleResourceName(tenantDomain, "tenancy-" + providerDomain))
+                    .setAction("assume_role")
+                    .setResource(providerDomain + ":role." + roleName2)
+                    .setEffect(AssertionEffect.ALLOW));
+            zmsImpl.putPolicy(ctx, tenantDomain, policyName, auditRef, false, null, tenantPolicy);
+
+            zmsImpl.deleteRoles(ctx, providerDomain, roleName1 + "," + roleName2, auditRef, null);
+
+            assertNull(zmsImpl.dbService.getRole(providerDomain, roleName1, false, false, false));
+            assertNull(zmsImpl.dbService.getRole(providerDomain, roleName2, false, false, false));
+
+            Policy policy = zmsImpl.getPolicy(ctx, tenantDomain, policyName);
+            assertTrue(policy.getAssertions().isEmpty());
+
+        } finally {
+            zmsImpl.autoDeleteTenantAssumeRoleAssertions = autoDeleteTenantAssumeRoleAssertions;
+            zmsImpl.deleteTopLevelDomain(ctx, providerDomain, auditRef, null);
+            zmsImpl.deleteTopLevelDomain(ctx, tenantDomain, auditRef, null);
+        }
+    }
+
+    @Test
     public void testDeleteRole_NoAutoDeleteWhenServerFlagDisabled() {
 
         final String providerDomain = "provider-no-autodelete-server";

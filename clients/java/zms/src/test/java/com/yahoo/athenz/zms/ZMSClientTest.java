@@ -2206,6 +2206,17 @@ public class ZMSClientTest {
         client.deleteRoles("DelRoleDom4", longRoleName1 + "," + longRoleName2, AUDIT_REF);
         Mockito.verify(c).deleteRoles("DelRoleDom4", longRoleName1, AUDIT_REF, null);
         Mockito.verify(c).deleteRoles("DelRoleDom4", longRoleName2, AUDIT_REF, null);
+
+        try {
+            String oversizedRoleName = "Role" + new String(new char[6001]).replace('\0', 'a');
+            client.deleteRoles("DelRoleDom5", oversizedRoleName, AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("maximum path parameter length"));
+        }
+        Mockito.verify(c, Mockito.never()).deleteRoles(Mockito.eq("DelRoleDom5"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
     }
 
     @Test
@@ -3095,6 +3106,17 @@ public class ZMSClientTest {
         client.deletePolicies("PolicyDelDom5", longPolicyName1 + "," + longPolicyName2, AUDIT_REF);
         Mockito.verify(c).deletePolicies("PolicyDelDom5", longPolicyName1, AUDIT_REF, null);
         Mockito.verify(c).deletePolicies("PolicyDelDom5", longPolicyName2, AUDIT_REF, null);
+
+        try {
+            String oversizedPolicyName = "Policy" + new String(new char[6001]).replace('\0', 'a');
+            client.deletePolicies("PolicyDelDom6", oversizedPolicyName, AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("maximum path parameter length"));
+        }
+        Mockito.verify(c, Mockito.never()).deletePolicies(Mockito.eq("PolicyDelDom6"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
     }
 
     @Test

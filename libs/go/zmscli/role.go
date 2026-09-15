@@ -180,11 +180,12 @@ func (cli Zms) DeleteRoles(dn string, roleNames []string) (*string, error) {
 			return nil, fmt.Errorf("cannot delete 'admin' role")
 		}
 	}
-	for _, roleNameChunk := range bulkDeleteNameChunks(roleNames) {
-		err := cli.Zms.DeleteRoles(zms.DomainName(dn), zms.EntityNameList(strings.Join(roleNameChunk, ",")), cli.AuditRef, cli.ResourceOwner)
-		if err != nil {
-			return nil, err
-		}
+	roleList := make([]zms.EntityName, 0, len(roleNames))
+	for _, roleName := range roleNames {
+		roleList = append(roleList, zms.EntityName(roleName))
+	}
+	if err := cli.Zms.DeleteRoleList(zms.DomainName(dn), roleList, cli.AuditRef, cli.ResourceOwner); err != nil {
+		return nil, err
 	}
 	s := "[Deleted roles: " + strings.Join(roleNames, ", ") + "]"
 	message := SuccessMessage{

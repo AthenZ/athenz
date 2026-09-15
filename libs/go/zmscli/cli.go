@@ -30,32 +30,7 @@ const (
 	DefaultOutputFormat = "manualYaml"
 	// ErrInvalidOutputFormat is the error message for unsupported output formats.
 	ErrInvalidOutputFormat = "unsupported output format \"%s\""
-
-	bulkDeleteChunkSize          = 250
-	bulkDeleteMaxPathParamLength = 6000
 )
-
-func bulkDeleteNameChunks(names []string) [][]string {
-	chunks := make([][]string, 0, (len(names)+bulkDeleteChunkSize-1)/bulkDeleteChunkSize)
-	for start := 0; start < len(names); {
-		end := start
-		pathParamLength := 0
-		for end < len(names) && end-start < bulkDeleteChunkSize {
-			nextLength := len(names[end])
-			if end > start {
-				nextLength++
-			}
-			if end > start && pathParamLength+nextLength > bulkDeleteMaxPathParamLength {
-				break
-			}
-			pathParamLength += nextLength
-			end++
-		}
-		chunks = append(chunks, names[start:end])
-		start = end
-	}
-	return chunks
-}
 
 type Zms struct {
 	ZmsUrl           string

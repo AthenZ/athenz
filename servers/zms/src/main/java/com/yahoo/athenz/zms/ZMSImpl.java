@@ -5270,26 +5270,41 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             roles.add(role);
         }
 
+        List<DBService.TenantAssumeRoleAssertionCleanup> assumeRoleAssertionCleanups = new ArrayList<>();
         for (Role role : roles) {
-            deleteTenantAssumeRoleAssertions(ctx, domainName, role, auditRef, caller);
+            DBService.TenantAssumeRoleAssertionCleanup cleanup =
+                    getTenantAssumeRoleAssertionCleanup(domainName, role);
+            if (cleanup != null) {
+                assumeRoleAssertionCleanups.add(cleanup);
+            }
         }
 
-        dbService.executeDeleteRoles(ctx, domainName, roleNameList, auditRef, caller);
+        dbService.executeDeleteRoles(ctx, domainName, roleNameList, assumeRoleAssertionCleanups, auditRef, caller);
     }
 
     void deleteTenantAssumeRoleAssertions(ResourceContext ctx, final String domainName, Role role,
             final String auditRef, final String caller) {
 
+        DBService.TenantAssumeRoleAssertionCleanup cleanup = getTenantAssumeRoleAssertionCleanup(domainName, role);
+        if (cleanup != null) {
+            dbService.executeDeleteAssumeRoleAssertions(ctx, cleanup.tenantDomainName, cleanup.providerDomainName,
+                    cleanup.providerRoleName, auditRef, caller);
+        }
+    }
+
+    DBService.TenantAssumeRoleAssertionCleanup getTenantAssumeRoleAssertionCleanup(
+            final String domainName, Role role) {
+
         // if enabled, automatically purge tenant side assume_role
         // assertions that reference the role we are about to delete
 
         if (!autoDeleteTenantAssumeRoleAssertions) {
-            return;
+            return null;
         }
 
         final String trustDomainName = role.getTrust();
         if (StringUtil.isEmpty(trustDomainName)) {
-            return;
+            return null;
         }
 
         Domain domain = dbService.getDomain(trustDomainName, useMasterCopyForSignedDomains);
@@ -5298,8 +5313,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (domain != null && Boolean.TRUE.equals(domain.getAutoDeleteTenantAssumeRoleAssertions())) {
             final String roleName = ZMSUtils.removeDomainPrefix(role.getName(), domainName, ROLE_PREFIX);
-            dbService.executeDeleteAssumeRoleAssertions(ctx, trustDomainName, domainName, roleName, auditRef, caller);
+            return new DBService.TenantAssumeRoleAssertionCleanup(trustDomainName, domainName, roleName);
         }
+        return null;
     }
 
     private List<Policy> getPolicyList(final String domainName, final String caller) {

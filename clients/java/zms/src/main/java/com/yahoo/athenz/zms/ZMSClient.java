@@ -139,6 +139,9 @@ public class ZMSClient implements Closeable {
 
         for (String name : names) {
             String entityName = name.trim();
+            if (entityName.length() > BULK_DELETE_MAX_PATH_PARAM_LENGTH) {
+                throw new IllegalArgumentException("entity name exceeds maximum path parameter length");
+            }
             int nextLength = chunk.length() + (chunkCount == 0 ? 0 : 1) + entityName.length();
 
             if (chunkCount > 0 && (chunkCount == BULK_DELETE_CHUNK_SIZE

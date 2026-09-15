@@ -95,6 +95,31 @@ public class DBService implements RolesProvider, DomainProvider {
 
     private static final String AUDIT_REF_USER_AUTHORITY = "Athenz User Authority Enforcer";
 
+    static class TenantAssumeRoleAssertionCleanup {
+        final String tenantDomainName;
+        final String providerDomainName;
+        final String providerRoleName;
+
+        TenantAssumeRoleAssertionCleanup(String tenantDomainName, String providerDomainName,
+                String providerRoleName) {
+            this.tenantDomainName = tenantDomainName;
+            this.providerDomainName = providerDomainName;
+            this.providerRoleName = providerRoleName;
+        }
+    }
+
+    private static class AssumeRoleAssertionAuditDetails {
+        final String domainName;
+        final String policyName;
+        final String auditDetails;
+
+        AssumeRoleAssertionAuditDetails(String domainName, String policyName, String auditDetails) {
+            this.domainName = domainName;
+            this.policyName = policyName;
+            this.auditDetails = auditDetails;
+        }
+    }
+
     AuditReferenceValidator auditReferenceValidator;
     private final ScheduledExecutorService userAuthorityFilterExecutor;
     protected DynamicConfigInteger purgeMembersMaxDbCallsPerRun;
@@ -2737,6 +2762,13 @@ public class DBService implements RolesProvider, DomainProvider {
     void executeDeleteRoles(ResourceContext ctx, String domainName, List<String> roleNames,
             String auditRef, String caller) {
 
+        executeDeleteRoles(ctx, domainName, roleNames, Collections.emptyList(), auditRef, caller);
+    }
+
+    void executeDeleteRoles(ResourceContext ctx, String domainName, List<String> roleNames,
+            List<TenantAssumeRoleAssertionCleanup> assumeRoleAssertionCleanups,
+            String auditRef, String caller) {
+
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
         // count reaches 0
@@ -2745,34 +2777,67 @@ public class DBService implements RolesProvider, DomainProvider {
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
-                // first verify that auditing requirements are met
+                try {
+                    final String principalName = getPrincipalName(ctx);
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_ROLE);
+                    // first verify that auditing requirements are met
 
-                // process our delete role requests
+                    checkDomainAuditEnabled(con, domainName, auditRef, caller, principalName, AUDIT_TYPE_ROLE);
 
-                for (String roleName : roleNames) {
-                    if (!con.deleteRole(domainName, roleName)) {
-                        rollbackChanges(con);
-                        throw ZMSUtils.notFoundError(caller + ": unable to delete role: " + roleName, caller);
+                    // process tenant assume_role assertion cleanup requests
+
+                    List<AssumeRoleAssertionAuditDetails> assumeRoleAuditDetails = new ArrayList<>();
+                    Set<String> assumeRoleCleanupDomains = new HashSet<>();
+                    for (TenantAssumeRoleAssertionCleanup cleanup : assumeRoleAssertionCleanups) {
+                        List<AssumeRoleAssertionAuditDetails> auditDetails =
+                                deleteAssumeRoleAssertions(con, cleanup, auditRef, caller, principalName,
+                                        assumeRoleCleanupDomains);
+                        assumeRoleAuditDetails.addAll(auditDetails);
                     }
+
+                    // process our delete role requests
+
+                    for (String roleName : roleNames) {
+                        if (!con.deleteRole(domainName, roleName)) {
+                            rollbackChanges(con);
+                            throw ZMSUtils.notFoundError(caller + ": unable to delete role: " + roleName, caller);
+                        }
+                    }
+
+                    // update our domain time-stamp and save changes
+
+                    saveChanges(con, domainName);
+
+                    for (String cleanupDomain : assumeRoleCleanupDomains) {
+                        cacheStore.invalidate(cleanupDomain);
+                    }
+
+                    // audit log the requests
+
+                    for (AssumeRoleAssertionAuditDetails auditDetails : assumeRoleAuditDetails) {
+                        auditLogRequest(ctx, auditDetails.domainName, auditRef, caller,
+                                ZMSConsts.HTTP_DELETE, auditDetails.policyName, auditDetails.auditDetails);
+                    }
+
+                    for (String roleName : roleNames) {
+                        auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                                roleName, null);
+                    }
+
+                    // add domain change event
+
+                    for (AssumeRoleAssertionAuditDetails auditDetails : assumeRoleAuditDetails) {
+                        addDomainChangeMessage(ctx, auditDetails.domainName, auditDetails.policyName,
+                                DomainChangeMessage.ObjectType.POLICY);
+                    }
+                    addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
+
+                    return;
+
+                } catch (ServerResourceException ex) {
+                    rollbackChanges(con);
+                    throw ex;
                 }
-
-                // update our domain time-stamp and save changes
-
-                saveChanges(con, domainName);
-
-                // audit log the requests
-
-                for (String roleName : roleNames) {
-                    auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
-                            roleName, null);
-                }
-
-                // add domain change event
-                addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
-
-                return;
 
             } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {
@@ -2780,6 +2845,69 @@ public class DBService implements RolesProvider, DomainProvider {
                 }
             }
         }
+    }
+
+    private List<AssumeRoleAssertionAuditDetails> deleteAssumeRoleAssertions(ObjectStoreConnection con,
+            TenantAssumeRoleAssertionCleanup cleanup, String auditRef, String caller,
+            String principalName, Set<String> assumeRoleCleanupDomains) throws ServerResourceException {
+
+        checkDomainAuditEnabled(con, cleanup.tenantDomainName, auditRef, caller,
+                principalName, AUDIT_TYPE_POLICY);
+
+        List<Policy> policies = con.deleteAssumeRoleAssertions(cleanup.tenantDomainName,
+                cleanup.providerDomainName, cleanup.providerRoleName);
+
+        if (policies == null || policies.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        con.updateDomainModTimestamp(cleanup.tenantDomainName);
+        assumeRoleCleanupDomains.add(cleanup.tenantDomainName);
+
+        List<AssumeRoleAssertionAuditDetails> assumeRoleAuditDetails = new ArrayList<>();
+        for (Policy policy : policies) {
+            List<Assertion> deletedAssertions = policy.getAssertions();
+            if (deletedAssertions == null || deletedAssertions.isEmpty()) {
+                // DAO was unable to populate deleted assertions; skip logging.
+                continue;
+            }
+            assumeRoleAuditDetails.add(new AssumeRoleAssertionAuditDetails(cleanup.tenantDomainName,
+                    policy.getName(), deleteAssumeRoleAssertionsAuditDetails(policy, deletedAssertions)));
+        }
+        return assumeRoleAuditDetails;
+    }
+
+    private String deleteAssumeRoleAssertionsAuditDetails(Policy policy, List<Assertion> deletedAssertions) {
+
+        StringBuilder auditDetails = new StringBuilder(256);
+        auditDetails.append("{\"policy\": \"").append(policy.getName())
+                .append("\", \"version\": \"")
+                .append(policy.getVersion() == null ? "" : policy.getVersion())
+                .append("\", ");
+
+        // Add array of all deleted assertion IDs
+        auditDetails.append("\"assertionIds\": [");
+        boolean firstId = true;
+        for (Assertion assertion : deletedAssertions) {
+            if (!firstId) {
+                auditDetails.append(", ");
+            }
+            auditDetails.append("\"").append(assertion.getId()).append("\"");
+            firstId = false;
+        }
+        auditDetails.append("], \"deleted-assertions\": [");
+
+        // Add full deleted assertion objects
+        boolean first = true;
+        for (Assertion assertion : deletedAssertions) {
+            if (!first) {
+                auditDetails.append(", ");
+            }
+            auditLogAssertion(auditDetails, assertion, true);
+            first = false;
+        }
+        auditDetails.append("]}");
+        return auditDetails.toString();
     }
 
     void executeDeleteGroup(ResourceContext ctx, final String domainName, final String groupName, final String auditRef) {

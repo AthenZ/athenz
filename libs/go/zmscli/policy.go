@@ -392,11 +392,12 @@ func (cli Zms) DeletePolicies(dn string, policyNames []string) (*string, error) 
 	if len(policyNames) == 0 {
 		return nil, fmt.Errorf("no policy names specified")
 	}
-	for _, policyNameChunk := range bulkDeleteNameChunks(policyNames) {
-		err := cli.Zms.DeletePolicies(zms.DomainName(dn), zms.EntityNameList(strings.Join(policyNameChunk, ",")), cli.AuditRef, cli.ResourceOwner)
-		if err != nil {
-			return nil, err
-		}
+	policyList := make([]zms.EntityName, 0, len(policyNames))
+	for _, policyName := range policyNames {
+		policyList = append(policyList, zms.EntityName(policyName))
+	}
+	if err := cli.Zms.DeletePolicyList(zms.DomainName(dn), policyList, cli.AuditRef, cli.ResourceOwner); err != nil {
+		return nil, err
 	}
 	s := "[Deleted policies: " + strings.Join(policyNames, ", ") + "]"
 

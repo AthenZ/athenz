@@ -1582,6 +1582,54 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testExecuteDeleteRolesAssumeRoleAssertionCleanupFailureRollback() throws ServerResourceException {
+
+        String domainName = "provider";
+        String tenantDomain1 = "tenant1";
+        String tenantDomain2 = "tenant2";
+        String roleName1 = "role1";
+        String roleName2 = "role2";
+
+        Assertion assertion = new Assertion()
+                .setId(1001L)
+                .setRole(domainName + ":role." + roleName1)
+                .setResource(tenantDomain1 + ":role.admin")
+                .setAction("assume_role");
+        Policy policy = new Policy()
+                .setName("policy1")
+                .setVersion("0")
+                .setAssertions(Collections.singletonList(assertion));
+
+        Mockito.when(mockJdbcConn.getDomain(anyString())).thenReturn(new Domain().setAuditEnabled(false));
+        Mockito.when(mockJdbcConn.deleteAssumeRoleAssertions(tenantDomain1, domainName, roleName1))
+                .thenReturn(Collections.singletonList(policy));
+        Mockito.when(mockJdbcConn.deleteAssumeRoleAssertions(tenantDomain2, domainName, roleName2))
+                .thenThrow(new ServerResourceException(ServerResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        int saveRetries = zms.dbService.defaultRetryCount;
+        zms.dbService.store = mockObjStore;
+        zms.dbService.defaultRetryCount = 0;
+
+        try {
+            zms.dbService.executeDeleteRoles(mockDomRsrcCtx, domainName,
+                    Arrays.asList(roleName1, roleName2), Arrays.asList(
+                            new DBService.TenantAssumeRoleAssertionCleanup(tenantDomain1, domainName, roleName1),
+                            new DBService.TenantAssumeRoleAssertionCleanup(tenantDomain2, domainName, roleName2)),
+                    auditRef, "deleteRoles");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
+        } finally {
+            zms.dbService.defaultRetryCount = saveRetries;
+            zms.dbService.store = saveStore;
+        }
+
+        Mockito.verify(mockJdbcConn, times(1)).rollbackChanges();
+        Mockito.verify(mockJdbcConn, never()).deleteRole(anyString(), anyString());
+    }
+
+    @Test
     public void testExecuteDeleteServiceIdentity() throws ServerResourceException {
 
         String domainName = "servicedeldom1";

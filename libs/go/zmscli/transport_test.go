@@ -61,22 +61,3 @@ func (tr *deleteRequestTransport) assertCalled() {
 		tr.t.Fatalf("expected %d delete requests, got %d", len(tr.paths), tr.calls)
 	}
 }
-
-func TestBulkDeleteNameChunksMaxPathParamLength(t *testing.T) {
-	names := []string{
-		strings.Repeat("a", 3000),
-		strings.Repeat("b", 3000),
-		"c",
-	}
-
-	chunks := bulkDeleteNameChunks(names)
-	if len(chunks) != 2 {
-		t.Fatalf("expected 2 chunks, got %d", len(chunks))
-	}
-	if len(chunks[0]) != 1 {
-		t.Errorf("expected first chunk with 1 name, got %d", len(chunks[0]))
-	}
-	if len(chunks[1]) != 2 {
-		t.Errorf("expected second chunk with 2 names, got %d", len(chunks[1]))
-	}
-}

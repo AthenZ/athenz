@@ -37,7 +37,7 @@ func TestDeletePolicies(t *testing.T) {
 }
 
 func TestDeletePoliciesChunks(t *testing.T) {
-	policyNames := make([]string, bulkDeleteChunkSize+1)
+	policyNames := make([]string, zms.BulkDeleteChunkSize+1)
 	for idx := range policyNames {
 		policyNames[idx] = fmt.Sprintf("policy%d", idx)
 	}
@@ -45,8 +45,8 @@ func TestDeletePoliciesChunks(t *testing.T) {
 	transport := &deleteRequestTransport{
 		t: t,
 		paths: []string{
-			"/domain/domain1/policies/" + strings.Join(policyNames[:bulkDeleteChunkSize], ","),
-			"/domain/domain1/policies/" + policyNames[bulkDeleteChunkSize],
+			"/domain/domain1/policies/" + strings.Join(policyNames[:zms.BulkDeleteChunkSize], ","),
+			"/domain/domain1/policies/" + policyNames[zms.BulkDeleteChunkSize],
 		},
 		auditRef:      "audit",
 		resourceOwner: "owner",
@@ -72,6 +72,17 @@ func TestDeletePoliciesEmptyList(t *testing.T) {
 		t.Fatal("expected empty policy names error")
 	}
 	if err.Error() != "no policy names specified" {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestDeletePoliciesOversizedName(t *testing.T) {
+	cli := Zms{}
+	_, err := cli.DeletePolicies("domain1", []string{strings.Repeat("a", zms.BulkDeleteMaxPathParamLength+1)})
+	if err == nil {
+		t.Fatal("expected oversized policy name error")
+	}
+	if err.Error() != "policy name exceeds maximum path parameter length" {
 		t.Errorf("unexpected error: %v", err)
 	}
 }
