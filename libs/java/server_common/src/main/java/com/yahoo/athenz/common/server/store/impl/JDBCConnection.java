@@ -8403,7 +8403,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     SelfServeObjects listSelfServeMemberRoles(final String searchPattern, final String memberPrincipal, final String caller) throws ServerResourceException {
 
-        // if we're unable to find the id for the givem principal,
+        // if we're unable to find the id for the given principal,
         // then it indicates that the principal is not included
         // in any resource so we'll just send back an empty set
 
@@ -8472,7 +8472,7 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     SelfServeObjects listSelfServeMemberGroups(final String searchPattern, final String memberPrincipal, final String caller) throws ServerResourceException {
 
-        // if we're unable to find the id for the givem principal,
+        // if we're unable to find the id for the given principal,
         // then it indicates that the principal is not included
         // in any resource so we'll just send back an empty set
 
