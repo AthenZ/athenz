@@ -47,12 +47,14 @@ public final class CrypkiConsts {
 
     public static final String PROP_KMS_KEY_ID           = "athenz.crypki.kms.key_id";
     public static final String PROP_KMS_CA_CERT_PATH     = "athenz.crypki.kms.ca_cert_path";
+    public static final String PROP_KMS_CA_CERT_MAP_PATH = "athenz.crypki.kms.ca_cert_map_path";
     public static final String PROP_KMS_SIGNING_ALGORITHM = "athenz.crypki.kms.signing_algorithm";
     public static final String PROP_HSM_MODULE_PATH      = "athenz.crypki.hsm.module_path";
     public static final String PROP_HSM_SLOT             = "athenz.crypki.hsm.slot";
     public static final String PROP_HSM_KEY_LABEL        = "athenz.crypki.hsm.key_label";
     public static final String PROP_HSM_PIN_PATH         = "athenz.crypki.hsm.pin_path";
     public static final String PROP_HSM_CA_CERT_PATH     = "athenz.crypki.hsm.ca_cert_path";
+    public static final String PROP_HSM_CA_CERT_MAP_PATH = "athenz.crypki.hsm.ca_cert_map_path";
     public static final String DEFAULT_HSM_KEY_LABEL     = "athenz-crypki-ca";
 
     public static final String DEFAULT_KEY_ID = "x509-key";

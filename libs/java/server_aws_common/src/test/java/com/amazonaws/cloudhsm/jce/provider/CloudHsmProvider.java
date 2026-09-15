@@ -28,17 +28,31 @@ import java.security.AuthProvider;
  */
 public class CloudHsmProvider extends AuthProvider {
 
+    public static final String PROVIDER_NAME = "CloudHsmProvider";
+
     public static boolean failLogin;
+    public static boolean failLoginAlready;
+    public static boolean throwOnConstruct;
     public boolean loggedIn;
 
     public CloudHsmProvider() {
-        super("CloudHsmProvider", 1.0, "Athenz unit-test stub");
+        this(PROVIDER_NAME);
+    }
+
+    public CloudHsmProvider(String name) {
+        super(name, 1.0, "Athenz unit-test stub");
+        if (throwOnConstruct) {
+            throw new IllegalStateException("HSM connection (CloudHSM provider) is already initialized");
+        }
         put("KeyStore.CloudHsmProvider", StubKeyStoreSpi.class.getName());
     }
 
     @Override
     public void login(Subject subject, CallbackHandler handler) throws LoginException {
         loggedIn = true;
+        if (failLoginAlready) {
+            throw new LoginException("HSM connection is already initialized");
+        }
         if (failLogin) {
             throw new LoginException("login denied");
         }

@@ -20,6 +20,7 @@ import com.amazonaws.cloudhsm.jce.provider.attributes.KeyAttributesMap;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.Provider;
+import java.security.Security;
 
 public class KeyStoreWithAttributes extends KeyStore {
 
@@ -35,7 +36,11 @@ public class KeyStoreWithAttributes extends KeyStore {
         if (throwOnGetInstance) {
             throw new IllegalStateException("attribute lookup failed");
         }
-        return new KeyStoreWithAttributes(new CloudHsmProvider());
+        Provider provider = Security.getProvider(CloudHsmProvider.PROVIDER_NAME);
+        if (provider == null) {
+            provider = new CloudHsmProvider();
+        }
+        return new KeyStoreWithAttributes(provider);
     }
 
     public static KeyStore getInstance(String type, Provider provider) {
@@ -43,6 +48,10 @@ public class KeyStoreWithAttributes extends KeyStore {
             throw new IllegalStateException("attribute lookup failed");
         }
         return new KeyStoreWithAttributes(provider);
+    }
+
+    public Object getKey(java.security.spec.KeySpec spec) {
+        return lookupKey();
     }
 
     public Object getKey(KeyAttributesMap spec) {

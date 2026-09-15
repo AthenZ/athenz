@@ -135,3 +135,30 @@ Backend factory classes:
 * `io.athenz.server.aws.common.cert.impl.AwsKmsCrypkiSignerFactory`
 * `io.athenz.server.aws.common.cert.impl.AwsCloudHsmCrypkiSignerFactory`
 * `io.athenz.server.gcp.common.cert.impl.GcpKmsCrypkiSignerFactory`
+
+KMS settings:
+
+* `athenz.crypki.kms.key_id` — default signer key (AWS alias/UUID, or a GCP CryptoKeyVersion resource)
+* `athenz.crypki.kms.ca_cert_path` — default CA PEM
+* `athenz.crypki.kms.ca_cert_map_path` — optional JSON map for per-tenant CAs
+* `athenz.crypki.kms.signing_algorithm` — default `SHA256withRSA`
+
+CloudHSM settings:
+
+* `athenz.crypki.hsm.module_path` — PKCS#11 module (default `/opt/cloudhsm/lib/libcloudhsm_pkcs11.so`)
+* `athenz.crypki.hsm.slot`
+* `athenz.crypki.hsm.key_label` — default HSM label (`athenz-crypki-ca`)
+* `athenz.crypki.hsm.pin_path` — CloudHSM PIN file (`username:password`)
+* `athenz.crypki.hsm.ca_cert_path` — default CA PEM
+* `athenz.crypki.hsm.ca_cert_map_path` — optional JSON map for per-tenant CAs
+
+Domain/service `x509CertSignerKeyId` is a CompoundName (`tenant-a-ca`).
+Put that name in the map and, for AWS KMS, either use alias `alias/tenant-a-ca`
+or set the map value to `{ "keyId": "alias/...", "caCertPath": "..." }`.
+For CloudHSM the Athenz id is the PKCS#11 label unless `keyId` is set.
+GCP KMS map entries must use the object form and set `keyId` to a full
+CryptoKeyVersion resource
+(`projects/.../cryptoKeys/{key}/cryptoKeyVersions/{version}`); a
+path-only entry or a CryptoKey name is rejected by the GCP APIs.
+Each tenant needs its own KMS key or HSM label. Allow the same ids in
+`athenz.zts.svc_cert_signer_key_id_list`.
