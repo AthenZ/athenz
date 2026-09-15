@@ -18,11 +18,13 @@ package io.athenz.server.aws.common.cert.impl;
 import com.amazonaws.cloudhsm.jce.provider.CloudHsmProvider;
 import com.amazonaws.cloudhsm.jce.provider.KeyStoreWithAttributes;
 import com.amazonaws.cloudhsm.jce.provider.StubKeyStoreSpi;
+import com.amazonaws.cloudhsm.jce.provider.attributes.KeyAttributesMap;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.crypki.CrypkiCertSigner;
 import com.yahoo.athenz.crypki.CrypkiException;
 import com.yahoo.athenz.crypki.CrypkiConsts;
 import com.yahoo.athenz.crypki.hsm.HsmClient;
+import com.yahoo.athenz.crypki.kms.KmsCaCertificateStore;
 import com.yahoo.athenz.crypki.kms.KmsClient;
 import com.yahoo.athenz.crypki.signer.SigningKey;
 import org.mockito.MockedStatic;
@@ -38,6 +40,8 @@ import software.amazon.awssdk.services.kms.model.SignResponse;
 import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
 
 import java.nio.file.Files;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
@@ -56,10 +60,13 @@ public class AwsCrypkiSignerFactoryTest {
     public void resetCloudHsmStubs() {
         StubKeyStoreSpi.key = null;
         CloudHsmProvider.failLogin = false;
+        CloudHsmProvider.failLoginAlready = false;
+        CloudHsmProvider.throwOnConstruct = false;
         KeyStoreWithAttributes.throwOnGetInstance = false;
         KeyStoreWithAttributes.returnNonPrivateKey = false;
         KeyStoreWithAttributes.returnNullKey = false;
         Security.removeProvider("CloudHsmProvider");
+        Security.removeProvider("OddHsmName");
         Security.removeProvider("AthenzCrypkiHsm");
     }
 
@@ -127,6 +134,25 @@ public class AwsCrypkiSignerFactoryTest {
 
         AwsKmsClient client = new AwsKmsClient(aws, certFile.getAbsolutePath());
         assertEquals(client.sign("kid", new byte[]{9}, "SHA256withRSA"), new byte[]{1, 2, 3});
+        assertEquals(AwsKmsClient.toAwsKeyId("kid"), "alias/kid");
+        assertEquals(AwsKmsClient.toAwsKeyId("alias/athenz-crypki-ca"), "alias/athenz-crypki-ca");
+        assertEquals(AwsKmsClient.toAwsKeyId("arn:aws:kms:us-west-2:1:key/abc"),
+                "arn:aws:kms:us-west-2:1:key/abc");
+        assertEquals(AwsKmsClient.toAwsKeyId("c6d64533-4780-4e12-8138-7ded9f4d65b7"),
+                "c6d64533-4780-4e12-8138-7ded9f4d65b7");
+        assertEquals(AwsKmsClient.toAwsKeyId(null), null);
+        assertEquals(AwsKmsClient.toAwsKeyId(""), "");
+        assertTrue(AwsKmsClient.isUuid("c6d64533-4780-4e12-8138-7ded9f4d65b7"));
+        assertTrue(!AwsKmsClient.isUuid("notauuid-name-with-hyph-ens12345678"));
+        assertEquals(AwsKmsClient.toAwsKeyId("notauuid-name-with-hyph-ens12345678"),
+                "alias/notauuid-name-with-hyph-ens12345678");
+        assertEquals(AwsKmsClient.toAwsKeyId("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"),
+                "alias/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        assertEquals(AwsKmsClient.toAwsKeyId("mrk-1234abcd12ab34cd56ef1234567890ab"),
+                "mrk-1234abcd12ab34cd56ef1234567890ab");
+        assertTrue(AwsKmsClient.isMultiRegionKeyId("MRK-1234ABCD12AB34CD56EF1234567890AB"));
+        assertEquals(AwsKmsClient.toAwsKeyId("mrk-zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"),
+                "alias/mrk-zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
         assertNotNull(client.getPublicKey("kid"));
         assertNotNull(client.getCaCertificate("kid"));
         assertEquals(AwsKmsClient.toAwsAlgorithm("SHA256withECDSA"), SigningAlgorithmSpec.ECDSA_SHA_256);
@@ -142,6 +168,29 @@ public class AwsCrypkiSignerFactoryTest {
         expectThrows(CrypkiException.class, () -> AwsKmsClient.toAwsAlgorithm("SHA1withRSA"));
         expectThrows(CrypkiException.class, () -> new AwsKmsClient(aws, null).getCaCertificate("kid"));
         expectThrows(CrypkiException.class, () -> new AwsKmsClient(aws, "/missing.pem").getCaCertificate("kid"));
+
+        var tenantKey = Crypto.generateRSAPrivateKey(2048);
+        X509Certificate tenantCa = Crypto.generateX509Certificate(Crypto.getPKCS10CertRequest(
+                Crypto.generateX509CSR(tenantKey, "CN=tenant-a,O=Athenz,C=US", null)),
+                tenantKey, new org.bouncycastle.asn1.x500.X500Name("CN=tenant-a,O=Athenz,C=US"), 60, true);
+        java.io.File tenantCert = java.io.File.createTempFile("tenantca", ".pem");
+        tenantCert.deleteOnExit();
+        Files.writeString(tenantCert.toPath(), Crypto.convertToPEMFormat(tenantCa));
+        java.io.File mapFile = java.io.File.createTempFile("camap", ".json");
+        mapFile.deleteOnExit();
+        Files.writeString(mapFile.toPath(), "{ \"tenant-a-ca\": { \"keyId\": \"alias/tenant-a-ca\","
+                + " \"caCertPath\": \"" + tenantCert.getAbsolutePath() + "\" } }\n");
+        System.setProperty(CrypkiConsts.PROP_KMS_CA_CERT_MAP_PATH, mapFile.getAbsolutePath());
+        try {
+            AwsKmsClient mapped = new AwsKmsClient(aws, certFile.getAbsolutePath());
+            assertEquals(mapped.getCaCertificate("tenant-a-ca").getSubjectX500Principal().getName(),
+                    tenantCa.getSubjectX500Principal().getName());
+            assertEquals(mapped.getCaCertificate("alias/other").getSubjectX500Principal().getName(),
+                    ca.getSubjectX500Principal().getName());
+            mapped.sign("tenant-a-ca", new byte[]{9}, "SHA256withRSA");
+        } finally {
+            System.clearProperty(CrypkiConsts.PROP_KMS_CA_CERT_MAP_PATH);
+        }
         assertEquals(AwsKmsClient.publicKeyAlgorithm(KeySpec.RSA_2048, pair.getPublic().getEncoded()), "RSA");
         assertEquals(AwsKmsClient.publicKeyAlgorithm(KeySpec.ECC_NIST_P256, pair.getPublic().getEncoded()), "EC");
         assertEquals(AwsKmsClient.encodedKeyAlgorithm(pair.getPublic().getEncoded()), "RSA");
@@ -317,6 +366,244 @@ public class AwsCrypkiSignerFactoryTest {
     }
 
     @Test
+    public void testCloudHsmClientLoadsMappedTenantLabels() throws Exception {
+        KeyPair pair = rsaKeyPair();
+        StubKeyStoreSpi.key = pair.getPrivate();
+        X509Certificate defaultCa = hsmCertificate("CN=hsm-default");
+        X509Certificate tenantCa = hsmCertificate("CN=hsm-tenant-b");
+        String defaultPath = writeCert(defaultCa);
+        String tenantPath = writeCert(tenantCa);
+        String mapPath = writeJson("{ \"tenant-b-ca\": { \"keyId\": \"athenz-crypki-tenant-b-ca\","
+                + " \"caCertPath\": \"" + jsonPath(tenantPath) + "\" },"
+                + " \"tenant-c-ca\": \"" + jsonPath(tenantPath) + "\" }\n");
+        System.setProperty(CrypkiConsts.PROP_HSM_CA_CERT_MAP_PATH, mapPath);
+        try {
+            AwsCloudHsmClient client = new AwsCloudHsmClient(modulePathForCoverage(), null,
+                    "athenz-crypki-ca", pinFile("crypto-user:example-pin"), defaultPath);
+            assertEquals(client.getSigningKey(null).getIdentifier(), "athenz-crypki-ca");
+            assertEquals(client.getSigningKey(CrypkiConsts.DEFAULT_KEY_ID).getCaCertificate()
+                    .getSubjectX500Principal(), defaultCa.getSubjectX500Principal());
+            assertEquals(client.getSigningKey("tenant-b-ca").getIdentifier(),
+                    "athenz-crypki-tenant-b-ca");
+            assertEquals(client.getSigningKey("tenant-b-ca").getCaCertificate()
+                    .getSubjectX500Principal(), tenantCa.getSubjectX500Principal());
+            assertEquals(client.getSigningKey("tenant-c-ca").getIdentifier(), "tenant-c-ca");
+            assertEquals(client.resolveLabel("tenant-b-ca"), "athenz-crypki-tenant-b-ca");
+            expectThrows(CrypkiException.class, () -> client.getSigningKey("other-label"));
+        } finally {
+            System.clearProperty(CrypkiConsts.PROP_HSM_CA_CERT_MAP_PATH);
+        }
+    }
+
+    @Test
+    public void testCloudHsmRejectsSharedLabelWithDifferentCa() throws Exception {
+        StubKeyStoreSpi.key = rsaKeyPair().getPrivate();
+        String defaultPath = writeCert(hsmCertificate("CN=hsm-default"));
+        String tenantPath = writeCert(hsmCertificate("CN=hsm-other"));
+        String mapPath = writeJson("{ \"tenant-b-ca\": { \"keyId\": \"athenz-crypki-ca\","
+                + " \"caCertPath\": \"" + jsonPath(tenantPath) + "\" } }\n");
+        System.setProperty(CrypkiConsts.PROP_HSM_CA_CERT_MAP_PATH, mapPath);
+        try {
+            expectThrows(CrypkiException.class, () -> new AwsCloudHsmClient(modulePathForCoverage(),
+                    null, "athenz-crypki-ca", pinFile("crypto-user:example-pin"), defaultPath));
+        } finally {
+            System.clearProperty(CrypkiConsts.PROP_HSM_CA_CERT_MAP_PATH);
+        }
+    }
+
+    @Test
+    public void testCloudHsmAllowsSharedLabelWithSameCa() throws Exception {
+        StubKeyStoreSpi.key = rsaKeyPair().getPrivate();
+        X509Certificate ca = hsmCertificate("CN=hsm-shared");
+        String defaultPath = writeCert(ca);
+        String mapPath = writeJson("{ \"tenant-b-ca\": { \"keyId\": \"athenz-crypki-ca\","
+                + " \"caCertPath\": \"" + jsonPath(defaultPath) + "\" } }\n");
+        KmsCaCertificateStore store = new KmsCaCertificateStore(defaultPath, mapPath,
+                CrypkiConsts.PROP_HSM_CA_CERT_PATH);
+        AwsCloudHsmClient client = new AwsCloudHsmClient(modulePathForCoverage(), null,
+                "athenz-crypki-ca", pinFile("crypto-user:example-pin"), store);
+        assertEquals(client.getSigningKey("tenant-b-ca").getIdentifier(), "athenz-crypki-ca");
+        assertEquals(client.getSigningKey("tenant-b-ca").getCaCertificate().getSubjectX500Principal(),
+                ca.getSubjectX500Principal());
+    }
+
+    @Test
+    public void testCloudHsmLookupNormalizesDefaultHttpKeyId() throws Exception {
+        StubKeyStoreSpi.key = rsaKeyPair().getPrivate();
+        X509Certificate ca = hsmCertificate("CN=hsm-http-default");
+        String defaultPath = writeCert(ca);
+        String mapPath = writeJson("{ \"tenant-b-ca\": { \"keyId\": \"x509-key\","
+                + " \"caCertPath\": \"" + jsonPath(defaultPath) + "\" } }\n");
+        KmsCaCertificateStore store = new KmsCaCertificateStore(defaultPath, mapPath,
+                CrypkiConsts.PROP_HSM_CA_CERT_PATH);
+        AwsCloudHsmClient client = new AwsCloudHsmClient(modulePathForCoverage(), null,
+                "athenz-crypki-ca", pinFile("crypto-user:example-pin"), store);
+        assertEquals(client.resolveLabel("tenant-b-ca"), "athenz-crypki-ca");
+        assertEquals(client.getSigningKey("tenant-b-ca").getIdentifier(), "athenz-crypki-ca");
+    }
+
+    @Test
+    public void testCloudHsmJceReusesRegisteredProviderForSecondLabel() throws Exception {
+        KeyPair pair = rsaKeyPair();
+        StubKeyStoreSpi.key = pair.getPrivate();
+        CloudHsmProvider registered = new CloudHsmProvider();
+        Security.addProvider(registered);
+        CloudHsmProvider.throwOnConstruct = true;
+        try {
+            X509Certificate defaultCa = hsmCertificate("CN=hsm-default");
+            X509Certificate tenantCa = hsmCertificate("CN=hsm-tenant-b");
+            String defaultPath = writeCert(defaultCa);
+            String tenantPath = writeCert(tenantCa);
+            String mapPath = writeJson("{ \"tenant-b-ca\": { \"keyId\": \"athenz-crypki-tenant-b-ca\","
+                    + " \"caCertPath\": \"" + jsonPath(tenantPath) + "\" } }\n");
+            System.setProperty(CrypkiConsts.PROP_HSM_CA_CERT_MAP_PATH, mapPath);
+            AwsCloudHsmClient client = new AwsCloudHsmClient(modulePathForCoverage(), null,
+                    "athenz-crypki-ca", pinFile("crypto-user:example-pin"), defaultPath);
+            assertEquals(client.getSigningKey(null).getIdentifier(), "athenz-crypki-ca");
+            assertEquals(client.getSigningKey("tenant-b-ca").getIdentifier(),
+                    "athenz-crypki-tenant-b-ca");
+            assertEquals(client.getSigningKey("tenant-b-ca").getCaCertificate()
+                    .getSubjectX500Principal(), tenantCa.getSubjectX500Principal());
+        } finally {
+            System.clearProperty(CrypkiConsts.PROP_HSM_CA_CERT_MAP_PATH);
+            CloudHsmProvider.throwOnConstruct = false;
+            Security.removeProvider(registered.getName());
+        }
+    }
+
+    @Test
+    public void testCloudHsmJceProviderHelpers() throws Exception {
+        assertEquals(AwsCloudHsmClient.cloudHsmProviderNames(CloudHsmProvider.class)[0],
+                CloudHsmProvider.PROVIDER_NAME);
+        assertEquals(AwsCloudHsmClient.cloudHsmProviderNames(String.class)[0], "CloudHSM");
+        assertEquals(AwsCloudHsmClient.cloudHsmProviderNames(EmptyNameProvider.class)[0], "CloudHSM");
+        assertEquals(AwsCloudHsmClient.findRegisteredCloudHsmProvider(CloudHsmProvider.class), null);
+
+        CloudHsmProvider oddName = new CloudHsmProvider("OddHsmName");
+        Security.addProvider(oddName);
+        try {
+            assertEquals(AwsCloudHsmClient.findRegisteredCloudHsmProvider(CloudHsmProvider.class),
+                    oddName);
+        } finally {
+            Security.removeProvider(oddName.getName());
+        }
+
+        CloudHsmProvider registered = new CloudHsmProvider();
+        Security.addProvider(registered);
+        CloudHsmProvider.throwOnConstruct = true;
+        try {
+            assertEquals(AwsCloudHsmClient.cloudHsmJceProvider(), registered);
+            assertEquals(AwsCloudHsmClient.createCloudHsmProvider(CloudHsmProvider.class),
+                    registered);
+        } finally {
+            CloudHsmProvider.throwOnConstruct = false;
+            Security.removeProvider(registered.getName());
+        }
+
+        Provider created = AwsCloudHsmClient.cloudHsmJceProvider();
+        try {
+            assertNotNull(created);
+            assertEquals(created.getName(), CloudHsmProvider.PROVIDER_NAME);
+            assertEquals(AwsCloudHsmClient.createCloudHsmProvider(CloudHsmProvider.class),
+                    Security.getProvider(CloudHsmProvider.PROVIDER_NAME));
+        } finally {
+            Security.removeProvider(created.getName());
+        }
+
+        expectThrows(IllegalStateException.class, () -> {
+            CloudHsmProvider.throwOnConstruct = true;
+            try {
+                AwsCloudHsmClient.createCloudHsmProvider(CloudHsmProvider.class);
+            } finally {
+                CloudHsmProvider.throwOnConstruct = false;
+            }
+        });
+        expectThrows(java.lang.reflect.InvocationTargetException.class,
+                () -> AwsCloudHsmClient.createCloudHsmProvider(ErrorCtorProvider.class));
+
+        AwsCloudHsmClient.loginCloudHsmJce(new java.security.Provider("plain", 1.0, "plain") { },
+                "pin".toCharArray());
+        CloudHsmProvider.failLoginAlready = true;
+        try {
+            CloudHsmProvider already = new CloudHsmProvider();
+            AwsCloudHsmClient.loginCloudHsmJce(already, "pin".toCharArray());
+            assertTrue(already.loggedIn);
+        } finally {
+            CloudHsmProvider.failLoginAlready = false;
+        }
+        assertTrue(AwsCloudHsmClient.alreadyConnected(
+                new IllegalStateException("HSM connection is already initialized")));
+        assertTrue(!AwsCloudHsmClient.alreadyConnected(new IllegalStateException("other")));
+        assertTrue(!AwsCloudHsmClient.alreadyConnected(new IllegalStateException()));
+        assertTrue(!AwsCloudHsmClient.alreadyConnected(
+                new IllegalStateException("credentials already expired")));
+    }
+
+    public static class EmptyNameProvider {
+        public static final String PROVIDER_NAME = "";
+    }
+
+    public static class ErrorCtorProvider extends Provider {
+        public ErrorCtorProvider() {
+            super("ErrorCtor", 1.0, "boom");
+            throw new Error("boom");
+        }
+    }
+
+    @Test
+    public void testCloudHsmGetKeyFallsBackToAttributesMap() throws Exception {
+        class LegacyStore {
+            public Object getKey(KeyAttributesMap spec) {
+                return "legacy-map-key";
+            }
+        }
+        assertEquals(AwsCloudHsmClient.invokeCloudHsmGetKey(LegacyStore.class,
+                new LegacyStore(), new KeyAttributesMap(), KeyAttributesMap.class),
+                "legacy-map-key");
+    }
+
+    @Test
+    public void testCloudHsmMappedLabelFallbacks() throws Exception {
+        KmsCaCertificateStore empty = new KmsCaCertificateStore(null, null,
+                CrypkiConsts.PROP_HSM_CA_CERT_PATH);
+        assertEquals(AwsCloudHsmClient.mappedLabel("", "default-label", empty), "default-label");
+        String mapPath = writeJson("{ \"tenant-b-ca\": { \"keyId\": \"x509-key\","
+                + " \"caCertPath\": \"/tmp/x.pem\" } }\n");
+        KmsCaCertificateStore mapped = new KmsCaCertificateStore("/tmp/default.pem", mapPath,
+                CrypkiConsts.PROP_HSM_CA_CERT_PATH);
+        assertEquals(AwsCloudHsmClient.mappedLabel("tenant-b-ca", "default-label", mapped),
+                "default-label");
+    }
+
+    @Test
+    public void testCloudHsmInjectedMapResolvesLabels() throws Exception {
+        var caKey = Crypto.generateRSAPrivateKey(2048);
+        X509Certificate defaultCa = hsmCertificate("CN=hsm-default");
+        X509Certificate tenantCa = hsmCertificate("CN=hsm-tenant-b");
+        SigningKey defaultKey = new SigningKey("athenz-crypki-ca", caKey, defaultCa);
+        SigningKey tenantKey = new SigningKey("athenz-crypki-tenant-b-ca", caKey, tenantCa);
+        String mapPath = writeJson("{ \"tenant-b-ca\": { \"keyId\": \"athenz-crypki-tenant-b-ca\","
+                + " \"caCertPath\": \"" + jsonPath(writeCert(tenantCa)) + "\" } }\n");
+        KmsCaCertificateStore store = new KmsCaCertificateStore(writeCert(defaultCa), mapPath,
+                CrypkiConsts.PROP_HSM_CA_CERT_PATH);
+        Map<String, SigningKey> keys = new LinkedHashMap<>();
+        keys.put("athenz-crypki-ca", defaultKey);
+        keys.put("athenz-crypki-tenant-b-ca", tenantKey);
+        AwsCloudHsmClient client = new AwsCloudHsmClient(keys, "athenz-crypki-ca", store);
+        assertEquals(client.getSigningKey("tenant-b-ca").getIdentifier(),
+                "athenz-crypki-tenant-b-ca");
+        assertEquals(client.getSigningKey(null).getIdentifier(), "athenz-crypki-ca");
+
+        AwsCloudHsmClient withoutDefault = new AwsCloudHsmClient(
+                Map.of("only-label", defaultKey), "configured-label", store);
+        assertEquals(withoutDefault.getSigningKey(null).getIdentifier(), "athenz-crypki-ca");
+        assertEquals(withoutDefault.getSigningKey("only-label").getIdentifier(), "athenz-crypki-ca");
+
+        AwsCloudHsmClient empty = new AwsCloudHsmClient(Map.of(), "configured-label", store);
+        expectThrows(CrypkiException.class, () -> empty.getSigningKey(null));
+    }
+
+    @Test
     public void testGetSigningKeyMatchesLoadedIdentifier() throws Exception {
         var caKey = Crypto.generateRSAPrivateKey(2048);
         String csr = Crypto.generateX509CSR(caKey, "CN=hsm-ca,O=Athenz,C=US", null);
@@ -386,13 +673,32 @@ public class AwsCrypkiSignerFactoryTest {
     }
 
     private static String caCertFile() throws Exception {
+        return writeCert(hsmCertificate("CN=hsm-ca"));
+    }
+
+    private static X509Certificate hsmCertificate(String cn) throws Exception {
         var caKey = Crypto.generateRSAPrivateKey(2048);
-        String csr = Crypto.generateX509CSR(caKey, "CN=hsm-ca,O=Athenz,C=US", null);
-        X509Certificate ca = Crypto.generateX509Certificate(Crypto.getPKCS10CertRequest(csr), caKey,
-                new org.bouncycastle.asn1.x500.X500Name("CN=hsm-ca,O=Athenz,C=US"), 60, true);
+        String dn = cn + ",O=Athenz,C=US";
+        String csr = Crypto.generateX509CSR(caKey, dn, null);
+        return Crypto.generateX509Certificate(Crypto.getPKCS10CertRequest(csr), caKey,
+                new org.bouncycastle.asn1.x500.X500Name(dn), 60, true);
+    }
+
+    private static String writeCert(X509Certificate ca) throws Exception {
         java.io.File certFile = java.io.File.createTempFile("hsmca", ".pem");
         certFile.deleteOnExit();
         Files.writeString(certFile.toPath(), Crypto.convertToPEMFormat(ca));
         return certFile.getAbsolutePath();
+    }
+
+    private static String writeJson(String json) throws Exception {
+        java.io.File file = java.io.File.createTempFile("hsmmap", ".json");
+        file.deleteOnExit();
+        Files.writeString(file.toPath(), json);
+        return file.getAbsolutePath();
+    }
+
+    private static String jsonPath(String path) {
+        return path.replace("\\", "\\\\");
     }
 }
