@@ -210,8 +210,8 @@ public interface ObjectStoreConnection extends Closeable {
 
     // Self-service commands
 
-    SelfServeObjects getSelfServeRoles(String matchString, String principal, boolean memberOnly) throws ServerResourceException;
-    SelfServeObjects getSelfServeGroups(String matchString, String principal, boolean memberOnly) throws ServerResourceException;
+    SelfServeObjects getSelfServeRoles(String matchString, String memberPrincipal) throws ServerResourceException;
+    SelfServeObjects getSelfServeGroups(String matchString, String memberPrincipal) throws ServerResourceException;
 
     Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersByPrincipal(String principal) throws ServerResourceException;
     Map<String, List<DomainRoleMember>> getPendingDomainRoleMembersByDomain(String domainName) throws ServerResourceException;

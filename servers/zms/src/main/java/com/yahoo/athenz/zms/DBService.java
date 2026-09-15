@@ -3771,17 +3771,17 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
-    SelfServeObjects getSelfServeRoles(final String matchString, final String principal, boolean memberOnly) {
+    SelfServeObjects getSelfServeRoles(final String matchString, final String memberPrincipal) {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            return con.getSelfServeRoles(matchString, principal, memberOnly);
+            return con.getSelfServeRoles(matchString, memberPrincipal);
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
         }
     }
 
-    SelfServeObjects getSelfServeGroups(final String matchString, final String principal, boolean memberOnly) {
+    SelfServeObjects getSelfServeGroups(final String matchString, final String memberPrincipal) {
         try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            return con.getSelfServeGroups(matchString, principal, memberOnly);
+            return con.getSelfServeGroups(matchString, memberPrincipal);
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
         }

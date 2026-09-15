@@ -294,32 +294,67 @@ public class ZMSSelfServeTest {
         inheritedRole.setSelfServe(true);
         zmsImpl.putRole(ctx, domainName, MARKER + "-inherited", auditRef, false, null, inheritedRole);
 
-        // full list carries the per-principal overlay
+        // a self-service group john is a direct member of, and one he is not
+
+        List<GroupMember> myGroupMembers = new ArrayList<>();
+        myGroupMembers.add(new GroupMember().setMemberName("user.john").setExpiration(expiry));
+        Group myGroup = zmsTestInitializer.createGroupObject(domainName, MARKER + "-mygroup", myGroupMembers);
+        myGroup.setSelfServe(true);
+        zmsImpl.putGroup(ctx, domainName, MARKER + "-mygroup", auditRef, false, null, myGroup);
+
+        Group otherGroup = zmsTestInitializer.createGroupObject(domainName, MARKER + "-othergroup", null);
+        otherGroup.setSelfServe(true);
+        zmsImpl.putGroup(ctx, domainName, MARKER + "-othergroup", auditRef, false, null, otherGroup);
+
+        // the discovery list (memberOnly=false) returns every self-service role
+        // and does not compute the per-principal overlay
 
         SelfServeObjects roles = zmsImpl.getSelfServeRoles(rsrcCtx, MARKER, false);
+        for (final String roleName : new String[] { "-direct", "-other", "-inherited" }) {
+            SelfServeObject object = findObject(roles, domainName, MARKER + roleName);
+            assertNotNull(object, roleName);
+            assertEquals(object.getMemberStatus(), "none");
+            assertNull(object.getExpiration());
+            assertNull(object.getInheritedFrom());
+        }
 
-        SelfServeObject direct = findObject(roles, domainName, MARKER + "-direct");
+        // memberOnly returns only the roles john is related to, with the
+        // per-principal overlay populated, and excludes the unrelated role
+
+        SelfServeObjects mine = zmsImpl.getSelfServeRoles(rsrcCtx, MARKER, true);
+        assertFalse(containsObject(mine, domainName, MARKER + "-other"));
+
+        SelfServeObject direct = findObject(mine, domainName, MARKER + "-direct");
         assertNotNull(direct);
         assertEquals(direct.getMemberStatus(), "member");
         assertNotNull(direct.getExpiration());
         assertNull(direct.getInheritedFrom());
 
-        SelfServeObject other = findObject(roles, domainName, MARKER + "-other");
-        assertNotNull(other);
-        assertEquals(other.getMemberStatus(), "none");
-        assertNull(other.getInheritedFrom());
-
-        SelfServeObject inherited = findObject(roles, domainName, MARKER + "-inherited");
+        SelfServeObject inherited = findObject(mine, domainName, MARKER + "-inherited");
         assertNotNull(inherited);
         assertEquals(inherited.getMemberStatus(), "member");
         assertEquals(inherited.getInheritedFrom(), groupPrincipal);
 
-        // memberOnly filters out the role john has no relationship with
+        // same behavior for groups: discovery list has no overlay
 
-        SelfServeObjects mine = zmsImpl.getSelfServeRoles(rsrcCtx, MARKER, true);
-        assertTrue(containsObject(mine, domainName, MARKER + "-direct"));
-        assertTrue(containsObject(mine, domainName, MARKER + "-inherited"));
-        assertFalse(containsObject(mine, domainName, MARKER + "-other"));
+        SelfServeObjects groups = zmsImpl.getSelfServeGroups(rsrcCtx, MARKER, false);
+        for (final String groupName : new String[] { "-mygroup", "-othergroup" }) {
+            SelfServeObject object = findObject(groups, domainName, MARKER + groupName);
+            assertNotNull(object, groupName);
+            assertEquals(object.getMemberStatus(), "none");
+            assertNull(object.getExpiration());
+        }
+
+        // memberOnly returns only the group john is a member of, with the overlay
+
+        SelfServeObjects myGroups = zmsImpl.getSelfServeGroups(rsrcCtx, MARKER, true);
+        assertFalse(containsObject(myGroups, domainName, MARKER + "-othergroup"));
+
+        SelfServeObject member = findObject(myGroups, domainName, MARKER + "-mygroup");
+        assertNotNull(member);
+        assertEquals(member.getMemberStatus(), "member");
+        assertNotNull(member.getExpiration());
+        assertNull(member.getInheritedFrom());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
