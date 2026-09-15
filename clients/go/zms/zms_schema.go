@@ -606,6 +606,7 @@ func init() {
 	tTemplateMetaData.Field("keywordsToReplace", "String", true, nil, "placeholders in the template roles/policies to replace (ex:_service_)")
 	tTemplateMetaData.Field("timestamp", "Timestamp", true, nil, "the updated timestamp of the template(solution_templates.json)")
 	tTemplateMetaData.Field("autoUpdate", "Bool", true, nil, "flag to automatically update the roles/policies that belongs to the template")
+	tTemplateMetaData.Field("replaceAdminWithTrust", "Bool", true, nil, "replace the sole requesting admin member when applying a trusted admin role")
 	sb.AddType(tTemplateMetaData.Build())
 
 	tTemplate := rdl.NewStructTypeBuilder("Struct", "Template")

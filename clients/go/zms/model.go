@@ -4982,6 +4982,11 @@ type TemplateMetaData struct {
 	// template
 	//
 	AutoUpdate *bool `json:"autoUpdate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// replace the sole requesting admin member when applying a trusted admin role
+	//
+	ReplaceAdminWithTrust *bool `json:"replaceAdminWithTrust,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewTemplateMetaData - creates an initialized TemplateMetaData instance, returns a pointer to it
