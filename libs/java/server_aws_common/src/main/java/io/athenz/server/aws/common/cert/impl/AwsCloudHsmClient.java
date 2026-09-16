@@ -19,24 +19,29 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.crypki.CrypkiConsts;
 import com.yahoo.athenz.crypki.CrypkiException;
 import com.yahoo.athenz.crypki.hsm.HsmClient;
+import com.yahoo.athenz.crypki.kms.KmsCaCertificateStore;
 import com.yahoo.athenz.crypki.signer.SigningKey;
 import org.eclipse.jetty.util.StringUtil;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.lang.reflect.InvocationTargetException;
 import java.security.AuthProvider;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.Security;
 import java.security.cert.X509Certificate;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import javax.security.auth.callback.PasswordCallback;
 
 /**
  * CloudHSM {@link HsmClient}: CloudHSM JCE when present, otherwise
  * SunPKCS11. The CA PEM is loaded from disk. The private key never
- * leaves the HSM.
+ * leaves the HSM. Optional {@code athenz.crypki.hsm.ca_cert_map_path}
+ * loads one HSM label + CA PEM per Athenz signer key id.
  *
  * <p>SunPKCS11's PKCS#11 {@code KeyStore} only exposes private keys that
  * have a matching certificate object, so CloudHSM JCE
@@ -48,7 +53,8 @@ public class AwsCloudHsmClient implements HsmClient {
     static final String DEFAULT_MODULE = "/opt/cloudhsm/lib/libcloudhsm_pkcs11.so";
 
     private final String defaultLabel;
-    private final SigningKey signingKey;
+    private final KmsCaCertificateStore caCertificates;
+    private final Map<String, SigningKey> keysByLabel;
 
     public AwsCloudHsmClient() {
         this(System.getProperty(CrypkiConsts.PROP_HSM_MODULE_PATH, DEFAULT_MODULE),
@@ -60,20 +66,40 @@ public class AwsCloudHsmClient implements HsmClient {
 
     public AwsCloudHsmClient(String modulePath, String slot, String keyLabel, String pinPath,
             String caCertPath) {
+        this(modulePath, slot, keyLabel, pinPath, new KmsCaCertificateStore(caCertPath,
+                System.getProperty(CrypkiConsts.PROP_HSM_CA_CERT_MAP_PATH),
+                CrypkiConsts.PROP_HSM_CA_CERT_PATH));
+    }
+
+    AwsCloudHsmClient(String modulePath, String slot, String keyLabel, String pinPath,
+            KmsCaCertificateStore caCertificates) {
         this.defaultLabel = StringUtil.isEmpty(keyLabel)
                 ? CrypkiConsts.DEFAULT_HSM_KEY_LABEL : keyLabel;
-        this.signingKey = loadSigningKey(modulePath, slot, this.defaultLabel, pinPath, caCertPath);
+        this.caCertificates = caCertificates;
+        this.keysByLabel = loadSigningKeys(modulePath, slot, pinPath, this.defaultLabel,
+                caCertificates);
     }
 
     AwsCloudHsmClient(SigningKey signingKey, String defaultLabel) {
-        this.signingKey = signingKey;
+        this(singleKey(signingKey, defaultLabel), defaultLabel,
+                new KmsCaCertificateStore(null, null, CrypkiConsts.PROP_HSM_CA_CERT_PATH));
+    }
+
+    AwsCloudHsmClient(Map<String, SigningKey> keysByLabel, String defaultLabel,
+            KmsCaCertificateStore caCertificates) {
         this.defaultLabel = defaultLabel;
+        this.caCertificates = caCertificates;
+        this.keysByLabel = new LinkedHashMap<>(keysByLabel);
+        if (!this.keysByLabel.containsKey(defaultLabel) && !keysByLabel.isEmpty()) {
+            this.keysByLabel.put(defaultLabel, keysByLabel.values().iterator().next());
+        }
     }
 
     @Override
     public SigningKey getSigningKey(String keyId) {
         final String label = resolveLabel(keyId);
-        if (!defaultLabel.equals(label) && !signingKey.getIdentifier().equals(label)) {
+        SigningKey signingKey = keysByLabel.get(label);
+        if (signingKey == null) {
             throw new CrypkiException("CloudHSM key label is not loaded: " + label
                     + " (configured " + defaultLabel + ")");
         }
@@ -84,21 +110,74 @@ public class AwsCloudHsmClient implements HsmClient {
         if (requested == null || requested.isEmpty() || CrypkiConsts.DEFAULT_KEY_ID.equals(requested)) {
             return defaultLabel;
         }
-        return requested;
+        return mappedLabel(requested, defaultLabel, caCertificates);
+    }
+
+    static Map<String, SigningKey> loadSigningKeys(String modulePath, String slot, String pinPath,
+            String defaultLabel, KmsCaCertificateStore caCertificates) {
+        char[] pin = readPin(pinPath);
+        try {
+            Provider jceProvider = null;
+            if (cloudHsmJcePresent()) {
+                jceProvider = cloudHsmJceProvider();
+                loginCloudHsmJce(jceProvider, pin);
+            }
+            Map<String, SigningKey> loaded = new LinkedHashMap<>();
+            loaded.put(defaultLabel, loadSigningKey(jceProvider, modulePath, slot, defaultLabel, pin,
+                    caCertificates.get(null)));
+            for (Map.Entry<String, String> entry : caCertificates.getCertPathsByKeyId().entrySet()) {
+                String label = mappedLabel(entry.getKey(), defaultLabel, caCertificates);
+                X509Certificate caCertificate = caCertificates.get(entry.getKey());
+                SigningKey existing = loaded.get(label);
+                if (existing != null) {
+                    if (!existing.getCaCertificate().equals(caCertificate)) {
+                        throw new CrypkiException("CloudHSM label " + label
+                                + " is mapped to more than one CA certificate");
+                    }
+                    continue;
+                }
+                loaded.put(label, loadSigningKey(jceProvider, modulePath, slot, label, pin,
+                        caCertificate));
+            }
+            return loaded;
+        } catch (CrypkiException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new CrypkiException("Unable to load CloudHSM keys: " + ex.getMessage(), ex);
+        } finally {
+            java.util.Arrays.fill(pin, '\0');
+        }
+    }
+
+    static String mappedLabel(String athenzKeyId, String defaultLabel,
+            KmsCaCertificateStore caCertificates) {
+        String mapped = caCertificates.resolveCloudKeyId(athenzKeyId);
+        if (StringUtil.isEmpty(mapped) || CrypkiConsts.DEFAULT_KEY_ID.equals(mapped)) {
+            return defaultLabel;
+        }
+        return mapped;
+    }
+
+    static Map<String, SigningKey> singleKey(SigningKey signingKey, String defaultLabel) {
+        Map<String, SigningKey> keys = new LinkedHashMap<>();
+        keys.put(signingKey.getIdentifier(), signingKey);
+        keys.putIfAbsent(defaultLabel, signingKey);
+        return keys;
     }
 
     static SigningKey loadSigningKey(String modulePath, String slot, String label, String pinPath,
             String caCertPath) {
+        return loadSigningKey(modulePath, slot, label, pinPath, loadCaCertificate(caCertPath));
+    }
+
+    static SigningKey loadSigningKey(String modulePath, String slot, String label, String pinPath,
+            X509Certificate caCertificate) {
         char[] pin = readPin(pinPath);
-        X509Certificate caCertificate = loadCaCertificate(caCertPath);
         try {
             if (cloudHsmJcePresent()) {
                 return loadCloudHsmJce(label, pin, caCertificate);
             }
-            if (modulePath == null || !new File(modulePath).isFile()) {
-                throw new CrypkiException("AWS CloudHSM PKCS#11 module not found: " + modulePath);
-            }
-            return loadSunPkcs11(modulePath, slot, label, pin, caCertificate);
+            return loadSigningKey(null, modulePath, slot, label, pin, caCertificate);
         } catch (CrypkiException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -107,6 +186,17 @@ public class AwsCloudHsmClient implements HsmClient {
         } finally {
             java.util.Arrays.fill(pin, '\0');
         }
+    }
+
+    static SigningKey loadSigningKey(Provider jceProvider, String modulePath, String slot,
+            String label, char[] pin, X509Certificate caCertificate) throws Exception {
+        if (jceProvider != null) {
+            return signingKeyFromCloudHsmJce(jceProvider, label, pin, caCertificate);
+        }
+        if (modulePath == null || !new File(modulePath).isFile()) {
+            throw new CrypkiException("AWS CloudHSM PKCS#11 module not found: " + modulePath);
+        }
+        return loadSunPkcs11(modulePath, slot, label, pin, caCertificate);
     }
 
     static boolean cloudHsmJcePresent() {
@@ -120,14 +210,86 @@ public class AwsCloudHsmClient implements HsmClient {
 
     static SigningKey loadCloudHsmJce(String label, char[] pin, X509Certificate caCertificate)
             throws Exception {
-        Class<?> providerClass = Class.forName("com.amazonaws.cloudhsm.jce.provider.CloudHsmProvider");
-        Provider created = (Provider) providerClass.getDeclaredConstructor().newInstance();
-        Provider provider = Security.getProvider(created.getName());
-        if (provider == null) {
-            Security.addProvider(created);
-            provider = created;
+        Provider provider = cloudHsmJceProvider();
+        loginCloudHsmJce(provider, pin);
+        return signingKeyFromCloudHsmJce(provider, label, pin, caCertificate);
+    }
+
+    static SigningKey signingKeyFromCloudHsmJce(Provider provider, String label, char[] pin,
+            X509Certificate caCertificate) throws Exception {
+        PrivateKey privateKey = loadCloudHsmJcePrivateKey(provider, label, pin);
+        if (privateKey == null) {
+            throw new CrypkiException("CloudHSM JCE key not found for label " + label);
         }
-        if (provider instanceof AuthProvider) {
+        return new SigningKey(label, privateKey, caCertificate);
+    }
+
+    /**
+     * CloudHSM JCE 5.x allows one HSM connection per process. A second
+     * {@code new CloudHsmProvider()} throws "already initialized", so
+     * reuse the registered provider when loading more than one label.
+     */
+    static Provider cloudHsmJceProvider() throws Exception {
+        Class<?> providerClass = Class.forName("com.amazonaws.cloudhsm.jce.provider.CloudHsmProvider");
+        Provider existing = findRegisteredCloudHsmProvider(providerClass);
+        if (existing != null) {
+            return existing;
+        }
+        return createCloudHsmProvider(providerClass);
+    }
+
+    static Provider createCloudHsmProvider(Class<?> providerClass) throws Exception {
+        try {
+            Provider created = (Provider) providerClass.getDeclaredConstructor().newInstance();
+            Provider registered = Security.getProvider(created.getName());
+            if (registered != null) {
+                return registered;
+            }
+            Security.addProvider(created);
+            return created;
+        } catch (InvocationTargetException ex) {
+            Provider recovered = findRegisteredCloudHsmProvider(providerClass);
+            if (recovered != null) {
+                return recovered;
+            }
+            if (ex.getCause() instanceof Exception) {
+                throw (Exception) ex.getCause();
+            }
+            throw ex;
+        }
+    }
+
+    static Provider findRegisteredCloudHsmProvider(Class<?> providerClass) {
+        for (String name : cloudHsmProviderNames(providerClass)) {
+            Provider provider = Security.getProvider(name);
+            if (providerClass.isInstance(provider)) {
+                return provider;
+            }
+        }
+        for (Provider provider : Security.getProviders()) {
+            if (providerClass.isInstance(provider)) {
+                return provider;
+            }
+        }
+        return null;
+    }
+
+    static String[] cloudHsmProviderNames(Class<?> providerClass) {
+        try {
+            Object value = providerClass.getField("PROVIDER_NAME").get(null);
+            if (value instanceof String && !((String) value).isEmpty()) {
+                return new String[]{(String) value, "CloudHSM", "CloudHsmProvider"};
+            }
+        } catch (Exception ignored) {
+        }
+        return new String[]{"CloudHSM", "CloudHsmProvider"};
+    }
+
+    static void loginCloudHsmJce(Provider provider, char[] pin) throws Exception {
+        if (!(provider instanceof AuthProvider)) {
+            return;
+        }
+        try {
             ((AuthProvider) provider).login(null, callbacks -> {
                 for (javax.security.auth.callback.Callback callback : callbacks) {
                     if (callback instanceof PasswordCallback) {
@@ -135,12 +297,32 @@ public class AwsCloudHsmClient implements HsmClient {
                     }
                 }
             });
+        } catch (Exception ex) {
+            if (alreadyConnected(ex)) {
+                return;
+            }
+            throw ex;
         }
-        PrivateKey privateKey = loadCloudHsmJcePrivateKey(provider, label, pin);
-        if (privateKey == null) {
-            throw new CrypkiException("CloudHSM JCE key not found for label " + label);
+    }
+
+    /**
+     * CloudHSM JCE 5 reports a second {@code login} as
+     * {@code AccountAlreadyLoggedInException} ("already logged in").
+     * Constructing a second provider uses "already initialized".
+     */
+    static boolean alreadyConnected(Throwable ex) {
+        if (ex == null) {
+            return false;
         }
-        return new SigningKey(label, privateKey, caCertificate);
+        if ("AccountAlreadyLoggedInException".equals(ex.getClass().getSimpleName())) {
+            return true;
+        }
+        String message = ex.getMessage();
+        if (message == null) {
+            return false;
+        }
+        String lower = message.toLowerCase();
+        return lower.contains("already initialized") || lower.contains("already logged in");
     }
 
     /**
@@ -180,13 +362,28 @@ public class AwsCloudHsmClient implements HsmClient {
             Object keyStore = ksClass.getMethod("getInstance", String.class).invoke(null, "CloudHSM");
             ksClass.getMethod("load", java.io.InputStream.class, char[].class)
                     .invoke(keyStore, null, pin);
-            Object key = ksClass.getMethod("getKey", mapClass).invoke(keyStore, spec);
+            Object key = invokeCloudHsmGetKey(ksClass, keyStore, spec, mapClass);
             return key instanceof PrivateKey ? (PrivateKey) key : null;
         } catch (ClassNotFoundException ex) {
             return null;
         } catch (Exception ex) {
             throw new CrypkiException("Unable to load CloudHSM JCE private key " + label
                     + ": " + ex.getMessage(), ex);
+        }
+    }
+
+    /**
+     * SDK 5.16+ uses {@code getKey(KeySpec)}; older jars used
+     * {@code getKey(KeyAttributesMap)}. {@code KeyAttributesMap} implements
+     * {@code KeySpec} on current CloudHSM JCE.
+     */
+    static Object invokeCloudHsmGetKey(Class<?> ksClass, Object keyStore, Object spec,
+            Class<?> mapClass) throws Exception {
+        try {
+            return ksClass.getMethod("getKey", java.security.spec.KeySpec.class)
+                    .invoke(keyStore, spec);
+        } catch (NoSuchMethodException ex) {
+            return ksClass.getMethod("getKey", mapClass).invoke(keyStore, spec);
         }
     }
 

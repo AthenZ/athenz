@@ -28,17 +28,37 @@ import java.security.AuthProvider;
  */
 public class CloudHsmProvider extends AuthProvider {
 
+    public static final String PROVIDER_NAME = "CloudHsmProvider";
+
     public static boolean failLogin;
+    public static boolean failLoginAlready;
+    public static boolean failLoginAccountAlready;
+    public static boolean throwOnConstruct;
+    public static int loginCount;
     public boolean loggedIn;
 
     public CloudHsmProvider() {
-        super("CloudHsmProvider", 1.0, "Athenz unit-test stub");
+        this(PROVIDER_NAME);
+    }
+
+    public CloudHsmProvider(String name) {
+        super(name, 1.0, "Athenz unit-test stub");
+        if (throwOnConstruct) {
+            throw new IllegalStateException("HSM connection (CloudHSM provider) is already initialized");
+        }
         put("KeyStore.CloudHsmProvider", StubKeyStoreSpi.class.getName());
     }
 
     @Override
     public void login(Subject subject, CallbackHandler handler) throws LoginException {
+        loginCount++;
         loggedIn = true;
+        if (failLoginAccountAlready) {
+            throw new AccountAlreadyLoggedInException("The user is already logged in");
+        }
+        if (failLoginAlready) {
+            throw new LoginException("HSM connection is already initialized");
+        }
         if (failLogin) {
             throw new LoginException("login denied");
         }
@@ -56,5 +76,15 @@ public class CloudHsmProvider extends AuthProvider {
 
     @Override
     public void setCallbackHandler(CallbackHandler handler) {
+    }
+
+    /**
+     * Mirrors the CloudHSM JCE 5 exception simple name so production code
+     * can recognize it without a compile-time SDK dependency.
+     */
+    public static class AccountAlreadyLoggedInException extends RuntimeException {
+        public AccountAlreadyLoggedInException(String message) {
+            super(message);
+        }
     }
 }

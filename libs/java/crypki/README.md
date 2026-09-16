@@ -27,8 +27,21 @@ This module sits under that SPI:
    here; AWS and GCP implement them in `athenz-server-aws-common` and
    `athenz-server-gcp-common`.
 
-There is one CA for all identities this signer mints. Caller identity is
-in the leaf (CN, SAN, SPIFFE), not a per-tenant CA.
+The default KMS/HSM settings mint under one CA. Per-tenant CAs use ZTS
+`x509CertSignerKeyId` (SimpleName on instance requests, String on
+domain/service metadata; typically `tenant-a-ca`, not `alias/...`) plus
+`athenz.crypki.kms.ca_cert_map_path` or
+`athenz.crypki.hsm.ca_cert_map_path`. AWS KMS treats a SimpleName as
+`alias/<id>` unless the map entry sets an explicit `keyId`. CloudHSM
+uses the Athenz id as the PKCS#11 label unless `keyId` is set. GCP KMS
+entries must set `keyId` to a CryptoKeyVersion resource
+(`.../cryptoKeys/{key}/cryptoKeyVersions/{version}`); a path-only map
+value leaves the Athenz id unchanged and GCP rejects it. Each tenant
+must have its own KMS key or HSM label; sharing one signing key across
+CA PEMs does not isolate tenants. Pin the Athenz signer id on the
+tenant domain or service. `athenz.zts.svc_cert_signer_key_id_list`
+only gates request ids when that metadata is empty; it does not bind
+a principal to a tenant CA.
 
 ```
 SIA / instance provider
@@ -76,9 +89,12 @@ deploying repo, not this module.
    - **HTTP:** POST `/sig/x509-cert/keys/{keyId}` on Go Crypki; GET for the CA.
    - **KMS:** `X509CertificateMinter` builds the TBS certificate; `KmsClient.sign`
      produces the signature. The CA cert is loaded from
-     `athenz.crypki.kms.ca_cert_path`.
+     `athenz.crypki.kms.ca_cert_path`, or from the per-key map when
+     `x509CertSignerKeyId` is set.
    - **HSM:** same minter, but `HsmClient.getSigningKey(keyId)` supplies a
-     `SigningKey` whose private key never leaves the module.
+     `SigningKey` whose private key never leaves the module. The CA comes
+     from `athenz.crypki.hsm.ca_cert_path`, or from the per-key map when
+     `x509CertSignerKeyId` is set.
 6. ZTS returns the leaf PEM plus the CA PEM to the client.
 
 ## What changed from the Go library
@@ -110,7 +126,6 @@ Intentionally not ported:
 - SSH certificate minting
 - A Java clone of the Go HTTP/gRPC server (no v3 facade unless a non-ZTS
   caller appears)
-- Per-tenant CAs
 - Cloud SDK types inside `athenz-crypki` itself
 
 ## Configuration
@@ -127,13 +142,16 @@ HTTP (Go Crypki) — same properties as before:
 KMS / HSM:
 
 - `athenz.crypki.kms.key_id`
-- `athenz.crypki.kms.ca_cert_path`
+- `athenz.crypki.kms.ca_cert_path` (default CA when the key id is not in the map)
+- `athenz.crypki.kms.ca_cert_map_path` (optional JSON: Athenz signer key id → CA PEM path, or `{ "keyId": "<cloud key>", "caCertPath": "<pem>" }`. GCP requires the object form with a CryptoKeyVersion `keyId`.)
+- Leave `athenz.zts.x509_ca_cert_fname` unset for per-tenant CAs. If that file is set, ZTS returns it for every request before asking the signer, so clients get the default bundle with a tenant leaf. Use `athenz.zts.x509_ca_cert_keyid_fname` (`key-id:bundle-path,...`) to preload per-key CA PEMs instead. ZTS caches each signer CA until restart, so rotating a tenant CA PEM requires a ZTS restart.
 - `athenz.crypki.kms.signing_algorithm` (default `SHA256withRSA`)
 - `athenz.crypki.hsm.module_path` (CloudHSM default `/opt/cloudhsm/lib/libcloudhsm_pkcs11.so`)
 - `athenz.crypki.hsm.slot`
 - `athenz.crypki.hsm.key_label` (default `athenz-crypki-ca`)
 - `athenz.crypki.hsm.pin_path` (CloudHSM PIN file: `username:password`)
-- `athenz.crypki.hsm.ca_cert_path`
+- `athenz.crypki.hsm.ca_cert_path` (default CA when the key id is not in the map)
+- `athenz.crypki.hsm.ca_cert_map_path` (optional JSON: Athenz signer key id → CA PEM path, or `{ "keyId": "<hsm-label>", "caCertPath": "<pem>" }`)
 
 AWS CloudHSM signing keys are label-only (no PKCS#11 certificate object).
 Put `cloudhsm-jce-*.jar` on the ZTS classpath so
