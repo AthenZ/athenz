@@ -135,3 +135,43 @@ Backend factory classes:
 * `io.athenz.server.aws.common.cert.impl.AwsKmsCrypkiSignerFactory`
 * `io.athenz.server.aws.common.cert.impl.AwsCloudHsmCrypkiSignerFactory`
 * `io.athenz.server.gcp.common.cert.impl.GcpKmsCrypkiSignerFactory`
+
+KMS settings:
+
+* `athenz.crypki.kms.key_id` — default signer key (AWS alias/UUID, or a GCP CryptoKeyVersion resource)
+* `athenz.crypki.kms.ca_cert_path` — default CA PEM
+* `athenz.crypki.kms.ca_cert_map_path` — optional JSON map for per-tenant CAs
+* `athenz.crypki.kms.signing_algorithm` — default `SHA256withRSA`
+
+CloudHSM settings:
+
+* `athenz.crypki.hsm.module_path` — PKCS#11 module (default `/opt/cloudhsm/lib/libcloudhsm_pkcs11.so`)
+* `athenz.crypki.hsm.slot`
+* `athenz.crypki.hsm.key_label` — default HSM label (`athenz-crypki-ca`)
+* `athenz.crypki.hsm.pin_path` — CloudHSM PIN file (`username:password`)
+* `athenz.crypki.hsm.ca_cert_path` — default CA PEM
+* `athenz.crypki.hsm.ca_cert_map_path` — optional JSON map for per-tenant CAs
+
+Instance-register/refresh `x509CertSignerKeyId` is a SimpleName
+(`tenant-a-ca`). Domain/service metadata stores the same field as String.
+Put that name in the map and, for AWS KMS, either use alias `alias/tenant-a-ca`
+or set the map value to `{ "keyId": "alias/...", "caCertPath": "..." }`.
+For CloudHSM the Athenz id is the PKCS#11 label unless `keyId` is set.
+GCP KMS map entries must use the object form and set `keyId` to a full
+CryptoKeyVersion resource
+(`projects/.../cryptoKeys/{key}/cryptoKeyVersions/{version}`); a
+path-only entry or a CryptoKey name is rejected by the GCP APIs.
+Each tenant needs its own KMS key or HSM label. Pin that id on the
+tenant domain or service (`x509CertSignerKeyId`). ZTS prefers service
+metadata, then domain metadata, and only then the request field.
+`athenz.zts.svc_cert_signer_key_id_list` is a global allowlist of
+request ids, not a per-tenant bind. If a domain or service has no
+signer set, a caller can pick another listed tenant id and mint under
+that CA. Do not treat the allowlist as isolation.
+
+If `athenz.zts.x509_ca_cert_fname` is set, ZTS returns that global CA
+bundle and does not ask the signer for the tenant CA. Leave it unset for
+per-tenant issuance, or list each tenant id in
+`athenz.zts.x509_ca_cert_keyid_fname` (`key-id:bundle-path,...`).
+ZTS also caches each signer CA from `getCACertificate` until restart, so
+replace a tenant CA PEM and restart ZTS together.

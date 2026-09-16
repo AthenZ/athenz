@@ -51,12 +51,12 @@ public class GcpKmsCrypkiTest {
     @Test
     public void testFactoryWiresConfiguredKeyId() {
         System.setProperty(CrypkiConsts.PROP_KMS_KEY_ID,
-                "projects/example/locations/global/keyRings/ring/cryptoKeys/ca");
+                "projects/example/locations/global/keyRings/ring/cryptoKeys/ca/cryptoKeyVersions/1");
         try {
             KmsClient kms = Mockito.mock(KmsClient.class);
             CrypkiCertSigner signer = (CrypkiCertSigner) new GcpKmsCrypkiSignerFactory(kms).create();
             assertEquals(signer.getRequestFactory().resolveKeyId(null, null),
-                    "projects/example/locations/global/keyRings/ring/cryptoKeys/ca");
+                    "projects/example/locations/global/keyRings/ring/cryptoKeys/ca/cryptoKeyVersions/1");
         } finally {
             System.clearProperty(CrypkiConsts.PROP_KMS_KEY_ID);
         }
@@ -113,16 +113,18 @@ public class GcpKmsCrypkiTest {
         certFile.deleteOnExit();
         Files.writeString(certFile.toPath(), Crypto.convertToPEMFormat(ca));
 
+        final String versionedKey = "projects/p/locations/l/keyRings/r/cryptoKeys/k/cryptoKeyVersions/1";
         GcpKmsClient client = new GcpKmsClient(grpc, certFile.getAbsolutePath());
-        assertEquals(client.sign("projects/p/locations/l/keyRings/r/cryptoKeys/k", new byte[]{1}, "SHA256withRSA"),
+        assertEquals(client.sign(versionedKey, new byte[]{1}, "SHA256withRSA"),
                 new byte[]{4, 5});
         ArgumentCaptor<AsymmetricSignRequest> captor = ArgumentCaptor.forClass(AsymmetricSignRequest.class);
         Mockito.verify(grpc).asymmetricSign(captor.capture());
+        assertEquals(captor.getValue().getName(), versionedKey);
         assertTrue(captor.getValue().hasDigest());
         assertTrue(captor.getValue().getDigest().hasSha256());
 
-        client.sign("projects/p/locations/l/keyRings/r/cryptoKeys/k", new byte[]{1}, "SHA384withECDSA");
-        client.sign("projects/p/locations/l/keyRings/r/cryptoKeys/k", new byte[]{1}, "SHA512withRSA");
+        client.sign(versionedKey, new byte[]{1}, "SHA384withECDSA");
+        client.sign(versionedKey, new byte[]{1}, "SHA512withRSA");
         assertEquals(GcpKmsClient.digestAlgorithm("SHA256withRSA"), "SHA-256");
         assertEquals(GcpKmsClient.digestAlgorithm("SHA384withECDSA"), "SHA-384");
         assertEquals(GcpKmsClient.digestAlgorithm("SHA512withRSA"), "SHA-512");
@@ -134,15 +136,46 @@ public class GcpKmsCrypkiTest {
         assertTrue(GcpKmsClient.toDigest(new byte[]{1}, "SHA512withRSA").hasSha512());
         expectThrows(CrypkiException.class, () -> GcpKmsClient.toDigest(null, "SHA256withRSA"));
         expectThrows(CrypkiException.class, () -> client.sign(
-                "projects/p/locations/l/keyRings/r/cryptoKeys/k", new byte[]{1}, "MD5withRSA"));
+                versionedKey, new byte[]{1}, "MD5withRSA"));
 
-        assertNotNull(client.getPublicKey("projects/p/locations/l/keyRings/r/cryptoKeys/k"));
+        assertNotNull(client.getPublicKey(versionedKey));
         assertNotNull(client.getCaCertificate("k"));
         expectThrows(CrypkiException.class, () -> new GcpKmsClient(grpc, null).getCaCertificate("k"));
         expectThrows(CrypkiException.class, () -> new GcpKmsClient(grpc, "/missing.pem").getCaCertificate("k"));
+        var tenantKey = Crypto.generateRSAPrivateKey(2048);
+        X509Certificate tenantCa = Crypto.generateX509Certificate(Crypto.getPKCS10CertRequest(
+                Crypto.generateX509CSR(tenantKey, "CN=tenant-a,O=Athenz,C=US", null)),
+                tenantKey, new org.bouncycastle.asn1.x500.X500Name("CN=tenant-a,O=Athenz,C=US"), 60, true);
+        java.io.File tenantCert = java.io.File.createTempFile("gtenant", ".pem");
+        tenantCert.deleteOnExit();
+        Files.writeString(tenantCert.toPath(), Crypto.convertToPEMFormat(tenantCa));
+        java.io.File mapFile = java.io.File.createTempFile("gcamap", ".json");
+        mapFile.deleteOnExit();
+        final String tenantVersion = "projects/p/locations/l/keyRings/r/cryptoKeys/tenant-a/cryptoKeyVersions/1";
+        Files.writeString(mapFile.toPath(), "{ \"tenant-a-ca\": { \"keyId\": \"" + tenantVersion + "\","
+                + " \"caCertPath\": \"" + tenantCert.getAbsolutePath() + "\" } }\n");
+        System.setProperty(CrypkiConsts.PROP_KMS_CA_CERT_MAP_PATH, mapFile.getAbsolutePath());
+        try {
+            GcpKmsClient mapped = new GcpKmsClient(grpc, certFile.getAbsolutePath());
+            assertEquals(mapped.getCaCertificate("tenant-a-ca")
+                    .getSubjectX500Principal(), tenantCa.getSubjectX500Principal());
+            assertEquals(mapped.getCaCertificate("k").getSubjectX500Principal(), ca.getSubjectX500Principal());
+            mapped.sign("tenant-a-ca", new byte[]{1}, "SHA256withRSA");
+            ArgumentCaptor<AsymmetricSignRequest> mappedSign =
+                    ArgumentCaptor.forClass(AsymmetricSignRequest.class);
+            Mockito.verify(grpc, Mockito.atLeastOnce()).asymmetricSign(mappedSign.capture());
+            assertEquals(mappedSign.getValue().getName(), tenantVersion);
+            ArgumentCaptor<GetPublicKeyRequest> mappedPublicKey =
+                    ArgumentCaptor.forClass(GetPublicKeyRequest.class);
+            mapped.getPublicKey("tenant-a-ca");
+            Mockito.verify(grpc, Mockito.atLeastOnce()).getPublicKey(mappedPublicKey.capture());
+            assertEquals(mappedPublicKey.getValue().getName(), tenantVersion);
+        } finally {
+            System.clearProperty(CrypkiConsts.PROP_KMS_CA_CERT_MAP_PATH);
+        }
         Mockito.when(grpc.asymmetricSign(Mockito.any(AsymmetricSignRequest.class)))
                 .thenThrow(new RuntimeException("kms denied"));
-        expectThrows(CrypkiException.class, () -> client.sign("projects/p/locations/l/keyRings/r/cryptoKeys/k",
+        expectThrows(CrypkiException.class, () -> client.sign(versionedKey,
                 new byte[]{1}, "SHA256withRSA"));
         new GcpKmsClient(grpc);
     }

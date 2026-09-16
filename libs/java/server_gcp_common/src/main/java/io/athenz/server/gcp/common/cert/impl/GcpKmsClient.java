@@ -23,10 +23,9 @@ import com.google.protobuf.ByteString;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.crypki.CrypkiConsts;
 import com.yahoo.athenz.crypki.CrypkiException;
+import com.yahoo.athenz.crypki.kms.KmsCaCertificateStore;
 import com.yahoo.athenz.crypki.kms.KmsClient;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
@@ -38,22 +37,24 @@ import java.util.Locale;
 public class GcpKmsClient implements KmsClient {
 
     private final KeyManagementServiceClient client;
-    private final String caCertPath;
+    private final KmsCaCertificateStore caCertificates;
 
     public GcpKmsClient(KeyManagementServiceClient client) {
-        this(client, System.getProperty(CrypkiConsts.PROP_KMS_CA_CERT_PATH));
+        this.client = client;
+        this.caCertificates = KmsCaCertificateStore.fromProperties();
     }
 
     public GcpKmsClient(KeyManagementServiceClient client, String caCertPath) {
         this.client = client;
-        this.caCertPath = caCertPath;
+        this.caCertificates = new KmsCaCertificateStore(caCertPath,
+                System.getProperty(CrypkiConsts.PROP_KMS_CA_CERT_MAP_PATH));
     }
 
     @Override
     public byte[] sign(String keyId, byte[] data, String signingAlgorithm) {
         try {
             return client.asymmetricSign(AsymmetricSignRequest.newBuilder()
-                    .setName(keyId)
+                    .setName(caCertificates.resolveCloudKeyId(keyId))
                     .setDigest(toDigest(data, signingAlgorithm))
                     .build()).getSignature().toByteArray();
         } catch (CrypkiException ex) {
@@ -100,20 +101,13 @@ public class GcpKmsClient implements KmsClient {
 
     @Override
     public PublicKey getPublicKey(String keyId) {
-        String pem = client.getPublicKey(GetPublicKeyRequest.newBuilder().setName(keyId).build()).getPem();
+        String pem = client.getPublicKey(GetPublicKeyRequest.newBuilder()
+                .setName(caCertificates.resolveCloudKeyId(keyId)).build()).getPem();
         return Crypto.loadPublicKey(pem);
     }
 
     @Override
     public X509Certificate getCaCertificate(String keyId) {
-        if (caCertPath == null || caCertPath.isEmpty()) {
-            throw new CrypkiException("Missing " + CrypkiConsts.PROP_KMS_CA_CERT_PATH
-                    + " for KMS key " + keyId);
-        }
-        try {
-            return Crypto.loadX509Certificate(Files.readString(Path.of(caCertPath)));
-        } catch (Exception ex) {
-            throw new CrypkiException("Unable to load KMS CA certificate: " + caCertPath, ex);
-        }
+        return caCertificates.get(keyId);
     }
 }

@@ -15,9 +15,9 @@
  */
 package io.athenz.server.aws.common.cert.impl;
 
-import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.crypki.CrypkiConsts;
 import com.yahoo.athenz.crypki.CrypkiException;
+import com.yahoo.athenz.crypki.kms.KmsCaCertificateStore;
 import com.yahoo.athenz.crypki.kms.KmsClient;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.kms.model.GetPublicKeyRequest;
@@ -26,14 +26,13 @@ import software.amazon.awssdk.services.kms.model.MessageType;
 import software.amazon.awssdk.services.kms.model.SignRequest;
 import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * AWS KMS implementation of the Crypki {@link KmsClient} SPI.
@@ -41,22 +40,23 @@ import java.util.Map;
 public class AwsKmsClient implements KmsClient {
 
     private final software.amazon.awssdk.services.kms.KmsClient client;
-    private final String caCertPath;
+    private final KmsCaCertificateStore caCertificates;
 
     public AwsKmsClient() {
-        this(software.amazon.awssdk.services.kms.KmsClient.create(),
-                System.getProperty(CrypkiConsts.PROP_KMS_CA_CERT_PATH));
+        this.client = software.amazon.awssdk.services.kms.KmsClient.create();
+        this.caCertificates = KmsCaCertificateStore.fromProperties();
     }
 
     public AwsKmsClient(software.amazon.awssdk.services.kms.KmsClient client, String caCertPath) {
         this.client = client;
-        this.caCertPath = caCertPath;
+        this.caCertificates = new KmsCaCertificateStore(caCertPath,
+                System.getProperty(CrypkiConsts.PROP_KMS_CA_CERT_MAP_PATH));
     }
 
     @Override
     public byte[] sign(String keyId, byte[] data, String signingAlgorithm) {
         return client.sign(SignRequest.builder()
-                .keyId(keyId)
+                .keyId(toAwsKeyId(caCertificates.resolveCloudKeyId(keyId)))
                 .message(SdkBytes.fromByteArray(data))
                 .messageType(MessageType.RAW)
                 .signingAlgorithm(toAwsAlgorithm(signingAlgorithm))
@@ -66,7 +66,8 @@ public class AwsKmsClient implements KmsClient {
     @Override
     public PublicKey getPublicKey(String keyId) {
         GetPublicKeyResponse response = client.getPublicKey(
-                GetPublicKeyRequest.builder().keyId(keyId).build());
+                GetPublicKeyRequest.builder()
+                        .keyId(toAwsKeyId(caCertificates.resolveCloudKeyId(keyId))).build());
         byte[] der = response.publicKey().asByteArray();
         try {
             return KeyFactory.getInstance(publicKeyAlgorithm(response.keySpec(), der))
@@ -102,15 +103,7 @@ public class AwsKmsClient implements KmsClient {
 
     @Override
     public X509Certificate getCaCertificate(String keyId) {
-        if (caCertPath == null || caCertPath.isEmpty()) {
-            throw new CrypkiException("Missing " + CrypkiConsts.PROP_KMS_CA_CERT_PATH
-                    + " for KMS key " + keyId);
-        }
-        try {
-            return Crypto.loadX509Certificate(Files.readString(Path.of(caCertPath)));
-        } catch (Exception ex) {
-            throw new CrypkiException("Unable to load KMS CA certificate: " + caCertPath, ex);
-        }
+        return caCertificates.get(keyId);
     }
 
     private static final Map<String, SigningAlgorithmSpec> AWS_ALGORITHMS = Map.ofEntries(
@@ -123,6 +116,33 @@ public class AwsKmsClient implements KmsClient {
             Map.entry("SHA256withECDSA", SigningAlgorithmSpec.ECDSA_SHA_256),
             Map.entry("SHA384withECDSA", SigningAlgorithmSpec.ECDSA_SHA_384),
             Map.entry("SHA512withECDSA", SigningAlgorithmSpec.ECDSA_SHA_512));
+
+    private static final Pattern KEY_UUID = Pattern.compile(
+            "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+    private static final Pattern MULTI_REGION_KEY = Pattern.compile("(?i)mrk-[0-9a-f]{32}");
+
+    /**
+     * ZTS request {@code x509CertSignerKeyId} is a SimpleName, so it
+     * cannot contain {@code alias/}. Treat a SimpleName as {@code alias/<id>}
+     * unless it is already an alias, ARN, path, key UUID, or multi-Region
+     * {@code mrk-} key id. Domain/service metadata stores the field as
+     * String and is converted the same way.
+     */
+    static String toAwsKeyId(String keyId) {
+        if (keyId == null || keyId.isEmpty() || keyId.contains("/")
+                || isUuid(keyId) || isMultiRegionKeyId(keyId)) {
+            return keyId;
+        }
+        return "alias/" + keyId;
+    }
+
+    static boolean isUuid(String value) {
+        return KEY_UUID.matcher(value).matches();
+    }
+
+    static boolean isMultiRegionKeyId(String value) {
+        return MULTI_REGION_KEY.matcher(value).matches();
+    }
 
     static SigningAlgorithmSpec toAwsAlgorithm(String signingAlgorithm) {
         if (signingAlgorithm == null || signingAlgorithm.isEmpty()) {
