@@ -20,28 +20,8 @@ const {
     toZmsSearchParams,
 } = require('./selfServeContract');
 
-// rdl-rest names a PUT Membership method putMembership. This UI's existing
-// member service already calls putMembership, so try that first and fall back.
-const COMBINED_SEARCH_METHODS = [
-    'getSelfServeResources',
-    'searchSelfServe',
-    'getSelfServe',
-];
-const ROLE_SEARCH_METHODS = [
-    'getSelfServeRoles',
-    'getSelfServeRoleList',
-    'getSelfserveRoles',
-];
-const GROUP_SEARCH_METHODS = [
-    'getSelfServeGroups',
-    'getSelfServeGroupList',
-    'getSelfserveGroups',
-];
-const SEARCH_METHODS = [
-    ...COMBINED_SEARCH_METHODS,
-    ...ROLE_SEARCH_METHODS,
-    ...GROUP_SEARCH_METHODS,
-];
+const ROLE_SEARCH_METHOD = 'getSelfServeRoles';
+const GROUP_SEARCH_METHOD = 'getSelfServeGroups';
 
 const firstMethod = (client, names) =>
     names.find((name) => client && typeof client[name] === 'function');
@@ -70,48 +50,6 @@ const invokeNamed = (client, names, params) => {
     return invoke(client, method, params);
 };
 
-const searchPages = async (zms, method, params, type) => {
-    const list = [];
-    const domains = new Set();
-    let membershipCount;
-    let skip;
-    for (let page = 0; page < 20; page++) {
-        const raw = await invoke(zms, method, {
-            ...params,
-            ...(skip ? { skip, next: skip } : {}),
-        });
-        const mapped = toSelfServeSearchResponse(raw, {
-            member: params.member,
-            type,
-        });
-        list.push(...mapped.list);
-        (mapped.domains || []).forEach((domain) => domains.add(domain));
-        if (mapped.membershipCount !== undefined) {
-            membershipCount = mapped.membershipCount;
-        }
-        skip = mapped.next;
-        if (!skip) {
-            break;
-        }
-    }
-    const response = {
-        list,
-        domains: [...domains].sort(),
-    };
-    if (membershipCount !== undefined) {
-        response.membershipCount = membershipCount;
-    } else if (params.member) {
-        response.membershipCount = list.filter(
-            (item) => item.memberStatus === 'member'
-        ).length;
-    }
-    return response;
-};
-
-// The ZMS self-serve endpoints return every matching object across all
-// domains; they do not filter by domain server-side. The domain dropdown is
-// populated from the full result set, so filter the displayed list here while
-// leaving domains/membershipCount computed over the complete response.
 const applyDomainFilter = (response, domain) =>
     domain
         ? {
@@ -122,14 +60,10 @@ const applyDomainFilter = (response, domain) =>
 
 const searchZms = async (zms, params) => {
     const searchParams = toZmsSearchParams(params);
-    const combined = firstMethod(zms, COMBINED_SEARCH_METHODS);
-    if (combined) {
-        const response = await searchPages(zms, combined, searchParams);
-        return applyDomainFilter(response, searchParams.domain);
-    }
-    const roleMethod = firstMethod(zms, ROLE_SEARCH_METHODS);
-    const groupMethod = firstMethod(zms, GROUP_SEARCH_METHODS);
-    if (!roleMethod && !groupMethod) {
+    if (
+        !firstMethod(zms, [ROLE_SEARCH_METHOD]) ||
+        !firstMethod(zms, [GROUP_SEARCH_METHOD])
+    ) {
         return Promise.reject({
             status: 501,
             message: {
@@ -137,23 +71,24 @@ const searchZms = async (zms, params) => {
             },
         });
     }
-    // Each endpoint is dedicated to a single object kind, so stamp every item
-    // with the type derived from which endpoint produced it. This is what lets
-    // the UI split results into the separate Roles and Groups sections.
-    const tasks = [];
-    if (roleMethod) {
-        tasks.push(searchPages(zms, roleMethod, searchParams, 'role'));
-    }
-    if (groupMethod) {
-        tasks.push(searchPages(zms, groupMethod, searchParams, 'group'));
-    }
-    const pages = await Promise.all(tasks);
+    const pages = await Promise.all([
+        invoke(zms, ROLE_SEARCH_METHOD, searchParams).then((data) =>
+            toSelfServeSearchResponse(data, {
+                member: searchParams.member,
+                type: 'role',
+            })
+        ),
+        invoke(zms, GROUP_SEARCH_METHOD, searchParams).then((data) =>
+            toSelfServeSearchResponse(data, {
+                member: searchParams.member,
+                type: 'group',
+            })
+        ),
+    ]);
     const list = pages.flatMap((page) => page.list);
     const domains = [
         ...new Set(pages.flatMap((page) => page.domains || [])),
     ].sort();
-    // sum the per-endpoint counts so the "my roles & groups" header reflects
-    // memberships across both roles and groups, not just the first endpoint
     const counts = pages
         .map((page) => page.membershipCount)
         .filter((count) => count !== undefined);
@@ -168,11 +103,14 @@ const searchZms = async (zms, params) => {
             (item) => item.memberStatus === 'member'
         ).length;
     }
-    return applyDomainFilter(response, searchParams.domain);
+    return applyDomainFilter(response, params.domain);
 };
 
 const search = (zms, params) => {
-    if (!firstMethod(zms, SEARCH_METHODS)) {
+    if (
+        !firstMethod(zms, [ROLE_SEARCH_METHOD]) ||
+        !firstMethod(zms, [GROUP_SEARCH_METHOD])
+    ) {
         return Promise.reject({
             status: 501,
             message: {
@@ -185,12 +123,9 @@ const search = (zms, params) => {
 
 const membershipBody = (params, memberName, { isGroup } = {}) => {
     const body = { memberName };
-    // both roles and groups support member expiration; the request flow simply
-    // omits it for groups, while the extend flow supplies a chosen date
     if (params.expiration) {
         body.expiration = params.expiration;
     }
-    // review reminders apply to roles only
     if (!isGroup && params.reviewReminder) {
         body.reviewReminder = params.reviewReminder;
     }
@@ -198,11 +133,7 @@ const membershipBody = (params, memberName, { isGroup } = {}) => {
 };
 
 const extendExpiration = (params) => {
-    if (params.expiration) {
-        return params.expiration;
-    }
-    const mins = Number(params.selfRenewMins) || 20160;
-    return new Date(Date.now() + mins * 60 * 1000).toISOString();
+    return params.expiration || '';
 };
 
 const applyAction = (zms, params, memberName) => {

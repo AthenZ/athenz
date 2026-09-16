@@ -94,8 +94,6 @@ const formatDateTime = (date) =>
         minute: '2-digit',
     });
 
-// short, human-friendly "in X" description of how far away the cap is, so the
-// max reads naturally whether the window is minutes, hours or months
 const humanizeUntil = (date) => {
     const mins = Math.max(
         1,
@@ -112,6 +110,13 @@ const humanizeUntil = (date) => {
     return `in ${days} day${days === 1 ? '' : 's'}`;
 };
 
+const isBeforeToday = (value) => {
+    const date = new Date(value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date.getTime() < today.getTime();
+};
+
 export default class ExtendMembershipModal extends React.Component {
     constructor(props) {
         super(props);
@@ -123,10 +128,6 @@ export default class ExtendMembershipModal extends React.Component {
         };
     }
 
-    // the effective cap is the earliest of the configured limits: the self-renew
-    // window (now + selfRenewMins) and the role/group expiry policy (now +
-    // maxExpiryDays, itself the lowest of the role and domain setting). A limit
-    // of 0/unset means it does not apply; if neither applies there is no maximum.
     effectiveMaxDate() {
         const item = this.props.item ?? {};
         const caps = [];
@@ -149,9 +150,25 @@ export default class ExtendMembershipModal extends React.Component {
             });
             return;
         }
-        this.props.onSubmit(
-            this.dateUtils.uxDatetimeToRDLTimestamp(this.state.expiry)
+        const expiration = this.dateUtils.uxDatetimeToRDLTimestamp(
+            this.state.expiry
         );
+        if (isBeforeToday(expiration)) {
+            this.setState({
+                errorMessage: 'Pick an expiry date that is not in the past.',
+            });
+            return;
+        }
+        const maxDate = this.effectiveMaxDate();
+        if (maxDate && new Date(expiration).getTime() > maxDate.getTime()) {
+            this.setState({
+                errorMessage: `Pick an expiry no later than ${formatDateTime(
+                    maxDate
+                )}.`,
+            });
+            return;
+        }
+        this.props.onSubmit(expiration);
     }
 
     render() {
@@ -188,10 +205,6 @@ export default class ExtendMembershipModal extends React.Component {
                                         errorMessage: null,
                                     });
                                 }}
-                                // scope this override to the self-service extend
-                                // modal only: the shared FlatPicker otherwise floors
-                                // selection at now+4h, which clamps the time wheel on
-                                // the current day for short extension windows
                                 minDate={new Date()}
                                 maxDate={maxDate}
                                 id='self-serve-extend-expiry'
@@ -225,6 +238,7 @@ export default class ExtendMembershipModal extends React.Component {
                     this.state.errorMessage || this.props.errorMessage
                 }
                 sections={sections}
+                saving={this.props.saving}
                 width='660px'
             />
         );

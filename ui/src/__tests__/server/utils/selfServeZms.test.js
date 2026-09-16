@@ -157,25 +157,29 @@ describe('selfServeZms', () => {
         expect(data.membershipCount).toBe(3);
     });
 
-    it('follows next-page tokens until search results are exhausted', async () => {
-        const calls = [];
+    it('does not forward unsupported pagination params to ZMS', async () => {
+        let captured;
         const zms = mockClient({
-            getSelfServeResources: (params) => {
-                calls.push(params);
-                if (!params.skip) {
-                    return {
-                        list: [{ domainName: 'd', name: 'one', type: 'role' }],
-                        next: 'page-2',
-                    };
-                }
+            getSelfServeRoles: (params) => {
+                captured = params;
                 return {
-                    list: [{ domainName: 'd', name: 'two', type: 'role' }],
+                    list: [{ domainName: 'd', name: 'one' }],
                 };
             },
+            getSelfServeGroups: () => ({ list: [] }),
         });
-        const data = await selfServeZms.search(zms, { matchString: 'x' });
-        expect(data.list.map((item) => item.name)).toEqual(['one', 'two']);
-        expect(calls[1].skip).toBe('page-2');
+        const data = await selfServeZms.search(zms, {
+            matchString: 'x',
+            skip: 'page-2',
+            next: 'page-2',
+            limit: 10,
+        });
+        expect(data.list.map((item) => item.name)).toEqual(['one']);
+        expect(captured).toEqual({
+            matchString: 'x',
+            member: false,
+            memberOnly: false,
+        });
     });
 
     it('requests role membership through the same ZMS method as Add Member', async () => {

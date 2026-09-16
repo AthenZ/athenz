@@ -149,11 +149,8 @@ describe('selfServeContract', () => {
         ).toEqual(
             expect.objectContaining({
                 matchString: 'security-platform',
-                domain: 'paranoids.tools',
                 member: true,
                 memberOnly: true,
-                skip: 'abc',
-                next: 'abc',
             })
         );
     });

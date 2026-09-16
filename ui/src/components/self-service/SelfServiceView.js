@@ -35,12 +35,33 @@ import RequestAccessModal from './RequestAccessModal';
 import LeaveResourceModal from './LeaveResourceModal';
 import ExtendMembershipModal from './ExtendMembershipModal';
 import {
+    daysUntil,
+    EXPIRING_SOON_DAYS,
     isLeavable,
     isRequestable,
     matchSummary,
     resourceKey,
     splitByType,
 } from './selfServiceUtils';
+
+const WRITE_CONCURRENCY = 5;
+
+const runWithLimit = async (items, handler) => {
+    const results = [];
+    for (let index = 0; index < items.length; index += WRITE_CONCURRENCY) {
+        const batch = items.slice(index, index + WRITE_CONCURRENCY);
+        results.push(...(await Promise.all(batch.map(handler))));
+    }
+    return results;
+};
+
+const failedMessage = (failed, fallback) =>
+    failed
+        .map(
+            (result) =>
+                `${resourceKey(result.item)}: ${result.error || fallback}`
+        )
+        .join('\n');
 
 const MainContentDiv = styled.div`
     flex: 1 1 calc(100vh - 60px);
@@ -102,6 +123,7 @@ export default class SelfServiceView extends React.Component {
     constructor(props) {
         super(props);
         this.api = API();
+        this.searchRequestId = 0;
         this.onTabClick = this.onTabClick.bind(this);
         this.onQueryChange = this.onQueryChange.bind(this);
         this.onDomainChange = this.onDomainChange.bind(this);
@@ -128,6 +150,7 @@ export default class SelfServiceView extends React.Component {
             showSuccess: false,
             successTitle: '',
             successMessage: '',
+            actionInFlight: false,
         };
     }
 
@@ -138,12 +161,13 @@ export default class SelfServiceView extends React.Component {
     }
 
     loadMemberships() {
-        this.api
+        return this.api
             .searchSelfServe('', '', true)
             .then((data) => {
                 this.setState({
                     memberships: data?.list ?? [],
                     membershipCount: data?.membershipCount ?? 0,
+                    errorMessage: null,
                 });
             })
             .catch((err) => {
@@ -175,10 +199,7 @@ export default class SelfServiceView extends React.Component {
                 this.state.selectedTab === SELF_SERVICE_TABS.FIND &&
                 this.state.submittedQuery
             ) {
-                this.onSearch();
-            }
-            if (this.state.selectedTab === SELF_SERVICE_TABS.MINE) {
-                this.loadMemberships();
+                this.onSearch(this.state.submittedQuery);
             }
         });
     }
@@ -194,12 +215,13 @@ export default class SelfServiceView extends React.Component {
         return selected;
     }
 
-    onSearch() {
-        const query = this.state.query.trim();
+    onSearch(searchTerm) {
+        const query =
+            typeof searchTerm === 'string'
+                ? searchTerm.trim()
+                : this.state.query.trim();
         if (!query) {
-            // Nothing searched yet: clear results and reset the domain filter
-            // back to "All domains" (the dropdown only lists domains that came
-            // back from a search).
+            this.searchRequestId += 1;
             this.setState({
                 submittedQuery: '',
                 results: [],
@@ -210,10 +232,14 @@ export default class SelfServiceView extends React.Component {
             });
             return;
         }
+        const requestId = (this.searchRequestId += 1);
         this.setState({ searching: true, submittedQuery: query });
-        this.api
+        return this.api
             .searchSelfServe(query, this.state.domain, false)
             .then((data) => {
+                if (requestId !== this.searchRequestId) {
+                    return;
+                }
                 const results = data?.list ?? [];
                 this.setState({
                     results,
@@ -226,6 +252,9 @@ export default class SelfServiceView extends React.Component {
                 });
             })
             .catch((err) => {
+                if (requestId !== this.searchRequestId) {
+                    return;
+                }
                 this.setState({
                     searching: false,
                     errorMessage: RequestUtils.fetcherErrorCheckHelper(err),
@@ -260,11 +289,10 @@ export default class SelfServiceView extends React.Component {
                     name: item.name,
                     type: item.type,
                     action,
-                    auditRef: extra.justification || extra.auditRef || '',
-                    justification: extra.justification || extra.auditRef || '',
-                    expiration: extra.expiration || '',
-                    reviewReminder: extra.reviewReminder || '',
-                    selfRenewMins: item.selfRenewMins,
+                    auditRef: extra.justification ?? extra.auditRef ?? '',
+                    justification: extra.justification ?? extra.auditRef ?? '',
+                    expiration: extra.expiration ?? '',
+                    reviewReminder: extra.reviewReminder ?? '',
                 },
                 this.props._csrf
             )
@@ -277,10 +305,12 @@ export default class SelfServiceView extends React.Component {
     }
 
     refreshAfterAction() {
+        const tasks = [];
         if (this.state.submittedQuery) {
-            this.onSearch();
+            tasks.push(this.onSearch(this.state.submittedQuery));
         }
-        this.loadMemberships();
+        tasks.push(this.loadMemberships());
+        return Promise.all(tasks);
     }
 
     showSuccess(title, description) {
@@ -292,6 +322,7 @@ export default class SelfServiceView extends React.Component {
             leaveItems: [],
             selected: {},
             errorMessage: null,
+            actionInFlight: false,
         });
         setTimeout(() => this.closeAlert(), MODAL_TIME_OUT);
     }
@@ -300,98 +331,137 @@ export default class SelfServiceView extends React.Component {
         this.setState({ showSuccess: false });
     }
 
-    handleRequestSubmit(payload) {
+    async handleRequestSubmit(payload) {
+        if (this.state.actionInFlight) {
+            return;
+        }
         const items = this.state.requestItems;
-        Promise.all(
-            items.map((item) => this.runAction(item, 'request', payload))
-        ).then((results) => {
-            const failed = results.filter((result) => !result.ok);
-            this.refreshAfterAction();
-            if (failed.length === items.length) {
-                this.setState({
-                    errorMessage:
-                        failed[0].error || 'Unable to submit requests.',
-                });
-                return;
-            }
-            const okCount = items.length - failed.length;
-            this.showSuccess(
-                okCount === 1
-                    ? 'Request submitted'
-                    : `${okCount} requests submitted`,
-                failed.length
-                    ? `${failed.length} request${
-                          failed.length === 1 ? '' : 's'
-                      } could not be sent.`
-                    : 'A reviewer will decide. You can track requests under My Roles & Groups.'
-            );
-        });
+        this.setState({ actionInFlight: true, errorMessage: null });
+        const results = await runWithLimit(items, (item) =>
+            this.runAction(item, 'request', payload)
+        );
+        const failed = results.filter((result) => !result.ok);
+        if (failed.length === items.length) {
+            this.setState({
+                errorMessage: failedMessage(
+                    failed,
+                    'Unable to submit request.'
+                ),
+                actionInFlight: false,
+            });
+            return;
+        }
+        if (failed.length) {
+            await this.refreshAfterAction();
+            this.setState({
+                requestItems: failed.map((result) => result.item),
+                selected: Object.fromEntries(
+                    failed.map((result) => [
+                        resourceKey(result.item),
+                        result.item,
+                    ])
+                ),
+                errorMessage: failedMessage(
+                    failed,
+                    'Unable to submit request.'
+                ),
+                actionInFlight: false,
+            });
+            return;
+        }
+        await this.refreshAfterAction();
+        const okCount = items.length;
+        this.showSuccess(
+            okCount === 1
+                ? 'Request submitted'
+                : `${okCount} requests submitted`,
+            'A reviewer will decide. You can track requests under My Roles & Groups.'
+        );
     }
 
-    handleLeaveSubmit(justification) {
+    async handleLeaveSubmit(justification) {
+        if (this.state.actionInFlight) {
+            return;
+        }
         const items = this.state.leaveItems;
         const action = this.state.leaveMode === 'cancel' ? 'cancel' : 'leave';
-        Promise.all(
-            items.map((item) => this.runAction(item, action, { justification }))
-        ).then((results) => {
-            const failed = results.filter((result) => !result.ok);
-            this.refreshAfterAction();
-            if (failed.length === items.length) {
-                this.setState({
-                    errorMessage:
-                        failed[0].error || 'Unable to complete this action.',
-                });
-                return;
-            }
-            const okCount = items.length - failed.length;
-            if (action === 'cancel') {
-                this.showSuccess(
-                    'Request withdrawn',
-                    okCount === 1
-                        ? `Your request for ${items[0].name} was cancelled.`
-                        : `${okCount} requests were cancelled.`
-                );
-                return;
-            }
+        this.setState({ actionInFlight: true, errorMessage: null });
+        const results = await runWithLimit(items, (item) =>
+            this.runAction(item, action, { justification })
+        );
+        const failed = results.filter((result) => !result.ok);
+        if (failed.length === items.length) {
+            this.setState({
+                errorMessage: failedMessage(
+                    failed,
+                    'Unable to complete this action.'
+                ),
+                actionInFlight: false,
+            });
+            return;
+        }
+        if (failed.length) {
+            await this.refreshAfterAction();
+            this.setState({
+                leaveItems: failed.map((result) => result.item),
+                selected: Object.fromEntries(
+                    failed.map((result) => [
+                        resourceKey(result.item),
+                        result.item,
+                    ])
+                ),
+                errorMessage: failedMessage(
+                    failed,
+                    'Unable to complete this action.'
+                ),
+                actionInFlight: false,
+            });
+            return;
+        }
+        await this.refreshAfterAction();
+        const okCount = items.length;
+        if (action === 'cancel') {
             this.showSuccess(
+                'Request withdrawn',
                 okCount === 1
-                    ? 'Membership removed'
-                    : `${okCount} memberships removed`,
-                failed.length
-                    ? `${failed.length} membership${
-                          failed.length === 1 ? '' : 's'
-                      } could not be removed.`
-                    : okCount === 1
-                    ? `You left ${resourceKey(items[0])}.`
-                    : 'You can request them again from Find Roles & Groups.'
+                    ? `Your request for ${items[0].name} was cancelled.`
+                    : `${okCount} requests were cancelled.`
             );
-        });
+            return;
+        }
+        this.showSuccess(
+            okCount === 1
+                ? 'Membership removed'
+                : `${okCount} memberships removed`,
+            okCount === 1
+                ? `You left ${resourceKey(items[0])}.`
+                : 'You can request them again from Find Roles & Groups.'
+        );
     }
 
     openExtend(item) {
-        // every active membership opens the modal so the user can pick a new
-        // expiry date (bounded by the effective maximum); self-renewable items
-        // apply immediately, everything else is submitted as a new request
         this.setState({ extendItem: item, errorMessage: null });
     }
 
     handleExtendSubmit(expiration) {
+        if (this.state.actionInFlight) {
+            return;
+        }
         const item = this.state.extendItem;
         if (!item) {
             return;
         }
-        this.runAction(item, 'extend', { expiration }).then((outcome) => {
+        this.setState({ actionInFlight: true, errorMessage: null });
+        this.runAction(item, 'extend', { expiration }).then(async (outcome) => {
             if (!outcome.ok) {
-                this.setState({ errorMessage: outcome.error });
+                this.setState({
+                    errorMessage: outcome.error,
+                    actionInFlight: false,
+                });
                 return;
             }
             this.setState({ extendItem: null });
-            this.refreshAfterAction();
-            // ZMS reports the real outcome via the returned membership's
-            // approved flag: false means the change is pending approval, true
-            // means it was applied immediately (both are set explicitly by the
-            // server for every branch). Fall back to a neutral message only if
-            // no body came back, which should not happen on a successful extend.
+            await this.refreshAfterAction();
             const approved = outcome.result?.approved;
             if (approved === false) {
                 this.showSuccess(
@@ -503,11 +573,7 @@ export default class SelfServiceView extends React.Component {
     }
 
     renderMyRoles() {
-        const memberships = this.state.domain
-            ? this.state.memberships.filter(
-                  (item) => item.domainName === this.state.domain
-              )
-            : this.state.memberships;
+        const memberships = this.state.memberships;
         const members = memberships.filter(
             (item) => item.memberStatus === SELF_SERVICE_MEMBER_STATUS.MEMBER
         );
@@ -518,23 +584,14 @@ export default class SelfServiceView extends React.Component {
         const { roles: pendingRoles, groups: pendingGroups } =
             splitByType(pending);
         const expiringSoon = members.filter((item) => {
-            if (!item.expiration) {
-                return false;
-            }
-            const date = /^\d{4}-\d{2}-\d{2}$/.test(item.expiration)
-                ? new Date(`${item.expiration}T00:00:00`)
-                : new Date(item.expiration);
-            if (Number.isNaN(date.getTime())) {
-                return false;
-            }
-            const days = Math.round((date.getTime() - Date.now()) / 86400000);
-            return days <= 30;
+            const days = daysUntil(item.expiration);
+            return days !== null && days >= 0 && days <= EXPIRING_SOON_DAYS;
         }).length;
         return (
             <>
                 <SummaryDiv>
                     {members.length} memberships · {expiringSoon} expiring
-                    within 30 days · {pending.length}{' '}
+                    within {EXPIRING_SOON_DAYS} days · {pending.length}{' '}
                     {pending.length === 1
                         ? 'request awaiting approval'
                         : 'requests awaiting approval'}
@@ -572,6 +629,10 @@ export default class SelfServiceView extends React.Component {
         const memberName = `${USER_DOMAIN}.${this.props.userName}`;
         const selectedItems = this.selectedItems();
         const findTab = this.state.selectedTab === SELF_SERVICE_TABS.FIND;
+        const modalOpen =
+            this.state.requestItems.length > 0 ||
+            this.state.leaveItems.length > 0 ||
+            Boolean(this.state.extendItem);
         const tabs = [
             {
                 label: 'Find Roles & Groups',
@@ -648,6 +709,7 @@ export default class SelfServiceView extends React.Component {
                         items={this.state.requestItems}
                         memberName={memberName}
                         errorMessage={this.state.errorMessage}
+                        saving={this.state.actionInFlight ? 'saving' : ''}
                         onCancel={() =>
                             this.setState({
                                 requestItems: [],
@@ -665,6 +727,7 @@ export default class SelfServiceView extends React.Component {
                         items={this.state.leaveItems}
                         mode={this.state.leaveMode}
                         errorMessage={this.state.errorMessage}
+                        saving={this.state.actionInFlight ? 'saving' : ''}
                         onCancel={() =>
                             this.setState({
                                 leaveItems: [],
@@ -681,6 +744,7 @@ export default class SelfServiceView extends React.Component {
                         isOpen={true}
                         item={this.state.extendItem}
                         errorMessage={this.state.errorMessage}
+                        saving={this.state.actionInFlight ? 'saving' : ''}
                         onCancel={() =>
                             this.setState({
                                 extendItem: null,
@@ -692,6 +756,13 @@ export default class SelfServiceView extends React.Component {
                         }
                     />
                 )}
+                <Alert
+                    isOpen={Boolean(this.state.errorMessage) && !modalOpen}
+                    title='Self-service error'
+                    description={this.state.errorMessage}
+                    type='danger'
+                    onClose={() => this.setState({ errorMessage: null })}
+                />
                 <Alert
                     isOpen={this.state.showSuccess}
                     title={this.state.successTitle}

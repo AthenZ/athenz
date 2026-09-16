@@ -303,6 +303,7 @@ export default class RequestAccessModal extends React.Component {
                     this.state.errorMessage || this.props.errorMessage
                 }
                 sections={sections}
+                saving={this.props.saving}
                 width='820px'
             />
         );

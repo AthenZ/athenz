@@ -21,7 +21,14 @@ import Checkbox from '../denali/CheckBox';
 import Menu from '../denali/Menu/Menu';
 import { colors } from '../denali/styles';
 import { SELF_SERVICE_MEMBER_STATUS } from '../constants/constants';
-import { inheritedSource, resourceKey } from './selfServiceUtils';
+import {
+    daysUntil,
+    encodePathSegment,
+    EXPIRING_SOON_DAYS,
+    inheritedSource,
+    parseDate,
+    resourceKey,
+} from './selfServiceUtils';
 
 const Row = styled.div`
     align-items: center;
@@ -117,19 +124,6 @@ const TooltipLink = styled.a`
     }
 `;
 
-const parseDate = (value) => {
-    if (!value) {
-        return null;
-    }
-    const date = /^\d{4}-\d{2}-\d{2}$/.test(value)
-        ? new Date(`${value}T00:00:00`)
-        : new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return null;
-    }
-    return date;
-};
-
 const formatDate = (value) => {
     const date = parseDate(value);
     if (!date) {
@@ -142,30 +136,30 @@ const formatDate = (value) => {
     });
 };
 
-const daysUntil = (value) => {
-    const date = parseDate(value);
-    if (!date) {
-        return null;
-    }
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    date.setHours(0, 0, 0, 0);
-    return Math.round((date.getTime() - today.getTime()) / 86400000);
-};
-
 const membersHref = (item) => {
     const kind = item.type === 'group' ? 'group' : 'role';
-    return `/domain/${item.domainName}/${kind}/${item.name}/members`;
+    return `/domain/${encodePathSegment(
+        item.domainName
+    )}/${kind}/${encodePathSegment(item.name)}/members`;
 };
 
-// extending only makes sense when the membership can actually expire: either
-// the role/domain sets a member_expiry_days cap (surfaced as maxExpiryDays,
-// the effective minimum, 0 = unlimited) or the object self-renews within a
-// selfRenewMins window. With neither, the membership is permanent and Extend
-// is hidden.
 const hasExpiryPolicy = (item) =>
-    Number(item.maxExpiryDays) > 0 ||
-    (item.selfRenew && Number(item.selfRenewMins) > 0);
+    Number(item.maxExpiryDays) > 0 || item.selfRenew;
+
+const expiryText = (item) => {
+    const dateText = formatDate(item.expiration);
+    const days = daysUntil(item.expiration);
+    if (days === null) {
+        return `Expires ${dateText}`;
+    }
+    if (days < 0) {
+        return `Expired ${dateText}`;
+    }
+    if (days <= EXPIRING_SOON_DAYS) {
+        return `Expires ${dateText} · ${days} day${days === 1 ? '' : 's'} left`;
+    }
+    return `Expires ${dateText}`;
+};
 
 export default class SelfServiceResultRow extends React.Component {
     renderPills(item) {
@@ -227,7 +221,9 @@ export default class SelfServiceResultRow extends React.Component {
         const source = inheritedSource(item.inheritedFrom);
         const sourceDomain = source.domain || item.domainName;
         const groupName = source.name || item.inheritedFrom;
-        const groupHref = `/domain/${sourceDomain}/group/${groupName}/members`;
+        const groupHref = `/domain/${encodePathSegment(
+            sourceDomain
+        )}/group/${encodePathSegment(groupName)}/members`;
         return (
             <Menu
                 placement='top'
@@ -237,14 +233,14 @@ export default class SelfServiceResultRow extends React.Component {
                 }
             >
                 <TooltipContent>
-                    You have this role through the {groupName} group in{' '}
+                    You have this {item.type} through the {groupName} group in{' '}
                     <TooltipLink
                         href={groupHref}
                         data-testid={`leave-tooltip-link-${key}`}
                     >
                         {sourceDomain}
                     </TooltipLink>
-                    . Leave that group to drop this role.
+                    . Leave that group to drop this membership.
                 </TooltipContent>
             </Menu>
         );
@@ -254,17 +250,12 @@ export default class SelfServiceResultRow extends React.Component {
         const key = resourceKey(item);
         if (this.props.variant === 'membership') {
             const days = daysUntil(item.expiration);
-            // red only signals an imminent expiry (<= 14 days); otherwise grey
-            const urgent = days !== null && days <= 14;
+            const urgent = days !== null && days <= EXPIRING_SOON_DAYS;
             return (
                 <Actions>
                     {item.expiration && (
                         <Expiry urgent={urgent} data-testid='expiry-text'>
-                            {urgent
-                                ? `Expires ${formatDate(
-                                      item.expiration
-                                  )} · ${days} days left`
-                                : `Expires ${formatDate(item.expiration)}`}
+                            {expiryText(item)}
                         </Expiry>
                     )}
                     {item.memberStatus === SELF_SERVICE_MEMBER_STATUS.MEMBER &&

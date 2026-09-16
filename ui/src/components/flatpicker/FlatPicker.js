@@ -30,6 +30,8 @@ const Div = styled.div`
     display: flex;
 `;
 
+const timeValue = (date) => (date ? new Date(date).getTime() : null);
+
 export default class FlatPicker extends React.Component {
     constructor(props) {
         super(props);
@@ -83,11 +85,20 @@ export default class FlatPicker extends React.Component {
         ) {
             this.clearDate.current.click();
         }
+        if (!this.flatpickrInstance) {
+            return;
+        }
+        if (timeValue(prevProps.minDate) !== timeValue(this.props.minDate)) {
+            this.flatpickrInstance.set('minDate', this.props.minDate || null);
+        }
+        if (timeValue(prevProps.maxDate) !== timeValue(this.props.maxDate)) {
+            this.flatpickrInstance.set('maxDate', this.props.maxDate || null);
+        }
     };
 
     componentDidMount() {
         let fpClass = this.props.id ? 'fp-' + this.props.id : 'flatpickr';
-        flatpickr('.' + fpClass, {
+        const instance = flatpickr('.' + fpClass, {
             onChange: this.onChange,
             onClose: this.onClose,
             onReady: (dates, dateStr, instance) => {
@@ -97,12 +108,19 @@ export default class FlatPicker extends React.Component {
             altInput: true,
             altFormat: 'Y-m-d h:i K',
             minDate: this.state.minDate,
-            // when a maxDate is provided, flatpickr disables (greys out) every
-            // day after it, so the selectable range is also shown visually
             ...(this.state.maxDate ? { maxDate: this.state.maxDate } : {}),
             defaultDate: this.state.value,
             wrap: true,
         });
+        this.flatpickrInstance = Array.isArray(instance)
+            ? instance[0]
+            : instance;
+    }
+
+    componentWillUnmount() {
+        if (this.flatpickrInstance) {
+            this.flatpickrInstance.destroy();
+        }
     }
 
     render() {

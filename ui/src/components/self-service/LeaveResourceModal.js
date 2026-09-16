@@ -129,6 +129,7 @@ export default class LeaveResourceModal extends React.Component {
                     <Button
                         danger={!isCancel}
                         onClick={this.onSubmit}
+                        disabled={this.props.saving === 'saving'}
                         data-testid='leave-modal-submit'
                     >
                         {actionLabel}

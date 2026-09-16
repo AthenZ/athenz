@@ -67,7 +67,6 @@ const toSelfServeSearchResponse = (data = {}, options = {}) => {
     const response = {
         list,
         domains: uniqueDomains(list),
-        next: data.next ?? undefined,
     };
     if (options.member) {
         response.membershipCount = membershipCountFromList(list);
@@ -77,25 +76,15 @@ const toSelfServeSearchResponse = (data = {}, options = {}) => {
 
 const toZmsSearchParams = (params = {}) => {
     const matchString = params.matchString ?? '';
-    const domain = params.domain ?? '';
     const member =
         params.member === true ||
         params.member === 'true' ||
         params.member === '1';
     const payload = {
         matchString,
-        domain,
         member,
         memberOnly: member,
     };
-    if (params.limit) {
-        payload.limit = Number(params.limit);
-    }
-    if (params.skip || params.next) {
-        const cursor = params.skip || params.next;
-        payload.skip = cursor;
-        payload.next = cursor;
-    }
     return payload;
 };
 

@@ -15,8 +15,12 @@
  */
 import { SELF_SERVICE_MEMBER_STATUS } from '../constants/constants';
 
+export const EXPIRING_SOON_DAYS = 14;
+
 export const resourceKey = (item) =>
     `${item.domainName}:${item.type}.${item.name}`;
+
+export const encodePathSegment = (value) => encodeURIComponent(value ?? '');
 
 export const splitByType = (list = []) => ({
     roles: list.filter((item) => item.type === 'role'),
@@ -57,9 +61,6 @@ export const isLeavable = (item) =>
     item.memberStatus === SELF_SERVICE_MEMBER_STATUS.MEMBER &&
     !item.inheritedFrom;
 
-// inheritedFrom is a fully qualified collection name such as
-// "sports.league:group.admins". Split it into the source domain and the short
-// group name so the UI can name the group and link to the domain that owns it.
 export const inheritedSource = (inheritedFrom) => {
     if (!inheritedFrom) {
         return { domain: '', name: '' };
@@ -71,4 +72,28 @@ export const inheritedSource = (inheritedFrom) => {
     const dot = collection.indexOf('.');
     const name = dot === -1 ? collection : collection.slice(dot + 1);
     return { domain: domain || '', name };
+};
+
+export const parseDate = (value) => {
+    if (!value) {
+        return null;
+    }
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(value)
+        ? new Date(`${value}T00:00:00`)
+        : new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+    return date;
+};
+
+export const daysUntil = (value) => {
+    const date = parseDate(value);
+    if (!date) {
+        return null;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+    return Math.round((date.getTime() - today.getTime()) / 86400000);
 };
