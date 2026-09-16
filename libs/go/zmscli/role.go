@@ -176,7 +176,7 @@ func (cli Zms) DeleteRoles(dn string, roleNames []string) (*string, error) {
 		return nil, fmt.Errorf("no role names specified")
 	}
 	for _, rn := range roleNames {
-		if rn == "admin" {
+		if strings.EqualFold(rn, "admin") {
 			return nil, fmt.Errorf("cannot delete 'admin' role")
 		}
 	}

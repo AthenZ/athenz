@@ -2217,6 +2217,17 @@ public class ZMSClientTest {
         }
         Mockito.verify(c, Mockito.never()).deleteRoles(Mockito.eq("DelRoleDom5"), Mockito.anyString(),
                 Mockito.eq(AUDIT_REF), Mockito.isNull());
+
+        List<String> duplicatedRoleNames = new ArrayList<>();
+        for (int idx = 0; idx < 250; idx++) {
+            duplicatedRoleNames.add("Role" + idx);
+        }
+        duplicatedRoleNames.add("role0");
+        client.deleteRoles("DelRoleDom6", String.join(",", duplicatedRoleNames), AUDIT_REF);
+        Mockito.verify(c, Mockito.times(1)).deleteRoles(Mockito.eq("DelRoleDom6"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+        Mockito.verify(c).deleteRoles("DelRoleDom6",
+                String.join(",", duplicatedRoleNames.subList(0, 250)), AUDIT_REF, null);
     }
 
     @Test
@@ -3117,6 +3128,17 @@ public class ZMSClientTest {
         }
         Mockito.verify(c, Mockito.never()).deletePolicies(Mockito.eq("PolicyDelDom6"), Mockito.anyString(),
                 Mockito.eq(AUDIT_REF), Mockito.isNull());
+
+        List<String> duplicatedPolicyNames = new ArrayList<>();
+        for (int idx = 0; idx < 250; idx++) {
+            duplicatedPolicyNames.add("Policy" + idx);
+        }
+        duplicatedPolicyNames.add("policy0");
+        client.deletePolicies("PolicyDelDom7", String.join(",", duplicatedPolicyNames), AUDIT_REF);
+        Mockito.verify(c, Mockito.times(1)).deletePolicies(Mockito.eq("PolicyDelDom7"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+        Mockito.verify(c).deletePolicies("PolicyDelDom7",
+                String.join(",", duplicatedPolicyNames.subList(0, 250)), AUDIT_REF, null);
     }
 
     @Test

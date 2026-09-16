@@ -22,6 +22,7 @@ func bulkDeleteNameListChunks(names []EntityName, objectType string) ([]EntityNa
 
 	chunks := make([]EntityNameList, 0, (len(names)+BulkDeleteChunkSize-1)/BulkDeleteChunkSize)
 	chunk := make([]string, 0, BulkDeleteChunkSize)
+	normalizedNames := make(map[string]struct{}, len(names))
 	pathParamLength := 0
 
 	for _, name := range names {
@@ -30,6 +31,11 @@ func bulkDeleteNameListChunks(names []EntityName, objectType string) ([]EntityNa
 		if entityNameLength > BulkDeleteMaxPathParamLength {
 			return nil, fmt.Errorf("%s name exceeds maximum path parameter length", objectType)
 		}
+		normalizedName := strings.ToLower(entityName)
+		if _, ok := normalizedNames[normalizedName]; ok {
+			continue
+		}
+		normalizedNames[normalizedName] = struct{}{}
 
 		nextLength := entityNameLength
 		if len(chunk) > 0 {

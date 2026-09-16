@@ -87,7 +87,7 @@ func TestDeleteRolesChunks(t *testing.T) {
 
 func TestDeleteRolesAdmin(t *testing.T) {
 	cli := Zms{}
-	_, err := cli.DeleteRoles("domain1", []string{"role1", "admin"})
+	_, err := cli.DeleteRoles("domain1", []string{"role1", "Admin"})
 	if err == nil {
 		t.Fatal("expected admin role error")
 	}

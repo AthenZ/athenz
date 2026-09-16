@@ -59,8 +59,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 public class ZMSClient implements Closeable {
 
@@ -136,11 +139,15 @@ public class ZMSClient implements Closeable {
         String[] names = entityNames.split(",", -1);
         StringBuilder chunk = new StringBuilder();
         int chunkCount = 0;
+        Set<String> normalizedNames = new HashSet<>();
 
         for (String name : names) {
             String entityName = name.trim();
             if (entityName.length() > BULK_DELETE_MAX_PATH_PARAM_LENGTH) {
                 throw new IllegalArgumentException("entity name exceeds maximum path parameter length");
+            }
+            if (!normalizedNames.add(entityName.toLowerCase(Locale.ROOT))) {
+                continue;
             }
             int nextLength = chunk.length() + (chunkCount == 0 ? 0 : 1) + entityName.length();
 

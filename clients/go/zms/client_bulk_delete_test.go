@@ -82,6 +82,32 @@ func TestDeleteRoleListChunks(t *testing.T) {
 	transport.assertCalled()
 }
 
+func TestDeleteRoleListDeduplicatesNames(t *testing.T) {
+	roleNames := make([]EntityName, BulkDeleteChunkSize+1)
+	roleNameStrings := make([]string, BulkDeleteChunkSize)
+	for idx := 0; idx < BulkDeleteChunkSize; idx++ {
+		roleName := fmt.Sprintf("role%d", idx)
+		roleNames[idx] = EntityName(roleName)
+		roleNameStrings[idx] = roleName
+	}
+	roleNames[BulkDeleteChunkSize] = "Role0"
+
+	transport := &bulkDeleteRequestTransport{
+		t: t,
+		paths: []string{
+			"/domain/domain1/roles/" + strings.Join(roleNameStrings, ","),
+		},
+		auditRef:      "audit",
+		resourceOwner: "owner",
+	}
+	client := NewClient("http://zms", transport)
+
+	if err := client.DeleteRoleList("domain1", roleNames, "audit", "owner"); err != nil {
+		t.Fatal(err)
+	}
+	transport.assertCalled()
+}
+
 func TestDeletePolicyListChunksMaxPathParamLength(t *testing.T) {
 	policyNames := []EntityName{
 		EntityName(strings.Repeat("a", 3000)),
@@ -94,6 +120,32 @@ func TestDeletePolicyListChunksMaxPathParamLength(t *testing.T) {
 		paths: []string{
 			"/domain/domain1/policies/" + string(policyNames[0]),
 			"/domain/domain1/policies/" + string(policyNames[1]) + ",c",
+		},
+		auditRef:      "audit",
+		resourceOwner: "owner",
+	}
+	client := NewClient("http://zms", transport)
+
+	if err := client.DeletePolicyList("domain1", policyNames, "audit", "owner"); err != nil {
+		t.Fatal(err)
+	}
+	transport.assertCalled()
+}
+
+func TestDeletePolicyListDeduplicatesNames(t *testing.T) {
+	policyNames := make([]EntityName, BulkDeleteChunkSize+1)
+	policyNameStrings := make([]string, BulkDeleteChunkSize)
+	for idx := 0; idx < BulkDeleteChunkSize; idx++ {
+		policyName := fmt.Sprintf("policy%d", idx)
+		policyNames[idx] = EntityName(policyName)
+		policyNameStrings[idx] = policyName
+	}
+	policyNames[BulkDeleteChunkSize] = "Policy0"
+
+	transport := &bulkDeleteRequestTransport{
+		t: t,
+		paths: []string{
+			"/domain/domain1/policies/" + strings.Join(policyNameStrings, ","),
 		},
 		auditRef:      "audit",
 		resourceOwner: "owner",
