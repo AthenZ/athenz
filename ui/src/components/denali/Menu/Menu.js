@@ -160,7 +160,13 @@ function Menu(props) {
         setTriggerRef,
         visible,
     } = usePopperTooltip(
-        { trigger: props.triggerOn },
+        {
+            trigger: props.triggerOn,
+            // keep the popup open while the pointer moves into it so any links
+            // or controls rendered inside the menu can be clicked
+            interactive: props.interactive,
+            delayHide: props.interactive ? 150 : 0,
+        },
         {
             placement,
             modifiers,
@@ -234,6 +240,11 @@ Menu.propTypes = {
     /** Additonal class to apply to the popup div */
     className: PropTypes.string,
     /**
+     * Keep the menu open while the pointer is over the popup so interactive
+     * content (eg. links or buttons) inside the menu can be used.
+     */
+    interactive: PropTypes.bool,
+    /**
      * Change the offset position of the menu. Positive values moves the menu N
      * pixels to the right/down (depending on intiial top/bottom, left/right
      * placement), negative values to the left/up.
@@ -293,6 +304,7 @@ Menu.propTypes = {
 Menu.defaultProps = {
     arrowOffset: 0,
     boundary: 'scrollParent',
+    interactive: false,
     menuOffset: 0,
     noanim: false,
     noArrow: true,

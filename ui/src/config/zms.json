@@ -4481,6 +4481,111 @@
                 ],
                 "closed": false
             }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "SelfServeObject",
+                "comment": "Details for a self-service role or group that a principal may request access to.",
+                "fields": [
+                    {
+                        "name": "domainName",
+                        "type": "DomainName",
+                        "optional": false,
+                        "comment": "name of the domain"
+                    },
+                    {
+                        "name": "name",
+                        "type": "EntityName",
+                        "optional": false,
+                        "comment": "name of the role or group"
+                    },
+                    {
+                        "name": "description",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "description of the role or group (roles only - groups do not carry a description)"
+                    },
+                    {
+                        "name": "selfRenew",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "flag indicates whether expired members can renew their own membership"
+                    },
+                    {
+                        "name": "selfRenewMins",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "number of minutes members can renew their membership if self renew is enabled"
+                    },
+                    {
+                        "name": "reviewEnabled",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "flag indicates whether membership changes require review and approval"
+                    },
+                    {
+                        "name": "auditEnabled",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "flag indicates whether membership changes require GRC approval"
+                    },
+                    {
+                        "name": "deleteProtection",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "flag indicates whether member removal requires confirmation"
+                    },
+                    {
+                        "name": "memberStatus",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "membership state of the calling principal for this object: member, pending or none"
+                    },
+                    {
+                        "name": "expiration",
+                        "type": "Timestamp",
+                        "optional": true,
+                        "comment": "expiration timestamp of the calling principal's membership, if any"
+                    },
+                    {
+                        "name": "inheritedFrom",
+                        "type": "ResourceName",
+                        "optional": true,
+                        "comment": "if the caller's membership is inherited through a group, the full name of that group (roles only)"
+                    },
+                    {
+                        "name": "memberExpiryDays",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "maximum membership duration in days configured on this role or group (0 means no limit); callers derive the effective cap"
+                    },
+                    {
+                        "name": "domainMemberExpiryDays",
+                        "type": "Int32",
+                        "optional": true,
+                        "comment": "maximum membership duration in days configured on the owning domain (0 means no limit); callers derive the effective cap"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "SelfServeObjects",
+                "comment": "The representation for a list of self-service objects.",
+                "fields": [
+                    {
+                        "name": "list",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of self-service objects",
+                        "items": "SelfServeObject"
+                    }
+                ],
+                "closed": false
+            }
         }
     ],
     "resources": [
@@ -12338,6 +12443,104 @@
                     "type": "ResourceError"
                 },
                 "FORBIDDEN": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "SelfServeObjects",
+            "method": "GET",
+            "path": "/selfserve/role",
+            "name": "GetSelfServeRoles",
+            "comment": "Fetch all self-service roles across all domains whose name or description contains the given match string. The match is case-insensitive. If the match string is not specified, then all self-service roles are returned. Any authenticated principal may make this call since self-service roles are, by definition, discoverable and requestable by any user.",
+            "inputs": [
+                {
+                    "name": "matchString",
+                    "type": "String",
+                    "comment": "string to match against the role name or description; if empty all self-service roles are returned",
+                    "pathParam": false,
+                    "queryParam": "matchString",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "memberOnly",
+                    "type": "Bool",
+                    "comment": "if true, only return roles the calling principal is already a member of or has a pending request for",
+                    "pathParam": false,
+                    "queryParam": "memberOnly",
+                    "optional": true,
+                    "default": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "SelfServeObjects",
+            "method": "GET",
+            "path": "/selfserve/group",
+            "name": "GetSelfServeGroups",
+            "comment": "Fetch all self-service groups across all domains whose name contains the given match string. The match is case-insensitive. If the match string is not specified, then all self-service groups are returned. Any authenticated principal may make this call since self-service groups are, by definition, discoverable and requestable by any user.",
+            "inputs": [
+                {
+                    "name": "matchString",
+                    "type": "String",
+                    "comment": "string to match against the group name; if empty all self-service groups are returned",
+                    "pathParam": false,
+                    "queryParam": "matchString",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "memberOnly",
+                    "type": "Bool",
+                    "comment": "if true, only return groups the calling principal is already a member of or has a pending request for",
+                    "pathParam": false,
+                    "queryParam": "memberOnly",
+                    "optional": true,
+                    "default": false,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "TOO_MANY_REQUESTS": {
                     "type": "ResourceError"
                 }
             }

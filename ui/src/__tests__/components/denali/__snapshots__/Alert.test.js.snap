@@ -69,10 +69,10 @@ exports[`Alert should disable animations 1`] = `
 }
 
 .emotion-1 .left-section .alert-icon {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -110,6 +110,14 @@ exports[`Alert should disable animations 1`] = `
 
 .emotion-1 .right-section .title-row .title {
   font-weight: 600;
+}
+
+.emotion-1 .right-section .title-row .close-button {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: flex;
 }
 
 .emotion-1 .right-section .description {
@@ -311,10 +319,10 @@ exports[`Alert should render all alert types 1`] = `
 }
 
 .emotion-1 .left-section .alert-icon {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -352,6 +360,14 @@ exports[`Alert should render all alert types 1`] = `
 
 .emotion-1 .right-section .title-row .title {
   font-weight: 600;
+}
+
+.emotion-1 .right-section .title-row .close-button {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: flex;
 }
 
 .emotion-1 .right-section .description {
@@ -543,10 +559,10 @@ exports[`Alert should render all alert types 2`] = `
 }
 
 .emotion-1 .left-section .alert-icon {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -584,6 +600,14 @@ exports[`Alert should render all alert types 2`] = `
 
 .emotion-1 .right-section .title-row .title {
   font-weight: 600;
+}
+
+.emotion-1 .right-section .title-row .close-button {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: flex;
 }
 
 .emotion-1 .right-section .description {
@@ -775,10 +799,10 @@ exports[`Alert should render all alert types 3`] = `
 }
 
 .emotion-1 .left-section .alert-icon {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -816,6 +840,14 @@ exports[`Alert should render all alert types 3`] = `
 
 .emotion-1 .right-section .title-row .title {
   font-weight: 600;
+}
+
+.emotion-1 .right-section .title-row .close-button {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: flex;
 }
 
 .emotion-1 .right-section .description {
@@ -1007,10 +1039,10 @@ exports[`Alert should render all alert types 4`] = `
 }
 
 .emotion-1 .left-section .alert-icon {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -1048,6 +1080,14 @@ exports[`Alert should render all alert types 4`] = `
 
 .emotion-1 .right-section .title-row .title {
   font-weight: 600;
+}
+
+.emotion-1 .right-section .title-row .close-button {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: flex;
 }
 
 .emotion-1 .right-section .description {
@@ -1239,10 +1279,10 @@ exports[`Alert should render open state 1`] = `
 }
 
 .emotion-1 .left-section .alert-icon {
-  -webkit-align-items: flex-start;
-  -webkit-box-align: flex-start;
-  -ms-flex-align: flex-start;
-  align-items: flex-start;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
   display: flex;
   -webkit-box-pack: center;
   -ms-flex-pack: center;
@@ -1280,6 +1320,14 @@ exports[`Alert should render open state 1`] = `
 
 .emotion-1 .right-section .title-row .title {
   font-weight: 600;
+}
+
+.emotion-1 .right-section .title-row .close-button {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  display: flex;
 }
 
 .emotion-1 .right-section .description {

@@ -44,6 +44,9 @@ class PageUtils {
     static workflowGroupReviewPage() {
         return `/workflow/group`;
     }
+    static selfServicePage() {
+        return `/self-service`;
+    }
 }
 
 // opens new tab on cmd + click or ctrl + click
