@@ -51,6 +51,7 @@ else
   mvn -B install --projects "com.yahoo.athenz:athenz-zms-java-client" -Dmaven.test.skip=true
   mvn -B install --projects "com.yahoo.athenz:athenz-zts-java-client" -Dmaven.test.skip=true
   deployProject "com.yahoo.athenz:athenz-server-common"
+  deployProject "com.yahoo.athenz:athenz-crypki"
   deployProject "com.yahoo.athenz:athenz-server-k8s-common"
   deployProject "com.yahoo.athenz:athenz-dynamodb-client-factory"
   deployProject "com.yahoo.athenz:athenz-syncer-common"
