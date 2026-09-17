@@ -3097,7 +3097,11 @@ public class ZTSClient implements Closeable {
         if (AWSLambdaOptions.KEY_ALGORITHM_EC.equalsIgnoreCase(options.getKeyAlgorithm())) {
             return Crypto.generateECPrivateKey(options.getEcCurveName());
         }
-        return Crypto.generateRSAPrivateKey(options.getRsaKeySize());
+        if (AWSLambdaOptions.KEY_ALGORITHM_RSA.equalsIgnoreCase(options.getKeyAlgorithm())) {
+            return Crypto.generateRSAPrivateKey(options.getRsaKeySize());
+        }
+        throw new ZTSClientException(ClientResourceException.BAD_REQUEST,
+                "Unsupported AWS Lambda key algorithm: " + options.getKeyAlgorithm());
     }
 
     String getAWSLambdaAttestationData(final String athenzService, final String account) {
@@ -3165,7 +3169,9 @@ public class ZTSClient implements Closeable {
 
         try {
             GetWebIdentityTokenRequest req = getWebIdentityTokenRequest(options);
-            return StsClient.builder().build().getWebIdentityToken(req).webIdentityToken();
+            try (StsClient stsClient = StsClient.builder().build()) {
+                return stsClient.getWebIdentityToken(req).webIdentityToken();
+            }
         } catch (Exception ex) {
             LOG.error("getAWSWebIdentityToken - unable to get web identity token: {}", ex.getMessage());
             throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());

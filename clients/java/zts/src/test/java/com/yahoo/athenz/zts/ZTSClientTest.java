@@ -3108,6 +3108,23 @@ public class ZTSClientTest {
     }
 
     @Test
+    public void testGenerateAWSLambdaPrivateKeyInvalidAlgorithm() {
+
+        ZTSClient client = new ZTSClient("http://localhost:4080");
+
+        AWSLambdaOptions options = new AWSLambdaOptions();
+        options.setKeyAlgorithm("unknown");
+        try {
+            client.generateAWSLambdaPrivateKey(options);
+            fail();
+        } catch (ZTSClientException ex) {
+            assertEquals(ex.getCode(), ClientResourceException.BAD_REQUEST);
+        }
+
+        client.close();
+    }
+
+    @Test
     public void testGetAWSLambdaServiceCertificate() {
 
         ZTSClientMock client = new ZTSClientMock("http://localhost:4080");
