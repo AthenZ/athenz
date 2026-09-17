@@ -212,7 +212,7 @@ policy or role which is part of the template and wanted to patch it up.
 ![ui](images/example_2_ui.png)
 
 ### Replacing the domain admin with delegated trust
-When a solution template defines `trust` for the domain's `admin` role, ZMS automatically replaces the requesting administrator's direct membership with delegated administration. No additional metadata or applicant-side flag is required. Templates without an admin trust role retain the existing merge behavior.
+When a solution template defines `trust` for the domain's `admin` role, ZMS automatically replaces the requesting administrator's direct membership with delegated administration. Templates without an admin trust role retain the existing merge behavior.
 
 ZMS accepts the handoff only when the templates being applied define exactly one `admin` role with trust and no members, the authenticated requester is the sole approved direct member of the current regular `admin` role with no pending admin entries, and the trust domain already delegates the target `admin` role to that requester (directly or through a group). These checks also apply when templates are supplied during domain creation. ZMS validates the handoff before applying template changes, and removes the direct membership and sets trust in the same transaction. Failed validation leaves the existing domain unchanged, or rolls back creation of a new domain.
 
