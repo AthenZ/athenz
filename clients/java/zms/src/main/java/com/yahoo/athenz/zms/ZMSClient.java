@@ -80,7 +80,7 @@ public class ZMSClient implements Closeable {
     private static final String HTTP_RFC1123_DATE_FORMAT = "EEE, d MMM yyyy HH:mm:ss zzz";
     private static final int BULK_DELETE_CHUNK_SIZE = 250;
     private static final int BULK_DELETE_MAX_PATH_PARAM_LENGTH = 6000;
-    private static final Validator BULK_DELETE_ENTITY_NAME_VALIDATOR = new Validator(ZMSSchema.instance());
+    private static final Validator BULK_DELETE_ENTITY_NAME_LIST_VALIDATOR = new Validator(ZMSSchema.instance());
 
     public static final String ZMS_CLIENT_PROP_ATHENZ_CONF = "athenz.athenz_conf";
     public static final String ZMS_CLIENT_PROP_READ_TIMEOUT = "athenz.zms.client.read_timeout";
@@ -151,9 +151,6 @@ public class ZMSClient implements Closeable {
             if (entityName.length() > BULK_DELETE_MAX_PATH_PARAM_LENGTH) {
                 throw new IllegalArgumentException("entity name exceeds maximum path parameter length");
             }
-            if (!BULK_DELETE_ENTITY_NAME_VALIDATOR.validate(entityName, "EntityName").valid) {
-                throw new IllegalArgumentException("invalid entity name specified");
-            }
             if (!normalizedNames.add(entityName.toLowerCase(Locale.ROOT))) {
                 continue;
             }
@@ -175,7 +172,7 @@ public class ZMSClient implements Closeable {
 
             if (chunkCount > 0 && (chunkCount == BULK_DELETE_CHUNK_SIZE
                     || nextLength > BULK_DELETE_MAX_PATH_PARAM_LENGTH)) {
-                chunks.add(chunk.toString());
+                chunks.add(validateBulkDeleteEntityNameList(chunk.toString()));
                 chunk.setLength(0);
                 chunkCount = 0;
             }
@@ -188,10 +185,18 @@ public class ZMSClient implements Closeable {
         }
 
         if (chunkCount > 0) {
-            chunks.add(chunk.toString());
+            chunks.add(validateBulkDeleteEntityNameList(chunk.toString()));
         }
 
         return chunks;
+    }
+
+    private String validateBulkDeleteEntityNameList(String entityNameList) {
+
+        if (!BULK_DELETE_ENTITY_NAME_LIST_VALIDATOR.validate(entityNameList, "EntityNameList").valid) {
+            throw new IllegalArgumentException("invalid entity name specified");
+        }
+        return entityNameList;
     }
 
     private void deleteNameListInChunks(String entityNames, BulkDeleteAction deleteAction) throws Exception {
