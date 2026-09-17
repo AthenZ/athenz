@@ -334,6 +334,7 @@ func TestOptionsWithConfig(t *testing.T) {
 	assert.Equal(t, "", cfg.SiaCertDir)
 	assert.Equal(t, "", cfg.SiaTokenDir)
 	assert.Equal(t, "", cfg.SiaBackupDir)
+	assert.Equal(t, "", cfg.SiaMainDir)
 
 	opts, e := setOptions(cfg, cfgAccount, nil, "/var/lib/sia", "1.0.0")
 	require.Nilf(t, e, "error should be empty, error: %v", e)
@@ -344,6 +345,7 @@ func TestOptionsWithConfig(t *testing.T) {
 	assert.Equal(t, "/var/lib/sia/certs", opts.CertDir)
 	assert.Equal(t, "/var/lib/sia/tokens", opts.TokenDir)
 	assert.Equal(t, "/var/lib/sia/backup", opts.BackupDir)
+	assert.Equal(t, "/var/lib/sia", opts.MainDir)
 	assert.Equal(t, "host1.athenz.io,host2.athenz.io", opts.SshPrincipals)
 
 	// Make sure services are set
@@ -725,6 +727,7 @@ func TestInitEnvConfig(t *testing.T) {
 	os.Setenv("ATHENZ_SIA_KEY_DIR", "/var/athenz/keys")
 	os.Setenv("ATHENZ_SIA_CERT_DIR", "/var/athenz/certs")
 	os.Setenv("ATHENZ_SIA_TOKEN_DIR", "/var/athenz/tokens")
+	os.Setenv("ATHENZ_SIA_MAIN_DIR", "/var/athenz/main")
 	os.Setenv("ATHENZ_SIA_SSH_PRINCIPALS", "host1.athenz.io")
 	os.Setenv("ATHENZ_SIA_FAIL_COUNT_FOR_EXIT", "10")
 	os.Setenv("ATHENZ_SIA_SPIFFE_TRUST_DOMAIN", "athenz.io")
@@ -760,6 +763,7 @@ func TestInitEnvConfig(t *testing.T) {
 	assert.Equal(t, "/var/athenz/keys", cfg.SiaKeyDir)
 	assert.Equal(t, "/var/athenz/certs", cfg.SiaCertDir)
 	assert.Equal(t, "/var/athenz/tokens", cfg.SiaTokenDir)
+	assert.Equal(t, "/var/athenz/main", cfg.SiaMainDir)
 	assert.Equal(t, "zts.athenz.cloud", cfg.HostnameSuffix)
 	assert.Equal(t, "athenz.io", cfg.SpiffeTrustDomain)
 	assert.Equal(t, "svc1.athenz.io,svc2.athenz.io", cfg.SanDnsX509Cnames)
@@ -884,6 +888,7 @@ func TestOptionsWithSiaDirs(t *testing.T) {
 	assert.Equal(t, "/var/athenz/certs", cfg.SiaCertDir)
 	assert.Equal(t, "/var/athenz/tokens", cfg.SiaTokenDir)
 	assert.Equal(t, "/var/athenz/backup", cfg.SiaBackupDir)
+	assert.Equal(t, "/var/athenz/main", cfg.SiaMainDir)
 
 	opts, e := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
@@ -891,6 +896,7 @@ func TestOptionsWithSiaDirs(t *testing.T) {
 	assert.Equal(t, "/var/athenz/certs", opts.CertDir)
 	assert.Equal(t, "/var/athenz/tokens", opts.TokenDir)
 	assert.Equal(t, "/var/athenz/backup", opts.BackupDir)
+	assert.Equal(t, "/var/athenz/main", opts.MainDir)
 }
 
 func TestOptionsWithServiceOnlySetup(t *testing.T) {
