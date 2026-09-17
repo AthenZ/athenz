@@ -3199,16 +3199,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             String caller, SolutionTemplates solutionTemplates) {
 
         final String requester = ((RsrcCtxWrapper) ctx).principal().getFullName();
-        final String trustDomain = dbService.validateAdminTrustReplacement(domainName, domainTemplate,
+        dbService.validateAdminTrustReplacement(domainName, domainTemplate,
                 requester, caller, solutionTemplates);
-        if (trustDomain == null) {
-            return;
-        }
-        final String adminRoleResource = ResourceUtils.roleResourceName(domainName, ADMIN_ROLE_NAME);
-        if (!delegatedTrust(trustDomain, adminRoleResource, requester)) {
-            throw ZMSUtils.requestError("replaceAdminWithTrust: requester does not have delegated access "
-                    + "to the admin role", caller);
-        }
     }
 
     public DomainTemplateList getDomainTemplateList(ResourceContext ctx, String domainName) {
