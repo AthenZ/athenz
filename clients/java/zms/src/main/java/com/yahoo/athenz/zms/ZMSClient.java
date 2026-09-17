@@ -27,6 +27,7 @@ import com.yahoo.athenz.common.utils.SSLUtils;
 import com.yahoo.athenz.common.utils.SSLUtils.ClientSSLContextBuilder;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
+import com.yahoo.rdl.Validator;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -57,6 +58,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -78,6 +80,7 @@ public class ZMSClient implements Closeable {
     private static final String HTTP_RFC1123_DATE_FORMAT = "EEE, d MMM yyyy HH:mm:ss zzz";
     private static final int BULK_DELETE_CHUNK_SIZE = 250;
     private static final int BULK_DELETE_MAX_PATH_PARAM_LENGTH = 6000;
+    private static final Validator BULK_DELETE_ENTITY_NAME_VALIDATOR = new Validator(ZMSSchema.instance());
 
     public static final String ZMS_CLIENT_PROP_ATHENZ_CONF = "athenz.athenz_conf";
     public static final String ZMS_CLIENT_PROP_READ_TIMEOUT = "athenz.zms.client.read_timeout";
@@ -130,30 +133,49 @@ public class ZMSClient implements Closeable {
         return SSLUtils.loadServicePrivateKey(pkeyFactoryClass);
     }
 
-    private void deleteNameListInChunks(String entityNames, BulkDeleteAction deleteAction) throws Exception {
+    private List<String> validateBulkDeleteEntityNames(String entityNames) {
 
         if (entityNames == null || entityNames.trim().isEmpty()) {
             throw new IllegalArgumentException("no entity names specified");
         }
 
-        String[] names = entityNames.split(",", -1);
-        StringBuilder chunk = new StringBuilder();
-        int chunkCount = 0;
+        String[] rawNames = entityNames.split(",", -1);
+        List<String> names = new ArrayList<>(rawNames.length);
         Set<String> normalizedNames = new HashSet<>();
 
-        for (String name : names) {
-            String entityName = name.trim();
+        for (String rawName : rawNames) {
+            String entityName = rawName.trim();
+            if (entityName.isEmpty()) {
+                throw new IllegalArgumentException("empty entity name specified");
+            }
             if (entityName.length() > BULK_DELETE_MAX_PATH_PARAM_LENGTH) {
                 throw new IllegalArgumentException("entity name exceeds maximum path parameter length");
+            }
+            if (!BULK_DELETE_ENTITY_NAME_VALIDATOR.validate(entityName, "EntityName").valid) {
+                throw new IllegalArgumentException("invalid entity name specified");
             }
             if (!normalizedNames.add(entityName.toLowerCase(Locale.ROOT))) {
                 continue;
             }
+            names.add(entityName);
+        }
+
+        return names;
+    }
+
+    private List<String> bulkDeleteNameListChunks(String entityNames) {
+
+        List<String> names = validateBulkDeleteEntityNames(entityNames);
+        List<String> chunks = new ArrayList<>((names.size() + BULK_DELETE_CHUNK_SIZE - 1) / BULK_DELETE_CHUNK_SIZE);
+        StringBuilder chunk = new StringBuilder();
+        int chunkCount = 0;
+
+        for (String entityName : names) {
             int nextLength = chunk.length() + (chunkCount == 0 ? 0 : 1) + entityName.length();
 
             if (chunkCount > 0 && (chunkCount == BULK_DELETE_CHUNK_SIZE
                     || nextLength > BULK_DELETE_MAX_PATH_PARAM_LENGTH)) {
-                deleteAction.delete(chunk.toString());
+                chunks.add(chunk.toString());
                 chunk.setLength(0);
                 chunkCount = 0;
             }
@@ -166,6 +188,16 @@ public class ZMSClient implements Closeable {
         }
 
         if (chunkCount > 0) {
+            chunks.add(chunk.toString());
+        }
+
+        return chunks;
+    }
+
+    private void deleteNameListInChunks(String entityNames, BulkDeleteAction deleteAction) throws Exception {
+
+        List<String> chunks = bulkDeleteNameListChunks(entityNames);
+        for (String chunk : chunks) {
             deleteAction.delete(chunk.toString());
         }
     }

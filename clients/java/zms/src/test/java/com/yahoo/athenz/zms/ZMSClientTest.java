@@ -2218,15 +2218,47 @@ public class ZMSClientTest {
         Mockito.verify(c, Mockito.never()).deleteRoles(Mockito.eq("DelRoleDom5"), Mockito.anyString(),
                 Mockito.eq(AUDIT_REF), Mockito.isNull());
 
+        List<String> roleNamesWithOversizedName = new ArrayList<>(roleNames.subList(0, 250));
+        roleNamesWithOversizedName.add("Role" + new String(new char[6001]).replace('\0', 'a'));
+        try {
+            client.deleteRoles("DelRoleDom6", String.join(",", roleNamesWithOversizedName), AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("maximum path parameter length"));
+        }
+        Mockito.verify(c, Mockito.never()).deleteRoles(Mockito.eq("DelRoleDom6"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+
+        try {
+            client.deleteRoles("DelRoleDom7", "Role1,,Role2", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("empty entity name"));
+        }
+        Mockito.verify(c, Mockito.never()).deleteRoles(Mockito.eq("DelRoleDom7"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+
+        try {
+            client.deleteRoles("DelRoleDom8", "Role1,bad:name", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("invalid entity name"));
+        }
+        Mockito.verify(c, Mockito.never()).deleteRoles(Mockito.eq("DelRoleDom8"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+
         List<String> duplicatedRoleNames = new ArrayList<>();
         for (int idx = 0; idx < 250; idx++) {
             duplicatedRoleNames.add("Role" + idx);
         }
         duplicatedRoleNames.add("role0");
-        client.deleteRoles("DelRoleDom6", String.join(",", duplicatedRoleNames), AUDIT_REF);
-        Mockito.verify(c, Mockito.times(1)).deleteRoles(Mockito.eq("DelRoleDom6"), Mockito.anyString(),
+        client.deleteRoles("DelRoleDom9", String.join(",", duplicatedRoleNames), AUDIT_REF);
+        Mockito.verify(c, Mockito.times(1)).deleteRoles(Mockito.eq("DelRoleDom9"), Mockito.anyString(),
                 Mockito.eq(AUDIT_REF), Mockito.isNull());
-        Mockito.verify(c).deleteRoles("DelRoleDom6",
+        Mockito.verify(c).deleteRoles("DelRoleDom9",
                 String.join(",", duplicatedRoleNames.subList(0, 250)), AUDIT_REF, null);
     }
 
@@ -3129,15 +3161,47 @@ public class ZMSClientTest {
         Mockito.verify(c, Mockito.never()).deletePolicies(Mockito.eq("PolicyDelDom6"), Mockito.anyString(),
                 Mockito.eq(AUDIT_REF), Mockito.isNull());
 
+        List<String> policyNamesWithOversizedName = new ArrayList<>(policyNames.subList(0, 250));
+        policyNamesWithOversizedName.add("Policy" + new String(new char[6001]).replace('\0', 'a'));
+        try {
+            client.deletePolicies("PolicyDelDom7", String.join(",", policyNamesWithOversizedName), AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("maximum path parameter length"));
+        }
+        Mockito.verify(c, Mockito.never()).deletePolicies(Mockito.eq("PolicyDelDom7"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+
+        try {
+            client.deletePolicies("PolicyDelDom8", "Policy1,,Policy2", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("empty entity name"));
+        }
+        Mockito.verify(c, Mockito.never()).deletePolicies(Mockito.eq("PolicyDelDom8"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+
+        try {
+            client.deletePolicies("PolicyDelDom9", "Policy1,bad:name", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("invalid entity name"));
+        }
+        Mockito.verify(c, Mockito.never()).deletePolicies(Mockito.eq("PolicyDelDom9"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+
         List<String> duplicatedPolicyNames = new ArrayList<>();
         for (int idx = 0; idx < 250; idx++) {
             duplicatedPolicyNames.add("Policy" + idx);
         }
         duplicatedPolicyNames.add("policy0");
-        client.deletePolicies("PolicyDelDom7", String.join(",", duplicatedPolicyNames), AUDIT_REF);
-        Mockito.verify(c, Mockito.times(1)).deletePolicies(Mockito.eq("PolicyDelDom7"), Mockito.anyString(),
+        client.deletePolicies("PolicyDelDom10", String.join(",", duplicatedPolicyNames), AUDIT_REF);
+        Mockito.verify(c, Mockito.times(1)).deletePolicies(Mockito.eq("PolicyDelDom10"), Mockito.anyString(),
                 Mockito.eq(AUDIT_REF), Mockito.isNull());
-        Mockito.verify(c).deletePolicies("PolicyDelDom7",
+        Mockito.verify(c).deletePolicies("PolicyDelDom10",
                 String.join(",", duplicatedPolicyNames.subList(0, 250)), AUDIT_REF, null);
     }
 
