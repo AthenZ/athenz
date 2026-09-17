@@ -66,6 +66,7 @@ import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.rdl.Timestamp;
 
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
+import software.amazon.awssdk.services.sts.model.GetWebIdentityTokenRequest;
 
 public class ZTSClientTest {
 
@@ -3041,6 +3042,67 @@ public class ZTSClientTest {
         assertEquals(data.getRole(), "athenz.service");
         assertEquals(data.getSecret(), "secret");
         assertEquals(data.getToken(), "token");
+        assertNull(data.getIdentityToken());
+
+        client.close();
+    }
+
+    @Test
+    public void testGetAWSLambdaAttestationDataWebIdentityToken() throws IOException {
+        ZTSClientMock client = new ZTSClientMock("http://localhost:4080");
+        AWSLambdaOptions options = new AWSLambdaOptions();
+        options.setUseWebIdentityToken(true);
+        String jsonData = client.getAWSLambdaAttestationData("athenz.service", "12345", options);
+
+        // convert data into our object
+
+        ObjectMapper mapper = new ObjectMapper();
+        AWSAttestationData data = mapper.readValue(jsonData, AWSAttestationData.class);
+        assertEquals(data.getRole(), "athenz.service");
+        assertEquals(data.getIdentityToken(), "identity-token");
+        assertNull(data.getAccess());
+        assertNull(data.getSecret());
+        assertNull(data.getToken());
+
+        client.close();
+    }
+
+    @Test
+    public void testGetWebIdentityTokenRequest() {
+
+        ZTSClient client = new ZTSClient("http://localhost:4080");
+
+        AWSLambdaOptions options = new AWSLambdaOptions();
+        GetWebIdentityTokenRequest req = client.getWebIdentityTokenRequest(options);
+        assertEquals(req.audience().get(0), "http://localhost:4080/zts/v1");
+        assertEquals(req.signingAlgorithm(), AWSLambdaOptions.DEFAULT_SIGNING_ALGORITHM);
+        assertEquals(req.durationSeconds().intValue(), AWSLambdaOptions.DEFAULT_DURATION_SECONDS);
+
+        options.setWebIdentityAudience("https://zts.athenz.io");
+        options.setWebIdentitySigningAlgorithm("RS256");
+        options.setWebIdentityDurationSeconds(600);
+        req = client.getWebIdentityTokenRequest(options);
+        assertEquals(req.audience().get(0), "https://zts.athenz.io");
+        assertEquals(req.signingAlgorithm(), "RS256");
+        assertEquals(req.durationSeconds().intValue(), 600);
+
+        client.close();
+    }
+
+    @Test
+    public void testGenerateAWSLambdaPrivateKey() {
+
+        ZTSClient client = new ZTSClient("http://localhost:4080");
+
+        AWSLambdaOptions options = new AWSLambdaOptions();
+        PrivateKey privateKey = client.generateAWSLambdaPrivateKey(options);
+        assertNotNull(privateKey);
+        assertEquals(privateKey.getAlgorithm(), "RSA");
+
+        options.setKeyAlgorithm(AWSLambdaOptions.KEY_ALGORITHM_EC);
+        privateKey = client.generateAWSLambdaPrivateKey(options);
+        assertNotNull(privateKey);
+        assertEquals(privateKey.getAlgorithm(), "EC");
 
         client.close();
     }
@@ -3062,6 +3124,57 @@ public class ZTSClientTest {
         AWSLambdaIdentity identity = client.getAWSLambdaServiceCertificate("athenz", "service", "1234", "provider");
         assertNotNull(identity);
         assertNotNull(identity.getPrivateKey());
+        assertNotNull(identity.getX509Certificate());
+
+        client.close();
+    }
+
+    @Test
+    public void testGetAWSLambdaServiceCertificateWebIdentityToken() {
+
+        ZTSClientMock client = new ZTSClientMock("http://localhost:4080");
+        ZTSClientMock.setX509CsrDetails("o=Athenz", "athenz.cloud");
+
+        // configure the values to be verified
+
+        client.setCsrUriVerifyValue("spiffe://athenz/sa/service");
+        List<String> dnsValues = new ArrayList<>();
+        dnsValues.add("service.athenz.athenz.cloud");
+        dnsValues.add("lambda-1234-service.instanceid.athenz.athenz.cloud");
+        client.setCsrDnsVerifyValues(dnsValues);
+
+        AWSLambdaOptions options = new AWSLambdaOptions();
+        options.setUseWebIdentityToken(true);
+        AWSLambdaIdentity identity = client.getAWSLambdaServiceCertificate("athenz", "service", "1234", "provider",
+                null, null, options);
+        assertNotNull(identity);
+        assertNotNull(identity.getPrivateKey());
+        assertNotNull(identity.getX509Certificate());
+
+        client.close();
+    }
+
+    @Test
+    public void testGetAWSLambdaServiceCertificateECKey() {
+
+        ZTSClientMock client = new ZTSClientMock("http://localhost:4080");
+        ZTSClientMock.setX509CsrDetails("o=Athenz", "athenz.cloud");
+
+        // configure the values to be verified
+
+        client.setCsrUriVerifyValue("spiffe://athenz/sa/service");
+        List<String> dnsValues = new ArrayList<>();
+        dnsValues.add("service.athenz.athenz.cloud");
+        dnsValues.add("lambda-1234-service.instanceid.athenz.athenz.cloud");
+        client.setCsrDnsVerifyValues(dnsValues);
+
+        AWSLambdaOptions options = new AWSLambdaOptions();
+        options.setKeyAlgorithm(AWSLambdaOptions.KEY_ALGORITHM_EC);
+        AWSLambdaIdentity identity = client.getAWSLambdaServiceCertificate("athenz", "service", "1234", "provider",
+                null, null, options);
+        assertNotNull(identity);
+        assertNotNull(identity.getPrivateKey());
+        assertEquals(identity.getPrivateKey().getAlgorithm(), "EC");
         assertNotNull(identity.getX509Certificate());
 
         client.close();

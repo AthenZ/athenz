@@ -83,6 +83,7 @@ import com.yahoo.rdl.JSON;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.Credentials;
+import software.amazon.awssdk.services.sts.model.GetWebIdentityTokenRequest;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 public class ZTSClient implements Closeable {
@@ -2973,24 +2974,54 @@ public class ZTSClient implements Closeable {
     public AWSLambdaIdentity getAWSLambdaServiceCertificate(final String domainName,
             final String serviceName, final String account, final String provider,
             final String spiffeTrustDomain, final String spiffeNamespace) {
-        
+        return getAWSLambdaServiceCertificate(domainName, serviceName, account, provider,
+                spiffeTrustDomain, spiffeNamespace, null);
+    }
+
+    /**
+     * For AWS Lambda functions generate a new private key, request an
+     * x.509 certificate based on the requested CSR and return both to
+     * the client in order to establish tls connections with other
+     * Athenz enabled services. The attestation data presented to ZTS is
+     * generated either from AWS STS temporary credentials (the default,
+     * when options is null or options.isUseWebIdentityToken() is false) or,
+     * when options.isUseWebIdentityToken() is true, from an AWS issued OIDC
+     * web identity token (JWT). The private key algorithm is likewise
+     * controlled by options - RSA (the default) or EC.
+     * @param domainName name of the domain
+     * @param serviceName name of the service
+     * @param account AWS account name that the function runs in
+     * @param provider name of the provider service for AWS Lambda
+     * @param spiffeTrustDomain spiffe trust domain for the uri
+     * @param spiffeNamespace spiffe namespace for the uri
+     * @param options options to control the private key algorithm and
+     *        attestation data generation; pass null to use the defaults
+     * @return AWSLambdaIdentity with private key and certificate
+     */
+    public AWSLambdaIdentity getAWSLambdaServiceCertificate(final String domainName,
+            final String serviceName, final String account, final String provider,
+            final String spiffeTrustDomain, final String spiffeNamespace,
+            final AWSLambdaOptions options) {
+
+        final AWSLambdaOptions lambdaOptions = options == null ? new AWSLambdaOptions() : options;
+
         if (domainName == null || serviceName == null) {
             throw new IllegalArgumentException("Domain and Service must be specified");
         }
-        
+
         if (account == null || provider == null) {
             throw new IllegalArgumentException("AWS Account and Provider must be specified");
         }
-        
+
         if (x509CsrDomain == null) {
             throw new IllegalArgumentException("X509 CSR Domain must be specified");
         }
-        
+
         // first we're going to generate a private key for the request
-        
+
         AWSLambdaIdentity lambdaIdentity = new AWSLambdaIdentity();
         try {
-            lambdaIdentity.setPrivateKey(Crypto.generateRSAPrivateKey(2048));
+            lambdaIdentity.setPrivateKey(generateAWSLambdaPrivateKey(lambdaOptions));
         } catch (CryptoException ex) {
             throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
@@ -3044,14 +3075,14 @@ public class ZTSClient implements Closeable {
         }
         
         // finally obtain attestation data for lambda
-        
-        info.setAttestationData(getAWSLambdaAttestationData(athenzService, account));
-        
+
+        info.setAttestationData(getAWSLambdaAttestationData(athenzService, account, lambdaOptions));
+
         // request the x.509 certificate from zts server
-        
+
         Map<String, List<String>> responseHeaders = new HashMap<>();
         InstanceIdentity identity = postInstanceRegisterInformation(info, responseHeaders);
-        
+
         try {
             lambdaIdentity.setX509Certificate(Crypto.loadX509Certificate(identity.getX509Certificate()));
         } catch (CryptoException ex) {
@@ -3061,17 +3092,33 @@ public class ZTSClient implements Closeable {
         lambdaIdentity.setCaCertificates(identity.getX509CertificateSigner());
         return lambdaIdentity;
     }
-    
+
+    PrivateKey generateAWSLambdaPrivateKey(final AWSLambdaOptions options) {
+        if (AWSLambdaOptions.KEY_ALGORITHM_EC.equalsIgnoreCase(options.getKeyAlgorithm())) {
+            return Crypto.generateECPrivateKey(options.getEcCurveName());
+        }
+        return Crypto.generateRSAPrivateKey(options.getRsaKeySize());
+    }
+
     String getAWSLambdaAttestationData(final String athenzService, final String account) {
-        
+        return getAWSLambdaAttestationData(athenzService, account, new AWSLambdaOptions());
+    }
+
+    String getAWSLambdaAttestationData(final String athenzService, final String account,
+            final AWSLambdaOptions options) {
+
         AWSAttestationData data = new AWSAttestationData();
         data.setRole(athenzService);
-        
-        Credentials awsCreds = assumeAWSRole(account, athenzService);
-        data.setAccess(awsCreds.accessKeyId());
-        data.setSecret(awsCreds.secretAccessKey());
-        data.setToken(awsCreds.sessionToken());
-        
+
+        if (options.isUseWebIdentityToken()) {
+            data.setIdentityToken(getAWSWebIdentityToken(options));
+        } else {
+            Credentials awsCreds = assumeAWSRole(account, athenzService);
+            data.setAccess(awsCreds.accessKeyId());
+            data.setSecret(awsCreds.secretAccessKey());
+            data.setToken(awsCreds.sessionToken());
+        }
+
         ObjectMapper mapper = new ObjectMapper();
         String jsonData;
         try {
@@ -3080,21 +3127,21 @@ public class ZTSClient implements Closeable {
             LOG.error("Unable to generate attestation json data: {}", ex.getMessage());
             throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
-        
+
         return jsonData;
     }
-    
+
     AssumeRoleRequest getAssumeRoleRequest(String account, String roleName) {
-        
+
         // assume the target role to get the credentials for the client
         // aws format is arn:aws:iam::<account-id>:role/<role-name>
-        
+
         final String arn = "arn:aws:iam::" + account + ":role/" + roleName;
         return AssumeRoleRequest.builder().roleSessionName(roleName).roleArn(arn).build();
     }
-    
+
     Credentials assumeAWSRole(String account, String roleName) {
-        
+
         try {
             AssumeRoleRequest req = getAssumeRoleRequest(account, roleName);
             return StsClient.builder().build().assumeRole(req).credentials();
@@ -3103,7 +3150,28 @@ public class ZTSClient implements Closeable {
             throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
         }
     }
-    
+
+    GetWebIdentityTokenRequest getWebIdentityTokenRequest(final AWSLambdaOptions options) {
+
+        final String audience = isEmpty(options.getWebIdentityAudience()) ? ztsUrl : options.getWebIdentityAudience();
+        return GetWebIdentityTokenRequest.builder()
+                .audience(audience)
+                .signingAlgorithm(options.getWebIdentitySigningAlgorithm())
+                .durationSeconds(options.getWebIdentityDurationSeconds())
+                .build();
+    }
+
+    String getAWSWebIdentityToken(final AWSLambdaOptions options) {
+
+        try {
+            GetWebIdentityTokenRequest req = getWebIdentityTokenRequest(options);
+            return StsClient.builder().build().getWebIdentityToken(req).webIdentityToken();
+        } catch (Exception ex) {
+            LOG.error("getAWSWebIdentityToken - unable to get web identity token: {}", ex.getMessage());
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
     /**
      * AWSCredential Provider provides AWS Credentials which the caller can
      * use to authorize an AWS request. It automatically refreshes the credentials

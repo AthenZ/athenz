@@ -17,6 +17,7 @@ package com.yahoo.athenz.auth.util;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -58,6 +59,10 @@ public class CryptoException extends RuntimeException {
     }
 
     public CryptoException(NoSuchProviderException e) {
+        super(e);
+    }
+
+    public CryptoException(InvalidAlgorithmParameterException e) {
         super(e);
     }
 
