@@ -26,6 +26,27 @@ json template file:
 athenz.zms.audit_template_fname=/opt/athenz/zms/conf/zms_server/audit_template.json
 ```
 
+By default the template is enforced on every audit enabled domain, role and group. An operator
+that wants to roll the feature out gradually can instead scope enforcement to an explicit set of
+domains:
+
+```
+athenz.zms.audit_template_domain_feature_flag_check=true
+```
+
+When this property is set to `true`, the server enforces the template only if the object's domain
+is audit enabled **and** has the enforce-audit-template bit (`0x04`,
+`ServerCommonConsts.ZMS_DOMAIN_FEATURE_ENFORCE_AUDIT_TEMPLATE`) set in its `featureFlags` system
+meta attribute. The bit is set by a system administrator with the `featureflags` domain system
+meta attribute, for example:
+
+```
+zms-cli -d coretech set-domain-feature-flags 4
+```
+
+The property has no effect when `athenz.zms.audit_template_fname` is not configured, since in that
+case there is no template to enforce.
+
 The template contains three sections - `domain`, `role` and `group` - and only the expiry and
 review day fields are honored from each. Each object type supports the subset of fields that
 exist on that object:
@@ -87,6 +108,12 @@ already compliant, while still correcting settings that are not.
 The template is only applied when the object is (or is being made) audit enabled. Turning the
 audit enabled flag off does not restore any previously relaxed values.
 
+Every enforcement point listed below first consults
+`ZMSUtils.isAuditTemplateEnforced(auditTemplate, domainFeatureFlagCheck, domain)`, which returns
+false when no template is configured, true when the domain feature flag check is disabled (the
+default), and otherwise only true when the object's domain is audit enabled and carries the
+enforce-audit-template feature bit.
+
 ## Enforcement Points
 
 The template is evaluated at every point where an object can become audit enabled or where an
@@ -132,6 +159,8 @@ created, and the parsed template is stored in `ZMSConfig` so that `DBService` ca
    error and throws `IllegalArgumentException("Invalid audit template file")`, failing startup.
 3. `AuditTemplate.validate()` rejects any negative expiry or review day value with an
    `IllegalArgumentException` naming the offending field.
+4. `athenz.zms.audit_template_domain_feature_flag_check` is read at the same time and, along with
+   the parsed template, stored in `ZMSConfig`.
 
 The template is read once at startup; unlike solution templates there is no dynamic reload, so
 changing the template requires a server restart.

@@ -19,12 +19,14 @@ import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.zms.*;
+import com.yahoo.athenz.zms.config.AuditTemplate;
 import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.Validator;
 import jakarta.ws.rs.core.Response;
@@ -39,6 +41,35 @@ public class ZMSUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZMSUtils.class);
     private static final boolean SKIP_ERROR_METRICS = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_SKIP_ERROR_METRICS, "false"));
+
+    /**
+     * Determine if the configured audit template must be enforced for the objects
+     * of the given domain. If the server is not configured with an audit template
+     * then there is nothing to enforce. Otherwise, by default, the template is
+     * enforced for all audit enabled objects. If the server is configured to honor
+     * the domain feature flags, then the template is only enforced if the domain
+     * is audit enabled and has the enforce-audit-template feature bit enabled.
+     * @param auditTemplate configured audit template (null if not configured)
+     * @param domainFeatureFlagCheck true if the domain feature flags must be honored
+     * @param domain domain that the object belongs to (or the domain itself)
+     * @return true if the audit template must be enforced
+     */
+    public static boolean isAuditTemplateEnforced(AuditTemplate auditTemplate,
+            boolean domainFeatureFlagCheck, Domain domain) {
+
+        if (auditTemplate == null) {
+            return false;
+        }
+        if (!domainFeatureFlagCheck) {
+            return true;
+        }
+        if (domain == null || domain.getAuditEnabled() != Boolean.TRUE) {
+            return false;
+        }
+        Integer featureFlags = domain.getFeatureFlags();
+        return featureFlags != null &&
+                (featureFlags & ServerCommonConsts.ZMS_DOMAIN_FEATURE_ENFORCE_AUDIT_TEMPLATE) != 0;
+    }
 
     public static void addAssertion(Policy policy, String resource, String action, String role,
             AssertionEffect effect) {
