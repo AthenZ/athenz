@@ -171,6 +171,30 @@ func TestDeleteRoleListOversizedName(t *testing.T) {
 	}
 }
 
+func TestDeleteRoleListEmptyName(t *testing.T) {
+	client := NewClient("http://zms", &bulkDeleteRequestTransport{t: t})
+
+	err := client.DeleteRoleList("domain1", []EntityName{"role1", ""}, "audit", "owner")
+	if err == nil {
+		t.Fatal("expected empty role name error")
+	}
+	if err.Error() != "empty role name specified" {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestDeletePolicyListInvalidName(t *testing.T) {
+	client := NewClient("http://zms", &bulkDeleteRequestTransport{t: t})
+
+	err := client.DeletePolicyList("domain1", []EntityName{"policy1", "bad:name"}, "audit", "owner")
+	if err == nil {
+		t.Fatal("expected invalid policy name error")
+	}
+	if err.Error() != "invalid policy name specified" {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
 func TestDeletePolicyListEmptyList(t *testing.T) {
 	client := NewClient("http://zms", &bulkDeleteRequestTransport{t: t})
 

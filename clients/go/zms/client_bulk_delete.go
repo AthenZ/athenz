@@ -6,6 +6,8 @@ package zms
 import (
 	"fmt"
 	"strings"
+
+	rdl "github.com/ardielle/ardielle-go/rdl"
 )
 
 const (
@@ -26,10 +28,16 @@ func bulkDeleteNameListChunks(names []EntityName, objectType string) ([]EntityNa
 	pathParamLength := 0
 
 	for _, name := range names {
-		entityName := string(name)
+		entityName := strings.TrimSpace(string(name))
+		if entityName == "" {
+			return nil, fmt.Errorf("empty %s name specified", objectType)
+		}
 		entityNameLength := len(entityName)
 		if entityNameLength > BulkDeleteMaxPathParamLength {
 			return nil, fmt.Errorf("%s name exceeds maximum path parameter length", objectType)
+		}
+		if val := rdl.Validate(ZMSSchema(), "EntityName", entityName); !val.Valid {
+			return nil, fmt.Errorf("invalid %s name specified", objectType)
 		}
 		normalizedName := strings.ToLower(entityName)
 		if _, ok := normalizedNames[normalizedName]; ok {
