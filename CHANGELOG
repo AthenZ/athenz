@@ -1,3 +1,23 @@
+Athenz v1.12.48 Release / Sep 16, 2026
+--------------------------------------
+
+#3468 Add Java Crypki library so ZTS can mint X.509 certificates in-process.
+#3477 Feat: ID-JAG with Multiple Domain Supported for Full ID-JAG => AccessToken Exchange
+#3487 add self-service API endpoints & update clients
+#3489 add self-service UI for role/group management
+#3490 expose hostname field for zts-svccert utility
+#3491 Bump multer from 2.2.0 to 2.3.0 in /ui
+#3492 Bump next from 16.3.0 to 16.3.4 in /ui
+#3493 zms: audit template support for audit enabled objects
+#3494 secure boot provider: fall back to cert hostname during register
+#3498 Map KMS signer key ids to per-tenant CA certificates.
+#3499 Validate audience and caller binding for JWT client assertions
+#3500 simplify api signature for self-serve objects
+#3502 update java/go/nodejs dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20260909.sql
+
 Athenz v1.12.47 Release / Sep 04, 2026
 --------------------------------------
 
