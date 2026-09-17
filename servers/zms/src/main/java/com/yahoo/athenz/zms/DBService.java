@@ -5041,7 +5041,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // if the domain is now audit enabled then we need to impose
                 // the expiry settings from our audit template, if configured
 
-                if (domain.getAuditEnabled() == Boolean.TRUE && zmsConfig.getAuditTemplate() != null) {
+                if (domain.getAuditEnabled() == Boolean.TRUE && isAuditTemplateEnforced(domain)) {
                     zmsConfig.getAuditTemplate().applyDomainSettings(domain);
                 }
                 break;
@@ -5074,7 +5074,12 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
-    void updateRoleSystemMetaFields(ObjectStoreConnection con, Role updatedRole, Role originalRole,
+    boolean isAuditTemplateEnforced(Domain domain) {
+        return ZMSUtils.isAuditTemplateEnforced(zmsConfig.getAuditTemplate(),
+                zmsConfig.isAuditTemplateDomainFeatureFlagCheck(), domain);
+    }
+
+    void updateRoleSystemMetaFields(ObjectStoreConnection con, Domain domain, Role updatedRole, Role originalRole,
                 final String attribute, RoleSystemMeta meta, final String caller) throws ServerResourceException {
 
         // system attributes we'll only set if they're available
@@ -5086,7 +5091,7 @@ public class DBService implements RolesProvider, DomainProvider {
             // if the role is now audit enabled then we need to impose the
             // expiry and review settings from our audit template, if configured
 
-            if (updatedRole.getAuditEnabled() == Boolean.TRUE && zmsConfig.getAuditTemplate() != null) {
+            if (updatedRole.getAuditEnabled() == Boolean.TRUE && isAuditTemplateEnforced(domain)) {
                 zmsConfig.getAuditTemplate().applyRoleSettings(updatedRole);
             }
 
@@ -5119,7 +5124,8 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
-    void updateGroupSystemMetaFields(Group group, final String attribute, GroupSystemMeta meta, final String caller) {
+    void updateGroupSystemMetaFields(Domain domain, Group group, final String attribute,
+            GroupSystemMeta meta, final String caller) {
 
         // system attributes we'll only set if they're available
         // in the given object
@@ -5130,7 +5136,7 @@ public class DBService implements RolesProvider, DomainProvider {
             // if the group is now audit enabled then we need to impose the
             // expiry settings from our audit template, if configured
 
-            if (group.getAuditEnabled() == Boolean.TRUE && zmsConfig.getAuditTemplate() != null) {
+            if (group.getAuditEnabled() == Boolean.TRUE && isAuditTemplateEnforced(domain)) {
                 zmsConfig.getAuditTemplate().applyGroupSettings(group);
             }
         } else {
@@ -6997,7 +7003,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // then we're going to apply the updated fields
                 // from the given object
 
-                updateRoleSystemMetaFields(con, updatedRole, originalRole, attribute, meta, ctx.getApiName());
+                updateRoleSystemMetaFields(con, domain, updatedRole, originalRole, attribute, meta, ctx.getApiName());
 
                 con.updateRole(domainName, updatedRole);
                 saveChanges(con, domainName);
@@ -7081,7 +7087,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 // then we're going to apply the updated fields
                 // from the given object
 
-                updateGroupSystemMetaFields(updatedGroup, attribute, meta, ctx.getApiName());
+                updateGroupSystemMetaFields(domain, updatedGroup, attribute, meta, ctx.getApiName());
 
                 con.updateGroup(domainName, updatedGroup);
                 saveChanges(con, domainName);

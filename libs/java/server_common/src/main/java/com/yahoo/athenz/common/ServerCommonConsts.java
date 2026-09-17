@@ -69,6 +69,7 @@ public final class ServerCommonConsts {
     // ZMS domain object feature flag bits
     public static final int ZMS_DOMAIN_FEATURE_ALLOW_SERVICE_UNDERSCORE  = 0x01;
     public static final int ZMS_DOMAIN_FEATURE_SKIP_BOOT_TIME_VALIDATION = 0x02;
+    public static final int ZMS_DOMAIN_FEATURE_ENFORCE_AUDIT_TEMPLATE    = 0x04;
 
     // ZMS service object feature flag bits
     public static final int ZMS_SERVICE_FEATURE_SKIP_BOOT_TIME_VALIDATION = 0x01;

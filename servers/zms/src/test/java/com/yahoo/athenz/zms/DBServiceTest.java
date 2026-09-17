@@ -5943,10 +5943,10 @@ public class DBServiceTest {
         Role originalRole = new Role();
         RoleSystemMeta meta = new RoleSystemMeta()
                 .setAuditEnabled(true);
-        zms.dbService.updateRoleSystemMetaFields(mockJdbcConn, updatedRole, originalRole, "auditenabled", meta, "unit-test");
+        zms.dbService.updateRoleSystemMetaFields(mockJdbcConn, new Domain(), updatedRole, originalRole, "auditenabled", meta, "unit-test");
         assertTrue(updatedRole.getAuditEnabled());
         try {
-            zms.dbService.updateRoleSystemMetaFields(mockJdbcConn, updatedRole, originalRole, "unknown", meta, "unit-test");
+            zms.dbService.updateRoleSystemMetaFields(mockJdbcConn, new Domain(), updatedRole, originalRole, "unknown", meta, "unit-test");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -5985,10 +5985,10 @@ public class DBServiceTest {
         Group group = new Group();
         GroupSystemMeta meta = new GroupSystemMeta()
                 .setAuditEnabled(true);
-        zms.dbService.updateGroupSystemMetaFields(group, "auditenabled", meta, "unit-test");
+        zms.dbService.updateGroupSystemMetaFields(new Domain(), group, "auditenabled", meta, "unit-test");
         assertTrue(group.getAuditEnabled());
         try {
-            zms.dbService.updateGroupSystemMetaFields(group, "unknown", meta, "unit-test");
+            zms.dbService.updateGroupSystemMetaFields(new Domain(), group, "unknown", meta, "unit-test");
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -6903,7 +6903,7 @@ public class DBServiceTest {
         zms.dbService.executePutRole(mockDomRsrcCtx, domainName, roleName, role1, null, null, auditRef, "putRole", false);
 
         RoleSystemMeta meta = new RoleSystemMeta().setAuditEnabled(true);
-        zms.dbService.updateRoleSystemMetaFields(mockJdbcConn, role1, role1, "auditenabled", meta, "unit-test");
+        zms.dbService.updateRoleSystemMetaFields(mockJdbcConn, new Domain(), role1, role1, "auditenabled", meta, "unit-test");
 
         zms.dbService.executePutRoleSystemMeta(mockDomRsrcCtx, domainName, roleName, meta, "auditenabled", auditRef, "");
 
@@ -11449,7 +11449,7 @@ public class DBServiceTest {
         RoleSystemMeta meta = new RoleSystemMeta().setAuditEnabled(true);
 
         try {
-            zms.dbService.updateRoleSystemMetaFields(mockJdbcConn, updatedRole, originalRole, "auditenabled",
+            zms.dbService.updateRoleSystemMetaFields(mockJdbcConn, new Domain(), updatedRole, originalRole, "auditenabled",
                     meta, "unittest");
             fail();
         } catch (ResourceException ex) {
