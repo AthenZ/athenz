@@ -76,6 +76,17 @@ func TestDeletePoliciesEmptyList(t *testing.T) {
 	}
 }
 
+func TestDeletePoliciesAdmin(t *testing.T) {
+	cli := Zms{}
+	_, err := cli.DeletePolicies("domain1", []string{"policy1", "Admin"})
+	if err == nil {
+		t.Fatal("expected admin policy error")
+	}
+	if err.Error() != "cannot delete 'admin' policy" {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
 func TestDeletePoliciesOversizedName(t *testing.T) {
 	cli := Zms{}
 	_, err := cli.DeletePolicies("domain1", []string{strings.Repeat("a", zms.BulkDeleteMaxPathParamLength+1)})

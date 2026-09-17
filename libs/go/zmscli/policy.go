@@ -392,6 +392,11 @@ func (cli Zms) DeletePolicies(dn string, policyNames []string) (*string, error) 
 	if len(policyNames) == 0 {
 		return nil, fmt.Errorf("no policy names specified")
 	}
+	for _, policyName := range policyNames {
+		if strings.EqualFold(policyName, "admin") {
+			return nil, fmt.Errorf("cannot delete 'admin' policy")
+		}
+	}
 	policyList := make([]zms.EntityName, 0, len(policyNames))
 	for _, policyName := range policyNames {
 		policyList = append(policyList, zms.EntityName(policyName))
