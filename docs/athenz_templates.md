@@ -202,6 +202,7 @@ Templates with static role and policy names i.e. no placeholders
 ```
 zms-cli -d some-domain set-domain-template other-template-name
 ```
+
 ##### UI
 The update button with blue background means there is a latest version of the 
 template available to apply and the update button with white background means 
@@ -209,6 +210,13 @@ there is no new version but you can still apply if you accidentally deleted a
 policy or role which is part of the template and wanted to patch it up.
 
 ![ui](images/example_2_ui.png)
+
+### Replacing the domain admin with delegated trust
+When a solution template defines `trust` for the domain's `admin` role, ZMS automatically replaces the requesting administrator's direct membership with delegated administration. Templates without an admin trust role retain the existing merge behavior.
+
+ZMS accepts the handoff only when the templates being applied define exactly one `admin` role with trust and no members, the authenticated requester is the sole approved direct member of the current regular `admin` role with no pending admin entries, and the trust domain already delegates the target `admin` role to that requester (directly or through a group). These checks also apply when templates are supplied during domain creation. ZMS validates the handoff before applying template changes, and removes the direct membership and sets trust in the same transaction. Failed validation leaves the existing domain unchanged, or rolls back creation of a new domain.
+
+A background update cannot initiate the handoff, but it may reapply the template after the same clean trust state is already in place. An existing admin role that already contains both trust and stored direct-member records is rejected rather than automatically cleaned up.
 
 ### Auto Update
 Auto update flag in templates lets the zms server to patch up the changes 
