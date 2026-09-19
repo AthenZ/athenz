@@ -1237,6 +1237,37 @@ func (client ZMSClient) DeleteRole(domainName DomainName, roleName EntityName, a
 	}
 }
 
+func (client ZMSClient) DeleteRoles(domainName DomainName, roleNames EntityNameList, auditRef string, resourceOwner string) error {
+	headers := map[string]string{
+		"Athenz-Resource-Owner": resourceOwner,
+		"Y-Audit-Ref":           auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/roles/" + fmt.Sprint(roleNames)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
 func (client ZMSClient) GetMembership(domainName DomainName, roleName EntityName, memberName MemberName, expiration string) (*Membership, error) {
 	var data *Membership
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/role/" + fmt.Sprint(roleName) + "/member/" + fmt.Sprint(memberName) + encodeParams(encodeStringParam("expiration", string(expiration), ""))
@@ -2378,6 +2409,37 @@ func (client ZMSClient) DeletePolicy(domainName DomainName, policyName EntityNam
 		"Y-Audit-Ref":           auditRef,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policy/" + fmt.Sprint(policyName)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) DeletePolicies(domainName DomainName, policyNames EntityNameList, auditRef string, resourceOwner string) error {
+	headers := map[string]string{
+		"Athenz-Resource-Owner": resourceOwner,
+		"Y-Audit-Ref":           auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policies/" + fmt.Sprint(policyNames)
 	resp, err := client.httpDelete(url, headers)
 	if err != nil {
 		return err

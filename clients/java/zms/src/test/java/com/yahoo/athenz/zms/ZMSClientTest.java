@@ -2166,6 +2166,103 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testDeleteRoles() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        RoleList roleListMock = Mockito.mock(RoleList.class);
+        Mockito.when(c.deleteRoles("DelRoleDom1", "Role1,Role2", AUDIT_REF, null)).thenReturn(roleListMock);
+        client.deleteRoles("DelRoleDom1", "Role1,Role2", AUDIT_REF);
+        try {
+            Mockito.when(c.deleteRoles("DelRoleDom1", "Role2,Role3", AUDIT_REF, null))
+                    .thenThrow(new ClientResourceException(204));
+            client.deleteRoles("DelRoleDom1", "Role2,Role3", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.NO_CONTENT);
+        }
+        try {
+            Mockito.when(c.deleteRoles("DelRoleDom2", "Role2,Role3", AUDIT_REF, null))
+                    .thenThrow(new NullPointerException());
+            client.deleteRoles("DelRoleDom2", "Role2,Role3", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+
+        List<String> roleNames = new ArrayList<>();
+        for (int idx = 0; idx <= 250; idx++) {
+            roleNames.add("Role" + idx);
+        }
+        client.deleteRoles("DelRoleDom3", String.join(",", roleNames), AUDIT_REF);
+        Mockito.verify(c).deleteRoles("DelRoleDom3",
+                String.join(",", roleNames.subList(0, 250)), AUDIT_REF, null);
+        Mockito.verify(c).deleteRoles("DelRoleDom3", "Role250", AUDIT_REF, null);
+
+        char[] roleChars = new char[3000];
+        Arrays.fill(roleChars, 'a');
+        String longRoleName1 = "Role" + new String(roleChars);
+        String longRoleName2 = longRoleName1 + "b";
+        client.deleteRoles("DelRoleDom4", longRoleName1 + "," + longRoleName2, AUDIT_REF);
+        Mockito.verify(c).deleteRoles("DelRoleDom4", longRoleName1, AUDIT_REF, null);
+        Mockito.verify(c).deleteRoles("DelRoleDom4", longRoleName2, AUDIT_REF, null);
+
+        try {
+            String oversizedRoleName = "Role" + new String(new char[6001]).replace('\0', 'a');
+            client.deleteRoles("DelRoleDom5", oversizedRoleName, AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("maximum path parameter length"));
+        }
+        Mockito.verify(c, Mockito.never()).deleteRoles(Mockito.eq("DelRoleDom5"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+
+        List<String> roleNamesWithOversizedName = new ArrayList<>(roleNames.subList(0, 250));
+        roleNamesWithOversizedName.add("Role" + new String(new char[6001]).replace('\0', 'a'));
+        try {
+            client.deleteRoles("DelRoleDom6", String.join(",", roleNamesWithOversizedName), AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("maximum path parameter length"));
+        }
+        Mockito.verify(c, Mockito.never()).deleteRoles(Mockito.eq("DelRoleDom6"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+
+        try {
+            client.deleteRoles("DelRoleDom7", "Role1,,Role2", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("empty entity name"));
+        }
+        Mockito.verify(c, Mockito.never()).deleteRoles(Mockito.eq("DelRoleDom7"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+
+        try {
+            client.deleteRoles("DelRoleDom8", "Role1,bad:name", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("invalid entity name"));
+        }
+        Mockito.verify(c, Mockito.never()).deleteRoles(Mockito.eq("DelRoleDom8"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+
+        List<String> duplicatedRoleNames = new ArrayList<>();
+        for (int idx = 0; idx < 250; idx++) {
+            duplicatedRoleNames.add("Role" + idx);
+        }
+        duplicatedRoleNames.add("role0");
+        client.deleteRoles("DelRoleDom9", String.join(",", duplicatedRoleNames), AUDIT_REF);
+        Mockito.verify(c, Mockito.times(1)).deleteRoles(Mockito.eq("DelRoleDom9"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+        Mockito.verify(c).deleteRoles("DelRoleDom9",
+                String.join(",", duplicatedRoleNames.subList(0, 250)), AUDIT_REF, null);
+    }
+
+    @Test
     public void testGetMembership() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -3008,6 +3105,104 @@ public class ZMSClientTest {
         Mockito.when(c.deletePolicyVersion("PolicyDelDom3", "Policy1", "0", AUDIT_REF, null))
                 .thenThrow(new NullPointerException());
         testDeletePolicyVersion(client, systemAdminFullUser);
+    }
+
+    @Test
+    public void testDeletePolicies() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        PolicyList policyListMock = Mockito.mock(PolicyList.class);
+        Mockito.when(c.deletePolicies("PolicyDelDom1", "Policy1,Policy2", AUDIT_REF, null))
+                .thenReturn(policyListMock);
+        client.deletePolicies("PolicyDelDom1", "Policy1,Policy2", AUDIT_REF);
+        try {
+            Mockito.when(c.deletePolicies("PolicyDelDom2", "Policy1,Policy2", AUDIT_REF, null))
+                    .thenThrow(new ClientResourceException(403));
+            client.deletePolicies("PolicyDelDom2", "Policy1,Policy2", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.FORBIDDEN);
+        }
+        try {
+            Mockito.when(c.deletePolicies("PolicyDelDom3", "Policy1,Policy2", AUDIT_REF, null))
+                    .thenThrow(new NullPointerException());
+            client.deletePolicies("PolicyDelDom3", "Policy1,Policy2", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+
+        List<String> policyNames = new ArrayList<>();
+        for (int idx = 0; idx <= 250; idx++) {
+            policyNames.add("Policy" + idx);
+        }
+        client.deletePolicies("PolicyDelDom4", String.join(",", policyNames), AUDIT_REF);
+        Mockito.verify(c).deletePolicies("PolicyDelDom4",
+                String.join(",", policyNames.subList(0, 250)), AUDIT_REF, null);
+        Mockito.verify(c).deletePolicies("PolicyDelDom4", "Policy250", AUDIT_REF, null);
+
+        char[] policyChars = new char[3000];
+        Arrays.fill(policyChars, 'a');
+        String longPolicyName1 = "Policy" + new String(policyChars);
+        String longPolicyName2 = longPolicyName1 + "b";
+        client.deletePolicies("PolicyDelDom5", longPolicyName1 + "," + longPolicyName2, AUDIT_REF);
+        Mockito.verify(c).deletePolicies("PolicyDelDom5", longPolicyName1, AUDIT_REF, null);
+        Mockito.verify(c).deletePolicies("PolicyDelDom5", longPolicyName2, AUDIT_REF, null);
+
+        try {
+            String oversizedPolicyName = "Policy" + new String(new char[6001]).replace('\0', 'a');
+            client.deletePolicies("PolicyDelDom6", oversizedPolicyName, AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("maximum path parameter length"));
+        }
+        Mockito.verify(c, Mockito.never()).deletePolicies(Mockito.eq("PolicyDelDom6"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+
+        List<String> policyNamesWithOversizedName = new ArrayList<>(policyNames.subList(0, 250));
+        policyNamesWithOversizedName.add("Policy" + new String(new char[6001]).replace('\0', 'a'));
+        try {
+            client.deletePolicies("PolicyDelDom7", String.join(",", policyNamesWithOversizedName), AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("maximum path parameter length"));
+        }
+        Mockito.verify(c, Mockito.never()).deletePolicies(Mockito.eq("PolicyDelDom7"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+
+        try {
+            client.deletePolicies("PolicyDelDom8", "Policy1,,Policy2", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("empty entity name"));
+        }
+        Mockito.verify(c, Mockito.never()).deletePolicies(Mockito.eq("PolicyDelDom8"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+
+        try {
+            client.deletePolicies("PolicyDelDom9", "Policy1,bad:name", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("invalid entity name"));
+        }
+        Mockito.verify(c, Mockito.never()).deletePolicies(Mockito.eq("PolicyDelDom9"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+
+        List<String> duplicatedPolicyNames = new ArrayList<>();
+        for (int idx = 0; idx < 250; idx++) {
+            duplicatedPolicyNames.add("Policy" + idx);
+        }
+        duplicatedPolicyNames.add("policy0");
+        client.deletePolicies("PolicyDelDom10", String.join(",", duplicatedPolicyNames), AUDIT_REF);
+        Mockito.verify(c, Mockito.times(1)).deletePolicies(Mockito.eq("PolicyDelDom10"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
+        Mockito.verify(c).deletePolicies("PolicyDelDom10",
+                String.join(",", duplicatedPolicyNames.subList(0, 250)), AUDIT_REF, null);
     }
 
     @Test

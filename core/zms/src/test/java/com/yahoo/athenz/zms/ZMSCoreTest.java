@@ -37,6 +37,35 @@ public class ZMSCoreTest {
     }
 
     @Test
+    public void testEntityNameList() {
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+
+        String[] goodNameLists = {
+                "role1",
+                "role1,role2",
+                "role.one,role-two,_role3"
+        };
+        for (String nameList : goodNameLists) {
+            Result result = validator.validate(nameList, "EntityNameList");
+            assertTrue(result.valid);
+        }
+
+        String[] badNameLists = {
+                "",
+                "role1,",
+                ",role1",
+                "role1,,role2",
+                "role1,bad:name"
+        };
+        for (String nameList : badNameLists) {
+            Result result = validator.validate(nameList, "EntityNameList");
+            assertFalse(result.valid);
+        }
+    }
+
+    @Test
     public void testRoles() {
 
         Schema schema = ZMSSchema.instance();
