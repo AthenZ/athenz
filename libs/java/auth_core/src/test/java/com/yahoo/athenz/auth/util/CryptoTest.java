@@ -1297,6 +1297,40 @@ public class CryptoTest {
     }
 
     @Test
+    public void testGenerateECPrivateKey() {
+        PrivateKey pkey = Crypto.generateECPrivateKey("secp256r1");
+        assertNotNull(pkey);
+        assertEquals(pkey.getAlgorithm(), "EC");
+
+        pkey = Crypto.generateECPrivateKey("secp384r1");
+        assertNotNull(pkey);
+        assertEquals(pkey.getAlgorithm(), "EC");
+    }
+
+    @Test
+    public void testGenerateECPrivateKeyInvalidCurve() {
+        try {
+            Crypto.generateECPrivateKey("invalid-curve-name");
+            fail();
+        } catch (CryptoException ex) {
+            assertNotNull(ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testGenerateECPrivateKeyInvalidProvider() {
+        System.setProperty(Crypto.ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER, "C");
+        try {
+            Crypto.generateECPrivateKey("secp256r1");
+            fail();
+        } catch (CryptoException ex) {
+            assertNotNull(ex.getMessage());
+        } finally {
+            System.clearProperty(Crypto.ATHENZ_CRYPTO_KEY_FACTORY_PROVIDER);
+        }
+    }
+
+    @Test
     public void testExtractX509CertDnsNmaes() throws Exception {
         try (InputStream inStream = new FileInputStream("src/test/resources/x509_altnames_singleip.cert")) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");

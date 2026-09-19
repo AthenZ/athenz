@@ -65,7 +65,12 @@ public class ZTSClientMock extends ZTSClient {
     Credentials assumeAWSRole(String account, String roleName) {
         return Credentials.builder().accessKeyId("access").secretAccessKey("secret").sessionToken("token").build();
     }
-    
+
+    @Override
+    String getAWSWebIdentityToken(AWSLambdaOptions options) {
+        return "identity-token";
+    }
+
     @Override
     public InstanceIdentity postInstanceRegisterInformation(InstanceRegisterInformation info,
             Map<String, List<String>> responseHeaders) {
