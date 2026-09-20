@@ -4039,7 +4039,7 @@ public class ZTSImpl implements ZTSHandler {
             // log if the principal was authorized for any roles that were not
             // part of the requested role list
 
-            logUnrequestedRoles(principalName, requestedRoles, roles);
+            logUnrequestedRoles(requestPrincipalName, requestedRoles, roles);
 
             // if this is proxy for operation then we want to make sure that
             // both principals have access to the same set of roles so we'll
