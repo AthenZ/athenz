@@ -32,6 +32,9 @@ func bulkDeleteNameListChunks(names []EntityName, objectType string) ([]EntityNa
 		if entityName == "" {
 			return nil, fmt.Errorf("empty %s name specified", objectType)
 		}
+		if strings.EqualFold(entityName, "admin") {
+			return nil, fmt.Errorf("cannot delete 'admin' %s", objectType)
+		}
 		entityNameLength := len(entityName)
 		if entityNameLength > BulkDeleteMaxPathParamLength {
 			return nil, fmt.Errorf("%s name exceeds maximum path parameter length", objectType)

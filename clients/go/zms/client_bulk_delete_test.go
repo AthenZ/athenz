@@ -183,6 +183,23 @@ func TestDeleteRoleListEmptyName(t *testing.T) {
 	}
 }
 
+func TestDeleteRoleListAdminName(t *testing.T) {
+	roleNames := make([]EntityName, BulkDeleteChunkSize+1)
+	for idx := 0; idx < BulkDeleteChunkSize; idx++ {
+		roleNames[idx] = EntityName(fmt.Sprintf("role%d", idx))
+	}
+	roleNames[BulkDeleteChunkSize] = "Admin"
+	client := NewClient("http://zms", &bulkDeleteRequestTransport{t: t})
+
+	err := client.DeleteRoleList("domain1", roleNames, "audit", "owner")
+	if err == nil {
+		t.Fatal("expected admin role name error")
+	}
+	if err.Error() != "cannot delete 'admin' role" {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
 func TestDeletePolicyListInvalidName(t *testing.T) {
 	client := NewClient("http://zms", &bulkDeleteRequestTransport{t: t})
 
@@ -191,6 +208,23 @@ func TestDeletePolicyListInvalidName(t *testing.T) {
 		t.Fatal("expected invalid policy name error")
 	}
 	if err.Error() != "invalid policy name specified" {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func TestDeletePolicyListAdminName(t *testing.T) {
+	policyNames := make([]EntityName, BulkDeleteChunkSize+1)
+	for idx := 0; idx < BulkDeleteChunkSize; idx++ {
+		policyNames[idx] = EntityName(fmt.Sprintf("policy%d", idx))
+	}
+	policyNames[BulkDeleteChunkSize] = "Admin"
+	client := NewClient("http://zms", &bulkDeleteRequestTransport{t: t})
+
+	err := client.DeletePolicyList("domain1", policyNames, "audit", "owner")
+	if err == nil {
+		t.Fatal("expected admin policy name error")
+	}
+	if err.Error() != "cannot delete 'admin' policy" {
 		t.Errorf("unexpected error: %v", err)
 	}
 }

@@ -2260,6 +2260,18 @@ public class ZMSClientTest {
                 Mockito.eq(AUDIT_REF), Mockito.isNull());
         Mockito.verify(c).deleteRoles("DelRoleDom9",
                 String.join(",", duplicatedRoleNames.subList(0, 250)), AUDIT_REF, null);
+
+        List<String> roleNamesWithAdmin = new ArrayList<>(roleNames.subList(0, 250));
+        roleNamesWithAdmin.add("Admin");
+        try {
+            client.deleteRoles("DelRoleDom10", String.join(",", roleNamesWithAdmin), AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("'admin'"));
+        }
+        Mockito.verify(c, Mockito.never()).deleteRoles(Mockito.eq("DelRoleDom10"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
     }
 
     @Test
@@ -3203,6 +3215,18 @@ public class ZMSClientTest {
                 Mockito.eq(AUDIT_REF), Mockito.isNull());
         Mockito.verify(c).deletePolicies("PolicyDelDom10",
                 String.join(",", duplicatedPolicyNames.subList(0, 250)), AUDIT_REF, null);
+
+        List<String> policyNamesWithAdmin = new ArrayList<>(policyNames.subList(0, 250));
+        policyNamesWithAdmin.add("Admin");
+        try {
+            client.deletePolicies("PolicyDelDom11", String.join(",", policyNamesWithAdmin), AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("'admin'"));
+        }
+        Mockito.verify(c, Mockito.never()).deletePolicies(Mockito.eq("PolicyDelDom11"), Mockito.anyString(),
+                Mockito.eq(AUDIT_REF), Mockito.isNull());
     }
 
     @Test

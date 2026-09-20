@@ -148,6 +148,9 @@ public class ZMSClient implements Closeable {
             if (entityName.isEmpty()) {
                 throw new IllegalArgumentException("empty entity name specified");
             }
+            if ("admin".equalsIgnoreCase(entityName)) {
+                throw new IllegalArgumentException("cannot delete 'admin' role or policy");
+            }
             if (entityName.length() > BULK_DELETE_MAX_PATH_PARAM_LENGTH) {
                 throw new IllegalArgumentException("entity name exceeds maximum path parameter length");
             }
