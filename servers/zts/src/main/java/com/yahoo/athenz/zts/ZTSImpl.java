@@ -155,6 +155,7 @@ public class ZTSImpl implements ZTSHandler {
     protected String userDomainAlias;
     protected String userDomainAliasPrefix;
     protected boolean leastPrivilegePrincipal = false;
+    protected boolean logUnrequestedRolesEnabled = false;
     protected Set<String> authorizedProxyUsers = null;
     protected Set<String> validUserX509CertSignerKeyIds = null;
     protected Set<String> validExternalMemberX509CertSignerKeyIds = null;
@@ -661,6 +662,12 @@ public class ZTSImpl implements ZTSHandler {
 
         leastPrivilegePrincipal = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_LEAST_PRIVILEGE_PRINCIPLE, "false"));
+
+        // check to see if we want to log the roles that the principal was
+        // authorized for but were not part of the requested role list
+
+        logUnrequestedRolesEnabled = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_LOG_UNREQUESTED_ROLES, "false"));
 
         // Default Role Token timeout is 2 hours. If the client asks for role tokens
         // with a min expiry time of 1 hour, the setting of 2 hours allows the client
@@ -2133,6 +2140,11 @@ public class ZTSImpl implements ZTSHandler {
                     caller, domainName, principalDomain);
         }
 
+        // log if the principal was authorized for any roles that were not
+        // part of the requested role list
+
+        logUnrequestedRoles(principalName, requestedRoleList, roles);
+
         // if this is proxy for operation then we want to make sure that
         // both principals have access to the same set of roles so we'll
         // remove any roles that are authorized by only one of the principals
@@ -2184,6 +2196,34 @@ public class ZTSImpl implements ZTSHandler {
         roleToken.setExpiryTime(token.getExpiryTime());
 
         return roleToken;
+    }
+
+    void logUnrequestedRoles(final String principalName, String[] requestedRoleList, Set<String> roles) {
+
+        // if the feature is not enabled or the caller did not request any
+        // specific roles then there is nothing to check since the principal
+        // is getting all of its roles
+
+        if (!logUnrequestedRolesEnabled || requestedRoleList == null || requestedRoleList.length == 0) {
+            return;
+        }
+
+        // log each role in our result set that was not part of the
+        // requested role list
+
+        for (String role : roles) {
+            boolean requested = false;
+            for (String requestedRole : requestedRoleList) {
+                if (role.equalsIgnoreCase(requestedRole)) {
+                    requested = true;
+                    break;
+                }
+            }
+            if (!requested) {
+                LOGGER.info("principal {} was authorized for role {} which was not part of the requested role list",
+                        principalName, role);
+            }
+        }
     }
 
     String tokenErrorMessage(final String caller, final String principalName, final String domainName,
@@ -2881,7 +2921,7 @@ public class ZTSImpl implements ZTSHandler {
         Set<String> roles = new HashSet<>();
         final String subjectPrincipal = subjectToken.getSubject();
         dataStore.getAccessibleRoles(targetData, requestDomainName, subjectPrincipal,
-                requestedRoles, false, roles, false);
+                requestedRoles, true, roles, false);
 
         // we return failure if we don't have access to any roles
 
@@ -3128,7 +3168,7 @@ public class ZTSImpl implements ZTSHandler {
         Set<String> roles = new HashSet<>();
         final String subjectPrincipal = subjectToken.getSubject();
         dataStore.getAccessibleRoles(targetData, requestDomainName, subjectPrincipal,
-                requestedRoles, false, roles, false);
+                requestedRoles, true, roles, false);
 
         // we return failure if we don't have access to any roles
 
@@ -3511,7 +3551,7 @@ public class ZTSImpl implements ZTSHandler {
             }
 
             Set<String> subjectRoles = new HashSet<>();
-            dataStore.getAccessibleRoles(data, domainName, subjectIdentity, requestedRoles, false,
+            dataStore.getAccessibleRoles(data, domainName, subjectIdentity, requestedRoles, true,
                     subjectRoles, false);
 
             // we return failure if we don't have access to any roles
@@ -3765,7 +3805,7 @@ public class ZTSImpl implements ZTSHandler {
             // process our request and retrieve the roles for the principal
 
             Set<String> roles = new HashSet<>();
-            dataStore.getAccessibleRoles(data, scopeDomainName, principalName, requestedRoles, false,
+            dataStore.getAccessibleRoles(data, scopeDomainName, principalName, requestedRoles, true,
                     roles, false);
 
             // we return failure if we don't have access to any roles
@@ -4372,9 +4412,13 @@ public class ZTSImpl implements ZTSHandler {
 
         String[] requestedRoleList = { roleName };
         Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoleList, false, roles, false);
+        dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoleList, true, roles, false);
 
-        if (roles.isEmpty()) {
+        // the accessible role lookup carries out a suffix match against the
+        // requested role name, so we must verify that the role we're asked to
+        // issue a certificate for is a role the principal is actually a member of
+
+        if (!roles.contains(roleName)) {
             throw forbiddenError(tokenErrorMessage(caller, principalName, domainName, requestedRoleList),
                     caller, domainName, principalDomain);
         }
@@ -4387,13 +4431,13 @@ public class ZTSImpl implements ZTSHandler {
         if (proxyForPrincipal != null) {
 
             Set<String> rolesForProxy = new HashSet<>();
-            dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal, requestedRoleList, false, rolesForProxy, false);
+            dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal, requestedRoleList, true, rolesForProxy, false);
             roles.retainAll(rolesForProxy);
 
-            // check again in case we removed all the roles and ended up
-            // with an empty set
+            // check again in case the proxy principal is not a member of the
+            // requested role and we ended up removing it from our set
 
-            if (roles.isEmpty()) {
+            if (!roles.contains(roleName)) {
                 throw forbiddenError(tokenErrorMessage(caller, proxyForPrincipal, domainName, requestedRoleList),
                         caller, domainName, principalDomain);
             }

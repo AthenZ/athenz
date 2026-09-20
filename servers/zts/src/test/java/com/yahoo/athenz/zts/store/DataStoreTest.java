@@ -2007,7 +2007,7 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         DataCache data = store.getDataCache("coretech");
-        String[] requestedRoleList = { "coretech:role.admin" };
+        String[] requestedRoleList = { "admin" };
         store.getAccessibleRoles(data, "coretech", "user_domain.user", requestedRoleList, false, accessibleRoles, false);
         
         assertEquals(accessibleRoles.size(), 1);
@@ -3499,7 +3499,7 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user1";
-        String[] requestedRoleList = { "coretech:role.admin" };
+        String[] requestedRoleList = { "admin" };
         
         Set<String> trustedResources = new HashSet<>();
         trustedResources.add("coretech:role.admin");
@@ -3519,7 +3519,7 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user1";
-        String[] requestedRoleList = { "coretech:role.admin" };
+        String[] requestedRoleList = { "admin" };
         
         store.processTrustedDomain(dataCache, identity, prefix, requestedRoleList, null, accessibleRoles, false);
         assertEquals(accessibleRoles.size(), 0);
@@ -3535,7 +3535,7 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user3";
-        String[] requestedRoleList = { "coretech:role.admin" };
+        String[] requestedRoleList = { "admin" };
         
         Set<String> trustedResources = new HashSet<>();
         trustedResources.add("coretech:role.admin");
@@ -3576,7 +3576,7 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user1";
-        String[] requestedRoleList = { "coretech:role.writers" }; /* invalid role causing no match */
+        String[] requestedRoleList = { "writers" }; /* invalid role causing no match */
         
         Set<String> trustedResources = new HashSet<>();
         trustedResources.add("coretech:role.admin");
@@ -3597,7 +3597,7 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user1";
-        String[] requestedRoleList = { "coretech:role.admin" };
+        String[] requestedRoleList = { "admin" };
         
         Set<String> trustedResources = new HashSet<>();
         trustedResources.add("coretech:role.admin");
@@ -3668,7 +3668,7 @@ public class DataStoreTest {
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech2" + ROLE_POSTFIX; /* invalid prefix to cause no match */
         String identity = "user_domain.user1";
-        String[] requestedRoleList = { "coretech:role.readers" };
+        String[] requestedRoleList = { "readers" };
         
         Set<String> trustedResources = new HashSet<>();
         trustedResources.add("coretech:role.admin");
@@ -3719,7 +3719,7 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
-        String[] requestedRoleList = { "coretech:role.admin" };
+        String[] requestedRoleList = { "admin" };
         
         Set<MemberRole> memberRoles = new HashSet<>();
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
@@ -3738,7 +3738,7 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech" + ROLE_POSTFIX;
-        String[] requestedRoleList = { "coretech:role.admin" };
+        String[] requestedRoleList = { "admin" };
         
         Set<MemberRole> memberRoles = new HashSet<>();
         memberRoles.add(new MemberRole("coretech:role.admin", System.currentTimeMillis() - 1000));
@@ -3775,7 +3775,7 @@ public class DataStoreTest {
         
         Set<String> accessibleRoles = new HashSet<>();
         String prefix = "coretech2" + ROLE_POSTFIX; /* invalid prefix causing no match */
-        String[] requestedRoleList = { "coretech:role.admin" };
+        String[] requestedRoleList = { "admin" };
         
         Set<MemberRole> memberRoles = new HashSet<>();
         memberRoles.add(new MemberRole("coretech:role.admin", 0));
@@ -3844,7 +3844,7 @@ public class DataStoreTest {
         String prefix = "coretech" + ROLE_POSTFIX;
         String identity = "user_domain.user100";
         
-        String[] requestedRoleList = { "coretech:role.tenant.readers" };
+        String[] requestedRoleList = { "tenant.readers" };
 
         store.processTrustMembership(store.getCacheStore().getIfPresent("coretech"), identity, prefix,
                 requestedRoleList, accessibleRoles, false);

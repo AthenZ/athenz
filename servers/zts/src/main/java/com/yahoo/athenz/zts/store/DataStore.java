@@ -34,7 +34,6 @@ import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.PublicKeyEntry;
 import com.yahoo.athenz.zms.ServiceIdentity;
 import com.yahoo.athenz.zts.*;
-import com.yahoo.athenz.zts.ResourceException;
 import com.yahoo.rdl.*;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AthenzConfig;

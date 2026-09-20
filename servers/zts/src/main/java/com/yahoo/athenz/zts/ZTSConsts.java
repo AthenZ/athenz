@@ -91,6 +91,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_CERTSIGN_HANDSHAKE_TIMEOUT   = "athenz.zts.certsign_handshake_timeout";
 
     public static final String ZTS_PROP_LEAST_PRIVILEGE_PRINCIPLE  = "athenz.zts.least_privilege_principle";
+    public static final String ZTS_PROP_LOG_UNREQUESTED_ROLES      = "athenz.zts.log_unrequested_roles";
     public static final String ZTS_PROP_ROLE_TOKEN_MAX_TIMEOUT     = "athenz.zts.role_token_max_timeout";
     public static final String ZTS_PROP_ROLE_TOKEN_DEFAULT_TIMEOUT = "athenz.zts.role_token_default_timeout";
     public static final String ZTS_PROP_ID_TOKEN_MAX_TIMEOUT       = "athenz.zts.id_token_max_timeout";
