@@ -3027,59 +3027,65 @@ public class DBService implements RolesProvider, DomainProvider {
 
             try (ObjectStoreConnection con = store.getConnection(false, true)) {
 
-                // first verify that auditing requirements are met
+                try {
+                    // first verify that auditing requirements are met
 
-                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
+                    checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_POLICY);
 
-                // extract the current policies for audit log purposes
+                    // extract the current policies for audit log purposes
 
-                Map<String, String> auditDetails = new LinkedHashMap<>();
-                for (String policyName : policyNames) {
-                    List<String> versions = con.listPolicyVersions(domainName, policyName);
-                    if (versions == null || versions.isEmpty()) {
-                        rollbackChanges(con);
-                        throw ZMSUtils.notFoundError(caller + ": unable to get versions for policy: "
-                                + policyName, caller);
-                    }
-                    List<Policy> policyVersions = new ArrayList<>();
-                    for (String version : versions) {
-                        Policy policy = getPolicy(con, domainName, policyName, version);
-                        if (policy == null) {
+                    Map<String, String> auditDetails = new LinkedHashMap<>();
+                    for (String policyName : policyNames) {
+                        List<String> versions = con.listPolicyVersions(domainName, policyName);
+                        if (versions == null || versions.isEmpty()) {
                             rollbackChanges(con);
-                            throw ZMSUtils.notFoundError(caller + ": unable to read policy: " + policyName
-                                    + ", with version: " + version, caller);
+                            throw ZMSUtils.notFoundError(caller + ": unable to get versions for policy: "
+                                    + policyName, caller);
                         }
-                        policyVersions.add(policy);
+                        List<Policy> policyVersions = new ArrayList<>();
+                        for (String version : versions) {
+                            Policy policy = getPolicy(con, domainName, policyName, version);
+                            if (policy == null) {
+                                rollbackChanges(con);
+                                throw ZMSUtils.notFoundError(caller + ": unable to read policy: " + policyName
+                                        + ", with version: " + version, caller);
+                            }
+                            policyVersions.add(policy);
+                        }
+                        StringBuilder details = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                        auditLogPolicy(details, policyVersions, "deleted-policy-versions");
+                        auditDetails.put(policyName, details.toString());
                     }
-                    StringBuilder details = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
-                    auditLogPolicy(details, policyVersions, "deleted-policy-versions");
-                    auditDetails.put(policyName, details.toString());
-                }
 
-                // process our delete policy requests
+                    // process our delete policy requests
 
-                for (String policyName : policyNames) {
-                    if (!con.deletePolicy(domainName, policyName)) {
-                        rollbackChanges(con);
-                        throw ZMSUtils.notFoundError(caller + ": unable to delete policy: " + policyName, caller);
+                    for (String policyName : policyNames) {
+                        if (!con.deletePolicy(domainName, policyName)) {
+                            rollbackChanges(con);
+                            throw ZMSUtils.notFoundError(caller + ": unable to delete policy: " + policyName, caller);
+                        }
                     }
+
+                    // update our domain time-stamp and save changes
+
+                    saveChanges(con, domainName);
+
+                    // audit log the requests
+
+                    for (Map.Entry<String, String> entry : auditDetails.entrySet()) {
+                        auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                                entry.getKey(), entry.getValue());
+                    }
+
+                    // add domain change event
+                    addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
+
+                    return;
+
+                } catch (ServerResourceException ex) {
+                    rollbackChanges(con);
+                    throw ex;
                 }
-
-                // update our domain time-stamp and save changes
-
-                saveChanges(con, domainName);
-
-                // audit log the requests
-
-                for (Map.Entry<String, String> entry : auditDetails.entrySet()) {
-                    auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
-                            entry.getKey(), entry.getValue());
-                }
-
-                // add domain change event
-                addDomainChangeMessage(ctx, domainName, domainName, DomainChangeMessage.ObjectType.DOMAIN);
-
-                return;
 
             } catch (ServerResourceException ex) {
                 if (!shouldRetryOperation(ex, retryCount)) {

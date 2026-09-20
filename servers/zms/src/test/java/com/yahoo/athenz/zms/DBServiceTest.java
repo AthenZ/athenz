@@ -2816,6 +2816,51 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testExecuteDeletePoliciesServerExceptionRollback() throws ServerResourceException {
+
+        String domainName = "policies-delete-exception";
+        String policyName1 = "policy1";
+        String policyName2 = "policy2";
+        String version = "0";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.listPolicyVersions(domainName, policyName1))
+                .thenReturn(Collections.singletonList(version));
+        Mockito.when(mockJdbcConn.listPolicyVersions(domainName, policyName2))
+                .thenReturn(Collections.singletonList(version));
+        Mockito.when(mockJdbcConn.getPolicy(domainName, policyName1, version))
+                .thenReturn(new Policy().setName(policyName1).setVersion(version).setActive(true));
+        Mockito.when(mockJdbcConn.getPolicy(domainName, policyName2, version))
+                .thenReturn(new Policy().setName(policyName2).setVersion(version).setActive(true));
+        Mockito.when(mockJdbcConn.listAssertions(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(Collections.emptyList());
+        Mockito.when(mockJdbcConn.deletePolicy(domainName, policyName1)).thenReturn(true);
+        Mockito.when(mockJdbcConn.deletePolicy(domainName, policyName2))
+                .thenThrow(new ServerResourceException(ServerResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        int saveRetries = zms.dbService.defaultRetryCount;
+        zms.dbService.store = mockObjStore;
+        zms.dbService.defaultRetryCount = 0;
+
+        try {
+            zms.dbService.executeDeletePolicies(mockDomRsrcCtx, domainName,
+                    Arrays.asList(policyName1, policyName2), auditRef, "deletePolicies");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
+        } finally {
+            zms.dbService.defaultRetryCount = saveRetries;
+            zms.dbService.store = saveStore;
+        }
+
+        Mockito.verify(mockJdbcConn, times(1)).rollbackChanges();
+        Mockito.verify(mockJdbcConn, never()).commitChanges();
+        Mockito.verify(mockJdbcConn, never()).updateDomainModTimestamp(domainName);
+    }
+
+    @Test
     public void testExecuteDeletePolicyFailureRetry() throws ServerResourceException {
 
         String domainName = "policy-delete-failure-retry";
