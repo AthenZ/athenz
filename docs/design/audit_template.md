@@ -38,11 +38,26 @@ When this property is set to `true`, the server enforces the template only if th
 is audit enabled **and** has the enforce-audit-template bit (`0x04`,
 `ServerCommonConsts.ZMS_DOMAIN_FEATURE_ENFORCE_AUDIT_TEMPLATE`) set in its `featureFlags` system
 meta attribute. The bit is set by a system administrator with the `featureflags` domain system
-meta attribute, for example:
+meta attribute.
+
+The `set-domain-feature-flags` command replaces the complete feature flag mask with the given
+value - it does not add the requested bit to the existing set. Setting the value to `4` on a
+domain that already has other feature bits enabled (for example `0x01`
+`ZMS_DOMAIN_FEATURE_ALLOW_SERVICE_UNDERSCORE` or `0x02`
+`ZMS_DOMAIN_FEATURE_SKIP_BOOT_TIME_VALIDATION`) silently disables those features. The operator
+must first read the domain's current `featureFlags` value and then set the new mask to that value
+with `0x04` added:
 
 ```
-zms-cli -d coretech set-domain-feature-flags 4
+$ zms-cli -o json -d coretech show-domain | grep featureFlags
+    "featureFlags": 2,
+
+# current mask is 2 (0x02), so the new mask is 2 | 4 = 6
+$ zms-cli -d coretech set-domain-feature-flags 6
 ```
+
+If the domain has no `featureFlags` value set, the current mask is `0` and the new value is
+simply `4`.
 
 The property has no effect when `athenz.zms.audit_template_fname` is not configured, since in that
 case there is no template to enforce.
