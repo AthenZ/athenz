@@ -33,6 +33,7 @@ public class ZMSConfig {
     private Authority userAuthority;
     private Validator validator;
     private AuditTemplate auditTemplate;
+    private boolean auditTemplateDomainFeatureFlagCheck;
 
     public String getUserDomain() {
         return userDomain;
@@ -104,5 +105,13 @@ public class ZMSConfig {
 
     public void setAuditTemplate(AuditTemplate auditTemplate) {
         this.auditTemplate = auditTemplate;
+    }
+
+    public boolean isAuditTemplateDomainFeatureFlagCheck() {
+        return auditTemplateDomainFeatureFlagCheck;
+    }
+
+    public void setAuditTemplateDomainFeatureFlagCheck(boolean auditTemplateDomainFeatureFlagCheck) {
+        this.auditTemplateDomainFeatureFlagCheck = auditTemplateDomainFeatureFlagCheck;
     }
 }

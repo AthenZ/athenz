@@ -1854,6 +1854,8 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 			buf.WriteString("   domain        : name of the domain being updated\n")
 		}
 		buf.WriteString("   flags         : Optional features enabled for this domain\n")
+		buf.WriteString("                 : this value replaces the full feature flag mask, so it must\n")
+		buf.WriteString("                 : include any bits that are currently enabled for the domain\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " set-domain-feature-flags 3\n")
 	case "set-domain-contact":

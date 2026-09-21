@@ -18,6 +18,7 @@ package com.yahoo.athenz.zms.utils;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
@@ -25,6 +26,7 @@ import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory;
 import com.yahoo.athenz.zms.*;
+import com.yahoo.athenz.zms.config.AuditTemplate;
 import com.yahoo.rdl.Timestamp;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import org.mockito.Mockito;
@@ -452,6 +454,42 @@ public class ZMSUtilsTest {
         assertTrue(ZMSUtils.enforceUserAuthorityFilterCheck(mockAuthority, Set.of("attr1", "attr2", "attr3")));
 
         assertFalse(ZMSUtils.enforceUserAuthorityFilterCheck(mockAuthority, Set.of("attr2", "attr4")));
+    }
+
+    @Test
+    public void testIsAuditTemplateEnforced() {
+
+        AuditTemplate auditTemplate = new AuditTemplate();
+
+        // without a template configured we never enforce anything
+
+        assertFalse(ZMSUtils.isAuditTemplateEnforced(null, false, new Domain().setAuditEnabled(true)));
+        assertFalse(ZMSUtils.isAuditTemplateEnforced(null, true, new Domain().setAuditEnabled(true)
+                .setFeatureFlags(ServerCommonConsts.ZMS_DOMAIN_FEATURE_ENFORCE_AUDIT_TEMPLATE)));
+
+        // with the domain feature flag check disabled we always enforce
+        // the template regardless of the domain settings
+
+        assertTrue(ZMSUtils.isAuditTemplateEnforced(auditTemplate, false, null));
+        assertTrue(ZMSUtils.isAuditTemplateEnforced(auditTemplate, false, new Domain()));
+        assertTrue(ZMSUtils.isAuditTemplateEnforced(auditTemplate, false, new Domain().setAuditEnabled(true)));
+
+        // with the domain feature flag check enabled the domain must be
+        // audit enabled and have the enforce audit template bit set
+
+        assertFalse(ZMSUtils.isAuditTemplateEnforced(auditTemplate, true, null));
+        assertFalse(ZMSUtils.isAuditTemplateEnforced(auditTemplate, true, new Domain()));
+        assertFalse(ZMSUtils.isAuditTemplateEnforced(auditTemplate, true, new Domain().setAuditEnabled(false)
+                .setFeatureFlags(ServerCommonConsts.ZMS_DOMAIN_FEATURE_ENFORCE_AUDIT_TEMPLATE)));
+        assertFalse(ZMSUtils.isAuditTemplateEnforced(auditTemplate, true, new Domain().setAuditEnabled(true)));
+        assertFalse(ZMSUtils.isAuditTemplateEnforced(auditTemplate, true, new Domain().setAuditEnabled(true)
+                .setFeatureFlags(ServerCommonConsts.ZMS_DOMAIN_FEATURE_ALLOW_SERVICE_UNDERSCORE)));
+
+        assertTrue(ZMSUtils.isAuditTemplateEnforced(auditTemplate, true, new Domain().setAuditEnabled(true)
+                .setFeatureFlags(ServerCommonConsts.ZMS_DOMAIN_FEATURE_ENFORCE_AUDIT_TEMPLATE)));
+        assertTrue(ZMSUtils.isAuditTemplateEnforced(auditTemplate, true, new Domain().setAuditEnabled(true)
+                .setFeatureFlags(ServerCommonConsts.ZMS_DOMAIN_FEATURE_ENFORCE_AUDIT_TEMPLATE |
+                        ServerCommonConsts.ZMS_DOMAIN_FEATURE_ALLOW_SERVICE_UNDERSCORE)));
     }
 
     @Test
