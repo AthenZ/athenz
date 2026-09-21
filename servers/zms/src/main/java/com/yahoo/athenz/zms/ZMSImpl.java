@@ -5241,10 +5241,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
-        final List<Policy> policies = validatePolicyAssertionRoles.get() == Boolean.TRUE ?
-                getPolicyList(domainName, caller) : null;
-
-        List<Role> roles = new ArrayList<>(roleNameList.size());
         for (String roleName : roleNameList) {
 
             ctx.authorize("delete", ResourceUtils.roleResourceName(domainName, roleName), null);
@@ -5252,6 +5248,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             if (roleName.equalsIgnoreCase(ADMIN_ROLE_NAME)) {
                 throw ZMSUtils.requestError("deleteRoles: admin role cannot be deleted", caller);
             }
+        }
+
+        final List<Policy> policies = validatePolicyAssertionRoles.get() == Boolean.TRUE ?
+                getPolicyList(domainName, caller) : null;
+
+        List<Role> roles = new ArrayList<>(roleNameList.size());
+        for (String roleName : roleNameList) {
 
             if (policies != null) {
                 validateRoleNotAssociatedToPolicy(policies, roleName, domainName, caller, "deleteRoles");
