@@ -15371,4 +15371,49 @@ public class ZTSImplTest {
             assertTrue(ex.getMessage().contains("SPIFFE ID does not match authenticated principal"));
         }
     }
+
+    @Test
+    public void testLogUnrequestedRoles() {
+
+        Set<String> roles = new HashSet<>(Arrays.asList("readers", "writers"));
+
+        // with the feature disabled we're not going to log anything
+        // regardless of the requested role list
+
+        assertFalse(zts.logUnrequestedRolesEnabled);
+        zts.logUnrequestedRoles("athenz.production", new String[] { "readers" }, roles);
+
+        zts.logUnrequestedRolesEnabled = true;
+
+        // with null or empty requested role list there is nothing to log
+
+        zts.logUnrequestedRoles("athenz.production", null, roles);
+        zts.logUnrequestedRoles("athenz.production", new String[0], roles);
+
+        // all the roles were requested - with a case-insensitive match -
+        // so there is nothing to log
+
+        zts.logUnrequestedRoles("athenz.production", new String[] { "readers", "Writers" }, roles);
+
+        // the writers role was not requested thus it's going to be logged
+
+        zts.logUnrequestedRoles("athenz.production", new String[] { "readers" }, roles);
+
+        // none of the roles were requested thus both are going to be logged
+
+        zts.logUnrequestedRoles("athenz.production", new String[] { "editors" }, roles);
+
+        zts.logUnrequestedRolesEnabled = false;
+    }
+
+    @Test
+    public void testLogUnrequestedRolesEnabledProperty() {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_LOG_UNREQUESTED_ROLES, "true");
+
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        assertTrue(ztsImpl.logUnrequestedRolesEnabled);
+
+        System.clearProperty(ZTSConsts.ZTS_PROP_LOG_UNREQUESTED_ROLES);
+    }
 }
