@@ -27,7 +27,6 @@ import com.yahoo.athenz.common.utils.SSLUtils;
 import com.yahoo.athenz.common.utils.SSLUtils.ClientSSLContextBuilder;
 import com.yahoo.rdl.JSON;
 import com.yahoo.rdl.Timestamp;
-import com.yahoo.rdl.Validator;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -58,14 +57,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 public class ZMSClient implements Closeable {
 
@@ -78,9 +73,6 @@ public class ZMSClient implements Closeable {
     private static final String STR_ENV_ROOT = "ROOT";
     private static final String STR_DEF_ROOT = "/home/athenz";
     private static final String HTTP_RFC1123_DATE_FORMAT = "EEE, d MMM yyyy HH:mm:ss zzz";
-    private static final int BULK_DELETE_CHUNK_SIZE = 250;
-    private static final int BULK_DELETE_MAX_PATH_PARAM_LENGTH = 6000;
-    private static final Validator BULK_DELETE_ENTITY_NAME_LIST_VALIDATOR = new Validator(ZMSSchema.instance());
 
     public static final String ZMS_CLIENT_PROP_ATHENZ_CONF = "athenz.athenz_conf";
     public static final String ZMS_CLIENT_PROP_READ_TIMEOUT = "athenz.zms.client.read_timeout";
@@ -122,92 +114,10 @@ public class ZMSClient implements Closeable {
 
     private static final PrivateKeyStore PRIVATE_KEY_STORE = loadServicePrivateKey();
 
-    @FunctionalInterface
-    private interface BulkDeleteAction {
-        void delete(String names) throws Exception;
-    }
-
     static PrivateKeyStore loadServicePrivateKey() {
         String pkeyFactoryClass = System.getProperty(ZMS_CLIENT_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS,
                 ZMS_CLIENT_PKEY_STORE_FACTORY_CLASS);
         return SSLUtils.loadServicePrivateKey(pkeyFactoryClass);
-    }
-
-    private List<String> validateBulkDeleteEntityNames(String entityNames) {
-
-        if (entityNames == null || entityNames.trim().isEmpty()) {
-            throw new IllegalArgumentException("no entity names specified");
-        }
-
-        String[] rawNames = entityNames.split(",", -1);
-        List<String> names = new ArrayList<>(rawNames.length);
-        Set<String> normalizedNames = new HashSet<>();
-
-        for (String rawName : rawNames) {
-            String entityName = rawName.trim();
-            if (entityName.isEmpty()) {
-                throw new IllegalArgumentException("empty entity name specified");
-            }
-            if ("admin".equalsIgnoreCase(entityName)) {
-                throw new IllegalArgumentException("cannot delete 'admin' role or policy");
-            }
-            if (entityName.length() > BULK_DELETE_MAX_PATH_PARAM_LENGTH) {
-                throw new IllegalArgumentException("entity name exceeds maximum path parameter length");
-            }
-            if (!normalizedNames.add(entityName.toLowerCase(Locale.ROOT))) {
-                continue;
-            }
-            names.add(entityName);
-        }
-
-        return names;
-    }
-
-    private List<String> bulkDeleteNameListChunks(String entityNames) {
-
-        List<String> names = validateBulkDeleteEntityNames(entityNames);
-        List<String> chunks = new ArrayList<>((names.size() + BULK_DELETE_CHUNK_SIZE - 1) / BULK_DELETE_CHUNK_SIZE);
-        StringBuilder chunk = new StringBuilder();
-        int chunkCount = 0;
-
-        for (String entityName : names) {
-            int nextLength = chunk.length() + (chunkCount == 0 ? 0 : 1) + entityName.length();
-
-            if (chunkCount > 0 && (chunkCount == BULK_DELETE_CHUNK_SIZE
-                    || nextLength > BULK_DELETE_MAX_PATH_PARAM_LENGTH)) {
-                chunks.add(validateBulkDeleteEntityNameList(chunk.toString()));
-                chunk.setLength(0);
-                chunkCount = 0;
-            }
-
-            if (chunkCount > 0) {
-                chunk.append(',');
-            }
-            chunk.append(entityName);
-            chunkCount++;
-        }
-
-        if (chunkCount > 0) {
-            chunks.add(validateBulkDeleteEntityNameList(chunk.toString()));
-        }
-
-        return chunks;
-    }
-
-    private String validateBulkDeleteEntityNameList(String entityNameList) {
-
-        if (!BULK_DELETE_ENTITY_NAME_LIST_VALIDATOR.validate(entityNameList, "EntityNameList").valid) {
-            throw new IllegalArgumentException("invalid entity name specified");
-        }
-        return entityNameList;
-    }
-
-    private void deleteNameListInChunks(String entityNames, BulkDeleteAction deleteAction) throws Exception {
-
-        List<String> chunks = bulkDeleteNameListChunks(entityNames);
-        for (String chunk : chunks) {
-            deleteAction.delete(chunk.toString());
-        }
     }
 
     /**
@@ -1500,8 +1410,7 @@ public class ZMSClient implements Closeable {
     public void deleteRoles(String domainName, String roleNames, String auditRef, String resourceOwner) {
         updatePrincipal();
         try {
-            deleteNameListInChunks(roleNames, names -> client.deleteRoles(domainName, names,
-                    auditRef, resourceOwner));
+            client.deleteRoles(domainName, roleNames, auditRef, resourceOwner);
         } catch (ClientResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
@@ -2275,8 +2184,7 @@ public class ZMSClient implements Closeable {
     public void deletePolicies(String domainName, String policyNames, String auditRef, String resourceOwner) {
         updatePrincipal();
         try {
-            deleteNameListInChunks(policyNames, names -> client.deletePolicies(domainName, names,
-                    auditRef, resourceOwner));
+            client.deletePolicies(domainName, policyNames, auditRef, resourceOwner);
         } catch (ClientResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

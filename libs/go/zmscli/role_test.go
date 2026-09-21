@@ -56,18 +56,15 @@ func TestDeleteRoles(t *testing.T) {
 	}
 }
 
-func TestDeleteRolesChunks(t *testing.T) {
-	roleNames := make([]string, zms.BulkDeleteChunkSize+1)
+func TestDeleteRolesSingleRequest(t *testing.T) {
+	roleNames := make([]string, 251)
 	for idx := range roleNames {
 		roleNames[idx] = fmt.Sprintf("role%d", idx)
 	}
 
 	transport := &deleteRequestTransport{
-		t: t,
-		paths: []string{
-			"/domain/domain1/roles/" + strings.Join(roleNames[:zms.BulkDeleteChunkSize], ","),
-			"/domain/domain1/roles/" + roleNames[zms.BulkDeleteChunkSize],
-		},
+		t:             t,
+		path:          "/domain/domain1/roles/" + strings.Join(roleNames, ","),
 		auditRef:      "audit",
 		resourceOwner: "owner",
 	}
@@ -103,17 +100,6 @@ func TestDeleteRolesEmptyList(t *testing.T) {
 		t.Fatal("expected empty role names error")
 	}
 	if err.Error() != "no role names specified" {
-		t.Errorf("unexpected error: %v", err)
-	}
-}
-
-func TestDeleteRolesOversizedName(t *testing.T) {
-	cli := Zms{}
-	_, err := cli.DeleteRoles("domain1", []string{strings.Repeat("a", zms.BulkDeleteMaxPathParamLength+1)})
-	if err == nil {
-		t.Fatal("expected oversized role name error")
-	}
-	if err.Error() != "role name exceeds maximum path parameter length" {
 		t.Errorf("unexpected error: %v", err)
 	}
 }

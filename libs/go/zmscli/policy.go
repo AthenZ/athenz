@@ -397,11 +397,7 @@ func (cli Zms) DeletePolicies(dn string, policyNames []string) (*string, error) 
 			return nil, fmt.Errorf("cannot delete 'admin' policy")
 		}
 	}
-	policyList := make([]zms.EntityName, 0, len(policyNames))
-	for _, policyName := range policyNames {
-		policyList = append(policyList, zms.EntityName(policyName))
-	}
-	if err := cli.Zms.DeletePolicyList(zms.DomainName(dn), policyList, cli.AuditRef, cli.ResourceOwner); err != nil {
+	if err := cli.Zms.DeletePolicies(zms.DomainName(dn), zms.EntityNameList(strings.Join(policyNames, ",")), cli.AuditRef, cli.ResourceOwner); err != nil {
 		return nil, err
 	}
 	s := "[Deleted policies: " + strings.Join(policyNames, ", ") + "]"
