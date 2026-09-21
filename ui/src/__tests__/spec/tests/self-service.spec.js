@@ -508,8 +508,8 @@ describe('self service screen tests', () => {
 
         await requestSingleFromFind(REQUEST_ROLE, keyFor('role', REQUEST_ROLE));
 
-        // re-search: the row now reflects the pending state
-        await searchSelfServe(REQUEST_ROLE);
+        await reloadMine();
+        await waitForElementExist('div*=Pending requests');
         const row = await rowElementFor('role', REQUEST_ROLE);
         const pending = await row.$('div*=Pending approval');
         await pending.waitForExist();
