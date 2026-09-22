@@ -27,6 +27,7 @@ import java.security.cert.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.interfaces.RSAPrivateCrtKey;
+import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.RSAPublicKeySpec;
@@ -949,6 +950,30 @@ public class Crypto {
             throw new CryptoException(e);
         }
         keyGen.initialize(bits);
+        return keyGen.genKeyPair().getPrivate();
+    }
+
+    /**
+     * Generate an EC private key using the given curve name (e.g. "secp256r1", "secp384r1")
+     * @param curveName standard curve name
+     * @return PrivateKey private key
+     * @throws CryptoException for any failures
+     */
+    public static PrivateKey generateECPrivateKey(final String curveName) throws CryptoException {
+        KeyPairGenerator keyGen;
+        try {
+            keyGen = KeyPairGenerator.getInstance(EC, getKeyFactoryProvider());
+            keyGen.initialize(new ECGenParameterSpec(curveName));
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error("generateECPrivateKey: Caught NoSuchAlgorithmException, check to make sure the algorithm is supported by the provider.");
+            throw new CryptoException(e);
+        } catch (NoSuchProviderException e) {
+            LOG.error("generateECPrivateKey: Caught NoSuchProviderException, check to make sure the provider is loaded correctly.");
+            throw new CryptoException(e);
+        } catch (InvalidAlgorithmParameterException e) {
+            LOG.error("generateECPrivateKey: Caught InvalidAlgorithmParameterException, check to make sure the curve name is valid.");
+            throw new CryptoException(e);
+        }
         return keyGen.genKeyPair().getPrivate();
     }
 

@@ -28,6 +28,7 @@ public class AWSAttestationData {
     private String access;
     private String secret;
     private String token;
+    private String identityToken;
 
     public void setRole(String role) {
         this.role = role;
@@ -52,5 +53,23 @@ public class AWSAttestationData {
     }
     public String getToken() {
         return token;
+    }
+
+    /**
+     * Set the AWS-issued OIDC web identity token (JWT) for this attestation
+     * data. When set, ZTS uses the web identity token validation path instead
+     * of the STS temporary credentials (access/secret/token) path.
+     * @param identityToken the AWS web identity token
+     */
+    public void setIdentityToken(String identityToken) {
+        this.identityToken = identityToken;
+    }
+
+    /**
+     * Get the AWS-issued OIDC web identity token (JWT) for this attestation data
+     * @return identityToken
+     */
+    public String getIdentityToken() {
+        return identityToken;
     }
 }
