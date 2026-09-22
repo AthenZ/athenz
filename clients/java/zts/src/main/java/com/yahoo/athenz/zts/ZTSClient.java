@@ -3001,9 +3001,9 @@ public class ZTSClient implements Closeable {
     public AWSLambdaIdentity getAWSLambdaServiceCertificate(final String domainName,
             final String serviceName, final String account, final String provider,
             final String spiffeTrustDomain, final String spiffeNamespace,
-            final AWSLambdaOptions options) {
+            final AttestationOptions options) {
 
-        final AWSLambdaOptions lambdaOptions = options == null ? new AWSLambdaOptions() : options;
+        final AttestationOptions lambdaOptions = options == null ? new AttestationOptions() : options;
 
         if (domainName == null || serviceName == null) {
             throw new IllegalArgumentException("Domain and Service must be specified");
@@ -3093,11 +3093,11 @@ public class ZTSClient implements Closeable {
         return lambdaIdentity;
     }
 
-    PrivateKey generateAWSLambdaPrivateKey(final AWSLambdaOptions options) {
-        if (AWSLambdaOptions.KEY_ALGORITHM_EC.equalsIgnoreCase(options.getKeyAlgorithm())) {
+    PrivateKey generateAWSLambdaPrivateKey(final AttestationOptions options) {
+        if (AttestationOptions.KEY_ALGORITHM_EC.equalsIgnoreCase(options.getKeyAlgorithm())) {
             return Crypto.generateECPrivateKey(options.getEcCurveName());
         }
-        if (AWSLambdaOptions.KEY_ALGORITHM_RSA.equalsIgnoreCase(options.getKeyAlgorithm())) {
+        if (AttestationOptions.KEY_ALGORITHM_RSA.equalsIgnoreCase(options.getKeyAlgorithm())) {
             return Crypto.generateRSAPrivateKey(options.getRsaKeySize());
         }
         throw new ZTSClientException(ClientResourceException.BAD_REQUEST,
@@ -3105,11 +3105,11 @@ public class ZTSClient implements Closeable {
     }
 
     String getAWSLambdaAttestationData(final String athenzService, final String account) {
-        return getAWSLambdaAttestationData(athenzService, account, new AWSLambdaOptions());
+        return getAWSLambdaAttestationData(athenzService, account, new AttestationOptions());
     }
 
     String getAWSLambdaAttestationData(final String athenzService, final String account,
-            final AWSLambdaOptions options) {
+            final AttestationOptions options) {
 
         AWSAttestationData data = new AWSAttestationData();
         data.setRole(athenzService);
@@ -3155,7 +3155,7 @@ public class ZTSClient implements Closeable {
         }
     }
 
-    GetWebIdentityTokenRequest getWebIdentityTokenRequest(final AWSLambdaOptions options) {
+    GetWebIdentityTokenRequest getWebIdentityTokenRequest(final AttestationOptions options) {
 
         final String audience = isEmpty(options.getWebIdentityAudience()) ? ztsUrl : options.getWebIdentityAudience();
         return GetWebIdentityTokenRequest.builder()
@@ -3165,7 +3165,7 @@ public class ZTSClient implements Closeable {
                 .build();
     }
 
-    String getAWSWebIdentityToken(final AWSLambdaOptions options) {
+    String getAWSWebIdentityToken(final AttestationOptions options) {
 
         try {
             GetWebIdentityTokenRequest req = getWebIdentityTokenRequest(options);

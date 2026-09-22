@@ -3050,7 +3050,7 @@ public class ZTSClientTest {
     @Test
     public void testGetAWSLambdaAttestationDataWebIdentityToken() throws IOException {
         ZTSClientMock client = new ZTSClientMock("http://localhost:4080");
-        AWSLambdaOptions options = new AWSLambdaOptions();
+        AttestationOptions options = new AttestationOptions();
         options.setUseWebIdentityToken(true);
         String jsonData = client.getAWSLambdaAttestationData("athenz.service", "12345", options);
 
@@ -3072,11 +3072,11 @@ public class ZTSClientTest {
 
         ZTSClient client = new ZTSClient("http://localhost:4080");
 
-        AWSLambdaOptions options = new AWSLambdaOptions();
+        AttestationOptions options = new AttestationOptions();
         GetWebIdentityTokenRequest req = client.getWebIdentityTokenRequest(options);
         assertEquals(req.audience().get(0), "http://localhost:4080/zts/v1");
-        assertEquals(req.signingAlgorithm(), AWSLambdaOptions.DEFAULT_SIGNING_ALGORITHM);
-        assertEquals(req.durationSeconds().intValue(), AWSLambdaOptions.DEFAULT_DURATION_SECONDS);
+        assertEquals(req.signingAlgorithm(), AttestationOptions.DEFAULT_SIGNING_ALGORITHM);
+        assertEquals(req.durationSeconds().intValue(), AttestationOptions.DEFAULT_DURATION_SECONDS);
 
         options.setWebIdentityAudience("https://zts.athenz.io");
         options.setWebIdentitySigningAlgorithm("RS256");
@@ -3094,12 +3094,12 @@ public class ZTSClientTest {
 
         ZTSClient client = new ZTSClient("http://localhost:4080");
 
-        AWSLambdaOptions options = new AWSLambdaOptions();
+        AttestationOptions options = new AttestationOptions();
         PrivateKey privateKey = client.generateAWSLambdaPrivateKey(options);
         assertNotNull(privateKey);
         assertEquals(privateKey.getAlgorithm(), "RSA");
 
-        options.setKeyAlgorithm(AWSLambdaOptions.KEY_ALGORITHM_EC);
+        options.setKeyAlgorithm(AttestationOptions.KEY_ALGORITHM_EC);
         privateKey = client.generateAWSLambdaPrivateKey(options);
         assertNotNull(privateKey);
         assertEquals(privateKey.getAlgorithm(), "EC");
@@ -3112,7 +3112,7 @@ public class ZTSClientTest {
 
         ZTSClient client = new ZTSClient("http://localhost:4080");
 
-        AWSLambdaOptions options = new AWSLambdaOptions();
+        AttestationOptions options = new AttestationOptions();
         options.setKeyAlgorithm("unknown");
         try {
             client.generateAWSLambdaPrivateKey(options);
@@ -3160,7 +3160,7 @@ public class ZTSClientTest {
         dnsValues.add("lambda-1234-service.instanceid.athenz.athenz.cloud");
         client.setCsrDnsVerifyValues(dnsValues);
 
-        AWSLambdaOptions options = new AWSLambdaOptions();
+        AttestationOptions options = new AttestationOptions();
         options.setUseWebIdentityToken(true);
         AWSLambdaIdentity identity = client.getAWSLambdaServiceCertificate("athenz", "service", "1234", "provider",
                 null, null, options);
@@ -3185,8 +3185,8 @@ public class ZTSClientTest {
         dnsValues.add("lambda-1234-service.instanceid.athenz.athenz.cloud");
         client.setCsrDnsVerifyValues(dnsValues);
 
-        AWSLambdaOptions options = new AWSLambdaOptions();
-        options.setKeyAlgorithm(AWSLambdaOptions.KEY_ALGORITHM_EC);
+        AttestationOptions options = new AttestationOptions();
+        options.setKeyAlgorithm(AttestationOptions.KEY_ALGORITHM_EC);
         AWSLambdaIdentity identity = client.getAWSLambdaServiceCertificate("athenz", "service", "1234", "provider",
                 null, null, options);
         assertNotNull(identity);

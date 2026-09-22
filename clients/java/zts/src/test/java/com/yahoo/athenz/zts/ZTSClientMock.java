@@ -67,7 +67,7 @@ public class ZTSClientMock extends ZTSClient {
     }
 
     @Override
-    String getAWSWebIdentityToken(AWSLambdaOptions options) {
+    String getAWSWebIdentityToken(AttestationOptions options) {
         return "identity-token";
     }
 

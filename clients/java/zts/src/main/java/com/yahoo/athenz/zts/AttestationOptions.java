@@ -16,13 +16,13 @@
 package com.yahoo.athenz.zts;
 
 /**
- * AWSLambdaOptions carries the settings that control how
- * {@link ZTSClient#getAWSLambdaServiceCertificate(String, String, String, String, String, String, AWSLambdaOptions)}
+ * AttestationOptions carries the settings that control how
+ * {@link ZTSClient#getAWSLambdaServiceCertificate(String, String, String, String, String, String, AttestationOptions)}
  * generates the lambda function's private key and the attestation data
  * presented to ZTS. Pass null to use the defaults: a 2048-bit RSA private
  * key and STS AssumeRole temporary credentials as attestation data.
  */
-public class AWSLambdaOptions {
+public class AttestationOptions {
 
     public static final String KEY_ALGORITHM_RSA = "RSA";
     public static final String KEY_ALGORITHM_EC = "EC";

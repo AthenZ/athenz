@@ -22,29 +22,29 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-public class AWSLambdaOptionsTest {
+public class AttestationOptionsTest {
 
     @Test
-    public void testAWSLambdaOptionsDefaults() {
+    public void testAttestationOptionsDefaults() {
 
-        AWSLambdaOptions options = new AWSLambdaOptions();
-        assertEquals(options.getKeyAlgorithm(), AWSLambdaOptions.KEY_ALGORITHM_RSA);
-        assertEquals(options.getRsaKeySize(), AWSLambdaOptions.DEFAULT_RSA_KEY_SIZE);
-        assertEquals(options.getEcCurveName(), AWSLambdaOptions.DEFAULT_EC_CURVE_NAME);
+        AttestationOptions options = new AttestationOptions();
+        assertEquals(options.getKeyAlgorithm(), AttestationOptions.KEY_ALGORITHM_RSA);
+        assertEquals(options.getRsaKeySize(), AttestationOptions.DEFAULT_RSA_KEY_SIZE);
+        assertEquals(options.getEcCurveName(), AttestationOptions.DEFAULT_EC_CURVE_NAME);
 
         assertFalse(options.isUseWebIdentityToken());
         assertNull(options.getWebIdentityAudience());
-        assertEquals(options.getWebIdentitySigningAlgorithm(), AWSLambdaOptions.DEFAULT_SIGNING_ALGORITHM);
-        assertEquals(options.getWebIdentityDurationSeconds(), AWSLambdaOptions.DEFAULT_DURATION_SECONDS);
+        assertEquals(options.getWebIdentitySigningAlgorithm(), AttestationOptions.DEFAULT_SIGNING_ALGORITHM);
+        assertEquals(options.getWebIdentityDurationSeconds(), AttestationOptions.DEFAULT_DURATION_SECONDS);
     }
 
     @Test
-    public void testAWSLambdaOptionsSetters() {
+    public void testAttestationOptionsSetters() {
 
-        AWSLambdaOptions options = new AWSLambdaOptions();
+        AttestationOptions options = new AttestationOptions();
 
-        options.setKeyAlgorithm(AWSLambdaOptions.KEY_ALGORITHM_EC);
-        assertEquals(options.getKeyAlgorithm(), AWSLambdaOptions.KEY_ALGORITHM_EC);
+        options.setKeyAlgorithm(AttestationOptions.KEY_ALGORITHM_EC);
+        assertEquals(options.getKeyAlgorithm(), AttestationOptions.KEY_ALGORITHM_EC);
 
         options.setRsaKeySize(4096);
         assertEquals(options.getRsaKeySize(), 4096);
