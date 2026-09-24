@@ -375,6 +375,14 @@ func registerSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 	// Record success
 	tracker.RecordRefreshSuccess(serviceName, svcCertFile)
 
+	// export the service certificate expiry metric for the newly registered
+	// certificate as well, otherwise it's only exported after the first refresh
+	if x509Cert, err := util.ParseCertificate(ident.X509Certificate); err != nil {
+		log.Printf("Unable to parse the registered service certificate for %s, err: %v\n", serviceName, err)
+	} else {
+		otel.ExportServiceCertMetric(x509Cert)
+	}
+
 	if opts.Services[0].Name == svc.Name {
 		err = util.UpdateFile(opts.AthenzCACertFile, []byte(ident.X509CertificateSigner), svc.Uid, svc.Gid, 0444, opts.FileDirectUpdate, true)
 		if err != nil {
