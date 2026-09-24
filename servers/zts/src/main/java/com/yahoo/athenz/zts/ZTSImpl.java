@@ -80,6 +80,7 @@ import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.token.*;
+import com.yahoo.athenz.zts.token.AccessTokenRequest.RequestType;
 import com.yahoo.athenz.zts.transportrules.TransportRulesProcessor;
 import com.yahoo.athenz.zts.utils.UserIdentityTimeout;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
@@ -2781,8 +2782,6 @@ public class ZTSImpl implements ZTSHandler {
             principalDomain = ZTSConsts.ZTS_UNKNOWN_DOMAIN;
         }
 
-        validateRequest(ctx.request(), principalDomain, caller);
-
         if (StringUtil.isEmpty(request)) {
             throw requestError("Empty request body", caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
@@ -2801,6 +2800,9 @@ public class ZTSImpl implements ZTSHandler {
         } catch (IllegalArgumentException ex) {
             throw requestError(ex.getMessage(), caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
+
+        validateRequest(ctx.request(), principalDomain, caller, false,
+            accessTokenRequest.getRequestType() == RequestType.ID_TOKEN_EXCHANGE);
 
         // we want to log the request body in our access log so
         // we know what is the client asking for, but we'll just
@@ -3401,7 +3403,7 @@ public class ZTSImpl implements ZTSHandler {
 
         IdToken idToken = new IdToken();
         idToken.setVersion(1);
-        idToken.setAudience(accessTokenRequest.getAudience());
+        idToken.setAudience(getIdTokenAudience(accessTokenRequest.getAudience(), accessTokenRequest.isRoleInAudClaim(), idTokenGroups));
         idToken.setSubject(subjectIdentity);
         idToken.setIssuer(issuerResolver.getIDTokenIssuer(ctx.request(), null));
         idToken.setNonce(Crypto.randomSalt());
