@@ -57,6 +57,23 @@ export const matchSummary = (list, query) => {
 export const isRequestable = (item) =>
     item.memberStatus === SELF_SERVICE_MEMBER_STATUS.NONE;
 
+export const heldResourceKeys = (memberships = []) =>
+    new Set(memberships.map(resourceKey));
+
+export const partitionRequestable = (results = [], memberships = []) => {
+    const held = heldResourceKeys(memberships);
+    const available = [];
+    let hidden = 0;
+    results.forEach((item) => {
+        if (isRequestable(item) && !held.has(resourceKey(item))) {
+            available.push(item);
+        } else {
+            hidden += 1;
+        }
+    });
+    return { available, hidden };
+};
+
 export const isLeavable = (item) =>
     item.memberStatus === SELF_SERVICE_MEMBER_STATUS.MEMBER &&
     !item.inheritedFrom;
