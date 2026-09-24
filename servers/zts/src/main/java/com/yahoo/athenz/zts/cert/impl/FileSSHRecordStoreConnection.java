@@ -148,6 +148,7 @@ public class FileSSHRecordStoreConnection implements SSHRecordStoreConnection {
             fileWriter.flush();
         } catch (IOException ex) {
             LOGGER.error("Unable to get save ssh certificate record", ex);
+            return false;
         }
         return true;
     }
@@ -161,6 +162,7 @@ public class FileSSHRecordStoreConnection implements SSHRecordStoreConnection {
             filesHelper.delete(file);
         } catch (IOException ex) {
             LOGGER.error("Unable to delete ssh certificate record", ex);
+            return false;
         }
         return true;
     }

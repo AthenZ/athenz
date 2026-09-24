@@ -305,6 +305,17 @@ public class FileSSHRecordStoreConnectionTest {
         assertNotNull(con.getSSHCertRecord("node..1", "cn"));
         assertTrue(con.deleteSSHCertRecord("node..1", "cn"));
         assertNull(con.getSSHCertRecord("node..1", "cn"));
+
+        // deleting a non-existent record reports failure
+
+        assertFalse(con.deleteSSHCertRecord("node..1", "cn"));
+
+        // failure to write the record file reports failure
+
+        assertTrue(new File("/tmp/zts-ssh-tests/write-failure-cn").mkdirs());
+        certRecord.setInstanceId("write-failure");
+        assertFalse(con.insertSSHCertRecord(certRecord));
+        assertFalse(con.updateSSHCertRecord(certRecord));
         con.close();
     }
 }

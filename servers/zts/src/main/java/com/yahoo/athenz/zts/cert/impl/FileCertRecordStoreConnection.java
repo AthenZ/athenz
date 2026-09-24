@@ -158,6 +158,7 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
             fileWriter.flush();
         } catch (IOException ex) {
             LOGGER.error("Unable to save certificate record", ex);
+            return false;
         }
         return true;
     }
@@ -171,6 +172,7 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
             filesHelper.delete(file);
         } catch (IOException ex) {
             LOGGER.error("Unable to delete certificate record", ex);
+            return false;
         }
         return true;
     }

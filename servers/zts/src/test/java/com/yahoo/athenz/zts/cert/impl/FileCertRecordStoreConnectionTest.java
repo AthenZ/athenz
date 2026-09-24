@@ -373,6 +373,17 @@ public class FileCertRecordStoreConnectionTest {
         assertNotNull(con.getX509CertRecord("ostk", "node..1", "cn"));
         assertTrue(con.deleteX509CertRecord("ostk", "node..1", "cn"));
         assertNull(con.getX509CertRecord("ostk", "node..1", "cn"));
+
+        // deleting a non-existent record reports failure
+
+        assertFalse(con.deleteX509CertRecord("ostk", "node..1", "cn"));
+
+        // failure to write the record file reports failure
+
+        assertTrue(new File("/tmp/zts-cert-tests/ostk-write-failure-cn").mkdirs());
+        certRecord.setInstanceId("write-failure");
+        assertFalse(con.insertX509CertRecord(certRecord));
+        assertFalse(con.updateX509CertRecord(certRecord));
         con.close();
     }
 }
