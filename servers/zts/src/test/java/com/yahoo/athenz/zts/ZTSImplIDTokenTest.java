@@ -1650,4 +1650,180 @@ public class ZTSImplIDTokenTest {
 
         ztsImpl.cloudStore.close();
     }
+
+    // ========================
+    // Test: role_in_aud_claim with a single role includes the role in the audience
+    // ========================
+
+    @Test
+    public void testIdTokenExchangeRoleInAudClaimSingleRole() throws JOSEException {
+
+        ZTSImpl ztsImpl = createZtsImpl();
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        addIdTokenExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+
+        PrivateKey ecPrivateKey = loadECPrivateKey();
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(ecPrivateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        String tokenRequest = buildIdTokenExchangeRequest(subjectToken, "coretech.storage",
+                "coretech:role.writers") + "&role_in_aud_claim=true";
+
+        AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, tokenRequest);
+
+        assertNotNull(response);
+        assertNotNull(response.getId_token());
+
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(response.getId_token());
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertNotNull(claimSet);
+            assertEquals(claimSet.getSubject(), "user_domain.user");
+            assertEquals(claimSet.getAudience().get(0), "coretech.storage:coretech:role.writers");
+
+            List<String> groups = claimSet.getStringListClaim("groups");
+            assertEquals(groups, List.of("coretech:role.writers"));
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        ztsImpl.cloudStore.close();
+    }
+
+    // ========================
+    // Test: role_in_aud_claim with multiple roles keeps the audience unchanged
+    // ========================
+
+    @Test
+    public void testIdTokenExchangeRoleInAudClaimMultipleRoles() throws JOSEException {
+
+        ZTSImpl ztsImpl = createZtsImpl();
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        addIdTokenExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+        addIdTokenExchangePolicy("coretech", "user_domain.proxy-user1", "readers");
+
+        PrivateKey ecPrivateKey = loadECPrivateKey();
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(ecPrivateKey, "0", "user_domain.user1",
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        String tokenRequest = buildIdTokenExchangeRequest(subjectToken, "coretech.storage",
+                "coretech:role.writers coretech:role.readers") + "&role_in_aud_claim=true";
+
+        AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, tokenRequest);
+
+        assertNotNull(response);
+        assertNotNull(response.getId_token());
+
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(response.getId_token());
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            assertNotNull(claimSet);
+            assertEquals(claimSet.getAudience().get(0), "coretech.storage");
+
+            List<String> groups = claimSet.getStringListClaim("groups");
+            assertNotNull(groups);
+            assertTrue(groups.size() >= 2);
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        ztsImpl.cloudStore.close();
+    }
+
+    // ========================
+    // Test: id token exchange requests are allowed on the oidc port
+    // ========================
+
+    @Test
+    public void testIdTokenExchangeOnOidcPort() {
+
+        ZTSImpl ztsImpl = createZtsImpl();
+        ztsImpl.httpsPort = 4443;
+        ztsImpl.oidcPort = 443;
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        addIdTokenExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+
+        PrivateKey ecPrivateKey = loadECPrivateKey();
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(ecPrivateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        Mockito.when(mockServletRequest.getLocalPort()).thenReturn(443);
+
+        String tokenRequest = buildIdTokenExchangeRequest(subjectToken, "coretech.storage",
+                "coretech:role.writers");
+
+        try {
+            AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, tokenRequest);
+            assertNotNull(response);
+            assertNotNull(response.getId_token());
+            assertEquals(response.getIssued_token_type(), ZTSConsts.OAUTH_TOKEN_TYPE_ID);
+        } finally {
+            Mockito.when(mockServletRequest.getLocalPort()).thenReturn(0);
+            ztsImpl.cloudStore.close();
+        }
+    }
+
+    // ========================
+    // Test: non id token exchange requests are rejected on the oidc port
+    // ========================
+
+    @Test
+    public void testAccessTokenRequestOnOidcPortRejected() {
+
+        ZTSImpl ztsImpl = createZtsImpl();
+        ztsImpl.httpsPort = 4443;
+        ztsImpl.oidcPort = 443;
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+        Mockito.when(mockServletRequest.getLocalPort()).thenReturn(443);
+
+        try {
+            ztsImpl.postAccessTokenRequest(context, "grant_type=client_credentials&scope=coretech:domain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("incorrect port number for a non-oidc request"));
+        } finally {
+            Mockito.when(mockServletRequest.getLocalPort()).thenReturn(0);
+            ztsImpl.cloudStore.close();
+        }
+    }
 }
