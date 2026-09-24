@@ -342,7 +342,15 @@ public class FileCertRecordStoreConnectionTest {
         certRecord.setInstanceId("instance-id");
         assertFalse(con.insertX509CertRecord(certRecord));
 
-        // invalid file names that cannot be resolved must be rejected
+        // traversal components that resolve back into the root directory
+        // and backslash separators must be rejected as well
+
+        certRecord.setProvider("sub/../ostk");
+        assertFalse(con.insertX509CertRecord(certRecord));
+        certRecord.setProvider("sub\\ostk");
+        assertFalse(con.insertX509CertRecord(certRecord));
+
+        // invalid file names with nul characters must be rejected
 
         certRecord.setProvider("ostk");
         certRecord.setService("cn\u0000");

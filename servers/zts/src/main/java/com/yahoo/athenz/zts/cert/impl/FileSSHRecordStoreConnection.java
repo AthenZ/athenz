@@ -108,20 +108,15 @@ public class FileSSHRecordStoreConnection implements SSHRecordStoreConnection {
 
         // make sure the record file is directly within our root
         // directory and the given values do not include any path
-        // traversal components
+        // separators or parent directory components
 
         final String fileName = getRecordFileName(instanceId, service);
-        File file = new File(rootDir, fileName);
-        try {
-            if (rootDir.getCanonicalFile().equals(file.getCanonicalFile().getParentFile())) {
-                return file;
-            }
-        } catch (IOException ex) {
-            LOGGER.error("Unable to resolve ssh certificate record file: {}", fileName, ex);
+        if (fileName.contains("..") || fileName.indexOf('/') != -1
+                || fileName.indexOf('\\') != -1 || fileName.indexOf('\0') != -1) {
+            LOGGER.error("Invalid ssh certificate record file: {}", fileName);
             return null;
         }
-        LOGGER.error("Invalid ssh certificate record file: {}", fileName);
-        return null;
+        return new File(rootDir, fileName);
     }
 
     private synchronized SSHCertRecord getCertRecord(String instanceId, String service) {

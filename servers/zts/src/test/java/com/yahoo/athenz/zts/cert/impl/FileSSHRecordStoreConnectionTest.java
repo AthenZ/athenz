@@ -272,7 +272,18 @@ public class FileSSHRecordStoreConnectionTest {
         certRecord.setService("cn/../../escape");
         assertFalse(con.insertSSHCertRecord(certRecord));
 
-        // invalid file names that cannot be resolved must be rejected
+        // traversal components that resolve back into the root directory
+        // and backslash separators must be rejected as well
+
+        certRecord.setInstanceId("sub/../instance-id");
+        certRecord.setService("cn");
+        assertFalse(con.insertSSHCertRecord(certRecord));
+        certRecord.setInstanceId("sub\\instance-id");
+        assertFalse(con.insertSSHCertRecord(certRecord));
+
+        // invalid file names with nul characters must be rejected
+
+        certRecord.setInstanceId("instance-id");
 
         certRecord.setService("cn\u0000");
         assertFalse(con.insertSSHCertRecord(certRecord));
