@@ -5321,7 +5321,12 @@ public class ZTSImpl implements ZTSHandler {
                     caller, domain, principalDomain);
         }
 
+        // the instance id is extracted from the csr (san uri or dns name)
+        // so we need to make sure it's a valid path element since it's
+        // used as part of the key/path in the cert and ssh record stores
+
         final String certReqInstanceId = certReq.getInstanceId();
+        validate(certReqInstanceId, TYPE_PATH_ELEMENT, principalDomain, caller);
 
         // get our instance provider, the method will throw an exception
         // if the provider is not found or invalid type

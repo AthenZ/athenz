@@ -237,4 +237,55 @@ public class FileSSHRecordStoreConnectionTest {
 
         assertEquals(con.deleteExpiredSSHCertRecords(0, 0), 0);
     }
+
+    @Test
+    public void testSSHCertOperationsPathTraversal() {
+
+        // make sure the directory does not exist
+
+        ZTSTestUtils.deleteDirectory(new File("/tmp/zts-ssh-tests"));
+        File escapeFile = new File("/tmp/escape-instance-cn");
+        //noinspection ResultOfMethodCallIgnored
+        escapeFile.delete();
+
+        FileSSHRecordStore store = new FileSSHRecordStore(new File("/tmp/zts-ssh-tests"));
+        FileSSHRecordStoreConnection con = (FileSSHRecordStoreConnection) store.getConnection();
+        assertNotNull(con);
+
+        // instance id with path traversal components must be rejected
+
+        SSHCertRecord certRecord = new SSHCertRecord();
+        certRecord.setInstanceId("../escape-instance");
+        certRecord.setService("cn");
+        certRecord.setPrincipals("host1,host2");
+
+        assertFalse(con.insertSSHCertRecord(certRecord));
+        assertFalse(escapeFile.exists());
+        assertFalse(con.updateSSHCertRecord(certRecord));
+        assertFalse(escapeFile.exists());
+        assertNull(con.getSSHCertRecord("../escape-instance", "cn"));
+        assertFalse(con.deleteSSHCertRecord("../escape-instance", "cn"));
+
+        // service with path separator must be rejected as well
+
+        certRecord.setInstanceId("instance-id");
+        certRecord.setService("cn/../../escape");
+        assertFalse(con.insertSSHCertRecord(certRecord));
+
+        // invalid file names that cannot be resolved must be rejected
+
+        certRecord.setService("cn\u0000");
+        assertFalse(con.insertSSHCertRecord(certRecord));
+        assertNull(con.getSSHCertRecord("instance-id", "cn\u0000"));
+        assertFalse(con.deleteSSHCertRecord("instance-id", "cn\u0000"));
+
+        // valid values are still accepted
+
+        certRecord.setService("cn");
+        assertTrue(con.insertSSHCertRecord(certRecord));
+        assertNotNull(con.getSSHCertRecord("instance-id", "cn"));
+        assertTrue(con.deleteSSHCertRecord("instance-id", "cn"));
+        assertNull(con.getSSHCertRecord("instance-id", "cn"));
+        con.close();
+    }
 }

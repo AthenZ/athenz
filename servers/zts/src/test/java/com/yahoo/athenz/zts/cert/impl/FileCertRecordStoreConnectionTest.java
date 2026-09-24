@@ -306,4 +306,57 @@ public class FileCertRecordStoreConnectionTest {
         // For File store, unrefreshed certs unimplemented. Assert empty collection
         assertEquals(records, new ArrayList<>());
     }
+
+    @Test
+    public void testX509CertOperationsPathTraversal() {
+
+        // make sure the directory does not exist
+
+        ZTSTestUtils.deleteDirectory(new File("/tmp/zts-cert-tests"));
+        File escapeFile = new File("/tmp/escape-instance-cn");
+        //noinspection ResultOfMethodCallIgnored
+        escapeFile.delete();
+
+        FileCertRecordStore store = new FileCertRecordStore(new File("/tmp/zts-cert-tests"));
+        FileCertRecordStoreConnection con = (FileCertRecordStoreConnection) store.getConnection();
+        assertNotNull(con);
+
+        // instance id with path traversal components must be rejected
+
+        X509CertRecord certRecord = new X509CertRecord();
+        certRecord.setProvider("ostk");
+        certRecord.setInstanceId("../../../escape-instance");
+        certRecord.setService("cn");
+        certRecord.setCurrentSerial("current-serial");
+
+        assertFalse(con.insertX509CertRecord(certRecord));
+        assertFalse(escapeFile.exists());
+        assertFalse(con.updateX509CertRecord(certRecord));
+        assertFalse(escapeFile.exists());
+        assertNull(con.getX509CertRecord("ostk", "../../../escape-instance", "cn"));
+        assertFalse(con.deleteX509CertRecord("ostk", "../../../escape-instance", "cn"));
+
+        // provider with path separator must be rejected as well
+
+        certRecord.setProvider("../ostk");
+        certRecord.setInstanceId("instance-id");
+        assertFalse(con.insertX509CertRecord(certRecord));
+
+        // invalid file names that cannot be resolved must be rejected
+
+        certRecord.setProvider("ostk");
+        certRecord.setService("cn\u0000");
+        assertFalse(con.insertX509CertRecord(certRecord));
+        assertNull(con.getX509CertRecord("ostk", "instance-id", "cn\u0000"));
+        assertFalse(con.deleteX509CertRecord("ostk", "instance-id", "cn\u0000"));
+
+        // valid values are still accepted
+
+        certRecord.setService("cn");
+        assertTrue(con.insertX509CertRecord(certRecord));
+        assertNotNull(con.getX509CertRecord("ostk", "instance-id", "cn"));
+        assertTrue(con.deleteX509CertRecord("ostk", "instance-id", "cn"));
+        assertNull(con.getX509CertRecord("ostk", "instance-id", "cn"));
+        con.close();
+    }
 }
