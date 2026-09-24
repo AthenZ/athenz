@@ -1,4 +1,4 @@
-FROM golang:1.24-bullseye AS builder
+FROM golang:1.26-trixie AS builder
 
 ENV APP_NAME=rdl-gen-athenz-go-model
 
