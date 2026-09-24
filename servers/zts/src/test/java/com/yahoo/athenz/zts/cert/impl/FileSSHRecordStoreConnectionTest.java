@@ -297,6 +297,14 @@ public class FileSSHRecordStoreConnectionTest {
         assertNotNull(con.getSSHCertRecord("instance-id", "cn"));
         assertTrue(con.deleteSSHCertRecord("instance-id", "cn"));
         assertNull(con.getSSHCertRecord("instance-id", "cn"));
+
+        // consecutive periods are valid in instance ids
+
+        certRecord.setInstanceId("node..1");
+        assertTrue(con.insertSSHCertRecord(certRecord));
+        assertNotNull(con.getSSHCertRecord("node..1", "cn"));
+        assertTrue(con.deleteSSHCertRecord("node..1", "cn"));
+        assertNull(con.getSSHCertRecord("node..1", "cn"));
         con.close();
     }
 }

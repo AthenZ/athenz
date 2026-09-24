@@ -365,6 +365,14 @@ public class FileCertRecordStoreConnectionTest {
         assertNotNull(con.getX509CertRecord("ostk", "instance-id", "cn"));
         assertTrue(con.deleteX509CertRecord("ostk", "instance-id", "cn"));
         assertNull(con.getX509CertRecord("ostk", "instance-id", "cn"));
+
+        // consecutive periods are valid in instance ids
+
+        certRecord.setInstanceId("node..1");
+        assertTrue(con.insertX509CertRecord(certRecord));
+        assertNotNull(con.getX509CertRecord("ostk", "node..1", "cn"));
+        assertTrue(con.deleteX509CertRecord("ostk", "node..1", "cn"));
+        assertNull(con.getX509CertRecord("ostk", "node..1", "cn"));
         con.close();
     }
 }

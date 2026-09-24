@@ -117,16 +117,18 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
     File getRecordFile(final String provider, final String instanceId, final String service) {
 
         // make sure the record file is directly within our root
-        // directory and the given values do not include any path
-        // separators or parent directory components
+        // directory. the name must not include any path separators
+        // (or nul characters) so it's always a single path component
+        // and the resolved path must still be within the root directory
 
         final String fileName = getRecordFileName(provider, instanceId, service);
-        if (fileName.contains("..") || fileName.indexOf('/') != -1
-                || fileName.indexOf('\\') != -1 || fileName.indexOf('\0') != -1) {
+        final Path rootPath = rootDir.toPath().toAbsolutePath().normalize();
+        if (fileName.indexOf('/') != -1 || fileName.indexOf('\\') != -1 || fileName.indexOf('\0') != -1
+                || !rootPath.resolve(fileName).normalize().startsWith(rootPath)) {
             LOGGER.error("Invalid certificate record file: {}", fileName);
             return null;
         }
-        return new File(rootDir, fileName);
+        return rootPath.resolve(fileName).toFile();
     }
 
     private synchronized X509CertRecord getCertRecord(String provider, String instanceId, String service) {
