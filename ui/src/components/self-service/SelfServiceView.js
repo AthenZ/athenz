@@ -40,6 +40,7 @@ import {
     isLeavable,
     isRequestable,
     matchSummary,
+    partitionRequestable,
     resourceKey,
     splitByType,
 } from './selfServiceUtils';
@@ -528,12 +529,6 @@ export default class SelfServiceView extends React.Component {
         );
     }
 
-    sortTypeSection(list) {
-        const available = list.filter(isRequestable);
-        const rest = list.filter((item) => !isRequestable(item));
-        return [...available, ...rest];
-    }
-
     renderFindResults() {
         const { submittedQuery, results, searching } = this.state;
         if (!submittedQuery) {
@@ -554,20 +549,29 @@ export default class SelfServiceView extends React.Component {
                 </EmptyDiv>
             );
         }
-        const { roles, groups } = splitByType(results);
+
+        const { available, hidden } = partitionRequestable(
+            results,
+            this.state.memberships
+        );
+        if (!available.length) {
+            return (
+                <EmptyDiv>
+                    You already hold or have requested everything matching '
+                    {submittedQuery}'. Manage these under My Roles & Groups.
+                </EmptyDiv>
+            );
+        }
+        const { roles, groups } = splitByType(available);
         return (
             <>
-                <SummaryDiv>{matchSummary(results, submittedQuery)}</SummaryDiv>
-                {this.renderSection(
-                    'Roles',
-                    this.sortTypeSection(roles),
-                    isRequestable
-                )}
-                {this.renderSection(
-                    'Groups',
-                    this.sortTypeSection(groups),
-                    isRequestable
-                )}
+                <SummaryDiv>
+                    {matchSummary(available, submittedQuery)}
+                    {hidden > 0 &&
+                        ` · ${hidden} already held or requested hidden`}
+                </SummaryDiv>
+                {this.renderSection('Roles', roles, isRequestable)}
+                {this.renderSection('Groups', groups, isRequestable)}
             </>
         );
     }
