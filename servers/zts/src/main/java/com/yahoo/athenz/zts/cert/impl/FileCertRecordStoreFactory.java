@@ -23,6 +23,15 @@ import com.yahoo.athenz.common.server.cert.CertRecordStoreFactory;
 import com.yahoo.athenz.zts.ZTSConsts;
 import com.yahoo.athenz.zts.ZTSImpl;
 
+/**
+ * File based x.509 certificate record store factory. This store is primarily
+ * developed to test ZTS functionality in a single server setup and is
+ * not designed for production use. Production deployments typically run
+ * multiple ZTS instances and require the x.509 certificate record data to be
+ * shared among all instances, so it must be stored in a database
+ * (e.g. JDBCCertRecordStoreFactory, DynamoDBCertRecordStoreFactory or
+ * FirestoreCertRecordStoreFactory).
+ */
 public class FileCertRecordStoreFactory implements CertRecordStoreFactory {
 
     @Override

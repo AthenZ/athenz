@@ -23,6 +23,15 @@ import com.yahoo.athenz.zts.ZTSImpl;
 
 import java.io.File;
 
+/**
+ * File based ssh certificate record store factory. This store is primarily
+ * developed to test ZTS functionality in a single server setup and is
+ * not designed for production use. Production deployments typically run
+ * multiple ZTS instances and require the ssh certificate record data to be
+ * shared among all instances, so it must be stored in a database
+ * (e.g. JDBCSSHRecordStoreFactory, DynamoDBSSHRecordStoreFactory or
+ * FirestoreSSHRecordStoreFactory).
+ */
 public class FileSSHRecordStoreFactory implements SSHRecordStoreFactory {
 
     @Override
