@@ -495,6 +495,14 @@ public class DBService implements RolesProvider, DomainProvider {
                 // roles and polices to our domain
 
                 if (solutionTemplates != null) {
+                    try {
+                        validateAdminTrustReplacement(con, domainName,
+                                new DomainTemplate().setTemplateNames(solutionTemplates), getPrincipalName(ctx), caller,
+                                serverSolutionTemplates);
+                    } catch (RuntimeException | ServerResourceException ex) {
+                        rollbackChanges(con);
+                        throw ex;
+                    }
                     for (String templateName : solutionTemplates) {
                         auditDetails.append(", \"template\": ");
                         if (!addSolutionTemplate(ctx, con, domainName, templateName, principalName,
@@ -5420,6 +5428,98 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
+    String validateAdminTrustReplacement(String domainName, DomainTemplate domainTemplate, String requester,
+            String caller, SolutionTemplates serverSolutionTemplates) {
+
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return validateAdminTrustReplacement(con, domainName, domainTemplate, requester, caller,
+                    serverSolutionTemplates);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
+    }
+
+    String validateAdminTrustReplacement(ObjectStoreConnection con, String domainName,
+            DomainTemplate domainTemplate, String requester, String caller,
+            SolutionTemplates serverSolutionTemplates) throws ServerResourceException {
+
+        final String adminRoleResource = ResourceUtils.roleResourceName(domainName, ZMSConsts.ADMIN_ROLE_NAME);
+        Role replacementAdmin = null;
+        boolean replacementAdminHasMembers = false;
+        int adminRoleCount = 0;
+        for (String templateName : domainTemplate.getTemplateNames()) {
+            Template template = serverSolutionTemplates.get(templateName);
+            if (template == null || template.getRoles() == null) {
+                continue;
+            }
+            for (Role role : template.getRoles()) {
+                if (!adminRoleResource.equals(updateTemplateRoleName(role.getName(), domainName,
+                        domainTemplate.getParams()))) {
+                    continue;
+                }
+                adminRoleCount++;
+                Role templateRole = updateTemplateRole(con, role, domainName, domainTemplate.getParams());
+                if (templateRole == null) {
+                    throw ZMSUtils.requestError("admin trust replacement: unable to resolve template role", caller);
+                }
+                if (StringUtil.isEmpty(templateRole.getTrust())) {
+                    continue;
+                }
+                replacementAdmin = templateRole;
+                replacementAdminHasMembers = !ZMSUtils.isCollectionEmpty(role.getMembers())
+                        || !ZMSUtils.isCollectionEmpty(templateRole.getRoleMembers());
+            }
+        }
+
+        if (replacementAdmin == null) {
+            return null;
+        }
+        if (adminRoleCount != 1) {
+            throw ZMSUtils.requestError("admin trust replacement: multiple admin roles are defined", caller);
+        }
+        if (replacementAdminHasMembers) {
+            throw ZMSUtils.requestError("admin trust replacement: template admin role cannot define members", caller);
+        }
+
+        Role currentAdmin = getRole(con, domainName, ZMSConsts.ADMIN_ROLE_NAME, false, false, true);
+        if (currentAdmin == null) {
+            throw ZMSUtils.requestError("admin trust replacement: current admin role must be a regular role", caller);
+        }
+
+        if (!StringUtil.isEmpty(currentAdmin.getTrust())) {
+            List<RoleMember> storedMembers = con.listRoleMembers(domainName, ZMSConsts.ADMIN_ROLE_NAME, true);
+            if (!replacementAdmin.getTrust().equals(currentAdmin.getTrust())
+                    || !ZMSUtils.isCollectionEmpty(storedMembers)) {
+                throw ZMSUtils.requestError("admin trust replacement: current admin role must be a regular role", caller);
+            }
+            if (StringUtil.isEmpty(requester)) {
+                return replacementAdmin.getTrust();
+            }
+        } else {
+            if (StringUtil.isEmpty(requester)) {
+                throw ZMSUtils.requestError("admin trust replacement: authenticated requester is required", caller);
+            }
+
+            List<RoleMember> currentMembers = currentAdmin.getRoleMembers();
+            if (currentMembers == null || currentMembers.size() != 1
+                    || !Boolean.TRUE.equals(currentMembers.get(0).getApproved())
+                    || !requester.equals(currentMembers.get(0).getMemberName())) {
+                throw ZMSUtils.requestError("admin trust replacement: requester must be the sole admin member", caller);
+            }
+        }
+
+        AthenzDomain trustDomain = getAthenzDomain(con, replacementAdmin.getTrust());
+        ZMSImpl.ZMSGroupMembersFetcher groupMembersFetcher = new ZMSImpl.ZMSGroupMembersFetcher(this);
+        for (Policy policy : trustDomain.getPolicies()) {
+            if (policy.getActive() != Boolean.FALSE && AuthzHelper.matchDelegatedTrustPolicy(policy,
+                    adminRoleResource, requester, trustDomain.getRoles(), groupMembersFetcher)) {
+                return replacementAdmin.getTrust();
+            }
+        }
+        throw ZMSUtils.requestError("admin trust replacement: requester does not have delegated access "
+                + "to the admin role", caller);
+    }
+
     void executePutDomainTemplate(ResourceContext ctx, String domainName, DomainTemplate domainTemplate,
             String auditRef, String caller) {
         executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller,
@@ -5442,6 +5542,11 @@ public class DBService implements RolesProvider, DomainProvider {
                 // first verify that auditing requirements are met
 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller, principalName, AUDIT_TYPE_TEMPLATE);
+
+                // Repeat the admin handoff validation in the transaction before applying any template changes.
+
+                validateAdminTrustReplacement(con, domainName, domainTemplate, principalName, caller,
+                        serverSolutionTemplates);
 
                 // go through our list of templates and add the specified
                 // roles and polices to our domain
@@ -5551,7 +5656,6 @@ public class DBService implements RolesProvider, DomainProvider {
             auditDetails.append("}");
             return true;
         }
-
         auditDetails.append(",");
 
         boolean firstEntry = true;
@@ -5571,6 +5675,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 String roleName = ZMSUtils.removeDomainPrefix(templateRole.getName(),
                     domainName, ROLE_PREFIX);
+                boolean replaceAdmin = ZMSConsts.ADMIN_ROLE_NAME.equals(roleName)
+                        && !StringUtil.isEmpty(templateRole.getTrust());
 
                 // retrieve our original role
 
@@ -5584,7 +5690,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 }
 
                 // Check for conflict: Existing members, applying Trust
-                if (originalRole != null && StringUtil.isEmpty(originalRole.getTrust()) &&
+                if (!replaceAdmin && originalRole != null && StringUtil.isEmpty(originalRole.getTrust()) &&
                         originalRole.getRoleMembers() != null && !originalRole.getRoleMembers().isEmpty()) {
                     if (!StringUtil.isEmpty(templateRole.getTrust())) {
                         LOG.warn("SolutionTemplate is setting trust on role {} which already has members", templateRole.getName());
@@ -5608,7 +5714,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-role\": ");
                 if (!processRole(con, originalRole, domainName, roleName, templateRole,
-                        admin, null, auditRef, true, auditDetails)) {
+                        admin, null, auditRef, !replaceAdmin, auditDetails)) {
                     return false;
                 }
 
@@ -5845,18 +5951,27 @@ public class DBService implements RolesProvider, DomainProvider {
         auditDetails.append("}");
     }
 
+    private String updateTemplateRoleName(String roleName, String domainName, List<TemplateParam> params) {
+        String templateRoleName = roleName.replace(TEMPLATE_DOMAIN_NAME, domainName);
+        if (params != null) {
+            for (TemplateParam param : params) {
+                templateRoleName = templateRoleName.replace("_" + param.getName() + "_", param.getValue());
+            }
+        }
+        return templateRoleName;
+    }
+
     Role updateTemplateRole(ObjectStoreConnection con, Role role, String domainName, List<TemplateParam> params)
             throws ServerResourceException {
 
         // first process our given role name and carry out any
         // requested substitutions
 
-        String templateRoleName = role.getName().replace(TEMPLATE_DOMAIN_NAME, domainName);
+        String templateRoleName = updateTemplateRoleName(role.getName(), domainName, params);
         String templateRoleTrust = role.getTrust();
         if (params != null) {
             for (TemplateParam param : params) {
                 final String paramKey = "_" + param.getName() + "_";
-                templateRoleName = templateRoleName.replace(paramKey, param.getValue());
                 if (!StringUtil.isEmpty(templateRoleTrust)) {
                     templateRoleTrust = templateRoleTrust.replace(paramKey, param.getValue());
                 }
