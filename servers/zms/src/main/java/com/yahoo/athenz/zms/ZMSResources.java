@@ -1059,6 +1059,46 @@ public class ZMSResources {
         }
     }
 
+    @DELETE
+    @Path("/domain/{domainName}/roles/{roleNames}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete the specified roles. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deleteRoles(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "comma separated list of role names to be deleted", required = true) @PathParam("roleNames") String roleNames,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Resource owner for the request", required = true) @HeaderParam("Athenz-Resource-Owner") String resourceOwner) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deleteRoles");
+            context.authenticate();
+            this.delegate.deleteRoles(context, domainName, roleNames, auditRef, resourceOwner);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deleteRoles");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
     @GET
     @Path("/domain/{domainName}/role/{roleName}/member/{memberName}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -2382,6 +2422,46 @@ public class ZMSResources {
                 throw typedException(code, e, ResourceError.class);
             default:
                 System.err.println("*** Warning: undeclared exception (" + code + ") for resource deletePolicy");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @DELETE
+    @Path("/domain/{domainName}/policies/{policyNames}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete the specified policies. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deletePolicies(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "comma separated list of policy names to be deleted", required = true) @PathParam("policyNames") String policyNames,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Resource owner for the request", required = true) @HeaderParam("Athenz-Resource-Owner") String resourceOwner) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deletePolicies");
+            context.authenticate();
+            this.delegate.deletePolicies(context, domainName, policyNames, auditRef, resourceOwner);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deletePolicies");
                 throw typedException(code, e, ResourceError.class);
             }
         } finally {

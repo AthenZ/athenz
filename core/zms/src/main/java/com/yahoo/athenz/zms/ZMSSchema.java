@@ -34,6 +34,10 @@ public class ZMSSchema {
             .comment("An entity name is a short form of a resource name, including only the domain and entity.")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
 
+        sb.stringType("EntityNameList")
+            .comment("A comma separated list of entity names")
+            .pattern("(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*,)*([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+
         sb.stringType("ServiceName")
             .comment("A service name will generally be a unique subdomain.")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
@@ -1551,6 +1555,28 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("RoleList", "DELETE", "/domain/{domainName}/roles/{roleNames}")
+            .comment("Delete the specified roles. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .name("DeleteRoles")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("roleNames", "EntityNameList", "comma separated list of role names to be deleted")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
+            .auth("", "", true)
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("Membership", "GET", "/domain/{domainName}/role/{roleName}/member/{memberName}")
             .comment("Get the membership status for a specified user in a role.")
             .pathParam("domainName", "DomainName", "name of the domain")
@@ -2230,6 +2256,28 @@ public class ZMSSchema {
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("delete", "{domainName}:policy.{policyName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyList", "DELETE", "/domain/{domainName}/policies/{policyNames}")
+            .comment("Delete the specified policies. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .name("DeletePolicies")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("policyNames", "EntityNameList", "comma separated list of policy names to be deleted")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

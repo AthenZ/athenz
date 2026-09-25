@@ -96,6 +96,26 @@ resource Policy DELETE "/domain/{domainName}/policy/{policyName}" {
     }
 }
 
+//Delete the specified policies. Upon successful completion of this delete
+//request, the server will return NO_CONTENT status code without any data
+//(no object will be returned).
+resource PolicyList DELETE "/domain/{domainName}/policies/{policyNames}" (name=DeletePolicies) {
+    DomainName domainName; //name of the domain
+    EntityNameList policyNames; //comma separated list of policy names to be deleted
+    String auditRef (header="Y-Audit-Ref"); //Audit param required(not empty) if domain auditEnabled is true.
+    String resourceOwner (header="Athenz-Resource-Owner"); //Resource owner for the request
+    authenticate;
+    expected NO_CONTENT;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError FORBIDDEN;
+        ResourceError UNAUTHORIZED;
+        ResourceError CONFLICT;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
 //Get the assertion details with specified id in the given policy
 resource Assertion GET "/domain/{domainName}/policy/{policyName}/assertion/{assertionId}" {
     DomainName domainName; //name of the domain

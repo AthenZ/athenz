@@ -25,6 +25,7 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.common.messaging.DomainChangeMessage;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
 import com.yahoo.athenz.common.server.rest.ServerResourceContext;
@@ -1421,6 +1422,56 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testExecuteDeletePolicies() throws ServerResourceException {
+
+        String domainName = "policiesdeldom1";
+        String policyName1 = "policy1";
+        String policyName2 = "policy2";
+        String policyName3 = "policy3";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
+
+        Policy policy1 = createPolicyObject(domainName, policyName1);
+        zms.putPolicy(mockDomRsrcCtx, domainName, policyName1, auditRef, false, null, policy1);
+
+        Policy policy2 = createPolicyObject(domainName, policyName2);
+        zms.putPolicy(mockDomRsrcCtx, domainName, policyName2, auditRef, false, null, policy2);
+
+        Policy policy3 = createPolicyObject(domainName, policyName3);
+        zms.putPolicy(mockDomRsrcCtx, domainName, policyName3, auditRef, false, null, policy3);
+
+        Mockito.clearInvocations(mockDomRsrcCtx);
+        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("deletepolicies");
+        zms.dbService.executeDeletePolicies(mockDomRsrcCtx, domainName,
+                Arrays.asList(policyName1, policyName2), auditRef, "deletePolicies");
+
+        ArgumentCaptor<DomainChangeMessage> changeCaptor = ArgumentCaptor.forClass(DomainChangeMessage.class);
+        Mockito.verify(mockDomRsrcCtx, times(1)).addDomainChangeMessage(changeCaptor.capture());
+        ZMSTestUtils.assertChange(changeCaptor.getValue(), DomainChangeMessage.ObjectType.DOMAIN,
+                domainName, domainName, "deletePolicies");
+
+        try {
+            zms.getPolicy(mockDomRsrcCtx, domainName, policyName1);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+
+        try {
+            zms.getPolicy(mockDomRsrcCtx, domainName, policyName2);
+            fail();
+        } catch (Exception ex) {
+            assertTrue(true);
+        }
+
+        assertNotNull(zms.getPolicy(mockDomRsrcCtx, domainName, policyName3));
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testExecuteDeletePublicKeyEntry() throws ServerResourceException {
 
         String domainName = "servicedelpubkeydom1";
@@ -1521,6 +1572,99 @@ public class DBServiceTest {
         assertTrue(roleList.getNames().contains("admin"));
 
         zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testExecuteDeleteRoles() throws ServerResourceException {
+
+        String domainName = "delrolesdom1";
+        String roleName1 = "role1";
+        String roleName2 = "role2";
+        String roleName3 = "role3";
+
+        TopLevelDomain dom1 = createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", adminUser);
+        zms.postTopLevelDomain(mockDomRsrcCtx, auditRef, null, dom1);
+
+        Role role1 = createRoleObject(domainName, roleName1, null, "user.joe",
+                "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName1, auditRef, false, null, role1);
+
+        Role role2 = createRoleObject(domainName, roleName2, null, "user.joe",
+                "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName2, auditRef, false, null, role2);
+
+        Role role3 = createRoleObject(domainName, roleName3, null, "user.joe",
+                "user.jane");
+        zms.putRole(mockDomRsrcCtx, domainName, roleName3, auditRef, false, null, role3);
+
+        Mockito.clearInvocations(mockDomRsrcCtx);
+        Mockito.when(mockDomRsrcCtx.getApiName()).thenReturn("deleteroles");
+        zms.dbService.executeDeleteRoles(mockDomRsrcCtx, domainName,
+                Arrays.asList(roleName1, roleName2), auditRef, "deleteRoles");
+
+        ArgumentCaptor<DomainChangeMessage> changeCaptor = ArgumentCaptor.forClass(DomainChangeMessage.class);
+        Mockito.verify(mockDomRsrcCtx, times(1)).addDomainChangeMessage(changeCaptor.capture());
+        ZMSTestUtils.assertChange(changeCaptor.getValue(), DomainChangeMessage.ObjectType.DOMAIN,
+                domainName, domainName, "deleteRoles");
+
+        RoleList roleList = zms.getRoleList(mockDomRsrcCtx, domainName, null, null);
+        assertNotNull(roleList);
+        assertEquals(roleList.getNames().size(), 2);
+        assertFalse(roleList.getNames().contains(roleName1));
+        assertFalse(roleList.getNames().contains(roleName2));
+        assertTrue(roleList.getNames().contains(roleName3));
+        assertTrue(roleList.getNames().contains("admin"));
+
+        zms.deleteTopLevelDomain(mockDomRsrcCtx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testExecuteDeleteRolesAssumeRoleAssertionCleanupFailureRollback() throws ServerResourceException {
+
+        String domainName = "provider";
+        String tenantDomain1 = "tenant1";
+        String tenantDomain2 = "tenant2";
+        String roleName1 = "role1";
+        String roleName2 = "role2";
+
+        Assertion assertion = new Assertion()
+                .setId(1001L)
+                .setRole(domainName + ":role." + roleName1)
+                .setResource(tenantDomain1 + ":role.admin")
+                .setAction("assume_role");
+        Policy policy = new Policy()
+                .setName("policy1")
+                .setVersion("0")
+                .setAssertions(Collections.singletonList(assertion));
+
+        Mockito.when(mockJdbcConn.getDomain(anyString())).thenReturn(new Domain().setAuditEnabled(false));
+        Mockito.when(mockJdbcConn.deleteAssumeRoleAssertions(tenantDomain1, domainName, roleName1))
+                .thenReturn(Collections.singletonList(policy));
+        Mockito.when(mockJdbcConn.deleteAssumeRoleAssertions(tenantDomain2, domainName, roleName2))
+                .thenThrow(new ServerResourceException(ServerResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        int saveRetries = zms.dbService.defaultRetryCount;
+        zms.dbService.store = mockObjStore;
+        zms.dbService.defaultRetryCount = 0;
+
+        try {
+            zms.dbService.executeDeleteRoles(mockDomRsrcCtx, domainName,
+                    Arrays.asList(roleName1, roleName2), Arrays.asList(
+                            new DBService.TenantAssumeRoleAssertionCleanup(tenantDomain1, domainName, roleName1),
+                            new DBService.TenantAssumeRoleAssertionCleanup(tenantDomain2, domainName, roleName2)),
+                    auditRef, "deleteRoles");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
+        } finally {
+            zms.dbService.defaultRetryCount = saveRetries;
+            zms.dbService.store = saveStore;
+        }
+
+        Mockito.verify(mockJdbcConn, times(1)).rollbackChanges();
+        Mockito.verify(mockJdbcConn, never()).deleteRole(anyString(), anyString());
     }
 
     @Test
@@ -2254,6 +2398,37 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testExecuteDeleteRolesFailure() throws ServerResourceException {
+
+        String domainName = "rolesdelete1";
+        String roleName1 = "role1";
+        String roleName2 = "role2";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.deleteRole(domainName, roleName1)).thenReturn(true);
+        Mockito.when(mockJdbcConn.deleteRole(domainName, roleName2)).thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executeDeleteRoles(mockDomRsrcCtx, domainName,
+                    Arrays.asList(roleName1, roleName2), auditRef, "deleteRoles");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("unable to delete role: " + roleName2));
+        } finally {
+            zms.dbService.store = saveStore;
+        }
+
+        Mockito.verify(mockJdbcConn, times(1)).rollbackChanges();
+        Mockito.verify(mockJdbcConn, never()).commitChanges();
+        Mockito.verify(mockJdbcConn, never()).updateDomainModTimestamp(domainName);
+    }
+
+    @Test
     public void testExecuteDeleteRoleFailureRetry() throws ServerResourceException {
 
         String domainName = "roledelete1";
@@ -2634,6 +2809,93 @@ public class DBServiceTest {
         }
 
         zms.dbService.store = saveStore;
+    }
+
+    @Test
+    public void testExecuteDeletePoliciesFailure() throws ServerResourceException {
+
+        String domainName = "policies-delete-failure";
+        String policyName1 = "policy1";
+        String policyName2 = "policy2";
+        String version = "0";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.listPolicyVersions(domainName, policyName1))
+                .thenReturn(Collections.singletonList(version));
+        Mockito.when(mockJdbcConn.listPolicyVersions(domainName, policyName2))
+                .thenReturn(Collections.singletonList(version));
+        Mockito.when(mockJdbcConn.getPolicy(domainName, policyName1, version))
+                .thenReturn(new Policy().setName(policyName1).setVersion(version).setActive(true));
+        Mockito.when(mockJdbcConn.getPolicy(domainName, policyName2, version))
+                .thenReturn(new Policy().setName(policyName2).setVersion(version).setActive(true));
+        Mockito.when(mockJdbcConn.listAssertions(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(Collections.emptyList());
+        Mockito.when(mockJdbcConn.deletePolicy(domainName, policyName1)).thenReturn(true);
+        Mockito.when(mockJdbcConn.deletePolicy(domainName, policyName2)).thenReturn(false);
+
+        ObjectStore saveStore = zms.dbService.store;
+        zms.dbService.store = mockObjStore;
+
+        try {
+            zms.dbService.executeDeletePolicies(mockDomRsrcCtx, domainName,
+                    Arrays.asList(policyName1, policyName2), auditRef, "deletePolicies");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("unable to delete policy: " + policyName2));
+        } finally {
+            zms.dbService.store = saveStore;
+        }
+
+        Mockito.verify(mockJdbcConn, times(1)).rollbackChanges();
+        Mockito.verify(mockJdbcConn, never()).commitChanges();
+        Mockito.verify(mockJdbcConn, never()).updateDomainModTimestamp(domainName);
+    }
+
+    @Test
+    public void testExecuteDeletePoliciesServerExceptionRollback() throws ServerResourceException {
+
+        String domainName = "policies-delete-exception";
+        String policyName1 = "policy1";
+        String policyName2 = "policy2";
+        String version = "0";
+
+        Domain domain = new Domain().setAuditEnabled(false);
+        Mockito.when(mockJdbcConn.getDomain(domainName)).thenReturn(domain);
+        Mockito.when(mockJdbcConn.listPolicyVersions(domainName, policyName1))
+                .thenReturn(Collections.singletonList(version));
+        Mockito.when(mockJdbcConn.listPolicyVersions(domainName, policyName2))
+                .thenReturn(Collections.singletonList(version));
+        Mockito.when(mockJdbcConn.getPolicy(domainName, policyName1, version))
+                .thenReturn(new Policy().setName(policyName1).setVersion(version).setActive(true));
+        Mockito.when(mockJdbcConn.getPolicy(domainName, policyName2, version))
+                .thenReturn(new Policy().setName(policyName2).setVersion(version).setActive(true));
+        Mockito.when(mockJdbcConn.listAssertions(Mockito.anyString(), Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(Collections.emptyList());
+        Mockito.when(mockJdbcConn.deletePolicy(domainName, policyName1)).thenReturn(true);
+        Mockito.when(mockJdbcConn.deletePolicy(domainName, policyName2))
+                .thenThrow(new ServerResourceException(ServerResourceException.CONFLICT, "conflict"));
+
+        ObjectStore saveStore = zms.dbService.store;
+        int saveRetries = zms.dbService.defaultRetryCount;
+        zms.dbService.store = mockObjStore;
+        zms.dbService.defaultRetryCount = 0;
+
+        try {
+            zms.dbService.executeDeletePolicies(mockDomRsrcCtx, domainName,
+                    Arrays.asList(policyName1, policyName2), auditRef, "deletePolicies");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.CONFLICT);
+        } finally {
+            zms.dbService.defaultRetryCount = saveRetries;
+            zms.dbService.store = saveStore;
+        }
+
+        Mockito.verify(mockJdbcConn, times(1)).rollbackChanges();
+        Mockito.verify(mockJdbcConn, never()).commitChanges();
+        Mockito.verify(mockJdbcConn, never()).updateDomainModTimestamp(domainName);
     }
 
     @Test
@@ -14877,6 +15139,10 @@ public class DBServiceTest {
 
         assertStoreConnectionFailure(() -> zms.dbService.executePutEntity(mockDomRsrcCtx, domainName, "entity1",
                 new Entity().setName(domainName + ":entity.entity1"), auditRef, "putEntity"));
+        assertStoreConnectionFailure(() -> zms.dbService.executeDeleteRoles(mockDomRsrcCtx, domainName,
+                Arrays.asList("role1", "role2"), auditRef, "deleteRoles"));
+        assertStoreConnectionFailure(() -> zms.dbService.executeDeletePolicies(mockDomRsrcCtx, domainName,
+                Arrays.asList("policy1", "policy2"), auditRef, "deletePolicies"));
         assertStoreConnectionFailure(() -> zms.dbService.executeDeletePolicyVersion(mockDomRsrcCtx, domainName,
                 "policy1", "version1", auditRef, "deletePolicyVersion"));
         assertStoreConnectionFailure(() -> zms.dbService.executeDeleteDomain(mockDomRsrcCtx, domainName,

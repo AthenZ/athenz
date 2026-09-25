@@ -2166,6 +2166,39 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testDeleteRoles() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        RoleList roleListMock = Mockito.mock(RoleList.class);
+        Mockito.when(c.deleteRoles("DelRoleDom1", "Role1,Role2", AUDIT_REF, null)).thenReturn(roleListMock);
+        client.deleteRoles("DelRoleDom1", "Role1,Role2", AUDIT_REF);
+        try {
+            Mockito.when(c.deleteRoles("DelRoleDom1", "Role2,Role3", AUDIT_REF, null))
+                    .thenThrow(new ClientResourceException(204));
+            client.deleteRoles("DelRoleDom1", "Role2,Role3", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.NO_CONTENT);
+        }
+        try {
+            Mockito.when(c.deleteRoles("DelRoleDom2", "Role2,Role3", AUDIT_REF, null))
+                    .thenThrow(new NullPointerException());
+            client.deleteRoles("DelRoleDom2", "Role2,Role3", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+
+        List<String> roleNames = new ArrayList<>();
+        for (int idx = 0; idx <= 250; idx++) {
+            roleNames.add("Role" + idx);
+        }
+        client.deleteRoles("DelRoleDom3", String.join(",", roleNames), AUDIT_REF);
+        Mockito.verify(c).deleteRoles("DelRoleDom3", String.join(",", roleNames), AUDIT_REF, null);
+    }
+
+    @Test
     public void testGetMembership() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
@@ -3008,6 +3041,40 @@ public class ZMSClientTest {
         Mockito.when(c.deletePolicyVersion("PolicyDelDom3", "Policy1", "0", AUDIT_REF, null))
                 .thenThrow(new NullPointerException());
         testDeletePolicyVersion(client, systemAdminFullUser);
+    }
+
+    @Test
+    public void testDeletePolicies() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+        PolicyList policyListMock = Mockito.mock(PolicyList.class);
+        Mockito.when(c.deletePolicies("PolicyDelDom1", "Policy1,Policy2", AUDIT_REF, null))
+                .thenReturn(policyListMock);
+        client.deletePolicies("PolicyDelDom1", "Policy1,Policy2", AUDIT_REF);
+        try {
+            Mockito.when(c.deletePolicies("PolicyDelDom2", "Policy1,Policy2", AUDIT_REF, null))
+                    .thenThrow(new ClientResourceException(403));
+            client.deletePolicies("PolicyDelDom2", "Policy1,Policy2", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.FORBIDDEN);
+        }
+        try {
+            Mockito.when(c.deletePolicies("PolicyDelDom3", "Policy1,Policy2", AUDIT_REF, null))
+                    .thenThrow(new NullPointerException());
+            client.deletePolicies("PolicyDelDom3", "Policy1,Policy2", AUDIT_REF);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), ZMSClientException.BAD_REQUEST);
+        }
+
+        List<String> policyNames = new ArrayList<>();
+        for (int idx = 0; idx <= 250; idx++) {
+            policyNames.add("Policy" + idx);
+        }
+        client.deletePolicies("PolicyDelDom4", String.join(",", policyNames), AUDIT_REF);
+        Mockito.verify(c).deletePolicies("PolicyDelDom4", String.join(",", policyNames), AUDIT_REF, null);
     }
 
     @Test
