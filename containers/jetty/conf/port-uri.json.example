@@ -3,7 +3,8 @@
     {
       "port": 9443,
       "mtls_required": false,
-      "description": "Instance registration port - restricted endpoints only",
+      "proxy_protocol": true,
+      "description": "Instance registration port behind a trusted L4 proxy (PROXY protocol enabled for this listener only) - restricted endpoints only",
       "allowed_endpoints": [
         {
           "path": "/zts/v1/instance",

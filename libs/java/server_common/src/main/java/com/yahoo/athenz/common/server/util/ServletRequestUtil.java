@@ -27,6 +27,15 @@ public class ServletRequestUtil {
 
     public static final String LOOPBACK_ADDRESS = "127.0.0.1";
     public static final String XFF_HEADER       = "X-Forwarded-For";
+
+    /**
+     * Request attribute set by the Athenz Jetty container on every request with the
+     * configured port of the connector that accepted the connection. Prefer it over
+     * HttpServletRequest.getLocalPort() for port-based decisions: behind a PROXY-protocol
+     * listener, getLocalPort() reports the destination port advertised by the upstream
+     * proxy (e.g. its public edge port), not the port the request actually arrived on.
+     */
+    public static final String CONNECTOR_PORT_ATTRIBUTE = "com.yahoo.athenz.connector.port";
     public static final Pattern USER_AGENT_PATTERN       = Pattern.compile("SIA-([^ ]+)([ ]+[^ ]*|$)");
 
     /**
@@ -50,6 +59,21 @@ public class ServletRequestUtil {
             }
         }
         return addr;
+    }
+
+    /**
+     * Return the port of the server connector that accepted this request. Uses the
+     * CONNECTOR_PORT_ATTRIBUTE stamped by the container when present, otherwise falls
+     * back to the servlet-reported local port.
+     * @param request http servlet request
+     * @return connector port
+     */
+    public static int getConnectorPort(final HttpServletRequest request) {
+        Object port = request.getAttribute(CONNECTOR_PORT_ATTRIBUTE);
+        if (port instanceof Integer) {
+            return (Integer) port;
+        }
+        return request.getLocalPort();
     }
 
     /**

@@ -1,0 +1,26 @@
+{
+  "ports": [
+    {
+      "port": 9443,
+      "mtls_required": false,
+      "proxy_protocol": true,
+      "description": "Origin port behind an L4 proxy - PROXY protocol on",
+      "allowed_endpoints": []
+    },
+    {
+      "port": 4443,
+      "mtls_required": false,
+      "description": "Main HTTPS port - inherits the global proxy protocol setting",
+      "allowed_endpoints": []
+    },
+    {
+      "port": 8443,
+      "mtls_required": false,
+      "proxy_protocol": false,
+      "description": "Status port - PROXY protocol explicitly off",
+      "allowed_endpoints": [
+        { "path": "/zts/v1/status", "methods": ["GET"], "description": "ZTS API status" }
+      ]
+    }
+  ]
+}
