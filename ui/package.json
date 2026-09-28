@@ -158,8 +158,13 @@
     "overrides": {
         "esbuild": "0.25.0",
         "cookie": "0.7.1",
+        "proxy-addr": "2.0.8",
         "postcss": {
             "nanoid": "3.3.8"
+        },
+        "request": {
+            "form-data": "2.5.4",
+            "tough-cookie": "4.1.4"
         }
     }
 }
