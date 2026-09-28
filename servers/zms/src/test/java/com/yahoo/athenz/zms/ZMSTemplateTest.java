@@ -1491,7 +1491,7 @@ public class ZMSTemplateTest {
         zmsImpl.putDomainTemplate(ctx, domainName, auditRef,
                 createAdminTrustTemplate(zmsImpl, trustDomain));
         assertStoredAdminMembers(zmsImpl, domainName, 0);
-        assertTrue(zmsImpl.isMemberOfRole(zmsImpl.getRole(ctx, domainName, "admin", false, false, false),
+        assertTrue(zmsImpl.isMemberOfRole(zmsImpl.getRole(ctx, domainName, "admin", false, true, false),
                 "user.user2"));
         zmsImpl.deleteTopLevelDomain(ctx, trustDomain, auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -1696,8 +1696,8 @@ public class ZMSTemplateTest {
                 ResourceUtils.groupResourceName(domainName, "admins"), auditRef);
         zmsImpl.putDomainTemplate(ctx, domainName, auditRef, domainTemplate);
         assertStoredAdminMembers(zmsImpl, domainName, 0);
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, trustDomain, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -1726,8 +1726,8 @@ public class ZMSTemplateTest {
         assertAdminTrustTemplateNotApplied(zmsImpl, ctx, domainName);
         assertNull(zmsImpl.getGroup(ctx, domainName, "admins", false, false)
                 .getGroupMembers().get(0).getExpiration());
-        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, trustDomain, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     private void createAdminDelegation(ZMSImpl zmsImpl, RsrcCtxWrapper ctx, String trustDomain,
