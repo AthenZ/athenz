@@ -69,6 +69,8 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_SIGNED_POLICY_TIMEOUT   = "athenz.zms.signed_policy_timeout";
     public static final String ZMS_PROP_AUTHZ_SERVICE_FNAME     = "athenz.zms.authz_service_fname";
     public static final String ZMS_PROP_SOLUTION_TEMPLATE_FNAME = "athenz.zms.solution_templates_fname";
+    public static final String ZMS_PROP_SOLUTION_TEMPLATE_DEFAULT_PRESERVE_ADMIN_ACCESS =
+            "athenz.zms.solution_templates_default_preserve_admin_access";
     public static final String ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD =
             "athenz.zms.solution_templates_dynamic_reload";
     public static final String ZMS_PROP_SOLUTION_TEMPLATE_RELOAD_FREQUENCY_SECONDS =

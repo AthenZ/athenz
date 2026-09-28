@@ -530,7 +530,8 @@ public class ZMSSchema {
             .field("latestVersion", "Int32", true, "Bumped up version from solutions-template.json when there is a change")
             .field("keywordsToReplace", "String", true, "placeholders in the template roles/policies to replace (ex:_service_)")
             .field("timestamp", "Timestamp", true, "the updated timestamp of the template(solution_templates.json)")
-            .field("autoUpdate", "Bool", true, "flag to automatically update the roles/policies that belongs to the template");
+            .field("autoUpdate", "Bool", true, "flag to automatically update the roles/policies that belongs to the template")
+            .field("preserveAdminAccess", "Bool", true, "require existing direct admins to retain delegated access; omitted inherits the ZMS default");
 
         sb.structType("Template")
             .comment("Solution Template object defined on the server")

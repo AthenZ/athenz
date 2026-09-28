@@ -212,11 +212,23 @@ policy or role which is part of the template and wanted to patch it up.
 ![ui](images/example_2_ui.png)
 
 ### Replacing the domain admin with delegated trust
-When a solution template defines `trust` for the domain's `admin` role, ZMS automatically replaces the requesting administrator's direct membership with delegated administration. Templates without an admin trust role retain the existing merge behavior.
+When a solution template defines `trust` for the domain's `admin` role, ZMS removes all stored direct admin memberships and sets the trust in the same transaction. This prevents an inconsistent state in which the role has both delegated trust and direct memberships. The removal includes pending memberships and records left alongside trust by older template applications. Templates without an admin trust role retain the existing merge behavior. The templates being applied must define exactly one admin role when setting admin trust, and that role must not also specify members.
 
-ZMS accepts the handoff only when the templates being applied define exactly one `admin` role with trust and no members, the authenticated requester is the sole approved direct member of the current regular `admin` role with no pending admin entries, and the trust domain already delegates the target `admin` role to that requester (directly or through a group). These checks also apply when templates are supplied during domain creation. ZMS validates the handoff before applying template changes, and removes the direct membership and sets trust in the same transaction. Failed validation leaves the existing domain unchanged, or rolls back creation of a new domain.
+The optional `preserveAdminAccess` metadata controls validation before the conversion:
 
-A background update cannot initiate the handoff, but it may reapply the template after the same clean trust state is already in place. An existing admin role that already contains both trust and stored direct-member records is rejected rather than automatically cleaned up.
+```json
+"metadata": {
+  "preserveAdminAccess": true
+}
+```
+
+When enabled, every existing approved, enabled, unexpired direct admin must retain membership in the admin role through the proposed delegation. Multiple existing admins are allowed, and groups in the existing admin role are expanded to their current members. ZMS requires a matching unconditional `assume_role` grant. A matching DENY in any active policy prevents the conversion, even when another assertion allows it. Conditional grants alone cannot establish preservation, and matching conditional DENY assertions also prevent the conversion. The requester does not need a separate membership check.
+
+Explicit `true` or `false` in the template overrides the ZMS property `athenz.zms.solution_templates_default_preserve_admin_access`. Omitting `preserveAdminAccess` inherits that property, whose default is `false`. With preservation disabled, the conversion can transfer administration away from existing admins, including the requester. Successful conversions always remove direct memberships, regardless of this setting.
+
+These rules apply to interactive template applications, domain creation with templates, and background template updates. Preservation is checked before changes and again within the transaction before committing, using the admins captured before conversion. Failed validation leaves the domain unchanged or rolls back creation of a new domain. Reapplying the same trust is allowed and cleans up any stored direct-member records.
+
+Preservation cannot verify an open-ended wildcard admin membership or a change from one existing admin trust domain to another; these cases are rejected while preservation is enabled. This metadata applies to solution-template admin conversions, not ordinary role updates through the role API.
 
 ### Auto Update
 Auto update flag in templates lets the zms server to patch up the changes 

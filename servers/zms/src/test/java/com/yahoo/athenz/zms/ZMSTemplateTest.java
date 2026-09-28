@@ -21,8 +21,10 @@ package com.yahoo.athenz.zms;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.store.ObjectStoreConnection;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.zms.config.SolutionTemplates;
 import com.yahoo.athenz.zms.utils.ZMSUtils;
+import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.*;
 
 import java.util.ArrayList;
@@ -1326,6 +1328,8 @@ public class ZMSTemplateTest {
         }
         installTemplate(zmsImpl, "template_admin_trust", Collections.singletonList(
                 new Role().setName("_domain_:role.admin").setTrust(trustDomain)));
+        zmsImpl.getSolutionTemplatesSnapshot().templates.get("template_admin_trust")
+                .getMetadata().setPreserveAdminAccess(true);
         TopLevelDomain domain = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Template Admin Test Domain", "testOrg", ctx.principal().getFullName());
         if (additionalAdmin) {
@@ -1349,8 +1353,7 @@ public class ZMSTemplateTest {
                 fail();
             } catch (ResourceException ex) {
                 assertEquals(ex.getCode(), 400);
-                assertTrue(ex.getMessage().contains(additionalAdmin ? "requester must be the sole admin member"
-                        : "requester does not have delegated access"));
+                assertTrue(ex.getMessage().contains("does not have delegated access"));
             }
             try {
                 zmsImpl.getDomain(ctx, domainName);
@@ -1397,7 +1400,7 @@ public class ZMSTemplateTest {
     }
 
     @Test
-    public void testPutDomainTemplateReplaceAdminRequiresCurrentRegularRole() throws ServerResourceException {
+    public void testPutDomainTemplateCleansLegacyAdminMembers() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -1416,20 +1419,13 @@ public class ZMSTemplateTest {
             zmsImpl.dbService.saveChanges(con, domainName);
         }
 
-        try {
-            zmsImpl.putDomainTemplate(ctx, domainName, auditRef,
-                    createAdminTrustTemplate(zmsImpl, trustDomain));
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("current admin role must be a regular role"));
-        }
+        zmsImpl.putDomainTemplate(ctx, domainName, auditRef,
+                createAdminTrustTemplate(zmsImpl, trustDomain));
 
         Role adminRole = zmsImpl.getRole(ctx, domainName, ZMSConsts.ADMIN_ROLE_NAME,
                 false, false, false);
         assertEquals(adminRole.getTrust(), trustDomain);
-        assertStoredAdminMembers(zmsImpl, domainName, 1);
-        assertAdminTrustTemplateNotApplied(zmsImpl, ctx, domainName);
+        assertStoredAdminMembers(zmsImpl, domainName, 0);
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, trustDomain, auditRef, null);
     }
@@ -1451,7 +1447,7 @@ public class ZMSTemplateTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("requester does not have delegated access"));
+            assertTrue(ex.getMessage().contains("does not have delegated access"));
         }
 
         assertAdminMemberUnchanged(zmsImpl, ctx, domainName);
@@ -1461,7 +1457,7 @@ public class ZMSTemplateTest {
     }
 
     @Test
-    public void testPutDomainTemplateReplaceAdminRequiresSoleRequester() {
+    public void testPutDomainTemplatePreservesEveryAdmin() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -1475,22 +1471,34 @@ public class ZMSTemplateTest {
                 null, ctx.principal().getFullName(), "user.user2");
         zmsImpl.putRole(ctx, domainName, ZMSConsts.ADMIN_ROLE_NAME, auditRef, false, null, adminRole);
 
+        createAdminDelegation(zmsImpl, ctx, trustDomain, domainName,
+                ctx.principal().getFullName(), auditRef);
+
         try {
             zmsImpl.putDomainTemplate(ctx, domainName, auditRef,
                     createAdminTrustTemplate(zmsImpl, trustDomain));
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("requester must be the sole admin member"));
+            assertTrue(ex.getMessage().contains("admin user.user2 does not have delegated access"));
         }
 
         assertAdminTrustTemplateNotApplied(zmsImpl, ctx, domainName);
+        assertStoredAdminMembers(zmsImpl, domainName, 2);
+        Role delegatedAdmins = zmsTestInitializer.createRoleObject(trustDomain, "delegated-admins",
+                null, ctx.principal().getFullName(), "user.user2");
+        zmsImpl.putRole(ctx, trustDomain, "delegated-admins", auditRef, false, null, delegatedAdmins);
+        zmsImpl.putDomainTemplate(ctx, domainName, auditRef,
+                createAdminTrustTemplate(zmsImpl, trustDomain));
+        assertStoredAdminMembers(zmsImpl, domainName, 0);
+        assertTrue(zmsImpl.isMemberOfRole(zmsImpl.getRole(ctx, domainName, "admin", false, false, false),
+                "user.user2"));
         zmsImpl.deleteTopLevelDomain(ctx, trustDomain, auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
-    public void testPutDomainTemplateReplaceAdminRejectsPendingAdminMember() {
+    public void testPutDomainTemplateRemovesPendingAdminMember() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -1503,17 +1511,11 @@ public class ZMSTemplateTest {
         Role adminRole = zmsTestInitializer.createRoleObject(domainName, ZMSConsts.ADMIN_ROLE_NAME,
                 null, ctx.principal().getFullName(), "user.user2").setReviewEnabled(true);
         zmsImpl.putRole(ctx, domainName, ZMSConsts.ADMIN_ROLE_NAME, auditRef, false, null, adminRole);
-
-        try {
-            zmsImpl.putDomainTemplate(ctx, domainName, auditRef,
-                    createAdminTrustTemplate(zmsImpl, trustDomain));
-            fail();
-        } catch (ResourceException ex) {
-            assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("requester must be the sole admin member"));
-        }
-
-        assertAdminTrustTemplateNotApplied(zmsImpl, ctx, domainName);
+        createAdminDelegation(zmsImpl, ctx, trustDomain, domainName,
+                ctx.principal().getFullName(), auditRef);
+        zmsImpl.putDomainTemplate(ctx, domainName, auditRef,
+                createAdminTrustTemplate(zmsImpl, trustDomain));
+        assertStoredAdminMembers(zmsImpl, domainName, 0);
         zmsImpl.deleteTopLevelDomain(ctx, trustDomain, auditRef, null);
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
@@ -1567,7 +1569,7 @@ public class ZMSTemplateTest {
     }
 
     @Test
-    public void testBackgroundTemplateApplicationCannotReplaceAdmin() throws ServerResourceException {
+    public void testBackgroundTemplateApplicationPreservesAdminAccess() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -1583,19 +1585,17 @@ public class ZMSTemplateTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("authenticated requester is required"));
+            assertTrue(ex.getMessage().contains("does not have delegated access"));
         }
 
         assertAdminMemberUnchanged(zmsImpl, ctx, domainName);
         assertAdminTrustTemplateNotApplied(zmsImpl, ctx, domainName);
 
-        // A background update may reapply the template after an authenticated
-        // requester has already completed the handoff.
+        // Preservation depends on existing admins, not on an interactive requester.
 
         createAdminDelegation(zmsImpl, ctx, trustDomain, domainName,
                 ctx.principal().getFullName(), auditRef);
         DomainTemplate domainTemplate = createAdminTrustTemplate(zmsImpl, trustDomain);
-        zmsImpl.putDomainTemplate(ctx, domainName, auditRef, domainTemplate);
         zmsImpl.dbService.executePutDomainTemplate(null, domainName, domainTemplate,
                 auditRef, "background-test");
         assertStoredAdminMembers(zmsImpl, domainName, 0);
@@ -1608,6 +1608,126 @@ public class ZMSTemplateTest {
         TopLevelDomain domain = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Template Admin Test Domain", "testOrg", ctx.principal().getFullName());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, domain);
+    }
+
+    @DataProvider(name = "preserveAdminAccessDefaults")
+    public Object[][] preserveAdminAccessDefaults() {
+        return new Object[][] {
+                {false, null, false}, {true, null, true},
+                {false, false, false}, {true, false, false},
+                {false, true, true}, {true, true, true},
+        };
+    }
+
+    @Test(dataProvider = "preserveAdminAccessDefaults")
+    public void testPreserveAdminAccessDefaults(boolean serverDefault, Boolean templateValue, boolean rejects)
+            throws ServerResourceException {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        String auditRef = zmsTestInitializer.getAuditRef();
+        String domainName = "template-preservation-default";
+        String trustDomain = "template-preservation-default-trust";
+        createDomain(zmsImpl, ctx, domainName, auditRef);
+        createDomain(zmsImpl, ctx, trustDomain, auditRef);
+        zmsImpl.dbService.defaultPreserveAdminAccess = new DynamicConfigBoolean(serverDefault);
+        DomainTemplate domainTemplate = createAdminTrustTemplate(zmsImpl, trustDomain);
+        zmsImpl.getSolutionTemplatesSnapshot().templates.get("template_admin_trust")
+                .getMetadata().setPreserveAdminAccess(templateValue);
+
+        if (rejects) {
+            assertAdminReplacementError(zmsImpl, ctx, domainName, auditRef, domainTemplate,
+                    "does not have delegated access");
+            assertAdminMemberUnchanged(zmsImpl, ctx, domainName);
+            assertAdminTrustTemplateNotApplied(zmsImpl, ctx, domainName);
+        } else {
+            zmsImpl.putDomainTemplate(ctx, domainName, auditRef, domainTemplate);
+            assertEquals(zmsImpl.getRole(ctx, domainName, "admin", false, false, false).getTrust(), trustDomain);
+            assertStoredAdminMembers(zmsImpl, domainName, 0);
+        }
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, trustDomain, auditRef, null);
+    }
+
+    @Test
+    public void testPreserveAdminAccessHonorsDeny() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        String auditRef = zmsTestInitializer.getAuditRef();
+        String domainName = "template-preservation-deny";
+        String trustDomain = "template-preservation-deny-trust";
+        createDomain(zmsImpl, ctx, domainName, auditRef);
+        createDomain(zmsImpl, ctx, trustDomain, auditRef);
+        createAdminDelegation(zmsImpl, ctx, trustDomain, domainName, ctx.principal().getFullName(), auditRef);
+        Policy deny = zmsTestInitializer.createPolicyObject(trustDomain, "deny-admin", "delegated-admins",
+                "assume_role", ResourceUtils.roleResourceName(domainName, "admin"), AssertionEffect.DENY);
+        zmsImpl.putPolicy(ctx, trustDomain, "deny-admin", auditRef, false, null, deny);
+
+        assertAdminReplacementError(zmsImpl, ctx, domainName, auditRef,
+                createAdminTrustTemplate(zmsImpl, trustDomain), "does not have delegated access");
+        assertAdminMemberUnchanged(zmsImpl, ctx, domainName);
+        assertAdminTrustTemplateNotApplied(zmsImpl, ctx, domainName);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, trustDomain, auditRef, null);
+    }
+
+    @Test
+    public void testPreserveAdminAccessExpandsExistingAdminGroup() throws ServerResourceException {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        String auditRef = zmsTestInitializer.getAuditRef();
+        String domainName = "template-preservation-group";
+        String trustDomain = "template-preservation-group-trust";
+        createDomain(zmsImpl, ctx, domainName, auditRef);
+        createDomain(zmsImpl, ctx, trustDomain, auditRef);
+        zmsImpl.disallowGroupsInAdminRole = new DynamicConfigBoolean(false);
+        Group group = zmsTestInitializer.createGroupObject(domainName, "admins",
+                ctx.principal().getFullName(), "user.user2");
+        zmsImpl.putGroup(ctx, domainName, "admins", auditRef, false, null, group);
+        Role admin = zmsTestInitializer.createRoleObject(domainName, "admin", null,
+                ResourceUtils.groupResourceName(domainName, "admins"), null);
+        zmsImpl.putRole(ctx, domainName, "admin", auditRef, false, null, admin);
+        createAdminDelegation(zmsImpl, ctx, trustDomain, domainName, ctx.principal().getFullName(), auditRef);
+        DomainTemplate domainTemplate = createAdminTrustTemplate(zmsImpl, trustDomain);
+        assertAdminReplacementError(zmsImpl, ctx, domainName, auditRef, domainTemplate,
+                "admin user.user2 does not have delegated access");
+        assertAdminTrustTemplateNotApplied(zmsImpl, ctx, domainName);
+
+        createAdminDelegation(zmsImpl, ctx, trustDomain, domainName,
+                ResourceUtils.groupResourceName(domainName, "admins"), auditRef);
+        zmsImpl.putDomainTemplate(ctx, domainName, auditRef, domainTemplate);
+        assertStoredAdminMembers(zmsImpl, domainName, 0);
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, trustDomain, auditRef, null);
+    }
+
+    @Test
+    public void testPreserveAdminAccessRollsBackTemplateGroupChanges() {
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        String auditRef = zmsTestInitializer.getAuditRef();
+        String domainName = "template-preservation-rollback";
+        String trustDomain = "template-preservation-rollback-trust";
+        createDomain(zmsImpl, ctx, domainName, auditRef);
+        createDomain(zmsImpl, ctx, trustDomain, auditRef);
+        Group group = zmsTestInitializer.createGroupObject(domainName, "admins",
+                ctx.principal().getFullName(), null);
+        zmsImpl.putGroup(ctx, domainName, "admins", auditRef, false, null, group);
+        createAdminDelegation(zmsImpl, ctx, trustDomain, domainName,
+                ResourceUtils.groupResourceName(domainName, "admins"), auditRef);
+        DomainTemplate domainTemplate = createAdminTrustTemplate(zmsImpl, trustDomain);
+        Group templateGroup = new Group().setName("_domain_:group.admins").setGroupMembers(List.of(
+                new GroupMember().setMemberName(ctx.principal().getFullName()).setExpiration(Timestamp.fromMillis(1))));
+        zmsImpl.getSolutionTemplatesSnapshot().templates.get("template_admin_trust")
+                .setGroups(List.of(templateGroup));
+
+        assertAdminReplacementError(zmsImpl, ctx, domainName, auditRef, domainTemplate,
+                "does not have delegated access");
+        assertAdminMemberUnchanged(zmsImpl, ctx, domainName);
+        assertAdminTrustTemplateNotApplied(zmsImpl, ctx, domainName);
+        assertNull(zmsImpl.getGroup(ctx, domainName, "admins", false, false)
+                .getGroupMembers().get(0).getExpiration());
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+        zmsImpl.deleteTopLevelDomain(ctx, trustDomain, auditRef, null);
     }
 
     private void createAdminDelegation(ZMSImpl zmsImpl, RsrcCtxWrapper ctx, String trustDomain,
@@ -1636,6 +1756,8 @@ public class ZMSTemplateTest {
         Role adminRole = new Role().setName("_domain_:role.admin").setTrust("_trust-domain_");
         installTemplate(zmsImpl, "template_admin_trust",
                 Arrays.asList(createdRole, adminRole));
+        zmsImpl.getSolutionTemplatesSnapshot().templates.get("template_admin_trust")
+                .getMetadata().setPreserveAdminAccess(true);
     }
 
     private void installTemplate(ZMSImpl zmsImpl, String templateName, List<Role> roles) {
@@ -1680,7 +1802,7 @@ public class ZMSTemplateTest {
             DomainTemplate domainTemplate, SolutionTemplates solutionTemplates, String errorMessage) {
         try {
             zmsImpl.dbService.validateAdminTrustReplacement(domainName, domainTemplate,
-                    ctx.principal().getFullName(), "test", solutionTemplates);
+                    "test", solutionTemplates);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
@@ -1711,6 +1833,9 @@ public class ZMSTemplateTest {
             throws ServerResourceException {
         try (ObjectStoreConnection con = zmsImpl.dbService.store.getConnection(true, false)) {
             assertEquals(con.countRoleMembers(domainName, ZMSConsts.ADMIN_ROLE_NAME), expected);
+            if (expected == 0) {
+                assertTrue(con.listRoleMembers(domainName, ZMSConsts.ADMIN_ROLE_NAME, true).isEmpty());
+            }
         }
     }
 }
