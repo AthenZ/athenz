@@ -2660,6 +2660,38 @@ public class ZMSClientTest {
     }
 
     @Test
+    public void testGetDomainAuditLog() throws URISyntaxException, IOException {
+        ZMSClient client = createClient(systemAdminUser);
+        ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
+        client.setZMSRDLGeneratedClient(c);
+
+        Mockito.when(c.getDomainAuditLog(null, null, null, null, null, null, null))
+                .thenThrow(new ClientResourceException(403))
+                .thenThrow(new NullPointerException());
+
+        try {
+            client.getDomainAuditLog(null, null, null, null, null, null, null);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), 403);
+        }
+
+        try {
+            client.getDomainAuditLog(null, null, null, null, null, null, null);
+            fail();
+        } catch (ZMSClientException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        DomainAuditLog auditLog = new DomainAuditLog().setEntries(Collections.singletonList(
+                new DomainAuditLogEntry().setApi("putrole").setPrincipal("user.joe")));
+        Mockito.when(c.getDomainAuditLog("good.domain", "putrole", "readers", "user.joe",
+                "2026-09-01T00:00:00Z", "2026-09-02T00:00:00Z", 10)).thenReturn(auditLog);
+        assertEquals(client.getDomainAuditLog("good.domain", "putrole", "readers", "user.joe",
+                "2026-09-01T00:00:00Z", "2026-09-02T00:00:00Z", 10), auditLog);
+    }
+
+    @Test
     public void testGetDomainListException() throws URISyntaxException, IOException {
         ZMSClient client = createClient(systemAdminUser);
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);

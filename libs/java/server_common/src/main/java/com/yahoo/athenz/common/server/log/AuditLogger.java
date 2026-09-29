@@ -15,6 +15,9 @@
  */
 package com.yahoo.athenz.common.server.log;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.zms.DomainAuditLog;
+
 /**
  * Interface to perform audit logging. 
  * See {@link com.yahoo.athenz.common.server.log.AuditLoggerFactory#create()}
@@ -40,4 +43,22 @@ public interface AuditLogger {
      * @return default AuditLogMsgBuilder instance
      */
     AuditLogMsgBuilder getMsgBuilder();
+
+    /**
+     * Retrieve the audit log history for the given domain. The records
+     * must be filtered based on the provided query arguments and must be
+     * sorted by the timestamp in descending order (most recent first).
+     * The implementation must return at most query.getLimit() entries and
+     * if there are more records matching the query, it must set the partial
+     * flag to true to indicate that the result set is incomplete. The server
+     * returns the object as is without any further processing.
+     * The default implementation does not support retrieving history
+     * and returns null.
+     * @param query audit log history query arguments
+     * @return domain audit log object or null if not supported
+     * @throws ServerResourceException in case of any errors
+     */
+    default DomainAuditLog getDomainAuditLogHistory(AuditLogHistoryQuery query) throws ServerResourceException {
+        return null;
+    }
 }

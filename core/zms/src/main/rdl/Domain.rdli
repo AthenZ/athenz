@@ -338,6 +338,43 @@ resource AuthHistoryDependencies GET "/domain/{domainName}/history/auth" {
     }
 }
 
+//A single audit log record for a change made in the domain
+type DomainAuditLogEntry Struct {
+    String api; //name of the api that made the change e.g. putRole
+    String entity (optional); //name of the entity that was changed e.g. role, group, policy name
+    String principal; //principal that made the change
+    String clientIp (optional); //IP address of the client that made the change
+    Timestamp timestamp; //timestamp when the change was made
+    String justification (optional); //audit reference/justification provided with the change
+    String details (optional); //details of the change, typically a json formatted string
+}
+
+//The list of audit log records for the domain
+type DomainAuditLog Struct {
+    Array<DomainAuditLogEntry> entries; //list of audit log records sorted by timestamp, most recent first
+    Bool partial (optional); //true if the result set was limited and additional records matching the query are available
+}
+
+//Get the audit log history for the domain. The optional query arguments
+//can be used to filter the result set. The start and end dates must be
+//specified in RFC3339 format e.g. 2026-09-01T00:00:00Z
+resource DomainAuditLog GET "/domain/{domainName}/history/audit?api={api}&entity={entity}&principal={principal}&start={startDate}&end={endDate}&limit={limit}" {
+    DomainName domainName; //name of the domain
+    SimpleName api (optional); //restrict results to the given api name
+    ResourceName entity (optional); //restrict results to the given entity name
+    ResourceName principal (optional); //restrict results to changes made by the given principal
+    String startDate (optional); //restrict results to changes made on or after this date
+    String endDate (optional); //restrict results to changes made on or before this date
+    Int32 limit (optional); //restrict the number of results in this call
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
 type ExpiryMember Struct {
     DomainName domainName; //name of the domain
     EntityName collectionName; //name of the collection
