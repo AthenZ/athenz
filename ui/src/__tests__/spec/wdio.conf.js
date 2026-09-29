@@ -342,7 +342,7 @@ let config = {
 
             console.log('Fetching access token using command: ', command);
 
-            exec(command, (err, stdout, stderr) => {
+            exec(command, { timeout: 15000 }, (err, stdout, stderr) => {
                 let value = {};
                 if (err) {
                     console.log('Fetching tokens failed: ', err, stderr);
@@ -358,7 +358,16 @@ let config = {
                         return;
                     }
                 }
-                callback(err, value);
+                // Treat a missing token as a failure so the retry engages
+                // instead of planting an empty cookie (a "session expired" UI).
+                if (!value.access_token) {
+                    callback(
+                        new Error(`No access_token in response: ${stderr || stdout}`),
+                        value
+                    );
+                    return;
+                }
+                callback(null, value);
             });
         };
 

@@ -999,11 +999,21 @@ describe('self service screen tests', () => {
     afterEach(async () => {
         try {
             await authenticateAndWait();
-            for (const fixture of createdFixtures) {
-                if (fixture.kind === 'role') {
-                    await deleteRoleIfExists(fixture.name, fixture.domain);
-                } else {
-                    await deleteGroupIfExists(fixture.name, fixture.domain);
+            for (const { kind, name, domain } of createdFixtures) {
+                try {
+                    if (kind === 'group' && name === INHERIT_GROUP) {
+                        await deleteRoleIfExists(INHERIT_ROLE, domain);
+                    }
+                    if (kind === 'role') {
+                        await deleteRoleIfExists(name, domain);
+                    } else {
+                        await deleteGroupIfExists(name, domain);
+                    }
+                } catch (error) {
+                    console.error(
+                        `Self-service cleanup failed for ${kind} "${name}" in ${domain}:`,
+                        error.message
+                    );
                 }
             }
         } catch (error) {
