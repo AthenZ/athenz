@@ -34,6 +34,8 @@ import static org.testng.Assert.*;
 
 public class ZMSDomainAuditLogTest {
 
+    private static final String AUDIT_LOG_DOMAIN = "audit-log-domain";
+
     private final ZMSTestInitializer zmsTestInitializer = new ZMSTestInitializer();
 
     @BeforeClass
@@ -49,10 +51,12 @@ public class ZMSDomainAuditLogTest {
     @BeforeMethod
     public void setUp() throws Exception {
         zmsTestInitializer.setUp();
+        zmsTestInitializer.createTopLevelDomain(AUDIT_LOG_DOMAIN);
     }
 
     @AfterMethod
     public void shutDown() {
+        zmsTestInitializer.deleteTopLevelDomain(AUDIT_LOG_DOMAIN);
         zmsTestInitializer.shutDown();
     }
 
@@ -60,7 +64,7 @@ public class ZMSDomainAuditLogTest {
     public void testGetDomainAuditLogNotSupported() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        RsrcCtxWrapper ctx = zmsTestInitializer.contextWithMockPrincipal("getDomainAuditLog");
 
         // default audit logger does not support history so we
         // should get back an empty list
@@ -75,7 +79,7 @@ public class ZMSDomainAuditLogTest {
     public void testGetDomainAuditLogDefaults() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        RsrcCtxWrapper ctx = zmsTestInitializer.contextWithMockPrincipal("getDomainAuditLog");
 
         DomainAuditLogEntry entry = new DomainAuditLogEntry().setApi("putRole").setEntity("readers")
                 .setPrincipal("user.joe").setClientIp("10.1.1.1").setTimestamp(Timestamp.fromCurrentTime())
@@ -118,7 +122,7 @@ public class ZMSDomainAuditLogTest {
     public void testGetDomainAuditLogWithFilters() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        RsrcCtxWrapper ctx = zmsTestInitializer.contextWithMockPrincipal("getDomainAuditLog");
 
         AuditLogger savedLogger = zmsImpl.dbService.auditLogger;
         AuditLogger mockLogger = Mockito.mock(AuditLogger.class);
@@ -177,7 +181,7 @@ public class ZMSDomainAuditLogTest {
     public void testGetDomainAuditLogPartialResults() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        RsrcCtxWrapper ctx = zmsTestInitializer.contextWithMockPrincipal("getDomainAuditLog");
 
         List<DomainAuditLogEntry> entries = new ArrayList<>();
         long now = System.currentTimeMillis();
@@ -223,7 +227,7 @@ public class ZMSDomainAuditLogTest {
     public void testGetDomainAuditLogInvalidArguments() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        RsrcCtxWrapper ctx = zmsTestInitializer.contextWithMockPrincipal("getDomainAuditLog");
 
         // invalid domain name
 
@@ -273,7 +277,7 @@ public class ZMSDomainAuditLogTest {
     public void testGetDomainAuditLogFailure() throws ServerResourceException {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
-        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        RsrcCtxWrapper ctx = zmsTestInitializer.contextWithMockPrincipal("getDomainAuditLog");
 
         AuditLogger savedLogger = zmsImpl.dbService.auditLogger;
         AuditLogger mockLogger = Mockito.mock(AuditLogger.class);
@@ -289,6 +293,125 @@ public class ZMSDomainAuditLogTest {
             assertTrue(ex.getMessage().contains("backend failure"));
         } finally {
             zmsImpl.dbService.auditLogger = savedLogger;
+        }
+    }
+
+    @Test
+    public void testGetDomainAuditLogDomainNotFound() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+
+        try {
+            zmsImpl.getDomainAuditLog(ctx, "unknown-audit-log-domain", null, null, null, null, null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+    }
+
+    @Test
+    public void testGetDomainAuditLogAuthorization() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+        final String otherDomain = "audit-log-other-domain";
+
+        RsrcCtxWrapper userCtx = zmsTestInitializer.contextWithMockPrincipal("getDomainAuditLog", "john");
+        List<RoleMember> roleMembers = new ArrayList<>();
+        roleMembers.add(new RoleMember().setMemberName("user.john"));
+
+        // without any authorization the request is rejected
+
+        verifyForbidden(zmsImpl, userCtx, AUDIT_LOG_DOMAIN);
+
+        // authorizing the principal in another domain does not grant
+        // access to the audit log of our domain
+
+        zmsTestInitializer.createTopLevelDomain(otherDomain);
+        Role role = zmsTestInitializer.createRoleObject(otherDomain, "audit-log-role", null, roleMembers);
+        zmsImpl.putRole(ctx, otherDomain, "audit-log-role", auditRef, false, null, role);
+        Policy policy = zmsTestInitializer.createPolicyObject(otherDomain, "audit-log-policy", "audit-log-role",
+                "access", otherDomain + ":meta.audit.log", AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, otherDomain, "audit-log-policy", auditRef, false, null, policy);
+
+        assertNotNull(zmsImpl.getDomainAuditLog(userCtx, otherDomain, null, null, null, null, null, null));
+        verifyForbidden(zmsImpl, userCtx, AUDIT_LOG_DOMAIN);
+
+        // now authorize the principal at the domain level
+
+        role = zmsTestInitializer.createRoleObject(AUDIT_LOG_DOMAIN, "audit-log-role", null, roleMembers);
+        zmsImpl.putRole(ctx, AUDIT_LOG_DOMAIN, "audit-log-role", auditRef, false, null, role);
+        policy = zmsTestInitializer.createPolicyObject(AUDIT_LOG_DOMAIN, "audit-log-policy", "audit-log-role",
+                "access", AUDIT_LOG_DOMAIN + ":meta.audit.log", AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, AUDIT_LOG_DOMAIN, "audit-log-policy", auditRef, false, null, policy);
+
+        DomainAuditLog auditLog = zmsImpl.getDomainAuditLog(userCtx, AUDIT_LOG_DOMAIN, null, null,
+                null, null, null, null);
+        assertTrue(auditLog.getEntries().isEmpty());
+
+        // a different action on the same resource is not sufficient
+
+        policy = zmsTestInitializer.createPolicyObject(AUDIT_LOG_DOMAIN, "audit-log-policy", "audit-log-role",
+                "read", AUDIT_LOG_DOMAIN + ":meta.audit.log", AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, AUDIT_LOG_DOMAIN, "audit-log-policy", auditRef, false, null, policy);
+        verifyForbidden(zmsImpl, userCtx, AUDIT_LOG_DOMAIN);
+
+        zmsImpl.deletePolicy(ctx, AUDIT_LOG_DOMAIN, "audit-log-policy", auditRef, null);
+        verifyForbidden(zmsImpl, userCtx, AUDIT_LOG_DOMAIN);
+
+        // now authorize the principal at the system level which
+        // grants access to the audit log of all domains
+
+        role = zmsTestInitializer.createRoleObject("sys.auth", "audit-log-role", null, roleMembers);
+        zmsImpl.putRole(ctx, "sys.auth", "audit-log-role", auditRef, false, null, role);
+        policy = zmsTestInitializer.createPolicyObject("sys.auth", "audit-log-policy", "audit-log-role",
+                "access", "sys.auth:meta.audit.log", AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, "sys.auth", "audit-log-policy", auditRef, false, null, policy);
+
+        auditLog = zmsImpl.getDomainAuditLog(userCtx, AUDIT_LOG_DOMAIN, null, null, null, null, null, null);
+        assertTrue(auditLog.getEntries().isEmpty());
+        assertNotNull(zmsImpl.getDomainAuditLog(userCtx, otherDomain, null, null, null, null, null, null));
+
+        zmsImpl.deletePolicy(ctx, "sys.auth", "audit-log-policy", auditRef, null);
+        verifyForbidden(zmsImpl, userCtx, AUDIT_LOG_DOMAIN);
+
+        zmsImpl.deleteRole(ctx, "sys.auth", "audit-log-role", auditRef, null);
+        zmsTestInitializer.deleteTopLevelDomain(otherDomain);
+    }
+
+    @Test
+    public void testGetDomainAuditLogDomainAdmin() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+        final String adminDomain = "audit-log-admin-domain";
+
+        // a domain administrator has access to its own domain's audit log
+        // through the admin policy but not to any other domain
+
+        TopLevelDomain dom = zmsTestInitializer.createTopLevelDomainObject(adminDomain,
+                "Test " + adminDomain, "testOrg", zmsTestInitializer.getAdminUser(), "user.jane");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom);
+
+        RsrcCtxWrapper userCtx = zmsTestInitializer.contextWithMockPrincipal("getDomainAuditLog", "jane");
+        DomainAuditLog auditLog = zmsImpl.getDomainAuditLog(userCtx, adminDomain, null, null,
+                null, null, null, null);
+        assertTrue(auditLog.getEntries().isEmpty());
+        verifyForbidden(zmsImpl, userCtx, AUDIT_LOG_DOMAIN);
+
+        zmsTestInitializer.deleteTopLevelDomain(adminDomain);
+    }
+
+    private void verifyForbidden(ZMSImpl zmsImpl, RsrcCtxWrapper ctx, final String domainName) {
+        try {
+            zmsImpl.getDomainAuditLog(ctx, domainName, null, null, null, null, null, null);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("not authorized to retrieve audit log"), ex.getMessage());
         }
     }
 

@@ -1443,7 +1443,7 @@ func init() {
 	sb.AddResource(mGetAuthHistoryDependencies.Build())
 
 	mGetDomainAuditLog := rdl.NewResourceBuilder("DomainAuditLog", "GET", "/domain/{domainName}/history/audit")
-	mGetDomainAuditLog.Comment("Get the audit log history for the domain. The optional query arguments can be used to filter the result set. The start and end dates must be specified in RFC3339 format e.g. 2026-09-01T00:00:00Z")
+	mGetDomainAuditLog.Comment("Get the audit log history for the domain. The optional query arguments can be used to filter the result set. The start and end dates must be specified in RFC3339 format e.g. 2026-09-01T00:00:00Z The principal must be authorized for the \"access\" action on either the \"{domainName}:meta.audit.log\" resource in the requested domain or the \"sys.auth:meta.audit.log\" resource in the sys.auth domain")
 	mGetDomainAuditLog.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mGetDomainAuditLog.Input("api", "SimpleName", false, "api", "", true, nil, "restrict results to the given api name")
 	mGetDomainAuditLog.Input("entity", "ResourceName", false, "entity", "", true, nil, "restrict results to the given entity name")
@@ -1453,6 +1453,7 @@ func init() {
 	mGetDomainAuditLog.Input("limit", "Int32", false, "limit", "", true, nil, "restrict the number of results in this call")
 	mGetDomainAuditLog.Auth("", "", true, "")
 	mGetDomainAuditLog.Exception("BAD_REQUEST", "ResourceError", "")
+	mGetDomainAuditLog.Exception("FORBIDDEN", "ResourceError", "")
 	mGetDomainAuditLog.Exception("NOT_FOUND", "ResourceError", "")
 	mGetDomainAuditLog.Exception("TOO_MANY_REQUESTS", "ResourceError", "")
 	mGetDomainAuditLog.Exception("UNAUTHORIZED", "ResourceError", "")

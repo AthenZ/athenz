@@ -3542,6 +3542,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainName = domainName.toLowerCase();
         setRequestDomain(ctx, domainName);
 
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        if (domain == null) {
+            throw ZMSUtils.notFoundError("Domain not found: '" + domainName + "'", caller);
+        }
+
+        // make sure the principal is authorized to retrieve the audit log
+        // history either at the domain or at the system level
+
+        if (!isAllowedDomainAuditLogLookup(((RsrcCtxWrapper) ctx).principal(), domain)) {
+            throw ZMSUtils.forbiddenError("principal is not authorized to retrieve audit log for domain: "
+                    + domainName, caller);
+        }
+
         AuditLogHistoryQuery query = new AuditLogHistoryQuery().setDomainName(domainName);
 
         if (!StringUtil.isEmpty(api)) {
@@ -3583,6 +3596,19 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         }
 
         return dbService.getDomainAuditLog(query);
+    }
+
+    boolean isAllowedDomainAuditLogLookup(Principal principal, final AthenzDomain domain) {
+
+        // Domain audit log lookup requires one of these authorization checks
+        // 1. domain authorized ("access", "{domain}:meta.audit.log")
+        // 2. system authorized ("access", "sys.auth:meta.audit.log")
+
+        if (hasAccess(domain, "access", domain.getName() + ":meta.audit.log", principal, null) == AccessStatus.ALLOWED) {
+            return true;
+        }
+
+        return isAllowedSystemAccess(principal, "access", SYS_AUTH + ":meta.audit.log");
     }
 
     Timestamp parseAuditLogDate(final String date, final String argName, final String caller) {

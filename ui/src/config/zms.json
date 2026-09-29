@@ -5663,7 +5663,7 @@
             "type": "DomainAuditLog",
             "method": "GET",
             "path": "/domain/{domainName}/history/audit",
-            "comment": "Get the audit log history for the domain. The optional query arguments can be used to filter the result set. The start and end dates must be specified in RFC3339 format e.g. 2026-09-01T00:00:00Z",
+            "comment": "Get the audit log history for the domain. The optional query arguments can be used to filter the result set. The start and end dates must be specified in RFC3339 format e.g. 2026-09-01T00:00:00Z The principal must be authorized for the \"access\" action on either the \"{domainName}:meta.audit.log\" resource in the requested domain or the \"sys.auth:meta.audit.log\" resource in the sys.auth domain",
             "inputs": [
                 {
                     "name": "domainName",
@@ -5737,6 +5737,9 @@
                     "type": "ResourceError"
                 },
                 "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
                     "type": "ResourceError"
                 },
                 "BAD_REQUEST": {

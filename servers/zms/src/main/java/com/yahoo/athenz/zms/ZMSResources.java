@@ -620,7 +620,7 @@ public class ZMSResources {
     @GET
     @Path("/domain/{domainName}/history/audit")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Get the audit log history for the domain. The optional query arguments can be used to filter the result set. The start and end dates must be specified in RFC3339 format e.g. 2026-09-01T00:00:00Z")
+    @Operation(description = "Get the audit log history for the domain. The optional query arguments can be used to filter the result set. The start and end dates must be specified in RFC3339 format e.g. 2026-09-01T00:00:00Z The principal must be authorized for the \"access\" action on either the \"{domainName}:meta.audit.log\" resource in the requested domain or the \"sys.auth:meta.audit.log\" resource in the sys.auth domain")
     public DomainAuditLog getDomainAuditLog(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "restrict results to the given api name", required = false) @QueryParam("api") String api,
@@ -639,6 +639,8 @@ public class ZMSResources {
             code = e.getCode();
             switch (code) {
             case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
                 throw typedException(code, e, ResourceError.class);
             case ResourceException.NOT_FOUND:
                 throw typedException(code, e, ResourceError.class);
