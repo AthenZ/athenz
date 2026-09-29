@@ -5140,6 +5140,72 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testPostInstanceRegisterInformationInstanceIdPathTraversal() throws IOException, ProviderResourceException {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
+        store.processSignedDomain(providerDomain, false);
+
+        SignedDomain tenantDomain = signedBootstrapTenantDomain("athenz.provider", "athenz", "production");
+        store.processSignedDomain(tenantDomain, false);
+
+        // the csr includes the san uri athenz://instanceid/athenz.provider/../escape-instance
+        // so the extracted instance id is ../escape-instance which must be rejected
+        // before it's used as part of the file name in the cert and ssh record stores
+
+        Path path = Paths.get("src/test/resources/athenz.instanceid.uri.traversal.csr");
+        String certCsr = new String(Files.readAllBytes(path));
+
+        InstanceProviderManager instanceProviderManager = Mockito.mock(InstanceProviderManager.class);
+        InstanceProvider providerClient = Mockito.mock(InstanceProvider.class);
+        Mockito.when(providerClient.getProviderScheme()).thenReturn(InstanceProvider.Scheme.CLASS);
+        Mockito.when(providerClient.getSVIDType()).thenReturn(InstanceProvider.SVIDType.X509);
+
+        Map<String, String> attrs = new HashMap<>();
+        attrs.put("certSSH", "true");
+
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setDomain("athenz").setService("production").setProvider("athenz.provider")
+                .setAttributes(attrs);
+
+        InstanceCertManager instanceManager = Mockito.spy(ztsImpl.instanceCertManager);
+        Mockito.when(instanceProviderManager.getProvider(eq("athenz.provider"), Mockito.any(), Mockito.any())).thenReturn(providerClient);
+        Mockito.when(providerClient.confirmInstance(Mockito.any())).thenReturn(confirmation);
+
+        ztsImpl.instanceProviderManager = instanceProviderManager;
+        ztsImpl.instanceCertManager = instanceManager;
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setAttestationData("attestationData").setCsr(certCsr)
+                .setDomain("athenz").setService("production")
+                .setProvider("athenz.provider").setToken(true);
+
+        ResourceContext context = createResourceContext(null);
+
+        try {
+            ztsImpl.postInstanceRegisterInformation(context, info);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Invalid PathElement"));
+        }
+
+        // the request must be rejected before we contact the provider
+        // or store any cert/ssh records
+
+        Mockito.verify(providerClient, Mockito.never()).confirmInstance(Mockito.any());
+        Mockito.verify(instanceManager, Mockito.never()).insertX509CertRecord(Mockito.any());
+        Mockito.verify(instanceManager, Mockito.never()).generateSSHIdentity(Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyBoolean(),
+                Mockito.any(), Mockito.any());
+    }
+
+    @Test
     public void testPostInstanceRegisterInformationNoAttestationData() throws IOException, ProviderResourceException {
 
         ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",

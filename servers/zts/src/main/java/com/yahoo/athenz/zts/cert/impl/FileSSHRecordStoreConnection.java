@@ -56,24 +56,17 @@ public class FileSSHRecordStoreConnection implements SSHRecordStoreConnection {
     
     @Override
     public boolean updateSSHCertRecord(SSHCertRecord certRecord) {
-        if (certRecord != null) {
-            putCertRecord(certRecord);
-        }
-        return true;
+        return certRecord == null || putCertRecord(certRecord);
     }
-    
+
     @Override
     public boolean insertSSHCertRecord(SSHCertRecord certRecord) {
-        if (certRecord != null) {
-            putCertRecord(certRecord);
-        }
-        return true;
+        return certRecord == null || putCertRecord(certRecord);
     }
-    
+
     @Override
     public boolean deleteSSHCertRecord(String instanceId, String service) {
-        deleteCertRecord(instanceId, service);
-        return true;
+        return deleteCertRecord(instanceId, service);
     }
     
     @Override
@@ -111,9 +104,26 @@ public class FileSSHRecordStoreConnection implements SSHRecordStoreConnection {
         return instanceId + "-" + service;
     }
 
+    File getRecordFile(final String instanceId, final String service) {
+
+        // make sure the record file is directly within our root
+        // directory. the name must not include any path separators
+        // (or nul characters) so it's always a single path component
+        // and the resolved path must still be within the root directory
+
+        final String fileName = getRecordFileName(instanceId, service);
+        final Path rootPath = rootDir.toPath().toAbsolutePath().normalize();
+        if (fileName.indexOf('/') != -1 || fileName.indexOf('\\') != -1 || fileName.indexOf('\0') != -1
+                || !rootPath.resolve(fileName).normalize().startsWith(rootPath)) {
+            LOGGER.error("Invalid ssh certificate record file: {}", fileName);
+            return null;
+        }
+        return rootPath.resolve(fileName).toFile();
+    }
+
     private synchronized SSHCertRecord getCertRecord(String instanceId, String service) {
-        File file = new File(rootDir, getRecordFileName(instanceId, service));
-        if (!file.exists()) {
+        File file = getRecordFile(instanceId, service);
+        if (file == null || !file.exists()) {
             return null;
         }
         SSHCertRecord record = null;
@@ -126,24 +136,34 @@ public class FileSSHRecordStoreConnection implements SSHRecordStoreConnection {
         return record;
     }
 
-    private synchronized void putCertRecord(SSHCertRecord certRecord) {
-        
-        File file = new File(rootDir, getRecordFileName(certRecord.getInstanceId(), certRecord.getService()));
+    private synchronized boolean putCertRecord(SSHCertRecord certRecord) {
+
+        File file = getRecordFile(certRecord.getInstanceId(), certRecord.getService());
+        if (file == null) {
+            return false;
+        }
         String data = JSON.string(certRecord);
         try (FileWriter fileWriter = new FileWriter(file)) {
             fileWriter.write(data);
             fileWriter.flush();
         } catch (IOException ex) {
             LOGGER.error("Unable to get save ssh certificate record", ex);
+            return false;
         }
+        return true;
     }
 
-    private synchronized void deleteCertRecord(String instanceId, String service) {
-        File file = new File(rootDir, getRecordFileName(instanceId, service));
+    private synchronized boolean deleteCertRecord(String instanceId, String service) {
+        File file = getRecordFile(instanceId, service);
+        if (file == null) {
+            return false;
+        }
         try {
             filesHelper.delete(file);
         } catch (IOException ex) {
             LOGGER.error("Unable to delete ssh certificate record", ex);
+            return false;
         }
+        return true;
     }
 }
