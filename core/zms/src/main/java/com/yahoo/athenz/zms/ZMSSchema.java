@@ -1354,7 +1354,7 @@ public class ZMSSchema {
 ;
 
         sb.resource("DomainAuditLog", "GET", "/domain/{domainName}/history/audit")
-            .comment("Get the audit log history for the domain. The optional query arguments can be used to filter the result set. The start and end dates must be specified in RFC3339 format e.g. 2026-09-01T00:00:00Z The principal must be authorized for the \"access\" action on either the \"{domainName}:meta.audit.log\" resource in the requested domain or the \"sys.auth:meta.audit.log.{domainName}\" resource in the sys.auth domain")
+            .comment("Get the audit log history for the domain. The optional query arguments can be used to filter the result set. The start and end dates must be specified in RFC3339 format e.g. 2026-09-01T00:00:00Z The principal must be authorized for the \"zms.auditlogaccess\" action on either the \"{domainName}:meta.audit.log\" resource in the requested domain or the \"sys.auth:meta.audit.log.{domainName}\" resource in the sys.auth domain")
             .pathParam("domainName", "DomainName", "name of the domain")
             .queryParam("api", "api", "SimpleName", null, "restrict results to the given api name")
             .queryParam("entity", "entity", "ResourceName", null, "restrict results to the given entity name")

@@ -333,7 +333,7 @@ public class ZMSDomainAuditLogTest {
         Role role = zmsTestInitializer.createRoleObject(otherDomain, "audit-log-role", null, roleMembers);
         zmsImpl.putRole(ctx, otherDomain, "audit-log-role", auditRef, false, null, role);
         Policy policy = zmsTestInitializer.createPolicyObject(otherDomain, "audit-log-policy", "audit-log-role",
-                "access", otherDomain + ":meta.audit.log", AssertionEffect.ALLOW);
+                ZMSConsts.ACTION_AUDIT_LOG_ACCESS, otherDomain + ":meta.audit.log", AssertionEffect.ALLOW);
         zmsImpl.putPolicy(ctx, otherDomain, "audit-log-policy", auditRef, false, null, policy);
 
         assertNotNull(zmsImpl.getDomainAuditLog(userCtx, otherDomain, null, null, null, null, null, null));
@@ -344,17 +344,18 @@ public class ZMSDomainAuditLogTest {
         role = zmsTestInitializer.createRoleObject(AUDIT_LOG_DOMAIN, "audit-log-role", null, roleMembers);
         zmsImpl.putRole(ctx, AUDIT_LOG_DOMAIN, "audit-log-role", auditRef, false, null, role);
         policy = zmsTestInitializer.createPolicyObject(AUDIT_LOG_DOMAIN, "audit-log-policy", "audit-log-role",
-                "access", AUDIT_LOG_DOMAIN + ":meta.audit.log", AssertionEffect.ALLOW);
+                ZMSConsts.ACTION_AUDIT_LOG_ACCESS, AUDIT_LOG_DOMAIN + ":meta.audit.log", AssertionEffect.ALLOW);
         zmsImpl.putPolicy(ctx, AUDIT_LOG_DOMAIN, "audit-log-policy", auditRef, false, null, policy);
 
         DomainAuditLog auditLog = zmsImpl.getDomainAuditLog(userCtx, AUDIT_LOG_DOMAIN, null, null,
                 null, null, null, null);
         assertTrue(auditLog.getEntries().isEmpty());
 
-        // a different action on the same resource is not sufficient
+        // a different action (e.g. the generic access action) on the same
+        // resource is not sufficient
 
         policy = zmsTestInitializer.createPolicyObject(AUDIT_LOG_DOMAIN, "audit-log-policy", "audit-log-role",
-                "read", AUDIT_LOG_DOMAIN + ":meta.audit.log", AssertionEffect.ALLOW);
+                "access", AUDIT_LOG_DOMAIN + ":meta.audit.log", AssertionEffect.ALLOW);
         zmsImpl.putPolicy(ctx, AUDIT_LOG_DOMAIN, "audit-log-policy", auditRef, false, null, policy);
         verifyForbidden(zmsImpl, userCtx, AUDIT_LOG_DOMAIN);
 
@@ -373,7 +374,7 @@ public class ZMSDomainAuditLogTest {
         role = zmsTestInitializer.createRoleObject("sys.auth", "audit-log-role", null, roleMembers);
         zmsImpl.putRole(ctx, "sys.auth", "audit-log-role", auditRef, false, null, role);
         policy = zmsTestInitializer.createPolicyObject("sys.auth", "audit-log-policy", "audit-log-role",
-                "access", "sys.auth:meta.audit.log." + AUDIT_LOG_DOMAIN, AssertionEffect.ALLOW);
+                ZMSConsts.ACTION_AUDIT_LOG_ACCESS, "sys.auth:meta.audit.log." + AUDIT_LOG_DOMAIN, AssertionEffect.ALLOW);
         zmsImpl.putPolicy(ctx, "sys.auth", "audit-log-policy", auditRef, false, null, policy);
 
         auditLog = zmsImpl.getDomainAuditLog(userCtx, AUDIT_LOG_DOMAIN, null, null, null, null, null, null);
@@ -383,7 +384,7 @@ public class ZMSDomainAuditLogTest {
         // the resource without the domain name suffix does not grant access
 
         policy = zmsTestInitializer.createPolicyObject("sys.auth", "audit-log-policy", "audit-log-role",
-                "access", "sys.auth:meta.audit.log", AssertionEffect.ALLOW);
+                ZMSConsts.ACTION_AUDIT_LOG_ACCESS, "sys.auth:meta.audit.log", AssertionEffect.ALLOW);
         zmsImpl.putPolicy(ctx, "sys.auth", "audit-log-policy", auditRef, false, null, policy);
         verifyForbidden(zmsImpl, userCtx, AUDIT_LOG_DOMAIN);
         verifyForbidden(zmsImpl, userCtx, otherDomain);
@@ -391,7 +392,7 @@ public class ZMSDomainAuditLogTest {
         // a wildcard resource grants access to the audit log of all domains
 
         policy = zmsTestInitializer.createPolicyObject("sys.auth", "audit-log-policy", "audit-log-role",
-                "access", "sys.auth:meta.audit.log.*", AssertionEffect.ALLOW);
+                ZMSConsts.ACTION_AUDIT_LOG_ACCESS, "sys.auth:meta.audit.log.*", AssertionEffect.ALLOW);
         zmsImpl.putPolicy(ctx, "sys.auth", "audit-log-policy", auditRef, false, null, policy);
 
         auditLog = zmsImpl.getDomainAuditLog(userCtx, AUDIT_LOG_DOMAIN, null, null, null, null, null, null);
