@@ -725,6 +725,52 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
+    public DomainAuditLog getDomainAuditLog(String domainName, String api, String entity, String principal, String startDate, String endDate, Integer limit) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/history/audit")
+            .resolveTemplate("domainName", domainName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        if (api != null) {
+            uriBuilder.setParameter("api", api);
+        }
+        if (entity != null) {
+            uriBuilder.setParameter("entity", entity);
+        }
+        if (principal != null) {
+            uriBuilder.setParameter("principal", principal);
+        }
+        if (startDate != null) {
+            uriBuilder.setParameter("start", startDate);
+        }
+        if (endDate != null) {
+            uriBuilder.setParameter("end", endDate);
+        }
+        if (limit != null) {
+            uriBuilder.setParameter("limit", String.valueOf(limit));
+        }
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), DomainAuditLog.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
     public ExpiredMembers deleteExpiredMembers(Integer purgeResources, String auditRef, Boolean returnObj) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/expired-members");
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());

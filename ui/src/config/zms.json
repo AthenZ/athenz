@@ -2037,6 +2037,81 @@
         {
             "StructTypeDef": {
                 "type": "Struct",
+                "name": "DomainAuditLogEntry",
+                "comment": "A single audit log record for a change made in the domain",
+                "fields": [
+                    {
+                        "name": "api",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "name of the api that made the change e.g. putRole"
+                    },
+                    {
+                        "name": "entity",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "name of the entity that was changed e.g. role, group, policy name"
+                    },
+                    {
+                        "name": "principal",
+                        "type": "String",
+                        "optional": false,
+                        "comment": "principal that made the change"
+                    },
+                    {
+                        "name": "clientIp",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "IP address of the client that made the change"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "Timestamp",
+                        "optional": false,
+                        "comment": "timestamp when the change was made"
+                    },
+                    {
+                        "name": "justification",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "audit reference/justification provided with the change"
+                    },
+                    {
+                        "name": "details",
+                        "type": "String",
+                        "optional": true,
+                        "comment": "details of the change, typically a json formatted string"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
+                "name": "DomainAuditLog",
+                "comment": "The list of audit log records for the domain",
+                "fields": [
+                    {
+                        "name": "entries",
+                        "type": "Array",
+                        "optional": false,
+                        "comment": "list of audit log records sorted by timestamp, most recent first",
+                        "items": "DomainAuditLogEntry"
+                    },
+                    {
+                        "name": "partial",
+                        "type": "Bool",
+                        "optional": true,
+                        "comment": "true if the result set was limited and additional records matching the query are available"
+                    }
+                ],
+                "closed": false
+            }
+        },
+        {
+            "StructTypeDef": {
+                "type": "Struct",
                 "name": "ExpiryMember",
                 "fields": [
                     {
@@ -5574,6 +5649,97 @@
                     "type": "ResourceError"
                 },
                 "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "BAD_REQUEST": {
+                    "type": "ResourceError"
+                },
+                "NOT_FOUND": {
+                    "type": "ResourceError"
+                }
+            }
+        },
+        {
+            "type": "DomainAuditLog",
+            "method": "GET",
+            "path": "/domain/{domainName}/history/audit",
+            "comment": "Get the audit log history for the domain. The optional query arguments can be used to filter the result set. The start and end dates must be specified in RFC3339 format e.g. 2026-09-01T00:00:00Z The principal must be authorized for the \"zms.auditlogaccess\" action on either the \"{domainName}:meta.audit.log\" resource in the requested domain or the \"sys.auth:meta.audit.log.{domainName}\" resource in the sys.auth domain",
+            "inputs": [
+                {
+                    "name": "domainName",
+                    "type": "DomainName",
+                    "comment": "name of the domain",
+                    "pathParam": true,
+                    "optional": false,
+                    "flag": false
+                },
+                {
+                    "name": "api",
+                    "type": "SimpleName",
+                    "comment": "restrict results to the given api name",
+                    "pathParam": false,
+                    "queryParam": "api",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "entity",
+                    "type": "ResourceName",
+                    "comment": "restrict results to the given entity name",
+                    "pathParam": false,
+                    "queryParam": "entity",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "principal",
+                    "type": "ResourceName",
+                    "comment": "restrict results to changes made by the given principal",
+                    "pathParam": false,
+                    "queryParam": "principal",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "startDate",
+                    "type": "String",
+                    "comment": "restrict results to changes made on or after this date",
+                    "pathParam": false,
+                    "queryParam": "start",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "endDate",
+                    "type": "String",
+                    "comment": "restrict results to changes made on or before this date",
+                    "pathParam": false,
+                    "queryParam": "end",
+                    "optional": true,
+                    "flag": false
+                },
+                {
+                    "name": "limit",
+                    "type": "Int32",
+                    "comment": "restrict the number of results in this call",
+                    "pathParam": false,
+                    "queryParam": "limit",
+                    "optional": true,
+                    "flag": false
+                }
+            ],
+            "auth": {
+                "authenticate": true
+            },
+            "expected": "OK",
+            "exceptions": {
+                "TOO_MANY_REQUESTS": {
+                    "type": "ResourceError"
+                },
+                "UNAUTHORIZED": {
+                    "type": "ResourceError"
+                },
+                "FORBIDDEN": {
                     "type": "ResourceError"
                 },
                 "BAD_REQUEST": {

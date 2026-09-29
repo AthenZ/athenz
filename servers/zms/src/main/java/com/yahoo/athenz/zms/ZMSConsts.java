@@ -207,6 +207,7 @@ public final class ZMSConsts {
     public static final String ACTION_ASSUME_GCP_ROLE    = "assume_gcp_role";
     public static final String ACTION_ASSUME_GCP_SERVICE = "assume_gcp_service";
     public static final String ACTION_UPDATE             = "update";
+    public static final String ACTION_AUDIT_LOG_ACCESS   = "zms.auditlogaccess";
 
     public static final String SYSTEM_META_PRODUCT_ID         = "productid";
     public static final String SYSTEM_META_ACCOUNT            = "account";
@@ -335,6 +336,10 @@ public final class ZMSConsts {
 
     public static final String ZMS_PROP_SEARCH_SERVICE_LIMIT = "athenz.zms.search_service_limit";
     public static final Integer ZMS_PROP_SEARCH_SERVICE_LIMIT_DEFAULT = 100;
+
+    public static final String ZMS_PROP_AUDIT_LOG_HISTORY_DEFAULT_LIMIT = "athenz.zms.audit_log_history_default_limit";
+    public static final String ZMS_PROP_AUDIT_LOG_HISTORY_MAX_LIMIT = "athenz.zms.audit_log_history_max_limit";
+    public static final String ZMS_PROP_AUDIT_LOG_HISTORY_DEFAULT_DAYS = "athenz.zms.audit_log_history_default_days";
 
     public static final String ZMS_PROP_NOTIFICATION_OBJECT_STORE_FACTORY_CLASS = "athenz.zms.notification_object_store_factory_class";
     public static final String ZMS_PROP_USER_AUTHORITY_FILTER_DOC_URL = "athenz.zms.user_authority_filter_documentation_url";

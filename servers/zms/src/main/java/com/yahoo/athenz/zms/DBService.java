@@ -26,6 +26,7 @@ import com.yahoo.athenz.common.server.assertion.ResourceValueUpdater;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.db.DomainProvider;
 import com.yahoo.athenz.common.server.db.RolesProvider;
+import com.yahoo.athenz.common.server.log.AuditLogHistoryQuery;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.ServerResourceException;
@@ -10298,6 +10299,23 @@ public class DBService implements RolesProvider, DomainProvider {
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
         }
+    }
+
+    public DomainAuditLog getDomainAuditLog(AuditLogHistoryQuery query) {
+        DomainAuditLog domainAuditLog;
+        try {
+            domainAuditLog = auditLogger.getDomainAuditLogHistory(query);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
+        if (domainAuditLog == null) {
+            LOG.warn("Audit logger does not support history retrieval. getDomainAuditLog will return empty list.");
+            domainAuditLog = new DomainAuditLog();
+        }
+        if (domainAuditLog.getEntries() == null) {
+            domainAuditLog.setEntries(new ArrayList<>());
+        }
+        return domainAuditLog;
     }
 
     private void updateGroupMembershipByPrincipalState(ObjectStoreConnection con, PrincipalMember updatedUser,

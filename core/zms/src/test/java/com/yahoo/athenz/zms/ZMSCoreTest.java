@@ -3206,6 +3206,124 @@ public class ZMSCoreTest {
     }
 
     @Test
+    public void testDomainAuditLogEntry() {
+
+        Timestamp timestamp = Timestamp.fromMillis(1655282257000L);
+        final String details = "{\"member\": \"user.joe\"}";
+
+        DomainAuditLogEntry entry1 = new DomainAuditLogEntry().setApi("putRole").setEntity("readers")
+                .setPrincipal("user.jane").setClientIp("10.1.1.1").setTimestamp(timestamp)
+                .setJustification("ticket-1234").setDetails(details);
+
+        assertEquals(entry1.getApi(), "putRole");
+        assertEquals(entry1.getEntity(), "readers");
+        assertEquals(entry1.getPrincipal(), "user.jane");
+        assertEquals(entry1.getClientIp(), "10.1.1.1");
+        assertEquals(entry1.getTimestamp(), timestamp);
+        assertEquals(entry1.getJustification(), "ticket-1234");
+        assertEquals(entry1.getDetails(), details);
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+        Result result = validator.validate(entry1, "DomainAuditLogEntry");
+        assertTrue(result.valid);
+
+        assertEquals(entry1, entry1);
+        assertFalse(entry1.equals(null));
+        assertFalse(entry1.equals(new Object()));
+
+        DomainAuditLogEntry entry2 = new DomainAuditLogEntry().setApi("putRole").setEntity("readers")
+                .setPrincipal("user.jane").setClientIp("10.1.1.1").setTimestamp(timestamp)
+                .setJustification("ticket-1234").setDetails(details);
+        assertEquals(entry1, entry2);
+
+        entry2.setApi("putPolicy");
+        assertNotEquals(entry1, entry2);
+        entry2.setApi(null);
+        assertNotEquals(entry1, entry2);
+        entry2.setApi("putRole");
+        assertEquals(entry1, entry2);
+
+        entry2.setEntity("writers");
+        assertNotEquals(entry1, entry2);
+        entry2.setEntity(null);
+        assertNotEquals(entry1, entry2);
+        entry2.setEntity("readers");
+        assertEquals(entry1, entry2);
+
+        entry2.setPrincipal("user.joe");
+        assertNotEquals(entry1, entry2);
+        entry2.setPrincipal(null);
+        assertNotEquals(entry1, entry2);
+        entry2.setPrincipal("user.jane");
+        assertEquals(entry1, entry2);
+
+        entry2.setClientIp("10.2.2.2");
+        assertNotEquals(entry1, entry2);
+        entry2.setClientIp(null);
+        assertNotEquals(entry1, entry2);
+        entry2.setClientIp("10.1.1.1");
+        assertEquals(entry1, entry2);
+
+        entry2.setTimestamp(Timestamp.fromMillis(1655282258000L));
+        assertNotEquals(entry1, entry2);
+        entry2.setTimestamp(null);
+        assertNotEquals(entry1, entry2);
+        entry2.setTimestamp(timestamp);
+        assertEquals(entry1, entry2);
+
+        entry2.setJustification("ticket-5678");
+        assertNotEquals(entry1, entry2);
+        entry2.setJustification(null);
+        assertNotEquals(entry1, entry2);
+        entry2.setJustification("ticket-1234");
+        assertEquals(entry1, entry2);
+
+        entry2.setDetails("{\"member\": \"user.jack\"}");
+        assertNotEquals(entry1, entry2);
+        entry2.setDetails(null);
+        assertNotEquals(entry1, entry2);
+        entry2.setDetails(details);
+        assertEquals(entry1, entry2);
+    }
+
+    @Test
+    public void testDomainAuditLog() {
+
+        DomainAuditLogEntry entry = new DomainAuditLogEntry().setApi("putRole").setPrincipal("user.jane")
+                .setTimestamp(Timestamp.fromMillis(1655282257000L));
+
+        DomainAuditLog log1 = new DomainAuditLog().setEntries(Collections.singletonList(entry));
+        assertEquals(log1.getEntries(), Collections.singletonList(entry));
+
+        Schema schema = ZMSSchema.instance();
+        Validator validator = new Validator(schema);
+        Result result = validator.validate(log1, "DomainAuditLog");
+        assertTrue(result.valid);
+
+        assertEquals(log1, log1);
+        assertFalse(log1.equals(null));
+        assertFalse(log1.equals(new Object()));
+
+        DomainAuditLog log2 = new DomainAuditLog();
+        assertNotEquals(log1, log2);
+        log2.setEntries(new ArrayList<>());
+        assertNotEquals(log1, log2);
+        log2.setEntries(Collections.singletonList(entry));
+        assertEquals(log1, log2);
+
+        log1.setPartial(true);
+        assertTrue(log1.getPartial());
+        result = validator.validate(log1, "DomainAuditLog");
+        assertTrue(result.valid);
+        assertNotEquals(log1, log2);
+        log2.setPartial(false);
+        assertNotEquals(log1, log2);
+        log2.setPartial(true);
+        assertEquals(log1, log2);
+    }
+
+    @Test
     public void testResourceOwnerType() {
         Schema schema = ZMSSchema.instance();
         Validator validator = new Validator(schema);

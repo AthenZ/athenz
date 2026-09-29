@@ -34,6 +34,7 @@ import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.metrics.MetricFactory;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidator;
 import com.yahoo.athenz.common.server.audit.AuditReferenceValidatorFactory;
+import com.yahoo.athenz.common.server.log.AuditLogHistoryQuery;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.metastore.DomainMetaStore;
@@ -174,6 +175,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected boolean virtualDomainSupport = true;
     protected boolean productIdSupport = false;
     protected int virtualDomainLimit = 2;
+    protected int auditLogHistoryDefaultLimit = 100;
+    protected int auditLogHistoryMaxLimit = 1000;
+    protected int auditLogHistoryDefaultDays = 30;
     protected long signedPolicyTimeout;
     protected int domainNameMaxLen;
     protected AuthorizedServices serverAuthorizedServices = null;
@@ -941,6 +945,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 System.getProperty(ZMSConsts.ZMS_PROP_VIRTUAL_DOMAIN_LIMIT, "5"));
         if (virtualDomainLimit < 0) {
             virtualDomainLimit = 5;
+        }
+
+        // audit log history settings - the default number of records returned,
+        // the maximum number of records allowed in a single request and the
+        // number of days to look back if the start date is not specified
+
+        auditLogHistoryMaxLimit = Integer.parseInt(
+                System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_LOG_HISTORY_MAX_LIMIT, "1000"));
+        if (auditLogHistoryMaxLimit <= 0) {
+            auditLogHistoryMaxLimit = 1000;
+        }
+        auditLogHistoryDefaultLimit = Integer.parseInt(
+                System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_LOG_HISTORY_DEFAULT_LIMIT, "100"));
+        if (auditLogHistoryDefaultLimit <= 0 || auditLogHistoryDefaultLimit > auditLogHistoryMaxLimit) {
+            auditLogHistoryDefaultLimit = Math.min(100, auditLogHistoryMaxLimit);
+        }
+        auditLogHistoryDefaultDays = Integer.parseInt(
+                System.getProperty(ZMSConsts.ZMS_PROP_AUDIT_LOG_HISTORY_DEFAULT_DAYS, "30"));
+        if (auditLogHistoryDefaultDays <= 0) {
+            auditLogHistoryDefaultDays = 30;
         }
 
         // signedPolicyTimeout is in milliseconds but the config setting should be in seconds
@@ -3499,6 +3523,103 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         setRequestDomain(ctx, domainName);
 
         return dbService.getAuthHistory(domainName);
+    }
+
+    @Override
+    public DomainAuditLog getDomainAuditLog(ResourceContext ctx, String domainName, String api, String entity,
+            String principal, String startDate, String endDate, Integer limit) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case (e.g. domain, role,
+        // policy, service, etc name)
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        AthenzDomain domain = getAthenzDomain(domainName, false);
+        if (domain == null) {
+            throw ZMSUtils.notFoundError("Domain not found: '" + domainName + "'", caller);
+        }
+
+        // make sure the principal is authorized to retrieve the audit log
+        // history either at the domain or at the system level
+
+        if (!isAllowedDomainAuditLogLookup(((RsrcCtxWrapper) ctx).principal(), domain)) {
+            throw ZMSUtils.forbiddenError("principal is not authorized to retrieve audit log for domain: "
+                    + domainName, caller);
+        }
+
+        AuditLogHistoryQuery query = new AuditLogHistoryQuery().setDomainName(domainName);
+
+        if (!StringUtil.isEmpty(api)) {
+            validate(api, TYPE_SIMPLE_NAME, caller);
+            query.setApi(api);
+        }
+        if (!StringUtil.isEmpty(entity)) {
+            validate(entity, TYPE_RESOURCE_NAME, caller);
+            query.setEntity(entity.toLowerCase());
+        }
+        if (!StringUtil.isEmpty(principal)) {
+            validate(principal, TYPE_RESOURCE_NAME, caller);
+            query.setPrincipal(principal.toLowerCase());
+        }
+
+        // if the end date is not specified then we'll default to the current
+        // time and if the start date is not specified we'll look back the
+        // configured number of days from the end date
+
+        Timestamp endTime = StringUtil.isEmpty(endDate) ? Timestamp.fromCurrentTime()
+                : parseAuditLogDate(endDate, "end", caller);
+        Timestamp startTime = StringUtil.isEmpty(startDate)
+                ? Timestamp.fromMillis(endTime.millis() - TimeUnit.DAYS.toMillis(auditLogHistoryDefaultDays))
+                : parseAuditLogDate(startDate, "start", caller);
+        if (startTime.millis() > endTime.millis()) {
+            throw ZMSUtils.requestError("start date must not be after end date", caller);
+        }
+        query.setStartTime(startTime).setEndTime(endTime);
+
+        // if the limit is not specified then we'll use our default value and
+        // we'll cap the value at the configured maximum
+
+        if (limit == null) {
+            query.setLimit(auditLogHistoryDefaultLimit);
+        } else if (limit <= 0) {
+            throw ZMSUtils.requestError("limit must be a positive number", caller);
+        } else {
+            query.setLimit(Math.min(limit, auditLogHistoryMaxLimit));
+        }
+
+        return dbService.getDomainAuditLog(query);
+    }
+
+    boolean isAllowedDomainAuditLogLookup(Principal principal, final AthenzDomain domain) {
+
+        // Domain audit log lookup requires one of these authorization checks
+        // 1. domain authorized ("zms.auditlogaccess", "{domain}:meta.audit.log")
+        // 2. system authorized ("zms.auditlogaccess", "sys.auth:meta.audit.log.{domain}")
+
+        if (hasAccess(domain, ZMSConsts.ACTION_AUDIT_LOG_ACCESS, domain.getName() + ":meta.audit.log",
+                principal, null) == AccessStatus.ALLOWED) {
+            return true;
+        }
+
+        return isAllowedSystemAccess(principal, ZMSConsts.ACTION_AUDIT_LOG_ACCESS,
+                SYS_AUTH + ":meta.audit.log." + domain.getName());
+    }
+
+    Timestamp parseAuditLogDate(final String date, final String argName, final String caller) {
+        Timestamp timestamp = Timestamp.fromString(date);
+        if (timestamp == null) {
+            throw ZMSUtils.requestError("invalid " + argName + " date: " + date
+                    + ", must be in RFC3339 format e.g. 2026-09-01T00:00:00Z", caller);
+        }
+        return timestamp;
     }
 
     @Override
