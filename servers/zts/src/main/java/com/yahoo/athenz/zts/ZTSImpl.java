@@ -7116,7 +7116,7 @@ public class ZTSImpl implements ZTSHandler {
         if (httpServletRequest == null) {
             return true;
         }
-        return httpServletRequest.getLocalPort() == oidcPort && oidcPort != httpsPort;
+        return ServletRequestUtil.getConnectorPort(httpServletRequest) == oidcPort && oidcPort != httpsPort;
     }
 
     @Override
@@ -7465,14 +7465,14 @@ public class ZTSImpl implements ZTSHandler {
 
             // non status requests must not take place on the status port
 
-            if (!statusRequest && request.getLocalPort() == statusPort) {
+            if (!statusRequest && ServletRequestUtil.getConnectorPort(request) == statusPort) {
                 throw requestError("incorrect port number for a non-status request",
                         caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
             }
 
             // status requests must not take place on a non-status port
 
-            if (statusRequest && request.getLocalPort() != statusPort) {
+            if (statusRequest && ServletRequestUtil.getConnectorPort(request) != statusPort) {
                 throw requestError("incorrect port number for a status request",
                         caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
             }
@@ -7484,7 +7484,7 @@ public class ZTSImpl implements ZTSHandler {
 
             // non oidc requests must not take place on the oidc port
 
-            if (!oidcRequest && request.getLocalPort() == oidcPort) {
+            if (!oidcRequest && ServletRequestUtil.getConnectorPort(request) == oidcPort) {
                 throw requestError("incorrect port number for a non-oidc request",
                         caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
             }

@@ -47,6 +47,7 @@ import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
 import com.yahoo.athenz.common.server.store.*;
+import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.*;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
@@ -10078,13 +10079,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
             // non status requests must not take place on the status port
 
-            if (!statusRequest && request.getLocalPort() == statusPort) {
+            if (!statusRequest && ServletRequestUtil.getConnectorPort(request) == statusPort) {
                 throw ZMSUtils.requestError("incorrect port number for a non-status request", caller);
             }
 
             // status requests must not take place on a non-status port
 
-            if (statusRequest && request.getLocalPort() != statusPort) {
+            if (statusRequest && ServletRequestUtil.getConnectorPort(request) != statusPort) {
                 throw ZMSUtils.requestError("incorrect port number for a status request", caller);
             }
         }

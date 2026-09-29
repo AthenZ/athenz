@@ -49,6 +49,7 @@ public final class AthenzConsts {
     public static final String ATHENZ_PROP_SNI_HOSTCHECK          = "athenz.ssl_sni_hostcheck";
     public static final String ATHENZ_PROP_IDLE_TIMEOUT           = "athenz.http_idle_timeout";
     public static final String ATHENZ_PROP_PROXY_PROTOCOL         = "athenz.proxy_protocol";
+    public static final String ATHENZ_PROP_PROXY_PROTOCOL_PORT    = "athenz.proxy_protocol_port";
     public static final String ATHENZ_PROP_SEND_SERVER_VERSION    = "athenz.http_send_server_version";
     public static final String ATHENZ_PROP_SEND_DATE_HEADER       = "athenz.http_send_date_header";
     public static final String ATHENZ_PROP_OUTPUT_BUFFER_SIZE     = "athenz.http_output_buffer_size";
