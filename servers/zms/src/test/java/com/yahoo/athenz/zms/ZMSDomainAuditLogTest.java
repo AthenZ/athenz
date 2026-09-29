@@ -361,13 +361,37 @@ public class ZMSDomainAuditLogTest {
         zmsImpl.deletePolicy(ctx, AUDIT_LOG_DOMAIN, "audit-log-policy", auditRef, null);
         verifyForbidden(zmsImpl, userCtx, AUDIT_LOG_DOMAIN);
 
-        // now authorize the principal at the system level which
-        // grants access to the audit log of all domains
+        // remove the access from the other domain as well so we can
+        // verify the system level authorization for both domains
+
+        zmsImpl.deletePolicy(ctx, otherDomain, "audit-log-policy", auditRef, null);
+        verifyForbidden(zmsImpl, userCtx, otherDomain);
+
+        // now authorize the principal at the system level for our domain
+        // only which must not grant access to the other domain
 
         role = zmsTestInitializer.createRoleObject("sys.auth", "audit-log-role", null, roleMembers);
         zmsImpl.putRole(ctx, "sys.auth", "audit-log-role", auditRef, false, null, role);
         policy = zmsTestInitializer.createPolicyObject("sys.auth", "audit-log-policy", "audit-log-role",
+                "access", "sys.auth:meta.audit.log." + AUDIT_LOG_DOMAIN, AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, "sys.auth", "audit-log-policy", auditRef, false, null, policy);
+
+        auditLog = zmsImpl.getDomainAuditLog(userCtx, AUDIT_LOG_DOMAIN, null, null, null, null, null, null);
+        assertTrue(auditLog.getEntries().isEmpty());
+        verifyForbidden(zmsImpl, userCtx, otherDomain);
+
+        // the resource without the domain name suffix does not grant access
+
+        policy = zmsTestInitializer.createPolicyObject("sys.auth", "audit-log-policy", "audit-log-role",
                 "access", "sys.auth:meta.audit.log", AssertionEffect.ALLOW);
+        zmsImpl.putPolicy(ctx, "sys.auth", "audit-log-policy", auditRef, false, null, policy);
+        verifyForbidden(zmsImpl, userCtx, AUDIT_LOG_DOMAIN);
+        verifyForbidden(zmsImpl, userCtx, otherDomain);
+
+        // a wildcard resource grants access to the audit log of all domains
+
+        policy = zmsTestInitializer.createPolicyObject("sys.auth", "audit-log-policy", "audit-log-role",
+                "access", "sys.auth:meta.audit.log.*", AssertionEffect.ALLOW);
         zmsImpl.putPolicy(ctx, "sys.auth", "audit-log-policy", auditRef, false, null, policy);
 
         auditLog = zmsImpl.getDomainAuditLog(userCtx, AUDIT_LOG_DOMAIN, null, null, null, null, null, null);
@@ -376,6 +400,7 @@ public class ZMSDomainAuditLogTest {
 
         zmsImpl.deletePolicy(ctx, "sys.auth", "audit-log-policy", auditRef, null);
         verifyForbidden(zmsImpl, userCtx, AUDIT_LOG_DOMAIN);
+        verifyForbidden(zmsImpl, userCtx, otherDomain);
 
         zmsImpl.deleteRole(ctx, "sys.auth", "audit-log-role", auditRef, null);
         zmsTestInitializer.deleteTopLevelDomain(otherDomain);

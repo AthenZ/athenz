@@ -3602,13 +3602,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         // Domain audit log lookup requires one of these authorization checks
         // 1. domain authorized ("access", "{domain}:meta.audit.log")
-        // 2. system authorized ("access", "sys.auth:meta.audit.log")
+        // 2. system authorized ("access", "sys.auth:meta.audit.log.{domain}")
 
         if (hasAccess(domain, "access", domain.getName() + ":meta.audit.log", principal, null) == AccessStatus.ALLOWED) {
             return true;
         }
 
-        return isAllowedSystemAccess(principal, "access", SYS_AUTH + ":meta.audit.log");
+        return isAllowedSystemAccess(principal, "access", SYS_AUTH + ":meta.audit.log." + domain.getName());
     }
 
     Timestamp parseAuditLogDate(final String date, final String argName, final String caller) {

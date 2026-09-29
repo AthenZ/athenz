@@ -360,7 +360,7 @@ type DomainAuditLog Struct {
 //specified in RFC3339 format e.g. 2026-09-01T00:00:00Z
 //The principal must be authorized for the "access" action on either the
 //"{domainName}:meta.audit.log" resource in the requested domain or the
-//"sys.auth:meta.audit.log" resource in the sys.auth domain
+//"sys.auth:meta.audit.log.{domainName}" resource in the sys.auth domain
 resource DomainAuditLog GET "/domain/{domainName}/history/audit?api={api}&entity={entity}&principal={principal}&start={startDate}&end={endDate}&limit={limit}" {
     DomainName domainName; //name of the domain
     SimpleName api (optional); //restrict results to the given api name
