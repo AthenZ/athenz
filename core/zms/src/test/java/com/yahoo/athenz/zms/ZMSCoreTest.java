@@ -3211,11 +3211,11 @@ public class ZMSCoreTest {
         Timestamp timestamp = Timestamp.fromMillis(1655282257000L);
         final String details = "{\"member\": \"user.joe\"}";
 
-        DomainAuditLogEntry entry1 = new DomainAuditLogEntry().setApi("putrole").setEntity("readers")
+        DomainAuditLogEntry entry1 = new DomainAuditLogEntry().setApi("putRole").setEntity("readers")
                 .setPrincipal("user.jane").setClientIp("10.1.1.1").setTimestamp(timestamp)
                 .setJustification("ticket-1234").setDetails(details);
 
-        assertEquals(entry1.getApi(), "putrole");
+        assertEquals(entry1.getApi(), "putRole");
         assertEquals(entry1.getEntity(), "readers");
         assertEquals(entry1.getPrincipal(), "user.jane");
         assertEquals(entry1.getClientIp(), "10.1.1.1");
@@ -3232,16 +3232,16 @@ public class ZMSCoreTest {
         assertFalse(entry1.equals(null));
         assertFalse(entry1.equals(new Object()));
 
-        DomainAuditLogEntry entry2 = new DomainAuditLogEntry().setApi("putrole").setEntity("readers")
+        DomainAuditLogEntry entry2 = new DomainAuditLogEntry().setApi("putRole").setEntity("readers")
                 .setPrincipal("user.jane").setClientIp("10.1.1.1").setTimestamp(timestamp)
                 .setJustification("ticket-1234").setDetails(details);
         assertEquals(entry1, entry2);
 
-        entry2.setApi("putpolicy");
+        entry2.setApi("putPolicy");
         assertNotEquals(entry1, entry2);
         entry2.setApi(null);
         assertNotEquals(entry1, entry2);
-        entry2.setApi("putrole");
+        entry2.setApi("putRole");
         assertEquals(entry1, entry2);
 
         entry2.setEntity("writers");
@@ -3290,7 +3290,7 @@ public class ZMSCoreTest {
     @Test
     public void testDomainAuditLog() {
 
-        DomainAuditLogEntry entry = new DomainAuditLogEntry().setApi("putrole").setPrincipal("user.jane")
+        DomainAuditLogEntry entry = new DomainAuditLogEntry().setApi("putRole").setPrincipal("user.jane")
                 .setTimestamp(Timestamp.fromMillis(1655282257000L));
 
         DomainAuditLog log1 = new DomainAuditLog().setEntries(Collections.singletonList(entry));

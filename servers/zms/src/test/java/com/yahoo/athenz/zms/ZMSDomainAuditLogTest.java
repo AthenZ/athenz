@@ -77,7 +77,7 @@ public class ZMSDomainAuditLogTest {
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
 
-        DomainAuditLogEntry entry = new DomainAuditLogEntry().setApi("putrole").setEntity("readers")
+        DomainAuditLogEntry entry = new DomainAuditLogEntry().setApi("putRole").setEntity("readers")
                 .setPrincipal("user.joe").setClientIp("10.1.1.1").setTimestamp(Timestamp.fromCurrentTime())
                 .setJustification("ticket-1234").setDetails("{\"member\": \"user.jane\"}");
         DomainAuditLog mockAuditLog = new DomainAuditLog().setEntries(Collections.singletonList(entry));
@@ -137,7 +137,7 @@ public class ZMSDomainAuditLogTest {
             AuditLogHistoryQuery query = captor.getValue();
 
             assertEquals(query.getDomainName(), "audit-log-domain");
-            assertEquals(query.getApi(), "putrole");
+            assertEquals(query.getApi(), "putRole");
             assertEquals(query.getEntity(), "readers");
             assertEquals(query.getPrincipal(), "user.joe");
             assertEquals(query.getStartTime(), Timestamp.fromString("2026-09-01T00:00:00Z"));
@@ -182,7 +182,7 @@ public class ZMSDomainAuditLogTest {
         List<DomainAuditLogEntry> entries = new ArrayList<>();
         long now = System.currentTimeMillis();
         for (int i = 0; i < 5; i++) {
-            entries.add(new DomainAuditLogEntry().setApi("putrole").setEntity("role" + i)
+            entries.add(new DomainAuditLogEntry().setApi("putRole").setEntity("role" + i)
                     .setPrincipal("user.joe").setTimestamp(Timestamp.fromMillis(now - i * 1000L)));
         }
 

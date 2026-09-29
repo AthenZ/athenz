@@ -21,7 +21,10 @@ import com.yahoo.rdl.Timestamp;
  * Query arguments for retrieving the audit log history of a domain.
  * The domain name, start/end times and limit are always set by the
  * server while the api, entity and principal filters are optional
- * and will be null if not specified by the caller.
+ * and will be null if not specified by the caller. The domain, entity
+ * and principal values are converted to lower case by the server while
+ * the api value is passed as specified by the caller since the audit
+ * records store the api name with its camel-case spelling (e.g. putRole).
  */
 public class AuditLogHistoryQuery {
 

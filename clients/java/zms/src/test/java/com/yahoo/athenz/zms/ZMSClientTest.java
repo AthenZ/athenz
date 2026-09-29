@@ -2684,10 +2684,10 @@ public class ZMSClientTest {
         }
 
         DomainAuditLog auditLog = new DomainAuditLog().setEntries(Collections.singletonList(
-                new DomainAuditLogEntry().setApi("putrole").setPrincipal("user.joe")));
-        Mockito.when(c.getDomainAuditLog("good.domain", "putrole", "readers", "user.joe",
+                new DomainAuditLogEntry().setApi("putRole").setPrincipal("user.joe")));
+        Mockito.when(c.getDomainAuditLog("good.domain", "putRole", "readers", "user.joe",
                 "2026-09-01T00:00:00Z", "2026-09-02T00:00:00Z", 10)).thenReturn(auditLog);
-        assertEquals(client.getDomainAuditLog("good.domain", "putrole", "readers", "user.joe",
+        assertEquals(client.getDomainAuditLog("good.domain", "putRole", "readers", "user.joe",
                 "2026-09-01T00:00:00Z", "2026-09-02T00:00:00Z", 10), auditLog);
     }
 

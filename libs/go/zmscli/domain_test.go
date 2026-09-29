@@ -47,7 +47,7 @@ func (tr *getAuditLogTransport) RoundTrip(req *http.Request) (*http.Response, er
 	}, nil
 }
 
-const auditLogResponse = `{"entries":[{"api":"putrole","entity":"readers","principal":"user.jane","clientIp":"10.1.1.1",` +
+const auditLogResponse = `{"entries":[{"api":"putRole","entity":"readers","principal":"user.jane","clientIp":"10.1.1.1",` +
 	`"timestamp":"2026-09-01T10:00:00.000Z","justification":"ticket-1234","details":"{\"member\": \"user.joe\"}"}]}`
 
 func TestGetDomainAuditLog(t *testing.T) {
@@ -71,7 +71,7 @@ func TestGetDomainAuditLog(t *testing.T) {
 	if transport.calls != 1 {
 		t.Fatalf("expected 1 request, got %d", transport.calls)
 	}
-	for _, expected := range []string{"api: putrole", "entity: readers", "principal: user.jane",
+	for _, expected := range []string{"api: putRole", "entity: readers", "principal: user.jane",
 		"clientip: 10.1.1.1", "justification: ticket-1234", `"member": "user.joe"`} {
 		if !strings.Contains(*output, expected) {
 			t.Errorf("output does not contain %q: %s", expected, *output)

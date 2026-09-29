@@ -3546,7 +3546,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         if (!StringUtil.isEmpty(api)) {
             validate(api, TYPE_SIMPLE_NAME, caller);
-            query.setApi(api.toLowerCase());
+            query.setApi(api);
         }
         if (!StringUtil.isEmpty(entity)) {
             validate(entity, TYPE_RESOURCE_NAME, caller);
