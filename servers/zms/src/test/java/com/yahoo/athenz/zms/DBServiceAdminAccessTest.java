@@ -328,6 +328,21 @@ public class DBServiceAdminAccessTest {
         verify(fixture.con, never()).commitChanges();
     }
 
+    @Test
+    public void testRoleFailureAfterPendingAdminDeletionRollsBack() throws ServerResourceException {
+        Fixture fixture = new Fixture();
+        when(fixture.con.listRoleMembers("target", "admin", true)).thenReturn(List.of(
+                member("user.pending").setApproved(false), member("user.alice")));
+        when(fixture.con.updateRole(eq("target"), any())).thenThrow(new IllegalStateException("role update failed"));
+
+        IllegalStateException ex = expectThrows(IllegalStateException.class, fixture::apply);
+
+        assertEquals(ex.getMessage(), "role update failed");
+        verify(fixture.con).deletePendingRoleMember("target", "admin", "user.pending", null, "audit");
+        verify(fixture.con).rollbackChanges();
+        verify(fixture.con, never()).commitChanges();
+    }
+
     private class Fixture {
         final ObjectStoreConnection con = mock(ObjectStoreConnection.class);
         final DBService service = mock(DBService.class, CALLS_REAL_METHODS);

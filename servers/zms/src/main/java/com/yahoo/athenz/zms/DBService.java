@@ -5329,26 +5329,25 @@ public class DBService implements RolesProvider, DomainProvider {
                 auditDetails.append("{\"add-templates\": ");
                 boolean firstEntry = true;
 
-                for (String templateName : domainTemplate.getTemplateNames()) {
-                    firstEntry = auditLogSeparator(auditDetails, firstEntry);
-                    if (!addSolutionTemplate(ctx, con, domainName, templateName, principalName,
-                            domainTemplate.getParams(), auditRef, auditDetails, serverSolutionTemplates)) {
-                        rollbackChanges(con);
-                        throw ZMSUtils.internalServerError("unable to put domain templates: " + domainName, caller);
-                    }
-                }
-                auditDetails.append("}");
-
                 try {
+                    for (String templateName : domainTemplate.getTemplateNames()) {
+                        firstEntry = auditLogSeparator(auditDetails, firstEntry);
+                        if (!addSolutionTemplate(ctx, con, domainName, templateName, principalName,
+                                domainTemplate.getParams(), auditRef, auditDetails, serverSolutionTemplates)) {
+                            throw ZMSUtils.internalServerError("unable to put domain templates: " + domainName, caller);
+                        }
+                    }
+                    auditDetails.append("}");
+
                     validatePreservedAdminAccess(con, domainName, adminAccess, caller);
+
+                    // update our domain time-stamp and save changes
+
+                    saveChanges(con, domainName);
                 } catch (RuntimeException | ServerResourceException ex) {
                     rollbackChanges(con);
                     throw ex;
                 }
-
-                // update our domain time-stamp and save changes
-
-                saveChanges(con, domainName);
 
                 // audit log the request
 
