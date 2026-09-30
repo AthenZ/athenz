@@ -153,9 +153,26 @@ describe('self service screen tests', () => {
         }
     };
 
+    const openDomainListing = async (url, readySelector, attempts = 3) => {
+        for (let attempt = 1; attempt < attempts; attempt++) {
+            await navigateAndWait(url);
+            const ready = await $(readySelector)
+                .waitForExist({ timeout: 30000 })
+                .catch(() => false);
+            if (ready) {
+                return;
+            }
+            console.warn(
+                `openDomainListing: ${url} not ready (attempt ${attempt}/${attempts}); reloading`
+            );
+        }
+        // final attempt: let the wait throw the real error/timeout
+        await navigateAndWait(url);
+        await waitForElementExist(readySelector);
+    };
+
     const deleteRoleIfExists = async (name, domain = TEST_DOMAIN) => {
-        await navigateAndWait(`/domain/${domain}/role`);
-        await waitForElementExist('button*=Add Role');
+        await openDomainListing(`/domain/${domain}/role`, 'button*=Add Role');
         const del = await $(
             `.//*[local-name()="svg" and @id="${name}-delete-role-button"]`
         );
@@ -183,8 +200,7 @@ describe('self service screen tests', () => {
     };
 
     const deleteGroupIfExists = async (name, domain = TEST_DOMAIN) => {
-        await navigateAndWait(`/domain/${domain}/group`);
-        await waitForElementExist('button*=Add Group');
+        await openDomainListing(`/domain/${domain}/group`, 'button*=Add Group');
         const del = await $(
             `.//*[local-name()="svg" and @id="delete-group-icon-${name}"]`
         );
@@ -215,7 +231,6 @@ describe('self service screen tests', () => {
     const createSelfServeRole = async (name, opts = {}) => {
         const domain = opts.domain || TEST_DOMAIN;
         await deleteRoleIfExists(name, domain);
-        await navigateAndWait(`/domain/${domain}/role`);
         await waitAndClick('button*=Add Role');
         await waitAndSetValue('#role-name-input', name);
         await waitAndClick('#advanced-settings-icon');
@@ -259,7 +274,6 @@ describe('self service screen tests', () => {
     const createSelfServeGroup = async (name, opts = {}) => {
         const domain = opts.domain || TEST_DOMAIN;
         await deleteGroupIfExists(name, domain);
-        await navigateAndWait(`/domain/${domain}/group`);
         await waitAndClick('button*=Add Group');
         await waitAndSetValue('#group-name-input', name);
         await waitAndClick('#advanced-settings-icon');

@@ -123,6 +123,7 @@ if (!sauceLabsUser) {
                 build: BUILD_NUMBER,
                 screenResolution: functionalConfig.screenResolution,
                 maxDuration: 3600,
+                extendedDebugging: true,
             },
         },
     ];
