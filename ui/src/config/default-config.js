@@ -205,6 +205,8 @@ const config = {
         pageFeatureFlag: {
             microsegmentation: {
                 policyValidation: true,
+                snapshots: false,
+                snapshotsGuideLink: '',
             },
             roleGroupReview: {
                 roleGroupReviewFeatureFlag: true,
@@ -258,6 +260,8 @@ const config = {
         pageFeatureFlag: {
             microsegmentation: {
                 policyValidation: true,
+                snapshots: true,
+                snapshotsGuideLink: '',
             },
             roleGroupReview: {
                 roleGroupReviewFeatureFlag: true,

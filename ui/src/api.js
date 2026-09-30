@@ -2045,6 +2045,126 @@ const Api = (req) => {
             });
         },
 
+        getSnapshots(domainName, serviceName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('snapshots')
+                    .params({ domainName, serviceName })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        getSnapshot(domainName, serviceName, snapshotName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('snapshots')
+                    .params({ domainName, serviceName, snapshotName })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        getSnapshotUsage(domainName, serviceName, snapshotName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('snapshots')
+                    .params({
+                        domainName,
+                        serviceName,
+                        snapshotName,
+                        usage: true,
+                    })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        createSnapshot(domainName, serviceName, name, active, _csrf) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .create('snapshots')
+                    .params({ domainName, serviceName, name, active })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        updateSnapshot(domainName, serviceName, snapshotName, active, _csrf) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .update('snapshots')
+                    .params({
+                        domainName,
+                        serviceName,
+                        snapshotName,
+                        active: active === true,
+                    })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
+        deleteSnapshot(domainName, serviceName, snapshotName, force, _csrf) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .delete('snapshots')
+                    .params({
+                        domainName,
+                        serviceName,
+                        snapshotName,
+                        force: force === true,
+                    })
+                    .clientConfig({
+                        headers: {
+                            'x-csrf-token': _csrf,
+                        },
+                    })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         getAuthorityAttributes() {
             return new Promise((resolve, reject) => {
                 fetchr.read('authority').end((err, data) => {

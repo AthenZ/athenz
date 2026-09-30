@@ -26,6 +26,9 @@ export const EXTERNAL_MEMBER_NAME_REGEX =
 // Keep the external pattern first because RegexUtils.validate compares the
 // first regex match to the full input, and GROUP_NAME_REGEX matches the prefix.
 export const GROUP_MEMBER_NAME_REGEX = `${EXTERNAL_MEMBER_NAME_REGEX}|${GROUP_NAME_REGEX}`;
+// RDL EntityName: dot-separated SimpleNames, SimpleName is [a-zA-Z0-9_][a-zA-Z0-9_-]*
+export const SNAPSHOT_NAME_REGEX =
+    '^[a-zA-Z0-9_][a-zA-Z0-9_-]*(\\.[a-zA-Z0-9_][a-zA-Z0-9_-]*)*$';
 export const MICROSEGMENTATION_SERVICE_NAME_REGEX =
     '\\*|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*';
 export const POLICY_ENFORCEMENT_REGEX =

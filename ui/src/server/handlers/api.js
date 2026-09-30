@@ -1080,6 +1080,103 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'snapshots',
+    read(req, resource, params, config, callback) {
+        const { domainName, serviceName, snapshotName, usage } = params;
+        let apiName = 'getTransportPolicySnapshots';
+        if (snapshotName) {
+            apiName = usage
+                ? 'getTransportPolicySnapshotUsage'
+                : 'getTransportPolicySnapshot';
+        }
+        req.clients.msd[apiName](
+            { domainName, serviceName, snapshotName },
+            (err, data) => {
+                if (err) {
+                    debug(
+                        `principal: ${req.session.shortId} rid: ${
+                            req.headers.rid
+                        } Error from MSD while calling ${apiName}: ${JSON.stringify(
+                            errorHandler.fetcherError(err)
+                        )}`
+                    );
+                    return callback(errorHandler.fetcherError(err, 'MSD'));
+                }
+                return callback(null, data);
+            }
+        );
+    },
+    create(req, resource, params, body, config, callback) {
+        const { domainName, serviceName, name, active } = params;
+        req.clients.msd.createTransportPolicySnapshot(
+            {
+                domainName,
+                serviceName,
+                snapshot: { name, active: !!active },
+            },
+            (err, data) => {
+                if (err) {
+                    debug(
+                        `principal: ${req.session.shortId} rid: ${
+                            req.headers.rid
+                        } Error from MSD while creating snapshot ${name}: ${JSON.stringify(
+                            errorHandler.fetcherError(err)
+                        )}`
+                    );
+                    return callback(errorHandler.fetcherError(err, 'MSD'));
+                }
+                return callback(null, data);
+            }
+        );
+    },
+    update(req, resource, params, body, config, callback) {
+        const { domainName, serviceName, snapshotName, active } = params;
+        req.clients.msd.updateTransportPolicySnapshot(
+            {
+                domainName,
+                serviceName,
+                snapshotName,
+                updateRequest: { active: !!active },
+            },
+            (err, data) => {
+                if (err) {
+                    debug(
+                        `principal: ${req.session.shortId} rid: ${
+                            req.headers.rid
+                        } Error from MSD while updating snapshot ${snapshotName}: ${JSON.stringify(
+                            errorHandler.fetcherError(err)
+                        )}`
+                    );
+                    return callback(errorHandler.fetcherError(err, 'MSD'));
+                }
+                return callback(null, data);
+            }
+        );
+    },
+    delete(req, resource, params, config, callback) {
+        const { domainName, serviceName, snapshotName } = params;
+        const reqParams = { domainName, serviceName, snapshotName };
+        // rdl-rest drops falsy inputs, so force is only sent when true
+        if (params.force === true) {
+            reqParams.force = true;
+        }
+        req.clients.msd.deleteTransportPolicySnapshot(reqParams, (err) => {
+            if (err) {
+                debug(
+                    `principal: ${req.session.shortId} rid: ${
+                        req.headers.rid
+                    } Error from MSD while deleting snapshot ${snapshotName}: ${JSON.stringify(
+                        errorHandler.fetcherError(err)
+                    )}`
+                );
+                return callback(errorHandler.fetcherError(err, 'MSD'));
+            }
+            return callback(null, {});
+        });
+    },
+});
+
+Fetchr.registerService({
     name: 'policy',
     read(req, resource, params, config, callback) {
         req.clients.zms.getPolicy(
