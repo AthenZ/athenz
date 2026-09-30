@@ -155,18 +155,17 @@ describe('self service screen tests', () => {
 
     const openDomainListing = async (url, readySelector, attempts = 3) => {
         for (let attempt = 1; attempt < attempts; attempt++) {
-            await navigateAndWait(url);
-            const ready = await $(readySelector)
-                .waitForExist({ timeout: 30000 })
-                .catch(() => false);
-            if (ready) {
+            try {
+                await navigateAndWait(url);
+                await $(readySelector).waitForExist({ timeout: 30000 });
                 return;
+            } catch {
+                console.warn(
+                    `openDomainListing: ${url} not ready (attempt ${attempt}/${attempts}); reloading`
+                );
             }
-            console.warn(
-                `openDomainListing: ${url} not ready (attempt ${attempt}/${attempts}); reloading`
-            );
         }
-        // final attempt: let the wait throw the real error/timeout
+        // final attempt: let navigation/wait throw the real error/timeout
         await navigateAndWait(url);
         await waitForElementExist(readySelector);
     };

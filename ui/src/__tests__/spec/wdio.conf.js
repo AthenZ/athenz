@@ -363,9 +363,7 @@ let config = {
                 // instead of planting an empty cookie (a "session expired" UI).
                 if (!value.access_token) {
                     callback(
-                        new Error(
-                            `No access_token in response: ${stderr || stdout}`
-                        ),
+                        new Error('Access token missing from token response'),
                         value
                     );
                     return;
