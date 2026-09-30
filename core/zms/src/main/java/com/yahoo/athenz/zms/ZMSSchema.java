@@ -597,6 +597,21 @@ public class ZMSSchema {
             .arrayField("incomingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain")
             .arrayField("outgoingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain");
 
+        sb.structType("DomainAuditLogEntry")
+            .comment("A single audit log record for a change made in the domain")
+            .field("api", "String", false, "name of the api that made the change e.g. putRole")
+            .field("entity", "String", true, "name of the entity that was changed e.g. role, group, policy name")
+            .field("principal", "String", false, "principal that made the change")
+            .field("clientIp", "String", true, "IP address of the client that made the change")
+            .field("timestamp", "Timestamp", false, "timestamp when the change was made")
+            .field("justification", "String", true, "audit reference/justification provided with the change")
+            .field("details", "String", true, "details of the change, typically a json formatted string");
+
+        sb.structType("DomainAuditLog")
+            .comment("The list of audit log records for the domain")
+            .arrayField("entries", "DomainAuditLogEntry", false, "list of audit log records sorted by timestamp, most recent first")
+            .field("partial", "Bool", true, "true if the result set was limited and additional records matching the query are available");
+
         sb.structType("ExpiryMember")
             .field("domainName", "DomainName", false, "name of the domain")
             .field("collectionName", "EntityName", false, "name of the collection")
@@ -1330,6 +1345,28 @@ public class ZMSSchema {
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("DomainAuditLog", "GET", "/domain/{domainName}/history/audit")
+            .comment("Get the audit log history for the domain. The optional query arguments can be used to filter the result set. The start and end dates must be specified in RFC3339 format e.g. 2026-09-01T00:00:00Z The principal must be authorized for the \"zms.auditlogaccess\" action on either the \"{domainName}:meta.audit.log\" resource in the requested domain or the \"sys.auth:meta.audit.log.{domainName}\" resource in the sys.auth domain")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .queryParam("api", "api", "SimpleName", null, "restrict results to the given api name")
+            .queryParam("entity", "entity", "ResourceName", null, "restrict results to the given entity name")
+            .queryParam("principal", "principal", "ResourceName", null, "restrict results to changes made by the given principal")
+            .queryParam("start", "startDate", "String", null, "restrict results to changes made on or after this date")
+            .queryParam("end", "endDate", "String", null, "restrict results to changes made on or before this date")
+            .queryParam("limit", "limit", "Int32", null, "restrict the number of results in this call")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
 
             .exception("NOT_FOUND", "ResourceError", "")
 

@@ -456,6 +456,8 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 
 		switch cmd {
 
+		case "get-audit-log":
+			return cli.GetDomainAuditLog(dn, args)
 		case "list-policy", "list-policies":
 			return cli.ListPolicies(dn)
 		case "list-policy-versions", "list-policy-version":
@@ -3688,6 +3690,29 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   get-auth-history coretech.hosted\n")
 		buf.WriteString("   " + domainExample + " get-auth-history\n")
+	case "get-audit-log":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   [-o json] " + domainParam + " get-audit-log [api=api] [entity=entity] [principal=principal] [start=date] [end=date] [limit=count]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain    : retrieve audit log history for this domain\n")
+		}
+		buf.WriteString("   api       : optional, restrict results to the given api name e.g. putRole\n")
+		buf.WriteString("   entity    : optional, restrict results to the given entity name e.g. role name\n")
+		buf.WriteString("   principal : optional, restrict results to changes made by the given principal\n")
+		buf.WriteString("   start     : optional, restrict results to changes made on or after this date\n")
+		buf.WriteString("             : in RFC3339 format e.g. 2026-09-01T00:00:00Z. The default value\n")
+		buf.WriteString("             : is determined by the server (typically 30 days before end date)\n")
+		buf.WriteString("   end       : optional, restrict results to changes made on or before this date\n")
+		buf.WriteString("             : in RFC3339 format. The default value is the current time\n")
+		buf.WriteString("   limit     : optional, maximum number of records to return. The default\n")
+		buf.WriteString("             : and maximum values are determined by the server. If there are\n")
+		buf.WriteString("             : more matching records, the most recent ones are returned and\n")
+		buf.WriteString("             : the result includes partial: true\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " get-audit-log\n")
+		buf.WriteString("   " + domainExample + " get-audit-log api=putRole entity=readers\n")
+		buf.WriteString("   " + domainExample + " get-audit-log principal=user.joe start=2026-09-01T00:00:00Z limit=50\n")
 	case "add-policy-tag":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " add-policy-tag policy tag_key tag_value [tag_value ...]\n")
@@ -3849,6 +3874,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   get-signed-domains [matching_tag]\n")
 	buf.WriteString("   use-domain [domain]\n")
 	buf.WriteString("   check-domain [domain]\n")
+	buf.WriteString("   get-audit-log [api=api] [entity=entity] [principal=principal] [start=date] [end=date] [limit=count]\n")
 	buf.WriteString("   add-domain-tag tag_key tag_value [tag_value ...]\n")
 	buf.WriteString("   delete-domain-tag tag_key [tag_value]\n")
 	buf.WriteString("   get-quota\n")

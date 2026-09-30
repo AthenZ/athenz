@@ -459,11 +459,14 @@ public class AthenzJettyContainer {
     void addHTTPConnector(HttpConfiguration httpConfig, int httpPort, boolean proxyProtocol,
                           String listenHost, int idleTimeout) {
 
+        // per-connector configuration so requests carry the port they actually arrived on
+        HttpConfiguration connectorConfig = withConnectorPort(httpConfig, httpPort);
+
         ServerConnector connector;
         if (proxyProtocol) {
-            connector = new ServerConnector(server, new ProxyConnectionFactory(), new HttpConnectionFactory(httpConfig));
+            connector = new ServerConnector(server, new ProxyConnectionFactory(), new HttpConnectionFactory(connectorConfig));
         } else {
-            connector = new ServerConnector(server, new HttpConnectionFactory(httpConfig));
+            connector = new ServerConnector(server, new HttpConnectionFactory(connectorConfig));
         }
         if (!StringUtil.isEmpty(listenHost)) {
             connector.setHost(listenHost);
@@ -480,17 +483,20 @@ public class AthenzJettyContainer {
 
         SslContextFactory.Server sslContextFactory = createSSLContextObject(needClientAuth);
 
-        // SSL Connector
+        // SSL Connector - with a per-connector configuration so requests carry the port they
+        // actually arrived on (getLocalPort() lies behind a PROXY-protocol listener)
+
+        HttpConfiguration connectorConfig = withConnectorPort(httpsConfig, httpsPort);
 
         ServerConnector sslConnector;
         if (proxyProtocol) {
             sslConnector = new ServerConnector(server, new ProxyConnectionFactory(),
                     new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
-                    new HttpConnectionFactory(httpsConfig));
+                    new HttpConnectionFactory(connectorConfig));
         } else {
             sslConnector = new ServerConnector(server,
                     new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
-                    new HttpConnectionFactory(httpsConfig));
+                    new HttpConnectionFactory(connectorConfig));
         }
         sslConnector.setPort(httpsPort);
         sslConnector.setIdleTimeout(idleTimeout);
@@ -522,6 +528,16 @@ public class AthenzJettyContainer {
         }
     }
 
+    /**
+     * Copy the given configuration and attach a customizer that records the connector's
+     * configured port on each request (see ServletRequestUtil.CONNECTOR_PORT_ATTRIBUTE).
+     */
+    static HttpConfiguration withConnectorPort(HttpConfiguration config, int connectorPort) {
+        HttpConfiguration connectorConfig = new HttpConfiguration(config);
+        connectorConfig.addCustomizer(new ConnectorPortCustomizer(connectorPort));
+        return connectorConfig;
+    }
+
     HttpConfiguration getHttpsConfig(HttpConfiguration httpConfig, int httpsPort, boolean sniRequired, boolean sniHostCheck) {
         HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
         httpsConfig.setSecureScheme("https");
@@ -541,6 +557,12 @@ public class AthenzJettyContainer {
         String listenHost = System.getProperty(AthenzConsts.ATHENZ_PROP_LISTEN_HOST);
         boolean proxyProtocol = Boolean.parseBoolean(
                 System.getProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL, "false"));
+
+        // optional dedicated HTTPS listener that accepts PROXY protocol headers even when
+        // the global flag is off - for origins behind a trusted L4 proxy (e.g. Cloudflare
+        // Spectrum) that must keep the regular ports free of header parsing
+
+        int proxyProtocolPort = ConfigProperties.getPortNumber(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL_PORT, 0);
 
         // check to see if we need to create our connection logger
         // for TLS connection failures
@@ -567,7 +589,8 @@ public class AthenzJettyContainer {
         } else {
             LOG.info("Creating HTTP/HTTPS connectors based on properties configuration");
             addConnectorsFromProperties(httpConfig, httpPort, httpsPort, oidcPort, statusPort,
-                    proxyProtocol, listenHost, idleTimeout, sniRequired, sniHostCheck, connectionLogger);
+                    proxyProtocol, proxyProtocolPort, listenHost, idleTimeout, sniRequired, sniHostCheck,
+                    connectionLogger);
         }
     }
 
@@ -590,13 +613,17 @@ public class AthenzJettyContainer {
 
             // Create HTTPS connector for this port
 
+            // PROXY protocol: per-port setting if present in port-uri.json, otherwise the global flag
+
+            boolean portProxyProtocol = portConfig.isProxyProtocolEnabled(proxyProtocol);
+
             HttpConfiguration httpsConfig = getHttpsConfig(httpConfig, port, portConfig.isSniRequired(),
                     portConfig.isSniHostCheck());
-            addHTTPSConnector(httpsConfig, port, proxyProtocol, listenHost, idleTimeout,
+            addHTTPSConnector(httpsConfig, port, portProxyProtocol, listenHost, idleTimeout,
                     needClientAuth, connectionLogger);
 
-            LOG.info("Added connector for port {} (mTLS: {}, description: {})",
-                    port, needClientAuth, portConfig.getDescription());
+            LOG.info("Added connector for port {} (mTLS: {}, proxyProtocol: {}, description: {})",
+                    port, needClientAuth, portProxyProtocol, portConfig.getDescription());
         }
     }
 
@@ -604,8 +631,9 @@ public class AthenzJettyContainer {
      * Add HTTP/HTTPS connectors based on property configuration
      */
     private void addConnectorsFromProperties(HttpConfiguration httpConfig, int httpPort, int httpsPort,
-                                             int oidcPort, int statusPort, boolean proxyProtocol, String listenHost,
-                                             int idleTimeout, boolean sniRequired, boolean sniHostCheck,
+                                             int oidcPort, int statusPort, boolean proxyProtocol,
+                                             int proxyProtocolPort, String listenHost, int idleTimeout,
+                                             boolean sniRequired, boolean sniHostCheck,
                                              JettyConnectionLogger connectionLogger) {
 
         // Default client auth setting from properties
@@ -629,6 +657,19 @@ public class AthenzJettyContainer {
             HttpConfiguration httpsConfig = getHttpsConfig(httpConfig, oidcPort, sniRequired, sniHostCheck);
             addHTTPSConnector(httpsConfig, oidcPort, proxyProtocol, listenHost,
                     idleTimeout, needClientAuth, connectionLogger);
+        }
+
+        // Dedicated PROXY-protocol HTTPS Connector - same TLS settings as the HTTPS port but
+        // always parsing PROXY headers, regardless of the global flag. Only meaningful when the
+        // HTTPS port is configured (it supplies the TLS material) and the port is not already
+        // in use by another connector.
+        if (proxyProtocolPort > 0 && httpsPort > 0 && proxyProtocolPort != httpsPort
+                && proxyProtocolPort != httpPort && proxyProtocolPort != oidcPort
+                && proxyProtocolPort != statusPort) {
+            HttpConfiguration httpsConfig = getHttpsConfig(httpConfig, proxyProtocolPort, sniRequired, sniHostCheck);
+            addHTTPSConnector(httpsConfig, proxyProtocolPort, true, listenHost,
+                    idleTimeout, needClientAuth, connectionLogger);
+            LOG.info("Added dedicated PROXY protocol connector for port {}", proxyProtocolPort);
         }
 
         // Status Connector - only if it's different from HTTP/HTTPS

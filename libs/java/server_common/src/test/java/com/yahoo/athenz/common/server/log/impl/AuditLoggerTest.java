@@ -18,10 +18,13 @@ package com.yahoo.athenz.common.server.log.impl;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.common.server.log.AuditLogHistoryQuery;
 import com.yahoo.athenz.common.server.log.AuditLogMsgBuilder;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 
+import com.yahoo.rdl.Timestamp;
 import org.testng.annotations.BeforeClass;
 
 
@@ -65,5 +68,28 @@ public class AuditLoggerTest {
         AuditLogger logger = auditLoggerFactory.create();
         AuditLogMsgBuilder msgBldr = logger.getMsgBuilder();
         auditLogger.log(msgBldr);
+    }
+
+    @Test
+    public void testGetDomainAuditLogHistoryDefault() throws ServerResourceException {
+        AuditLoggerFactory auditLoggerFactory = new DefaultAuditLoggerFactory();
+        AuditLogger logger = auditLoggerFactory.create();
+        Assert.assertNull(logger.getDomainAuditLogHistory(new AuditLogHistoryQuery().setDomainName("athenz")));
+    }
+
+    @Test
+    public void testAuditLogHistoryQuery() {
+        Timestamp startTime = Timestamp.fromMillis(1655282257000L);
+        Timestamp endTime = Timestamp.fromMillis(1655292257000L);
+        AuditLogHistoryQuery query = new AuditLogHistoryQuery().setDomainName("athenz")
+                .setApi("putRole").setEntity("readers").setPrincipal("user.joe")
+                .setStartTime(startTime).setEndTime(endTime).setLimit(100);
+        Assert.assertEquals(query.getDomainName(), "athenz");
+        Assert.assertEquals(query.getApi(), "putRole");
+        Assert.assertEquals(query.getEntity(), "readers");
+        Assert.assertEquals(query.getPrincipal(), "user.joe");
+        Assert.assertEquals(query.getStartTime(), startTime);
+        Assert.assertEquals(query.getEndTime(), endTime);
+        Assert.assertEquals(query.getLimit(), 100);
     }
 }

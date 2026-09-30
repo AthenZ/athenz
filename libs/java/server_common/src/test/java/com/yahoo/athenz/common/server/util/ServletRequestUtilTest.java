@@ -38,6 +38,27 @@ public class ServletRequestUtilTest {
     }
     
     @Test
+    public void testGetConnectorPortFromAttribute() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        // behind a PROXY-protocol listener getLocalPort() reports the proxy's edge port (4443)
+        // while the connector that accepted the connection is 9443
+        Mockito.when(httpServletRequest.getLocalPort()).thenReturn(4443);
+        Mockito.when(httpServletRequest.getAttribute(ServletRequestUtil.CONNECTOR_PORT_ATTRIBUTE)).thenReturn(9443);
+        assertEquals(ServletRequestUtil.getConnectorPort(httpServletRequest), 9443);
+    }
+
+    @Test
+    public void testGetConnectorPortFallsBackToLocalPort() {
+        HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(httpServletRequest.getLocalPort()).thenReturn(4443);
+        Mockito.when(httpServletRequest.getAttribute(ServletRequestUtil.CONNECTOR_PORT_ATTRIBUTE)).thenReturn(null);
+        assertEquals(ServletRequestUtil.getConnectorPort(httpServletRequest), 4443);
+        // a non-integer attribute value is ignored as well
+        Mockito.when(httpServletRequest.getAttribute(ServletRequestUtil.CONNECTOR_PORT_ATTRIBUTE)).thenReturn("9443");
+        assertEquals(ServletRequestUtil.getConnectorPort(httpServletRequest), 4443);
+    }
+
+    @Test
     public void testGetRemoteAddressNull() {
         HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
         Mockito.when(httpServletRequest.getRemoteAddr()).thenReturn(null);

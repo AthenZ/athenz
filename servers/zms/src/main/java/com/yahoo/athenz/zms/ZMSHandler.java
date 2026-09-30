@@ -29,6 +29,7 @@ public interface ZMSHandler {
     void deleteDomainTemplate(ResourceContext context, String name, String template, String auditRef);
     DomainMetaStoreValidValuesList getDomainMetaStoreValidValuesList(ResourceContext context, String attributeName, String userName);
     AuthHistoryDependencies getAuthHistoryDependencies(ResourceContext context, String domainName);
+    DomainAuditLog getDomainAuditLog(ResourceContext context, String domainName, String api, String entity, String principal, String startDate, String endDate, Integer limit);
     Response deleteExpiredMembers(ResourceContext context, Integer purgeResources, String auditRef, Boolean returnObj);
     void putResourceDomainOwnership(ResourceContext context, String domainName, String auditRef, ResourceDomainOwnership resourceOwnership);
     DomainDataCheck getDomainDataCheck(ResourceContext context, String domainName);

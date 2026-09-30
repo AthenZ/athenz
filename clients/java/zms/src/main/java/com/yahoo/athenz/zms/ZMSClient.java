@@ -3053,6 +3053,31 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Get the audit log history for the domain. All filter arguments are optional
+     * and can be passed as null.
+     * @param domainName name of the domain
+     * @param api        restrict results to the given api name e.g. putRole
+     * @param entity     restrict results to the given entity name e.g. role name
+     * @param principal  restrict results to changes made by the given principal
+     * @param startDate  restrict results to changes made on or after this date (RFC3339 format)
+     * @param endDate    restrict results to changes made on or before this date (RFC3339 format)
+     * @param limit      restrict the number of results in this call
+     * @return list of audit log records for the domain
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainAuditLog getDomainAuditLog(String domainName, String api, String entity, String principal,
+            String startDate, String endDate, Integer limit) {
+        updatePrincipal();
+        try {
+            return client.getDomainAuditLog(domainName, api, entity, principal, startDate, endDate, limit);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * For the specified user credentials return the corresponding User Token that
      * can be used for authenticating other ZMS operations. The client internally
      * automatically calls this method and uses the UserToken if the ZMSClient

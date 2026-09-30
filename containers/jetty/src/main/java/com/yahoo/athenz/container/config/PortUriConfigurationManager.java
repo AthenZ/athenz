@@ -161,10 +161,14 @@ public class PortUriConfigurationManager {
             String restriction = endpointCount == 0 ? "unrestricted (all endpoints allowed)" :
                     endpointCount + " allowed endpoint(s)";
 
-            LOGGER.info("  Port {}: {} (mTLS: {}) - {}",
+            String proxyProtocol = portConfig.getProxyProtocol() == null ? "inherit" :
+                    (portConfig.getProxyProtocol() ? "enabled" : "disabled");
+
+            LOGGER.info("  Port {}: {} (mTLS: {}, PROXY protocol: {}) - {}",
                     portConfig.getPort(),
                     restriction,
                     portConfig.isMtlsRequired() ? "required" : "not required",
+                    proxyProtocol,
                     portConfig.getDescription() != null ? portConfig.getDescription() : "");
         }
     }

@@ -617,6 +617,46 @@ public class ZMSResources {
         }
     }
 
+    @GET
+    @Path("/domain/{domainName}/history/audit")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Get the audit log history for the domain. The optional query arguments can be used to filter the result set. The start and end dates must be specified in RFC3339 format e.g. 2026-09-01T00:00:00Z The principal must be authorized for the \"zms.auditlogaccess\" action on either the \"{domainName}:meta.audit.log\" resource in the requested domain or the \"sys.auth:meta.audit.log.{domainName}\" resource in the sys.auth domain")
+    public DomainAuditLog getDomainAuditLog(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "restrict results to the given api name", required = false) @QueryParam("api") String api,
+        @Parameter(description = "restrict results to the given entity name", required = false) @QueryParam("entity") String entity,
+        @Parameter(description = "restrict results to changes made by the given principal", required = false) @QueryParam("principal") String principal,
+        @Parameter(description = "restrict results to changes made on or after this date", required = false) @QueryParam("start") String startDate,
+        @Parameter(description = "restrict results to changes made on or before this date", required = false) @QueryParam("end") String endDate,
+        @Parameter(description = "restrict the number of results in this call", required = false) @QueryParam("limit") Integer limit) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getDomainAuditLog");
+            context.authenticate();
+            return this.delegate.getDomainAuditLog(context, domainName, api, entity, principal, startDate, endDate, limit);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getDomainAuditLog");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
     @DELETE
     @Path("/expired-members")
     @Produces(MediaType.APPLICATION_JSON)

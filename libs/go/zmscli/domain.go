@@ -1504,6 +1504,50 @@ func (cli Zms) GetAuthHistoryDependencies(dn string) (*string, error) {
 	return cli.dumpByFormat(authHistoryDependencies, nil)
 }
 
+func (cli Zms) GetDomainAuditLog(dn string, args []string) (*string, error) {
+	var api zms.SimpleName
+	var entity, principal zms.ResourceName
+	var startDate, endDate string
+	var limit *int32
+	for _, arg := range args {
+		key, value, found := strings.Cut(arg, "=")
+		if !found || value == "" {
+			return nil, fmt.Errorf("invalid argument: %s, expected key=value format", arg)
+		}
+		switch key {
+		case "api":
+			api = zms.SimpleName(value)
+		case "entity":
+			entity = zms.ResourceName(value)
+		case "principal":
+			principal = zms.ResourceName(value)
+		case "start":
+			startDate = value
+		case "end":
+			endDate = value
+		case "limit":
+			count, err := cli.getInt32(value)
+			if err != nil {
+				return nil, fmt.Errorf("invalid limit value: %s", value)
+			}
+			limit = &count
+		default:
+			return nil, fmt.Errorf("unknown argument: %s, valid arguments are api, entity, principal, start, end and limit", key)
+		}
+	}
+
+	auditLog, err := cli.Zms.GetDomainAuditLog(zms.DomainName(dn), api, entity, principal, startDate, endDate, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	if cli.OutputFormat == DefaultOutputFormat {
+		cli.OutputFormat = YAMLOutputFormat
+	}
+
+	return cli.dumpByFormat(auditLog, nil)
+}
+
 func (cli Zms) SetDomainResourceOwnership(dn, resourceOwner string) (*string, error) {
 	resourceOwnership := zms.ResourceDomainOwnership{}
 	if resourceOwner != "" {

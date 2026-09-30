@@ -958,6 +958,189 @@ public class AthenzJettyContainerTest {
         System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
     }
 
+    private static boolean hasProxyConnectionFactory(Server server, int port) {
+        for (Connector connector : server.getConnectors()) {
+            ServerConnector serverConnector = (ServerConnector) connector;
+            if (serverConnector.getPort() == port) {
+                return serverConnector.getConnectionFactory(ProxyConnectionFactory.class) != null;
+            }
+        }
+        throw new AssertionError("no connector on port " + port);
+    }
+
+    @Test
+    public void testPortConfigurationPerPortProxyProtocol() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG,
+                "src/test/resources/port-uri-configs/proxy-protocol-config.json");
+        // global flag off: only the port that opts in gets the PROXY connection factory
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL, "false");
+
+        resetForTesting();
+
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+        AthenzJettyContainer.loadPortUriConfiguration();
+
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
+        container.addHTTPConnectors(httpConfig, 0, 0, 0, 0);
+
+        Server server = container.getServer();
+        assertEquals(server.getConnectors().length, 3);
+        assertTrue(hasProxyConnectionFactory(server, 9443));   // "proxy_protocol": true
+        assertFalse(hasProxyConnectionFactory(server, 4443));  // not specified -> inherits global false
+        assertFalse(hasProxyConnectionFactory(server, 8443));  // "proxy_protocol": false
+
+        resetForTesting();
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL);
+    }
+
+    @Test
+    public void testPortConfigurationPerPortProxyProtocolInheritsGlobal() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG,
+                "src/test/resources/port-uri-configs/proxy-protocol-config.json");
+        // global flag on: unspecified ports inherit it, an explicit false still wins
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL, "true");
+
+        resetForTesting();
+
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+        AthenzJettyContainer.loadPortUriConfiguration();
+
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
+        container.addHTTPConnectors(httpConfig, 0, 0, 0, 0);
+
+        Server server = container.getServer();
+        assertEquals(server.getConnectors().length, 3);
+        assertTrue(hasProxyConnectionFactory(server, 9443));
+        assertTrue(hasProxyConnectionFactory(server, 4443));   // inherits global true
+        assertFalse(hasProxyConnectionFactory(server, 8443));  // explicit false
+
+        resetForTesting();
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL);
+    }
+
+    private static int connectorPortAttribute(Server server, int port) {
+        for (Connector connector : server.getConnectors()) {
+            ServerConnector serverConnector = (ServerConnector) connector;
+            if (serverConnector.getPort() == port) {
+                HttpConnectionFactory http = serverConnector.getConnectionFactory(HttpConnectionFactory.class);
+                for (HttpConfiguration.Customizer customizer : http.getHttpConfiguration().getCustomizers()) {
+                    if (customizer instanceof ConnectorPortCustomizer) {
+                        return ((ConnectorPortCustomizer) customizer).getPort();
+                    }
+                }
+                throw new AssertionError("no ConnectorPortCustomizer on port " + port);
+            }
+        }
+        throw new AssertionError("no connector on port " + port);
+    }
+
+    @Test
+    public void testEveryConnectorStampsItsOwnPort() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL_PORT, "9443");
+
+        resetForTesting();
+
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+        // http 8081, https 4443, oidc 443, status 8443, dedicated proxy 9443
+        container.addHTTPConnectors(container.newHttpConfiguration(), 8081, 4443, 443, 8443);
+
+        Server server = container.getServer();
+        for (int port : new int[] {8081, 4443, 443, 8443, 9443}) {
+            assertEquals(connectorPortAttribute(server, port), port, "port attribute for " + port);
+        }
+
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL_PORT);
+    }
+
+    @Test
+    public void testDedicatedProxyProtocolPortFromProperties() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL, "false");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL_PORT, "9443");
+
+        resetForTesting();
+
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+
+        HttpConfiguration httpConfig = container.newHttpConfiguration();
+        // https 4443, oidc 443, status 8443 + dedicated proxy 9443
+        container.addHTTPConnectors(httpConfig, 0, 4443, 443, 8443);
+
+        Server server = container.getServer();
+        assertEquals(server.getConnectors().length, 4);
+        assertTrue(hasProxyConnectionFactory(server, 9443));
+        assertFalse(hasProxyConnectionFactory(server, 4443));
+        assertFalse(hasProxyConnectionFactory(server, 443));
+        assertFalse(hasProxyConnectionFactory(server, 8443));
+
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL_PORT);
+    }
+
+    @Test
+    public void testDedicatedProxyProtocolPortSkippedWhenConflictingOrNoHttps() {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PASSWORD, "pass123");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PATH, "src/test/resources/truststore.jks");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_TYPE, "PKCS12");
+        System.setProperty(AthenzConsts.ATHENZ_PROP_TRUSTSTORE_PASSWORD, "pass123");
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG);
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL, "false");
+
+        resetForTesting();
+
+        // same port as the HTTPS listener -> no extra connector, and 4443 stays without PROXY
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL_PORT, "4443");
+        AthenzJettyContainer container = new AthenzJettyContainer();
+        container.createServer(100);
+        container.addHTTPConnectors(container.newHttpConfiguration(), 0, 4443, 0, 8443);
+        assertEquals(container.getServer().getConnectors().length, 2);
+        assertFalse(hasProxyConnectionFactory(container.getServer(), 4443));
+
+        // no HTTPS port configured -> nothing to borrow TLS settings from, so no proxy connector
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL_PORT, "9443");
+        container = new AthenzJettyContainer();
+        container.createServer(100);
+        container.addHTTPConnectors(container.newHttpConfiguration(), 8081, 0, 0, 0);
+        assertEquals(container.getServer().getConnectors().length, 1);
+        assertFalse(getConnectorPorts(container.getServer()).contains(9443));
+
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL);
+        System.clearProperty(AthenzConsts.ATHENZ_PROP_PROXY_PROTOCOL_PORT);
+    }
+
     @Test
     public void testPortConfigurationWithLegacyPorts() {
         System.setProperty(AthenzConsts.ATHENZ_PROP_KEYSTORE_PATH, "src/test/resources/keystore.pkcs12");

@@ -144,6 +144,51 @@ public class PortFilterTest {
     }
 
     @Test
+    public void testConfigurationBasedFilteringUsesConnectorPortNotLocalPort() throws ServletException, IOException {
+        System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG,
+                "src/test/resources/port-uri-configs/valid-config.json");
+
+        PortUriConfigurationManager.resetForTesting();
+
+        FilterConfig filterConfig = mock(FilterConfig.class);
+        PortFilter filter = new PortFilter();
+        filter.init(filterConfig);
+
+        // Request arrived on the 9443 connector (restricted to POST /zts/v1/instance) but, as behind a
+        // PROXY-protocol listener, getLocalPort() reports the proxy's advertised port 4443 (unrestricted).
+        // The filter must evaluate the 9443 rules: GET /zts/v1/anything is rejected.
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getServletPath()).thenReturn("");
+        when(request.getPathInfo()).thenReturn("/zts/v1/anything");
+        when(request.getMethod()).thenReturn("GET");
+        when(request.getLocalPort()).thenReturn(4443);
+        when(request.getAttribute(com.yahoo.athenz.common.server.util.ServletRequestUtil.CONNECTOR_PORT_ATTRIBUTE))
+                .thenReturn(9443);
+
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(request, response, chain);
+
+        verify(chain, never()).doFilter(any(), any());
+        verify(response, times(1)).sendError(eq(HttpServletResponse.SC_NOT_FOUND),
+                eq("Endpoint not available on this port"));
+
+        // and the allowed endpoint on the real connector still passes
+        HttpServletRequest allowed = mock(HttpServletRequest.class);
+        when(allowed.getServletPath()).thenReturn("");
+        when(allowed.getPathInfo()).thenReturn("/zts/v1/instance");
+        when(allowed.getMethod()).thenReturn("POST");
+        when(allowed.getLocalPort()).thenReturn(4443);
+        when(allowed.getAttribute(com.yahoo.athenz.common.server.util.ServletRequestUtil.CONNECTOR_PORT_ATTRIBUTE))
+                .thenReturn(9443);
+        HttpServletResponse allowedResponse = mock(HttpServletResponse.class);
+        FilterChain allowedChain = mock(FilterChain.class);
+        filter.doFilter(allowed, allowedResponse, allowedChain);
+        verify(allowedChain, times(1)).doFilter(allowed, allowedResponse);
+    }
+
+    @Test
     public void testConfigurationBasedFilteringRejectRequest() throws ServletException, IOException {
         System.setProperty(AthenzConsts.ATHENZ_PROP_PORT_URI_CONFIG,
                 "src/test/resources/port-uri-configs/valid-config.json");

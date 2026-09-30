@@ -15,6 +15,8 @@
  */
 package com.yahoo.athenz.zts.token;
 
+import com.yahoo.athenz.common.server.util.ServletRequestUtil;
+
 import com.yahoo.rdl.JSON;
 import com.yahoo.athenz.zts.ZTSConsts;
 import org.eclipse.jetty.util.StringUtil;
@@ -242,6 +244,6 @@ public class IssuerResolver {
         if (httpServletRequest == null) {
             return true;
         }
-        return httpServletRequest.getLocalPort() == oidcPort && oidcPort != httpsPort;
+        return ServletRequestUtil.getConnectorPort(httpServletRequest) == oidcPort && oidcPort != httpsPort;
     }
 }
