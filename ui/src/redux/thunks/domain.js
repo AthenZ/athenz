@@ -37,7 +37,7 @@ const debug = require('debug')('AthenzUI:redux:domain');
 
 const withTiming = (label, promise) => {
     const start = Date.now();
-    return promise.then(
+    return Promise.resolve(promise).then(
         (result) => {
             console.log(`[domainData] ${label}: ${Date.now() - start}ms`);
             return result;
@@ -45,7 +45,9 @@ const withTiming = (label, promise) => {
         (error) => {
             const status = error?.statusCode ?? error?.status ?? 'n/a';
             console.warn(
-                `[domainData] ${label}: failed after ${Date.now() - start}ms (status=${status})`
+                `[domainData] ${label}: failed after ${
+                    Date.now() - start
+                }ms (status=${status})`
             );
             throw error;
         }
@@ -111,7 +113,9 @@ const loadAllDomainData = async (domainName, userName, dispatch) => {
         const expiry = getExpiryTime();
         dispatch(loadDomainData(domainData, domainName, expiry));
         dispatch(loadingSuccess('getDomainData'));
-        console.log(`[domainData] all calls complete in ${Date.now() - loadStart}ms`);
+        console.log(
+            `[domainData] all calls complete in ${Date.now() - loadStart}ms`
+        );
     } catch (e) {
         dispatch(loadingFailed('getDomainData'));
         console.warn(
