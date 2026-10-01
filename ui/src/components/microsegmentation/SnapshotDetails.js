@@ -69,8 +69,17 @@ const NoteDiv = styled.div`
     font-style: italic;
 `;
 
-export const formatSubject = (subject) =>
-    subject ? `${subject.domainName}.${subject.serviceName}` : '';
+// MSD records a peer outside Athenz under the owning service's domain and
+// service, with the real target in externalPeer.
+export const formatSubject = (subject) => {
+    if (!subject) {
+        return '';
+    }
+    if (subject.externalPeer) {
+        return subject.externalPeer;
+    }
+    return `${subject.domainName}.${subject.serviceName}`;
+};
 
 export const formatPort = (p) => {
     const range =
@@ -90,6 +99,9 @@ export const formatCondition = (condition) => {
     if (condition.instances && condition.instances.length > 0) {
         parts.push(`instances: ${condition.instances.join(', ')}`);
     }
+    (condition.additionalConditions || []).forEach((c) => {
+        parts.push(`${c.key} ${c.operator} ${c.value}`);
+    });
     return parts.join('; ');
 };
 

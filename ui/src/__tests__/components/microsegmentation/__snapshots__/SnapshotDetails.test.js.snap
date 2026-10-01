@@ -188,7 +188,7 @@ exports[`SnapshotDetails renders metadata, ingress and egress rules and usage 1`
             class="emotion-16 emotion-17"
           >
             <div>
-              REPORT
+              REPORT; env EQUALS prod
             </div>
           </td>
           <td
@@ -196,6 +196,9 @@ exports[`SnapshotDetails renders metadata, ingress and egress rules and usage 1`
           >
             <div>
               peer.db
+            </div>
+            <div>
+              db.example.com/32
             </div>
           </td>
           <td

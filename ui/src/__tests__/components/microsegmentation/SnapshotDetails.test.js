@@ -72,12 +72,30 @@ const snapshot = {
                             domainName: domain,
                             serviceName: service,
                         },
-                        conditions: [{ enforcementState: 'REPORT' }],
+                        conditions: [
+                            {
+                                enforcementState: 'REPORT',
+                                additionalConditions: [
+                                    {
+                                        key: 'env',
+                                        operator: 'EQUALS',
+                                        value: 'prod',
+                                    },
+                                ],
+                            },
+                        ],
                     },
                     ports: [{ port: 1024, endPort: 65535, protocol: 'TCP' }],
                 },
                 to: {
-                    athenzServices: [{ domainName: 'peer', serviceName: 'db' }],
+                    athenzServices: [
+                        { domainName: 'peer', serviceName: 'db' },
+                        {
+                            domainName: domain,
+                            serviceName: service,
+                            externalPeer: 'db.example.com/32',
+                        },
+                    ],
                     ports: [{ port: 3306, endPort: 3306, protocol: 'TCP' }],
                 },
             },
@@ -101,6 +119,13 @@ describe('SnapshotDetails formatting helpers', () => {
             'a.b.c'
         );
         expect(formatSubject(undefined)).toBe('');
+        expect(
+            formatSubject({
+                domainName: 'a.b',
+                serviceName: 'c',
+                externalPeer: 'x.example.com/32',
+            })
+        ).toBe('x.example.com/32');
         expect(formatPort({ port: 443, endPort: 443, protocol: 'TCP' })).toBe(
             '443/TCP'
         );
@@ -123,6 +148,15 @@ describe('SnapshotDetails formatting helpers', () => {
             })
         ).toBe('ENFORCE; scope: ONPREM; instances: h1');
         expect(formatCondition({ enforcementState: 'REPORT' })).toBe('REPORT');
+        expect(
+            formatCondition({
+                enforcementState: 'ENFORCE',
+                additionalConditions: [
+                    { key: 'env', operator: 'EQUALS', value: 'prod' },
+                    { key: 'tier', operator: 'IN', value: 'a,b' },
+                ],
+            })
+        ).toBe('ENFORCE; env EQUALS prod; tier IN a,b');
     });
 });
 
@@ -155,8 +189,12 @@ describe('SnapshotDetails', () => {
         ).toBeInTheDocument();
         // ingress source ports and egress source ports share this range
         expect(screen.getAllByText('1024-65535/TCP')).toHaveLength(2);
+        expect(screen.getByText('REPORT; env EQUALS prod')).toBeInTheDocument();
         expect(screen.getByText('peer.client')).toBeInTheDocument();
         expect(screen.getByText('peer.db')).toBeInTheDocument();
+        // an external peer shows its own target, not the owning service
+        expect(screen.getByText('db.example.com/32')).toBeInTheDocument();
+        expect(screen.getAllByText(`${domain}.${service}`)).toHaveLength(2);
         expect(screen.getByText('3306/TCP')).toBeInTheDocument();
         // snapshot metadata lives in the list row, not repeated here
         expect(screen.queryByText(/^Created /)).toBeNull();
