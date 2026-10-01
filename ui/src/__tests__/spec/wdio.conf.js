@@ -113,6 +113,7 @@ if (!sauceLabsUser) {
             browserVersion: 'latest',
             platformName: 'OS X 12',
             maxInstances: 7,
+            'wdio:enforceWebDriverClassic': true,
             'sauce:options': {
                 tunnelIdentifier:
                     TUNNEL_IDENTIFIER +
