@@ -1622,9 +1622,7 @@ describe('Fetchr Server API Test', () => {
                 .then((res) => {
                     // Must not succeed with an empty workload list on MSD failure
                     expect(res.body.g0).toBeUndefined();
-                    expect(res.body.message).toEqual(
-                        'Internal Server Error'
-                    );
+                    expect(res.body.message).toEqual('Internal Server Error');
                     expect(res.status).toEqual(500);
                 });
         });
