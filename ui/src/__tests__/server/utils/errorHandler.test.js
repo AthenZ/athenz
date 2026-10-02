@@ -26,6 +26,7 @@ describe('server errorHandler test', () => {
         let errResp = errorHandler.fetcherError(err);
         expect(errResp).not.toBeNull();
         expect(errResp.statusCode).toEqual(404);
+        expect(errResp.output.message).toEqual('test err');
     });
     test('should convert Fetchr error into native error with message', () => {
         let err = {
@@ -47,5 +48,16 @@ describe('server errorHandler test', () => {
         expect(errResp).not.toBeNull();
         expect(errResp.statusCode).toEqual(403);
         expect(errResp.output.message).toEqual('');
+    });
+    test('should prefix error message', () => {
+        let err = {
+            status: 500,
+            message: {
+                message: 'Internal Server Error',
+            },
+        };
+        let errResp = errorHandler.fetcherError(err, 'MSD');
+        expect(errResp.statusCode).toEqual(500);
+        expect(errResp.output.message).toEqual('MSD: Internal Server Error');
     });
 });
