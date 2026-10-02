@@ -35,6 +35,7 @@ import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.PrincipalUtils;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.Utils;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigInteger;
 import com.yahoo.athenz.zms.assertion.ResourceUpdaterManager;
 import com.yahoo.athenz.zms.config.MemberDueDays;
@@ -128,6 +129,7 @@ public class DBService implements RolesProvider, DomainProvider {
     protected DynamicConfigInteger purgeMemberExpiryDays;
     protected DynamicConfigInteger minReviewDaysPercentage;
     protected DynamicConfigInteger defaultSearchIdentityLimit;
+    protected DynamicConfigBoolean defaultPreserveAdminAccess;
 
     public DBService(ObjectStore store, AuditLogger auditLogger, ZMSConfig zmsConfig,
                      AuditReferenceValidator auditReferenceValidator, AuthHistoryStore authHistoryStore) {
@@ -221,6 +223,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
         defaultSearchIdentityLimit = new DynamicConfigInteger(CONFIG_MANAGER,
                 ZMSConsts.ZMS_PROP_SEARCH_SERVICE_LIMIT, ZMSConsts.ZMS_PROP_SEARCH_SERVICE_LIMIT_DEFAULT);
+        defaultPreserveAdminAccess = new DynamicConfigBoolean(CONFIG_MANAGER,
+                ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DEFAULT_PRESERVE_ADMIN_ACCESS, false);
 
         // initialize a map of actions to their corresponding class instance
         // that will be responsible for updating the resource value
@@ -496,14 +500,22 @@ public class DBService implements RolesProvider, DomainProvider {
                 // roles and polices to our domain
 
                 if (solutionTemplates != null) {
-                    for (String templateName : solutionTemplates) {
-                        auditDetails.append(", \"template\": ");
-                        if (!addSolutionTemplate(ctx, con, domainName, templateName, principalName,
-                                null, auditRef, auditDetails, serverSolutionTemplates)) {
-                            rollbackChanges(con);
-                            throw ZMSUtils.internalServerError("makeDomain: Cannot apply templates: " +
-                                    domain, caller);
+                    try {
+                        AdminAccessValidation adminAccess = validateAdminTrustReplacement(con, domainName,
+                                new DomainTemplate().setTemplateNames(solutionTemplates), caller,
+                                serverSolutionTemplates);
+                        for (String templateName : solutionTemplates) {
+                            auditDetails.append(", \"template\": ");
+                            if (!addSolutionTemplate(ctx, con, domainName, templateName, principalName,
+                                    null, auditRef, auditDetails, serverSolutionTemplates)) {
+                                throw ZMSUtils.internalServerError("makeDomain: Cannot apply templates: " +
+                                        domain, caller);
+                            }
                         }
+                        validatePreservedAdminAccess(con, domainName, adminAccess, caller);
+                    } catch (RuntimeException | ServerResourceException ex) {
+                        rollbackChanges(con);
+                        throw ex;
                     }
                 }
                 auditDetails.append("}");
@@ -5421,6 +5433,166 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
+    void validateAdminTrustReplacement(String domainName, DomainTemplate domainTemplate,
+            String caller, SolutionTemplates serverSolutionTemplates) {
+
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            validateAdminTrustReplacement(con, domainName, domainTemplate, caller,
+                    serverSolutionTemplates);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
+    }
+
+    AdminAccessValidation validateAdminTrustReplacement(ObjectStoreConnection con, String domainName,
+            DomainTemplate domainTemplate, String caller,
+            SolutionTemplates serverSolutionTemplates) throws ServerResourceException {
+
+        final String adminRoleResource = ResourceUtils.roleResourceName(domainName, ZMSConsts.ADMIN_ROLE_NAME);
+        Role replacementAdmin = null;
+        boolean preserveAdminAccess = false;
+        boolean replacementAdminHasMembers = false;
+        int adminRoleCount = 0;
+        for (String templateName : domainTemplate.getTemplateNames()) {
+            Template template = serverSolutionTemplates.get(templateName);
+            if (template == null || template.getRoles() == null) {
+                continue;
+            }
+            for (Role role : template.getRoles()) {
+                if (!adminRoleResource.equals(updateTemplateRoleName(role.getName(), domainName,
+                        domainTemplate.getParams()))) {
+                    continue;
+                }
+                adminRoleCount++;
+                Role templateRole = updateTemplateRole(con, role, domainName, domainTemplate.getParams());
+                if (templateRole == null) {
+                    throw ZMSUtils.requestError("admin trust replacement: unable to resolve template role", caller);
+                }
+                if (StringUtil.isEmpty(templateRole.getTrust())) {
+                    continue;
+                }
+                replacementAdmin = templateRole;
+                TemplateMetaData metadata = template.getMetadata();
+                Boolean templatePreserve = metadata == null ? null : metadata.getPreserveAdminAccess();
+                preserveAdminAccess = templatePreserve == null
+                        ? Boolean.TRUE.equals(defaultPreserveAdminAccess.get()) : templatePreserve;
+                replacementAdminHasMembers = !ZMSUtils.isCollectionEmpty(role.getMembers())
+                        || !ZMSUtils.isCollectionEmpty(templateRole.getRoleMembers());
+            }
+        }
+
+        if (replacementAdmin == null) {
+            return null;
+        }
+        if (adminRoleCount != 1) {
+            throw ZMSUtils.requestError("admin trust replacement: multiple admin roles are defined", caller);
+        }
+        if (replacementAdminHasMembers) {
+            throw ZMSUtils.requestError("admin trust replacement: template admin role cannot define members", caller);
+        }
+
+        if (!preserveAdminAccess) {
+            return null;
+        }
+
+        Role currentAdmin = getRole(con, domainName, ZMSConsts.ADMIN_ROLE_NAME, false, false, false);
+        if (currentAdmin == null) {
+            throw ZMSUtils.requestError("preserveAdminAccess: current admin role does not exist", caller);
+        }
+        if (!StringUtil.isEmpty(currentAdmin.getTrust())) {
+            if (replacementAdmin.getTrust().equals(currentAdmin.getTrust())) {
+                return null;
+            }
+            throw ZMSUtils.requestError("preserveAdminAccess: cannot change an existing admin trust domain", caller);
+        }
+
+        expandRoleGroupMembers(con, currentAdmin, currentAdmin.getRoleMembers(), false);
+        Set<String> members = new HashSet<>();
+        long now = System.currentTimeMillis();
+        for (RoleMember member : ZMSUtils.emptyIfNull(currentAdmin.getRoleMembers())) {
+            if (member.getApproved() == Boolean.FALSE || AuthzHelper.isMemberDisabled(member.getSystemDisabled())
+                    || AuthzHelper.isMemberExpired(member.getExpiration(), now)) {
+                continue;
+            }
+            String memberName = member.getMemberName();
+            if (memberName.contains("*") || memberName.contains("?")) {
+                throw ZMSUtils.requestError("preserveAdminAccess: cannot verify wildcard admin member "
+                        + memberName, caller);
+            }
+            members.add(memberName);
+        }
+        AdminAccessValidation validation = new AdminAccessValidation(replacementAdmin.getTrust(), members);
+        validatePreservedAdminAccess(con, domainName, validation, caller);
+        return validation;
+    }
+
+    static class AdminAccessValidation {
+        final String trustDomain;
+        final Set<String> members;
+
+        AdminAccessValidation(String trustDomain, Set<String> members) {
+            this.trustDomain = trustDomain;
+            this.members = members;
+        }
+    }
+
+    void validatePreservedAdminAccess(ObjectStoreConnection con, String domainName,
+            AdminAccessValidation validation, String caller) throws ServerResourceException {
+
+        if (validation == null || validation.members.isEmpty()) {
+            return;
+        }
+        // Read the transaction's state, including groups modified by these templates.
+        AthenzDomain trustDomain = con.getAthenzDomain(validation.trustDomain);
+        if (trustDomain == null) {
+            throw ZMSUtils.requestError("preserveAdminAccess: trust domain does not exist", caller);
+        }
+        trustDomain.setRoleMemberPrincipalTypes(zmsConfig.getUserDomainPrefix(),
+                zmsConfig.getAddlUserCheckDomainPrefixList(), zmsConfig.getHeadlessUserDomainPrefix());
+        Map<String, List<GroupMember>> groups = new HashMap<>();
+        AuthzHelper.GroupMembersFetcher groupMembersFetcher = groupName -> groups.computeIfAbsent(groupName, name -> {
+            int idx = name.indexOf(AuthorityConsts.GROUP_SEP);
+            try {
+                return con.listGroupMembers(name.substring(0, idx),
+                        name.substring(idx + AuthorityConsts.GROUP_SEP.length()), false);
+            } catch (ServerResourceException ex) {
+                throw ZMSUtils.error(ex);
+            }
+        });
+        String adminRoleResource = ResourceUtils.roleResourceName(domainName, ZMSConsts.ADMIN_ROLE_NAME);
+        for (String member : validation.members) {
+            if (!hasPreservedAdminAccess(trustDomain, adminRoleResource, member, groupMembersFetcher)) {
+                throw ZMSUtils.requestError("preserveAdminAccess: admin " + member
+                        + " does not have delegated access to the admin role", caller);
+            }
+        }
+    }
+
+    boolean hasPreservedAdminAccess(AthenzDomain trustDomain, String adminRoleResource, String member,
+            AuthzHelper.GroupMembersFetcher groupMembersFetcher) {
+
+        boolean allowed = false;
+        for (Policy policy : ZMSUtils.emptyIfNull(trustDomain.getPolicies())) {
+            if (policy.getActive() == Boolean.FALSE) {
+                continue;
+            }
+            for (Assertion assertion : ZMSUtils.emptyIfNull(policy.getAssertions())) {
+                if (!AuthzHelper.matchDelegatedTrustAssertion(assertion, adminRoleResource, member,
+                        ZMSUtils.emptyIfNull(trustDomain.getRoles()), groupMembersFetcher)) {
+                    continue;
+                }
+                if (assertion.getEffect() == AssertionEffect.DENY) {
+                    return false;
+                }
+                // Conditional grants cannot guarantee continued admin access.
+                if (assertion.getConditions() == null) {
+                    allowed = true;
+                }
+            }
+        }
+        return allowed;
+    }
+
     void executePutDomainTemplate(ResourceContext ctx, String domainName, DomainTemplate domainTemplate,
             String auditRef, String caller) {
         executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller,
@@ -5444,6 +5616,11 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller, principalName, AUDIT_TYPE_TEMPLATE);
 
+                // Repeat the admin handoff validation in the transaction before applying any template changes.
+
+                AdminAccessValidation adminAccess = validateAdminTrustReplacement(con, domainName,
+                        domainTemplate, caller, serverSolutionTemplates);
+
                 // go through our list of templates and add the specified
                 // roles and polices to our domain
 
@@ -5451,19 +5628,25 @@ public class DBService implements RolesProvider, DomainProvider {
                 auditDetails.append("{\"add-templates\": ");
                 boolean firstEntry = true;
 
-                for (String templateName : domainTemplate.getTemplateNames()) {
-                    firstEntry = auditLogSeparator(auditDetails, firstEntry);
-                    if (!addSolutionTemplate(ctx, con, domainName, templateName, principalName,
-                            domainTemplate.getParams(), auditRef, auditDetails, serverSolutionTemplates)) {
-                        rollbackChanges(con);
-                        throw ZMSUtils.internalServerError("unable to put domain templates: " + domainName, caller);
+                try {
+                    for (String templateName : domainTemplate.getTemplateNames()) {
+                        firstEntry = auditLogSeparator(auditDetails, firstEntry);
+                        if (!addSolutionTemplate(ctx, con, domainName, templateName, principalName,
+                                domainTemplate.getParams(), auditRef, auditDetails, serverSolutionTemplates)) {
+                            throw ZMSUtils.internalServerError("unable to put domain templates: " + domainName, caller);
+                        }
                     }
+                    auditDetails.append("}");
+
+                    validatePreservedAdminAccess(con, domainName, adminAccess, caller);
+
+                    // update our domain time-stamp and save changes
+
+                    saveChanges(con, domainName);
+                } catch (RuntimeException | ServerResourceException ex) {
+                    rollbackChanges(con);
+                    throw ex;
                 }
-                auditDetails.append("}");
-
-                // update our domain time-stamp and save changes
-
-                saveChanges(con, domainName);
 
                 // audit log the request
 
@@ -5552,7 +5735,6 @@ public class DBService implements RolesProvider, DomainProvider {
             auditDetails.append("}");
             return true;
         }
-
         auditDetails.append(",");
 
         boolean firstEntry = true;
@@ -5572,6 +5754,8 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 String roleName = ZMSUtils.removeDomainPrefix(templateRole.getName(),
                     domainName, ROLE_PREFIX);
+                boolean replaceAdmin = ZMSConsts.ADMIN_ROLE_NAME.equals(roleName)
+                        && !StringUtil.isEmpty(templateRole.getTrust());
 
                 // retrieve our original role
 
@@ -5585,7 +5769,7 @@ public class DBService implements RolesProvider, DomainProvider {
                 }
 
                 // Check for conflict: Existing members, applying Trust
-                if (originalRole != null && StringUtil.isEmpty(originalRole.getTrust()) &&
+                if (!replaceAdmin && originalRole != null && StringUtil.isEmpty(originalRole.getTrust()) &&
                         originalRole.getRoleMembers() != null && !originalRole.getRoleMembers().isEmpty()) {
                     if (!StringUtil.isEmpty(templateRole.getTrust())) {
                         LOG.warn("SolutionTemplate is setting trust on role {} which already has members", templateRole.getName());
@@ -5608,8 +5792,22 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 firstEntry = auditLogSeparator(auditDetails, firstEntry);
                 auditDetails.append(" \"add-role\": ");
+                if (replaceAdmin && originalRole != null) {
+                    // Include pending entries and records hidden by an existing trust setting.
+                    List<RoleMember> storedMembers = new ArrayList<>();
+                    for (RoleMember member : con.listRoleMembers(domainName, roleName, true)) {
+                        if (member.getApproved() == Boolean.FALSE) {
+                            if (!con.deletePendingRoleMember(domainName, roleName, member.getMemberName(), admin, auditRef)) {
+                                return false;
+                            }
+                        } else {
+                            storedMembers.add(member);
+                        }
+                    }
+                    originalRole.setRoleMembers(storedMembers);
+                }
                 if (!processRole(con, originalRole, domainName, roleName, templateRole,
-                        admin, null, auditRef, true, auditDetails)) {
+                        admin, null, auditRef, !replaceAdmin, auditDetails)) {
                     return false;
                 }
 
@@ -5744,7 +5942,7 @@ public class DBService implements RolesProvider, DomainProvider {
         }
 
         //on both insert and update templates, bump up the version of the template to latest version.
-        if (template.getMetadata().getLatestVersion() != null) {
+        if (template.getMetadata() != null && template.getMetadata().getLatestVersion() != null) {
             con.updateDomainTemplate(domainName, templateName, template.getMetadata());
         }
 
@@ -5846,18 +6044,27 @@ public class DBService implements RolesProvider, DomainProvider {
         auditDetails.append("}");
     }
 
+    private String updateTemplateRoleName(String roleName, String domainName, List<TemplateParam> params) {
+        String templateRoleName = roleName.replace(TEMPLATE_DOMAIN_NAME, domainName);
+        if (params != null) {
+            for (TemplateParam param : params) {
+                templateRoleName = templateRoleName.replace("_" + param.getName() + "_", param.getValue());
+            }
+        }
+        return templateRoleName;
+    }
+
     Role updateTemplateRole(ObjectStoreConnection con, Role role, String domainName, List<TemplateParam> params)
             throws ServerResourceException {
 
         // first process our given role name and carry out any
         // requested substitutions
 
-        String templateRoleName = role.getName().replace(TEMPLATE_DOMAIN_NAME, domainName);
+        String templateRoleName = updateTemplateRoleName(role.getName(), domainName, params);
         String templateRoleTrust = role.getTrust();
         if (params != null) {
             for (TemplateParam param : params) {
                 final String paramKey = "_" + param.getName() + "_";
-                templateRoleName = templateRoleName.replace(paramKey, param.getValue());
                 if (!StringUtil.isEmpty(templateRoleTrust)) {
                     templateRoleTrust = templateRoleTrust.replace(paramKey, param.getValue());
                 }

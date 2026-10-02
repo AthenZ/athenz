@@ -3349,6 +3349,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     caller, "name", templateName);
         }
 
+        dbService.validateAdminTrustReplacement(domainName, domainTemplate, caller, snapshot.templates);
+
         dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller, snapshot.templates);
     }
 
@@ -3397,6 +3399,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         SolutionTemplatesSnapshot snapshot = getValidatedSolutionTemplatesSnapshot(templateNames, caller);
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
                 caller, "name", templateName);
+
+        dbService.validateAdminTrustReplacement(domainName, domainTemplate, caller, snapshot.templates);
 
         dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller, snapshot.templates);
     }
@@ -4294,10 +4298,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             for (TemplateMetaData metaData : templateDomainMapping) {
                 Template template = snapshot.templates.get(metaData.getTemplateName());
                 // there is a possibility of a stale template coming back from DB over time(caused by template clean up)
-                if (template != null) {
+                if (template != null && template.getMetadata() != null) {
                     //Merging template metadata fields from solution-templates.json and template data from DB
                     metaData.setLatestVersion(template.getMetadata().getLatestVersion());
                     metaData.setAutoUpdate(template.getMetadata().getAutoUpdate());
+                    metaData.setPreserveAdminAccess(template.getMetadata().getPreserveAdminAccess());
                     metaData.setDescription(template.getMetadata().getDescription());
                     metaData.setKeywordsToReplace(template.metadata.getKeywordsToReplace());
                     metaData.setTimestamp(template.metadata.getTimestamp());
@@ -4341,7 +4346,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 .setLatestVersion(metadata.getLatestVersion())
                 .setKeywordsToReplace(metadata.getKeywordsToReplace())
                 .setTimestamp(metadata.getTimestamp())
-                .setAutoUpdate(metadata.getAutoUpdate());
+                .setAutoUpdate(metadata.getAutoUpdate())
+                .setPreserveAdminAccess(metadata.getPreserveAdminAccess());
     }
 
     public RoleList getRoleList(ResourceContext ctx, String domainName, Integer limit, String skip) {

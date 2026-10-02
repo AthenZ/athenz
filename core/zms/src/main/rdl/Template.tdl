@@ -17,6 +17,7 @@ type TemplateMetaData Struct {
     String keywordsToReplace (optional); //placeholders in the template roles/policies to replace (ex:_service_)
     Timestamp timestamp (optional); //the updated timestamp of the template(solution_templates.json)
     Bool autoUpdate (optional); //flag to automatically update the roles/policies that belongs to the template
+    Bool preserveAdminAccess (optional); //require existing direct admins to retain delegated access; omitted inherits the ZMS default
 }
 
 //Solution Template object defined on the server
