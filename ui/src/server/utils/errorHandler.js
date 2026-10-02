@@ -17,7 +17,14 @@ function fetcherError(err, prefix) {
     // this is the right way to handle errors in Fetchr
     let error = new Error();
     error.statusCode = err.status ? err.status : '';
-    var errorMessage = err.message ? err.message.message : '';
+    var errorMessage = '';
+    if (err.message) {
+        if (typeof err.message === 'string') {
+            errorMessage = err.message;
+        } else if (err.message.message) {
+            errorMessage = err.message.message;
+        }
+    }
     if (prefix) {
         errorMessage = prefix + ': ' + errorMessage;
     }

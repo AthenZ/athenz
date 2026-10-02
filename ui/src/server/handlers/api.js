@@ -3340,37 +3340,32 @@ Fetchr.registerService({
         req.clients.msd.getWorkloadsByDomainAndService(
             { request: params.body },
             (err, data) => {
-                if (data) {
-                    if (
-                        data.workloads.dynamicWorkloadList &&
-                        params.category !== 'static'
-                    ) {
-                        return callback(
-                            null,
-                            data.workloads.dynamicWorkloadList
-                        );
-                    } else if (
-                        data.workloads.staticWorkloadList &&
-                        params.category === 'static'
-                    ) {
-                        return callback(
-                            null,
-                            data.workloads.staticWorkloadList
-                        );
-                    } else {
-                        return callback(null, []);
-                    }
-                } else {
-                    if (err) {
-                        debug(
-                            `principal: ${req.session.shortId} rid: ${
-                                req.headers.rid
-                            } Error from MSD while calling getInstances API: ${JSON.stringify(
-                                errorHandler.fetcherError(err)
-                            )}`
-                        );
-                    }
+                if (err) {
+                    debug(
+                        `principal: ${req.session.shortId} rid: ${
+                            req.headers.rid
+                        } Error from MSD while calling getInstances API: ${JSON.stringify(
+                            errorHandler.fetcherError(err)
+                        )}`
+                    );
                     return callback(errorHandler.fetcherError(err));
+                }
+                if (
+                    data &&
+                    data.workloads &&
+                    data.workloads.dynamicWorkloadList &&
+                    params.category !== 'static'
+                ) {
+                    return callback(null, data.workloads.dynamicWorkloadList);
+                } else if (
+                    data &&
+                    data.workloads &&
+                    data.workloads.staticWorkloadList &&
+                    params.category === 'static'
+                ) {
+                    return callback(null, data.workloads.staticWorkloadList);
+                } else {
+                    return callback(null, []);
                 }
             }
         );
