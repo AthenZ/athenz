@@ -187,6 +187,39 @@ describe('Fetchr Server API Test', () => {
                                       null
                                   )
                                 : callback(undefined, undefined),
+                        getWorkloadsByDomainAndService: (params, callback) => {
+                            // Simulate rdl-rest on MSD 5xx: both err and JSON body present.
+                            // Previously the UI treated truthy data as success and showed an empty list.
+                            if (params.request && params.request.forcefail) {
+                                return callback(
+                                    {
+                                        status: 500,
+                                        message: {
+                                            message: 'Internal Server Error',
+                                        },
+                                    },
+                                    {
+                                        message: 'Internal Server Error',
+                                    }
+                                );
+                            }
+                            return callback(undefined, {
+                                workloads: {
+                                    staticWorkloadList: [
+                                        {
+                                            name: '10.1.1.1',
+                                            type: 'EXTERNAL_APPLIANCE',
+                                        },
+                                    ],
+                                    dynamicWorkloadList: [
+                                        {
+                                            uuid: 'abc-123',
+                                            hostname: 'host1',
+                                        },
+                                    ],
+                                },
+                            });
+                        },
                     },
                     zms: {
                         putAssertion: (params, callback) =>
@@ -502,41 +535,6 @@ describe('Fetchr Server API Test', () => {
                                           },
                                       ],
                                   }),
-                    },
-                    msd: {
-                        getWorkloadsByDomainAndService: (params, callback) => {
-                            // Simulate rdl-rest on MSD 5xx: both err and JSON body present.
-                            // Previously the UI treated truthy data as success and showed an empty list.
-                            if (params.request && params.request.forcefail) {
-                                return callback(
-                                    {
-                                        status: 500,
-                                        message: {
-                                            message: 'Internal Server Error',
-                                        },
-                                    },
-                                    {
-                                        message: 'Internal Server Error',
-                                    }
-                                );
-                            }
-                            return callback(undefined, {
-                                workloads: {
-                                    staticWorkloadList: [
-                                        {
-                                            name: '10.1.1.1',
-                                            type: 'EXTERNAL_APPLIANCE',
-                                        },
-                                    ],
-                                    dynamicWorkloadList: [
-                                        {
-                                            uuid: 'abc-123',
-                                            hostname: 'host1',
-                                        },
-                                    ],
-                                },
-                            });
-                        },
                     },
                 };
                 next();
