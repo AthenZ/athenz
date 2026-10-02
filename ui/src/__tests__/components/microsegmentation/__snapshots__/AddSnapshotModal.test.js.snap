@@ -1,0 +1,322 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddSnapshotModal renders 1`] = `
+.emotion-0 {
+  width: 100%;
+  text-align: left;
+}
+
+.emotion-2 {
+  -webkit-align-items: flex-start;
+  -webkit-box-align: flex-start;
+  -ms-flex-align: flex-start;
+  align-items: flex-start;
+  display: flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  padding: 10px 30px;
+}
+
+.emotion-4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303030;
+  line-height: 36px;
+  white-space: nowrap;
+}
+
+.emotion-5 {
+  -webkit-flex-basis: 32%;
+  -ms-flex-preferred-size: 32%;
+  flex-basis: 32%;
+  font-weight: 600;
+  line-height: 36px;
+}
+
+.emotion-7 {
+  -webkit-flex-basis: 68%;
+  -ms-flex-preferred-size: 68%;
+  flex-basis: 68%;
+}
+
+.emotion-9 {
+  box-sizing: border-box;
+  display: inline-flex;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  position: relative;
+  width: 100%;
+}
+
+.emotion-9 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  background: rgba(53,112,244,0.05);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  border-right: transparent;
+  border-left: transparent;
+  border-radius: 2px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #303030;
+  -webkit-flex: 1 0 auto;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+  font: inherit;
+  height: 36px;
+  margin: 0;
+  outline: none;
+  padding: 0 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.emotion-9.animated input {
+  -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
+}
+
+.emotion-9 input::-webkit-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input::-moz-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input:-ms-input-placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input::placeholder {
+  color: rgba(48,48,48,0.6);
+}
+
+.emotion-9 input.focused,
+.emotion-9 input:active,
+.emotion-9 input:focus {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #3570f4;
+  color: #303030;
+}
+
+.emotion-9 input:invalid {
+  background: rgba(53,112,244,0.05);
+  border-bottom: 2px solid #d01111;
+  color: #303030;
+}
+
+.emotion-9 .message {
+  font-size: 12px;
+  left: 0;
+  line-height: 1.8;
+  position: absolute;
+  top: 2.571rem;
+}
+
+.emotion-9.error input,
+.emotion-9.error input.focused,
+.emotion-9.error input:active,
+.emotion-9.error input:focus {
+  border-bottom: 2px solid #d01111;
+}
+
+.emotion-9.error .message {
+  color: #d01111;
+}
+
+.emotion-10 {
+  width: 100%;
+}
+
+.emotion-19 {
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+  display: inline-flex;
+  height: 18px;
+  outline: 0;
+  position: relative;
+}
+
+.emotion-19>input[type='checkbox'] {
+  box-sizing: border-box;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  visibility: hidden;
+}
+
+.emotion-19>input[type='checkbox']+label {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  height: 18px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.emotion-19>input[type='checkbox']+label .label-content {
+  display: inline-flex;
+  margin-left: 6px;
+}
+
+@-moz-document url-prefix() {
+  .emotion-19>input[type='checkbox']+label .label-content {
+    margin-top: 1px;
+  }
+}
+
+.emotion-19>input[type='checkbox']+label:before {
+  background: #d5d5d5;
+  border-radius: 9px;
+  box-sizing: border-box;
+  content: '';
+  cursor: pointer;
+  display: inline-block;
+  height: 4px;
+  line-height: 16px;
+  margin: 7px 0 0 0;
+  -webkit-transition: all 0.25s;
+  transition: all 0.25s;
+  vertical-align: top;
+  width: 34px;
+}
+
+.emotion-19>input[type='checkbox']+label::after {
+  background-color: #fff;
+  border: 2px solid rgba(54,151,242,0.5);
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: ' ';
+  cursor: pointer;
+  display: block;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  -webkit-transition: all 0.25s ease;
+  transition: all 0.25s ease;
+  top: 0;
+  width: 18px;
+}
+
+.emotion-19>input[type='checkbox']:checked+label::before {
+  background-color: rgba(21,192,70,0.45);
+}
+
+.emotion-19>input[type='checkbox']:checked+label::after {
+  background-color: #15c046;
+  border-color: #15c046;
+  left: 16px;
+}
+
+.emotion-19>input[type='checkbox']:disabled+label {
+  color: #9a9a9a;
+  cursor: not-allowed;
+}
+
+.emotion-19>input[type='checkbox']:disabled+label::before {
+  background-color: #e8e8e8;
+  cursor: not-allowed;
+}
+
+.emotion-19>input[type='checkbox']:disabled+label::after {
+  border-color: #d5d5d5;
+  cursor: not-allowed;
+}
+
+.emotion-19>input[type='checkbox']:checked:disabled+label::after {
+  background: #d5d5d5;
+}
+
+.emotion-20 {
+  padding: 0 30px 10px;
+  color: #606060;
+}
+
+<div
+  class="emotion-0 emotion-1"
+  data-testid="add-snapshot-modal"
+>
+  <div
+    class="emotion-2 emotion-3"
+  >
+    <label
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      for="snapshot-name"
+    >
+      Snapshot Name
+    </label>
+    <div
+      class="emotion-7 emotion-8"
+    >
+      <div
+        class="emotion-9 denali-input animated emotion-10 emotion-11"
+        data-testid="input-wrapper"
+      >
+        <input
+          autocomplete="off"
+          data-testid="input-node"
+          id="snapshot-name"
+          name="snapshot-name"
+          placeholder="Enter snapshot name"
+          value=""
+        />
+        <div
+          class="message"
+          data-testid="message"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    class="emotion-2 emotion-3"
+  >
+    <label
+      class="emotion-4 denali-input-label emotion-5 emotion-6"
+      for="snapshot-active"
+    >
+      Active
+    </label>
+    <div
+      class="emotion-7 emotion-8"
+    >
+      <div
+        class="emotion-19 denali-switch"
+        data-testid="switch-wrapper"
+      >
+        <input
+          data-testid="snapshot-active-switch-input"
+          id="snapshot-active"
+          name="snapshot-active"
+          type="checkbox"
+        />
+        <label
+          for="snapshot-active"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    class="emotion-20 emotion-21"
+  >
+    A snapshot captures the current inbound and outbound transport policies of this service.
+  </div>
+</div>
+`;

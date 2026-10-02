@@ -90,6 +90,137 @@ describe('Fetchr Server API Test', () => {
                                       },
                                   }),
                     },
+                    msd: {
+                        getTransportPolicySnapshots: (params, callback) =>
+                            params.serviceName === 'forcefail'
+                                ? callback(
+                                      {
+                                          status: 404,
+                                          message: {
+                                              message:
+                                                  'unable to read snapshots',
+                                          },
+                                      },
+                                      null
+                                  )
+                                : callback(undefined, {
+                                      snapshots: [
+                                          {
+                                              domainName: params.domainName,
+                                              serviceName: params.serviceName,
+                                              name: 'v1',
+                                              createdTime:
+                                                  '2026-09-16T10:00:00.000Z',
+                                              active: true,
+                                          },
+                                      ],
+                                  }),
+                        getTransportPolicySnapshot: (params, callback) =>
+                            callback(undefined, {
+                                domainName: params.domainName,
+                                serviceName: params.serviceName,
+                                name: params.snapshotName,
+                                createdTime: '2026-09-16T10:00:00.000Z',
+                                active: true,
+                                transportPolicyRules: {
+                                    ingress: [],
+                                    egress: [],
+                                },
+                            }),
+                        getTransportPolicySnapshotUsage: (params, callback) =>
+                            callback(undefined, {
+                                principals: [
+                                    {
+                                        name: 'peer.controller',
+                                        time: '2026-09-28T07:00:00.000Z',
+                                    },
+                                ],
+                                partial: false,
+                            }),
+                        createTransportPolicySnapshot: (params, callback) =>
+                            params.snapshot.name === 'forcefail'
+                                ? callback(
+                                      {
+                                          status: 400,
+                                          message: {
+                                              message: 'snapshot limit reached',
+                                          },
+                                      },
+                                      null
+                                  )
+                                : callback(undefined, {
+                                      domainName: params.domainName,
+                                      serviceName: params.serviceName,
+                                      name: params.snapshot.name,
+                                      active: params.snapshot.active,
+                                      createdTime: '2026-09-29T10:00:00.000Z',
+                                  }),
+                        updateTransportPolicySnapshot: (params, callback) =>
+                            params.snapshotName === 'forcefail'
+                                ? callback(
+                                      {
+                                          status: 404,
+                                          message: {
+                                              message: 'snapshot not found',
+                                          },
+                                      },
+                                      null
+                                  )
+                                : callback(undefined, {
+                                      domainName: params.domainName,
+                                      serviceName: params.serviceName,
+                                      name: params.snapshotName,
+                                      active: params.updateRequest.active,
+                                      createdTime: '2026-09-16T10:00:00.000Z',
+                                      modified: '2026-09-30T10:00:00.000Z',
+                                  }),
+                        deleteTransportPolicySnapshot: (params, callback) =>
+                            params.snapshotName === 'active' && !params.force
+                                ? callback(
+                                      {
+                                          status: 409,
+                                          message: {
+                                              message:
+                                                  'snapshot active is active and cannot be deleted',
+                                          },
+                                      },
+                                      null
+                                  )
+                                : callback(undefined, undefined),
+                        getWorkloadsByDomainAndService: (params, callback) => {
+                            // Simulate rdl-rest on MSD 5xx: both err and JSON body present.
+                            // Previously the UI treated truthy data as success and showed an empty list.
+                            if (params.request && params.request.forcefail) {
+                                return callback(
+                                    {
+                                        status: 500,
+                                        message: {
+                                            message: 'Internal Server Error',
+                                        },
+                                    },
+                                    {
+                                        message: 'Internal Server Error',
+                                    }
+                                );
+                            }
+                            return callback(undefined, {
+                                workloads: {
+                                    staticWorkloadList: [
+                                        {
+                                            name: '10.1.1.1',
+                                            type: 'EXTERNAL_APPLIANCE',
+                                        },
+                                    ],
+                                    dynamicWorkloadList: [
+                                        {
+                                            uuid: 'abc-123',
+                                            hostname: 'host1',
+                                        },
+                                    ],
+                                },
+                            });
+                        },
+                    },
                     zms: {
                         putAssertion: (params, callback) =>
                             params.forcefail
@@ -405,41 +536,6 @@ describe('Fetchr Server API Test', () => {
                                       ],
                                   }),
                     },
-                    msd: {
-                        getWorkloadsByDomainAndService: (params, callback) => {
-                            // Simulate rdl-rest on MSD 5xx: both err and JSON body present.
-                            // Previously the UI treated truthy data as success and showed an empty list.
-                            if (params.request && params.request.forcefail) {
-                                return callback(
-                                    {
-                                        status: 500,
-                                        message: {
-                                            message: 'Internal Server Error',
-                                        },
-                                    },
-                                    {
-                                        message: 'Internal Server Error',
-                                    }
-                                );
-                            }
-                            return callback(undefined, {
-                                workloads: {
-                                    staticWorkloadList: [
-                                        {
-                                            name: '10.1.1.1',
-                                            type: 'EXTERNAL_APPLIANCE',
-                                        },
-                                    ],
-                                    dynamicWorkloadList: [
-                                        {
-                                            uuid: 'abc-123',
-                                            hostname: 'host1',
-                                        },
-                                    ],
-                                },
-                            });
-                        },
-                    },
                 };
                 next();
             });
@@ -523,6 +619,223 @@ describe('Fetchr Server API Test', () => {
                 .set('Content-Type', 'application/json')
                 .then((res) => {
                     expect(res.body.g0.data).toEqual({ success: 'true' });
+                });
+        });
+        it('snapshots list test success', async () => {
+            await request(expressApp)
+                .get('/api/v1/snapshots;domainName=dom;serviceName=svc')
+                .then((res) => {
+                    expect(res.status).toEqual(200);
+                    expect(res.body.snapshots).toHaveLength(1);
+                    expect(res.body.snapshots[0].name).toEqual('v1');
+                });
+        });
+        it('snapshots list test failure keeps MSD status and message', async () => {
+            await request(expressApp)
+                .get('/api/v1/snapshots;domainName=dom;serviceName=forcefail')
+                .then((res) => {
+                    expect(res.status).toEqual(404);
+                    expect(res.body.message).toEqual(
+                        'MSD: unable to read snapshots'
+                    );
+                });
+        });
+        it('snapshots get single test success', async () => {
+            await request(expressApp)
+                .get(
+                    '/api/v1/snapshots;domainName=dom;serviceName=svc;snapshotName=v1'
+                )
+                .then((res) => {
+                    expect(res.status).toEqual(200);
+                    expect(res.body.name).toEqual('v1');
+                    expect(res.body.transportPolicyRules).toEqual({
+                        ingress: [],
+                        egress: [],
+                    });
+                });
+        });
+        it('snapshots get usage test success', async () => {
+            await request(expressApp)
+                .get(
+                    '/api/v1/snapshots;domainName=dom;serviceName=svc;snapshotName=v1;usage=true'
+                )
+                .then((res) => {
+                    expect(res.status).toEqual(200);
+                    expect(res.body.principals[0].name).toEqual(
+                        'peer.controller'
+                    );
+                    expect(res.body.partial).toEqual(false);
+                });
+        });
+        it('snapshots create test success', async () => {
+            await request(expressApp)
+                .post('/api/v1')
+                .send({
+                    requests: {
+                        g0: {
+                            resource: 'snapshots',
+                            operation: 'create',
+                            params: {
+                                domainName: 'dom',
+                                serviceName: 'svc',
+                                name: 'v2',
+                                active: true,
+                            },
+                        },
+                    },
+                })
+                .set('Accept', 'application/json')
+                .set('Content-Type', 'application/json')
+                .then((res) => {
+                    expect(res.body.g0.data.name).toEqual('v2');
+                    expect(res.body.g0.data.active).toEqual(true);
+                });
+        });
+        it('snapshots create test failure', async () => {
+            await request(expressApp)
+                .post('/api/v1')
+                .send({
+                    requests: {
+                        g0: {
+                            resource: 'snapshots',
+                            operation: 'create',
+                            params: {
+                                domainName: 'dom',
+                                serviceName: 'svc',
+                                name: 'forcefail',
+                            },
+                        },
+                    },
+                })
+                .set('Accept', 'application/json')
+                .set('Content-Type', 'application/json')
+                .then((res) => {
+                    expect(res.status).toEqual(400);
+                    expect(res.body.message).toEqual(
+                        'MSD: snapshot limit reached'
+                    );
+                });
+        });
+        it('snapshots update test success', async () => {
+            await request(expressApp)
+                .post('/api/v1')
+                .send({
+                    requests: {
+                        g0: {
+                            resource: 'snapshots',
+                            operation: 'update',
+                            params: {
+                                domainName: 'dom',
+                                serviceName: 'svc',
+                                snapshotName: 'v1',
+                                active: false,
+                            },
+                        },
+                    },
+                })
+                .set('Accept', 'application/json')
+                .set('Content-Type', 'application/json')
+                .then((res) => {
+                    expect(res.status).toEqual(200);
+                    expect(res.body.g0.data.name).toEqual('v1');
+                    expect(res.body.g0.data.active).toEqual(false);
+                });
+        });
+        it('snapshots update test failure', async () => {
+            await request(expressApp)
+                .post('/api/v1')
+                .send({
+                    requests: {
+                        g0: {
+                            resource: 'snapshots',
+                            operation: 'update',
+                            params: {
+                                domainName: 'dom',
+                                serviceName: 'svc',
+                                snapshotName: 'forcefail',
+                                active: true,
+                            },
+                        },
+                    },
+                })
+                .set('Accept', 'application/json')
+                .set('Content-Type', 'application/json')
+                .then((res) => {
+                    expect(res.status).toEqual(404);
+                    expect(res.body.message).toEqual('MSD: snapshot not found');
+                });
+        });
+        it('snapshots delete test success', async () => {
+            await request(expressApp)
+                .post('/api/v1')
+                .send({
+                    requests: {
+                        g0: {
+                            resource: 'snapshots',
+                            operation: 'delete',
+                            params: {
+                                domainName: 'dom',
+                                serviceName: 'svc',
+                                snapshotName: 'v1',
+                                force: false,
+                            },
+                        },
+                    },
+                })
+                .set('Accept', 'application/json')
+                .set('Content-Type', 'application/json')
+                .then((res) => {
+                    expect(res.status).toEqual(200);
+                    expect(res.body.g0.data).toEqual({});
+                });
+        });
+        it('snapshots delete active without force returns 409', async () => {
+            await request(expressApp)
+                .post('/api/v1')
+                .send({
+                    requests: {
+                        g0: {
+                            resource: 'snapshots',
+                            operation: 'delete',
+                            params: {
+                                domainName: 'dom',
+                                serviceName: 'svc',
+                                snapshotName: 'active',
+                            },
+                        },
+                    },
+                })
+                .set('Accept', 'application/json')
+                .set('Content-Type', 'application/json')
+                .then((res) => {
+                    expect(res.status).toEqual(409);
+                    expect(res.body.message).toEqual(
+                        'MSD: snapshot active is active and cannot be deleted'
+                    );
+                });
+        });
+        it('snapshots delete active with force succeeds', async () => {
+            await request(expressApp)
+                .post('/api/v1')
+                .send({
+                    requests: {
+                        g0: {
+                            resource: 'snapshots',
+                            operation: 'delete',
+                            params: {
+                                domainName: 'dom',
+                                serviceName: 'svc',
+                                snapshotName: 'active',
+                                force: true,
+                            },
+                        },
+                    },
+                })
+                .set('Accept', 'application/json')
+                .set('Content-Type', 'application/json')
+                .then((res) => {
+                    expect(res.status).toEqual(200);
+                    expect(res.body.g0.data).toEqual({});
                 });
         });
         it('getDomain test success', async () => {

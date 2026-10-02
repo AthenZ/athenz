@@ -105,7 +105,7 @@ export default class DeleteModal extends React.Component {
                         disabled={!!this.props.resourceOwnershipCliCommand}
                         data-testid={'delete-modal-delete'}
                     >
-                        Delete
+                        {this.props.submitLabel || 'Delete'}
                     </ModifiedButton>
                     <ModifiedButton
                         secondary

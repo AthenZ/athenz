@@ -201,4 +201,58 @@ describe('Service Microsegmentation Page', () => {
         );
         expect(serviceMicrosegmentationPage).toMatchSnapshot();
     });
+
+    it('renders the snapshots section only when the page feature flag is on', async () => {
+        const domainDetails = {
+            description: 'test',
+            org: 'athenz',
+            enabled: true,
+            auditEnabled: false,
+            name: 'dom',
+            modified: '2020-01-24T18:14:51.939Z',
+        };
+        const getSnapshots = jest.fn().mockResolvedValue({
+            snapshots: [
+                {
+                    domainName: 'dom',
+                    serviceName: 'openhouse',
+                    name: 'v1',
+                    createdTime: '2026-09-16T10:00:00.000Z',
+                    active: true,
+                },
+            ],
+        });
+        const mockApi = {
+            ...mockAllDomainDataApiCalls(domainDetails, {}),
+            ...mockRolesApiCalls(),
+            getPendingDomainMembersList: jest.fn().mockResolvedValue([]),
+            listUserDomains: jest
+                .fn()
+                .mockResolvedValue(listUserDomains_response),
+            getPolicies: jest.fn().mockResolvedValue([]),
+            getServices: jest.fn().mockResolvedValue([]),
+            getRoles: jest.fn().mockResolvedValue([]),
+            getSnapshots,
+        };
+        MockApi.setMockApi(mockApi);
+
+        const { getByTestId, queryByTestId } = await renderWithRedux(
+            <ServiceMicrosegmentationPage
+                req='req'
+                userId={'test'}
+                reload={false}
+                domainName={'dom'}
+                serviceName='openhouse'
+                pageFeatureFlag={{ policyValidation: true, snapshots: true }}
+            />
+        );
+        await waitFor(() =>
+            expect(getByTestId('snapshot-list')).toBeInTheDocument()
+        );
+        await waitFor(() =>
+            expect(getByTestId('snapshot-row-v1')).toBeInTheDocument()
+        );
+        expect(getSnapshots).toHaveBeenCalledWith('dom', 'openhouse');
+        expect(queryByTestId('segmentation-data-list')).toBeInTheDocument();
+    });
 });
