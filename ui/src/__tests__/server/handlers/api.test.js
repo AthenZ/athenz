@@ -405,6 +405,41 @@ describe('Fetchr Server API Test', () => {
                                       ],
                                   }),
                     },
+                    msd: {
+                        getWorkloadsByDomainAndService: (params, callback) => {
+                            // Simulate rdl-rest on MSD 5xx: both err and JSON body present.
+                            // Previously the UI treated truthy data as success and showed an empty list.
+                            if (params.request && params.request.forcefail) {
+                                return callback(
+                                    {
+                                        status: 500,
+                                        message: {
+                                            message: 'Internal Server Error',
+                                        },
+                                    },
+                                    {
+                                        message: 'Internal Server Error',
+                                    }
+                                );
+                            }
+                            return callback(undefined, {
+                                workloads: {
+                                    staticWorkloadList: [
+                                        {
+                                            name: '10.1.1.1',
+                                            type: 'EXTERNAL_APPLIANCE',
+                                        },
+                                    ],
+                                    dynamicWorkloadList: [
+                                        {
+                                            uuid: 'abc-123',
+                                            hostname: 'host1',
+                                        },
+                                    ],
+                                },
+                            });
+                        },
+                    },
                 };
                 next();
             });
@@ -1524,6 +1559,73 @@ describe('Fetchr Server API Test', () => {
                             groupReviewDays: 5,
                         },
                     ]);
+                });
+        });
+        it('getInstances static success', async () => {
+            await request(expressApp)
+                .post('/api/v1')
+                .send({
+                    requests: {
+                        g0: {
+                            resource: 'instances',
+                            operation: 'read',
+                            params: {
+                                category: 'static',
+                                body: {
+                                    domainServices: [
+                                        {
+                                            domainName: 'dom',
+                                            serviceNames: ['svc'],
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                })
+                .set('Accept', 'application/json')
+                .set('Content-Type', 'application/json')
+                .then((res) => {
+                    expect(res.body.g0.data).toEqual([
+                        {
+                            name: '10.1.1.1',
+                            type: 'EXTERNAL_APPLIANCE',
+                        },
+                    ]);
+                });
+        });
+        it('getInstances surfaces MSD 5xx instead of empty list', async () => {
+            await request(expressApp)
+                .post('/api/v1')
+                .send({
+                    requests: {
+                        g0: {
+                            resource: 'instances',
+                            operation: 'read',
+                            params: {
+                                category: 'static',
+                                body: {
+                                    forcefail: true,
+                                    domainServices: [
+                                        {
+                                            domainName: 'dom',
+                                            serviceNames: ['svc'],
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                })
+                .set('Accept', 'application/json')
+                .set('Content-Type', 'application/json')
+                .then((res) => {
+                    // Must not succeed with an empty workload list on MSD failure
+                    expect(res.body.g0).toBeUndefined();
+                    expect(res.body.message).toEqual(
+                        'Internal Server Error'
+                    );
+                    expect(res.status).toEqual(500);
                 });
         });
     });

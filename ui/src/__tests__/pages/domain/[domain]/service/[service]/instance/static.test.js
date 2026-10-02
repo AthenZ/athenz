@@ -121,4 +121,77 @@ describe('StaticInstancePage', () => {
         const staticInstancePage = getByTestId('static-instance');
         expect(staticInstancePage).toMatchSnapshot();
     });
+
+    it('should show error when MSD fails to load static instances', async () => {
+        let query = {
+            domain: 'dom',
+            service: 'serv',
+        };
+        let domainDetails = {
+            modified: '2020-02-12T21:44:37.792Z',
+        };
+        let headerDetails = {
+            headerLinks: [
+                {
+                    title: 'Website',
+                    url: 'http://www.athenz.io',
+                    target: '_blank',
+                },
+            ],
+            userData: {
+                userLink: {
+                    title: 'User Link',
+                    url: '',
+                    target: '_blank',
+                },
+            },
+        };
+        let services = {
+            'dom.serv': {
+                name: 'dom.serv',
+            },
+        };
+        const servicesForState = buildServicesForState(services);
+
+        const api = {
+            ...mockAllDomainDataApiCalls(domainDetails, headerDetails),
+            getPendingDomainMembersList: jest
+                .fn()
+                .mockReturnValue(Promise.resolve([])),
+            listUserDomains: jest
+                .fn()
+                .mockReturnValue(Promise.resolve(listUserDomains_response)),
+            getReviewGroups: jest.fn().mockReturnValue([]),
+            getReviewRoles: jest.fn().mockReturnValue([]),
+            getPageFeatureFlag: jest.fn().mockResolvedValue({}),
+            getServices: jest.fn().mockReturnValue(Promise.resolve([])),
+            getInstances: jest.fn().mockReturnValue(
+                Promise.reject({
+                    statusCode: 500,
+                    output: {
+                        message: 'Internal Server Error',
+                    },
+                })
+            ),
+            getServiceHeaderDetails: jest.fn().mockResolvedValue({}),
+            getFeatureFlag: jest.fn().mockResolvedValue({}),
+        };
+        MockApi.setMockApi(api);
+
+        const { getByTestId, getByText } = renderWithRedux(
+            <StaticInstancePage
+                req='req'
+                userId='userid'
+                query={query}
+                reload={false}
+                domainName='dom'
+                serviceName='serv'
+                _csrf='csrf'
+            />,
+            getStateWithServices(servicesForState)
+        );
+
+        await waitFor(() => expect(getByTestId('error')).toBeInTheDocument());
+        expect(getByText('Internal Server Error')).toBeInTheDocument();
+    });
 });
