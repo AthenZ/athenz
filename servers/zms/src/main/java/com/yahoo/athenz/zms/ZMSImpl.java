@@ -3253,8 +3253,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     caller, "name", templateName);
         }
 
-        dbService.validateAdminTrustReplacement(domainName, domainTemplate, caller, snapshot.templates);
-
         dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller, snapshot.templates);
     }
 
@@ -3303,8 +3301,6 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         SolutionTemplatesSnapshot snapshot = getValidatedSolutionTemplatesSnapshot(templateNames, caller);
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(),
                 caller, "name", templateName);
-
-        dbService.validateAdminTrustReplacement(domainName, domainTemplate, caller, snapshot.templates);
 
         dbService.executePutDomainTemplate(ctx, domainName, domainTemplate, auditRef, caller, snapshot.templates);
     }

@@ -1801,8 +1801,8 @@ public class ZMSTemplateTest {
     private void assertAdminReplacementError(ZMSImpl zmsImpl, RsrcCtxWrapper ctx, String domainName,
             DomainTemplate domainTemplate, SolutionTemplates solutionTemplates, String errorMessage) {
         try {
-            zmsImpl.dbService.validateAdminTrustReplacement(domainName, domainTemplate,
-                    "test", solutionTemplates);
+            zmsImpl.dbService.executePutDomainTemplate(ctx, domainName, domainTemplate,
+                    zmsTestInitializer.getAuditRef(), "test", solutionTemplates);
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);

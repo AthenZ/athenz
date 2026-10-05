@@ -5134,17 +5134,6 @@ public class DBService implements RolesProvider, DomainProvider {
         }
     }
 
-    void validateAdminTrustReplacement(String domainName, DomainTemplate domainTemplate,
-            String caller, SolutionTemplates serverSolutionTemplates) {
-
-        try (ObjectStoreConnection con = store.getConnection(true, false)) {
-            validateAdminTrustReplacement(con, domainName, domainTemplate, caller,
-                    serverSolutionTemplates);
-        } catch (ServerResourceException ex) {
-            throw ZMSUtils.error(ex);
-        }
-    }
-
     AdminAccessValidation validateAdminTrustReplacement(ObjectStoreConnection con, String domainName,
             DomainTemplate domainTemplate, String caller,
             SolutionTemplates serverSolutionTemplates) throws ServerResourceException {
@@ -5317,7 +5306,7 @@ public class DBService implements RolesProvider, DomainProvider {
 
                 checkDomainAuditEnabled(con, domainName, auditRef, caller, principalName, AUDIT_TYPE_TEMPLATE);
 
-                // Repeat the admin handoff validation in the transaction before applying any template changes.
+                // Validate the admin handoff in the transaction before applying any template changes.
 
                 AdminAccessValidation adminAccess = validateAdminTrustReplacement(con, domainName,
                         domainTemplate, caller, serverSolutionTemplates);
