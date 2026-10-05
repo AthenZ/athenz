@@ -63,6 +63,12 @@ func usage() {
 	fmt.Println("")
 	fmt.Println("    zts-svccert -zts <zts-server-url> -private-key <private-key-path> -key-version <private-key-version> -hdr <credential-header-name> <service-details> <certificate-details> [-provider <provider-name> -instance <instance-id>]")
 	fmt.Println("")
+	fmt.Println("Request Service Identity Certificate using a Pre-Generated Certificate Signing Request (CSR):")
+	fmt.Println("")
+	fmt.Println("    zts-svccert -request-csr <csr-file> <any of the certificate request options above without -private-key and -dns-domain>")
+	fmt.Println("")
+	fmt.Println("    Note: -private-key (along with -key-version for ntoken) is still required if it's used for authentication (ntoken or attestation data generation)")
+	fmt.Println("")
 	fmt.Println("Request Service Identity Certificate Signing Request (CSR) Only:")
 	fmt.Println("")
 	fmt.Println("    zts-svccert -csr -private-key <private-key-path> <service-details> <certificate-details> [-provider <provider-name> -instance <instance-id>]")
@@ -75,7 +81,7 @@ func usage() {
 	fmt.Println("")
 	fmt.Println("      <service-details> := -domain <domain-name> -service <service-name>")
 	fmt.Println("")
-	fmt.Println("      <certificate-details> := -dns-domain <san-dns-domain-component> [-signer-cert-file <ca-cert-output-file>] [-spiffe] [-expiry-time <mins>] [-subj-c <subject country>] [-subj-o <subject org>] [-subj-ou <subject orgunit>] [-ip <san-ip-address>] [-hostname <hostname>] [-signer-key-id <key-id>]")
+	fmt.Println("      <certificate-details> := -dns-domain <san-dns-domain-component> (not required with -request-csr) [-signer-cert-file <ca-cert-output-file>] [-spiffe] [-expiry-time <mins>] [-subj-c <subject country>] [-subj-o <subject org>] [-subj-ou <subject orgunit>] [-ip <san-ip-address>] [-hostname <hostname>] [-signer-key-id <key-id>]")
 	fmt.Println("")
 	fmt.Println("      <principal-credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-cacert <ca-cert-file>] |")
 	fmt.Println("                                 -ntoken-file <ntoken-file> [-hdr <auth-header-name>] [-cacert <ca-cert-file>]")
@@ -87,7 +93,7 @@ func main() {
 	var ztsURL, serviceKey, serviceCert, domain, service, keyID, signerKeyID string
 	var caCertFile, certFile, signerCertFile, dnsDomain, hdr, ip string
 	var subjC, subjO, subjOU, uri, provider, instance, instanceId, hostname, hostnameUri string
-	var svcKeyFile, svcCertFile, ntokenFile, attestationDataFile, spiffeTrustDomain string
+	var svcKeyFile, svcCertFile, ntokenFile, attestationDataFile, spiffeTrustDomain, requestCsrFile string
 	var csr, spiffe, showVersion, getInstanceRegisterToken, useInstanceRegisterToken bool
 	var expiryTime int
 	flag.BoolVar(&csr, "csr", false, "request csr only")
@@ -120,6 +126,7 @@ func main() {
 	flag.BoolVar(&showVersion, "version", false, "Show version")
 	flag.StringVar(&spiffeTrustDomain, "spiffe-trust-domain", "", "Trust Domain value to be included in spiffe uri")
 	flag.StringVar(&signerKeyID, "signer-key-id", "", "Certificate Signer Key id to use to sign the certificate")
+	flag.StringVar(&requestCsrFile, "request-csr", "", "pre-generated csr file to be included in the certificate request")
 	flag.Parse()
 
 	if showVersion {
@@ -162,35 +169,36 @@ func main() {
 		}
 	}
 
-	if serviceKey == "" || domain == "" || service == "" || dnsDomain == "" {
+	if requestCsrFile != "" {
+		if csr {
+			log.Println("Error: -csr and -request-csr options cannot be used together")
+			usage()
+		}
+		if domain == "" || service == "" {
+			log.Println("Error: missing required attributes. Run with -help for command line arguments")
+			usage()
+		}
+	} else if serviceKey == "" || domain == "" || service == "" || dnsDomain == "" {
 		log.Println("Error: missing required attributes. Run with -help for command line arguments")
 		usage()
 	}
 
-	// load private key
-	keyBytes, err := os.ReadFile(serviceKey)
-	if err != nil {
-		if useInstanceRegisterToken {
-			keyBytes, err = generatePrivateKey(serviceKey)
-		}
+	// load private key. when we're given the csr, the private key is
+	// optional and only used for authentication if provided
+
+	var keyBytes []byte
+	if serviceKey != "" {
+		keyBytes, err = os.ReadFile(serviceKey)
 		if err != nil {
-			log.Fatalln(err)
+			if useInstanceRegisterToken && requestCsrFile == "" {
+				keyBytes, err = generatePrivateKey(serviceKey)
+			}
+			if err != nil {
+				log.Fatalln(err)
+			}
 		}
 	}
-	// get our private key signer for csr
-	pkSigner, err := newSigner(keyBytes)
-	if err != nil {
-		log.Fatalln(err)
-	}
 
-	// generate a csr for this service
-	// note: RFC 6125 states that if the SAN (Subject Alternative Name) exists,
-	// it is used, not the CA. So, we will always put the Athenz name in the CN
-	// (it is *not* a DNS domain name), and put the host name into the SAN.
-
-	hyphenDomain := strings.Replace(domain, ".", "-", -1)
-	host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, dnsDomain)
-	commonName := fmt.Sprintf("%s.%s", domain, service)
 	if instance != "" {
 		uriProvider := "zts"
 		if provider != "" {
@@ -205,24 +213,47 @@ func main() {
 		}
 		hostnameUri = fmt.Sprintf("athenz://hostname/%s", hostname)
 	}
-	if spiffe || spiffeTrustDomain != "" {
-		if spiffeTrustDomain != "" {
-			uri = fmt.Sprintf("spiffe://%s/ns/default/sa/%s", spiffeTrustDomain, commonName)
-		} else {
-			uri = fmt.Sprintf("spiffe://%s/sa/%s", domain, service)
+
+	var csrData string
+	if requestCsrFile != "" {
+		csrData, err = loadCSR(requestCsrFile)
+		if err != nil {
+			log.Fatalln(err)
 		}
-	}
+	} else {
+		// get our private key signer for csr
+		pkSigner, err := newSigner(keyBytes)
+		if err != nil {
+			log.Fatalln(err)
+		}
 
-	subj := pkix.Name{
-		CommonName:         commonName,
-		OrganizationalUnit: []string{subjOU},
-		Organization:       []string{subjO},
-		Country:            []string{subjC},
-	}
+		// generate a csr for this service
+		// note: RFC 6125 states that if the SAN (Subject Alternative Name) exists,
+		// it is used, not the CA. So, we will always put the Athenz name in the CN
+		// (it is *not* a DNS domain name), and put the host name into the SAN.
 
-	csrData, err := generateCSR(pkSigner, subj, host, instanceId, hostnameUri, ip, uri)
-	if err != nil {
-		log.Fatalln(err)
+		hyphenDomain := strings.Replace(domain, ".", "-", -1)
+		host := fmt.Sprintf("%s.%s.%s", service, hyphenDomain, dnsDomain)
+		commonName := fmt.Sprintf("%s.%s", domain, service)
+		if spiffe || spiffeTrustDomain != "" {
+			if spiffeTrustDomain != "" {
+				uri = fmt.Sprintf("spiffe://%s/ns/default/sa/%s", spiffeTrustDomain, commonName)
+			} else {
+				uri = fmt.Sprintf("spiffe://%s/sa/%s", domain, service)
+			}
+		}
+
+		subj := pkix.Name{
+			CommonName:         commonName,
+			OrganizationalUnit: []string{subjOU},
+			Organization:       []string{subjO},
+			Country:            []string{subjC},
+		}
+
+		csrData, err = generateCSR(pkSigner, subj, host, instanceId, hostnameUri, ip, uri)
+		if err != nil {
+			log.Fatalln(err)
+		}
 	}
 
 	// if we're provided the csr flag then we're going to display
@@ -256,6 +287,9 @@ func main() {
 			svcCertFileName = svcCertFile
 		}
 		client, err = certClient(ztsURL, svcKeyBytes, svcCertFileName, caCertFile)
+	} else if keyBytes == nil {
+		log.Println("Error: missing private key required to authenticate the request. Run with -help for command line arguments")
+		usage()
 	} else if serviceCert == "" {
 		ntoken, err = getNToken(domain, service, keyID, keyBytes)
 		if err != nil {
@@ -288,6 +322,10 @@ func main() {
 				}
 				attestationData = string(attestationDataBytes)
 			} else {
+				if keyBytes == nil {
+					log.Println("Error: missing private key required to generate attestation data. Run with -help for command line arguments")
+					usage()
+				}
 				attestationData, err = getNToken(domain, service, keyID, keyBytes)
 				if err != nil {
 					log.Fatalln(err)
@@ -401,6 +439,27 @@ func fetchInstanceRegisterToken(ztsURL, svcKeyFile, svcCertFile, caCertFile, nto
 		return "", err
 	}
 	return instanceRegisterToken.AttestationData, nil
+}
+
+func loadCSR(csrFile string) (string, error) {
+	csrBytes, err := os.ReadFile(csrFile)
+	if err != nil {
+		return "", err
+	}
+	block, _ := pem.Decode(csrBytes)
+	if block == nil || (block.Type != "CERTIFICATE REQUEST" && block.Type != "NEW CERTIFICATE REQUEST") {
+		return "", fmt.Errorf("unable to decode PEM certificate request from %s", csrFile)
+	}
+	csr, err := x509.ParseCertificateRequest(block.Bytes)
+	if err != nil {
+		return "", fmt.Errorf("unable to parse certificate request from %s: %v", csrFile, err)
+	}
+	if err = csr.CheckSignature(); err != nil {
+		return "", fmt.Errorf("invalid certificate request signature in %s: %v", csrFile, err)
+	}
+	// normalize the legacy openssl header to the standard one
+	block.Type = "CERTIFICATE REQUEST"
+	return string(pem.EncodeToMemory(block)), nil
 }
 
 func newSigner(privateKeyPEM []byte) (*signer, error) {
