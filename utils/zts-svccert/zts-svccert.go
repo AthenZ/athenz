@@ -67,7 +67,7 @@ func usage() {
 	fmt.Println("")
 	fmt.Println("    zts-svccert -request-csr <csr-file> <any of the certificate request options above without -private-key and -dns-domain>")
 	fmt.Println("")
-	fmt.Println("    Note: -private-key is still required if it's used for authentication (ntoken or attestation data generation)")
+	fmt.Println("    Note: -private-key (along with -key-version for ntoken) is still required if it's used for authentication (ntoken or attestation data generation)")
 	fmt.Println("")
 	fmt.Println("Request Service Identity Certificate Signing Request (CSR) Only:")
 	fmt.Println("")
@@ -81,7 +81,7 @@ func usage() {
 	fmt.Println("")
 	fmt.Println("      <service-details> := -domain <domain-name> -service <service-name>")
 	fmt.Println("")
-	fmt.Println("      <certificate-details> := -dns-domain <san-dns-domain-component> [-signer-cert-file <ca-cert-output-file>] [-spiffe] [-expiry-time <mins>] [-subj-c <subject country>] [-subj-o <subject org>] [-subj-ou <subject orgunit>] [-ip <san-ip-address>] [-hostname <hostname>] [-signer-key-id <key-id>]")
+	fmt.Println("      <certificate-details> := -dns-domain <san-dns-domain-component> (not required with -request-csr) [-signer-cert-file <ca-cert-output-file>] [-spiffe] [-expiry-time <mins>] [-subj-c <subject country>] [-subj-o <subject org>] [-subj-ou <subject orgunit>] [-ip <san-ip-address>] [-hostname <hostname>] [-signer-key-id <key-id>]")
 	fmt.Println("")
 	fmt.Println("      <principal-credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-cacert <ca-cert-file>] |")
 	fmt.Println("                                 -ntoken-file <ntoken-file> [-hdr <auth-header-name>] [-cacert <ca-cert-file>]")
@@ -447,7 +447,7 @@ func loadCSR(csrFile string) (string, error) {
 		return "", err
 	}
 	block, _ := pem.Decode(csrBytes)
-	if block == nil || block.Type != "CERTIFICATE REQUEST" {
+	if block == nil || (block.Type != "CERTIFICATE REQUEST" && block.Type != "NEW CERTIFICATE REQUEST") {
 		return "", fmt.Errorf("unable to decode PEM certificate request from %s", csrFile)
 	}
 	csr, err := x509.ParseCertificateRequest(block.Bytes)
@@ -457,6 +457,8 @@ func loadCSR(csrFile string) (string, error) {
 	if err = csr.CheckSignature(); err != nil {
 		return "", fmt.Errorf("invalid certificate request signature in %s: %v", csrFile, err)
 	}
+	// normalize the legacy openssl header to the standard one
+	block.Type = "CERTIFICATE REQUEST"
 	return string(pem.EncodeToMemory(block)), nil
 }
 
