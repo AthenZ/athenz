@@ -248,6 +248,61 @@ public class DBServiceAdminAccessTest {
     }
 
     @Test
+    public void testRejectsDuplicateAdminTrustRolesImmediately() throws ServerResourceException {
+        Role regular = new Role().setName("_domain_:role.admin");
+        Role delegated = new Role().setName("_domain_:role.admin").setTrust("trust");
+        Role missing = new Role().setName("_domain_:role.admin").setTrust("missing");
+        for (List<Role> roles : List.of(List.of(delegated, missing), List.of(delegated, regular, missing),
+                List.of(regular, delegated, missing), List.of(regular, regular, delegated, missing))) {
+            Fixture fixture = new Fixture();
+            fixture.template.setRoles(roles);
+
+            ResourceException ex = expectThrows(ResourceException.class, fixture::apply);
+
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("multiple admin roles are defined"), ex.getMessage());
+            verify(fixture.con, never()).getDomain("missing");
+            verify(fixture.con, never()).updateRole(anyString(), any());
+            verify(fixture.con, never()).commitChanges();
+        }
+    }
+
+    @Test
+    public void testAllowsMultipleAdminRolesWithoutTrust() throws ServerResourceException {
+        Fixture fixture = new Fixture();
+        fixture.template.setRoles(List.of(new Role().setName("_domain_:role.admin"),
+                new Role().setName("_domain_:role.admin")));
+
+        fixture.apply();
+
+        verify(fixture.con, never()).deleteRoleMember(anyString(), anyString(), anyString(), any(), any());
+        verify(fixture.con).commitChanges();
+    }
+
+    @Test
+    public void testRejectsAdminTrustMembersImmediately() throws ServerResourceException {
+        for (boolean legacyMembers : new boolean[] {false, true}) {
+            Fixture fixture = new Fixture();
+            Role delegated = fixture.template.getRoles().get(0);
+            if (legacyMembers) {
+                delegated.setMembers(List.of("user.alice"));
+            } else {
+                delegated.setRoleMembers(List.of(member("user.alice")));
+            }
+            fixture.template.setRoles(List.of(delegated,
+                    new Role().setName("_domain_:role.admin").setTrust("missing")));
+
+            ResourceException ex = expectThrows(ResourceException.class, fixture::apply);
+
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("template admin role cannot define members"), ex.getMessage());
+            verify(fixture.con, never()).getDomain("missing");
+            verify(fixture.con, never()).updateRole(anyString(), any());
+            verify(fixture.con, never()).commitChanges();
+        }
+    }
+
+    @Test
     public void testRejectsWildcardAdminsAndDifferentExistingTrust() throws ServerResourceException {
         Fixture fixture = new Fixture();
         when(fixture.con.listRoleMembers("target", "admin", false)).thenReturn(List.of(member("user.*")));

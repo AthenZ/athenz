@@ -5141,7 +5141,6 @@ public class DBService implements RolesProvider, DomainProvider {
         final String adminRoleResource = ResourceUtils.roleResourceName(domainName, ZMSConsts.ADMIN_ROLE_NAME);
         Role replacementAdmin = null;
         boolean preserveAdminAccess = false;
-        boolean replacementAdminHasMembers = false;
         int adminRoleCount = 0;
         for (String templateName : domainTemplate.getTemplateNames()) {
             Template template = serverSolutionTemplates.get(templateName);
@@ -5154,6 +5153,9 @@ public class DBService implements RolesProvider, DomainProvider {
                     continue;
                 }
                 adminRoleCount++;
+                if (replacementAdmin != null) {
+                    throw ZMSUtils.requestError("admin trust replacement: multiple admin roles are defined", caller);
+                }
                 Role templateRole = updateTemplateRole(con, role, domainName, domainTemplate.getParams());
                 if (templateRole == null) {
                     throw ZMSUtils.requestError("admin trust replacement: unable to resolve template role", caller);
@@ -5161,24 +5163,23 @@ public class DBService implements RolesProvider, DomainProvider {
                 if (StringUtil.isEmpty(templateRole.getTrust())) {
                     continue;
                 }
+                if (adminRoleCount != 1) {
+                    throw ZMSUtils.requestError("admin trust replacement: multiple admin roles are defined", caller);
+                }
+                if (!ZMSUtils.isCollectionEmpty(role.getMembers())
+                        || !ZMSUtils.isCollectionEmpty(templateRole.getRoleMembers())) {
+                    throw ZMSUtils.requestError("admin trust replacement: template admin role cannot define members", caller);
+                }
                 replacementAdmin = templateRole;
                 TemplateMetaData metadata = template.getMetadata();
                 Boolean templatePreserve = metadata == null ? null : metadata.getPreserveAdminAccess();
                 preserveAdminAccess = templatePreserve == null
                         ? Boolean.TRUE.equals(defaultPreserveAdminAccess.get()) : templatePreserve;
-                replacementAdminHasMembers = !ZMSUtils.isCollectionEmpty(role.getMembers())
-                        || !ZMSUtils.isCollectionEmpty(templateRole.getRoleMembers());
             }
         }
 
         if (replacementAdmin == null) {
             return null;
-        }
-        if (adminRoleCount != 1) {
-            throw ZMSUtils.requestError("admin trust replacement: multiple admin roles are defined", caller);
-        }
-        if (replacementAdminHasMembers) {
-            throw ZMSUtils.requestError("admin trust replacement: template admin role cannot define members", caller);
         }
 
         if (!preserveAdminAccess) {
