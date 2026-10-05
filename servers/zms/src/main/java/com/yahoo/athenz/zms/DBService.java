@@ -5191,10 +5191,11 @@ public class DBService implements RolesProvider, DomainProvider {
             throw ZMSUtils.requestError("preserveAdminAccess: current admin role does not exist", caller);
         }
         if (!StringUtil.isEmpty(currentAdmin.getTrust())) {
-            if (replacementAdmin.getTrust().equals(currentAdmin.getTrust())) {
-                return null;
+            if (!replacementAdmin.getTrust().equals(currentAdmin.getTrust())) {
+                throw ZMSUtils.requestError("preserveAdminAccess: cannot change an existing admin trust domain", caller);
             }
-            throw ZMSUtils.requestError("preserveAdminAccess: cannot change an existing admin trust domain", caller);
+            // getRole omits direct members when trust is set.
+            currentAdmin.setRoleMembers(con.listRoleMembers(domainName, ZMSConsts.ADMIN_ROLE_NAME, false));
         }
 
         expandRoleGroupMembers(con, currentAdmin, currentAdmin.getRoleMembers(), false);

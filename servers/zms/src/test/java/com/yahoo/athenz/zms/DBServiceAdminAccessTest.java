@@ -223,6 +223,29 @@ public class DBServiceAdminAccessTest {
     }
 
     @Test
+    public void testRejectsLegacyAdminWithoutDelegatedAccess() throws ServerResourceException {
+        Fixture fixture = new Fixture();
+        fixture.currentAdmin.setTrust("trust");
+        fixture.trustDomain.setPolicies(List.of());
+
+        fixture.assertRejectedBeforeChanges();
+    }
+
+    @Test
+    public void testAllowsReapplyingCleanAdminTrust() throws ServerResourceException {
+        Fixture fixture = new Fixture();
+        fixture.currentAdmin.setTrust("trust");
+        when(fixture.con.listRoleMembers("target", "admin", false)).thenReturn(List.of());
+        when(fixture.con.listRoleMembers("target", "admin", true)).thenReturn(List.of());
+        fixture.trustDomain.setPolicies(List.of());
+
+        fixture.apply();
+
+        verify(fixture.con, never()).deleteRoleMember(anyString(), anyString(), anyString(), any(), any());
+        verify(fixture.con).commitChanges();
+    }
+
+    @Test
     public void testPendingCleanupFailureRollsBack() throws ServerResourceException {
         Fixture fixture = new Fixture();
         when(fixture.con.listRoleMembers("target", "admin", true)).thenReturn(
@@ -365,9 +388,10 @@ public class DBServiceAdminAccessTest {
         verify(fixture.con, never()).commitChanges();
     }
 
-    @Test
-    public void testDenyInFinalStateRollsBackConversion() throws ServerResourceException {
+    @Test(dataProvider = "existingTrust")
+    public void testDenyInFinalStateRollsBackConversion(String existingTrust) throws ServerResourceException {
         Fixture fixture = new Fixture();
+        fixture.currentAdmin.setTrust(existingTrust);
         AthenzDomain finalTrustDomain = new AthenzDomain("trust");
         finalTrustDomain.setRoles(fixture.trustDomain.getRoles());
         finalTrustDomain.setPolicies(List.of(policy(delegation(AssertionEffect.ALLOW),
