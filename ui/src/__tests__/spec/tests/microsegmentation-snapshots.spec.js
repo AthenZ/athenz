@@ -459,11 +459,14 @@ describe('Microsegmentation snapshots', () => {
         await waitForElementExist(rowSel('V1'));
         expect(await snapshotCount()).toBe(before + 2);
 
-        // deleting one leaves the other in place
+        // deleting one leaves the other in place; the toast closes two
+        // seconds after the delete returns but the row only goes once the
+        // list has reloaded, so assert the toast before waiting on the row
         await waitAndClick(deleteSel('V1'));
         await waitForElementExist(SEL_DELETE_MESSAGE);
-        await confirmDeleteWithForceIfNeeded('V1');
+        await waitAndClick(SEL_DELETE_SUBMIT);
         await expectToast('Snapshot V1 deleted');
+        await waitForElementExist(rowSel('V1'), { reverse: true });
         expect(await $(rowSel('v1')).isExisting()).toBe(true);
         expect(await snapshotCount()).toBe(before + 1);
     });
