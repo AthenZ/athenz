@@ -2074,7 +2074,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error while searching self-serve catalog: ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 callback(errorHandler.fetcherError(err));
@@ -2093,7 +2093,7 @@ Fetchr.registerService({
                     `principal: ${req.session.shortId} rid: ${
                         req.headers.rid
                     } Error while updating self-serve catalog: ${JSON.stringify(
-                        err
+                        errorHandler.fetcherError(err)
                     )}`
                 );
                 callback(errorHandler.fetcherError(err));
@@ -3322,7 +3322,7 @@ Fetchr.registerService({
                 if (err) {
                     debug(
                         'validateTransportPolicy error: ',
-                        JSON.stringify(err)
+                        JSON.stringify(errorHandler.fetcherError(err))
                     );
                     return callback(errorHandler.fetcherError(err));
                 } else {
