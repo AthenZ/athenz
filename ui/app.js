@@ -21,6 +21,7 @@ const next = require('next');
 const appConfig = require('./src/config/config')();
 const secrets = require('./src/server/secrets');
 const SSLReloader = require('./src/server/sslReloader');
+const errorHandler = require('./src/server/utils/errorHandler');
 const handlers = {
     api: require('./src/server/handlers/api'),
     passportAuth: require('./src/server/handlers/passportAuth'),
@@ -110,7 +111,12 @@ Promise.all([nextApp.prepare(), secrets.load(appConfig)])
             });
         },
         (err) => {
-            debug('[Startup] Fatal Error: %o', err);
+            debug(
+                '[Startup] Fatal Error: %s',
+                err instanceof Error
+                    ? err.stack
+                    : JSON.stringify(errorHandler.fetcherError(err || {}))
+            );
             process.exit(1);
         }
     );

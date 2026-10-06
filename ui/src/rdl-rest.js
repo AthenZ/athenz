@@ -203,6 +203,19 @@ var _methodCb = function (data, callback, route) {
         callback(err, json, res);
     };
 
+    // keep only the descriptive fields of a transport error; the request
+    // config (headers, https agent options) must not reach callers or logs
+    let sanitizeError = function (err) {
+        if (!err) {
+            return err;
+        }
+        return {
+            name: err.name,
+            code: err.code,
+            message: err.message,
+        };
+    };
+
     let handleResponse = function (err, json, res) {
         var isJson = _isJsonResponse(json);
         var isSuccessResponse = _isSuccessResponseCode(res && res.status);
@@ -216,7 +229,7 @@ var _methodCb = function (data, callback, route) {
             err = {
                 status: res && res.status,
                 message: json,
-                error: err,
+                error: sanitizeError(err),
             };
             if (!isJson) {
                 json = null;
