@@ -1,3 +1,45 @@
+Athenz v1.12.49 Release / Oct 05, 2026
+--------------------------------------
+
+#3468 Add Java Crypki library so ZTS can mint X.509 certificates in-process.
+#3477 Feat: ID-JAG with Multiple Domain Supported for Full ID-JAG => AccessToken Exchange
+#3487 add self-service API endpoints & update clients
+#3489 add self-service UI for role/group management
+#3490 expose hostname field for zts-svccert utility
+#3491 Bump multer from 2.2.0 to 2.3.0 in /ui
+#3492 Bump next from 16.3.0 to 16.3.4 in /ui
+#3493 zms: audit template support for audit enabled objects
+#3494 secure boot provider: fall back to cert hostname during register
+#3496 Add bulk role and policy delete APIs
+#3498 Map KMS signer key ids to per-tenant CA certificates.
+#3499 Validate audience and caller binding for JWT client assertions
+#3500 simplify api signature for self-serve objects
+#3502 update java/go/nodejs dependencies to their latest releases
+#3503 zms: optionally enforce audit template only on feature flagged domains
+#3504 add web identity support in zts java client
+#3505 upgrade wdio packages
+#3508 enforce full role name match for role certificate and token requests
+#3509 fix self service func test
+#3510 Add AIX support to libs/go/sia/util
+#3511 increase max duration of func test runner
+#3512 zts: allow id token exchange on oidc port and support role in aud claim
+#3513 zts: validate csr instance id and restrict file record store paths
+#3515 Update Dockerfiles to use golang:1.26-trixie base image
+#3516 hide already-held/requested roles from self-service search
+#3517 bump nextjs version
+#3518 pin package versions to address CVEs
+#3522 Jetty container: allow PROXY protocol to be enabled per port
+#3523 Bump multer from 2.3.0 to 2.4.0 in /ui
+#3524 zms: add api to retrieve domain audit log history
+#3525 fix: token fetch and self-service UI test cleanup
+#3526 UI - add snapshot management to service microsegmentation page
+#3527 force classic WebDriver to fix WDIO v9 BiDi execute hang
+#3528 Fix UI hides errors from MSD and displays empty static IP list view
+#3529 update java/go/nodejs dependencies + remove server libs from maven central
+#3532 HttpDriver: add doGetHttpResponse and handle entity-less responses
+#3533 Bump moment from 2.29.4 to 2.31.0 in /ui
+#3534 zts-svccert: support requesting a certificate with a pre-generated CSR
+
 Athenz v1.12.48 Release / Sep 16, 2026
 --------------------------------------
 
