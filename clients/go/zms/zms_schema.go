@@ -611,6 +611,7 @@ func init() {
 	tTemplateMetaData.Field("keywordsToReplace", "String", true, nil, "placeholders in the template roles/policies to replace (ex:_service_)")
 	tTemplateMetaData.Field("timestamp", "Timestamp", true, nil, "the updated timestamp of the template(solution_templates.json)")
 	tTemplateMetaData.Field("autoUpdate", "Bool", true, nil, "flag to automatically update the roles/policies that belongs to the template")
+	tTemplateMetaData.Field("preserveAdminAccess", "Bool", true, nil, "require existing direct admins to retain delegated access; omitted inherits the ZMS default")
 	sb.AddType(tTemplateMetaData.Build())
 
 	tTemplate := rdl.NewStructTypeBuilder("Struct", "Template")

@@ -4985,6 +4985,12 @@ type TemplateMetaData struct {
 	// template
 	//
 	AutoUpdate *bool `json:"autoUpdate,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// require existing direct admins to retain delegated access; omitted inherits
+	// the ZMS default
+	//
+	PreserveAdminAccess *bool `json:"preserveAdminAccess,omitempty" rdl:"optional" yaml:",omitempty"`
 }
 
 // NewTemplateMetaData - creates an initialized TemplateMetaData instance, returns a pointer to it
