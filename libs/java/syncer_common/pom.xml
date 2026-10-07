@@ -74,17 +74,7 @@
         </dependency>
         <dependency>
             <groupId>com.yahoo.athenz</groupId>
-            <artifactId>athenz-auth-core</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.yahoo.athenz</groupId>
             <artifactId>athenz-client-common</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.yahoo.athenz</groupId>
-            <artifactId>athenz-zms-core</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
