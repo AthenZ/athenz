@@ -35,26 +35,58 @@ import {
 } from './domains';
 const debug = require('debug')('AthenzUI:redux:domain');
 
+const withTiming = (label, promise) => {
+    const start = Date.now();
+    return Promise.resolve(promise).then(
+        (result) => {
+            console.log(`[domainData] ${label}: ${Date.now() - start}ms`);
+            return result;
+        },
+        (error) => {
+            const status = error?.statusCode ?? error?.status ?? 'n/a';
+            console.warn(
+                `[domainData] ${label}: failed after ${
+                    Date.now() - start
+                }ms (status=${status})`
+            );
+            throw error;
+        }
+    );
+};
+
 const loadAllDomainData = async (domainName, userName, dispatch) => {
     dispatch(loadingInProcess('getDomainData'));
+    const loadStart = Date.now();
     try {
         let bServicesParams = {
             category: 'domain',
             attributeName: 'businessService',
             userName: userName,
         };
-        const domainData = await API().getDomain(domainName);
+        const domainData = await withTiming(
+            'getDomain',
+            API().getDomain(domainName)
+        );
         const [
             isAwsTemplateApplied,
             domainPendingMembersList,
             businessServices,
         ] = await Promise.all([
-            API().isAWSTemplateApplied(domainName),
-            API().getPendingDomainMembersListByDomain(domainName),
-            API().getMeta(bServicesParams),
-            dispatch(getHeaderDetails()),
-            dispatch(getAuthorityAttributes()),
-            dispatch(getFeatureFlag()),
+            withTiming(
+                'isAWSTemplateApplied',
+                API().isAWSTemplateApplied(domainName)
+            ),
+            withTiming(
+                'getPendingDomainMembersListByDomain',
+                API().getPendingDomainMembersListByDomain(domainName)
+            ),
+            withTiming('getMeta', API().getMeta(bServicesParams)),
+            withTiming('getHeaderDetails', dispatch(getHeaderDetails())),
+            withTiming(
+                'getAuthorityAttributes',
+                dispatch(getAuthorityAttributes())
+            ),
+            withTiming('getFeatureFlag', dispatch(getFeatureFlag())),
         ]);
         domainData.isAWSTemplateApplied = isAwsTemplateApplied;
         domainData.bellPendingMembers = createBellPendingMembers(
@@ -81,8 +113,14 @@ const loadAllDomainData = async (domainName, userName, dispatch) => {
         const expiry = getExpiryTime();
         dispatch(loadDomainData(domainData, domainName, expiry));
         dispatch(loadingSuccess('getDomainData'));
+        console.log(
+            `[domainData] all calls complete in ${Date.now() - loadStart}ms`
+        );
     } catch (e) {
         dispatch(loadingFailed('getDomainData'));
+        console.warn(
+            `[domainData] load failed/aborted after ${Date.now() - loadStart}ms`
+        );
         debug('Failed getDomainData:', e);
     }
 };

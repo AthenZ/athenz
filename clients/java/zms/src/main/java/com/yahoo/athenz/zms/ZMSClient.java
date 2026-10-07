@@ -1399,6 +1399,38 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Delete the specified roles from domain
+     *
+     * @param domainName name of the domain
+     * @param roleNames  comma separated list of role names
+     * @param auditRef   string containing audit specification or ticket number
+     * @param resourceOwner string containing the owner of the resource
+     * @throws ZMSClientException in case of failure
+     */
+    public void deleteRoles(String domainName, String roleNames, String auditRef, String resourceOwner) {
+        updatePrincipal();
+        try {
+            client.deleteRoles(domainName, roleNames, auditRef, resourceOwner);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Delete the specified roles from domain
+     *
+     * @param domainName name of the domain
+     * @param roleNames  comma separated list of role names
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void deleteRoles(String domainName, String roleNames, String auditRef) {
+        deleteRoles(domainName, roleNames, auditRef, null);
+    }
+
+    /**
      * Get membership details for the specified member in the given role
      * in a specified domain
      *
@@ -2138,6 +2170,38 @@ public class ZMSClient implements Closeable {
      */
     public void deletePolicy(String domainName, String policyName, String auditRef) {
         deletePolicy(domainName, policyName, auditRef, null);
+    }
+
+    /**
+     * Delete specified policies from a domain
+     *
+     * @param domainName name of the domain
+     * @param policyNames comma separated list of policy names to be deleted
+     * @param auditRef   string containing audit specification or ticket number
+     * @param resourceOwner string containing the owner of the resource
+     * @throws ZMSClientException in case of failure
+     */
+    public void deletePolicies(String domainName, String policyNames, String auditRef, String resourceOwner) {
+        updatePrincipal();
+        try {
+            client.deletePolicies(domainName, policyNames, auditRef, resourceOwner);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Delete specified policies from a domain
+     *
+     * @param domainName name of the domain
+     * @param policyNames comma separated list of policy names to be deleted
+     * @param auditRef   string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void deletePolicies(String domainName, String policyNames, String auditRef) {
+        deletePolicies(domainName, policyNames, auditRef, null);
     }
 
     /**
@@ -2981,6 +3045,31 @@ public class ZMSClient implements Closeable {
         updatePrincipal();
         try {
             return client.getAuthHistoryDependencies(domainName);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Get the audit log history for the domain. All filter arguments are optional
+     * and can be passed as null.
+     * @param domainName name of the domain
+     * @param api        restrict results to the given api name e.g. putRole
+     * @param entity     restrict results to the given entity name e.g. role name
+     * @param principal  restrict results to changes made by the given principal
+     * @param startDate  restrict results to changes made on or after this date (RFC3339 format)
+     * @param endDate    restrict results to changes made on or before this date (RFC3339 format)
+     * @param limit      restrict the number of results in this call
+     * @return list of audit log records for the domain
+     * @throws ZMSClientException in case of failure
+     */
+    public DomainAuditLog getDomainAuditLog(String domainName, String api, String entity, String principal,
+            String startDate, String endDate, Integer limit) {
+        updatePrincipal();
+        try {
+            return client.getDomainAuditLog(domainName, api, entity, principal, startDate, endDate, limit);
         } catch (ClientResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {

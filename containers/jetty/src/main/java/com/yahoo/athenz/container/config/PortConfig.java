@@ -38,6 +38,16 @@ public class PortConfig {
     @JsonProperty("allowed_endpoints")
     private List<EndpointConfig> allowedEndpoints;
 
+    /**
+     * Optional per-port PROXY protocol setting. When null (not specified in
+     * port-uri.json) the port inherits the global athenz.proxy_protocol value.
+     * Set it to true only on a listener that is reachable exclusively through a
+     * trusted L4 proxy (e.g. a Cloudflare Spectrum origin port): any peer that can
+     * reach a PROXY-enabled port can forge the client address in the header.
+     */
+    @JsonProperty("proxy_protocol")
+    private Boolean proxyProtocol;
+
     public int getPort() {
         return port;
     }
@@ -84,5 +94,21 @@ public class PortConfig {
 
     public void setSniHostCheck(boolean sniHostCheck) {
         this.sniHostCheck = sniHostCheck;
+    }
+
+    public Boolean getProxyProtocol() {
+        return proxyProtocol;
+    }
+
+    public void setProxyProtocol(Boolean proxyProtocol) {
+        this.proxyProtocol = proxyProtocol;
+    }
+
+    /**
+     * @param defaultValue the global athenz.proxy_protocol setting
+     * @return the per-port value if specified, otherwise the global default
+     */
+    public boolean isProxyProtocolEnabled(boolean defaultValue) {
+        return proxyProtocol != null ? proxyProtocol : defaultValue;
     }
 }

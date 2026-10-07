@@ -33,6 +33,7 @@ import { selectService } from '../../../../../redux/selectors/services';
 import ServiceTabs from '../../../../../components/header/ServiceTabs';
 import { getInboundOutbound } from '../../../../../redux/thunks/microsegmentation';
 import RulesList from '../../../../../components/microsegmentation/RulesList';
+import SnapshotList from '../../../../../components/microsegmentation/SnapshotList';
 import Alert from '../../../../../components/denali/Alert';
 import { selectFeatureFlag } from '../../../../../redux/selectors/domains';
 
@@ -207,6 +208,19 @@ class ServiceMicrosegmentationPage extends React.Component {
                                             this.props.pageFeatureFlag
                                         }
                                     />
+                                    {this.props.pageFeatureFlag &&
+                                        this.props.pageFeatureFlag
+                                            .snapshots && (
+                                            <SnapshotList
+                                                api={this.api}
+                                                domain={domainName}
+                                                service={serviceName}
+                                                _csrf={_csrf}
+                                                pageFeatureFlag={
+                                                    this.props.pageFeatureFlag
+                                                }
+                                            />
+                                        )}
                                 </MicrosegmentationContentDiv>
                             </MicrosegmentationContainerDiv>
                             <UserDomains domain={domainName} />

@@ -58,24 +58,17 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
     
     @Override
     public boolean updateX509CertRecord(X509CertRecord certRecord) {
-        if (certRecord != null) {
-            putCertRecord(certRecord);
-        }
-        return true;
+        return certRecord == null || putCertRecord(certRecord);
     }
     
     @Override
     public boolean insertX509CertRecord(X509CertRecord certRecord) {
-        if (certRecord != null) {
-            putCertRecord(certRecord);
-        }
-        return true;
+        return certRecord == null || putCertRecord(certRecord);
     }
     
     @Override
     public boolean deleteX509CertRecord(String provider, String instanceId, String service) {
-        deleteCertRecord(provider, instanceId, service);
-        return true;
+        return deleteCertRecord(provider, instanceId, service);
     }
     
     @Override
@@ -121,9 +114,26 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
         return provider + "-" + instanceId + "-" + service;
     }
 
+    File getRecordFile(final String provider, final String instanceId, final String service) {
+
+        // make sure the record file is directly within our root
+        // directory. the name must not include any path separators
+        // (or nul characters) so it's always a single path component
+        // and the resolved path must still be within the root directory
+
+        final String fileName = getRecordFileName(provider, instanceId, service);
+        final Path rootPath = rootDir.toPath().toAbsolutePath().normalize();
+        if (fileName.indexOf('/') != -1 || fileName.indexOf('\\') != -1 || fileName.indexOf('\0') != -1
+                || !rootPath.resolve(fileName).normalize().startsWith(rootPath)) {
+            LOGGER.error("Invalid certificate record file: {}", fileName);
+            return null;
+        }
+        return rootPath.resolve(fileName).toFile();
+    }
+
     private synchronized X509CertRecord getCertRecord(String provider, String instanceId, String service) {
-        File file = new File(rootDir, getRecordFileName(provider, instanceId, service));
-        if (!file.exists()) {
+        File file = getRecordFile(provider, instanceId, service);
+        if (file == null || !file.exists()) {
             return null;
         }
         X509CertRecord record = null;
@@ -136,24 +146,34 @@ public class FileCertRecordStoreConnection implements CertRecordStoreConnection 
         return record;
     }
 
-    private synchronized void putCertRecord(X509CertRecord certRecord) {
-        
-        File file = new File(rootDir, getRecordFileName(certRecord.getProvider(), certRecord.getInstanceId(), certRecord.getService()));
+    private synchronized boolean putCertRecord(X509CertRecord certRecord) {
+
+        File file = getRecordFile(certRecord.getProvider(), certRecord.getInstanceId(), certRecord.getService());
+        if (file == null) {
+            return false;
+        }
         String data = JSON.string(certRecord);
         try (FileWriter fileWriter = new FileWriter(file)) {
             fileWriter.write(data);
             fileWriter.flush();
         } catch (IOException ex) {
             LOGGER.error("Unable to save certificate record", ex);
+            return false;
         }
+        return true;
     }
 
-    private synchronized void deleteCertRecord(String provider, String instanceId, String service) {
-        File file = new File(rootDir, getRecordFileName(provider, instanceId, service));
+    private synchronized boolean deleteCertRecord(String provider, String instanceId, String service) {
+        File file = getRecordFile(provider, instanceId, service);
+        if (file == null) {
+            return false;
+        }
         try {
             filesHelper.delete(file);
         } catch (IOException ex) {
             LOGGER.error("Unable to delete certificate record", ex);
+            return false;
         }
+        return true;
     }
 }

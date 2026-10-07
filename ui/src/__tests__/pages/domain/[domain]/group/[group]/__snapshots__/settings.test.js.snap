@@ -2131,7 +2131,7 @@ exports[`GroupSettingPage should render 1`] = `
                           id="setting-memberExpiryDays"
                           pattern="[0-9]*"
                           placeholder="Days"
-                          value=""
+                          value="60"
                         />
                         <div
                           class="message"
@@ -2174,7 +2174,7 @@ exports[`GroupSettingPage should render 1`] = `
                           id="setting-serviceExpiryDays"
                           pattern="[0-9]*"
                           placeholder="Days"
-                          value=""
+                          value="50"
                         />
                         <div
                           class="message"

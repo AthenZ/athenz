@@ -737,6 +737,29 @@ describe('getServiceInstances method', () => {
             )
         ).toBeTruthy();
     });
+    it('rejects when MSD returns an error', async () => {
+        const fakeDispatch = sinon.spy();
+        const getState = () => {};
+        const msdError = {
+            statusCode: 500,
+            output: { message: 'Internal Server Error' },
+        };
+        let myMockApi = {
+            getInstances: jest.fn().mockReturnValue(Promise.reject(msdError)),
+        };
+        jest.spyOn(serviceSelector, 'thunkSelectService').mockReturnValue({
+            name: domainName + '.service1',
+        });
+        MockApi.setMockApi(myMockApi);
+        await expect(
+            getServiceInstances(
+                domainName,
+                'service1',
+                'static'
+            )(fakeDispatch, getState)
+        ).rejects.toEqual(msdError);
+        expect(fakeDispatch.called).toBeFalsy();
+    });
 });
 
 describe('getServiceHeaderDetails method', () => {

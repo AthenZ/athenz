@@ -59,6 +59,31 @@ public class PortConfigTest {
     }
 
     @Test
+    public void testProxyProtocolDefaultsToGlobalSetting() {
+        PortConfig config = new PortConfig();
+
+        // not specified in port-uri.json -> inherit whatever the global flag says
+        assertNull(config.getProxyProtocol());
+        assertFalse(config.isProxyProtocolEnabled(false));
+        assertTrue(config.isProxyProtocolEnabled(true));
+
+        // explicit per-port value wins over the global flag in both directions
+        config.setProxyProtocol(Boolean.TRUE);
+        assertEquals(config.getProxyProtocol(), Boolean.TRUE);
+        assertTrue(config.isProxyProtocolEnabled(false));
+        assertTrue(config.isProxyProtocolEnabled(true));
+
+        config.setProxyProtocol(Boolean.FALSE);
+        assertFalse(config.isProxyProtocolEnabled(false));
+        assertFalse(config.isProxyProtocolEnabled(true));
+
+        // back to inherit
+        config.setProxyProtocol(null);
+        assertNull(config.getProxyProtocol());
+        assertTrue(config.isProxyProtocolEnabled(true));
+    }
+
+    @Test
     public void testSetPort() {
         PortConfig config = new PortConfig();
 

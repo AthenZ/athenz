@@ -113,6 +113,7 @@ if (!sauceLabsUser) {
             browserVersion: 'latest',
             platformName: 'OS X 12',
             maxInstances: 7,
+            'wdio:enforceWebDriverClassic': true,
             'sauce:options': {
                 tunnelIdentifier:
                     TUNNEL_IDENTIFIER +
@@ -123,6 +124,7 @@ if (!sauceLabsUser) {
                 build: BUILD_NUMBER,
                 screenResolution: functionalConfig.screenResolution,
                 maxDuration: 3600,
+                extendedDebugging: true,
             },
         },
     ];
@@ -342,7 +344,7 @@ let config = {
 
             console.log('Fetching access token using command: ', command);
 
-            exec(command, (err, stdout, stderr) => {
+            exec(command, { timeout: 15000 }, (err, stdout, stderr) => {
                 let value = {};
                 if (err) {
                     console.log('Fetching tokens failed: ', err, stderr);
@@ -358,7 +360,16 @@ let config = {
                         return;
                     }
                 }
-                callback(err, value);
+                // Treat a missing token as a failure so the retry engages
+                // instead of planting an empty cookie (a "session expired" UI).
+                if (!value.access_token) {
+                    callback(
+                        new Error('Access token missing from token response'),
+                        value
+                    );
+                    return;
+                }
+                callback(null, value);
             });
         };
 

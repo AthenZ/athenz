@@ -835,6 +835,38 @@ func (client ZMSClient) GetAuthHistoryDependencies(domainName DomainName) (*Auth
 	}
 }
 
+func (client ZMSClient) GetDomainAuditLog(domainName DomainName, api SimpleName, entity ResourceName, principal ResourceName, startDate string, endDate string, limit *int32) (*DomainAuditLog, error) {
+	var data *DomainAuditLog
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/history/audit" + encodeParams(encodeStringParam("api", string(api), ""), encodeStringParam("entity", string(entity), ""), encodeStringParam("principal", string(principal), ""), encodeStringParam("start", string(startDate), ""), encodeStringParam("end", string(endDate), ""), encodeOptionalInt32Param("limit", limit))
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
 func (client ZMSClient) DeleteExpiredMembers(purgeResources *int32, auditRef string, returnObj *bool) (*ExpiredMembers, error) {
 	var data *ExpiredMembers
 	headers := map[string]string{
@@ -1212,6 +1244,37 @@ func (client ZMSClient) DeleteRole(domainName DomainName, roleName EntityName, a
 		"Y-Audit-Ref":           auditRef,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/role/" + fmt.Sprint(roleName)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) DeleteRoles(domainName DomainName, roleNames EntityNameList, auditRef string, resourceOwner string) error {
+	headers := map[string]string{
+		"Athenz-Resource-Owner": resourceOwner,
+		"Y-Audit-Ref":           auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/roles/" + fmt.Sprint(roleNames)
 	resp, err := client.httpDelete(url, headers)
 	if err != nil {
 		return err
@@ -2378,6 +2441,37 @@ func (client ZMSClient) DeletePolicy(domainName DomainName, policyName EntityNam
 		"Y-Audit-Ref":           auditRef,
 	}
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policy/" + fmt.Sprint(policyName)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) DeletePolicies(domainName DomainName, policyNames EntityNameList, auditRef string, resourceOwner string) error {
+	headers := map[string]string{
+		"Athenz-Resource-Owner": resourceOwner,
+		"Y-Audit-Ref":           auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/policies/" + fmt.Sprint(policyNames)
 	resp, err := client.httpDelete(url, headers)
 	if err != nil {
 		return err

@@ -156,16 +156,19 @@ describe('SelfServiceView', () => {
         );
     }
 
-    it('should group search results for roles and groups', async () => {
+    it('should group requestable search results for roles and groups', async () => {
         renderWithRedux(<SelfServiceView userName='tsultanov' _csrf='csrf' />);
         await searchForSecurityPlatform();
-        expect(screen.getByText('Roles (3)')).toBeInTheDocument();
-        expect(screen.getByText('Groups (2)')).toBeInTheDocument();
+        expect(screen.getByText('Roles (1)')).toBeInTheDocument();
+        expect(screen.getByText('Groups (1)')).toBeInTheDocument();
         expect(
             screen.getByText('security-platform-reviewers')
         ).toBeInTheDocument();
         expect(
-            screen.getByText(/3 roles and 2 groups match/)
+            screen.getByText(/1 role and 1 group match/)
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText(/3 already held or requested hidden/)
         ).toBeInTheDocument();
     });
 
@@ -206,7 +209,7 @@ describe('SelfServiceView', () => {
     it('clears results and resets the domain filter when the query is emptied', async () => {
         renderWithRedux(<SelfServiceView userName='tsultanov' _csrf='csrf' />);
         await searchForSecurityPlatform();
-        expect(screen.getByText('Roles (3)')).toBeInTheDocument();
+        expect(screen.getByText('Roles (1)')).toBeInTheDocument();
         fireEvent.change(
             screen.getByPlaceholderText('Search by name or description'),
             { target: { value: '' } }
@@ -253,22 +256,78 @@ describe('SelfServiceView', () => {
         expect(selected[1]).toHaveTextContent('security-platform-reviewers');
     });
 
-    it('should disable checkboxes on rows that cannot be requested', async () => {
+    it('should hide search results the user already holds or requested', async () => {
         renderWithRedux(<SelfServiceView userName='tsultanov' _csrf='csrf' />);
         await searchForSecurityPlatform();
+        // pending and member matches are dropped from the Find results entirely
         expect(
-            screen.getByTestId(
+            screen.queryByTestId(
                 'select-athenz.prod:role.security-platform-auditors'
             )
-        ).toBeDisabled();
+        ).not.toBeInTheDocument();
         expect(
-            screen.getByTestId('select-paranoids.tools:role.scanner-users')
-        ).toBeDisabled();
+            screen.queryByTestId('select-paranoids.tools:role.scanner-users')
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByTestId(
+                'select-paranoids.tools:group.security-champions'
+            )
+        ).not.toBeInTheDocument();
+        // the requestable matches remain and are selectable
+        expect(
+            screen.getByTestId(
+                'select-paranoids.tools:role.security-platform-users'
+            )
+        ).toBeEnabled();
     });
 
-    it('should grey out inherited leave and show a reason on hover', async () => {
+    it('shows an empty state when every match is already held or requested', async () => {
+        MockApi.setMockApi({
+            getPendingDomainMembersList: jest.fn().mockResolvedValue([]),
+            getReviewGroups: jest.fn().mockReturnValue([]),
+            getReviewRoles: jest.fn().mockReturnValue([]),
+            getPageFeatureFlag: jest.fn().mockResolvedValue({}),
+            searchSelfServe: jest
+                .fn()
+                .mockImplementation((matchString, domain, member) => {
+                    if (member) {
+                        return Promise.resolve(MEMBERSHIPS);
+                    }
+                    // every match is already held/requested
+                    return Promise.resolve({
+                        list: SEARCH_RESULTS.list.filter(
+                            (item) => item.memberStatus !== 'none'
+                        ),
+                        domains: SEARCH_RESULTS.domains,
+                        membershipCount: 4,
+                    });
+                }),
+            updateSelfServe: jest.fn().mockResolvedValue({}),
+        });
         renderWithRedux(<SelfServiceView userName='tsultanov' _csrf='csrf' />);
-        await searchForSecurityPlatform();
+        await waitFor(() =>
+            expect(
+                screen.getByTestId('self-service-search-bar')
+            ).toBeInTheDocument()
+        );
+        fireEvent.change(
+            screen.getByPlaceholderText('Search by name or description'),
+            { target: { value: 'security-platform' } }
+        );
+        fireEvent.click(screen.getByTestId('self-service-search-button'));
+        expect(
+            await screen.findByText(
+                /You already hold or have requested everything matching/
+            )
+        ).toBeInTheDocument();
+    });
+
+    it('should grey out inherited leave and show a reason on hover in My Roles', async () => {
+        renderWithRedux(<SelfServiceView userName='tsultanov' _csrf='csrf' />);
+        fireEvent.click(await screen.findByText(/My Roles & Groups \(4\)/));
+        await waitFor(() =>
+            expect(screen.getByText('scanner-users')).toBeInTheDocument()
+        );
         const leave = screen.getByTestId(
             'leave-paranoids.tools:role.scanner-users'
         );

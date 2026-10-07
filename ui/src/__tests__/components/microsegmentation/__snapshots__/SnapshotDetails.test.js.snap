@@ -1,0 +1,258 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SnapshotDetails renders metadata, ingress and egress rules and usage 1`] = `
+.emotion-0 {
+  padding: 10px 15px 15px 45px;
+  background-color: #f8f8f8;
+}
+
+.emotion-2 {
+  font-weight: 600;
+  padding: 10px 0 5px;
+}
+
+.emotion-4 {
+  width: 100%;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+.emotion-6 {
+  text-align: left;
+  border-bottom: 2px solid #d5d5d5;
+  color: #9a9a9a;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  padding: 5px 15px 5px 0;
+}
+
+.emotion-16 {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 15px 5px 0;
+  border-bottom: 1px solid #e8e8e8;
+  word-break: break-all;
+}
+
+.emotion-18 {
+  font-size: 0.8rem;
+  color: #9a9a9a;
+}
+
+<div
+  class="emotion-0 emotion-1"
+  data-testid="snapshot-details"
+>
+  <div>
+    <div
+      class="emotion-2 emotion-3"
+    >
+      Inbound (1)
+    </div>
+    <table
+      class="emotion-4 emotion-5"
+      data-testid="snapshot-ingress-table"
+    >
+      <thead>
+        <tr>
+          <th
+            class="emotion-6 emotion-7"
+          >
+            Destination Service
+          </th>
+          <th
+            class="emotion-6 emotion-7"
+          >
+            Destination Ports
+          </th>
+          <th
+            class="emotion-6 emotion-7"
+          >
+            Conditions
+          </th>
+          <th
+            class="emotion-6 emotion-7"
+          >
+            Source Services
+          </th>
+          <th
+            class="emotion-6 emotion-7"
+          >
+            Source Ports
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          data-testid="snapshot-rule-row"
+        >
+          <td
+            class="emotion-16 emotion-17"
+          >
+            dom.svc
+            <div
+              class="emotion-18 emotion-19"
+            >
+              api-in 
+              modified 2026-09-10 09:00 UTC
+            </div>
+          </td>
+          <td
+            class="emotion-16 emotion-17"
+          >
+            4443/TCP
+          </td>
+          <td
+            class="emotion-16 emotion-17"
+          >
+            <div>
+              ENFORCE; scope: ONPREM AWS; instances: host1, host2
+            </div>
+          </td>
+          <td
+            class="emotion-16 emotion-17"
+          >
+            <div>
+              peer.client
+            </div>
+          </td>
+          <td
+            class="emotion-16 emotion-17"
+          >
+            1024-65535/TCP
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <div
+      class="emotion-2 emotion-3"
+    >
+      Outbound (1)
+    </div>
+    <table
+      class="emotion-4 emotion-5"
+      data-testid="snapshot-egress-table"
+    >
+      <thead>
+        <tr>
+          <th
+            class="emotion-6 emotion-7"
+          >
+            Source Service
+          </th>
+          <th
+            class="emotion-6 emotion-7"
+          >
+            Source Ports
+          </th>
+          <th
+            class="emotion-6 emotion-7"
+          >
+            Conditions
+          </th>
+          <th
+            class="emotion-6 emotion-7"
+          >
+            Destination Services
+          </th>
+          <th
+            class="emotion-6 emotion-7"
+          >
+            Destination Ports
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          data-testid="snapshot-rule-row"
+        >
+          <td
+            class="emotion-16 emotion-17"
+          >
+            dom.svc
+            <div
+              class="emotion-18 emotion-19"
+            >
+              modified 2026-09-11 09:00 UTC
+            </div>
+          </td>
+          <td
+            class="emotion-16 emotion-17"
+          >
+            1024-65535/TCP
+          </td>
+          <td
+            class="emotion-16 emotion-17"
+          >
+            <div>
+              REPORT; env EQUALS prod
+            </div>
+          </td>
+          <td
+            class="emotion-16 emotion-17"
+          >
+            <div>
+              peer.db
+            </div>
+            <div>
+              db.example.com/32
+            </div>
+          </td>
+          <td
+            class="emotion-16 emotion-17"
+          >
+            3306/TCP
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div
+    data-testid="snapshot-usage"
+  >
+    <div
+      class="emotion-2 emotion-3"
+    >
+      Last used by (1)
+    </div>
+    <div>
+      <table
+        class="emotion-4 emotion-5"
+        data-testid="snapshot-usage-table"
+      >
+        <thead>
+          <tr>
+            <th
+              class="emotion-6 emotion-7"
+            >
+              Principal
+            </th>
+            <th
+              class="emotion-6 emotion-7"
+            >
+              Last used
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td
+              class="emotion-16 emotion-17"
+            >
+              peer.controller
+            </td>
+            <td
+              class="emotion-16 emotion-17"
+            >
+              2026-09-28 07:00 UTC
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;

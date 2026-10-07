@@ -34,6 +34,10 @@ public class ZMSSchema {
             .comment("An entity name is a short form of a resource name, including only the domain and entity.")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
 
+        sb.stringType("EntityNameList")
+            .comment("A comma separated list of entity names")
+            .pattern("(([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*,)*([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+
         sb.stringType("ServiceName")
             .comment("A service name will generally be a unique subdomain.")
             .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
@@ -592,6 +596,21 @@ public class ZMSSchema {
         sb.structType("AuthHistoryDependencies")
             .arrayField("incomingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain")
             .arrayField("outgoingDependencies", "AuthHistory", false, "list of incoming auth dependencies for domain");
+
+        sb.structType("DomainAuditLogEntry")
+            .comment("A single audit log record for a change made in the domain")
+            .field("api", "String", false, "name of the api that made the change e.g. putRole")
+            .field("entity", "String", true, "name of the entity that was changed e.g. role, group, policy name")
+            .field("principal", "String", false, "principal that made the change")
+            .field("clientIp", "String", true, "IP address of the client that made the change")
+            .field("timestamp", "Timestamp", false, "timestamp when the change was made")
+            .field("justification", "String", true, "audit reference/justification provided with the change")
+            .field("details", "String", true, "details of the change, typically a json formatted string");
+
+        sb.structType("DomainAuditLog")
+            .comment("The list of audit log records for the domain")
+            .arrayField("entries", "DomainAuditLogEntry", false, "list of audit log records sorted by timestamp, most recent first")
+            .field("partial", "Bool", true, "true if the result set was limited and additional records matching the query are available");
 
         sb.structType("ExpiryMember")
             .field("domainName", "DomainName", false, "name of the domain")
@@ -1334,6 +1353,28 @@ public class ZMSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
+        sb.resource("DomainAuditLog", "GET", "/domain/{domainName}/history/audit")
+            .comment("Get the audit log history for the domain. The optional query arguments can be used to filter the result set. The start and end dates must be specified in RFC3339 format e.g. 2026-09-01T00:00:00Z The principal must be authorized for the \"zms.auditlogaccess\" action on either the \"{domainName}:meta.audit.log\" resource in the requested domain or the \"sys.auth:meta.audit.log.{domainName}\" resource in the sys.auth domain")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .queryParam("api", "api", "SimpleName", null, "restrict results to the given api name")
+            .queryParam("entity", "entity", "ResourceName", null, "restrict results to the given entity name")
+            .queryParam("principal", "principal", "ResourceName", null, "restrict results to changes made by the given principal")
+            .queryParam("start", "startDate", "String", null, "restrict results to changes made on or after this date")
+            .queryParam("end", "endDate", "String", null, "restrict results to changes made on or before this date")
+            .queryParam("limit", "limit", "Int32", null, "restrict the number of results in this call")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
         sb.resource("ExpiredMembers", "DELETE", "/expired-members")
             .comment("Delete expired principals This command will purge expired members of the following resources based on the purgeResources value 0 - none of them will be purged 1 - only roles will be purged 2 - only groups will be purged default/3 - both of them will be purged")
             .queryParam("purgeResources", "purgeResources", "Int32", null, "defining which resources will be purged. by default all resources will be purged")
@@ -1537,6 +1578,28 @@ public class ZMSSchema {
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("delete", "{domainName}:role.{roleName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("RoleList", "DELETE", "/domain/{domainName}/roles/{roleNames}")
+            .comment("Delete the specified roles. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .name("DeleteRoles")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("roleNames", "EntityNameList", "comma separated list of role names to be deleted")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -2230,6 +2293,28 @@ public class ZMSSchema {
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
             .auth("delete", "{domainName}:policy.{policyName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyList", "DELETE", "/domain/{domainName}/policies/{policyNames}")
+            .comment("Delete the specified policies. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .name("DeletePolicies")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("policyNames", "EntityNameList", "comma separated list of policy names to be deleted")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Resource-Owner", "resourceOwner", "String", null, "Resource owner for the request")
+            .auth("", "", true)
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

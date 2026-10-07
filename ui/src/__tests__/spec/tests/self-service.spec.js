@@ -74,6 +74,8 @@ const EXTEND_VALID_ROLE = 'ss-func-extend-valid-role';
 const INHERIT_GROUP = 'ss-func-inherit-group';
 const INHERIT_ROLE = 'ss-func-inherit-role';
 const ALERT_ROLE = 'ss-func-alert-role';
+const EXCLUDE_MEMBER_ROLE = 'ss-func-exclude-member-role';
+const EXCLUDE_PENDING_ROLE = 'ss-func-exclude-pending-role';
 
 // Search tokens that only live in the *description* of a fixture, used to prove
 // roles search name+description while groups search name-only.
@@ -151,9 +153,25 @@ describe('self service screen tests', () => {
         }
     };
 
+    const openDomainListing = async (url, readySelector, attempts = 3) => {
+        for (let attempt = 1; attempt < attempts; attempt++) {
+            try {
+                await navigateAndWait(url);
+                await $(readySelector).waitForExist({ timeout: 30000 });
+                return;
+            } catch {
+                console.warn(
+                    `openDomainListing: ${url} not ready (attempt ${attempt}/${attempts}); reloading`
+                );
+            }
+        }
+        // final attempt: let navigation/wait throw the real error/timeout
+        await navigateAndWait(url);
+        await waitForElementExist(readySelector);
+    };
+
     const deleteRoleIfExists = async (name, domain = TEST_DOMAIN) => {
-        await navigateAndWait(`/domain/${domain}/role`);
-        await waitForElementExist('button*=Add Role');
+        await openDomainListing(`/domain/${domain}/role`, 'button*=Add Role');
         const del = await $(
             `.//*[local-name()="svg" and @id="${name}-delete-role-button"]`
         );
@@ -181,8 +199,7 @@ describe('self service screen tests', () => {
     };
 
     const deleteGroupIfExists = async (name, domain = TEST_DOMAIN) => {
-        await navigateAndWait(`/domain/${domain}/group`);
-        await waitForElementExist('button*=Add Group');
+        await openDomainListing(`/domain/${domain}/group`, 'button*=Add Group');
         const del = await $(
             `.//*[local-name()="svg" and @id="delete-group-icon-${name}"]`
         );
@@ -213,7 +230,6 @@ describe('self service screen tests', () => {
     const createSelfServeRole = async (name, opts = {}) => {
         const domain = opts.domain || TEST_DOMAIN;
         await deleteRoleIfExists(name, domain);
-        await navigateAndWait(`/domain/${domain}/role`);
         await waitAndClick('button*=Add Role');
         await waitAndSetValue('#role-name-input', name);
         await waitAndClick('#advanced-settings-icon');
@@ -257,7 +273,6 @@ describe('self service screen tests', () => {
     const createSelfServeGroup = async (name, opts = {}) => {
         const domain = opts.domain || TEST_DOMAIN;
         await deleteGroupIfExists(name, domain);
-        await navigateAndWait(`/domain/${domain}/group`);
         await waitAndClick('button*=Add Group');
         await waitAndSetValue('#group-name-input', name);
         await waitAndClick('#advanced-settings-icon');
@@ -937,14 +952,81 @@ describe('self service screen tests', () => {
         });
     });
 
+    it('24: a role you are already a member of is excluded from Find', async () => {
+        await authenticateAndWait();
+        // no review -> the self add becomes an active membership immediately
+        await createSelfServeRole(EXCLUDE_MEMBER_ROLE, {
+            reviewEnabled: false,
+        });
+        await gotoSelfService();
+
+        // join it from Find
+        await requestSingleFromFind(
+            EXCLUDE_MEMBER_ROLE,
+            keyFor('role', EXCLUDE_MEMBER_ROLE)
+        );
+
+        // reload and confirm the membership is loaded (My Roles shows it)
+        await gotoSelfService();
+        await goToMineTab();
+        await waitForElementExist(rowLink('role', EXCLUDE_MEMBER_ROLE));
+
+        // back on Find, searching for it no longer returns a requestable row;
+        // the empty state points the user at My Roles & Groups instead
+        await goToFindTab();
+        await searchSelfServe(EXCLUDE_MEMBER_ROLE);
+        await waitForElementExist(rowLink('role', EXCLUDE_MEMBER_ROLE), {
+            reverse: true,
+        });
+        await waitForElementExist('div*=You already hold or have requested');
+    });
+
+    it('25: a role with a pending request is excluded from Find', async () => {
+        await authenticateAndWait();
+        // review enabled -> the self add stays pending approval
+        await createSelfServeRole(EXCLUDE_PENDING_ROLE, {
+            reviewEnabled: true,
+        });
+        await gotoSelfService();
+
+        await requestSingleFromFind(
+            EXCLUDE_PENDING_ROLE,
+            keyFor('role', EXCLUDE_PENDING_ROLE)
+        );
+
+        // reload and confirm the pending request is loaded under My Roles
+        await gotoSelfService();
+        await goToMineTab();
+        await waitForElementExist('div*=Pending requests');
+        await waitForElementExist(rowLink('role', EXCLUDE_PENDING_ROLE));
+
+        // back on Find, the pending item is filtered out of the results
+        await goToFindTab();
+        await searchSelfServe(EXCLUDE_PENDING_ROLE);
+        await waitForElementExist(rowLink('role', EXCLUDE_PENDING_ROLE), {
+            reverse: true,
+        });
+        await waitForElementExist('div*=You already hold or have requested');
+    });
+
     afterEach(async () => {
         try {
             await authenticateAndWait();
-            for (const fixture of createdFixtures) {
-                if (fixture.kind === 'role') {
-                    await deleteRoleIfExists(fixture.name, fixture.domain);
-                } else {
-                    await deleteGroupIfExists(fixture.name, fixture.domain);
+            for (const { kind, name, domain } of createdFixtures) {
+                try {
+                    if (kind === 'group' && name === INHERIT_GROUP) {
+                        await deleteRoleIfExists(INHERIT_ROLE, domain);
+                    }
+                    if (kind === 'role') {
+                        await deleteRoleIfExists(name, domain);
+                    } else {
+                        await deleteGroupIfExists(name, domain);
+                    }
+                } catch (error) {
+                    console.error(
+                        `Self-service cleanup failed for ${kind} "${name}" in ${domain}:`,
+                        error.message
+                    );
                 }
             }
         } catch (error) {

@@ -54,7 +54,7 @@
         "@emotion/react": "11.10.4",
         "@emotion/server": "11.10.0",
         "@emotion/styled": "11.10.4",
-        "@grpc/grpc-js": "^1.9.0",
+        "@grpc/grpc-js": "^1.14.5",
         "@opentelemetry/api": "^1.9.0",
         "@opentelemetry/auto-instrumentations-node": "^0.80.0",
         "@opentelemetry/exporter-logs-otlp-grpc": "^0.222.0",
@@ -71,7 +71,7 @@
         "@reduxjs/toolkit": "1.8.5",
         "async": "3.2.4",
         "aws-sdk": "2.1680.0",
-        "axios": "1.18.0",
+        "axios": "1.20.0",
         "body-parser": "1.20.6",
         "cookie": "0.7.1",
         "cookie-parser": "1.4.7",
@@ -92,10 +92,10 @@
         "js-cookie": "3.0.7",
         "lodash": "4.18.1",
         "lodash.clone": "4.5.0",
-        "moment": "2.29.4",
+        "moment": "2.31.0",
         "moment-timezone": "0.5.37",
-        "multer": "2.3.0",
-        "next": "16.3.4",
+        "multer": "2.4.0",
+        "next": "16.3.6",
         "next-redux-wrapper": "8.0.0",
         "passport": "0.6.0",
         "passport-strategy": "1.0.0",
@@ -158,8 +158,13 @@
     "overrides": {
         "esbuild": "0.25.0",
         "cookie": "0.7.1",
+        "proxy-addr": "2.0.8",
         "postcss": {
             "nanoid": "3.3.8"
+        },
+        "request": {
+            "form-data": "2.5.4",
+            "tough-cookie": "4.1.4"
         }
     }
 }

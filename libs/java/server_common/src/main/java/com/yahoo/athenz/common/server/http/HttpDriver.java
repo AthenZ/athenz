@@ -288,6 +288,40 @@ public class HttpDriver implements Closeable {
         throw new IOException("Failed to get response from server: " + url);
     }
 
+    /**
+     * doGetHttpResponse performs GET method with the given request and returns
+     * the response status code and body without interpreting the status, so
+     * the caller can distinguish between a not-found response and a server error
+     * @param httpGet get request to process
+     * @return HttpDriverResponse object with the status code, message and status line
+     * @throws IOException in case of any errors
+     */
+    public HttpDriverResponse doGetHttpResponse(HttpGet httpGet) throws IOException {
+        final String url = getRequestUri(httpGet);
+        LOGGER.debug("Requesting api for {}", url);
+
+        try (CloseableHttpResponse response = this.client.execute(httpGet)) {
+            if (response != null) {
+                int statusCode = response.getCode();
+                // responses such as 204 or 304 carry no entity
+                String out = response.getEntity() == null ? "" : EntityUtils.toString(response.getEntity());
+                LOGGER.debug("StatusCode: {} Data received: {}", statusCode, out);
+                return new HttpDriverResponse(statusCode, out, new StatusLine(response));
+            }
+        } catch (IOException | ParseException ex) {
+            LOGGER.error("Failed to get response from server {}, exception: ", url, ex);
+        }
+        throw new IOException("Failed to get response from server: " + url);
+    }
+
+    protected String getRequestUri(HttpGet httpGet) {
+        try {
+            return httpGet.getUri().toString();
+        } catch (URISyntaxException e) {
+            return httpGet.getRequestUri();
+        }
+    }
+
     protected String getRequestUri(HttpPost httpPost) {
         try {
             return httpPost.getUri().toString();
@@ -305,7 +339,8 @@ public class HttpDriver implements Closeable {
         try (CloseableHttpResponse response = this.client.execute(httpPost)) {
             if (response != null) {
                 int statusCode = response.getCode();
-                String out = EntityUtils.toString(response.getEntity());
+                // responses such as 204 or 304 carry no entity
+                String out = response.getEntity() == null ? "" : EntityUtils.toString(response.getEntity());
                 LOGGER.debug("StatusCode: {} Data received: {}", statusCode, out);
                 return new HttpDriverResponse(statusCode, out, new StatusLine(response));
             }

@@ -29,6 +29,9 @@ type DomainName string
 // only the domain and entity.
 type EntityName string
 
+// EntityNameList - A comma separated list of entity names
+type EntityNameList string
+
 // ServiceName - A service name will generally be a unique subdomain.
 type ServiceName string
 
@@ -6869,6 +6872,175 @@ func (self *AuthHistoryDependencies) Validate() error {
 	}
 	if self.OutgoingDependencies == nil {
 		return fmt.Errorf("AuthHistoryDependencies: Missing required field: outgoingDependencies")
+	}
+	return nil
+}
+
+// DomainAuditLogEntry - A single audit log record for a change made in the
+// domain
+type DomainAuditLogEntry struct {
+
+	//
+	// name of the api that made the change e.g. putRole
+	//
+	Api string `json:"api"`
+
+	//
+	// name of the entity that was changed e.g. role, group, policy name
+	//
+	Entity string `json:"entity" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// principal that made the change
+	//
+	Principal string `json:"principal"`
+
+	//
+	// IP address of the client that made the change
+	//
+	ClientIp string `json:"clientIp" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// timestamp when the change was made
+	//
+	Timestamp rdl.Timestamp `json:"timestamp"`
+
+	//
+	// audit reference/justification provided with the change
+	//
+	Justification string `json:"justification" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// details of the change, typically a json formatted string
+	//
+	Details string `json:"details" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewDomainAuditLogEntry - creates an initialized DomainAuditLogEntry instance, returns a pointer to it
+func NewDomainAuditLogEntry(init ...*DomainAuditLogEntry) *DomainAuditLogEntry {
+	var o *DomainAuditLogEntry
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainAuditLogEntry)
+	}
+	return o
+}
+
+type rawDomainAuditLogEntry DomainAuditLogEntry
+
+// UnmarshalJSON is defined for proper JSON decoding of a DomainAuditLogEntry
+func (self *DomainAuditLogEntry) UnmarshalJSON(b []byte) error {
+	var m rawDomainAuditLogEntry
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainAuditLogEntry(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *DomainAuditLogEntry) Validate() error {
+	if self.Api == "" {
+		return fmt.Errorf("DomainAuditLogEntry.api is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "String", self.Api)
+		if !val.Valid {
+			return fmt.Errorf("DomainAuditLogEntry.api does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Entity != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Entity)
+		if !val.Valid {
+			return fmt.Errorf("DomainAuditLogEntry.entity does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Principal == "" {
+		return fmt.Errorf("DomainAuditLogEntry.principal is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "String", self.Principal)
+		if !val.Valid {
+			return fmt.Errorf("DomainAuditLogEntry.principal does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.ClientIp != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.ClientIp)
+		if !val.Valid {
+			return fmt.Errorf("DomainAuditLogEntry.clientIp does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Timestamp.IsZero() {
+		return fmt.Errorf("DomainAuditLogEntry: Missing required field: timestamp")
+	}
+	if self.Justification != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Justification)
+		if !val.Valid {
+			return fmt.Errorf("DomainAuditLogEntry.justification does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Details != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Details)
+		if !val.Valid {
+			return fmt.Errorf("DomainAuditLogEntry.details does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// DomainAuditLog - The list of audit log records for the domain
+type DomainAuditLog struct {
+
+	//
+	// list of audit log records sorted by timestamp, most recent first
+	//
+	Entries []*DomainAuditLogEntry `json:"entries"`
+
+	//
+	// true if the result set was limited and additional records matching the
+	// query are available
+	//
+	Partial *bool `json:"partial,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewDomainAuditLog - creates an initialized DomainAuditLog instance, returns a pointer to it
+func NewDomainAuditLog(init ...*DomainAuditLog) *DomainAuditLog {
+	var o *DomainAuditLog
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(DomainAuditLog)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *DomainAuditLog) Init() *DomainAuditLog {
+	if self.Entries == nil {
+		self.Entries = make([]*DomainAuditLogEntry, 0)
+	}
+	return self
+}
+
+type rawDomainAuditLog DomainAuditLog
+
+// UnmarshalJSON is defined for proper JSON decoding of a DomainAuditLog
+func (self *DomainAuditLog) UnmarshalJSON(b []byte) error {
+	var m rawDomainAuditLog
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := DomainAuditLog(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *DomainAuditLog) Validate() error {
+	if self.Entries == nil {
+		return fmt.Errorf("DomainAuditLog: Missing required field: entries")
 	}
 	return nil
 }

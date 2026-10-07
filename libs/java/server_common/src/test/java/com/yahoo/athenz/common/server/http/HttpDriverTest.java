@@ -199,6 +199,93 @@ public class HttpDriverTest {
     }
 
     @Test
+    public void testDoGetHttpResponse() throws IOException {
+        CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
+        CloseableHttpResponse httpResponse = Mockito.mock(CloseableHttpResponse.class);
+        HttpEntity responseEntity = Mockito.mock(HttpEntity.class);
+
+        String data = "Sample Server Response";
+
+        Mockito.when(httpResponse.getCode()).thenReturn(HttpStatus.SC_OK);
+        Mockito.when(responseEntity.getContent()).thenReturn(new ByteArrayInputStream(data.getBytes()));
+        Mockito.when(httpResponse.getEntity()).thenReturn(responseEntity);
+        Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(httpResponse);
+
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
+                .build();
+        httpDriver.setHttpClient(httpClient);
+
+        HttpGet httpGet = new HttpGet("https://localhost:4443/sample");
+
+        HttpDriverResponse httpDriverResponse = httpDriver.doGetHttpResponse(httpGet);
+        Assert.assertEquals(httpDriverResponse.getMessage(), data);
+        Assert.assertEquals(httpDriverResponse.getStatusCode(), HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void testDoGetHttpResponseFailure() throws IOException {
+        CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
+        CloseableHttpResponse httpResponse = Mockito.mock(CloseableHttpResponse.class);
+        HttpEntity responseEntity = Mockito.mock(HttpEntity.class);
+
+        String data = "ERROR RESPONSE FROM SERVER";
+
+        Mockito.when(httpResponse.getCode()).thenReturn(HttpStatus.SC_BAD_GATEWAY);
+        Mockito.when(responseEntity.getContent()).thenReturn(new ByteArrayInputStream(data.getBytes()));
+        Mockito.when(httpResponse.getEntity()).thenReturn(responseEntity);
+        Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(httpResponse);
+
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
+                .build();
+        httpDriver.setHttpClient(httpClient);
+
+        HttpGet httpGet = new HttpGet("https://localhost:4443/sample");
+
+        HttpDriverResponse httpDriverResponse = httpDriver.doGetHttpResponse(httpGet);
+        Assert.assertEquals(httpDriverResponse.getMessage(), data);
+        Assert.assertEquals(httpDriverResponse.getStatusCode(), HttpStatus.SC_BAD_GATEWAY);
+    }
+
+    @Test
+    public void testDoGetHttpResponseNoEntity() throws IOException {
+        CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
+        CloseableHttpResponse httpResponse = Mockito.mock(CloseableHttpResponse.class);
+
+        Mockito.when(httpResponse.getCode()).thenReturn(HttpStatus.SC_NO_CONTENT);
+        Mockito.when(httpResponse.getEntity()).thenReturn(null);
+        Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenReturn(httpResponse);
+
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
+                .build();
+        httpDriver.setHttpClient(httpClient);
+
+        HttpGet httpGet = new HttpGet("https://localhost:4443/sample");
+
+        HttpDriverResponse httpDriverResponse = httpDriver.doGetHttpResponse(httpGet);
+        Assert.assertEquals(httpDriverResponse.getMessage(), "");
+        Assert.assertEquals(httpDriverResponse.getStatusCode(), HttpStatus.SC_NO_CONTENT);
+    }
+
+    @Test
+    public void testDoGetHttpResponseException() throws IOException {
+        CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
+        Mockito.when(httpClient.execute(Mockito.any(HttpGet.class))).thenThrow(new IOException("connection refused"));
+
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
+                .build();
+        httpDriver.setHttpClient(httpClient);
+
+        HttpGet httpGet = new HttpGet("https://localhost:4443/sample");
+
+        try {
+            httpDriver.doGetHttpResponse(httpGet);
+            Assert.fail();
+        } catch (IOException ex) {
+            Assert.assertTrue(ex.getMessage().contains("Failed to get response"));
+        }
+    }
+
+    @Test
     public void testDoPostHttpPostResponse() throws IOException {
         CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
         CloseableHttpResponse httpResponse = Mockito.mock(CloseableHttpResponse.class);
@@ -227,6 +314,27 @@ public class HttpDriverTest {
         HttpDriverResponse httpDriverResponse = httpDriver.doPostHttpResponse(httpPost);
         Assert.assertEquals(httpDriverResponse.getMessage(), data);
         Assert.assertEquals(httpDriverResponse.getStatusCode(), HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void testDoPostHttpPostResponseNoEntity() throws IOException {
+        CloseableHttpClient httpClient = Mockito.mock(CloseableHttpClient.class);
+        CloseableHttpResponse httpResponse = Mockito.mock(CloseableHttpResponse.class);
+
+        Mockito.when(httpResponse.getCode()).thenReturn(HttpStatus.SC_NO_CONTENT);
+        Mockito.when(httpResponse.getEntity()).thenReturn(null);
+        Mockito.when(httpClient.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
+
+        HttpDriver httpDriver = new HttpDriver.Builder(null, "asdf".toCharArray(), null, null)
+                .build();
+        httpDriver.setHttpClient(httpClient);
+
+        HttpPost httpPost = new HttpPost("https://localhost:4443/sample");
+        httpPost.setEntity(new StringEntity("test"));
+
+        HttpDriverResponse httpDriverResponse = httpDriver.doPostHttpResponse(httpPost);
+        Assert.assertEquals(httpDriverResponse.getMessage(), "");
+        Assert.assertEquals(httpDriverResponse.getStatusCode(), HttpStatus.SC_NO_CONTENT);
     }
 
     @Test

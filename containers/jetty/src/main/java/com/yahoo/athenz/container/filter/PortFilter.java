@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.container.filter;
 
+import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.container.config.*;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -78,7 +79,9 @@ public class PortFilter implements jakarta.servlet.Filter {
 
         final String requestUri = getRequestPath(request);
         final String method = request.getMethod();
-        final int localPort = request.getLocalPort();
+        // connector port, not getLocalPort(): behind a PROXY-protocol listener the latter is the
+        // destination port advertised by the upstream proxy, which would select the wrong rules
+        final int localPort = ServletRequestUtil.getConnectorPort(request);
 
         PortConfig portConfig = configManager.getPortConfig(localPort);
         // When port-uri.json is in use, only configured ports have connectors, so portConfig is never null here.
