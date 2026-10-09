@@ -3758,7 +3758,7 @@ public class DBServiceTest {
         // remove the vipng template
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "vipng",
-                auditRef, caller);
+                auditRef, caller, zms.dbService.zmsConfig.getServerSolutionTemplates().get("vipng"));
 
         assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
         assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
@@ -3772,7 +3772,7 @@ public class DBServiceTest {
         // remove vipng again to ensure same result
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "vipng",
-                auditRef, caller);
+                auditRef, caller, zms.dbService.zmsConfig.getServerSolutionTemplates().get("vipng"));
 
         assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
         assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
@@ -3877,7 +3877,7 @@ public class DBServiceTest {
         // remove the vipng template
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "vipng",
-                auditRef, caller);
+                auditRef, caller, zms.dbService.zmsConfig.getServerSolutionTemplates().get("vipng"));
 
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertEquals(domainTemplateList.getTemplateNames().size(), 1);
@@ -3895,7 +3895,7 @@ public class DBServiceTest {
         // remove the platforms template
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "platforms",
-                auditRef, caller);
+                auditRef, caller, zms.dbService.zmsConfig.getServerSolutionTemplates().get("platforms"));
 
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertEquals(domainTemplateList.getTemplateNames().size(), 0);
@@ -3968,7 +3968,7 @@ public class DBServiceTest {
         // remove the templateWithService template
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithService",
-                auditRef, caller);
+                auditRef, caller, zms.dbService.zmsConfig.getServerSolutionTemplates().get("templateWithService"));
 
         assertNull(zms.dbService.getServiceIdentity(domainName, "testService", false));
 
@@ -3978,7 +3978,7 @@ public class DBServiceTest {
         // remove templateWithService again to ensure same result
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithService",
-                auditRef, caller);
+                auditRef, caller, zms.dbService.zmsConfig.getServerSolutionTemplates().get("templateWithService"));
 
         assertNull(zms.dbService.getServiceIdentity(domainName, "testService", false));
 
@@ -4044,7 +4044,8 @@ public class DBServiceTest {
         // remove the templateWithService template
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithMultipleServices",
-                auditRef, caller);
+                auditRef, caller,
+                zms.dbService.zmsConfig.getServerSolutionTemplates().get("templateWithMultipleServices"));
 
         assertNull(zms.dbService.getServiceIdentity(domainName, "testService", false));
 
@@ -4054,7 +4055,8 @@ public class DBServiceTest {
         // remove templateWithService again to ensure same result
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithMultipleServices",
-                auditRef, caller);
+                auditRef, caller,
+                zms.dbService.zmsConfig.getServerSolutionTemplates().get("templateWithMultipleServices"));
 
         assertNull(zms.dbService.getServiceIdentity(domainName, "testService", false));
 
@@ -4125,7 +4127,8 @@ public class DBServiceTest {
         // remove the templateWithService template
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithServiceWithKey",
-                auditRef, caller);
+                auditRef, caller,
+                zms.dbService.zmsConfig.getServerSolutionTemplates().get("templateWithServiceWithKey"));
 
         assertNull(zms.dbService.getServiceIdentity(domainName, "testService3", false));
 
@@ -4135,7 +4138,8 @@ public class DBServiceTest {
         // remove templateWithService again to ensure same result
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithServiceWithKey",
-                auditRef, caller);
+                auditRef, caller,
+                zms.dbService.zmsConfig.getServerSolutionTemplates().get("templateWithServiceWithKey"));
 
         assertNull(zms.dbService.getServiceIdentity(domainName, "testService3", false));
 
@@ -4216,7 +4220,7 @@ public class DBServiceTest {
         // remove the vipng template
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "vipng",
-                auditRef, caller);
+                auditRef, caller, zms.dbService.zmsConfig.getServerSolutionTemplates().get("vipng"));
 
         assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
         assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
@@ -4230,7 +4234,7 @@ public class DBServiceTest {
         // remove vipng again to ensure same result
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "vipng",
-                auditRef, caller);
+                auditRef, caller, zms.dbService.zmsConfig.getServerSolutionTemplates().get("vipng"));
 
         assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
         assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
@@ -4316,7 +4320,7 @@ public class DBServiceTest {
         // remove the vipng template
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "vipng",
-                auditRef, caller);
+                auditRef, caller, zms.dbService.zmsConfig.getServerSolutionTemplates().get("vipng"));
 
         assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
         assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
@@ -4417,7 +4421,7 @@ public class DBServiceTest {
         // remove the vipng template
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "vipng",
-                auditRef, caller);
+                auditRef, caller, zms.dbService.zmsConfig.getServerSolutionTemplates().get("vipng"));
 
         assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
         assertNull(zms.dbService.getRole(domainName, "sys_network_super_vip_admin", false, false, false));
@@ -4505,7 +4509,7 @@ public class DBServiceTest {
         // remove the group template
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithGroup",
-                auditRef, caller);
+                auditRef, caller, zms.dbService.zmsConfig.getServerSolutionTemplates().get("templateWithGroup"));
 
         assertNull(zms.dbService.getRole(domainName, "vip_admin", false, false, false));
         assertNull(zms.dbService.getPolicy(domainName, "vip_admin", null));
@@ -10440,7 +10444,7 @@ public class DBServiceTest {
         // remove the templateWithRoleMeta template
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithRoleMeta",
-                auditRef, caller);
+                auditRef, caller, zms.dbService.zmsConfig.getServerSolutionTemplates().get("templateWithRoleMeta"));
 
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
@@ -10448,7 +10452,7 @@ public class DBServiceTest {
         // remove templateWithRoleMeta again to ensure same result
 
         zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName, "templateWithRoleMeta",
-                auditRef, caller);
+                auditRef, caller, zms.dbService.zmsConfig.getServerSolutionTemplates().get("templateWithRoleMeta"));
 
         domainTemplateList = zms.dbService.listDomainTemplates(domainName);
         assertTrue(domainTemplateList.getTemplateNames().isEmpty());
@@ -15150,7 +15154,7 @@ public class DBServiceTest {
         assertStoreConnectionFailure(() -> zms.dbService.executePutDomainTemplate(mockDomRsrcCtx, domainName,
                 new DomainTemplate(), auditRef, "putDomainTemplate"));
         assertStoreConnectionFailure(() -> zms.dbService.executeDeleteDomainTemplate(mockDomRsrcCtx, domainName,
-                "template1", auditRef, "deleteDomainTemplate"));
+                "template1", auditRef, "deleteDomainTemplate", null));
         assertStoreConnectionFailure(() -> zms.dbService.setupTenantAdminPolicy(mockDomRsrcCtx, domainName,
                 "provider", "storage", auditRef, "putTenancy"));
         assertStoreConnectionFailure(() -> zms.dbService.executePutTenantRoles(mockDomRsrcCtx, "provider",

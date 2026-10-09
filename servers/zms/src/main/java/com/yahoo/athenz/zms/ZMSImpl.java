@@ -3448,7 +3448,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
 
-        dbService.executeDeleteDomainTemplate(ctx, domainName, templateName, auditRef, caller, snapshot.templates);
+        dbService.executeDeleteDomainTemplate(ctx, domainName, templateName, auditRef, caller, template);
     }
 
     @Override

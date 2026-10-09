@@ -5655,13 +5655,7 @@ public class DBService implements RolesProvider, DomainProvider {
     }
 
     void executeDeleteDomainTemplate(ResourceContext ctx, String domainName, String templateName,
-            String auditRef, String caller) {
-        executeDeleteDomainTemplate(ctx, domainName, templateName, auditRef, caller,
-                zmsConfig.getServerSolutionTemplates());
-    }
-
-    void executeDeleteDomainTemplate(ResourceContext ctx, String domainName, String templateName,
-            String auditRef, String caller, SolutionTemplates serverSolutionTemplates) {
+            String auditRef, String caller, Template template) {
 
         // our exception handling code does the check for retry count
         // and throws the exception it had received when the retry
@@ -5681,7 +5675,6 @@ public class DBService implements RolesProvider, DomainProvider {
                 StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
                 auditDetails.append("{\"templates\": ");
 
-                Template template = serverSolutionTemplates.get(templateName);
                 deleteSolutionTemplate(ctx, con, domainName, templateName, template, auditDetails);
 
                 auditDetails.append("}");
