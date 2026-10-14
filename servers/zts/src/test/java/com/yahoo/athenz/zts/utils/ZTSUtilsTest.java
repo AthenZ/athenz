@@ -967,4 +967,40 @@ public class ZTSUtilsTest {
         String[] superset = new String[]{"a", "b"};
         assertFalse(ZTSUtils.isSubset(subset, superset));
     }
+
+    @Test
+    public void testValidationErrorMessage() {
+        assertEquals(ZTSUtils.validationErrorMessage("getdomain", "bad.domain!", "DomainName", "pattern mismatch"),
+                "getdomain: Invalid DomainName value: bad.domain! error: pattern mismatch");
+        assertEquals(ZTSUtils.validationErrorMessage("getdomain", 42, "Int32", "out of range"),
+                "getdomain: Invalid Int32 value: 42 error: out of range");
+        assertEquals(ZTSUtils.validationErrorMessage("getdomain", Boolean.TRUE, "Bool", "unexpected"),
+                "getdomain: Invalid Bool value: true error: unexpected");
+        // complex objects must not include the value
+        assertEquals(ZTSUtils.validationErrorMessage("postrolecert", new Identity(), "Identity", "missing field"),
+                "postrolecert: Invalid Identity error: missing field");
+    }
+
+    @Test
+    public void testSanitizeLogValue() {
+        assertEquals(ZTSUtils.sanitizeLogValue("athenz.api"), "athenz.api");
+        // control characters are replaced so log entries cannot be forged
+        assertEquals(ZTSUtils.sanitizeLogValue("bad\r\nforged log line\tvalue\u0000"), "bad??forged log line?value?");
+        // oversized values are truncated
+        String longValue = "a".repeat(ZTSUtils.MAX_LOG_VALUE_LENGTH + 100);
+        String sanitized = ZTSUtils.sanitizeLogValue(longValue);
+        assertEquals(sanitized.length(), ZTSUtils.MAX_LOG_VALUE_LENGTH + 3);
+        assertTrue(sanitized.endsWith("..."));
+        assertEquals(ZTSUtils.sanitizeLogValue("a".repeat(ZTSUtils.MAX_LOG_VALUE_LENGTH)).length(),
+                ZTSUtils.MAX_LOG_VALUE_LENGTH);
+    }
+
+    @Test
+    public void testValidationErrorMessageSanitized() {
+        assertEquals(ZTSUtils.validationErrorMessage("getdomain", "bad\ndomain", "DomainName", "pattern mismatch"),
+                "getdomain: Invalid DomainName value: bad?domain error: pattern mismatch");
+        String msg = ZTSUtils.validationErrorMessage("getdomain", "x".repeat(10000), "DomainName", "pattern mismatch");
+        assertTrue(msg.length() < 400, msg);
+        assertTrue(msg.contains("... error: pattern mismatch"), msg);
+    }
 }

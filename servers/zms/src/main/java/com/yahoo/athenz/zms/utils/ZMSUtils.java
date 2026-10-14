@@ -40,6 +40,9 @@ import java.util.concurrent.TimeUnit;
 public class ZMSUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZMSUtils.class);
+
+    // maximum length of a request-controlled value included in a log message
+    static final int MAX_LOG_VALUE_LENGTH = 256;
     private static final boolean SKIP_ERROR_METRICS = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_SKIP_ERROR_METRICS, "false"));
 
     /**
@@ -499,18 +502,63 @@ public class ZMSUtils {
 
     public static void validateObject(Validator validator, Object val, String type, String caller) {
         if (val == null) {
-            throw requestError("Missing or malformed " + type, caller);
+            throw requestError(caller + ": Missing or malformed " + type, caller);
         }
 
+        // the validator is not expected to throw, but if it does, we'll
+        // report it as a regular validation failure without the stack trace
+
+        boolean valid;
+        String error;
         try {
             Validator.Result result = validator.validate(val, type);
-            if (!result.valid) {
-                throw requestError("Invalid " + type + " error: " + result.error, caller);
-            }
+            valid = result.valid;
+            error = result.error;
         } catch (Exception ex) {
-            LOG.error("Object validation exception", ex);
-            throw requestError("Invalid " + type + " error: " + ex.getMessage(), caller);
+            valid = false;
+            error = ex.getMessage();
         }
+        if (!valid) {
+            throw requestError(validationErrorMessage(caller, val, type, error), caller);
+        }
+    }
+
+    /**
+     * Generate the error message for a failed object validation. The message
+     * includes the api (caller) processing the request, the type that was
+     * being validated, the value itself if it's a simple type (e.g. domain
+     * or role name) and the error reported by the validator. For complex
+     * objects the validator error already identifies the failing field.
+     */
+    public static String validationErrorMessage(final String caller, Object val, final String type,
+            final String error) {
+        StringBuilder msg = new StringBuilder(128);
+        msg.append(caller).append(": Invalid ").append(type);
+        if (val instanceof String || val instanceof Number || val instanceof Boolean) {
+            msg.append(" value: ").append(sanitizeLogValue(val.toString()));
+        }
+        msg.append(" error: ").append(error);
+        return msg.toString();
+    }
+
+    /**
+     * The value is request-controlled, so before including it in a message
+     * that ends up in the logs we cap its length and replace any control
+     * characters (e.g. CR/LF) so a client cannot forge log entries or
+     * amplify log volume with an oversized value.
+     */
+    static String sanitizeLogValue(final String value) {
+        boolean truncated = value.length() > MAX_LOG_VALUE_LENGTH;
+        final String str = truncated ? value.substring(0, MAX_LOG_VALUE_LENGTH) : value;
+        StringBuilder sb = new StringBuilder(str.length() + 3);
+        for (int i = 0; i < str.length(); i++) {
+            char ch = str.charAt(i);
+            sb.append(Character.isISOControl(ch) ? '?' : ch);
+        }
+        if (truncated) {
+            sb.append("...");
+        }
+        return sb.toString();
     }
 
     public static void validatePolicyAssertion(Validator validator, Assertion assertion,

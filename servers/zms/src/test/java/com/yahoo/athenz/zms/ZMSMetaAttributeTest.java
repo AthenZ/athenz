@@ -1333,7 +1333,7 @@ public class ZMSMetaAttributeTest {
             zmsImpl.putDomainSystemMeta(ctx, domainName, "x509certsignerkeyid", auditRef, dm);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Invalid CompoundName error"));
+            assertTrue(ex.getMessage().contains("Invalid CompoundName value: invalid key id error"), ex.getMessage());
         }
 
         // remove the x509 cert signer key id
@@ -1413,7 +1413,7 @@ public class ZMSMetaAttributeTest {
             zmsImpl.putDomainSystemMeta(ctx, domainName, "sshcertsignerkeyid", auditRef, dm);
             fail();
         } catch (ResourceException ex) {
-            assertTrue(ex.getMessage().contains("Invalid CompoundName error"));
+            assertTrue(ex.getMessage().contains("Invalid CompoundName value: invalid key id error"), ex.getMessage());
         }
 
         // remove the ssh cert signer key id
