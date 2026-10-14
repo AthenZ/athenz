@@ -185,6 +185,7 @@ public class ZMSTestInitializer {
             zms.externalMemberValidatorManager.shutdown();
         }
         zms.shutdownSolutionTemplatesReloadScheduler();
+        zms.shutdownAuthorizedServicesReloadScheduler();
 
         ServiceProviderManager.getInstance(zms.dbService, zms).shutdown();
         try {

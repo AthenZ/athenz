@@ -181,7 +181,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected int auditLogHistoryDefaultDays = 30;
     protected long signedPolicyTimeout;
     protected int domainNameMaxLen;
-    protected AuthorizedServices serverAuthorizedServices = null;
+    protected boolean dynamicAuthorizedServicesReload = false;
+    protected AuthorizedServicesManager authorizedServicesManager = null;
     protected AuditTemplate auditTemplate = null;
     protected boolean auditTemplateDomainFeatureFlagCheck = false;
     protected volatile SolutionTemplates serverSolutionTemplates = null;
@@ -739,6 +740,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // initialize the background solution templates reload task
 
         initializeSolutionTemplatesReloadScheduler();
+
+        // initialize the background authorized services reload task
+
+        initializeAuthorizedServicesReloadScheduler();
     }
 
     void loadJsonMapper() {
@@ -1105,6 +1110,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // check for dynamic solution templates reload support
         dynamicSolutionTemplatesReload = Boolean.parseBoolean(System.getProperty(
                 ZMSConsts.ZMS_PROP_SOLUTION_TEMPLATE_DYNAMIC_RELOAD, "false"));
+        dynamicAuthorizedServicesReload = Boolean.parseBoolean(System.getProperty(
+                ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_DYNAMIC_RELOAD, "false"));
     }
 
     void loadObjectStore() {
@@ -1425,25 +1432,24 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     void loadAuthorizedServices() {
+        authorizedServicesManager().loadAuthorizedServices();
+    }
 
-        // get the configured path for the list of authorized services and what operations
-        // those services are allowed to process
-
-        String authzServiceFname =  System.getProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME,
-                getRootDir() + "/conf/zms_server/authorized_services.json");
-
-        Path path = Paths.get(authzServiceFname);
-        try {
-            serverAuthorizedServices = JSON.fromBytes(Files.readAllBytes(path), AuthorizedServices.class);
-        } catch (IOException ex) {
-            LOG.error("Unable to parse authorized service file {}: {}",
-                    authzServiceFname, ex.getMessage());
+    AuthorizedServicesManager authorizedServicesManager() {
+        if (authorizedServicesManager == null) {
+            authorizedServicesManager = new AuthorizedServicesManager(jsonMapper, dynamicAuthorizedServicesReload,
+                    ZMSImpl::getRootDir);
         }
+        return authorizedServicesManager;
+    }
 
-        if (serverAuthorizedServices == null) {
-            LOG.error("Generating empty authorized service list...");
-            serverAuthorizedServices = new AuthorizedServices();
-            serverAuthorizedServices.setTemplates(new HashMap<>());
+    void initializeAuthorizedServicesReloadScheduler() {
+        authorizedServicesManager().initializeReloadScheduler();
+    }
+
+    void shutdownAuthorizedServicesReloadScheduler() {
+        if (authorizedServicesManager != null) {
+            authorizedServicesManager.shutdownReloadScheduler();
         }
     }
 
@@ -8781,8 +8787,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         List<String> services = null;
         if (authorizedServices != null && !authorizedServices.isEmpty()) {
             services = Arrays.asList(authorizedServices.split(","));
+            AuthorizedServices configuredServices = authorizedServicesManager().getAuthorizedServices();
             for (String service : services) {
-                if (!serverAuthorizedServices.contains(service)) {
+                if (!configuredServices.contains(service)) {
                     throw ZMSUtils.unauthorizedError("getUserToken: Service " + service + " is not authorized in ZMS", caller);
                 }
             }
@@ -8824,8 +8831,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // verify that all specified services are valid
 
         String[] services = authorizedServices.split(",");
+        AuthorizedServices configuredServices = authorizedServicesManager().getAuthorizedServices();
         for (String service : services) {
-            if (!serverAuthorizedServices.contains(service)) {
+            if (!configuredServices.contains(service)) {
                 throw ZMSUtils.requestError("optionsUserToken: Service " + service + " is not authorized in ZMS", caller);
             }
         }
@@ -10710,7 +10718,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // lookup the authorized services struct and see if we have the
         // service specified in the allowed list
 
-        AuthorizedService authzService = serverAuthorizedServices.get(authorizedService);
+        AuthorizedService authzService = authorizedServicesManager().getAuthorizedServices().get(authorizedService);
         if (authzService == null) {
             throw ZMSUtils.forbiddenError("Unauthorized Service " + authorizedService,
                     operationName);

@@ -68,6 +68,14 @@ public final class ZMSConsts {
     public static final String ZMS_PROP_TIMEOUT                 = "athenz.zms.user_token_timeout";
     public static final String ZMS_PROP_SIGNED_POLICY_TIMEOUT   = "athenz.zms.signed_policy_timeout";
     public static final String ZMS_PROP_AUTHZ_SERVICE_FNAME     = "athenz.zms.authz_service_fname";
+    public static final String ZMS_PROP_AUTHZ_SERVICE_DYNAMIC_RELOAD =
+            "athenz.zms.authz_service_dynamic_reload";
+    public static final String ZMS_PROP_AUTHZ_SERVICE_RELOAD_FREQUENCY_SECONDS =
+            "athenz.zms.authz_service_reload_frequency_seconds";
+    public static final String ZMS_PROP_AUTHZ_SERVICE_RELOAD_FREQUENCY_SECONDS_DEFAULT = "60";
+    public static final String ZMS_PROP_AUTHZ_SERVICE_RELOAD_MAX_BACKOFF_SECONDS =
+            "athenz.zms.authz_service_reload_max_backoff_seconds";
+    public static final String ZMS_PROP_AUTHZ_SERVICE_RELOAD_MAX_BACKOFF_SECONDS_DEFAULT = "300";
     public static final String ZMS_PROP_SOLUTION_TEMPLATE_FNAME = "athenz.zms.solution_templates_fname";
     public static final String ZMS_PROP_AUDIT_TEMPLATE_FNAME    = "athenz.zms.audit_template_fname";
     public static final String ZMS_PROP_AUDIT_TEMPLATE_DOMAIN_FEATURE_FLAG_CHECK =
