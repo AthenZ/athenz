@@ -69,8 +69,8 @@ public class AzureAccessTokenProvider implements ExternalCredentialsProvider {
         systemAccessTokenCache = new ConcurrentHashMap<>();
         jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         httpDriver = new HttpDriver.Builder(null)
-                .clientConnectTimeoutMs(1000)
-                .clientReadTimeoutMs(3000)
+                .clientConnectTimeoutMs(3000)
+                .clientReadTimeoutMs(5000)
                 .build();
         authorizer = null;
     }
