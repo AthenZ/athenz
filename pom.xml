@@ -73,6 +73,7 @@
     <aws.version>1.12.797</aws.version>
     <aws2.version>2.55.11</aws2.version>
     <aws.dynamodb.local.version>2.6.1</aws.dynamodb.local.version>
+    <aws.rolesanywhere.plugin.version>1.0.0</aws.rolesanywhere.plugin.version>
     <aws.secretmanager.version>2.1.3</aws.secretmanager.version>
     <bouncycastle.version>1.86</bouncycastle.version>
     <commons.codec.version>1.22.1</commons.codec.version>

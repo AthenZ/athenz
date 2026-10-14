@@ -8,12 +8,53 @@ temporary session credentials for that role through ZTS Server.
 
 ## Connection Details
 
-To obtain temporary credentials, the client must contact ZTS Server
-running in AWS.
+To obtain temporary credentials, the client must contact a ZTS Server
+configured to issue AWS temporary credentials.
+
+## ZTS Credentials Provider
+
+By default, ZTS uses EC2 instance profile credentials with asynchronous refresh
+for its STS calls. Set `athenz.zts.aws_creds_provider_factory_class` to select
+another `AwsCredentialsProviderFactory`. This setting applies to temporary
+credential issuance; other AWS integrations keep their own credential settings.
+
+### IAM Roles Anywhere
+
+ZTS can use IAM Roles Anywhere when running outside EC2. Create a trust anchor,
+profile, and source role in IAM Roles Anywhere. The source role must be allowed
+to assume the target roles described in [AWS Configuration Setup](#aws-configuration-setup).
+The client certificate must chain to the configured trust anchor.
+
+```properties
+athenz.zts.aws_enabled=true
+athenz.zts.aws_region_name=us-west-2
+athenz.zts.aws_creds_provider_factory_class=io.athenz.server.aws.common.creds.impl.RolesAnywhereCredentialsProviderFactory
+athenz.zts.rolesanywhere.trust_anchor_arn=<trust-anchor-arn>
+athenz.zts.rolesanywhere.profile_arn=<profile-arn>
+athenz.zts.rolesanywhere.role_arn=<source-role-arn>
+athenz.zts.rolesanywhere.cert_path=/path/to/client-certificate.pem
+athenz.zts.rolesanywhere.key_path=/path/to/client-private-key.pem
+```
+
+The key algorithm defaults to `RSA`; set `athenz.zts.rolesanywhere.key_algorithm`
+to `EC` for an elliptic curve key. `athenz.zts.rolesanywhere.region` overrides
+`athenz.zts.aws_region_name` for Roles Anywhere calls.
+
+Alternatively, omit `cert_path` and set `athenz.zts.rolesanywhere.keystore_path`
+and the associated `keystore_*` properties in `zts.properties`. Unset values
+fall back to the corresponding `athenz.ssl_key_store*` settings. The default
+key store type is `PKCS12`. Use `keystore_alias` to select a private key entry;
+otherwise the first private key entry is used. The configured `PrivateKeyStore`
+resolves password references.
+
+The identity is reloaded when the provider refreshes credentials. Roles Anywhere
+properties are not required unless its factory is selected. The source credentials
+are temporary, so [STS role chaining](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html)
+limits the issued credentials to one hour.
 
 ## Client X.509 Certificate Requirements
 
-To contact ZTS running in AWS to obtain temporary credentials, the client
+To contact ZTS to obtain temporary credentials, the client
 service must authenticate itself using Athenz issued client X.509 certificates.
 The steps are different depending on where your client service is running.
 
