@@ -37,7 +37,10 @@ import { extractCritical } from '@emotion/server';
 export default class MyDocument extends Document {
     static async getInitialProps(ctx) {
         const initialProps = await Document.getInitialProps(ctx);
-        const { nonce } = ctx.res.locals;
+        // the nonce must match the 'nonce-<rid>' value secure.js puts in the
+        // CSP header; without it the browser blocks the inline bootstrap script
+        // next emits in production builds and the page never hydrates
+        const nonce = ctx.res?.locals?.nonce || ctx.req?.headers?.rid;
         return { ...initialProps, nonce };
     }
     render() {
