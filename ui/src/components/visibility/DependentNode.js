@@ -15,6 +15,7 @@
  */
 
 import React from 'react';
+import _ from 'lodash';
 
 import { Handle } from 'react-flow-renderer';
 import styled from '@emotion/styled';
