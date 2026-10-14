@@ -499,18 +499,43 @@ public class ZMSUtils {
 
     public static void validateObject(Validator validator, Object val, String type, String caller) {
         if (val == null) {
-            throw requestError("Missing or malformed " + type, caller);
+            throw requestError(caller + ": Missing or malformed " + type, caller);
         }
 
+        // the validator is not expected to throw, but if it does, we'll
+        // report it as a regular validation failure without the stack trace
+
+        boolean valid;
+        String error;
         try {
             Validator.Result result = validator.validate(val, type);
-            if (!result.valid) {
-                throw requestError("Invalid " + type + " error: " + result.error, caller);
-            }
+            valid = result.valid;
+            error = result.error;
         } catch (Exception ex) {
-            LOG.error("Object validation exception", ex);
-            throw requestError("Invalid " + type + " error: " + ex.getMessage(), caller);
+            valid = false;
+            error = ex.getMessage();
         }
+        if (!valid) {
+            throw requestError(validationErrorMessage(caller, val, type, error), caller);
+        }
+    }
+
+    /**
+     * Generate the error message for a failed object validation. The message
+     * includes the api (caller) processing the request, the type that was
+     * being validated, the value itself if it's a simple type (e.g. domain
+     * or role name) and the error reported by the validator. For complex
+     * objects the validator error already identifies the failing field.
+     */
+    public static String validationErrorMessage(final String caller, Object val, final String type,
+            final String error) {
+        StringBuilder msg = new StringBuilder(128);
+        msg.append(caller).append(": Invalid ").append(type);
+        if (val instanceof String || val instanceof Number || val instanceof Boolean) {
+            msg.append(" value: ").append(val);
+        }
+        msg.append(" error: ").append(error);
+        return msg.toString();
     }
 
     public static void validatePolicyAssertion(Validator validator, Assertion assertion,

@@ -80,6 +80,7 @@ import com.yahoo.athenz.zts.utils.ZTSUtils;
 import com.yahoo.rdl.Schema;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
+import com.yahoo.rdl.Validator;
 import jakarta.servlet.ServletContext;
 import org.eclipse.jetty.http.HttpHeader;
 import org.mockito.ArgumentCaptor;
@@ -2605,6 +2606,8 @@ public class ZTSImplTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
+            assertEquals(ex.getMessage(), "ResourceException (400): {code: 400, message: "
+                    + "\"testValidate: Missing or malformed SignedDomain\"}");
         }
     }
 
@@ -2618,6 +2621,40 @@ public class ZTSImplTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
+            // complex object - the message must not include the value itself
+            assertTrue(ex.getMessage().contains("testValidate: Invalid Policy error: "), ex.getMessage());
+            assertFalse(ex.getMessage().contains(" value: "), ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testValidateStringInvalid() {
+        try {
+            zts.validate("bad domain!", "DomainName", "principal-domain", "getdomainsignedpolicydata");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("getdomainsignedpolicydata: Invalid DomainName value: "
+                    + "bad domain! error: String pattern mismatch"), ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testValidateValidatorException() {
+        Validator savedValidator = ZTSImpl.validator;
+        Validator mockValidator = Mockito.mock(Validator.class);
+        Mockito.when(mockValidator.validate(any(), anyString()))
+                .thenThrow(new IllegalArgumentException("unexpected validator failure"));
+        ZTSImpl.validator = mockValidator;
+        try {
+            zts.validate("athenz", "DomainName", "principal-domain", "getdomain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("getdomain: Invalid DomainName value: athenz error: "
+                    + "unexpected validator failure"), ex.getMessage());
+        } finally {
+            ZTSImpl.validator = savedValidator;
         }
     }
 

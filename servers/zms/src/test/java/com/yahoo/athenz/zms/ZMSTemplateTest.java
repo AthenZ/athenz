@@ -1002,7 +1002,8 @@ public class ZMSTemplateTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("Invalid ResourceName error: String pattern mismatch"));
+            assertTrue(ex.getMessage().contains("Invalid ResourceName value: "), ex.getMessage());
+            assertTrue(ex.getMessage().contains(" error: String pattern mismatch"), ex.getMessage());
         }
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
@@ -1039,7 +1040,8 @@ public class ZMSTemplateTest {
             fail();
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), 400);
-            assertTrue(ex.getMessage().contains("Invalid SimpleName error: String pattern mismatch"));
+            assertTrue(ex.getMessage().contains("Invalid SimpleName value: "), ex.getMessage());
+            assertTrue(ex.getMessage().contains(" error: String pattern mismatch"), ex.getMessage());
         }
 
         // verify simple service name is successful

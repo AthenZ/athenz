@@ -967,4 +967,17 @@ public class ZTSUtilsTest {
         String[] superset = new String[]{"a", "b"};
         assertFalse(ZTSUtils.isSubset(subset, superset));
     }
+
+    @Test
+    public void testValidationErrorMessage() {
+        assertEquals(ZTSUtils.validationErrorMessage("getdomain", "bad.domain!", "DomainName", "pattern mismatch"),
+                "getdomain: Invalid DomainName value: bad.domain! error: pattern mismatch");
+        assertEquals(ZTSUtils.validationErrorMessage("getdomain", 42, "Int32", "out of range"),
+                "getdomain: Invalid Int32 value: 42 error: out of range");
+        assertEquals(ZTSUtils.validationErrorMessage("getdomain", Boolean.TRUE, "Bool", "unexpected"),
+                "getdomain: Invalid Bool value: true error: unexpected");
+        // complex objects must not include the value
+        assertEquals(ZTSUtils.validationErrorMessage("postrolecert", new Identity(), "Identity", "missing field"),
+                "postrolecert: Invalid Identity error: missing field");
+    }
 }

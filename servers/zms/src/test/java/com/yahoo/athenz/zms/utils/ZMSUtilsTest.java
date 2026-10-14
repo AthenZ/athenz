@@ -28,6 +28,7 @@ import com.yahoo.athenz.common.server.log.impl.DefaultAuditLoggerFactory;
 import com.yahoo.athenz.zms.*;
 import com.yahoo.athenz.zms.config.AuditTemplate;
 import com.yahoo.rdl.Timestamp;
+import com.yahoo.rdl.Validator;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
@@ -498,5 +499,78 @@ public class ZMSUtilsTest {
         assertTrue(ex instanceof ResourceException);
         assertEquals(((ResourceException) ex).getCode(), ResourceException.CONFLICT);
         assertTrue(ex.getMessage().contains("object already exists"));
+    }
+
+    @Test
+    public void testValidateObject() {
+
+        Validator validator = new Validator(ZMSSchema.instance());
+
+        // valid object - no exception
+
+        ZMSUtils.validateObject(validator, "athenz", ZMSConsts.TYPE_DOMAIN_NAME, "getdomain");
+
+        // null object
+
+        try {
+            ZMSUtils.validateObject(validator, null, ZMSConsts.TYPE_DOMAIN_NAME, "getdomain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("getdomain: Missing or malformed DomainName"), ex.getMessage());
+        }
+
+        // invalid simple value - the message must include the value
+
+        try {
+            ZMSUtils.validateObject(validator, "unknown_domain!", ZMSConsts.TYPE_DOMAIN_NAME, "getdomain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("getdomain: Invalid DomainName value: unknown_domain! "
+                    + "error: String pattern mismatch"), ex.getMessage());
+        }
+
+        // invalid complex object - the message must not include the value
+
+        Role role = new Role().setName("bad role name");
+        try {
+            ZMSUtils.validateObject(validator, role, ZMSConsts.TYPE_ROLE, "putrole");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("putrole: Invalid Role error: String pattern mismatch"),
+                    ex.getMessage());
+            assertFalse(ex.getMessage().contains(" value: "), ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testValidateObjectValidatorException() {
+
+        Validator validator = Mockito.mock(Validator.class);
+        Mockito.when(validator.validate(Mockito.any(), anyString()))
+                .thenThrow(new IllegalArgumentException("unexpected validator failure"));
+
+        try {
+            ZMSUtils.validateObject(validator, "athenz", ZMSConsts.TYPE_DOMAIN_NAME, "getdomain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("getdomain: Invalid DomainName value: athenz error: "
+                    + "unexpected validator failure"), ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testValidationErrorMessage() {
+        assertEquals(ZMSUtils.validationErrorMessage("getdomain", "bad.domain!", "DomainName", "pattern mismatch"),
+                "getdomain: Invalid DomainName value: bad.domain! error: pattern mismatch");
+        assertEquals(ZMSUtils.validationErrorMessage("getdomain", 42, "Int32", "out of range"),
+                "getdomain: Invalid Int32 value: 42 error: out of range");
+        assertEquals(ZMSUtils.validationErrorMessage("getdomain", Boolean.TRUE, "Bool", "unexpected"),
+                "getdomain: Invalid Bool value: true error: unexpected");
+        assertEquals(ZMSUtils.validationErrorMessage("putrole", new Role(), "Role", "missing field"),
+                "putrole: Invalid Role error: missing field");
     }
 }

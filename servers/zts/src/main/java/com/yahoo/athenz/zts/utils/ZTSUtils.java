@@ -504,4 +504,22 @@ public class ZTSUtils {
         }
         return true;
     }
+
+    /**
+     * Generate the error message for a failed object validation. The message
+     * includes the api (caller) processing the request, the type that was
+     * being validated, the value itself if it's a simple type (e.g. domain
+     * or service name) and the error reported by the validator. For complex
+     * objects the validator error already identifies the failing field.
+     */
+    public static String validationErrorMessage(final String caller, Object val, final String type,
+            final String error) {
+        StringBuilder msg = new StringBuilder(128);
+        msg.append(caller).append(": Invalid ").append(type);
+        if (val instanceof String || val instanceof Number || val instanceof Boolean) {
+            msg.append(" value: ").append(val);
+        }
+        msg.append(" error: ").append(error);
+        return msg.toString();
+    }
 }

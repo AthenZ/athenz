@@ -7493,19 +7493,25 @@ public class ZTSImpl implements ZTSHandler {
 
     void validate(Object val, final String type, final String principalDomain, final String caller) {
         if (val == null) {
-            throw requestError("Missing or malformed " + type, caller,
+            throw requestError(caller + ": Missing or malformed " + type, caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
+        // the validator is not expected to throw, but if it does, we'll
+        // report it as a regular validation failure without the stack trace
+
+        boolean valid;
+        String error;
         try {
             Result result = validator.validate(val, type);
-            if (!result.valid) {
-                throw requestError("Invalid " + type + " error: " + result.error, caller,
-                        ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
-            }
+            valid = result.valid;
+            error = result.error;
         } catch (Exception ex) {
-            LOGGER.error("Object validation exception", ex);
-            throw requestError("Invalid " + type + " error: " + ex.getMessage(), caller,
+            valid = false;
+            error = ex.getMessage();
+        }
+        if (!valid) {
+            throw requestError(ZTSUtils.validationErrorMessage(caller, val, type, error), caller,
                     ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
     }
