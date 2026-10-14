@@ -55,6 +55,9 @@ public class ZTSUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZTSUtils.class);
 
+    // maximum length of a request-controlled value included in a log message
+    static final int MAX_LOG_VALUE_LENGTH = 256;
+
     static final String ZTS_DEFAULT_EXCLUDED_CIPHER_SUITES = "SSL_RSA_WITH_DES_CBC_SHA,"
             + "SSL_DHE_RSA_WITH_DES_CBC_SHA,SSL_DHE_DSS_WITH_DES_CBC_SHA,"
             + "SSL_RSA_EXPORT_WITH_RC4_40_MD5,SSL_RSA_EXPORT_WITH_DES40_CBC_SHA,"
@@ -517,9 +520,29 @@ public class ZTSUtils {
         StringBuilder msg = new StringBuilder(128);
         msg.append(caller).append(": Invalid ").append(type);
         if (val instanceof String || val instanceof Number || val instanceof Boolean) {
-            msg.append(" value: ").append(val);
+            msg.append(" value: ").append(sanitizeLogValue(val.toString()));
         }
         msg.append(" error: ").append(error);
         return msg.toString();
+    }
+
+    /**
+     * The value is request-controlled, so before including it in a message
+     * that ends up in the logs we cap its length and replace any control
+     * characters (e.g. CR/LF) so a client cannot forge log entries or
+     * amplify log volume with an oversized value.
+     */
+    static String sanitizeLogValue(final String value) {
+        boolean truncated = value.length() > MAX_LOG_VALUE_LENGTH;
+        final String str = truncated ? value.substring(0, MAX_LOG_VALUE_LENGTH) : value;
+        StringBuilder sb = new StringBuilder(str.length() + 3);
+        for (int i = 0; i < str.length(); i++) {
+            char ch = str.charAt(i);
+            sb.append(Character.isISOControl(ch) ? '?' : ch);
+        }
+        if (truncated) {
+            sb.append("...");
+        }
+        return sb.toString();
     }
 }

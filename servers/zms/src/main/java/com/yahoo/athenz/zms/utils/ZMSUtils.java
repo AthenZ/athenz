@@ -40,6 +40,9 @@ import java.util.concurrent.TimeUnit;
 public class ZMSUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(ZMSUtils.class);
+
+    // maximum length of a request-controlled value included in a log message
+    static final int MAX_LOG_VALUE_LENGTH = 256;
     private static final boolean SKIP_ERROR_METRICS = Boolean.parseBoolean(System.getProperty(ZMSConsts.ZMS_PROP_SKIP_ERROR_METRICS, "false"));
 
     /**
@@ -532,10 +535,30 @@ public class ZMSUtils {
         StringBuilder msg = new StringBuilder(128);
         msg.append(caller).append(": Invalid ").append(type);
         if (val instanceof String || val instanceof Number || val instanceof Boolean) {
-            msg.append(" value: ").append(val);
+            msg.append(" value: ").append(sanitizeLogValue(val.toString()));
         }
         msg.append(" error: ").append(error);
         return msg.toString();
+    }
+
+    /**
+     * The value is request-controlled, so before including it in a message
+     * that ends up in the logs we cap its length and replace any control
+     * characters (e.g. CR/LF) so a client cannot forge log entries or
+     * amplify log volume with an oversized value.
+     */
+    static String sanitizeLogValue(final String value) {
+        boolean truncated = value.length() > MAX_LOG_VALUE_LENGTH;
+        final String str = truncated ? value.substring(0, MAX_LOG_VALUE_LENGTH) : value;
+        StringBuilder sb = new StringBuilder(str.length() + 3);
+        for (int i = 0; i < str.length(); i++) {
+            char ch = str.charAt(i);
+            sb.append(Character.isISOControl(ch) ? '?' : ch);
+        }
+        if (truncated) {
+            sb.append("...");
+        }
+        return sb.toString();
     }
 
     public static void validatePolicyAssertion(Validator validator, Assertion assertion,

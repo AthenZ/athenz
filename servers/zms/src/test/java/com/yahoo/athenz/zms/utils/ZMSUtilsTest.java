@@ -573,4 +573,27 @@ public class ZMSUtilsTest {
         assertEquals(ZMSUtils.validationErrorMessage("putrole", new Role(), "Role", "missing field"),
                 "putrole: Invalid Role error: missing field");
     }
+
+    @Test
+    public void testSanitizeLogValue() {
+        assertEquals(ZMSUtils.sanitizeLogValue("athenz.api"), "athenz.api");
+        // control characters are replaced so log entries cannot be forged
+        assertEquals(ZMSUtils.sanitizeLogValue("bad\r\nforged log line\tvalue\u0000"), "bad??forged log line?value?");
+        // oversized values are truncated
+        String longValue = "a".repeat(ZMSUtils.MAX_LOG_VALUE_LENGTH + 100);
+        String sanitized = ZMSUtils.sanitizeLogValue(longValue);
+        assertEquals(sanitized.length(), ZMSUtils.MAX_LOG_VALUE_LENGTH + 3);
+        assertTrue(sanitized.endsWith("..."));
+        assertEquals(ZMSUtils.sanitizeLogValue("a".repeat(ZMSUtils.MAX_LOG_VALUE_LENGTH)).length(),
+                ZMSUtils.MAX_LOG_VALUE_LENGTH);
+    }
+
+    @Test
+    public void testValidationErrorMessageSanitized() {
+        assertEquals(ZMSUtils.validationErrorMessage("getdomain", "bad\ndomain", "DomainName", "pattern mismatch"),
+                "getdomain: Invalid DomainName value: bad?domain error: pattern mismatch");
+        String msg = ZMSUtils.validationErrorMessage("getdomain", "x".repeat(10000), "DomainName", "pattern mismatch");
+        assertTrue(msg.length() < 400, msg);
+        assertTrue(msg.contains("... error: pattern mismatch"), msg);
+    }
 }
