@@ -26,6 +26,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -44,15 +45,22 @@ import software.amazon.rolesanywhere.plugin.X509IdentityProvider;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.time.Instant;
@@ -71,7 +79,7 @@ public class RolesAnywhereCredentialsProviderFactoryTest {
     private static final char[] STORE_PASSWORD = "store-password".toCharArray();
 
     private static final String[] ALL_PROPS = {
-            PROP_CERT_PATH, PROP_KEY_PATH, PROP_KEY_ALGORITHM,
+            PROP_CERT_PATH, PROP_KEY_PATH, PROP_CHAIN_PATH, PROP_KEY_ALGORITHM,
             PROP_TRUST_ANCHOR_ARN, PROP_PROFILE_ARN, PROP_ROLE_ARN, PROP_REGION,
             PROP_KEYSTORE_PATH, PROP_KEYSTORE_TYPE, PROP_KEYSTORE_PASSWORD,
             PROP_KEYSTORE_PASSWORD_APPNAME, PROP_KEYSTORE_PASSWORD_KEYGROUPNAME, PROP_KEYSTORE_ALIAS,
@@ -169,13 +177,23 @@ public class RolesAnywhereCredentialsProviderFactoryTest {
         }
     }
 
-    @Test
-    public void testResolveCredentialsAndCacheWithRolesAnywhere() throws Exception {
+    @DataProvider
+    public Object[][] pemChainPaths() {
+        return new Object[][] { {null}, {""}, {"/nonexistent/zts_chain.pem"} };
+    }
+
+    @Test(dataProvider = "pemChainPaths")
+    public void testResolveCredentialsAndCacheWithRolesAnywhere(String chainPath) throws Exception {
         setValidProperties();
-        // Replace only the identity source and HTTP transport; use the real plugin and signer.
-        X509Identity identity = identityFromKeyStore(keyStoreWithChain("zts"), "zts", STORE_PASSWORD);
-        RolesAnywhereCredentialsProviderFactory factory = spy(new RolesAnywhereCredentialsProviderFactory());
-        doReturn((X509IdentityProvider) () -> identity).when(factory).identityProvider();
+        if (chainPath != null) {
+            System.setProperty(PROP_CHAIN_PATH, chainPath);
+        }
+        boolean hasChain = chainPath != null && !chainPath.isEmpty();
+        KeyStore keyStore = keyStoreWithChain("zts");
+        Certificate[] chain = keyStore.getCertificateChain("zts");
+        String expectedLeaf = Base64.getEncoder().encodeToString(chain[0].getEncoded());
+        String expectedChain = Base64.getEncoder().encodeToString(chain[1].getEncoded());
+        RolesAnywhereCredentialsProviderFactory factory = new RolesAnywhereCredentialsProviderFactory();
         SdkHttpClient httpClient = mock(SdkHttpClient.class);
         ExecutableHttpRequest request = mock(ExecutableHttpRequest.class);
         String response = "{\"credentialSet\":[{\"credentials\":{"
@@ -190,8 +208,19 @@ public class RolesAnywhereCredentialsProviderFactoryTest {
             HttpExecuteRequest execution = invocation.getArgument(0);
             assertEquals(execution.httpRequest().encodedPath(), "/sessions");
             assertEquals(execution.httpRequest().host(), "rolesanywhere.ap-northeast-1.amazonaws.com");
-            assertTrue(execution.httpRequest().firstMatchingHeader("Authorization").orElse("")
-                    .startsWith("AWS4-X509-RSA-SHA256"));
+            String authorization = execution.httpRequest().firstMatchingHeader("Authorization").orElse("");
+            assertTrue(authorization.startsWith("AWS4-X509-RSA-SHA256"));
+            assertTrue(expectedLeaf.equals(execution.httpRequest().firstMatchingHeader("X-Amz-X509").orElse("")),
+                    "The leaf certificate must be sent in X-Amz-X509");
+            if (hasChain) {
+                assertTrue(expectedChain.equals(
+                        execution.httpRequest().firstMatchingHeader("X-Amz-X509-Chain").orElse("")),
+                        "X-Amz-X509-Chain must contain the configured intermediate certificate");
+                assertTrue(authorization.contains("x-amz-x509-chain"), "The chain header must be signed");
+            } else {
+                assertFalse(execution.httpRequest().firstMatchingHeader("X-Amz-X509-Chain").isPresent());
+                assertFalse(authorization.contains("x-amz-x509-chain"));
+            }
             try (var body = execution.contentStreamProvider().orElseThrow().newStream()) {
                 String json = new String(body.readAllBytes(), StandardCharsets.UTF_8);
                 assertTrue(json.contains(System.getProperty(PROP_TRUST_ANCHOR_ARN)));
@@ -202,8 +231,11 @@ public class RolesAnywhereCredentialsProviderFactoryTest {
         });
         RolesAnywhereCredentialsProvider.Builder builder = RolesAnywhereCredentialsProvider.builder()
                 .httpClient(httpClient);
-        try (MockedStatic<RolesAnywhereCredentialsProvider> providerClass =
+        // Replace file I/O and HTTP transport; keep PEM parsing and signing real.
+        try (MockedStatic<Files> files = mockStatic(Files.class);
+                MockedStatic<RolesAnywhereCredentialsProvider> providerClass =
                 Mockito.mockStatic(RolesAnywhereCredentialsProvider.class)) {
+            stubPemFiles(files, keyStore);
             providerClass.when(RolesAnywhereCredentialsProvider::builder).thenReturn(builder);
             try (RolesAnywhereCredentialsProvider provider = (RolesAnywhereCredentialsProvider) factory.create()) {
                 AwsSessionCredentials credentials = (AwsSessionCredentials) provider.resolveCredentials();
@@ -212,8 +244,63 @@ public class RolesAnywhereCredentialsProviderFactoryTest {
                 assertEquals(credentials.sessionToken(), "test-session-token");
                 assertSame(provider.resolveCredentials(), credentials);
                 verify(httpClient, times(1)).prepareRequest(any(HttpExecuteRequest.class));
+                files.verify(() -> Files.newInputStream(Paths.get("/nonexistent/zts_chain.pem")),
+                        times(hasChain ? 1 : 0));
             }
         }
+    }
+
+    @DataProvider
+    public Object[][] invalidPemChains() {
+        return new Object[][] { {true}, {false} };
+    }
+
+    @Test(dataProvider = "invalidPemChains")
+    public void testPemIdentityRejectsUnreadableOrInvalidChain(boolean missingFile) throws Exception {
+        setValidProperties();
+        System.setProperty(PROP_CHAIN_PATH, "/nonexistent/zts_chain.pem");
+        KeyStore keyStore = keyStoreWithChain("zts");
+        X509IdentityProvider identityProvider = new RolesAnywhereCredentialsProviderFactory().identityProvider();
+        try (MockedStatic<Files> files = mockStatic(Files.class)) {
+            stubPemFiles(files, keyStore);
+            if (missingFile) {
+                files.when(() -> Files.newInputStream(Paths.get("/nonexistent/zts_chain.pem")))
+                        .thenThrow(new IOException("chain file is unavailable"));
+            } else {
+                files.when(() -> Files.newInputStream(Paths.get("/nonexistent/zts_chain.pem")))
+                        .thenReturn(new ByteArrayInputStream("invalid certificate".getBytes(StandardCharsets.UTF_8)));
+            }
+            try {
+                identityProvider.resolve();
+                fail("An invalid configured chain must not be ignored");
+            } catch (SdkClientException ex) {
+                assertTrue(missingFile ? ex.getCause() instanceof IOException
+                        : ex.getCause() instanceof CertificateException);
+            }
+            files.verify(() -> Files.newInputStream(Paths.get("/nonexistent/zts_chain.pem")));
+        }
+    }
+
+    private void stubPemFiles(MockedStatic<Files> files, KeyStore keyStore) throws Exception {
+        // JAR resource loading still needs real file metadata.
+        files.when(() -> Files.readAttributes(any(Path.class), eq(BasicFileAttributes.class)))
+                .thenCallRealMethod();
+        Certificate[] chain = keyStore.getCertificateChain("zts");
+        byte[] certificate = pemBytes("CERTIFICATE", chain[0].getEncoded());
+        byte[] key = pemBytes("PRIVATE KEY", keyStore.getKey("zts", STORE_PASSWORD).getEncoded());
+        byte[] intermediates = pemBytes("CERTIFICATE", chain[1].getEncoded());
+        files.when(() -> Files.readAllBytes(Paths.get("/nonexistent/zts_cert.pem"))).thenReturn(certificate);
+        files.when(() -> Files.readAllBytes(Paths.get("/nonexistent/zts_key.pem"))).thenReturn(key);
+        files.when(() -> Files.getPosixFilePermissions(Paths.get("/nonexistent/zts_key.pem")))
+                .thenReturn(Collections.singleton(PosixFilePermission.OWNER_READ));
+        files.when(() -> Files.newInputStream(Paths.get("/nonexistent/zts_chain.pem")))
+                .thenAnswer(invocation -> new ByteArrayInputStream(intermediates));
+    }
+
+    private byte[] pemBytes(String label, byte[] encoded) {
+        String body = Base64.getMimeEncoder(64, new byte[] {'\n'}).encodeToString(encoded);
+        return ("-----BEGIN " + label + "-----\n" + body + "\n-----END " + label + "-----\n")
+                .getBytes(StandardCharsets.UTF_8);
     }
 
     @Test
@@ -584,9 +671,10 @@ public class RolesAnywhereCredentialsProviderFactoryTest {
         final String caSubject = "CN=athenz.intermediate.ca";
 
         KeyPair caKeyPair = generateKeyPair();
+        KeyPair rootKeyPair = generateKeyPair();
         X509Certificate caCert = Crypto.generateX509Certificate(
-                certRequest(caKeyPair, caSubject), caKeyPair.getPrivate(),
-                new X500Name(caSubject), 60, true);
+                certRequest(caKeyPair, caSubject), rootKeyPair.getPrivate(),
+                new X500Name("CN=athenz.root.ca"), 60, true);
 
         KeyPair keyPair = generateKeyPair();
         X509Certificate leaf = Crypto.generateX509Certificate(

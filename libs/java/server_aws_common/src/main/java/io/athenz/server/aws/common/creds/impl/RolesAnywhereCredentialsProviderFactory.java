@@ -54,6 +54,7 @@ public class RolesAnywhereCredentialsProviderFactory implements AwsCredentialsPr
 
     static final String PROP_CERT_PATH        = PROP_PREFIX + "cert_path";
     static final String PROP_KEY_PATH         = PROP_PREFIX + "key_path";
+    static final String PROP_CHAIN_PATH       = PROP_PREFIX + "chain_path";
     static final String PROP_KEY_ALGORITHM    = PROP_PREFIX + "key_algorithm";
     static final String PROP_TRUST_ANCHOR_ARN = PROP_PREFIX + "trust_anchor_arn";
     static final String PROP_PROFILE_ARN      = PROP_PREFIX + "profile_arn";
@@ -122,6 +123,11 @@ public class RolesAnywhereCredentialsProviderFactory implements AwsCredentialsPr
         if (!StringUtil.isEmpty(certPath)) {
             final String keyPath = requiredProperty(PROP_KEY_PATH);
             final String keyAlgorithm = System.getProperty(PROP_KEY_ALGORITHM, DEFAULT_KEY_ALGORITHM);
+            final String chainPath = System.getProperty(PROP_CHAIN_PATH);
+            if (!StringUtil.isEmpty(chainPath)) {
+                return X509IdentityProvider.fromFiles(Paths.get(certPath), Paths.get(keyPath),
+                        keyAlgorithm, Paths.get(chainPath));
+            }
             return X509IdentityProvider.fromFiles(Paths.get(certPath), Paths.get(keyPath), keyAlgorithm);
         }
 

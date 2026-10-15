@@ -36,6 +36,14 @@ athenz.zts.rolesanywhere.cert_path=/path/to/client-certificate.pem
 athenz.zts.rolesanywhere.key_path=/path/to/client-private-key.pem
 ```
 
+The PEM private key must be in unencrypted PKCS#8 format. PKCS#1 and encrypted
+PEM keys are not supported by this factory.
+
+If intermediate certificates are needed to reach the trust anchor, set
+`athenz.zts.rolesanywhere.chain_path` to a PEM file containing those certificates,
+starting with the leaf's issuer. Include only intermediate certificates; keep the
+leaf certificate in `cert_path`. The chain file is reloaded with the identity.
+
 The key algorithm defaults to `RSA`; set `athenz.zts.rolesanywhere.key_algorithm`
 to `EC` for an elliptic curve key. `athenz.zts.rolesanywhere.region` overrides
 `athenz.zts.aws_region_name` for Roles Anywhere calls.
