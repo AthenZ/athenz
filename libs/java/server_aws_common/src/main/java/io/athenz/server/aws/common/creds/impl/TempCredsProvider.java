@@ -16,19 +16,22 @@
 
 package io.athenz.server.aws.common.creds.impl;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.zts.AWSTemporaryCredentials;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.rdl.Timestamp;
+import io.athenz.server.aws.common.creds.AwsCredentialsProviderFactory;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
 import software.amazon.awssdk.services.sts.model.Credentials;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 import static com.yahoo.athenz.common.ServerCommonConsts.ZTS_PROP_AWS_REGION_NAME;
 
@@ -37,12 +40,21 @@ public class TempCredsProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(TempCredsProvider.class);
 
     public static final String ZTS_PROP_AWS_ROLE_SESSION_NAME = "athenz.zts.aws_role_session_name";
+    public static final String ZTS_PROP_AWS_CREDS_PROVIDER_FACTORY_CLASS = "athenz.zts.aws_creds_provider_factory_class";
+
+    public static final String ZTS_DEFAULT_AWS_CREDS_PROVIDER_FACTORY_CLASS =
+            "io.athenz.server.aws.common.creds.impl.InstanceProfileCredentialsProviderFactory";
 
     String awsRegion;
     String awsRoleSessionName;
-    InstanceProfileCredentialsProvider credentialsProvider;
+    PrivateKeyStore privateKeyStore;
+    AwsCredentialsProvider credentialsProvider;
 
     public TempCredsProvider() throws ServerResourceException {
+        this(null);
+    }
+
+    public TempCredsProvider(PrivateKeyStore privateKeyStore) throws ServerResourceException {
 
         // check to see if we are given region name
 
@@ -51,12 +63,31 @@ public class TempCredsProvider {
         // fetch the default session name if one is configured
 
         awsRoleSessionName = System.getProperty(ZTS_PROP_AWS_ROLE_SESSION_NAME);
+
+        this.privateKeyStore = privateKeyStore;
     }
 
     public void initialize() throws ServerResourceException {
 
-         credentialsProvider = InstanceProfileCredentialsProvider.builder()
-                .asyncCredentialUpdateEnabled(true).build();
+        final String factoryClass = System.getProperty(ZTS_PROP_AWS_CREDS_PROVIDER_FACTORY_CLASS,
+                ZTS_DEFAULT_AWS_CREDS_PROVIDER_FACTORY_CLASS);
+
+        AwsCredentialsProviderFactory factory;
+        try {
+            factory = (AwsCredentialsProviderFactory) Class.forName(factoryClass)
+                    .getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid AwsCredentialsProviderFactory class: {}", factoryClass, ex);
+            throw new ServerResourceException(ServerResourceException.INTERNAL_SERVER_ERROR,
+                    "Invalid AwsCredentialsProviderFactory class: " + factoryClass);
+        }
+
+        factory.setPrivateKeyStore(privateKeyStore);
+        credentialsProvider = factory.create();
+        if (credentialsProvider == null) {
+            throw new ServerResourceException(ServerResourceException.INTERNAL_SERVER_ERROR,
+                    "AwsCredentialsProviderFactory returned null: " + factoryClass);
+        }
     }
 
     String getAssumeRoleSessionName(final String principal) {
@@ -153,8 +184,8 @@ public class TempCredsProvider {
     }
 
     public void close() {
-        if (credentialsProvider != null) {
-            credentialsProvider.close();
+        if (credentialsProvider instanceof SdkAutoCloseable) {
+            ((SdkAutoCloseable) credentialsProvider).close();
         }
     }
 }

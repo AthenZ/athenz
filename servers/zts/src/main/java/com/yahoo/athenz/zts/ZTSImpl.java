@@ -366,7 +366,7 @@ public class ZTSImpl implements ZTSHandler {
 
         // create our cloud store if configured
 
-        cloudStore = (implCloudStore == null) ? new CloudStore() : implCloudStore;
+        cloudStore = (implCloudStore == null) ? new CloudStore(privateKeyStore) : implCloudStore;
 
         // create our change log store
 

@@ -25,6 +25,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.yahoo.athenz.auth.PrivateKeyStore;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.Utils;
@@ -57,10 +58,17 @@ public class CloudStore {
     ConcurrentHashMap<String, AWSTemporaryCredentials> awsCredsCache;
     ConcurrentHashMap<String, Long> awsInvalidCredsCache;
     TempCredsProvider tempCredsProvider;
+    private final PrivateKeyStore privateKeyStore;
 
     private ScheduledExecutorService scheduledThreadPool = null;
 
     public CloudStore() {
+        this(null);
+    }
+
+    public CloudStore(PrivateKeyStore privateKeyStore) {
+
+        this.privateKeyStore = privateKeyStore;
 
         // initialize our account and cred cache
 
@@ -100,6 +108,9 @@ public class CloudStore {
         if (scheduledThreadPool != null) {
             scheduledThreadPool.shutdownNow();
         }
+        if (tempCredsProvider != null) {
+            tempCredsProvider.close();
+        }
     }
 
     public boolean isAwsEnabled() {
@@ -116,7 +127,7 @@ public class CloudStore {
         }
 
         try {
-            tempCredsProvider = new TempCredsProvider();
+            tempCredsProvider = new TempCredsProvider(privateKeyStore);
             tempCredsProvider.initialize();
         } catch (ServerResourceException ex) {
             LOGGER.error("unable to initialize aws temporary credentials provider: {}", ex.getMessage());

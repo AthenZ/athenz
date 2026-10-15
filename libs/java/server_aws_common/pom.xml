@@ -59,6 +59,27 @@
 
   <dependencies>
     <dependency>
+      <groupId>software.amazon.rolesanywhere.plugin</groupId>
+      <artifactId>roles-anywhere-java</artifactId>
+      <version>${aws.rolesanywhere.plugin.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>rolesanywhere</artifactId>
+      <version>${aws2.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>arns</artifactId>
+      <version>${aws2.version}</version>
+    </dependency>
+    <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>ssm</artifactId>
       <version>${aws2.version}</version>
