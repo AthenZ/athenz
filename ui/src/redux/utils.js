@@ -15,7 +15,9 @@
  */
 
 // problem need to do it on all subList as well need to know them.§
-import * as debugConsole from 'next/dist/build/output/log';
+// never import next's internal build/output logger here: this module is
+// bundled for the browser and that logger reads process.env unguarded
+const debug = require('debug')('AthenzUI:redux:utils');
 import { expiryTimeInMilliseconds } from './config';
 import produce from 'immer';
 import { getFullCollectionName } from './thunks/utils/collection';
@@ -83,7 +85,7 @@ export function deepFreezeObject(object, frozenObjects = new Set(), nest = 0) {
     }
 
     if (nest > 100) {
-        debugConsole.warn(
+        debug(
             "deepFreezeObject: deep nesting - probably state contains an object it shouldn't have..."
         );
     }
