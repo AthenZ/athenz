@@ -19,6 +19,9 @@ const debug = require('debug')('AthenzUI:server:handlers:logger');
 module.exports = function (expressApp, config) {
     expressApp.use((req, res, next) => {
         req.headers.rid = uuid();
+        // expose the request id as the CSP nonce so pages/_document.js can stamp
+        // it on the scripts next renders (secure.js allows 'nonce-<rid>' only)
+        res.locals.nonce = req.headers.rid;
         res.on('finish', () => {
             console.log(
                 'requestDone',

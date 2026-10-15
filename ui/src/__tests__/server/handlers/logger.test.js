@@ -34,4 +34,22 @@ describe('logger middleware test', () => {
                 expect(res.status).toEqual(200);
             });
     });
+    test('should expose the request id as the csp nonce', async () => {
+        const app = require('express')();
+        app.use((req, res, next) => {
+            req.session = {};
+            next();
+        });
+        logger(app);
+        app.get('/nonce', (req, res) =>
+            res.status(200).json({
+                rid: req.headers.rid,
+                nonce: res.locals.nonce,
+            })
+        );
+        const res = await request(app).get('/nonce');
+        expect(res.status).toEqual(200);
+        expect(res.body.rid).toBeTruthy();
+        expect(res.body.nonce).toEqual(res.body.rid);
+    });
 });
