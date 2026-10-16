@@ -721,7 +721,11 @@ describe('self service screen tests', () => {
         const expiry = await row.$('[data-testid="expiry-text"]');
         await expiry.waitForExist();
         await expect(expiry).toHaveText(expect.stringContaining('Expires'));
-        await expect(expiry).toHaveText(expect.stringContaining('days left'));
+        // the first selectable day is tomorrow, so this reads "1 day left"
+        // (singular); accept either form rather than pinning the count
+        await expect(expiry).toHaveText(
+            expect.stringMatching(/\b\d+ days? left$/)
+        );
     });
 
     // =====================================================================
