@@ -6154,32 +6154,35 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testPrepareDomainScanStatementPrefixNullModifiedZero() throws Exception {
+    public void testPrepareDomainNameScanStatementPrefixNullModifiedZero() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        jdbcConn.prepareDomainScanStatement(null, 0);
+        jdbcConn.prepareDomainNameScanStatement(null, 0);
+        Mockito.verify(mockConn, times(1)).prepareStatement("SELECT name FROM domain;");
         Mockito.verify(mockPrepStmt, times(0)).setString(Mockito.anyInt(), Mockito.isA(String.class));
         jdbcConn.close();
     }
 
     @Test
-    public void testPrepareDomainScanStatementPrefixModifiedZero() throws Exception {
+    public void testPrepareDomainNameScanStatementPrefixModifiedZero() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        jdbcConn.prepareDomainScanStatement("prefix", 0);
+        jdbcConn.prepareDomainNameScanStatement("prefix", 0);
+        Mockito.verify(mockConn, times(1)).prepareStatement("SELECT name FROM domain WHERE name>=? AND name<?;");
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "prefix");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "prefiy");
         jdbcConn.close();
     }
 
     @Test
-    public void testPrepareDomainScanStatementPrefixModified() throws Exception {
+    public void testPrepareDomainNameScanStatementPrefixModified() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        jdbcConn.prepareDomainScanStatement("prefix", 100);
+        jdbcConn.prepareDomainNameScanStatement("prefix", 100);
+        Mockito.verify(mockConn, times(1)).prepareStatement("SELECT name FROM domain WHERE name>=? AND name<? AND modified>?;");
         Mockito.verify(mockPrepStmt, times(1)).setString(1, "prefix");
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "prefiy");
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(ArgumentMatchers.eq(3), ArgumentMatchers.eq(new java.sql.Timestamp(100)), ArgumentMatchers.isA(Calendar.class));
@@ -6187,22 +6190,46 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testPrepareDomainScanStatementPrefixEmptyModifiedTime() throws Exception {
+    public void testPrepareDomainNameScanStatementPrefixEmptyModifiedTime() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        jdbcConn.prepareDomainScanStatement("", 100);
+        jdbcConn.prepareDomainNameScanStatement("", 100);
+        Mockito.verify(mockConn, times(1)).prepareStatement("SELECT name FROM domain WHERE modified>?;");
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(ArgumentMatchers.eq(1), ArgumentMatchers.eq(new java.sql.Timestamp(100)), ArgumentMatchers.isA(Calendar.class));
         jdbcConn.close();
     }
 
     @Test
-    public void testPrepareDomainScanStatementOnlyModifiedTime() throws Exception {
+    public void testPrepareDomainNameScanStatementOnlyModifiedTime() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
 
-        jdbcConn.prepareDomainScanStatement(null, 100);
+        jdbcConn.prepareDomainNameScanStatement(null, 100);
+        Mockito.verify(mockConn, times(1)).prepareStatement("SELECT name FROM domain WHERE modified>?;");
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(ArgumentMatchers.eq(1), ArgumentMatchers.eq(new java.sql.Timestamp(100)), ArgumentMatchers.isA(Calendar.class));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testPrepareDomainRowScanStatementModifiedTime() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        jdbcConn.prepareDomainRowScanStatement(100);
+        Mockito.verify(mockConn, times(1)).prepareStatement("SELECT * FROM domain WHERE modified>?;");
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(ArgumentMatchers.eq(1), ArgumentMatchers.eq(new java.sql.Timestamp(100)), ArgumentMatchers.isA(Calendar.class));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testPrepareDomainRowScanStatementModifiedZero() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        jdbcConn.prepareDomainRowScanStatement(0);
+        Mockito.verify(mockConn, times(1)).prepareStatement("SELECT * FROM domain;");
+        Mockito.verify(mockPrepStmt, times(0)).setTimestamp(Mockito.anyInt(), Mockito.isA(java.sql.Timestamp.class), Mockito.isA(Calendar.class));
         jdbcConn.close();
     }
 
