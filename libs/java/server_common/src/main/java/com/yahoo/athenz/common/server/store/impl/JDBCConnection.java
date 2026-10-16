@@ -112,9 +112,11 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "SET modified=CURRENT_TIMESTAMP(3) WHERE name=?;";
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
     private static final String SQL_LIST_DOMAIN = "SELECT * FROM domain;";
-    private static final String SQL_LIST_DOMAIN_PREFIX = "SELECT name, modified, enabled FROM domain WHERE name>=? AND name<?;";
     private static final String SQL_LIST_DOMAIN_MODIFIED = "SELECT * FROM domain WHERE modified>?;";
-    private static final String SQL_LIST_DOMAIN_PREFIX_MODIFIED = "SELECT name, modified, enabled FROM domain "
+    private static final String SQL_LIST_DOMAIN_NAME = "SELECT name FROM domain;";
+    private static final String SQL_LIST_DOMAIN_NAME_PREFIX = "SELECT name FROM domain WHERE name>=? AND name<?;";
+    private static final String SQL_LIST_DOMAIN_NAME_MODIFIED = "SELECT name FROM domain WHERE modified>?;";
+    private static final String SQL_LIST_DOMAIN_NAME_PREFIX_MODIFIED = "SELECT name FROM domain "
             + "WHERE name>=? AND name<? AND modified>?;";
     private static final String SQL_LIST_DOMAIN_ROLE_NAME_MEMBER = "SELECT domain.name FROM domain "
             + "JOIN role ON role.domain_id=domain.domain_id "
@@ -1335,7 +1337,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         return (affectedRows > 0);
     }
 
-    PreparedStatement prepareDomainScanStatement(String prefix, long modifiedSince)
+    /**
+     * Selects only the name column. Callers must not read any other columns
+     * from the result set. (Without a modifiedSince filter, this is served
+     * from the covering uq_name index.)
+     */
+    PreparedStatement prepareDomainNameScanStatement(String prefix, long modifiedSince)
             throws SQLException {
 
         PreparedStatement ps;
@@ -1344,17 +1351,34 @@ public class JDBCConnection implements ObjectStoreConnection {
             char c = (char) (prefix.charAt(len - 1) + 1);
             String stop = prefix.substring(0, len - 1) + c;
             if (modifiedSince != 0) {
-                ps = con.prepareStatement(SQL_LIST_DOMAIN_PREFIX_MODIFIED);
+                ps = con.prepareStatement(SQL_LIST_DOMAIN_NAME_PREFIX_MODIFIED);
                 ps.setString(1, prefix);
                 ps.setString(2, stop);
                 Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(MYSQL_SERVER_TIMEZONE));
                 ps.setTimestamp(3, new java.sql.Timestamp(modifiedSince), cal);
             } else {
-                ps = con.prepareStatement(SQL_LIST_DOMAIN_PREFIX);
+                ps = con.prepareStatement(SQL_LIST_DOMAIN_NAME_PREFIX);
                 ps.setString(1, prefix);
                 ps.setString(2, stop);
             }
         } else if (modifiedSince != 0) {
+            ps = con.prepareStatement(SQL_LIST_DOMAIN_NAME_MODIFIED);
+            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(MYSQL_SERVER_TIMEZONE));
+            ps.setTimestamp(1, new java.sql.Timestamp(modifiedSince), cal);
+        } else {
+            ps = con.prepareStatement(SQL_LIST_DOMAIN_NAME);
+        }
+        return ps;
+    }
+
+    /**
+     * Selects every column, for callers that need the full domain attributes.
+     */
+    PreparedStatement prepareDomainRowScanStatement(long modifiedSince)
+            throws SQLException {
+
+        PreparedStatement ps;
+        if (modifiedSince != 0) {
             ps = con.prepareStatement(SQL_LIST_DOMAIN_MODIFIED);
             Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(MYSQL_SERVER_TIMEZONE));
             ps.setTimestamp(1, new java.sql.Timestamp(modifiedSince), cal);
@@ -1381,7 +1405,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps = con.prepareStatement(SQL_LIST_DOMAIN_ROLE_NAME);
             ps.setString(1, roleName);
         } else {
-            ps = con.prepareStatement(SQL_LIST_DOMAIN);
+            ps = con.prepareStatement(SQL_LIST_DOMAIN_NAME);
         }
         return ps;
     }
@@ -1583,7 +1607,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         final String caller = "listDomains";
 
         List<String> domains = new ArrayList<>();
-        try (PreparedStatement ps = prepareDomainScanStatement(prefix, modifiedSince)) {
+        try (PreparedStatement ps = prepareDomainNameScanStatement(prefix, modifiedSince)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     domains.add(rs.getString(JDBCConsts.DB_COLUMN_NAME));
@@ -4780,7 +4804,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         DomainMetaList domainModifiedList = new DomainMetaList();
         List<Domain> nameMods = new ArrayList<>();
 
-        try (PreparedStatement ps = prepareDomainScanStatement(null, modifiedSince)) {
+        try (PreparedStatement ps = prepareDomainRowScanStatement(modifiedSince)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     final String domainName = rs.getString(JDBCConsts.DB_COLUMN_NAME);
