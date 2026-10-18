@@ -1,3 +1,26 @@
+Athenz v1.12.50 Release / Oct 18, 2026
+--------------------------------------
+
+#3501 Feat: Replace direct admin membership with delegated trust in solution templates
+#3535 Fix athenz-builder Docker build: include libs/java/crypki module
+#3536 ui: sanitize error objects before logging
+#3537 ui - fix microsegmentation functional test race condition
+#3538 Remove duplicate dependencies from syncer common POM
+#3539 Bump axios from 1.18.0 to 1.20.0 in /clients/nodejs/zts
+#3540 Bump decode-uri-component and saucelabs in /ui
+#3541 Bump next from 16.3.6 to 16.4.0 in /ui
+#3543 zms - pass resolved template to executeDeleteDomainTemplate
+#3544 ui - fix “_ is not defined” error when expanding Access History nodes
+#3547 zms/zts - improve object validation error reporting
+#3549 add: support IAM Roles Anywhere for ZTS credentials
+#3551 Raise ZTS Azure external credentials HTTP timeouts
+#3552 ui - stamp the CSP nonce on next’s inline bootstrap script
+#3553 update next to address next cve
+#3554 ui - stop bundling next’s internal build logger into the browser
+#3555 Accept singular ‘day left’ in self-service expiry functional test
+#3557 zms - select only name when listing domains
+#3558 update dependencies across java, go and ui
+
 Athenz v1.12.49 Release / Oct 05, 2026
 --------------------------------------
 
