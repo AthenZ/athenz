@@ -111,7 +111,7 @@ if (!sauceLabsUser) {
             browserName: 'chrome',
             acceptInsecureCerts: true,
             browserVersion: 'latest',
-            platformName: 'OS X 12',
+            platformName: 'macOS 14',
             maxInstances: 7,
             'wdio:enforceWebDriverClassic': true,
             'sauce:options': {
