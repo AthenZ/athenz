@@ -123,7 +123,7 @@ if (!sauceLabsUser) {
                 name: process.env.npm_package_name || 'Athenz UI Tests',
                 build: BUILD_NUMBER,
                 screenResolution: functionalConfig.screenResolution,
-                maxDuration: 3600,
+                maxDuration: 7200,
                 extendedDebugging: true,
             },
         },
