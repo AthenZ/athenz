@@ -285,7 +285,7 @@ class AuthorizedServicesManager {
         failedPath = path;
         failedModifiedMillis = modifiedMillis;
         retryAfterMillis = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(backoffSeconds);
-        nextBackoffSeconds = backoffSeconds >= maxBackoffSeconds() / 2 ? maxBackoffSeconds() : backoffSeconds * 2;
+        nextBackoffSeconds = backoffSeconds > maxBackoffSeconds() / 2 ? maxBackoffSeconds() : backoffSeconds * 2;
     }
 
     private void clearFailure() {
