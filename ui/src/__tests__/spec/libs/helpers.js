@@ -350,10 +350,15 @@ module.exports.beforeEachTest = async () => {
     // Clear cookies and storage between tests
     try {
         await browser.deleteCookies();
-        await browser.execute(() => {
-            localStorage.clear();
-            sessionStorage.clear();
-        });
+        // web storage is only accessible on http(s) origins; a fresh session
+        // sits on a data:/about: URL where Chrome blocks localStorage access
+        const url = await browser.getUrl();
+        if (/^https?:/.test(url)) {
+            await browser.execute(() => {
+                localStorage.clear();
+                sessionStorage.clear();
+            });
+        }
     } catch (e) {
         // Ignore errors if browser is not initialized
         console.warn('Could not clear browser state:', e.message);
