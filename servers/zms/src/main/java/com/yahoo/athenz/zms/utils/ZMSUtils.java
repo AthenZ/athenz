@@ -506,7 +506,10 @@ public class ZMSUtils {
         }
 
         // the validator is not expected to throw, but if it does, we'll
-        // report it as a regular validation failure without the stack trace
+        // report it as a regular validation failure without the stack trace.
+        // we're catching Throwable since a very long value may cause the
+        // underlying regex matcher to throw a StackOverflowError (an Error,
+        // not an Exception) due to the recursive name patterns
 
         boolean valid;
         String error;
@@ -514,7 +517,7 @@ public class ZMSUtils {
             Validator.Result result = validator.validate(val, type);
             valid = result.valid;
             error = result.error;
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             valid = false;
             error = ex.getMessage();
         }
