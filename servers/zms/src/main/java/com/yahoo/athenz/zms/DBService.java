@@ -6941,7 +6941,7 @@ public class DBService implements RolesProvider, DomainProvider {
         return athenzDomain;
     }
 
-    DomainMetaList listModifiedDomains(long modifiedSince, boolean readWrite) {
+    DomainMetaList listModifiedDomains(long modifiedSince, boolean readWrite, boolean fetchFullRow) {
 
         // since this is the operation executed by ZTS servers to
         // retrieve latest domain changes, we're going to use
@@ -6949,7 +6949,7 @@ public class DBService implements RolesProvider, DomainProvider {
         // get our up-to-date data
 
         try (ObjectStoreConnection con = store.getConnection(true, readWrite)) {
-            return con.listModifiedDomains(modifiedSince);
+            return con.listModifiedDomains(modifiedSince, fetchFullRow);
         } catch (ServerResourceException ex) {
             throw ZMSUtils.error(ex);
         }

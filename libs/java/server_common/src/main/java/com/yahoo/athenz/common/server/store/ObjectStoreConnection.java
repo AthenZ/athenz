@@ -56,6 +56,10 @@ public interface ObjectStoreConnection extends Closeable {
     List<String> lookupDomainByBusinessService(String businessService) throws ServerResourceException;
     AthenzDomain getAthenzDomain(String domainName) throws ServerResourceException;
     DomainMetaList listModifiedDomains(long modifiedSince) throws ServerResourceException;
+
+    default DomainMetaList listModifiedDomains(long modifiedSince, boolean fetchFullRow) throws ServerResourceException {
+        return listModifiedDomains(modifiedSince);
+    }
     void setDomainOptions(DomainOptions domainOptions) throws ServerResourceException;
     default Map<String, String> listDomainsWithExternalMemberValidator() throws ServerResourceException {
         return Collections.emptyMap();

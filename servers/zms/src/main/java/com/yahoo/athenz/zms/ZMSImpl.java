@@ -8441,12 +8441,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 matchingTag = ENTITY_TAG_HEADER_DELEGATE.toString(eTag);
             }
 
+            // With metaonly=true and without metaattr parameter, only name, modified and enabled are needed for this API query.
+            // OPTIMIZE: Select only the required columns for specific metaattr values
+            boolean fetchFullRow = metaAttr != null;
+
             // fetching the list of modified domains must always be carried out
             // against our master write database unless the server is running in
             // read-only mode in which case it indicates that our master write
             // db is not available thus we'll use the read replica
 
-            DomainMetaList dmlist = dbService.listModifiedDomains(timestamp, !readOnlyMode.get());
+            DomainMetaList dmlist = dbService.listModifiedDomains(timestamp, !readOnlyMode.get(), fetchFullRow);
             List<Domain> modlist = dmlist.getDomains();
             if (ZMSUtils.isCollectionEmpty(modlist)) {
                 return Response.status(ResourceException.NOT_MODIFIED)

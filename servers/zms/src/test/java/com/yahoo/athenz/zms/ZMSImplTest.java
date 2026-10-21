@@ -12804,7 +12804,7 @@ public class ZMSImplTest {
                 "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom2);
 
-        DomainMetaList domModList = zmsImpl.dbService.listModifiedDomains(0, true);
+        DomainMetaList domModList = zmsImpl.dbService.listModifiedDomains(0, true, false);
         assertNotNull(domModList);
         assertTrue(domModList.getDomains().size() > 1);
 
@@ -12842,7 +12842,7 @@ public class ZMSImplTest {
                 "Test Domain2", "testOrg", zmsTestInitializer.getAdminUser());
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom2);
 
-        DomainMetaList domModList = zmsImpl.dbService.listModifiedDomains(timestamp, true);
+        DomainMetaList domModList = zmsImpl.dbService.listModifiedDomains(timestamp, true, false);
         assertNotNull(domModList);
         assertTrue(domModList.getDomains().size() > 1);
 
@@ -12860,7 +12860,7 @@ public class ZMSImplTest {
         assertTrue(dom2Found);
 
         timestamp += 10000; // add 10 seconds
-        domModList = zmsImpl.dbService.listModifiedDomains(timestamp, true);
+        domModList = zmsImpl.dbService.listModifiedDomains(timestamp, true, false);
         assertNotNull(domModList);
         assertEquals(domModList.getDomains().size(), 0);
 
