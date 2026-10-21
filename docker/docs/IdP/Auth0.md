@@ -361,7 +361,7 @@
 
 ZMS limits the API access using the [authorized_services.json](../../zms/conf/authorized_services.json) file (GET APIs are not included.). When a client application access ZMS using the user's credentials, the application can only use the user's credentials on a pre-defined set of APIs. Hence, even the user is the domain admin of Athenz, he cannot update ZMS data via unregistered client applications.
 
-For example, if we want to allow users to create top level domain via our example application ('testing-domain.my-athenz-spa'), we need to update the [authorized_services.json](../../zms/conf/authorized_services.json) as below and re-deploy ZMS.
+For example, if we want to allow users to create top level domain via our example application ('testing-domain.my-athenz-spa'), we need to update the [authorized_services.json](../../zms/conf/authorized_services.json) as below. By default, ZMS must be restarted for the change to take effect. [Dynamic reload](../../../docs/athenz_authorized_services.md) can be enabled to apply valid updates without a restart.
 
 ```json
 {
