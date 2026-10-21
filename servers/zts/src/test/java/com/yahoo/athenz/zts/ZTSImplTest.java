@@ -10683,6 +10683,39 @@ public class ZTSImplTest {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
             assertTrue(ex.getMessage().contains("Audience must not be in the form of a role or group reference"));
         }
+
+        // whitespace and control characters must be rejected so a role
+        // reference cannot be smuggled past the check with padding
+
+        final String[] invalidAudiences = {
+                "coretech.storage:writers ",
+                " coretech.storage:writers",
+                "coretech.storage:writers\t",
+                "coretech.storage:writers\n",
+                "coretech.storage:writers\u0000",
+                "coretech.storage: writers",
+                "https://zts.athenz.io "
+        };
+        for (String audience : invalidAudiences) {
+            try {
+                zts.validateTokenAudienceNotRoleOrGroup(audience, "athenz", "caller");
+                fail("audience accepted: " + audience);
+            } catch (ResourceException ex) {
+                assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+                assertTrue(ex.getMessage().contains("Audience must not contain whitespace or control characters"));
+            }
+        }
+    }
+
+    @Test
+    public void testContainsWhitespaceOrControlChars() {
+        assertFalse(ZTSImpl.containsWhitespaceOrControlChars(""));
+        assertFalse(ZTSImpl.containsWhitespaceOrControlChars("coretech.storage"));
+        assertFalse(ZTSImpl.containsWhitespaceOrControlChars("https://zts.athenz.io:4443/zts/v1"));
+        assertTrue(ZTSImpl.containsWhitespaceOrControlChars("coretech storage"));
+        assertTrue(ZTSImpl.containsWhitespaceOrControlChars("coretech\tstorage"));
+        assertTrue(ZTSImpl.containsWhitespaceOrControlChars("coretech\u0007storage"));
+        assertTrue(ZTSImpl.containsWhitespaceOrControlChars("coretech\u00a0storage"));
     }
 
     @Test

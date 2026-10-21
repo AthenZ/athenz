@@ -7573,10 +7573,31 @@ public class ZTSImpl implements ZTSHandler {
      */
     void validateTokenAudienceNotRoleOrGroup(final String audience, final String principalDomain,
             final String caller) {
+        if (StringUtil.isEmpty(audience)) {
+            return;
+        }
+        // whitespace and control characters are never valid in an audience
+        // value and would allow a role/group reference with trailing or
+        // embedded whitespace to bypass the check below while still being
+        // matched by a relying party that trims the claim value before comparing
+        if (containsWhitespaceOrControlChars(audience)) {
+            throw requestError("Audience must not contain whitespace or control characters",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
         if (isRoleOrGroupAudience(audience)) {
             throw requestError("Audience must not be in the form of a role or group reference",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
+    }
+
+    static boolean containsWhitespaceOrControlChars(final String value) {
+        for (int i = 0; i < value.length(); i++) {
+            final char ch = value.charAt(i);
+            if (Character.isWhitespace(ch) || Character.isSpaceChar(ch) || Character.isISOControl(ch)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static boolean isRoleOrGroupAudience(final String audience) {
