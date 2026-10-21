@@ -2854,6 +2854,149 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
+    public void testProcessJAGTokenExchangeRequestFullArnRoleOrGroupAudienceRejected() throws JOSEException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
+                "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
+
+        Principal principal = SimplePrincipal.create("coretech", "jwt",
+                "v=U1;d=coretech;n=jwt;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        final String[] forgedAudiences = {
+                "coretech:writers",
+                "coretech.api:writers",
+                "coretech:role.writers",
+                "coretech.api:coretech:role.writers"
+        };
+
+        for (String audience : forgedAudiences) {
+            try {
+                ztsImpl.postAccessTokenRequest(context,
+                        "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
+                                + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                                + "&client_assertion=" + createClientAssertionToken(privateKey)
+                                + "&full_arn=true&audience=" + audience);
+                fail("audience accepted: " + audience);
+            } catch (ResourceException ex) {
+                assertEquals(ex.getCode(), ResourceException.BAD_REQUEST, audience);
+                assertTrue(ex.getMessage().contains("Audience must not be in the form of a role or group reference"),
+                        ex.getMessage());
+            }
+        }
+    }
+
+    @Test
+    public void testProcessJAGTokenExchangeRequestFullArnNoAudience() throws JOSEException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
+                "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
+
+        Principal principal = SimplePrincipal.create("coretech", "jwt",
+                "v=U1;d=coretech;n=jwt;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
+                        + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                        + "&client_assertion=" + createClientAssertionToken(privateKey)
+                        + "&full_arn=true");
+
+        assertNotNull(resp);
+        assertNotNull(resp.getAccess_token());
+
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(resp.getAccess_token());
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+
+            // with full_arn=true and no audience specified, the domain
+            // name must be used as the audience instead of an empty value
+
+            assertEquals(claimSet.getAudience().get(0), "coretech");
+        } catch (ParseException ex) {
+            fail(ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testProcessJAGTokenIssueRequestRoleOrGroupAudienceRejected() throws JOSEException {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        ztsImpl.tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+
+        final File ecPrivateKey = new File("./src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(privateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        final String[] forgedAudiences = {
+                "coretech:writers",
+                "coretech.api:writers",
+                "coretech:role.writers",
+                "coretech.api:coretech:role.writers"
+        };
+
+        for (String audience : forgedAudiences) {
+            final String tokenRequest = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                    + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                    + "&subject_token=" + subjectToken + "&audience=" + audience
+                    + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                    + "&scope=coretech:role.writers";
+            try {
+                ztsImpl.postAccessTokenRequest(context, tokenRequest);
+                fail("audience accepted: " + audience);
+            } catch (ResourceException ex) {
+                assertEquals(ex.getCode(), ResourceException.BAD_REQUEST, audience);
+                assertTrue(ex.getMessage().contains("Audience must not be in the form of a role or group reference"),
+                        ex.getMessage());
+            }
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
     public void testProcessJAGTokenExchangeRequestAudienceIgnoredWithoutFullArn() throws JOSEException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
