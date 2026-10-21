@@ -1797,7 +1797,7 @@ public class ZTSImplIDTokenTest {
     }
 
     // ========================
-    // Test: Failure - audience must not be a role/group reference. A caller must
+    // Test: Failure - audience must be a valid service name. A caller must
     // not be able to smuggle a role name into the aud claim via the audience
     // parameter (e.g. coretech.storage:writers) since that value is identical
     // to what the id token endpoint issues to a genuine member of that role
@@ -1805,7 +1805,7 @@ public class ZTSImplIDTokenTest {
     // ========================
 
     @Test
-    public void testIdTokenExchangeRoleOrGroupAudienceRejected() {
+    public void testIdTokenExchangeInvalidServiceNameAudienceRejected() {
 
         ZTSImpl ztsImpl = createZtsImpl();
 
@@ -1827,7 +1827,10 @@ public class ZTSImplIDTokenTest {
                 "coretech.storage:writers",
                 "coretech.storage:coretech:role.writers",
                 "coretech.storage:coretech:group.dev-team",
-                "coretech.storage:role.writers"
+                "coretech.storage:role.writers",
+                "coretech.storage:writers ",
+                "coretech.storage/api",
+                "https://coretech.storage"
         };
 
         for (String audience : forgedAudiences) {
@@ -1837,8 +1840,7 @@ public class ZTSImplIDTokenTest {
                 fail("audience accepted: " + audience);
             } catch (ResourceException ex) {
                 assertEquals(ex.getCode(), ResourceException.BAD_REQUEST, audience);
-                assertTrue(ex.getMessage().contains("Audience must not be in the form of a role or group reference"),
-                        ex.getMessage());
+                assertTrue(ex.getMessage().contains("ServiceName"), ex.getMessage());
             }
         }
 
@@ -1846,12 +1848,12 @@ public class ZTSImplIDTokenTest {
     }
 
     // ========================
-    // Test: Success - a caller specified audience that is not a role/group
-    // reference is still honored as-is
+    // Test: Success - a caller specified audience that is a valid service
+    // name (other than the one used in the rest of the tests) is honored as-is
     // ========================
 
     @Test
-    public void testIdTokenExchangeCustomAudienceAccepted() throws JOSEException {
+    public void testIdTokenExchangeOtherServiceNameAudienceAccepted() throws JOSEException {
 
         ZTSImpl ztsImpl = createZtsImpl();
 
@@ -1869,7 +1871,7 @@ public class ZTSImplIDTokenTest {
                 "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
         ResourceContext context = createResourceContext(principal);
 
-        final String customAudience = "coretech.storage/api";
+        final String customAudience = "coretech.api-gateway_v2";
         String tokenRequest = buildIdTokenExchangeRequest(subjectToken, customAudience,
                 "coretech:role.writers");
 
@@ -1937,8 +1939,7 @@ public class ZTSImplIDTokenTest {
                     + " sub=" + claims.getSubject() + " groups=" + claims.getStringListClaim("groups"));
         } catch (ResourceException ex) {
             assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
-            assertTrue(ex.getMessage().contains("Audience must not be in the form of a role or group reference"),
-                    ex.getMessage());
+            assertTrue(ex.getMessage().contains("ServiceName"), ex.getMessage());
         }
 
         ztsImpl.cloudStore.close();
