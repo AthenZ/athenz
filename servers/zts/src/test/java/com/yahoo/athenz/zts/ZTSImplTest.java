@@ -10664,6 +10664,58 @@ public class ZTSImplTest {
         assertTrue(ZTSImpl.isRoleOrGroupAudience("coretech.storage:coretech:role.writers"));
         assertTrue(ZTSImpl.isRoleOrGroupAudience("coretech.storage:coretech:group.dev-team"));
         assertTrue(ZTSImpl.isRoleOrGroupAudience("CoreTech.Storage:Writers"));
+
+        // malformed compound name components are not matched
+
+        assertFalse(ZTSImpl.isRoleOrGroupAudience(".coretech:writers"));
+        assertFalse(ZTSImpl.isRoleOrGroupAudience("coretech.:writers"));
+        assertFalse(ZTSImpl.isRoleOrGroupAudience("core..tech:writers"));
+        assertFalse(ZTSImpl.isRoleOrGroupAudience("-coretech:writers"));
+        assertFalse(ZTSImpl.isRoleOrGroupAudience("coretech:-writers"));
+        assertFalse(ZTSImpl.isRoleOrGroupAudience("coretech.storage:coretech:role."));
+        assertFalse(ZTSImpl.isRoleOrGroupAudience("coretech.storage:coretech:role"));
+        assertFalse(ZTSImpl.isRoleOrGroupAudience("coretech.storage:coretech:roles.writers"));
+        assertFalse(ZTSImpl.isRoleOrGroupAudience("coretech.storage::role.writers"));
+        assertFalse(ZTSImpl.isRoleOrGroupAudience("coretech.storage:coretech:role.writers:"));
+
+        // every audience form the server itself generates for role_in_aud_claim
+        // must be matched so a caller cannot supply the same value directly
+
+        assertTrue(ZTSImpl.isRoleOrGroupAudience(zts.getIdTokenAudience("coretech.storage", true, List.of("writers"))));
+        assertTrue(ZTSImpl.isRoleOrGroupAudience(zts.getIdTokenAudience("coretech.storage", true, List.of("coretech:role.writers"))));
+        assertTrue(ZTSImpl.isRoleOrGroupAudience(zts.getIdTokenAudience("coretech.storage", true, List.of("coretech:group.dev-team"))));
+        assertTrue(ZTSImpl.isRoleOrGroupAudience(zts.getAccessTokenAudience("coretech", true, List.of("writers"))));
+        assertTrue(ZTSImpl.isRoleOrGroupAudience("coretech.storage:" + "coretech:role.writers"));
+
+        // long caller controlled values must not cause a stack overflow
+
+        final String longName = "a.".repeat(100000) + "a";
+        assertFalse(ZTSImpl.isRoleOrGroupAudience(longName));
+        assertTrue(ZTSImpl.isRoleOrGroupAudience(longName + ":writers"));
+        assertTrue(ZTSImpl.isRoleOrGroupAudience("coretech.storage:" + longName + ":role.writers"));
+        assertFalse(ZTSImpl.isRoleOrGroupAudience("https://" + longName));
+        assertFalse(ZTSImpl.isRoleOrGroupAudience("a".repeat(100000) + ":" + "b".repeat(100000) + "/x"));
+    }
+
+    @Test
+    public void testIsCompoundName() {
+        assertTrue(ZTSImpl.isCompoundName("a", 0, 1));
+        assertTrue(ZTSImpl.isCompoundName("coretech", 0, 8));
+        assertTrue(ZTSImpl.isCompoundName("coretech.storage", 0, 16));
+        assertTrue(ZTSImpl.isCompoundName("core-tech_1.Storage2", 0, 20));
+        assertTrue(ZTSImpl.isCompoundName("xx:coretech.storage:yy", 3, 19));
+        assertFalse(ZTSImpl.isCompoundName("", 0, 0));
+        assertFalse(ZTSImpl.isCompoundName("coretech", 3, 3));
+        assertFalse(ZTSImpl.isCompoundName("coretech", 5, 3));
+        assertFalse(ZTSImpl.isCompoundName(".coretech", 0, 9));
+        assertFalse(ZTSImpl.isCompoundName("coretech.", 0, 9));
+        assertFalse(ZTSImpl.isCompoundName("core..tech", 0, 10));
+        assertFalse(ZTSImpl.isCompoundName("-coretech", 0, 9));
+        assertFalse(ZTSImpl.isCompoundName("core.-tech", 0, 10));
+        assertFalse(ZTSImpl.isCompoundName("core tech", 0, 9));
+        assertFalse(ZTSImpl.isCompoundName("core/tech", 0, 9));
+        assertFalse(ZTSImpl.isCompoundName("core:tech", 0, 9));
+        assertFalse(ZTSImpl.isCompoundName("cor\u00e9tech", 0, 8));
     }
 
     @Test
