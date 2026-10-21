@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.zms;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.zms.config.AllowedOperation;
@@ -113,7 +114,8 @@ class AuthorizedServicesManager {
 
     private AuthorizedServices readValidated(Path path) throws IOException {
         byte[] data = Files.readAllBytes(path);
-        JsonNode root = jsonMapper.readTree(data);
+        JsonNode root = jsonMapper.readerFor(JsonNode.class)
+                .with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS).readValue(data);
         if (root == null || !root.isObject() || !root.has("services") || !root.get("services").isObject()) {
             throw new IllegalArgumentException("Invalid authorized services document in file " + path);
         }
@@ -170,7 +172,7 @@ class AuthorizedServicesManager {
         }
     }
 
-    private void scheduleReload(long delaySeconds) {
+    void scheduleReload(long delaySeconds) {
         ScheduledExecutorService executor = reloadExecutor;
         if (executor == null || executor.isShutdown()) {
             return;
@@ -184,7 +186,7 @@ class AuthorizedServicesManager {
         }
     }
 
-    private void runReloadTask() {
+    void runReloadTask() {
         long delaySeconds = reloadFrequencySeconds();
         try {
             ReloadStatus status = reloadIfModified();
@@ -271,11 +273,11 @@ class AuthorizedServicesManager {
 
     private boolean retryPending(Path path, long modifiedMillis) {
         return Objects.equals(path, failedPath) && modifiedMillis == failedModifiedMillis
-                && System.currentTimeMillis() < retryAfterMillis;
+                && currentTimeMillis() < retryAfterMillis;
     }
 
     private long retryDelaySeconds() {
-        long remainingMillis = retryAfterMillis - System.currentTimeMillis();
+        long remainingMillis = retryAfterMillis - currentTimeMillis();
         return remainingMillis <= 0 ? 0 : Math.max(1, TimeUnit.MILLISECONDS.toSeconds(remainingMillis));
     }
 
@@ -284,8 +286,13 @@ class AuthorizedServicesManager {
         backoffSeconds = Math.min(backoffSeconds, maxBackoffSeconds());
         failedPath = path;
         failedModifiedMillis = modifiedMillis;
-        retryAfterMillis = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(backoffSeconds);
+        retryAfterMillis = currentTimeMillis() + TimeUnit.SECONDS.toMillis(backoffSeconds);
         nextBackoffSeconds = backoffSeconds > maxBackoffSeconds() / 2 ? maxBackoffSeconds() : backoffSeconds * 2;
+    }
+
+    // Allows tests to mock the clock for deterministic retry timing.
+    long currentTimeMillis() {
+        return System.currentTimeMillis();
     }
 
     private void clearFailure() {

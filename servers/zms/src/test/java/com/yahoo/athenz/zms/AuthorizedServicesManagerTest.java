@@ -25,6 +25,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.yahoo.athenz.zms.AuthorizedServicesManager.ReloadStatus.*;
@@ -36,6 +38,26 @@ public class AuthorizedServicesManagerTest {
             + "\"allowedOperations\":[{\"name\":\"putrole\"}]}}}";
     private static final String SECOND_SERVICES = "{\"services\":{\"example.second\":{"
             + "\"allowedOperations\":[{\"name\":\"putpolicy\"}]}}}";
+
+    private static class ManualTimeManager extends AuthorizedServicesManager {
+
+        long nowMillis = TimeUnit.SECONDS.toMillis(100);
+        final List<Long> scheduledDelays = new ArrayList<>();
+
+        ManualTimeManager() {
+            super(new ObjectMapper(), true, () -> ".");
+        }
+
+        @Override
+        long currentTimeMillis() {
+            return nowMillis;
+        }
+
+        @Override
+        void scheduleReload(long delaySeconds) {
+            scheduledDelays.add(delaySeconds);
+        }
+    }
 
     private AuthorizedServicesManager manager(boolean dynamicReload) {
         return new AuthorizedServicesManager(new ObjectMapper(), dynamicReload, () -> ".");
@@ -91,7 +113,9 @@ public class AuthorizedServicesManagerTest {
                     "{\"services\":{\"example.invalid\":{\"allowedOperations\":[null]}}}",
                     "{\"services\":{\"example.invalid\":{\"allowedOperations\":[{\"name\":\"\"}]}}}",
                     "{\"services\":{\"example.invalid\":{\"allowedOperations\":[{\"name\":\"putrole\","
-                            + "\"items\":{\"role-prefix\":[\"\"]}}]}}}"
+                            + "\"items\":{\"role-prefix\":[\"\"]}}]}}}",
+                    "{\"services\":{}} " + FIRST_SERVICES,
+                    FIRST_SERVICES + " {invalid"
             };
             for (String invalidDocument : invalidDocuments) {
                 write(path, invalidDocument, modifiedMillis += 2000);
@@ -163,6 +187,116 @@ public class AuthorizedServicesManagerTest {
             restoreProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME, originalPath);
             Files.deleteIfExists(path);
             Files.deleteIfExists(directory);
+        }
+    }
+
+    @Test
+    public void testRetryBackoffAndResetAfterSuccess() throws Exception {
+        Path path = Files.createTempFile("authorized-services-backoff", ".json");
+        String originalPath = System.getProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME);
+        String originalFrequency = System.getProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_RELOAD_FREQUENCY_SECONDS);
+        String originalMaxBackoff = System.getProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_RELOAD_MAX_BACKOFF_SECONDS);
+        long modifiedMillis = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(2);
+        try {
+            System.setProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME, path.toString());
+            System.setProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_RELOAD_FREQUENCY_SECONDS, "2");
+            System.setProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_RELOAD_MAX_BACKOFF_SECONDS, "5");
+            write(path, FIRST_SERVICES, modifiedMillis);
+            ManualTimeManager manager = new ManualTimeManager();
+            manager.loadAuthorizedServices();
+            AuthorizedServices lastGood = manager.getAuthorizedServices();
+
+            write(path, "{invalid", modifiedMillis += 2000);
+            assertEquals(manager.reloadIfModified(), FAILED); // retry after 2 seconds
+            assertSame(manager.getAuthorizedServices(), lastGood);
+            manager.nowMillis += 1999;
+            assertEquals(manager.reloadIfModified(), RETRY_PENDING);
+            manager.nowMillis++;
+            assertEquals(manager.reloadIfModified(), FAILED); // retry after 4 seconds
+            assertSame(manager.getAuthorizedServices(), lastGood);
+            manager.nowMillis += 3999;
+            assertEquals(manager.reloadIfModified(), RETRY_PENDING);
+            manager.nowMillis++;
+            assertEquals(manager.reloadIfModified(), FAILED); // retry after 5 seconds
+            assertSame(manager.getAuthorizedServices(), lastGood);
+            manager.nowMillis += 4999;
+            assertEquals(manager.reloadIfModified(), RETRY_PENDING);
+            manager.nowMillis++;
+            assertEquals(manager.reloadIfModified(), FAILED); // capped at 5 seconds
+            assertSame(manager.getAuthorizedServices(), lastGood);
+            manager.nowMillis += 4999;
+            assertEquals(manager.reloadIfModified(), RETRY_PENDING);
+            manager.nowMillis++;
+            assertEquals(manager.reloadIfModified(), FAILED);
+            assertSame(manager.getAuthorizedServices(), lastGood);
+
+            write(path, SECOND_SERVICES, modifiedMillis += 2000);
+            assertEquals(manager.reloadIfModified(), RELOADED);
+            lastGood = manager.getAuthorizedServices();
+            assertTrue(lastGood.contains("example.second"));
+
+            write(path, "{invalid", modifiedMillis + 2000);
+            assertEquals(manager.reloadIfModified(), FAILED); // backoff starts again at 2 seconds
+            assertSame(manager.getAuthorizedServices(), lastGood);
+            manager.nowMillis += 1999;
+            assertEquals(manager.reloadIfModified(), RETRY_PENDING);
+            manager.nowMillis++;
+            assertEquals(manager.reloadIfModified(), FAILED);
+            assertSame(manager.getAuthorizedServices(), lastGood);
+        } finally {
+            restoreProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME, originalPath);
+            restoreProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_RELOAD_FREQUENCY_SECONDS, originalFrequency);
+            restoreProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_RELOAD_MAX_BACKOFF_SECONDS, originalMaxBackoff);
+            Files.deleteIfExists(path);
+        }
+    }
+
+    @Test
+    public void testBackgroundTaskReschedulesAfterFailure() throws Exception {
+        Path path = Files.createTempFile("authorized-services-background-failure", ".json");
+        String originalPath = System.getProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME);
+        String originalFrequency = System.getProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_RELOAD_FREQUENCY_SECONDS);
+        String originalMaxBackoff = System.getProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_RELOAD_MAX_BACKOFF_SECONDS);
+        long modifiedMillis = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(2);
+        try {
+            System.setProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME, path.toString());
+            System.setProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_RELOAD_FREQUENCY_SECONDS, "3");
+            System.setProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_RELOAD_MAX_BACKOFF_SECONDS, "5");
+            write(path, FIRST_SERVICES, modifiedMillis);
+            ManualTimeManager manager = new ManualTimeManager();
+            manager.loadAuthorizedServices();
+            AuthorizedServices lastGood = manager.getAuthorizedServices();
+
+            write(path, "{invalid", modifiedMillis += 2000);
+            manager.runReloadTask(); // first failure: retry after 3 seconds
+            assertEquals(manager.scheduledDelays, List.of(3L));
+            assertSame(manager.getAuthorizedServices(), lastGood);
+
+            manager.nowMillis += 3000;
+            manager.runReloadTask(); // retry fails: retry after 5 seconds
+            assertEquals(manager.scheduledDelays, List.of(3L, 3L));
+            assertSame(manager.getAuthorizedServices(), lastGood);
+
+            manager.nowMillis += 3000;
+            manager.runReloadTask(); // 2 seconds remain before retry
+            assertEquals(manager.scheduledDelays, List.of(3L, 3L, 2L));
+            assertSame(manager.getAuthorizedServices(), lastGood);
+
+            manager.nowMillis += 2000;
+            manager.runReloadTask(); // retry still runs after the pending check
+            assertEquals(manager.scheduledDelays, List.of(3L, 3L, 2L, 3L));
+            assertSame(manager.getAuthorizedServices(), lastGood);
+
+            write(path, SECOND_SERVICES, modifiedMillis + 2000);
+            manager.nowMillis += 3000;
+            manager.runReloadTask();
+            assertEquals(manager.scheduledDelays, List.of(3L, 3L, 2L, 3L, 3L));
+            assertTrue(manager.getAuthorizedServices().contains("example.second"));
+        } finally {
+            restoreProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_FNAME, originalPath);
+            restoreProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_RELOAD_FREQUENCY_SECONDS, originalFrequency);
+            restoreProperty(ZMSConsts.ZMS_PROP_AUTHZ_SERVICE_RELOAD_MAX_BACKOFF_SECONDS, originalMaxBackoff);
+            Files.deleteIfExists(path);
         }
     }
 
