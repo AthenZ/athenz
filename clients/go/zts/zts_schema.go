@@ -21,21 +21,25 @@ func init() {
 	tSimpleName := rdl.NewStringTypeBuilder("SimpleName")
 	tSimpleName.Comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.")
 	tSimpleName.Pattern("[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+	tSimpleName.MaxSize(512)
 	sb.AddType(tSimpleName.Build())
 
 	tCompoundName := rdl.NewStringTypeBuilder("CompoundName")
 	tCompoundName.Comment("A compound name. Most names in this API are compound names.")
 	tCompoundName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+	tCompoundName.MaxSize(512)
 	sb.AddType(tCompoundName.Build())
 
 	tDomainName := rdl.NewStringTypeBuilder("DomainName")
 	tDomainName.Comment("A domain name is the general qualifier prefix, as its uniqueness is managed.")
 	tDomainName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+	tDomainName.MaxSize(512)
 	sb.AddType(tDomainName.Build())
 
 	tEntityName := rdl.NewStringTypeBuilder("EntityName")
 	tEntityName.Comment("An entity name is a short form of a resource name, including only the domain and entity.")
 	tEntityName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+	tEntityName.MaxSize(512)
 	sb.AddType(tEntityName.Build())
 
 	tEntityList := rdl.NewStringTypeBuilder("EntityList")
@@ -46,16 +50,19 @@ func init() {
 	tServiceName := rdl.NewStringTypeBuilder("ServiceName")
 	tServiceName.Comment("A service name will generally be a unique subdomain.")
 	tServiceName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+	tServiceName.MaxSize(1024)
 	sb.AddType(tServiceName.Build())
 
 	tActionName := rdl.NewStringTypeBuilder("ActionName")
 	tActionName.Comment("An action (operation) name.")
 	tActionName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+	tActionName.MaxSize(128)
 	sb.AddType(tActionName.Build())
 
 	tResourceName := rdl.NewStringTypeBuilder("ResourceName")
 	tResourceName.Comment("A resource name Note that the EntityName part is optional, that is, a domain name followed by a colon is valid resource name.")
 	tResourceName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?")
+	tResourceName.MaxSize(512)
 	sb.AddType(tResourceName.Build())
 
 	tYBase64 := rdl.NewStringTypeBuilder("YBase64")
@@ -71,6 +78,7 @@ func init() {
 	tAuthorityName := rdl.NewStringTypeBuilder("AuthorityName")
 	tAuthorityName.Comment("Used as the prefix in a signed assertion. This uniquely identifies a signing authority.")
 	tAuthorityName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+	tAuthorityName.MaxSize(512)
 	sb.AddType(tAuthorityName.Build())
 
 	tSignedToken := rdl.NewStringTypeBuilder("SignedToken")
@@ -93,11 +101,13 @@ func init() {
 	tExternalMemberName := rdl.NewStringTypeBuilder("ExternalMemberName")
 	tExternalMemberName.Comment("External Member name. Even though the pattern is open to support all possible external members, the server will validate that it does not include * character")
 	tExternalMemberName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:ext\\..+")
+	tExternalMemberName.MaxSize(512)
 	sb.AddType(tExternalMemberName.Build())
 
 	tPrincipalName := rdl.NewStringTypeBuilder("PrincipalName")
 	tPrincipalName.Comment("A principal name for role/group membership queries")
 	tPrincipalName.Pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:ext\\..+")
+	tPrincipalName.MaxSize(512)
 	sb.AddType(tPrincipalName.Build())
 
 	tResourceAccess := rdl.NewStructTypeBuilder("Struct", "ResourceAccess")

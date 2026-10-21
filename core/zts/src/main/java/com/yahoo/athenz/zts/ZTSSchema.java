@@ -20,19 +20,23 @@ public class ZTSSchema {
 
         sb.stringType("SimpleName")
             .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. Common name types used by several API definitions A simple identifier, an element of compound name.")
-            .pattern("[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+            .pattern("[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+            .maxSize(512);
 
         sb.stringType("CompoundName")
             .comment("A compound name. Most names in this API are compound names.")
-            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+            .maxSize(512);
 
         sb.stringType("DomainName")
             .comment("A domain name is the general qualifier prefix, as its uniqueness is managed.")
-            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+            .maxSize(512);
 
         sb.stringType("EntityName")
             .comment("An entity name is a short form of a resource name, including only the domain and entity.")
-            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+            .maxSize(512);
 
         sb.stringType("EntityList")
             .comment("An Entity list is comma separated compound Names")
@@ -40,15 +44,18 @@ public class ZTSSchema {
 
         sb.stringType("ServiceName")
             .comment("A service name will generally be a unique subdomain.")
-            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+            .maxSize(1024);
 
         sb.stringType("ActionName")
             .comment("An action (operation) name.")
-            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+            .maxSize(128);
 
         sb.stringType("ResourceName")
             .comment("A resource name Note that the EntityName part is optional, that is, a domain name followed by a colon is valid resource name.")
-            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?");
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?")
+            .maxSize(512);
 
         sb.stringType("YBase64")
             .comment("The Y-specific URL-safe Base64 variant.")
@@ -60,7 +67,8 @@ public class ZTSSchema {
 
         sb.stringType("AuthorityName")
             .comment("Used as the prefix in a signed assertion. This uniquely identifies a signing authority.")
-            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*")
+            .maxSize(512);
 
         sb.stringType("SignedToken")
             .comment("A signed assertion if identity. i.e. the user cookie value. This token will only make sense to the authority that generated it, so it is beneficial to have something in the value that is cheaply recognized to quickly reject if it belongs to another authority. In addition to the YEncoded set our token includes ; to separate components and , to separate roles")
@@ -78,11 +86,13 @@ public class ZTSSchema {
 
         sb.stringType("ExternalMemberName")
             .comment("External Member name. Even though the pattern is open to support all possible external members, the server will validate that it does not include * character")
-            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:ext\\..+");
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:ext\\..+")
+            .maxSize(512);
 
         sb.stringType("PrincipalName")
             .comment("A principal name for role/group membership queries")
-            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:ext\\..+");
+            .pattern("([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*(:([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*)?|([a-zA-Z0-9_][a-zA-Z0-9_-]*\\.)*[a-zA-Z0-9_][a-zA-Z0-9_-]*:ext\\..+")
+            .maxSize(512);
 
         sb.structType("ResourceAccess")
             .comment("ResourceAccess can be checked and returned as this resource. (same as ZMS.Access)")

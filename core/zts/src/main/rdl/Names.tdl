@@ -6,31 +6,31 @@
 //
 
 //A simple identifier, an element of compound name.
-type SimpleName String (pattern="[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+type SimpleName String (pattern="[a-zA-Z0-9_][a-zA-Z0-9_-]*", maxSize=512);
 
 //A compound name. Most names in this API are compound names.
-type CompoundName String (pattern="({SimpleName}\\.)*{SimpleName}");
+type CompoundName String (pattern="({SimpleName}\\.)*{SimpleName}", maxSize=512);
 
 //A domain name is the general qualifier prefix, as its uniqueness is managed.
-type DomainName String (pattern="{CompoundName}");
+type DomainName String (pattern="{CompoundName}", maxSize=512);
 
 //An entity name is a short form of a resource name,
 //including only the domain and entity.
-type EntityName String (pattern="{CompoundName}");
+type EntityName String (pattern="{CompoundName}", maxSize=512);
 
 //An Entity list is comma separated compound Names
 type EntityList String (pattern="({CompoundName},)*{CompoundName}");
 
 //A service name will generally be a unique subdomain.
-type ServiceName String (pattern="{CompoundName}");
+type ServiceName String (pattern="{CompoundName}", maxSize=1024);
 
 //An action (operation) name.
-type ActionName String (pattern="{CompoundName}");
+type ActionName String (pattern="{CompoundName}", maxSize=128);
 
 //A resource name
 //Note that the EntityName part is optional, that is, a domain
 //name followed by a colon is valid resource name.
-type ResourceName String (pattern="{DomainName}(:{EntityName})?");
+type ResourceName String (pattern="{DomainName}(:{EntityName})?", maxSize=512);
 
 //The Y-specific URL-safe Base64 variant.
 type YBase64 String (pattern="[a-zA-Z0-9\\._-]+");
@@ -40,7 +40,7 @@ type YBase64 String (pattern="[a-zA-Z0-9\\._-]+");
 type YEncoded String (pattern="[a-zA-Z0-9\\._%=-]*");
 
 //Used as the prefix in a signed assertion. This uniquely identifies a signing authority.
-type AuthorityName String (pattern="{CompoundName}");
+type AuthorityName String (pattern="{CompoundName}", maxSize=512);
 
 //A signed assertion if identity. i.e. the user cookie value.
 //This token will only make sense to the authority that
@@ -64,7 +64,7 @@ type CertType Enum {
 //External Member name. Even though the pattern is open to
 //support all possible external members, the server will
 //validate that it does not include * character
-type ExternalMemberName String (pattern="{DomainName}:ext\\..+");
+type ExternalMemberName String (pattern="{DomainName}:ext\\..+", maxSize=512);
 
 //A principal name for role/group membership queries
-type PrincipalName String (pattern="{ResourceName}|{ExternalMemberName}");
+type PrincipalName String (pattern="{ResourceName}|{ExternalMemberName}", maxSize=512);

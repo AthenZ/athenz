@@ -6,35 +6,35 @@
 //
 
 //A simple identifier, an element of compound name.
-type SimpleName String (pattern="[a-zA-Z0-9_][a-zA-Z0-9_-]*");
+type SimpleName String (pattern="[a-zA-Z0-9_][a-zA-Z0-9_-]*", maxSize=512);
 
 //A compound name. Most names in this API are compound names.
-type CompoundName String (pattern="({SimpleName}\\.)*{SimpleName}");
+type CompoundName String (pattern="({SimpleName}\\.)*{SimpleName}", maxSize=512);
 
 //A domain name is the general qualifier prefix, as its uniqueness is managed.
-type DomainName String (pattern="{CompoundName}");
+type DomainName String (pattern="{CompoundName}", maxSize=512);
 
 //An entity name is a short form of a resource name,
 //including only the domain and entity.
-type EntityName String (pattern="{CompoundName}");
+type EntityName String (pattern="{CompoundName}", maxSize=512);
 
 //A comma separated list of entity names
 type EntityNameList String (pattern="({EntityName},)*{EntityName}");
 
 //A service name will generally be a unique subdomain.
-type ServiceName String (pattern="{CompoundName}");
+type ServiceName String (pattern="{CompoundName}", maxSize=1024);
 
 //A location name is not yet defined, but will be a
 //dotted name like everything else.
-type LocationName String (pattern="{CompoundName}");
+type LocationName String (pattern="{CompoundName}", maxSize=512);
 
 //An action (operation) name.
-type ActionName String (pattern="{CompoundName}");
+type ActionName String (pattern="{CompoundName}", maxSize=128);
 
 //A resource name
 //Note that the EntityName part is optional, that is,
 //a domain name followed by a colon is valid resource name.
-type ResourceName String (pattern="{DomainName}(:{EntityName})?");
+type ResourceName String (pattern="{DomainName}(:{EntityName})?", maxSize=512);
 
 //A comma separated list of resource names
 type ResourceNames String (pattern="({ResourceName},)*{ResourceName}");
@@ -48,7 +48,7 @@ type YEncoded String (pattern="[a-zA-Z0-9\\._%=-]*");
 
 //Used as the prefix in a signed assertion. This uniquely
 //identifies a signing authority.
-type AuthorityName String (pattern="{CompoundName}"); //i.e. "user"
+type AuthorityName String (pattern="{CompoundName}", maxSize=512); //i.e. "user"
 
 //A signed assertion if identity. i.e. the user cookie value.
 //This token will only make sense to the authority that
@@ -63,41 +63,41 @@ type SignedToken String (pattern="[a-zA-Z0-9\\._%=:;,-]*");
 //support all possible external members, the server only
 //supports '*' for wildcard matches only if it's provided
 //as the last character.
-type ExternalMemberName String (pattern="{DomainName}:ext\\..+");
+type ExternalMemberName String (pattern="{DomainName}:ext\\..+", maxSize=512);
 
 //A group name
-type GroupName String (pattern="{DomainName}:group\\.{EntityName}");
+type GroupName String (pattern="{DomainName}:group\\.{EntityName}", maxSize=512);
 
 //A group member name
-type GroupMemberName String (pattern="{CompoundName}|{ExternalMemberName}");
+type GroupMemberName String (pattern="{CompoundName}|{ExternalMemberName}", maxSize=512);
 
 //A principal name for role/group membership queries
-type PrincipalName String (pattern="{ResourceName}|{ExternalMemberName}");
+type PrincipalName String (pattern="{ResourceName}|{ExternalMemberName}", maxSize=512);
 
 //Role Member name - could be one of four values: *,
 //DomainName.* or ServiceName[*], or GroupNames
-type MemberName String (pattern="\\*|{DomainName}\\.\\*|{ServiceName}(\\*)?|{GroupName}|{ExternalMemberName}");
+type MemberName String (pattern="\\*|{DomainName}\\.\\*|{ServiceName}(\\*)?|{GroupName}|{ExternalMemberName}", maxSize=512);
 
 //A comma separated list of authority keywords
 type AuthorityKeyword String (pattern="{SimpleName}");
 type AuthorityKeywords String (pattern="({AuthorityKeyword},)*{AuthorityKeyword}");
 
-type TagKey String (pattern="({SimpleName}[:\\.])*{SimpleName}");
+type TagKey String (pattern="({SimpleName}[:\\.])*{SimpleName}", maxSize=64);
 
 //TagValue to contain generic string patterns
-type TagValue String (pattern="[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:%,\\/-]*");
+type TagValue String (pattern="[a-zA-Z0-9_:,\\/][a-zA-Z0-9_:%,\\/-]*", maxSize=256);
 
 //A compound value of TagValue
-type TagCompoundValue String (pattern="({TagValue}\\.)*{TagValue}");
+type TagCompoundValue String (pattern="({TagValue}\\.)*{TagValue}", maxSize=256);
 
 type TagValueList Struct {
     Array<TagCompoundValue> list; //list of tag values
 }
 
-type AssertionConditionKeyPattern String (pattern="[a-zA-Z][a-zA-Z0-9_-]+");
-type AssertionConditionKey String (pattern="({AssertionConditionKeyPattern}\\.)*{AssertionConditionKeyPattern}");
+type AssertionConditionKeyPattern String (pattern="[a-zA-Z][a-zA-Z0-9_-]+", maxSize=64);
+type AssertionConditionKey String (pattern="({AssertionConditionKeyPattern}\\.)*{AssertionConditionKeyPattern}", maxSize=64);
 
-type AssertionConditionValuePattern String (pattern="[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*");
-type AssertionConditionValue String (pattern="({AssertionConditionValuePattern},)*{AssertionConditionValuePattern}");
+type AssertionConditionValuePattern String (pattern="[a-zA-Z0-9\\*][a-zA-Z0-9_\\.\\*-]*", maxSize=2048);
+type AssertionConditionValue String (pattern="({AssertionConditionValuePattern},)*{AssertionConditionValuePattern}", maxSize=2048);
 
-type ResourceOwnerName String (pattern="[a-zA-Z0-9_][a-zA-Z0-9_:-]*");
+type ResourceOwnerName String (pattern="[a-zA-Z0-9_][a-zA-Z0-9_:-]*", maxSize=256);
