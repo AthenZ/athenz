@@ -788,6 +788,91 @@ public class ZTSImplPostInstanceJWTRegisterTest {
     }
 
     @Test
+    public void testPostInstanceRegisterInformationRoleOrGroupAudienceRejected() {
+
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
+        store.processSignedDomain(providerDomain, false);
+
+        SignedDomain tenantDomain = createSignedDomainWithProvider("athenz", "production", "athenz.provider");
+        store.processSignedDomain(tenantDomain, false);
+
+        CertificateAuthority certAuthority = new CertificateAuthority();
+        Principal principal = SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+
+        ResourceContext ctx = createResourceContext(principal);
+
+        // a jwt svid must not be issued with an audience that looks like
+        // an athenz role/group reference since that value is identical to
+        // the audience the id token endpoint generates for a genuine role
+        // member when role_in_aud_claim is requested
+
+        final String[] forgedAudiences = {
+                "coretech.storage:writers",
+                "coretech:role.writers",
+                "coretech:group.dev-team",
+                "coretech.storage:coretech:role.writers"
+        };
+
+        for (String audience : forgedAudiences) {
+            InstanceRegisterInformation info = createInstanceRegisterInformation("instance-001",
+                    "spiffe://athenz/sa/production", false, audience, "nonce-456", 3600, null, null);
+            info.setDomain("athenz");
+            info.setService("production");
+            info.setProvider("athenz.provider");
+
+            try {
+                zts.postInstanceRegisterInformation(ctx, info);
+                fail("audience accepted: " + audience);
+            } catch (ResourceException ex) {
+                assertEquals(ex.getCode(), ResourceException.BAD_REQUEST, audience);
+                assertTrue(ex.getMessage().contains("Audience must not be in the form of a role or group reference"),
+                        ex.getMessage());
+            }
+        }
+    }
+
+    @Test
+    public void testPostInstanceRegisterInformationUriAndHostnameAudienceAccepted() throws ParseException {
+
+        SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
+        store.processSignedDomain(providerDomain, false);
+
+        SignedDomain tenantDomain = createSignedDomainWithProvider("athenz", "production", "athenz.provider");
+        store.processSignedDomain(tenantDomain, false);
+
+        CertificateAuthority certAuthority = new CertificateAuthority();
+        Principal principal = SimplePrincipal.create("athenz", "production",
+                "v=S1;d=athenz;n=production;s=signature", 0, certAuthority);
+
+        ResourceContext ctx = createResourceContext(principal);
+
+        // regular uri and hostname audiences must continue to be accepted
+        // and returned as-is in the id token
+
+        final String[] audiences = {
+                "https://zts.athenz.io",
+                "zts.athenz.io",
+                "https://zts.athenz.io:4443/zts/v1",
+                "spiffe://athenz.io/ns/default/sa/api"
+        };
+
+        for (String audience : audiences) {
+            InstanceRegisterInformation info = createInstanceRegisterInformation("instance-001",
+                    "spiffe://athenz/sa/production", false, audience, "nonce-456", 3600, null, null);
+            info.setDomain("athenz");
+            info.setService("production");
+            info.setProvider("athenz.provider");
+
+            Response response = zts.postInstanceRegisterInformation(ctx, info);
+            assertEquals(response.getStatus(), ResourceException.CREATED, audience);
+            InstanceIdentity identity = (InstanceIdentity) response.getEntity();
+            JWTClaimsSet idToken = parseIdToken(identity.getServiceToken());
+            assertEquals(idToken.getAudience().get(0), audience);
+        }
+    }
+
+    @Test
     public void testPostInstanceRegisterInformationFailure() throws ParseException {
 
         SignedDomain providerDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);

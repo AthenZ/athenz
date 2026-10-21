@@ -1797,6 +1797,199 @@ public class ZTSImplIDTokenTest {
     }
 
     // ========================
+    // Test: Failure - audience must not be a role/group reference. A caller must
+    // not be able to smuggle a role name into the aud claim via the audience
+    // parameter (e.g. coretech.storage:writers) since that value is identical
+    // to what the id token endpoint issues to a genuine member of that role
+    // when role_in_aud_claim is requested.
+    // ========================
+
+    @Test
+    public void testIdTokenExchangeRoleOrGroupAudienceRejected() {
+
+        ZTSImpl ztsImpl = createZtsImpl();
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        addIdTokenExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+
+        PrivateKey ecPrivateKey = loadECPrivateKey();
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(ecPrivateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        final String[] forgedAudiences = {
+                "coretech.storage:writers",
+                "coretech.storage:coretech:role.writers",
+                "coretech.storage:coretech:group.dev-team",
+                "coretech.storage:role.writers"
+        };
+
+        for (String audience : forgedAudiences) {
+            String tokenRequest = buildIdTokenExchangeRequest(subjectToken, audience);
+            try {
+                ztsImpl.postAccessTokenRequest(context, tokenRequest);
+                fail("audience accepted: " + audience);
+            } catch (ResourceException ex) {
+                assertEquals(ex.getCode(), ResourceException.BAD_REQUEST, audience);
+                assertTrue(ex.getMessage().contains("Audience must not be in the form of a role or group reference"),
+                        ex.getMessage());
+            }
+        }
+
+        ztsImpl.cloudStore.close();
+    }
+
+    // ========================
+    // Test: Success - a caller specified audience that is not a role/group
+    // reference is still honored as-is
+    // ========================
+
+    @Test
+    public void testIdTokenExchangeCustomAudienceAccepted() throws JOSEException {
+
+        ZTSImpl ztsImpl = createZtsImpl();
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        addIdTokenExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+
+        PrivateKey ecPrivateKey = loadECPrivateKey();
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(ecPrivateKey, "0", "user_domain.user",
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        final String customAudience = "coretech.storage/api";
+        String tokenRequest = buildIdTokenExchangeRequest(subjectToken, customAudience,
+                "coretech:role.writers");
+
+        AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, tokenRequest);
+        assertNotNull(response);
+        assertNotNull(response.getId_token());
+
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(response.getId_token());
+            assertTrue(signedJWT.verify(verifier));
+            JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+            assertEquals(claimSet.getAudience().get(0), customAudience);
+            assertEquals(claimSet.getStringListClaim("groups"), List.of("coretech:role.writers"));
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        }
+
+        ztsImpl.cloudStore.close();
+    }
+
+    // ========================
+    // Test: PSECBUGS-118773 proof of concept. The requesting principal holds
+    // the zts.id_token_exchange grant for the subject in the coretech domain,
+    // the subject is NOT a member of the coretech writers role, and the
+    // request names coretech.storage:writers as the audience. Prior to the
+    // fix ZTS returned a signed id token with that exact aud claim.
+    // ========================
+
+    @Test
+    public void testIdTokenExchangePSECBUGS118773ForgedRoleAudience() throws Exception {
+
+        ZTSImpl ztsImpl = createZtsImpl();
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        // grant proxy-user1 id token exchange rights for all principals in
+        // coretech and allow exchange for the readers and writers roles
+
+        addIdTokenExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+        addIdTokenExchangePolicy("coretech", "user_domain.proxy-user1", "readers");
+
+        // user_domain.user3 is a member of coretech:role.readers but
+        // NOT a member of coretech:role.writers
+
+        PrivateKey ecPrivateKey = loadECPrivateKey();
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(ecPrivateKey, "0", "user_domain.user3",
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        final String forgedAudience = "coretech.storage:writers";
+        String tokenRequest = buildIdTokenExchangeRequest(subjectToken, forgedAudience);
+
+        try {
+            AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, tokenRequest);
+            JWTClaimsSet claims = SignedJWT.parse(response.getId_token()).getJWTClaimsSet();
+            fail("signed id token issued with forged audience: aud=" + claims.getAudience()
+                    + " sub=" + claims.getSubject() + " groups=" + claims.getStringListClaim("groups"));
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("Audience must not be in the form of a role or group reference"),
+                    ex.getMessage());
+        }
+
+        ztsImpl.cloudStore.close();
+    }
+
+    // ========================
+    // Test: Success - subject with no roles in the domain and no role scope
+    // requested gets an id token without the groups claim
+    // ========================
+
+    @Test
+    public void testIdTokenExchangeSubjectWithNoRolesNoGroupsClaim() throws Exception {
+
+        ZTSImpl ztsImpl = createZtsImpl();
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        addIdTokenExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+
+        // user_domain.unknownuser is not a member of any role in coretech
+
+        PrivateKey ecPrivateKey = loadECPrivateKey();
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectToken = createIdToken(ecPrivateKey, "0", "user_domain.unknownuser",
+                "user_domain.proxy-user1", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        ResourceContext context = createResourceContext(principal);
+
+        String tokenRequest = buildIdTokenExchangeRequest(subjectToken, "coretech.storage");
+
+        AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, tokenRequest);
+        assertNotNull(response);
+        assertNotNull(response.getId_token());
+
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+
+        SignedJWT signedJWT = SignedJWT.parse(response.getId_token());
+        assertTrue(signedJWT.verify(verifier));
+        JWTClaimsSet claimSet = signedJWT.getJWTClaimsSet();
+        assertEquals(claimSet.getSubject(), "user_domain.unknownuser");
+        assertEquals(claimSet.getAudience().get(0), "coretech.storage");
+        assertNull(claimSet.getClaim("groups"));
+
+        ztsImpl.cloudStore.close();
+    }
+
+    // ========================
     // Test: non id token exchange requests are rejected on the oidc port
     // ========================
 
