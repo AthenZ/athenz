@@ -16,6 +16,7 @@
 package com.yahoo.athenz.zms;
 
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -46,6 +47,11 @@ public class ZMSValidateMaxSizeTest {
     @BeforeMethod
     public void setUp() throws Exception {
         zmsTestInitializer.setUp();
+    }
+
+    @AfterMethod
+    public void shutDown() throws Exception {
+        zmsTestInitializer.shutDown();
     }
 
     // a value well over any name maxSize - large enough that, without a maxSize
