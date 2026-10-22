@@ -884,6 +884,7 @@ func TestOptionsWithSiaDirs(t *testing.T) {
 	assert.Equal(t, "/var/athenz/certs", cfg.SiaCertDir)
 	assert.Equal(t, "/var/athenz/tokens", cfg.SiaTokenDir)
 	assert.Equal(t, "/var/athenz/backup", cfg.SiaBackupDir)
+	assert.Equal(t, "/var/athenz/main", cfg.SiaMainDir)
 
 	opts, e := setOptions(cfg, cfgAccount, nil, "/tmp", "1.0.0")
 	require.Nilf(t, e, "error should not be thrown, error: %v", e)
@@ -891,6 +892,7 @@ func TestOptionsWithSiaDirs(t *testing.T) {
 	assert.Equal(t, "/var/athenz/certs", opts.CertDir)
 	assert.Equal(t, "/var/athenz/tokens", opts.TokenDir)
 	assert.Equal(t, "/var/athenz/backup", opts.BackupDir)
+	assert.Equal(t, "/var/athenz/main", opts.MainDir)
 }
 
 func TestOptionsWithServiceOnlySetup(t *testing.T) {
