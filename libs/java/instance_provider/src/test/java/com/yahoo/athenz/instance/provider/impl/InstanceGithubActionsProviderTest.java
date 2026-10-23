@@ -59,6 +59,7 @@ public class InstanceGithubActionsProviderTest {
         System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_AUDIENCE);
         System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_ISSUER);
         System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JOB_WORKFLOW_REF_AUTHZ_CHECK);
+        System.clearProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_LOWERCASE_BRANCHES);
     }
 
     static void createOpenIdConfigFile(File configFile, File jwksUri) throws IOException {
@@ -865,6 +866,151 @@ public class InstanceGithubActionsProviderTest {
         assertFalse(result);
         assertEquals(errMsg.toString(), "authorization check failed for action: github.push"
                 + " resource: sports:repo:athenz/sia:ref:refs/heads/main");
+    }
+
+    @Test
+    public void testValidateBranchNameCaseNotConfigured() {
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        StringBuilder errMsg = new StringBuilder(256);
+        assertTrue(provider.validateBranchNameCase("repo:athenz/sia:ref:refs/heads/Main", errMsg));
+        assertEquals(errMsg.length(), 0);
+    }
+
+    @Test
+    public void testValidateBranchNameCase() {
+
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_LOWERCASE_BRANCHES, " Main, ,master");
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+        assertEquals(provider.lowercaseBranches.size(), 2);
+        assertTrue(provider.lowercaseBranches.contains("main"));
+        assertTrue(provider.lowercaseBranches.contains("master"));
+
+        // valid values - lowercase configured branches, other branches with
+        // any case, non-branch subjects and branch names with configured prefix
+
+        final String[] validValues = {
+                "repo:athenz/sia:ref:refs/heads/main",
+                "repo:athenz/sia:ref:refs/heads/master",
+                "repo:athenz/sia:ref:refs/heads/Feature",
+                "repo:athenz/sia:ref:refs/heads/Main-fix",
+                "repo:athenz/sia:ref:refs/heads/fix/Main",
+                "repo:athenz/sia:ref:refs/tags/Main",
+                "repo:athenz/sia:pull_request",
+                "repo:athenz/sia:environment:Main",
+                "repo:athenz/sia:ref:refs/heads/",
+                "repo:athenz/sia:ref:refs/heads/main:job_workflow_ref:athenz/sia/.github/workflows/build.yml@refs/heads/main",
+                "sports:athenz/sia:refs/heads/main:athenz/sia/.github/workflows/build.yml@refs/heads/main"
+        };
+        for (String value : validValues) {
+            StringBuilder errMsg = new StringBuilder(256);
+            assertTrue(provider.validateBranchNameCase(value, errMsg), value);
+            assertEquals(errMsg.length(), 0);
+        }
+
+        // invalid values - configured branches not in lowercase including
+        // the case where only the second branch reference is invalid
+
+        final String[][] invalidValues = {
+                { "repo:athenz/sia:ref:refs/heads/Main", "Main" },
+                { "repo:athenz/sia:ref:refs/heads/MAIN", "MAIN" },
+                { "repo:athenz/sia:ref:refs/heads/mAster", "mAster" },
+                { "repo:athenz/sia:ref:refs/heads/Main:job_workflow_ref:athenz/sia/.github/workflows/build.yml@refs/heads/main", "Main" },
+                { "repo:athenz/sia:ref:refs/heads/main:job_workflow_ref:athenz/sia/.github/workflows/build.yml@refs/heads/maiN", "maiN" },
+                { "sports:athenz/sia:refs/heads/feature:athenz/sia/.github/workflows/build.yml@refs/heads/Master", "Master" }
+        };
+        for (String[] value : invalidValues) {
+            StringBuilder errMsg = new StringBuilder(256);
+            assertFalse(provider.validateBranchNameCase(value[0], errMsg), value[0]);
+            assertEquals(errMsg.toString(), "branch name must be specified in lowercase: " + value[1]);
+        }
+    }
+
+    @Test
+    public void testValidateTenantDomainTokenBranchNameCase() {
+
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_LOWERCASE_BRANCHES, "main,master");
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        // the authorizer is case-insensitive so it would authorize the mixed case
+        // branch name as well, but we must reject the request before the check
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal principal = SimplePrincipal.create("sports", "api", (String) null);
+        Mockito.when(authorizer.access(Mockito.eq("github.push"), Mockito.any(), Mockito.eq(principal), Mockito.isNull()))
+                .thenReturn(true);
+        provider.setAuthorizer(authorizer);
+
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("repo:athenz/sia:ref:refs/heads/Main")
+                .claim("event_name", "push")
+                .build();
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(provider.validateTenantDomainToken(claimsSet, "sports", "api", errMsg));
+        assertEquals(errMsg.toString(), "branch name must be specified in lowercase: Main");
+
+        claimsSet = new JWTClaimsSet.Builder()
+                .subject("repo:athenz/sia:ref:refs/heads/main")
+                .claim("event_name", "push")
+                .build();
+        errMsg = new StringBuilder(256);
+        assertTrue(provider.validateTenantDomainToken(claimsSet, "sports", "api", errMsg));
+        assertEquals(errMsg.length(), 0);
+
+        Mockito.verify(authorizer, Mockito.times(1)).access(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    public void testValidateTenantDomainTokenJobWorkflowRefBranchNameCase() {
+
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_LOWERCASE_BRANCHES, "main,master");
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JOB_WORKFLOW_REF_AUTHZ_CHECK, "true");
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        // the subject (environment based) check fails while the authorizer would
+        // authorize the job_workflow_ref based resource with mixed case branch names
+
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Principal principal = SimplePrincipal.create("sports", "api", (String) null);
+        Mockito.when(authorizer.access("github.push", "sports:repo:athenz/sia:environment:prod", principal, null))
+                .thenReturn(false);
+        Mockito.when(authorizer.access(Mockito.eq("github.push"), Mockito.startsWith("sports:athenz/sia:refs/heads/"),
+                Mockito.eq(principal), Mockito.isNull())).thenReturn(true);
+        provider.setAuthorizer(authorizer);
+
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("repo:athenz/sia:environment:prod")
+                .claim("event_name", "push")
+                .claim("repository", "athenz/sia")
+                .claim("ref", "refs/heads/Main")
+                .claim("job_workflow_ref", "athenz/sia/.github/workflows/build.yml@refs/heads/Main")
+                .build();
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(provider.validateTenantDomainToken(claimsSet, "sports", "api", errMsg));
+        assertEquals(errMsg.toString(), "branch name must be specified in lowercase: Main");
+
+        claimsSet = new JWTClaimsSet.Builder()
+                .subject("repo:athenz/sia:environment:prod")
+                .claim("event_name", "push")
+                .claim("repository", "athenz/sia")
+                .claim("ref", "refs/heads/main")
+                .claim("job_workflow_ref", "athenz/sia/.github/workflows/build.yml@refs/heads/main")
+                .build();
+        errMsg = new StringBuilder(256);
+        assertTrue(provider.validateTenantDomainToken(claimsSet, "sports", "api", errMsg));
+        assertEquals(errMsg.length(), 0);
     }
 
     private String generateIdToken(final String issuer, long currentTimeSecs, boolean skipSubject,

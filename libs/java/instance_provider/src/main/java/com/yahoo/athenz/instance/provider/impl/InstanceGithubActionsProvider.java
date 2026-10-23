@@ -54,6 +54,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     static final String GITHUB_ACTIONS_PROP_ISSUER               = "athenz.zts.github_actions.issuer";
     static final String GITHUB_ACTIONS_PROP_JWKS_URI             = "athenz.zts.github_actions.jwks_uri";
     static final String GITHUB_ACTIONS_PROP_JOB_WORKFLOW_REF_AUTHZ_CHECK = "athenz.zts.github_actions.job_workflow_ref_authz_check";
+    static final String GITHUB_ACTIONS_PROP_LOWERCASE_BRANCHES   = "athenz.zts.github_actions.lowercase_branches";
 
     static final String GITHUB_ACTIONS_ISSUER          = "https://token.actions.githubusercontent.com";
     static final String GITHUB_ACTIONS_ISSUER_JWKS_URI = "https://token.actions.githubusercontent.com/.well-known/jwks";
@@ -65,8 +66,11 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_REF              = "ref";
     public static final String CLAIM_JOB_WORKFLOW_REF = "job_workflow_ref";
 
+    static final String BRANCH_REF_PREFIX = "refs/heads/";
+
     Set<String> dnsSuffixes = null;
     Set<String> enterprises = null;
+    Set<String> lowercaseBranches = null;
     String githubIssuer = null;
     String provider = null;
     String audience = null;
@@ -116,6 +120,23 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         final String enterpriseConfig = System.getProperty(GITHUB_ACTIONS_PROP_ENTERPRISE);
         if (!StringUtil.isEmpty(enterpriseConfig)) {
             enterprises = new HashSet<>(Arrays.asList(enterpriseConfig.split(",")));
+        }
+
+        // determine the list of branch names (e.g. main, master) that must always be
+        // specified in lowercase. github branch names are case-sensitive while our
+        // authorization checks are not (unless the assertion is explicitly marked
+        // as case-sensitive), so without this check another user could create a
+        // branch called Main and obtain the identity authorized for the main branch
+
+        lowercaseBranches = new HashSet<>();
+        final String lowercaseBranchesConfig = System.getProperty(GITHUB_ACTIONS_PROP_LOWERCASE_BRANCHES);
+        if (!StringUtil.isEmpty(lowercaseBranchesConfig)) {
+            for (String branch : lowercaseBranchesConfig.split(",")) {
+                branch = branch.trim();
+                if (!branch.isEmpty()) {
+                    lowercaseBranches.add(branch.toLowerCase());
+                }
+            }
         }
 
         // get default/max expiry time for any generated tokens - 6 hours
@@ -359,6 +380,13 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             return false;
         }
 
+        // verify that any branch references in the subject to one of our
+        // configured branches are specified in lowercase only
+
+        if (!validateBranchNameCase(subject, errMsg)) {
+            return false;
+        }
+
         // generate our principal object and carry out authorization check
 
         final String resource = domainName + ":" + subject;
@@ -381,6 +409,9 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             final String jobWorkflowRef = JwtsHelper.getStringClaim(claimsSet, CLAIM_JOB_WORKFLOW_REF);
             if (!StringUtil.isEmpty(repository) && !StringUtil.isEmpty(ref) && !StringUtil.isEmpty(jobWorkflowRef)) {
                 workflowResource = domainName + ":" + repository + ":" + ref + ":" + jobWorkflowRef;
+                if (!validateBranchNameCase(workflowResource, errMsg)) {
+                    return false;
+                }
                 if (authorizer.access(action, workflowResource, principal, null)) {
                     return true;
                 }
@@ -393,5 +424,34 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             errMsg.append(" ").append(workflowResource);
         }
         return false;
+    }
+
+    boolean validateBranchNameCase(final String value, StringBuilder errMsg) {
+
+        if (lowercaseBranches.isEmpty()) {
+            return true;
+        }
+
+        // the value might include multiple branch references, e.g. the subject
+        // repo:athenz/sia:ref:refs/heads/main or the job_workflow_ref claim
+        // athenz/sia/.github/workflows/build.yml@refs/heads/main. git does not
+        // allow : in ref names so the branch name ends with : or end of value
+
+        int idx = value.indexOf(BRANCH_REF_PREFIX);
+        while (idx != -1) {
+            final int startIdx = idx + BRANCH_REF_PREFIX.length();
+            int endIdx = value.indexOf(':', startIdx);
+            if (endIdx == -1) {
+                endIdx = value.length();
+            }
+            final String branch = value.substring(startIdx, endIdx);
+            final String lowerBranch = branch.toLowerCase();
+            if (lowercaseBranches.contains(lowerBranch) && !branch.equals(lowerBranch)) {
+                errMsg.append("branch name must be specified in lowercase: ").append(branch);
+                return false;
+            }
+            idx = value.indexOf(BRANCH_REF_PREFIX, endIdx);
+        }
+        return true;
     }
 }
