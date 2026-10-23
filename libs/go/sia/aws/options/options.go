@@ -644,6 +644,11 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		profileRestrictTo = profileConfig.ProfileRestrictTo
 	}
 
+	var mainDir string
+	if config != nil {
+		mainDir = config.SiaMainDir
+	}
+
 	// Process oTel options
 	var oTelCfg sc.OTel
 	if config != nil {
@@ -689,7 +694,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		GenerateRoleKey:        generateRoleKey,
 		RotateKey:              rotateKey,
 		BackupDir:              backupDir,
-		MainDir:                config.SiaMainDir,
+		MainDir:                mainDir,
 		SDSUdsPath:             sdsUdsPath,
 		RefreshInterval:        refreshInterval,
 		ZTSRegion:              ztsRegion,
