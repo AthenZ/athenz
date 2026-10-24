@@ -25,6 +25,7 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
@@ -54,6 +55,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     static final String GITHUB_ACTIONS_PROP_ISSUER               = "athenz.zts.github_actions.issuer";
     static final String GITHUB_ACTIONS_PROP_JWKS_URI             = "athenz.zts.github_actions.jwks_uri";
     static final String GITHUB_ACTIONS_PROP_JOB_WORKFLOW_REF_AUTHZ_CHECK = "athenz.zts.github_actions.job_workflow_ref_authz_check";
+    static final String GITHUB_ACTIONS_PROP_LOWERCASE_BRANCHES   = "athenz.zts.github_actions.lowercase_branches";
 
     static final String GITHUB_ACTIONS_ISSUER          = "https://token.actions.githubusercontent.com";
     static final String GITHUB_ACTIONS_ISSUER_JWKS_URI = "https://token.actions.githubusercontent.com/.well-known/jwks";
@@ -65,6 +67,8 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_REF              = "ref";
     public static final String CLAIM_JOB_WORKFLOW_REF = "job_workflow_ref";
 
+    static final String BRANCH_REF_PREFIX = "refs/heads/";
+
     Set<String> dnsSuffixes = null;
     Set<String> enterprises = null;
     String githubIssuer = null;
@@ -74,6 +78,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     Authorizer authorizer = null;
     DynamicConfigLong bootTimeOffsetSeconds;
     DynamicConfigBoolean jobWorkflowRefAuthzCheck;
+    DynamicConfigCsv lowercaseBranches;
     long certExpiryTime;
 
     @Override
@@ -117,6 +122,14 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         if (!StringUtil.isEmpty(enterpriseConfig)) {
             enterprises = new HashSet<>(Arrays.asList(enterpriseConfig.split(",")));
         }
+
+        // determine the list of branch names (e.g. main, master) that must always be
+        // specified in lowercase. github branch names are case-sensitive while our
+        // authorization checks are not (unless the assertion is explicitly marked
+        // as case-sensitive), so without this check another user could create a
+        // branch called Main and obtain the identity authorized for the main branch
+
+        lowercaseBranches = new DynamicConfigCsv(CONFIG_MANAGER, GITHUB_ACTIONS_PROP_LOWERCASE_BRANCHES, null);
 
         // get default/max expiry time for any generated tokens - 6 hours
 
@@ -359,6 +372,13 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             return false;
         }
 
+        // verify that any branch references in the subject to one of our
+        // configured branches are specified in lowercase only
+
+        if (!validateSubjectBranchNameCase(subject, errMsg)) {
+            return false;
+        }
+
         // generate our principal object and carry out authorization check
 
         final String resource = domainName + ":" + subject;
@@ -380,6 +400,9 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             final String ref = JwtsHelper.getStringClaim(claimsSet, CLAIM_REF);
             final String jobWorkflowRef = JwtsHelper.getStringClaim(claimsSet, CLAIM_JOB_WORKFLOW_REF);
             if (!StringUtil.isEmpty(repository) && !StringUtil.isEmpty(ref) && !StringUtil.isEmpty(jobWorkflowRef)) {
+                if (!validateRefBranchNameCase(ref, errMsg)) {
+                    return false;
+                }
                 workflowResource = domainName + ":" + repository + ":" + ref + ":" + jobWorkflowRef;
                 if (authorizer.access(action, workflowResource, principal, null)) {
                     return true;
@@ -393,5 +416,45 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             errMsg.append(" ").append(workflowResource);
         }
         return false;
+    }
+
+    boolean validateSubjectBranchNameCase(final String subject, StringBuilder errMsg) {
+
+        if (lowercaseBranches.getStringsList().isEmpty()) {
+            return true;
+        }
+
+        // the subject claim is a list of : separated key/value pairs, e.g.
+        // repo:athenz/sia:ref:refs/heads/main. git does not allow : in ref names
+        // so we can split the subject into its fields and validate the value
+        // following any ref key. some keys (e.g. pull_request) do not have
+        // a value, so we can't assume that every other field is a key and
+        // instead check every field
+
+        final String[] fields = subject.split(":");
+        for (int idx = 0; idx < fields.length - 1; idx++) {
+            if (CLAIM_REF.equals(fields[idx]) && !validateRefBranchNameCase(fields[idx + 1], errMsg)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    boolean validateRefBranchNameCase(final String ref, StringBuilder errMsg) {
+
+        if (lowercaseBranches.getStringsList().isEmpty() || !ref.startsWith(BRANCH_REF_PREFIX)) {
+            return true;
+        }
+
+        // the complete value after refs/heads/ is the branch name. the configured
+        // branch names are matched ignoring case
+
+        final String branch = ref.substring(BRANCH_REF_PREFIX.length());
+        if (!branch.equals(branch.toLowerCase())
+                && lowercaseBranches.getStringsList().stream().anyMatch(branch::equalsIgnoreCase)) {
+            errMsg.append("branch name must be specified in lowercase: ").append(branch);
+            return false;
+        }
+        return true;
     }
 }
