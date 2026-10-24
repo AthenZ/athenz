@@ -66,7 +66,6 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_REPOSITORY       = "repository";
     public static final String CLAIM_REF              = "ref";
     public static final String CLAIM_JOB_WORKFLOW_REF = "job_workflow_ref";
-    public static final String CLAIM_WORKFLOW_REF     = "workflow_ref";
 
     static final String BRANCH_REF_PREFIX = "refs/heads/";
     static final String WORKFLOW_REF_SEPARATOR = "@refs/";
@@ -429,29 +428,14 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         // the subject claim is a list of : separated key/value pairs, e.g.
         // repo:athenz/sia:ref:refs/heads/main. git does not allow : in ref names
         // so we can split the subject into its fields and validate the value
-        // following any ref or workflow ref key. some keys (e.g. pull_request)
-        // do not have a value, so we can't assume that every other field is
-        // a key and instead check every field
+        // following any ref key. some keys (e.g. pull_request) do not have
+        // a value, so we can't assume that every other field is a key and
+        // instead check every field
 
         final String[] fields = subject.split(":");
         for (int idx = 0; idx < fields.length - 1; idx++) {
-            final String key = fields[idx];
-            final String value = fields[idx + 1];
-            if (CLAIM_REF.equals(key)) {
-                if (!validateRefBranchNameCase(value, errMsg)) {
-                    return false;
-                }
-            } else if (CLAIM_JOB_WORKFLOW_REF.equals(key) || CLAIM_WORKFLOW_REF.equals(key)) {
-
-                // the workflow file name might include the : character so
-                // the workflow ref value is not necessarily a single field.
-                // we pass the remainder of the subject and the ref is
-                // extracted from the first @refs/ occurrence
-
-                final String workflowRef = String.join(":", Arrays.copyOfRange(fields, idx + 1, fields.length));
-                if (!validateWorkflowRefBranchNameCase(workflowRef, errMsg)) {
-                    return false;
-                }
+            if (CLAIM_REF.equals(fields[idx]) && !validateRefBranchNameCase(fields[idx + 1], errMsg)) {
+                return false;
             }
         }
         return true;
@@ -467,17 +451,13 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         // the owner and repo names cannot include the @ character and github does
         // not support subdirectories in the workflows directory, so the file name
         // cannot include the / character. thus the first @refs/ occurrence is always
-        // the separator between the workflow path and the ref. git does not allow
-        // : in ref names so if the value is followed by other subject fields, the
-        // ref ends with the first : character
+        // the separator between the workflow path and the ref
 
         final int idx = workflowRef.indexOf(WORKFLOW_REF_SEPARATOR);
         if (idx == -1) {
             return true;
         }
-        final int endIdx = workflowRef.indexOf(':', idx);
-        final String ref = (endIdx == -1) ? workflowRef.substring(idx + 1) : workflowRef.substring(idx + 1, endIdx);
-        return validateRefBranchNameCase(ref, errMsg);
+        return validateRefBranchNameCase(workflowRef.substring(idx + 1), errMsg);
     }
 
     boolean validateRefBranchNameCase(final String ref, StringBuilder errMsg) {
