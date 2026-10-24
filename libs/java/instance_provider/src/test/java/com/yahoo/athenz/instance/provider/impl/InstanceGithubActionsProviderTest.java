@@ -871,6 +871,8 @@ public class InstanceGithubActionsProviderTest {
     @Test
     public void testValidateBranchNameCaseNotConfigured() {
 
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
@@ -883,6 +885,8 @@ public class InstanceGithubActionsProviderTest {
     @Test
     public void testValidateBranchNameCase() {
 
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_LOWERCASE_BRANCHES, " Main, ,master");
 
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
@@ -906,7 +910,11 @@ public class InstanceGithubActionsProviderTest {
                 "repo:athenz/sia:environment:Main",
                 "repo:athenz/sia:ref:refs/heads/",
                 "repo:athenz/sia:ref:refs/heads/main:job_workflow_ref:athenz/sia/.github/workflows/build.yml@refs/heads/main",
-                "sports:athenz/sia:refs/heads/main:athenz/sia/.github/workflows/build.yml@refs/heads/main"
+                "sports:athenz/sia:refs/heads/main:athenz/sia/.github/workflows/build.yml@refs/heads/main",
+                "refs/tags/refs/heads/Main",
+                "repo:athenz/sia:ref:refs/tags/refs/heads/Main",
+                "athenz/sia/.github/workflows/build.yml@refs/tags/refs/heads/Main",
+                "athenz/sia/.github/workflows/build.yml@refs/heads/Main@v1"
         };
         for (String value : validValues) {
             StringBuilder errMsg = new StringBuilder(256);
@@ -923,7 +931,11 @@ public class InstanceGithubActionsProviderTest {
                 { "repo:athenz/sia:ref:refs/heads/mAster", "mAster" },
                 { "repo:athenz/sia:ref:refs/heads/Main:job_workflow_ref:athenz/sia/.github/workflows/build.yml@refs/heads/main", "Main" },
                 { "repo:athenz/sia:ref:refs/heads/main:job_workflow_ref:athenz/sia/.github/workflows/build.yml@refs/heads/maiN", "maiN" },
-                { "sports:athenz/sia:refs/heads/feature:athenz/sia/.github/workflows/build.yml@refs/heads/Master", "Master" }
+                { "sports:athenz/sia:refs/heads/feature:athenz/sia/.github/workflows/build.yml@refs/heads/Master", "Master" },
+                { "sports:athenz/sia:refs/heads/main:refs/heads/.github/workflows/build.yml@refs/heads/Main", "Main" },
+                { "refs/heads/.github/workflows/build.yml@refs/heads/Main", "Main" },
+                { "athenz/sia/.github/workflows/a@refs/heads/b.yml@refs/heads/Main", "Main" },
+                { "refs/heads/Main", "Main" }
         };
         for (String[] value : invalidValues) {
             StringBuilder errMsg = new StringBuilder(256);
@@ -935,6 +947,8 @@ public class InstanceGithubActionsProviderTest {
     @Test
     public void testValidateTenantDomainTokenBranchNameCase() {
 
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_LOWERCASE_BRANCHES, "main,master");
 
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
@@ -972,6 +986,8 @@ public class InstanceGithubActionsProviderTest {
     @Test
     public void testValidateTenantDomainTokenJobWorkflowRefBranchNameCase() {
 
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_LOWERCASE_BRANCHES, "main,master");
         System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JOB_WORKFLOW_REF_AUTHZ_CHECK, "true");
 
@@ -1011,6 +1027,20 @@ public class InstanceGithubActionsProviderTest {
         errMsg = new StringBuilder(256);
         assertTrue(provider.validateTenantDomainToken(claimsSet, "sports", "api", errMsg));
         assertEquals(errMsg.length(), 0);
+
+        // the repository path in the job_workflow_ref claim must not hide
+        // the actual workflow ref from the validation check
+
+        claimsSet = new JWTClaimsSet.Builder()
+                .subject("repo:refs/heads:environment:prod")
+                .claim("event_name", "push")
+                .claim("repository", "refs/heads")
+                .claim("ref", "refs/heads/main")
+                .claim("job_workflow_ref", "refs/heads/.github/workflows/build.yml@refs/heads/Main")
+                .build();
+        errMsg = new StringBuilder(256);
+        assertFalse(provider.validateTenantDomainToken(claimsSet, "sports", "api", errMsg));
+        assertEquals(errMsg.toString(), "branch name must be specified in lowercase: Main");
     }
 
     private String generateIdToken(final String issuer, long currentTimeSecs, boolean skipSubject,
