@@ -26,6 +26,7 @@ import com.yahoo.athenz.auth.Authorizer;
 import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ProviderResourceException;
@@ -42,6 +43,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 import static org.testng.Assert.*;
@@ -894,9 +896,7 @@ public class InstanceGithubActionsProviderTest {
         InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
         provider.initialize("sys.auth.github_actions",
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
-        assertEquals(provider.lowercaseBranches.size(), 2);
-        assertTrue(provider.lowercaseBranches.contains("main"));
-        assertTrue(provider.lowercaseBranches.contains("master"));
+        assertEquals(provider.lowercaseBranches.getStringsList(), List.of("Main", "master"));
 
         // subject values
 
@@ -992,6 +992,40 @@ public class InstanceGithubActionsProviderTest {
         StringBuilder errMsg = new StringBuilder(256);
         assertFalse(provider.validateRefBranchNameCase("refs/heads/Main", errMsg));
         assertEquals(errMsg.toString(), "branch name must be specified in lowercase: Main");
+    }
+
+    @Test
+    public void testValidateBranchNameCaseDynamicUpdate() {
+
+        final String jwksUri = Objects.requireNonNull(classLoader.getResource("jwt_jwks.json")).toString();
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_JWKS_URI, jwksUri);
+        System.setProperty(InstanceGithubActionsProvider.GITHUB_ACTIONS_PROP_LOWERCASE_BRANCHES, "main");
+
+        InstanceGithubActionsProvider provider = new InstanceGithubActionsProvider();
+        provider.initialize("sys.auth.github_actions",
+                "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
+
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(provider.validateRefBranchNameCase("refs/heads/Main", errMsg));
+        errMsg.setLength(0);
+        assertTrue(provider.validateRefBranchNameCase("refs/heads/Master", errMsg));
+
+        // update the configured list without re-initializing the provider
+
+        provider.lowercaseBranches = new DynamicConfigCsv("master");
+
+        errMsg.setLength(0);
+        assertTrue(provider.validateRefBranchNameCase("refs/heads/Main", errMsg));
+        assertFalse(provider.validateRefBranchNameCase("refs/heads/Master", errMsg));
+        assertEquals(errMsg.toString(), "branch name must be specified in lowercase: Master");
+
+        // clear the configured list
+
+        provider.lowercaseBranches = new DynamicConfigCsv((String) null);
+
+        errMsg.setLength(0);
+        assertTrue(provider.validateRefBranchNameCase("refs/heads/Master", errMsg));
+        assertEquals(errMsg.length(), 0);
     }
 
     @Test

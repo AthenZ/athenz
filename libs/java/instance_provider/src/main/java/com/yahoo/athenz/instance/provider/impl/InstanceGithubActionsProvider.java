@@ -25,6 +25,7 @@ import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
+import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigLong;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
@@ -72,7 +73,6 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
     Set<String> dnsSuffixes = null;
     Set<String> enterprises = null;
-    Set<String> lowercaseBranches = null;
     String githubIssuer = null;
     String provider = null;
     String audience = null;
@@ -80,6 +80,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     Authorizer authorizer = null;
     DynamicConfigLong bootTimeOffsetSeconds;
     DynamicConfigBoolean jobWorkflowRefAuthzCheck;
+    DynamicConfigCsv lowercaseBranches;
     long certExpiryTime;
 
     @Override
@@ -130,16 +131,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         // as case-sensitive), so without this check another user could create a
         // branch called Main and obtain the identity authorized for the main branch
 
-        lowercaseBranches = new HashSet<>();
-        final String lowercaseBranchesConfig = System.getProperty(GITHUB_ACTIONS_PROP_LOWERCASE_BRANCHES);
-        if (!StringUtil.isEmpty(lowercaseBranchesConfig)) {
-            for (String branch : lowercaseBranchesConfig.split(",")) {
-                branch = branch.trim();
-                if (!branch.isEmpty()) {
-                    lowercaseBranches.add(branch.toLowerCase());
-                }
-            }
-        }
+        lowercaseBranches = new DynamicConfigCsv(CONFIG_MANAGER, GITHUB_ACTIONS_PROP_LOWERCASE_BRANCHES, null);
 
         // get default/max expiry time for any generated tokens - 6 hours
 
@@ -430,7 +422,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
     boolean validateSubjectBranchNameCase(final String subject, StringBuilder errMsg) {
 
-        if (lowercaseBranches.isEmpty()) {
+        if (lowercaseBranches.getStringsList().isEmpty()) {
             return true;
         }
 
@@ -467,7 +459,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
     boolean validateWorkflowRefBranchNameCase(final String workflowRef, StringBuilder errMsg) {
 
-        if (lowercaseBranches.isEmpty()) {
+        if (lowercaseBranches.getStringsList().isEmpty()) {
             return true;
         }
 
@@ -490,15 +482,16 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
 
     boolean validateRefBranchNameCase(final String ref, StringBuilder errMsg) {
 
-        if (lowercaseBranches.isEmpty() || !ref.startsWith(BRANCH_REF_PREFIX)) {
+        if (lowercaseBranches.getStringsList().isEmpty() || !ref.startsWith(BRANCH_REF_PREFIX)) {
             return true;
         }
 
-        // the complete value after refs/heads/ is the branch name
+        // the complete value after refs/heads/ is the branch name. the configured
+        // branch names are matched ignoring case
 
         final String branch = ref.substring(BRANCH_REF_PREFIX.length());
-        final String lowerBranch = branch.toLowerCase();
-        if (lowercaseBranches.contains(lowerBranch) && !branch.equals(lowerBranch)) {
+        if (!branch.equals(branch.toLowerCase())
+                && lowercaseBranches.getStringsList().stream().anyMatch(branch::equalsIgnoreCase)) {
             errMsg.append("branch name must be specified in lowercase: ").append(branch);
             return false;
         }
