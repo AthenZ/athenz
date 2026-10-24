@@ -881,7 +881,6 @@ public class InstanceGithubActionsProviderTest {
 
         StringBuilder errMsg = new StringBuilder(256);
         assertTrue(provider.validateSubjectBranchNameCase("repo:athenz/sia:ref:refs/heads/Main", errMsg));
-        assertTrue(provider.validateWorkflowRefBranchNameCase("athenz/sia/.github/workflows/build.yml@refs/heads/Main", errMsg));
         assertTrue(provider.validateRefBranchNameCase("refs/heads/Main", errMsg));
         assertEquals(errMsg.length(), 0);
     }
@@ -936,36 +935,6 @@ public class InstanceGithubActionsProviderTest {
         for (String[] value : invalidSubjects) {
             StringBuilder errMsg = new StringBuilder(256);
             assertFalse(provider.validateSubjectBranchNameCase(value[0], errMsg), value[0]);
-            assertEquals(errMsg.toString(), "branch name must be specified in lowercase: " + value[1]);
-        }
-
-        // workflow ref values
-
-        final String[] validWorkflowRefs = {
-                "athenz/sia/.github/workflows/build.yml@refs/heads/main",
-                "athenz/sia/.github/workflows/build.yml@refs/heads/Feature",
-                "athenz/sia/.github/workflows/build.yml@refs/heads/feature@refs/heads/Main",
-                "athenz/sia/.github/workflows/build.yml@refs/heads/Main@v1",
-                "athenz/sia/.github/workflows/build.yml@refs/tags/Main",
-                "athenz/sia/.github/workflows/build.yml@refs/tags/release@refs/heads/Main",
-                "athenz/sia/.github/workflows/build@Main.yml@refs/heads/main",
-                "athenz/sia/.github/workflows/build.yml@Main"
-        };
-        for (String workflowRef : validWorkflowRefs) {
-            StringBuilder errMsg = new StringBuilder(256);
-            assertTrue(provider.validateWorkflowRefBranchNameCase(workflowRef, errMsg), workflowRef);
-            assertEquals(errMsg.length(), 0);
-        }
-
-        final String[][] invalidWorkflowRefs = {
-                { "athenz/sia/.github/workflows/build.yml@refs/heads/Main", "Main" },
-                { "refs/heads/.github/workflows/build.yml@refs/heads/Main", "Main" },
-                { "athenz/sia/.github/workflows/build@Main.yml@refs/heads/MASTER", "MASTER" },
-                { "athenz/sia/.github/workflows/a:b.yml@refs/heads/Main", "Main" }
-        };
-        for (String[] value : invalidWorkflowRefs) {
-            StringBuilder errMsg = new StringBuilder(256);
-            assertFalse(provider.validateWorkflowRefBranchNameCase(value[0], errMsg), value[0]);
             assertEquals(errMsg.toString(), "branch name must be specified in lowercase: " + value[1]);
         }
 
@@ -1106,20 +1075,6 @@ public class InstanceGithubActionsProviderTest {
         errMsg = new StringBuilder(256);
         assertTrue(provider.validateTenantDomainToken(claimsSet, "sports", "api", errMsg));
         assertEquals(errMsg.length(), 0);
-
-        // the repository path in the job_workflow_ref claim must not hide
-        // the actual workflow ref from the validation check
-
-        claimsSet = new JWTClaimsSet.Builder()
-                .subject("repo:refs/heads:environment:prod")
-                .claim("event_name", "push")
-                .claim("repository", "refs/heads")
-                .claim("ref", "refs/heads/main")
-                .claim("job_workflow_ref", "refs/heads/.github/workflows/build.yml@refs/heads/Main")
-                .build();
-        errMsg = new StringBuilder(256);
-        assertFalse(provider.validateTenantDomainToken(claimsSet, "sports", "api", errMsg));
-        assertEquals(errMsg.toString(), "branch name must be specified in lowercase: Main");
     }
 
     private String generateIdToken(final String issuer, long currentTimeSecs, boolean skipSubject,

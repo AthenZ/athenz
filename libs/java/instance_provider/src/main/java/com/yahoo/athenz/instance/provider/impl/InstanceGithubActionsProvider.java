@@ -68,7 +68,6 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_JOB_WORKFLOW_REF = "job_workflow_ref";
 
     static final String BRANCH_REF_PREFIX = "refs/heads/";
-    static final String WORKFLOW_REF_SEPARATOR = "@refs/";
 
     Set<String> dnsSuffixes = null;
     Set<String> enterprises = null;
@@ -402,7 +401,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             final String jobWorkflowRef = JwtsHelper.getStringClaim(claimsSet, CLAIM_JOB_WORKFLOW_REF);
             if (!StringUtil.isEmpty(repository) && !StringUtil.isEmpty(ref) && !StringUtil.isEmpty(jobWorkflowRef)) {
                 workflowResource = domainName + ":" + repository + ":" + ref + ":" + jobWorkflowRef;
-                if (!validateRefBranchNameCase(ref, errMsg) || !validateWorkflowRefBranchNameCase(jobWorkflowRef, errMsg)) {
+                if (!validateRefBranchNameCase(ref, errMsg)) {
                     return false;
                 }
                 if (authorizer.access(action, workflowResource, principal, null)) {
@@ -439,25 +438,6 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             }
         }
         return true;
-    }
-
-    boolean validateWorkflowRefBranchNameCase(final String workflowRef, StringBuilder errMsg) {
-
-        if (lowercaseBranches.getStringsList().isEmpty()) {
-            return true;
-        }
-
-        // the workflow ref has the format <owner>/<repo>/.github/workflows/<file>@<ref>
-        // the owner and repo names cannot include the @ character and github does
-        // not support subdirectories in the workflows directory, so the file name
-        // cannot include the / character. thus the first @refs/ occurrence is always
-        // the separator between the workflow path and the ref
-
-        final int idx = workflowRef.indexOf(WORKFLOW_REF_SEPARATOR);
-        if (idx == -1) {
-            return true;
-        }
-        return validateRefBranchNameCase(workflowRef.substring(idx + 1), errMsg);
     }
 
     boolean validateRefBranchNameCase(final String ref, StringBuilder errMsg) {
