@@ -65,9 +65,10 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
     public static final String CLAIM_REPOSITORY       = "repository";
     public static final String CLAIM_REF              = "ref";
     public static final String CLAIM_JOB_WORKFLOW_REF = "job_workflow_ref";
+    public static final String CLAIM_WORKFLOW_REF     = "workflow_ref";
 
     static final String BRANCH_REF_PREFIX = "refs/heads/";
-    static final String WORKFLOW_BRANCH_REF_PREFIX = "@" + BRANCH_REF_PREFIX;
+    static final String WORKFLOW_REF_SEPARATOR = "@refs/";
 
     Set<String> dnsSuffixes = null;
     Set<String> enterprises = null;
@@ -384,7 +385,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         // verify that any branch references in the subject to one of our
         // configured branches are specified in lowercase only
 
-        if (!validateBranchNameCase(subject, errMsg)) {
+        if (!validateSubjectBranchNameCase(subject, errMsg)) {
             return false;
         }
 
@@ -410,7 +411,7 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             final String jobWorkflowRef = JwtsHelper.getStringClaim(claimsSet, CLAIM_JOB_WORKFLOW_REF);
             if (!StringUtil.isEmpty(repository) && !StringUtil.isEmpty(ref) && !StringUtil.isEmpty(jobWorkflowRef)) {
                 workflowResource = domainName + ":" + repository + ":" + ref + ":" + jobWorkflowRef;
-                if (!validateBranchNameCase(ref, errMsg) || !validateBranchNameCase(jobWorkflowRef, errMsg)) {
+                if (!validateRefBranchNameCase(ref, errMsg) || !validateWorkflowRefBranchNameCase(jobWorkflowRef, errMsg)) {
                     return false;
                 }
                 if (authorizer.access(action, workflowResource, principal, null)) {
@@ -427,40 +428,64 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
         return false;
     }
 
-    boolean validateBranchNameCase(final String value, StringBuilder errMsg) {
+    boolean validateSubjectBranchNameCase(final String subject, StringBuilder errMsg) {
 
         if (lowercaseBranches.isEmpty()) {
             return true;
         }
 
-        // the value is either the subject claim, which is a list of : separated
-        // fields (e.g. repo:athenz/sia:ref:refs/heads/main), or a single claim
-        // value. git does not allow : in ref names, so we process each field
-        // separately. a field is a branch reference if it starts with refs/heads/
-        // (e.g. the ref claim) and the job_workflow_ref claim has the format
-        // <repository>/<path>@<ref>. since both the path and the ref may include
-        // the @ character, we check every @refs/heads/ occurrence in the field
-        // so the actual ref is always validated regardless of the repository
-        // and path values
+        // the subject claim is a list of : separated key/value pairs, e.g.
+        // repo:athenz/sia:ref:refs/heads/main. git does not allow : in ref names
+        // so we can split the subject into its fields and validate the value
+        // following any ref or workflow ref key. some keys (e.g. pull_request)
+        // do not have a value, so we can't assume that every other field is
+        // a key and instead check every field
 
-        for (String field : value.split(":")) {
-            if (field.startsWith(BRANCH_REF_PREFIX)
-                    && !validateBranchName(field.substring(BRANCH_REF_PREFIX.length()), errMsg)) {
-                return false;
-            }
-            int idx = field.indexOf(WORKFLOW_BRANCH_REF_PREFIX);
-            while (idx != -1) {
-                final int startIdx = idx + WORKFLOW_BRANCH_REF_PREFIX.length();
-                if (!validateBranchName(field.substring(startIdx), errMsg)) {
+        final String[] fields = subject.split(":");
+        for (int idx = 0; idx < fields.length - 1; idx++) {
+            final String key = fields[idx];
+            final String value = fields[idx + 1];
+            if (CLAIM_REF.equals(key)) {
+                if (!validateRefBranchNameCase(value, errMsg)) {
                     return false;
                 }
-                idx = field.indexOf(WORKFLOW_BRANCH_REF_PREFIX, startIdx);
+            } else if (CLAIM_JOB_WORKFLOW_REF.equals(key) || CLAIM_WORKFLOW_REF.equals(key)) {
+                if (!validateWorkflowRefBranchNameCase(value, errMsg)) {
+                    return false;
+                }
             }
         }
         return true;
     }
 
-    boolean validateBranchName(final String branch, StringBuilder errMsg) {
+    boolean validateWorkflowRefBranchNameCase(final String workflowRef, StringBuilder errMsg) {
+
+        if (lowercaseBranches.isEmpty()) {
+            return true;
+        }
+
+        // the workflow ref has the format <owner>/<repo>/.github/workflows/<file>@<ref>
+        // the owner and repo names cannot include the @ character and github does
+        // not support subdirectories in the workflows directory, so the file name
+        // cannot include the / character. thus the first @refs/ occurrence is always
+        // the separator between the workflow path and the ref
+
+        final int idx = workflowRef.indexOf(WORKFLOW_REF_SEPARATOR);
+        if (idx == -1) {
+            return true;
+        }
+        return validateRefBranchNameCase(workflowRef.substring(idx + 1), errMsg);
+    }
+
+    boolean validateRefBranchNameCase(final String ref, StringBuilder errMsg) {
+
+        if (lowercaseBranches.isEmpty() || !ref.startsWith(BRANCH_REF_PREFIX)) {
+            return true;
+        }
+
+        // the complete value after refs/heads/ is the branch name
+
+        final String branch = ref.substring(BRANCH_REF_PREFIX.length());
         final String lowerBranch = branch.toLowerCase();
         if (lowercaseBranches.contains(lowerBranch) && !branch.equals(lowerBranch)) {
             errMsg.append("branch name must be specified in lowercase: ").append(branch);

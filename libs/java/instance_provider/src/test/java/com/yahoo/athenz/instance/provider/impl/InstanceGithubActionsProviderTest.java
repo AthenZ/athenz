@@ -878,7 +878,9 @@ public class InstanceGithubActionsProviderTest {
                 "class://com.yahoo.athenz.instance.provider.impl.InstanceGithubActionsProvider", null, null);
 
         StringBuilder errMsg = new StringBuilder(256);
-        assertTrue(provider.validateBranchNameCase("repo:athenz/sia:ref:refs/heads/Main", errMsg));
+        assertTrue(provider.validateSubjectBranchNameCase("repo:athenz/sia:ref:refs/heads/Main", errMsg));
+        assertTrue(provider.validateWorkflowRefBranchNameCase("athenz/sia/.github/workflows/build.yml@refs/heads/Main", errMsg));
+        assertTrue(provider.validateRefBranchNameCase("refs/heads/Main", errMsg));
         assertEquals(errMsg.length(), 0);
     }
 
@@ -896,52 +898,95 @@ public class InstanceGithubActionsProviderTest {
         assertTrue(provider.lowercaseBranches.contains("main"));
         assertTrue(provider.lowercaseBranches.contains("master"));
 
-        // valid values - lowercase configured branches, other branches with
-        // any case, non-branch subjects and branch names with configured prefix
+        // subject values
 
-        final String[] validValues = {
+        final String[] validSubjects = {
                 "repo:athenz/sia:ref:refs/heads/main",
                 "repo:athenz/sia:ref:refs/heads/master",
                 "repo:athenz/sia:ref:refs/heads/Feature",
                 "repo:athenz/sia:ref:refs/heads/Main-fix",
                 "repo:athenz/sia:ref:refs/heads/fix/Main",
+                "repo:athenz/sia:ref:refs/heads/feature@refs/heads/Main",
                 "repo:athenz/sia:ref:refs/tags/Main",
+                "repo:athenz/sia:ref:refs/tags/release@refs/heads/Main",
+                "repo:athenz/sia:ref:refs/tags/refs/heads/Main",
+                "repo:athenz/sia:ref:refs/heads/",
+                "repo:athenz/sia:ref",
                 "repo:athenz/sia:pull_request",
                 "repo:athenz/sia:environment:Main",
-                "repo:athenz/sia:ref:refs/heads/",
+                "repo:athenz/sia:environment:refs/heads/Main",
                 "repo:athenz/sia:ref:refs/heads/main:job_workflow_ref:athenz/sia/.github/workflows/build.yml@refs/heads/main",
-                "sports:athenz/sia:refs/heads/main:athenz/sia/.github/workflows/build.yml@refs/heads/main",
-                "refs/tags/refs/heads/Main",
-                "repo:athenz/sia:ref:refs/tags/refs/heads/Main",
-                "athenz/sia/.github/workflows/build.yml@refs/tags/refs/heads/Main",
-                "athenz/sia/.github/workflows/build.yml@refs/heads/Main@v1"
+                "repo:athenz/sia:pull_request:workflow_ref:athenz/sia/.github/workflows/build.yml@refs/pull/1/merge"
         };
-        for (String value : validValues) {
+        for (String subject : validSubjects) {
             StringBuilder errMsg = new StringBuilder(256);
-            assertTrue(provider.validateBranchNameCase(value, errMsg), value);
+            assertTrue(provider.validateSubjectBranchNameCase(subject, errMsg), subject);
             assertEquals(errMsg.length(), 0);
         }
 
-        // invalid values - configured branches not in lowercase including
-        // the case where only the second branch reference is invalid
-
-        final String[][] invalidValues = {
+        final String[][] invalidSubjects = {
                 { "repo:athenz/sia:ref:refs/heads/Main", "Main" },
                 { "repo:athenz/sia:ref:refs/heads/MAIN", "MAIN" },
                 { "repo:athenz/sia:ref:refs/heads/mAster", "mAster" },
                 { "repo:athenz/sia:ref:refs/heads/Main:job_workflow_ref:athenz/sia/.github/workflows/build.yml@refs/heads/main", "Main" },
                 { "repo:athenz/sia:ref:refs/heads/main:job_workflow_ref:athenz/sia/.github/workflows/build.yml@refs/heads/maiN", "maiN" },
-                { "sports:athenz/sia:refs/heads/feature:athenz/sia/.github/workflows/build.yml@refs/heads/Master", "Master" },
-                { "sports:athenz/sia:refs/heads/main:refs/heads/.github/workflows/build.yml@refs/heads/Main", "Main" },
-                { "refs/heads/.github/workflows/build.yml@refs/heads/Main", "Main" },
-                { "athenz/sia/.github/workflows/a@refs/heads/b.yml@refs/heads/Main", "Main" },
-                { "refs/heads/Main", "Main" }
+                { "repo:refs/heads:job_workflow_ref:refs/heads/.github/workflows/build.yml@refs/heads/Main", "Main" },
+                { "repo:athenz/sia:workflow_ref:athenz/sia/.github/workflows/build.yml@refs/heads/Master", "Master" },
+                { "repo:athenz/sia:environment:ref:ref:refs/heads/Main", "Main" }
         };
-        for (String[] value : invalidValues) {
+        for (String[] value : invalidSubjects) {
             StringBuilder errMsg = new StringBuilder(256);
-            assertFalse(provider.validateBranchNameCase(value[0], errMsg), value[0]);
+            assertFalse(provider.validateSubjectBranchNameCase(value[0], errMsg), value[0]);
             assertEquals(errMsg.toString(), "branch name must be specified in lowercase: " + value[1]);
         }
+
+        // workflow ref values
+
+        final String[] validWorkflowRefs = {
+                "athenz/sia/.github/workflows/build.yml@refs/heads/main",
+                "athenz/sia/.github/workflows/build.yml@refs/heads/Feature",
+                "athenz/sia/.github/workflows/build.yml@refs/heads/feature@refs/heads/Main",
+                "athenz/sia/.github/workflows/build.yml@refs/heads/Main@v1",
+                "athenz/sia/.github/workflows/build.yml@refs/tags/Main",
+                "athenz/sia/.github/workflows/build.yml@refs/tags/release@refs/heads/Main",
+                "athenz/sia/.github/workflows/build@Main.yml@refs/heads/main",
+                "athenz/sia/.github/workflows/build.yml@Main"
+        };
+        for (String workflowRef : validWorkflowRefs) {
+            StringBuilder errMsg = new StringBuilder(256);
+            assertTrue(provider.validateWorkflowRefBranchNameCase(workflowRef, errMsg), workflowRef);
+            assertEquals(errMsg.length(), 0);
+        }
+
+        final String[][] invalidWorkflowRefs = {
+                { "athenz/sia/.github/workflows/build.yml@refs/heads/Main", "Main" },
+                { "refs/heads/.github/workflows/build.yml@refs/heads/Main", "Main" },
+                { "athenz/sia/.github/workflows/build@Main.yml@refs/heads/MASTER", "MASTER" }
+        };
+        for (String[] value : invalidWorkflowRefs) {
+            StringBuilder errMsg = new StringBuilder(256);
+            assertFalse(provider.validateWorkflowRefBranchNameCase(value[0], errMsg), value[0]);
+            assertEquals(errMsg.toString(), "branch name must be specified in lowercase: " + value[1]);
+        }
+
+        // ref values
+
+        final String[] validRefs = {
+                "refs/heads/main",
+                "refs/heads/feature@refs/heads/Main",
+                "refs/tags/Main",
+                "refs/tags/release@refs/heads/Main",
+                "Main"
+        };
+        for (String ref : validRefs) {
+            StringBuilder errMsg = new StringBuilder(256);
+            assertTrue(provider.validateRefBranchNameCase(ref, errMsg), ref);
+            assertEquals(errMsg.length(), 0);
+        }
+
+        StringBuilder errMsg = new StringBuilder(256);
+        assertFalse(provider.validateRefBranchNameCase("refs/heads/Main", errMsg));
+        assertEquals(errMsg.toString(), "branch name must be specified in lowercase: Main");
     }
 
     @Test
