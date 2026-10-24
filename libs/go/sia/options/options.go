@@ -292,6 +292,9 @@ func InitEnvConfig(config *sc.Config, provider provider.Provider) (*sc.Config, *
 	if config.SiaBackupDir == "" {
 		config.SiaBackupDir = os.Getenv("ATHENZ_SIA_BACKUP_DIR")
 	}
+	if config.SiaMainDir == "" {
+		config.SiaMainDir = os.Getenv("ATHENZ_SIA_MAIN_DIR")
+	}
 	if config.SshPrincipals == "" {
 		config.SshPrincipals = os.Getenv("ATHENZ_SIA_SSH_PRINCIPALS")
 	}
@@ -681,6 +684,11 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		profileRestrictTo = profileConfig.ProfileRestrictTo
 	}
 
+	var mainDir string
+	if config != nil {
+		mainDir = config.SiaMainDir
+	}
+
 	// Process oTel options
 	var oTelCfg sc.OTel
 	if config != nil {
@@ -726,6 +734,7 @@ func setOptions(config *sc.Config, account *sc.ConfigAccount, profileConfig *sc.
 		GenerateRoleKey:        generateRoleKey,
 		RotateKey:              rotateKey,
 		BackupDir:              backupDir,
+		MainDir:                mainDir,
 		SDSUdsPath:             sdsUdsPath,
 		RefreshInterval:        refreshInterval,
 		ZTSRegion:              ztsRegion,

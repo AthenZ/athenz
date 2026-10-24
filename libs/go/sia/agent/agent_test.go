@@ -751,3 +751,9 @@ func TestShouldExitRightAwayCertificate(test *testing.T) {
 	opts.RefreshInterval = 31 * 24 * 60
 	assert.True(test, shouldExitRightAway(1, opts))
 }
+
+func TestGetSiaMainDir(t *testing.T) {
+	assert.Equal(t, "/var/lib/sia", getSiaMainDir(nil))
+	assert.Equal(t, "/var/lib/sia", getSiaMainDir(&sc.Options{}))
+	assert.Equal(t, "/opt/sia", getSiaMainDir(&sc.Options{MainDir: "/opt/sia"}))
+}

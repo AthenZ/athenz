@@ -98,6 +98,7 @@ type Config struct {
 	SiaCertDir        string                   `json:"sia_cert_dir,omitempty"`               //sia certs directory to override /var/lib/sia/certs
 	SiaTokenDir       string                   `json:"sia_token_dir,omitempty"`              //sia tokens directory to override /var/lib/sia/tokens
 	SiaBackupDir      string                   `json:"sia_backup_dir,omitempty"`             //sia backup directory to override /var/lib/sia/backup
+	SiaMainDir        string                   `json:"sia_main_dir,omitempty"`               //sia main directory to override /var/lib/sia (location of athenz.conf and done files)
 	HostnameSuffix    string                   `json:"hostname_suffix,omitempty"`            //hostname suffix in case we need to auto-generate hostname
 	Zts               string                   `json:"zts,omitempty"`                        //the ZTS to contact
 	Roles             map[string]ConfigRole    `json:"roles,omitempty"`                      //map of roles to retrieve certificates for
@@ -190,6 +191,7 @@ type Options struct {
 	GenerateRoleKey        bool                //option to generate a separate key for role certificates
 	RotateKey              bool                //rotate the private key when refreshing certificates
 	BackupDir              string              //backup directory for key/cert rotation
+	MainDir                string              //sia main directory (athenz.conf and done files), defaults to /var/lib/sia
 	CertCountryName        string              //generated x.509 certificate country name
 	CertOrgName            string              //generated x.509 certificate organization name
 	SshPubKeyFile          string              //ssh host public key file path

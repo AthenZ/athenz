@@ -48,7 +48,17 @@ import (
 	"github.com/cenkalti/backoff"
 )
 
-const siaMainDir = "/var/lib/sia"
+const defaultSiaMainDir = "/var/lib/sia"
+
+// getSiaMainDir returns the sia main directory which holds athenz.conf
+// and the done files. It defaults to /var/lib/sia unless overridden by
+// the sia_main_dir configuration setting.
+func getSiaMainDir(opts *sc.Options) string {
+	if opts != nil && opts.MainDir != "" {
+		return opts.MainDir
+	}
+	return defaultSiaMainDir
+}
 
 func readCertificate(certFile string) (*x509.Certificate, error) {
 	data, err := os.ReadFile(certFile)
@@ -98,7 +108,7 @@ func GetRequiredRoleCertificates(ztsUrl string, opts *sc.Options) error {
 	for i := 0; i < 9; i++ {
 		_, failures := GetRoleCertificates(ztsUrl, opts)
 		if len(failures) == 0 {
-			util.TouchDoneFile(siaMainDir, "rolecert")
+			util.TouchDoneFile(getSiaMainDir(opts), "rolecert")
 			return nil
 		}
 		log.Println("Required GetRoleCertificates failed, retrying in 20 seconds")
@@ -326,7 +336,7 @@ func registerSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 	}
 
 	athenzJwk := true
-	athenzJwkModified := util.GetAthenzJwkConfModTime(siaMainDir)
+	athenzJwkModified := util.GetAthenzJwkConfModTime(getSiaMainDir(opts))
 
 	info := &zts.InstanceRegisterInformation{
 		Provider:          zts.ServiceName(opts.Provider.GetName()),
@@ -391,7 +401,7 @@ func registerSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 	}
 
 	if ident.AthenzJWK != nil {
-		err = util.WriteAthenzJWKFile(ident.AthenzJWK, siaMainDir, svc.Uid, svc.Gid)
+		err = util.WriteAthenzJWKFile(ident.AthenzJWK, getSiaMainDir(opts), svc.Uid, svc.Gid)
 		if err != nil {
 			return err
 		}
@@ -486,7 +496,7 @@ func refreshSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 	}
 
 	athenzJwk := true
-	athenzJwkModified := util.GetAthenzJwkConfModTime(siaMainDir)
+	athenzJwkModified := util.GetAthenzJwkConfModTime(getSiaMainDir(opts))
 
 	info := &zts.InstanceRefreshInformation{
 		AttestationData:   attestData,
@@ -545,7 +555,7 @@ func refreshSvc(svc sc.Service, ztsUrl string, opts *sc.Options) error {
 	}
 
 	if ident.AthenzJWK != nil {
-		err = util.WriteAthenzJWKFile(ident.AthenzJWK, siaMainDir, svc.Uid, svc.Gid)
+		err = util.WriteAthenzJWKFile(ident.AthenzJWK, getSiaMainDir(opts), svc.Uid, svc.Gid)
 		if err != nil {
 			return err
 		}
@@ -666,10 +676,10 @@ func SetupAgent(opts *sc.Options, siaAgentDir, siaLinkDir string) {
 			log.Printf("Unable to symlink SIA directory '%s': %v\n", siaLinkDir, err)
 		}
 	}
-	if siaAgentDir != siaMainDir {
-		err = util.SetupSIADir(siaMainDir, runUid, runGid)
+	if siaAgentDir != getSiaMainDir(opts) {
+		err = util.SetupSIADir(getSiaMainDir(opts), runUid, runGid)
 		if err != nil {
-			log.Printf("Unable to setup SIA Main directory '%s': %v\n", siaMainDir, err)
+			log.Printf("Unable to setup SIA Main directory '%s': %v\n", getSiaMainDir(opts), err)
 		}
 	}
 	err = util.SetupSIADir(opts.KeyDir, runUid, runGid)
@@ -752,7 +762,7 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 		if count != 0 {
 			util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
 		}
-		util.TouchDoneFile(siaMainDir, "rolecert")
+		util.TouchDoneFile(getSiaMainDir(opts), "rolecert")
 	case "token":
 		if tokenOpts != nil {
 			err := fetchAccessToken(tokenOpts)
@@ -766,14 +776,14 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 		} else {
 			log.Print("unable to fetch access tokens, invalid or missing configuration")
 		}
-		util.TouchDoneFile(siaMainDir, "token")
+		util.TouchDoneFile(getSiaMainDir(opts), "token")
 	case "post", "register":
 		err := RegisterInstance(ztsUrl, opts, false)
 		if err != nil {
 			log.Fatalf("Unable to register identity, err: %v\n", err)
 		}
 		util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
-		util.TouchDoneFile(siaMainDir, "register")
+		util.TouchDoneFile(getSiaMainDir(opts), "register")
 		log.Printf("identity registered for services: %s\n", svcs)
 	case "rotate", "refresh":
 		err = RefreshInstance(ztsUrl, opts)
@@ -781,7 +791,7 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 			log.Fatalf("Refresh identity failed, err: %v\n", err)
 		}
 		util.ExecuteScript(opts.RunAfterCertsOkParts, "", opts.RunAfterFailExit)
-		util.TouchDoneFile(siaMainDir, "refresh")
+		util.TouchDoneFile(getSiaMainDir(opts), "refresh")
 		log.Printf("Identity successfully refreshed for services: %s\n", svcs)
 	case "init":
 		err := RegisterInstance(ztsUrl, opts, false)
@@ -807,7 +817,7 @@ func runAgentCommand(siaCmd, ztsUrl string, opts *sc.Options) {
 			}
 			util.ExecuteScript(opts.RunAfterTokensOkParts, "", opts.RunAfterFailExit)
 		}
-		util.TouchDoneFile(siaMainDir, "init")
+		util.TouchDoneFile(getSiaMainDir(opts), "init")
 	default:
 		// we're going to iterate through our configured services.
 		// if the service key and certificate files exist then we're
