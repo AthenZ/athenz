@@ -916,7 +916,9 @@ public class InstanceGithubActionsProviderTest {
                 "repo:athenz/sia:environment:Main",
                 "repo:athenz/sia:environment:refs/heads/Main",
                 "repo:athenz/sia:ref:refs/heads/main:job_workflow_ref:athenz/sia/.github/workflows/build.yml@refs/heads/main",
-                "repo:athenz/sia:pull_request:workflow_ref:athenz/sia/.github/workflows/build.yml@refs/pull/1/merge"
+                "repo:athenz/sia:pull_request:workflow_ref:athenz/sia/.github/workflows/build.yml@refs/pull/1/merge",
+                "repo:athenz/sia:job_workflow_ref:athenz/sia/.github/workflows/a:b.yml@refs/heads/main",
+                "repo:athenz/sia:job_workflow_ref:athenz/sia/.github/workflows/build.yml@refs/heads/main:ref:refs/heads/feature@refs/heads/Main"
         };
         for (String subject : validSubjects) {
             StringBuilder errMsg = new StringBuilder(256);
@@ -932,7 +934,9 @@ public class InstanceGithubActionsProviderTest {
                 { "repo:athenz/sia:ref:refs/heads/main:job_workflow_ref:athenz/sia/.github/workflows/build.yml@refs/heads/maiN", "maiN" },
                 { "repo:refs/heads:job_workflow_ref:refs/heads/.github/workflows/build.yml@refs/heads/Main", "Main" },
                 { "repo:athenz/sia:workflow_ref:athenz/sia/.github/workflows/build.yml@refs/heads/Master", "Master" },
-                { "repo:athenz/sia:environment:ref:ref:refs/heads/Main", "Main" }
+                { "repo:athenz/sia:environment:ref:ref:refs/heads/Main", "Main" },
+                { "repo:athenz/sia:job_workflow_ref:athenz/sia/.github/workflows/a:b.yml@refs/heads/Main", "Main" },
+                { "repo:athenz/sia:workflow_ref:athenz/sia/.github/workflows/a:b:c.yml@refs/heads/Main:ref:refs/heads/main", "Main" }
         };
         for (String[] value : invalidSubjects) {
             StringBuilder errMsg = new StringBuilder(256);
@@ -961,7 +965,8 @@ public class InstanceGithubActionsProviderTest {
         final String[][] invalidWorkflowRefs = {
                 { "athenz/sia/.github/workflows/build.yml@refs/heads/Main", "Main" },
                 { "refs/heads/.github/workflows/build.yml@refs/heads/Main", "Main" },
-                { "athenz/sia/.github/workflows/build@Main.yml@refs/heads/MASTER", "MASTER" }
+                { "athenz/sia/.github/workflows/build@Main.yml@refs/heads/MASTER", "MASTER" },
+                { "athenz/sia/.github/workflows/a:b.yml@refs/heads/Main", "Main" }
         };
         for (String[] value : invalidWorkflowRefs) {
             StringBuilder errMsg = new StringBuilder(256);
