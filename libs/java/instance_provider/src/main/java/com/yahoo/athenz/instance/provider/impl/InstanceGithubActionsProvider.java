@@ -400,10 +400,10 @@ public class InstanceGithubActionsProvider implements InstanceProvider {
             final String ref = JwtsHelper.getStringClaim(claimsSet, CLAIM_REF);
             final String jobWorkflowRef = JwtsHelper.getStringClaim(claimsSet, CLAIM_JOB_WORKFLOW_REF);
             if (!StringUtil.isEmpty(repository) && !StringUtil.isEmpty(ref) && !StringUtil.isEmpty(jobWorkflowRef)) {
-                workflowResource = domainName + ":" + repository + ":" + ref + ":" + jobWorkflowRef;
                 if (!validateRefBranchNameCase(ref, errMsg)) {
                     return false;
                 }
+                workflowResource = domainName + ":" + repository + ":" + ref + ":" + jobWorkflowRef;
                 if (authorizer.access(action, workflowResource, principal, null)) {
                     return true;
                 }
