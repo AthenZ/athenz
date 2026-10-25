@@ -24,24 +24,40 @@ const MOCK_FILE_INFO = {
     'data/users.json':
         '[{"is_human": 1, "login": "testuser", "gecos":"full name", "enabled_status": 1}]',
 };
+const config = {
+    zms: 'test',
+    userFilePath: 'data',
+    userFileName: 'users.json',
+    msd: 'test',
+    ums: 'test',
+    zts: 'test',
+    cloud_sso: 'test',
+};
 
 describe('clients test', () => {
     beforeAll(() => {
         require('fs').__setMockFiles(MOCK_FILE_INFO);
     });
     test('should be able to register clients', () => {
-        let config = {
-            zms: 'test',
-            userFilePath: 'data',
-            userFileName: 'users.json',
-            msd: 'test',
-            ums: 'test',
-            zts: 'test',
-            cloud_sso: 'test',
-        };
-
         clients.load(config, {}).catch((err) => {
             expect(err).toBeNull();
+        });
+    });
+    test('should create request scoped clients in middleware', async () => {
+        await clients.load(config, {});
+
+        const req = { authHeader: 'Athenz-Principal-Auth' };
+        const next = jest.fn();
+        clients.middleware()(req, {}, next);
+
+        expect(next).toHaveBeenCalledTimes(1);
+        ['zms', 'msd', 'zts', 'ums', 'cloud_sso'].forEach((name) => {
+            expect(req.clients[name]).toBeDefined();
+            expect(req.clients[name].request).toBe(req);
+            expect(Object.keys(req.clients[name].headers)).toEqual([
+                'cookie',
+                'Athenz-Principal-Auth',
+            ]);
         });
     });
 });
