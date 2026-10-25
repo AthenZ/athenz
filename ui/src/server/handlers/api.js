@@ -3481,43 +3481,12 @@ Fetchr.registerService({
 Fetchr.registerService({
     name: 'resource-access',
     read(req, resource, params, config, callback) {
-        let cloudSSOCallFailed = false;
-        if (appConfig.callCloudSSO) {
-            req.clients.cloud_sso.getResourceAccessList(
-                {
-                    action: params.action,
-                    principal: `${appConfig.userDomain}.${req.session.shortId}`,
-                },
-                (err, list) => {
-                    if (err) {
-                        if (err.status === 404) {
-                            callback(null, []);
-                        } else {
-                            debug(
-                                `principal: ${req.session.shortId} rid: ${
-                                    req.headers.rid
-                                } Error from Cloud SSO while calling getResourceAccessList API: ${JSON.stringify(
-                                    errorHandler.fetcherError(err)
-                                )}`
-                            );
-                            // Fallback to ZMS if Cloud SSO call fails
-                            cloudSSOCallFailed = true;
-                        }
-                    } else {
-                        if (!list || !list.resources) {
-                            callback(null, []);
-                        } else {
-                            callback(null, list);
-                        }
-                    }
-                }
-            );
-        }
-        if (!appConfig.callCloudSSO || cloudSSOCallFailed) {
+        const principal = `${appConfig.userDomain}.${req.session.shortId}`;
+        const getZmsResourceAccessList = () => {
             req.clients.zms.getResourceAccessList(
                 {
                     action: params.action,
-                    principal: `${appConfig.userDomain}.${req.session.shortId}`,
+                    principal: principal,
                 },
                 (err, list) => {
                     if (err) {
@@ -3542,7 +3511,42 @@ Fetchr.registerService({
                     }
                 }
             );
+        };
+
+        if (!appConfig.callCloudSSO) {
+            getZmsResourceAccessList();
+            return;
         }
+
+        req.clients.cloud_sso.getResourceAccessList(
+            {
+                action: params.action,
+                principal: principal,
+            },
+            (err, list) => {
+                if (err) {
+                    if (err.status === 404) {
+                        callback(null, []);
+                    } else {
+                        debug(
+                            `principal: ${req.session.shortId} rid: ${
+                                req.headers.rid
+                            } Error from Cloud SSO while calling getResourceAccessList API: ${JSON.stringify(
+                                errorHandler.fetcherError(err)
+                            )}`
+                        );
+                        // Fallback to ZMS if Cloud SSO call fails
+                        getZmsResourceAccessList();
+                    }
+                } else {
+                    if (!list || !list.resources) {
+                        callback(null, []);
+                    } else {
+                        callback(null, list);
+                    }
+                }
+            }
+        );
     },
 });
 
