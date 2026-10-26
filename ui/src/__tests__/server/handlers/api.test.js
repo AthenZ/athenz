@@ -75,20 +75,24 @@ describe('Fetchr Server API Test', () => {
             sinon.stub(CLIENTS, 'middleware').returns((req, res, next) => {
                 req.clients = {
                     cloud_sso: {
+                        // respond asynchronously like the real http client
                         getResourceAccessList: (params, callback) =>
-                            params.action === 'forcefailcloudsso' ||
-                            params.action === 'forcefailboth'
-                                ? callback({ status: 503 }, null)
-                                : callback(undefined, {
-                                      resources: {
-                                          principal: 'user.dummy1',
-                                          assertions: [
-                                              {
-                                                  dummyProperty: 'dummyValue',
-                                              },
-                                          ],
-                                      },
-                                  }),
+                            setImmediate(() =>
+                                params.action === 'forcefailcloudsso' ||
+                                params.action === 'forcefailboth'
+                                    ? callback({ status: 503 }, null)
+                                    : callback(undefined, {
+                                          resources: {
+                                              principal: 'user.dummy1',
+                                              assertions: [
+                                                  {
+                                                      dummyProperty:
+                                                          'dummyValue',
+                                                  },
+                                              ],
+                                          },
+                                      })
+                            ),
                     },
                     msd: {
                         getTransportPolicySnapshots: (params, callback) =>
@@ -1628,6 +1632,9 @@ describe('Fetchr Server API Test', () => {
                         },
                     });
                 });
+
+            // restore the default config for the remaining tests
+            await api.load(config, secrets);
         });
     });
     describe('failure tests', () => {
