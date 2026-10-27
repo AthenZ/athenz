@@ -93,6 +93,21 @@ const Api = (req) => {
             });
         },
 
+        exportDomain(domainName) {
+            return new Promise((resolve, reject) => {
+                fetchr
+                    .read('domain-export')
+                    .params({ domainName })
+                    .end((err, data) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+            });
+        },
+
         createSubDomain(parent, subDomain, adminUser, _csrf) {
             return new Promise((resolve, reject) => {
                 const detail = {
