@@ -285,6 +285,24 @@ describe('Fetchr Server API Test', () => {
                                 ...getPrincipalRoles_response,
                             });
                         },
+                        getJWSDomain: (params, callback) => {
+                            if (params.name === 'forcefail') {
+                                return callback({ status: 404 }, null);
+                            }
+                            const payload =
+                                params.name === 'baddomain'
+                                    ? 'not-json'
+                                    : JSON.stringify({
+                                          name: params.name,
+                                          roles: [{ name: 'admin' }],
+                                      });
+                            return callback(undefined, {
+                                payload:
+                                    Buffer.from(payload).toString('base64url'),
+                                protected: 'e30',
+                                signature: 'sig',
+                            });
+                        },
                         getSignedDomains: (params, callback) =>
                             params.forcefail
                                 ? callback({ status: 404 }, null)
@@ -847,6 +865,17 @@ describe('Fetchr Server API Test', () => {
                 .get('/api/v1/domain;domain=testdom')
                 .then((res) => {
                     expect(res.body).toEqual({ success: 'true' });
+                });
+        });
+        it('exportDomain test success', async () => {
+            await request(expressApp)
+                .get('/api/v1/domain-export;domainName=testdom')
+                .then((res) => {
+                    expect(res.status).toEqual(200);
+                    expect(res.body).toEqual({
+                        name: 'testdom',
+                        roles: [{ name: 'admin' }],
+                    });
                 });
         });
         it('postSubDomain test success', async () => {
@@ -1638,6 +1667,23 @@ describe('Fetchr Server API Test', () => {
         });
     });
     describe('failure tests', () => {
+        it('exportDomain test failure', async () => {
+            await request(expressApp)
+                .get('/api/v1/domain-export;domainName=forcefail')
+                .then((res) => {
+                    expect(res.status).toEqual(404);
+                });
+        });
+        it('exportDomain test invalid payload', async () => {
+            await request(expressApp)
+                .get('/api/v1/domain-export;domainName=baddomain')
+                .then((res) => {
+                    expect(res.status).toEqual(500);
+                    expect(res.body.message).toContain(
+                        'unable to decode domain data'
+                    );
+                });
+        });
         it('putAssertion test failure', async () => {
             await request(expressApp)
                 .post('/api/v1')

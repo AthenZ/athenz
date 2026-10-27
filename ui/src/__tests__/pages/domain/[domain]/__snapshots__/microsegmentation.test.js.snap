@@ -699,119 +699,7 @@ exports[`MicrosegmentationPage should render 1`] = `
   vertical-align: text-bottom;
 }
 
-.emotion-98 {
-  -webkit-align-items: stretch;
-  -webkit-box-align: stretch;
-  -ms-flex-align: stretch;
-  align-items: stretch;
-  background: #f5f8fe;
-  border-radius: 2px;
-  box-sizing: border-box;
-  display: inline-grid;
-  grid-template-columns: repeat(9, 1fr);
-  margin-top: 0;
-  min-width: 80px;
-  position: relative;
-}
-
-.emotion-98.vertical {
-  background: #f5f8fe;
-  display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  height: 100%;
-  min-width: 300px;
-  overflow-y: scroll;
-  padding: 12px 0px 40px 0px;
-  width: 300px;
-}
-
-.emotion-99 {
-  font-family: Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  background: #f5f8fe;
-  color: #3697f2;
-  cursor: pointer;
-  display: flex;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  -webkit-justify-content: center;
-  justify-content: center;
-  padding: 8px 20px;
-  white-space: nowrap;
-  z-index: 1;
-}
-
-.emotion-99:hover {
-  color: #3570f4;
-}
-
-.emotion-99.active {
-  background: #fff;
-  border-top-left-radius: 2px;
-  border-top-right-radius: 2px;
-  color: #303030;
-  cursor: initial;
-}
-
-.emotion-99.active:hover {
-  color: #303030;
-}
-
-.emotion-99.vertical {
-  background: #f5f8fe;
-  border-left: solid 4px #f5f8fe;
-  height: 24px;
-  -webkit-box-pack: start;
-  -ms-flex-pack: start;
-  -webkit-justify-content: flex-start;
-  justify-content: flex-start;
-  padding: 12px 0px 12px 26px;
-  text-align: left;
-}
-
-.emotion-99.vertical.active {
-  background: #fff;
-  border-left: solid 4px #3697f2;
-  color: #303030;
-}
-
-.emotion-99.vertical.active:hover {
-  color: #303030;
-}
-
-.emotion-108 {
-  margin: 20px;
-}
-
-.emotion-110 {
-  padding-bottom: 20px;
-  display: flex;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  justify-content: space-between;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  -webkit-box-flex-flow: row nowrap;
-  -webkit-flex-flow: row nowrap;
-  -ms-flex-flow: row nowrap;
-  flex-flow: row nowrap;
-  float: right;
-}
-
-.emotion-112 {
-  margin-right: 10px;
-}
-
-.emotion-114 {
+.emotion-100 {
   border: none;
   border-radius: 2px;
   box-shadow: 0 0 0 1px #3697f2 inset;
@@ -836,25 +724,137 @@ exports[`MicrosegmentationPage should render 1`] = `
   color: #3697f2;
 }
 
-.emotion-114:first-of-type {
+.emotion-100:first-of-type {
   margin-left: 0;
 }
 
-.emotion-114:disabled {
+.emotion-100:disabled {
   background: rgba(48,48,48,0.1);
   color: rgba(48,48,48,0.2);
   cursor: not-allowed;
 }
 
-.emotion-114:disabled {
+.emotion-100:disabled {
   box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
 }
 
-.emotion-114:hover:not(:disabled) {
+.emotion-100:hover:not(:disabled) {
   background: #d7e2fd;
 }
 
+.emotion-101 {
+  -webkit-align-items: stretch;
+  -webkit-box-align: stretch;
+  -ms-flex-align: stretch;
+  align-items: stretch;
+  background: #f5f8fe;
+  border-radius: 2px;
+  box-sizing: border-box;
+  display: inline-grid;
+  grid-template-columns: repeat(9, 1fr);
+  margin-top: 0;
+  min-width: 80px;
+  position: relative;
+}
+
+.emotion-101.vertical {
+  background: #f5f8fe;
+  display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  height: 100%;
+  min-width: 300px;
+  overflow-y: scroll;
+  padding: 12px 0px 40px 0px;
+  width: 300px;
+}
+
+.emotion-102 {
+  font-family: Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  background: #f5f8fe;
+  color: #3697f2;
+  cursor: pointer;
+  display: flex;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  padding: 8px 20px;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.emotion-102:hover {
+  color: #3570f4;
+}
+
+.emotion-102.active {
+  background: #fff;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  color: #303030;
+  cursor: initial;
+}
+
+.emotion-102.active:hover {
+  color: #303030;
+}
+
+.emotion-102.vertical {
+  background: #f5f8fe;
+  border-left: solid 4px #f5f8fe;
+  height: 24px;
+  -webkit-box-pack: start;
+  -ms-flex-pack: start;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  padding: 12px 0px 12px 26px;
+  text-align: left;
+}
+
+.emotion-102.vertical.active {
+  background: #fff;
+  border-left: solid 4px #3697f2;
+  color: #303030;
+}
+
+.emotion-102.vertical.active:hover {
+  color: #303030;
+}
+
+.emotion-111 {
+  margin: 20px;
+}
+
+.emotion-113 {
+  padding-bottom: 20px;
+  display: flex;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-flex-flow: row nowrap;
+  -webkit-flex-flow: row nowrap;
+  -ms-flex-flow: row nowrap;
+  flex-flow: row nowrap;
+  float: right;
+}
+
 .emotion-115 {
+  margin-right: 10px;
+}
+
+.emotion-118 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -877,13 +877,13 @@ exports[`MicrosegmentationPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-117 {
+.emotion-120 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-118 {
+.emotion-121 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -898,7 +898,7 @@ exports[`MicrosegmentationPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-120 {
+.emotion-123 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -914,28 +914,28 @@ exports[`MicrosegmentationPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-122 {
+.emotion-125 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-124 {
+.emotion-127 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-126 {
+.emotion-129 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-130 {
+.emotion-133 {
   padding: 0 30px 15px 15px;
 }
 
-.emotion-132 {
+.emotion-135 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -949,7 +949,7 @@ exports[`MicrosegmentationPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-132 input {
+.emotion-135 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -975,42 +975,42 @@ exports[`MicrosegmentationPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-132.animated input {
+.emotion-135.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-132 input::-webkit-input-placeholder {
+.emotion-135 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-132 input::-moz-placeholder {
+.emotion-135 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-132 input:-ms-input-placeholder {
+.emotion-135 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-132 input::placeholder {
+.emotion-135 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-132 input.focused,
-.emotion-132 input:active,
-.emotion-132 input:focus {
+.emotion-135 input.focused,
+.emotion-135 input:active,
+.emotion-135 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-132 input:invalid {
+.emotion-135 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-132 .message {
+.emotion-135 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1018,22 +1018,22 @@ exports[`MicrosegmentationPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-132.error input,
-.emotion-132.error input.focused,
-.emotion-132.error input:active,
-.emotion-132.error input:focus {
+.emotion-135.error input,
+.emotion-135.error input.focused,
+.emotion-135.error input:active,
+.emotion-135.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-132.error .message {
+.emotion-135.error .message {
   color: #d01111;
 }
 
-.emotion-132 input {
+.emotion-135 input {
   padding-right: 28px;
 }
 
-.emotion-132 .input-icon {
+.emotion-135 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1045,31 +1045,31 @@ exports[`MicrosegmentationPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-132 .input-icon[onclick] {
+.emotion-135 .input-icon[onclick] {
   cursor: pointer;
   -webkit-transition: opacity 0.2s ease-in-out;
   transition: opacity 0.2s ease-in-out;
 }
 
-.emotion-132 .input-icon[onclick]:hover {
+.emotion-135 .input-icon[onclick]:hover {
   opacity: 0.7;
 }
 
-.emotion-134 {
+.emotion-137 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-136 {
+.emotion-139 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-138 {
+.emotion-141 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-140 {
+.emotion-143 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1467,62 +1467,72 @@ exports[`MicrosegmentationPage should render 1`] = `
                     />
                   </svg>
                 </div>
+                <div
+                  class="emotion-52 emotion-53"
+                >
+                  <button
+                    class="emotion-100 denali-button"
+                    data-testid="export-domain"
+                  >
+                    Export Domain
+                  </button>
+                </div>
               </div>
             </div>
             <div
-              class="emotion-98 denali-tab-group"
+              class="emotion-101 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 Roles
               </div>
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 Groups
               </div>
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 Services
               </div>
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 Policies
               </div>
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 Tags
               </div>
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 Templates
               </div>
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 Settings
               </div>
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 Visibility
               </div>
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 History
@@ -1530,14 +1540,14 @@ exports[`MicrosegmentationPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-108 emotion-109"
+            class="emotion-111 emotion-112"
             data-testid="segmentation-data-list"
           >
             <div
-              class="emotion-110 emotion-111"
+              class="emotion-113 emotion-114"
             >
               <div
-                class="emotion-112 emotion-113"
+                class="emotion-115 emotion-116"
               >
                 <div
                   class="toggle is-small"
@@ -1569,7 +1579,7 @@ exports[`MicrosegmentationPage should render 1`] = `
               </div>
               <div>
                 <button
-                  class="emotion-114 denali-button"
+                  class="emotion-100 denali-button"
                 >
                   Add ACL Policy
                 </button>
@@ -1586,11 +1596,11 @@ exports[`MicrosegmentationPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-115 emotion-116"
+          class="emotion-118 emotion-119"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-117"
+            class="emotion-120"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -1607,30 +1617,30 @@ exports[`MicrosegmentationPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-118 emotion-119"
+          class="emotion-121 emotion-122"
         >
           <div
-            class="emotion-120 emotion-121"
+            class="emotion-123 emotion-124"
           >
             <div
-              class="emotion-122 emotion-123"
+              class="emotion-125 emotion-126"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-124 emotion-125"
+                class="emotion-127 emotion-128"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-126 emotion-127"
+                class="emotion-129 emotion-130"
               >
                  | 
               </span>
               <a
-                class="emotion-124 emotion-125"
+                class="emotion-127 emotion-128"
                 href="/domain/manage"
               >
                 Manage
@@ -1638,10 +1648,10 @@ exports[`MicrosegmentationPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-130 emotion-131"
+            class="emotion-133 emotion-134"
           >
             <div
-              class="emotion-132 denali-input animated"
+              class="emotion-135 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -1682,17 +1692,17 @@ exports[`MicrosegmentationPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-134 emotion-135"
+            class="emotion-137 emotion-138"
             data-testid="domain-list"
           >
             <div
-              class="emotion-136 emotion-137"
+              class="emotion-139 emotion-140"
             >
               <div
-                class="emotion-138 emotion-139"
+                class="emotion-141 emotion-142"
               >
                 <svg
-                  class="emotion-140"
+                  class="emotion-143"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1715,20 +1725,20 @@ exports[`MicrosegmentationPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-124 emotion-125"
+                class="emotion-127 emotion-128"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-136 emotion-137"
+              class="emotion-139 emotion-140"
             >
               <div
-                class="emotion-138 emotion-139"
+                class="emotion-141 emotion-142"
               >
                 <svg
-                  class="emotion-140"
+                  class="emotion-143"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1751,7 +1761,7 @@ exports[`MicrosegmentationPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-124 emotion-125"
+                class="emotion-127 emotion-128"
                 href="/domain/athens.ci/role"
               >
                 athens.ci
