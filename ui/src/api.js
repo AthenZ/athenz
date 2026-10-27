@@ -93,13 +93,16 @@ const Api = (req) => {
             });
         },
 
-        createSubDomain(parent, subDomain, adminUser, _csrf) {
+        createSubDomain(parent, subDomain, adminUser, description, _csrf) {
             return new Promise((resolve, reject) => {
                 const detail = {
                     parent,
                     name: subDomain,
                     adminUsers: [adminUser],
                 };
+                if (description) {
+                    detail.description = description;
+                }
                 fetchr
                     .create('domain')
                     .params({ parent, detail })

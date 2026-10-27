@@ -576,6 +576,14 @@ class DomainDetails extends React.Component {
                             </SectionDiv>
                         </React.Fragment>
                     )}
+                    {this.props.domainDetails.description ? (
+                        <SectionDiv>
+                            <ValueDiv data-testid='domain-description'>
+                                {this.props.domainDetails.description}
+                            </ValueDiv>
+                            <LabelDiv>DESCRIPTION</LabelDiv>
+                        </SectionDiv>
+                    ) : null}
                     <ValueDiv>More Details</ValueDiv>
                     <IconContainer>
                         <Icon

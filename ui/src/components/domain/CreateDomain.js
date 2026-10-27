@@ -97,6 +97,7 @@ class CreateDomain extends React.Component {
             selected: 'top-level',
             domain: '',
             subDomain: '',
+            description: '',
         };
         this.tabClicked = this.tabClicked.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
@@ -148,6 +149,7 @@ class CreateDomain extends React.Component {
                 this.state.domain,
                 this.state.subDomain,
                 `${USER_DOMAIN}.${this.props.userId}`,
+                this.state.description.trim(),
                 this.props._csrf
             )
             .then(() => {
@@ -166,8 +168,10 @@ class CreateDomain extends React.Component {
         let domainDescription = '';
         let firstSection = '';
         let secondSection = '';
+        let thirdSection = '';
         let firstLabel = '';
         let secondLabel = '';
+        let thirdLabel = '';
         let isDisabled = true;
 
         let createDomainMessage = this.props.createDomainMessage
@@ -251,8 +255,25 @@ class CreateDomain extends React.Component {
                     </StyledInputDiv>
                 </ContentDiv>
             );
+            thirdSection = (
+                <ContentDiv>
+                    <StyledInputDiv>
+                        <Input
+                            placeholder={'Enter a description (optional)'}
+                            fluid={true}
+                            id={'description'}
+                            onChange={this.inputChanged.bind(
+                                this,
+                                'description'
+                            )}
+                            value={this.state.description}
+                        />
+                    </StyledInputDiv>
+                </ContentDiv>
+            );
             firstLabel = 'Parent Domain';
             secondLabel = 'Sub Domain Name';
+            thirdLabel = 'Description';
             isDisabled = false;
         }
 
@@ -280,6 +301,12 @@ class CreateDomain extends React.Component {
                     <LabelDiv>{secondLabel}</LabelDiv>
                     {secondSection}
                 </SectionDiv>
+                {thirdSection && (
+                    <SectionDiv>
+                        <LabelDiv>{thirdLabel}</LabelDiv>
+                        {thirdSection}
+                    </SectionDiv>
+                )}
                 <SectionDiv>
                     <LabelDiv />
                     <ContentDiv>
@@ -324,8 +351,10 @@ const mapStateToProps = (state, props) => {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    createSubDomain: (parentDomain, domain, adminUser, _csrf) =>
-        dispatch(createSubDomain(parentDomain, domain, adminUser, _csrf)),
+    createSubDomain: (parentDomain, domain, adminUser, description, _csrf) =>
+        dispatch(
+            createSubDomain(parentDomain, domain, adminUser, description, _csrf)
+        ),
     createUserDomain: (userId, _csrf) =>
         dispatch(createUserDomain(userId, _csrf)),
 });

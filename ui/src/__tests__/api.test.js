@@ -110,6 +110,7 @@ describe('Fetchr Client API Test', () => {
     });
     describe('createSubDomain test', () => {
         it('createSubDomain test success', async () => {
+            let createParams;
             myDataService = {
                 name: 'domain',
                 create: function (
@@ -120,6 +121,7 @@ describe('Fetchr Client API Test', () => {
                     config,
                     callback
                 ) {
+                    createParams = params;
                     callback(null, DATA);
                 },
             };
@@ -129,9 +131,41 @@ describe('Fetchr Client API Test', () => {
                 'dummyParent',
                 'dummySub',
                 'user.admin',
+                '',
                 '1234'
             );
             expect(result).toEqual(DATA);
+            expect(createParams.detail.description).toBeUndefined();
+        });
+        it('createSubDomain test with description', async () => {
+            let createParams;
+            myDataService = {
+                name: 'domain',
+                create: function (
+                    req,
+                    resource,
+                    params,
+                    body,
+                    config,
+                    callback
+                ) {
+                    createParams = params;
+                    callback(null, DATA);
+                },
+            };
+            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
+            fetchrStub.returns(myDataService);
+            result = await api.createSubDomain(
+                'dummyParent',
+                'dummySub',
+                'user.admin',
+                'dummy description',
+                '1234'
+            );
+            expect(result).toEqual(DATA);
+            expect(createParams.detail.description).toEqual(
+                'dummy description'
+            );
         });
         it('createSubDomain test error', async () => {
             myDataServiceErr = {
@@ -154,6 +188,7 @@ describe('Fetchr Client API Test', () => {
                     'dummyParent',
                     'dummySub',
                     'user.admin',
+                    '',
                     '1234'
                 )
                 .catch((err) => {

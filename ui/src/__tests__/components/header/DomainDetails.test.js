@@ -177,6 +177,24 @@ describe('DomainDetails', () => {
         expect(screen.getByText('GCP PROJECT ID')).toBeInTheDocument();
     });
 
+    it('shows domain description when it is set', () => {
+        const description = 'test domain description';
+
+        renderDomainDetails({ org: 'test', extraMeta: { description } });
+
+        expect(screen.getByTestId('domain-description')).toHaveTextContent(
+            description
+        );
+        expect(screen.getByText('DESCRIPTION')).toBeInTheDocument();
+    });
+
+    it('hides domain description when it is not set', () => {
+        renderDomainDetails({ org: 'test' });
+
+        expect(screen.queryByTestId('domain-description')).toBeNull();
+        expect(screen.queryByText('DESCRIPTION')).toBeNull();
+    });
+
     it('shows N/A when organization is empty and orgDomain is empty', () => {
         const organization = '';
         const orgDomain = '';
