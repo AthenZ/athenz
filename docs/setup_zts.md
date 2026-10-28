@@ -1,7 +1,7 @@
 # Setup ZTS (authoriZation Token System)
 
 * [Requirements](#requirements)
-    * [JDK 11](#jdk-11)
+    * [JDK 17](#jdk-17)
 * [Getting Software](#getting-software)
 * [Configuration](#configuration)
   * [Development Environment](#development-environment)
@@ -13,9 +13,9 @@
 The following tools are required to be installed on hosts
 configured to run ZTS server.
 
-### JDK 11
+### JDK 17
 
-ZTS Server is written in Java and using embedded Jetty. It requires JDK 11.
+ZTS Server is written in Java and using embedded Jetty. It requires JDK 17.
 
 ## Getting Software
 

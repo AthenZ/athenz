@@ -1,7 +1,7 @@
 # Setup ZMS (AuthoriZation Management System)
 
 * [Requirements](#requirements)
-    * [JDK 11](#jdk-11)
+    * [JDK 17](#jdk-17)
     * [MySQL Server](#mysql-server)
         * [ZMS Server Schema Setup](#zms-server-schema-setup)
         * [MySQL User and Permissions](#mysql-user-and-permissions)
@@ -20,9 +20,9 @@
 The following tools are required to be installed on hosts
 configured to run ZMS server.
 
-### JDK 11
+### JDK 17
 
-ZMS Server is written in Java and using embedded Jetty. It requires JDK 11.
+ZMS Server is written in Java and using embedded Jetty. It requires JDK 17.
 
 ### MySQL Server
 
