@@ -618,6 +618,7 @@ exports[`AddPolicyToRole should render 1`] = `
             autocomplete="off"
             data-testid="input-node"
             id="rule-action"
+            list="rule-action-suggestions-new-policy"
             name="rule-action"
             placeholder="Rule Action"
             value=""
@@ -627,6 +628,35 @@ exports[`AddPolicyToRole should render 1`] = `
             data-testid="message"
           />
         </div>
+        <datalist
+          data-testid="rule-action-suggestions"
+          id="rule-action-suggestions-new-policy"
+        >
+          <option
+            value="get"
+          />
+          <option
+            value="put"
+          />
+          <option
+            value="exec"
+          />
+          <option
+            value="update"
+          />
+          <option
+            value="create"
+          />
+          <option
+            value="read"
+          />
+          <option
+            value="assume_role"
+          />
+          <option
+            value="assume_aws_role"
+          />
+        </datalist>
       </div>
     </div>
     <div
@@ -1306,6 +1336,7 @@ exports[`AddPolicyToRole should render fail to submit policy name is required 1`
             autocomplete="off"
             data-testid="input-node"
             id="rule-action"
+            list="rule-action-suggestions-new-policy"
             name="rule-action"
             placeholder="Rule Action"
             value=""
@@ -1315,6 +1346,35 @@ exports[`AddPolicyToRole should render fail to submit policy name is required 1`
             data-testid="message"
           />
         </div>
+        <datalist
+          data-testid="rule-action-suggestions"
+          id="rule-action-suggestions-new-policy"
+        >
+          <option
+            value="get"
+          />
+          <option
+            value="put"
+          />
+          <option
+            value="exec"
+          />
+          <option
+            value="update"
+          />
+          <option
+            value="create"
+          />
+          <option
+            value="read"
+          />
+          <option
+            value="assume_role"
+          />
+          <option
+            value="assume_aws_role"
+          />
+        </datalist>
       </div>
     </div>
     <div
@@ -1994,6 +2054,7 @@ exports[`AddPolicyToRole should render failed to submit action is required 1`] =
             autocomplete="off"
             data-testid="input-node"
             id="rule-action"
+            list="rule-action-suggestions-new-policy"
             name="rule-action"
             placeholder="Rule Action"
             value=""
@@ -2003,6 +2064,35 @@ exports[`AddPolicyToRole should render failed to submit action is required 1`] =
             data-testid="message"
           />
         </div>
+        <datalist
+          data-testid="rule-action-suggestions"
+          id="rule-action-suggestions-new-policy"
+        >
+          <option
+            value="get"
+          />
+          <option
+            value="put"
+          />
+          <option
+            value="exec"
+          />
+          <option
+            value="update"
+          />
+          <option
+            value="create"
+          />
+          <option
+            value="read"
+          />
+          <option
+            value="assume_role"
+          />
+          <option
+            value="assume_aws_role"
+          />
+        </datalist>
       </div>
     </div>
     <div

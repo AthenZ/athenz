@@ -22,6 +22,7 @@ import RadioButtonGroup from '../denali/RadioButtonGroup';
 import { colors } from '../denali/styles';
 import Color from '../denali/Color';
 import CheckBox from '../denali/CheckBox';
+import RuleActionSuggestions from './RuleActionSuggestions';
 import { connect } from 'react-redux';
 import { selectRoles } from '../../redux/selectors/roles';
 
@@ -189,6 +190,10 @@ class AddRuleForm extends React.Component {
                             value={this.state.action}
                             onChange={actionChanged}
                             placeholder={'Rule Action'}
+                            list={'rule-action-suggestions-' + id}
+                        />
+                        <RuleActionSuggestions
+                            id={'rule-action-suggestions-' + id}
                         />
                     </ContentDiv>
                 </SectionDiv>

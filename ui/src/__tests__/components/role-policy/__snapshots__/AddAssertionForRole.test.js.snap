@@ -549,6 +549,7 @@ exports[`AddAssertionForRole should render 1`] = `
             autocomplete="off"
             data-testid="input-node"
             id="rule-action-undefined"
+            list="rule-action-suggestions-undefined"
             name="rule-action-undefined"
             placeholder="Rule Action"
             value=""
@@ -558,6 +559,35 @@ exports[`AddAssertionForRole should render 1`] = `
             data-testid="message"
           />
         </div>
+        <datalist
+          data-testid="rule-action-suggestions"
+          id="rule-action-suggestions-undefined"
+        >
+          <option
+            value="get"
+          />
+          <option
+            value="put"
+          />
+          <option
+            value="exec"
+          />
+          <option
+            value="update"
+          />
+          <option
+            value="create"
+          />
+          <option
+            value="read"
+          />
+          <option
+            value="assume_role"
+          />
+          <option
+            value="assume_aws_role"
+          />
+        </datalist>
       </div>
     </div>
     <div
@@ -1182,6 +1212,7 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
             autocomplete="off"
             data-testid="input-node"
             id="rule-action-undefined"
+            list="rule-action-suggestions-undefined"
             name="rule-action-undefined"
             placeholder="Rule Action"
             value=""
@@ -1191,6 +1222,35 @@ exports[`AddAssertionForRole should render failed to submit action is required 1
             data-testid="message"
           />
         </div>
+        <datalist
+          data-testid="rule-action-suggestions"
+          id="rule-action-suggestions-undefined"
+        >
+          <option
+            value="get"
+          />
+          <option
+            value="put"
+          />
+          <option
+            value="exec"
+          />
+          <option
+            value="update"
+          />
+          <option
+            value="create"
+          />
+          <option
+            value="read"
+          />
+          <option
+            value="assume_role"
+          />
+          <option
+            value="assume_aws_role"
+          />
+        </datalist>
       </div>
     </div>
     <div
