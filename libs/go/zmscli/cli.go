@@ -1073,6 +1073,10 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc >= 1 {
 				return cli.SetDomainTemplate(dn, args[0:])
 			}
+		case "set-domain-template-ext":
+			if argc >= 1 {
+				return cli.SetDomainTemplateExt(dn, args[0], args[1:])
+			}
 		case "delete-domain-template":
 			if argc == 1 {
 				return cli.DeleteDomainTemplate(dn, args[0])
@@ -3079,6 +3083,19 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " set-domain-template vipng\n")
 		buf.WriteString("   " + domainExample + " set-domain-template vipng cm3\n")
 		buf.WriteString("   " + domainExample + " set-domain-template vipng service=api\n")
+	case "set-domain-template-ext":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-domain-template-ext template [param-key=param-value ...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain     : name of the domain to apply the template to\n")
+		}
+		buf.WriteString("   template    : name of the single template to be applied to the domain\n")
+		buf.WriteString("   param-key   : optional parameter key name if template requires it\n")
+		buf.WriteString("   param-value : value for the specified parameter key\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-domain-template-ext vipng\n")
+		buf.WriteString("   " + domainExample + " set-domain-template-ext vipng service=api\n")
 	case "delete-domain-template":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " delete-domain-template template\n")
@@ -4040,6 +4057,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   list-domain-template\n")
 	buf.WriteString("   show-server-template template\n")
 	buf.WriteString("   set-domain-template template [template ...] [param-key=param-value ...]\n")
+	buf.WriteString("   set-domain-template-ext template [param-key=param-value ...]\n")
 	buf.WriteString("   delete-domain-template template\n")
 	buf.WriteString("\n")
 	buf.WriteString(" System Administrator commands:\n")
