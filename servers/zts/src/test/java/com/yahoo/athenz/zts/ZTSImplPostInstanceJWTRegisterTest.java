@@ -576,7 +576,7 @@ public class ZTSImplPostInstanceJWTRegisterTest {
 
         ResourceContext ctx = createResourceContext(principal);
 
-        int customExpiry = 7200; // 2 hours
+        int customExpiry = 120; // 2 hours - expiry time is specified in minutes
         InstanceRegisterInformation info = createInstanceRegisterInformation("instance-010",
                 "spiffe://athenz/sa/production", false, "audience-123", "nonce-456", customExpiry, null, null
         );
@@ -591,7 +591,7 @@ public class ZTSImplPostInstanceJWTRegisterTest {
         JWTClaimsSet idToken = parseIdToken(identity.getServiceToken());
 
         // Verify expiry time is approximately correct (within 5 seconds tolerance)
-        long expectedExpiry = (System.currentTimeMillis() / 1000) + customExpiry;
+        long expectedExpiry = (System.currentTimeMillis() / 1000) + customExpiry * 60;
         assertTrue(Math.abs(idToken.getExpirationTime().getTime() / 1000 - expectedExpiry) < 5);
     }
 
@@ -607,7 +607,7 @@ public class ZTSImplPostInstanceJWTRegisterTest {
 
         ResourceContext ctx = createResourceContext(principal);
 
-        int largeExpiry = 100000; // Larger than max timeout
+        int largeExpiry = 1000; // Larger than max timeout (in minutes)
         InstanceRegisterInformation info = createInstanceRegisterInformation("instance-012",
                 "spiffe://athenz/sa/production", false, "audience-123", "nonce-456", largeExpiry, null, null);
 

@@ -15338,6 +15338,49 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testConvertInstanceExpiryTimeToSeconds() {
+        assertNull(zts.convertInstanceExpiryTimeToSeconds(null));
+        assertNull(zts.convertInstanceExpiryTimeToSeconds(0));
+        assertNull(zts.convertInstanceExpiryTimeToSeconds(-1));
+        assertEquals(zts.convertInstanceExpiryTimeToSeconds(5), Integer.valueOf(300));
+        assertEquals(zts.convertInstanceExpiryTimeToSeconds(Integer.MAX_VALUE / 60), Integer.valueOf((Integer.MAX_VALUE / 60) * 60));
+        assertEquals(zts.convertInstanceExpiryTimeToSeconds(Integer.MAX_VALUE / 60 + 1), Integer.valueOf(Integer.MAX_VALUE));
+    }
+
+    @Test
+    public void testGetCertRequestServiceTokenJWTExpiryTimeMinutes() throws Exception {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        // set back to our zts rsa private key
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        ZTSImpl.serverHostName = "localhost";
+        ztsImpl.instanceRegisterTokenTypeJWT = true;
+
+        // the expiry time is specified in minutes so a 5 minute
+        // request must generate a token valid for 300 seconds
+
+        InstanceRegisterInformation info = new InstanceRegisterInformation()
+                .setDomain("athenz").setService("production")
+                .setProvider("athenz.provider").setToken(true)
+                .setJwtSVIDAudience("https://audience.athenz.io")
+                .setExpiryTime(5);
+
+        ResourceContext context = createResourceContext(null);
+
+        String token = ztsImpl.getCertRequestServiceToken(context, info, "athenz",
+                "production", "athenz.production", MOCKCLIENTADDR, null);
+        assertNotNull(token);
+
+        JWTClaimsSet claimsSet = SignedJWT.parse(token).getJWTClaimsSet();
+        long ttl = (claimsSet.getExpirationTime().getTime() - claimsSet.getIssueTime().getTime()) / 1000;
+        assertEquals(ttl, 300);
+    }
+
+    @Test
     public void testGetCertRequestServiceTokenJWTDefaultAudience() throws Exception {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
