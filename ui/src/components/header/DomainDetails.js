@@ -115,6 +115,7 @@ class DomainDetails extends React.Component {
             category: 'domain',
             errorMessageForModal: '',
             errorMessage: null,
+            exportErrorMessage: null,
             showError: false,
             showPoc: false,
             showEnvironment: false,
@@ -135,6 +136,8 @@ class DomainDetails extends React.Component {
         this.closeModal = this.closeModal.bind(this);
         this.onClickOnboardToAWS = this.onClickOnboardToAWS.bind(this);
         this.toggleOnboardToAWSModal = this.toggleOnboardToAWSModal.bind(this);
+        this.onClickExportDomain = this.onClickExportDomain.bind(this);
+        this.closeExportError = this.closeExportError.bind(this);
         this.saveJustification = this.saveJustification.bind(this);
     }
 
@@ -303,6 +306,40 @@ class DomainDetails extends React.Component {
 
     closeModal() {
         this.setState({ showSuccess: null });
+    }
+
+    onClickExportDomain() {
+        const domainName = this.props.domainDetails.name;
+        this.api
+            .exportDomain(domainName)
+            .then((domainData) => {
+                this.downloadJSON(domainData, domainName + '.json');
+            })
+            .catch((err) => {
+                this.setState({
+                    exportErrorMessage: RequestUtils.xhrErrorCheckHelper(err),
+                });
+            });
+    }
+
+    downloadJSON(data, filename) {
+        const jsonFile = new Blob([JSON.stringify(data, null, 2)], {
+            type: 'application/json',
+        });
+        const fileUrl = window.URL.createObjectURL(jsonFile);
+        const downloadLink = document.createElement('a');
+        downloadLink.download = filename;
+        downloadLink.href = fileUrl;
+        downloadLink.style.display = 'none';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        // release the file only after the browser has started the download
+        setTimeout(() => window.URL.revokeObjectURL(fileUrl), 0);
+    }
+
+    closeExportError() {
+        this.setState({ exportErrorMessage: null });
     }
 
     expandDomain() {
@@ -591,6 +628,15 @@ class DomainDetails extends React.Component {
                             verticalAlign={'text-bottom'}
                         />
                     </IconContainer>
+                    <SectionDiv>
+                        <Button
+                            secondary
+                            onClick={this.onClickExportDomain}
+                            data-testid='export-domain'
+                        >
+                            Export Domain
+                        </Button>
+                    </SectionDiv>
                     {this.props.showCloudAccountDetails && showOnBoardToAWS ? (
                         <SectionDiv>
                             <Button
@@ -618,6 +664,14 @@ class DomainDetails extends React.Component {
                             title={this.state.successMessage}
                             onClose={this.closeModal}
                             type='success'
+                        />
+                    ) : null}
+                    {this.state.exportErrorMessage ? (
+                        <Alert
+                            isOpen={!!this.state.exportErrorMessage}
+                            title={this.state.exportErrorMessage}
+                            onClose={this.closeExportError}
+                            type='danger'
                         />
                     ) : null}
                     {pocModal}

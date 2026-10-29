@@ -742,7 +742,7 @@ exports[`PolicyPage should render 1`] = `
   background: #d7e2fd;
 }
 
-.emotion-101 {
+.emotion-104 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -757,7 +757,7 @@ exports[`PolicyPage should render 1`] = `
   position: relative;
 }
 
-.emotion-101.vertical {
+.emotion-104.vertical {
   background: #f5f8fe;
   display: flex;
   -webkit-flex-direction: column;
@@ -770,7 +770,7 @@ exports[`PolicyPage should render 1`] = `
   width: 300px;
 }
 
-.emotion-102 {
+.emotion-105 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -791,11 +791,11 @@ exports[`PolicyPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-102:hover {
+.emotion-105:hover {
   color: #3570f4;
 }
 
-.emotion-102.active {
+.emotion-105.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -803,11 +803,11 @@ exports[`PolicyPage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-102.active:hover {
+.emotion-105.active:hover {
   color: #303030;
 }
 
-.emotion-102.vertical {
+.emotion-105.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -819,21 +819,21 @@ exports[`PolicyPage should render 1`] = `
   text-align: left;
 }
 
-.emotion-102.vertical.active {
+.emotion-105.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-102.vertical.active:hover {
+.emotion-105.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-111 {
+.emotion-114 {
   margin: 20px;
 }
 
-.emotion-113 {
+.emotion-116 {
   padding-bottom: 20px;
   display: flex;
   -webkit-box-pack: justify;
@@ -850,7 +850,7 @@ exports[`PolicyPage should render 1`] = `
   float: right;
 }
 
-.emotion-116 {
+.emotion-119 {
   width: 100%;
   border-spacing: 0 15px;
   display: table;
@@ -858,7 +858,7 @@ exports[`PolicyPage should render 1`] = `
   border-color: grey;
 }
 
-.emotion-118 {
+.emotion-121 {
   text-align: center;
   border-bottom: 2px solid rgb(213, 213, 213);
   color: rgb(154, 154, 154);
@@ -870,7 +870,7 @@ exports[`PolicyPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-120 {
+.emotion-123 {
   text-align: left;
   border-bottom: 2px solid rgb(213, 213, 213);
   color: rgb(154, 154, 154);
@@ -882,7 +882,7 @@ exports[`PolicyPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-134 {
+.emotion-137 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -905,13 +905,13 @@ exports[`PolicyPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-136 {
+.emotion-139 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-137 {
+.emotion-140 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -926,7 +926,7 @@ exports[`PolicyPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-139 {
+.emotion-142 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -942,28 +942,28 @@ exports[`PolicyPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-141 {
+.emotion-144 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-143 {
+.emotion-146 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-145 {
+.emotion-148 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-149 {
+.emotion-152 {
   padding: 0 30px 15px 15px;
 }
 
-.emotion-151 {
+.emotion-154 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -977,7 +977,7 @@ exports[`PolicyPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-151 input {
+.emotion-154 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -1003,42 +1003,42 @@ exports[`PolicyPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-151.animated input {
+.emotion-154.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-151 input::-webkit-input-placeholder {
+.emotion-154 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-151 input::-moz-placeholder {
+.emotion-154 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-151 input:-ms-input-placeholder {
+.emotion-154 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-151 input::placeholder {
+.emotion-154 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-151 input.focused,
-.emotion-151 input:active,
-.emotion-151 input:focus {
+.emotion-154 input.focused,
+.emotion-154 input:active,
+.emotion-154 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-151 input:invalid {
+.emotion-154 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-151 .message {
+.emotion-154 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1046,22 +1046,22 @@ exports[`PolicyPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-151.error input,
-.emotion-151.error input.focused,
-.emotion-151.error input:active,
-.emotion-151.error input:focus {
+.emotion-154.error input,
+.emotion-154.error input.focused,
+.emotion-154.error input:active,
+.emotion-154.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-151.error .message {
+.emotion-154.error .message {
   color: #d01111;
 }
 
-.emotion-151 input {
+.emotion-154 input {
   padding-right: 28px;
 }
 
-.emotion-151 .input-icon {
+.emotion-154 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1073,31 +1073,31 @@ exports[`PolicyPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-151 .input-icon[onclick] {
+.emotion-154 .input-icon[onclick] {
   cursor: pointer;
   -webkit-transition: opacity 0.2s ease-in-out;
   transition: opacity 0.2s ease-in-out;
 }
 
-.emotion-151 .input-icon[onclick]:hover {
+.emotion-154 .input-icon[onclick]:hover {
   opacity: 0.7;
 }
 
-.emotion-153 {
+.emotion-156 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-155 {
+.emotion-158 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-157 {
+.emotion-160 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-159 {
+.emotion-162 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1500,6 +1500,16 @@ exports[`PolicyPage should render 1`] = `
                 >
                   <button
                     class="emotion-100 denali-button"
+                    data-testid="export-domain"
+                  >
+                    Export Domain
+                  </button>
+                </div>
+                <div
+                  class="emotion-52 emotion-53"
+                >
+                  <button
+                    class="emotion-100 denali-button"
                   >
                     Onboard to AWS
                   </button>
@@ -1507,59 +1517,59 @@ exports[`PolicyPage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-101 denali-tab-group"
+              class="emotion-104 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 Roles
               </div>
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 Groups
               </div>
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 Services
               </div>
               <div
-                class="emotion-102 denali-tab active"
+                class="emotion-105 denali-tab active"
                 data-active="true"
               >
                 Policies
               </div>
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 Tags
               </div>
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 Templates
               </div>
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 Settings
               </div>
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 Visibility
               </div>
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 History
@@ -1567,11 +1577,11 @@ exports[`PolicyPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-111 emotion-112"
+            class="emotion-114 emotion-115"
             data-testid="policylist"
           >
             <div
-              class="emotion-113 emotion-114"
+              class="emotion-116 emotion-117"
             >
               <div>
                 <button
@@ -1582,47 +1592,47 @@ exports[`PolicyPage should render 1`] = `
               </div>
             </div>
             <table
-              class="emotion-116 emotion-117"
+              class="emotion-119 emotion-120"
             >
               <thead>
                 <tr>
                   <th
-                    class="emotion-118 emotion-119"
+                    class="emotion-121 emotion-122"
                   >
                     Active
                   </th>
                   <th
-                    class="emotion-120 emotion-119"
+                    class="emotion-123 emotion-122"
                   >
                     Policy
                   </th>
                   <th
-                    class="emotion-120 emotion-119"
+                    class="emotion-123 emotion-122"
                   >
                     Versions
                   </th>
                   <th
-                    class="emotion-120 emotion-119"
+                    class="emotion-123 emotion-122"
                   >
                     Modified Date
                   </th>
                   <th
-                    class="emotion-118 emotion-119"
+                    class="emotion-121 emotion-122"
                   >
                     Rules
                   </th>
                   <th
-                    class="emotion-118 emotion-119"
+                    class="emotion-121 emotion-122"
                   >
                     Tags
                   </th>
                   <th
-                    class="emotion-118 emotion-119"
+                    class="emotion-121 emotion-122"
                   >
                     Duplicate
                   </th>
                   <th
-                    class="emotion-118 emotion-119"
+                    class="emotion-121 emotion-122"
                   >
                     Delete
                   </th>
@@ -1637,11 +1647,11 @@ exports[`PolicyPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-134 emotion-135"
+          class="emotion-137 emotion-138"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-136"
+            class="emotion-139"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -1658,30 +1668,30 @@ exports[`PolicyPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-137 emotion-138"
+          class="emotion-140 emotion-141"
         >
           <div
-            class="emotion-139 emotion-140"
+            class="emotion-142 emotion-143"
           >
             <div
-              class="emotion-141 emotion-142"
+              class="emotion-144 emotion-145"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-143 emotion-144"
+                class="emotion-146 emotion-147"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-145 emotion-146"
+                class="emotion-148 emotion-149"
               >
                  | 
               </span>
               <a
-                class="emotion-143 emotion-144"
+                class="emotion-146 emotion-147"
                 href="/domain/manage"
               >
                 Manage
@@ -1689,10 +1699,10 @@ exports[`PolicyPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-149 emotion-150"
+            class="emotion-152 emotion-153"
           >
             <div
-              class="emotion-151 denali-input animated"
+              class="emotion-154 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -1733,17 +1743,17 @@ exports[`PolicyPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-153 emotion-154"
+            class="emotion-156 emotion-157"
             data-testid="domain-list"
           >
             <div
-              class="emotion-155 emotion-156"
+              class="emotion-158 emotion-159"
             >
               <div
-                class="emotion-157 emotion-158"
+                class="emotion-160 emotion-161"
               >
                 <svg
-                  class="emotion-159"
+                  class="emotion-162"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1766,20 +1776,20 @@ exports[`PolicyPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-143 emotion-144"
+                class="emotion-146 emotion-147"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-155 emotion-156"
+              class="emotion-158 emotion-159"
             >
               <div
-                class="emotion-157 emotion-158"
+                class="emotion-160 emotion-161"
               >
                 <svg
-                  class="emotion-159"
+                  class="emotion-162"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1802,7 +1812,7 @@ exports[`PolicyPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-143 emotion-144"
+                class="emotion-146 emotion-147"
                 href="/domain/athens.ci/role"
               >
                 athens.ci

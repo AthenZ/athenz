@@ -742,7 +742,7 @@ exports[`ServicePage should render 1`] = `
   background: #d7e2fd;
 }
 
-.emotion-101 {
+.emotion-104 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -757,7 +757,7 @@ exports[`ServicePage should render 1`] = `
   position: relative;
 }
 
-.emotion-101.vertical {
+.emotion-104.vertical {
   background: #f5f8fe;
   display: flex;
   -webkit-flex-direction: column;
@@ -770,7 +770,7 @@ exports[`ServicePage should render 1`] = `
   width: 300px;
 }
 
-.emotion-102 {
+.emotion-105 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -791,11 +791,11 @@ exports[`ServicePage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-102:hover {
+.emotion-105:hover {
   color: #3570f4;
 }
 
-.emotion-102.active {
+.emotion-105.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -803,11 +803,11 @@ exports[`ServicePage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-102.active:hover {
+.emotion-105.active:hover {
   color: #303030;
 }
 
-.emotion-102.vertical {
+.emotion-105.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -819,21 +819,21 @@ exports[`ServicePage should render 1`] = `
   text-align: left;
 }
 
-.emotion-102.vertical.active {
+.emotion-105.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-102.vertical.active:hover {
+.emotion-105.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-111 {
+.emotion-114 {
   margin: 20px;
 }
 
-.emotion-113 {
+.emotion-116 {
   padding-bottom: 20px;
   display: flex;
   -webkit-box-pack: justify;
@@ -850,7 +850,7 @@ exports[`ServicePage should render 1`] = `
   float: right;
 }
 
-.emotion-116 {
+.emotion-119 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -858,7 +858,7 @@ exports[`ServicePage should render 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-118 {
+.emotion-121 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -870,7 +870,7 @@ exports[`ServicePage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-122 {
+.emotion-125 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -882,7 +882,7 @@ exports[`ServicePage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-130 {
+.emotion-133 {
   background-color: #3570f40D;
   text-align: left;
   padding: 5px 0 5px 15px;
@@ -890,7 +890,7 @@ exports[`ServicePage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-134 {
+.emotion-137 {
   background-color: #3570f40D;
   text-align: center;
   padding: 5px 0 5px 15px;
@@ -898,21 +898,21 @@ exports[`ServicePage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-145 {
+.emotion-148 {
   text-align: left;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-149 {
+.emotion-152 {
   text-align: center;
   padding: 5px 0 5px 15px;
   vertical-align: middle;
   word-break: break-all;
 }
 
-.emotion-158 {
+.emotion-161 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -935,13 +935,13 @@ exports[`ServicePage should render 1`] = `
   width: 20px;
 }
 
-.emotion-160 {
+.emotion-163 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-161 {
+.emotion-164 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -956,7 +956,7 @@ exports[`ServicePage should render 1`] = `
   width: 350px;
 }
 
-.emotion-163 {
+.emotion-166 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -972,28 +972,28 @@ exports[`ServicePage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-165 {
+.emotion-168 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-167 {
+.emotion-170 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-169 {
+.emotion-172 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-173 {
+.emotion-176 {
   padding: 0 30px 15px 15px;
 }
 
-.emotion-175 {
+.emotion-178 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -1007,7 +1007,7 @@ exports[`ServicePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-175 input {
+.emotion-178 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -1033,42 +1033,42 @@ exports[`ServicePage should render 1`] = `
   width: 100%;
 }
 
-.emotion-175.animated input {
+.emotion-178.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-175 input::-webkit-input-placeholder {
+.emotion-178 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-175 input::-moz-placeholder {
+.emotion-178 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-175 input:-ms-input-placeholder {
+.emotion-178 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-175 input::placeholder {
+.emotion-178 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-175 input.focused,
-.emotion-175 input:active,
-.emotion-175 input:focus {
+.emotion-178 input.focused,
+.emotion-178 input:active,
+.emotion-178 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-175 input:invalid {
+.emotion-178 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-175 .message {
+.emotion-178 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1076,22 +1076,22 @@ exports[`ServicePage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-175.error input,
-.emotion-175.error input.focused,
-.emotion-175.error input:active,
-.emotion-175.error input:focus {
+.emotion-178.error input,
+.emotion-178.error input.focused,
+.emotion-178.error input:active,
+.emotion-178.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-175.error .message {
+.emotion-178.error .message {
   color: #d01111;
 }
 
-.emotion-175 input {
+.emotion-178 input {
   padding-right: 28px;
 }
 
-.emotion-175 .input-icon {
+.emotion-178 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1103,31 +1103,31 @@ exports[`ServicePage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-175 .input-icon[onclick] {
+.emotion-178 .input-icon[onclick] {
   cursor: pointer;
   -webkit-transition: opacity 0.2s ease-in-out;
   transition: opacity 0.2s ease-in-out;
 }
 
-.emotion-175 .input-icon[onclick]:hover {
+.emotion-178 .input-icon[onclick]:hover {
   opacity: 0.7;
 }
 
-.emotion-177 {
+.emotion-180 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-179 {
+.emotion-182 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-181 {
+.emotion-184 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-183 {
+.emotion-186 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1530,6 +1530,16 @@ exports[`ServicePage should render 1`] = `
                 >
                   <button
                     class="emotion-100 denali-button"
+                    data-testid="export-domain"
+                  >
+                    Export Domain
+                  </button>
+                </div>
+                <div
+                  class="emotion-52 emotion-53"
+                >
+                  <button
+                    class="emotion-100 denali-button"
                   >
                     Onboard to AWS
                   </button>
@@ -1537,59 +1547,59 @@ exports[`ServicePage should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-101 denali-tab-group"
+              class="emotion-104 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 Roles
               </div>
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 Groups
               </div>
               <div
-                class="emotion-102 denali-tab active"
+                class="emotion-105 denali-tab active"
                 data-active="true"
               >
                 Services
               </div>
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 Policies
               </div>
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 Tags
               </div>
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 Templates
               </div>
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 Settings
               </div>
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 Visibility
               </div>
               <div
-                class="emotion-102 denali-tab"
+                class="emotion-105 denali-tab"
                 data-active="false"
               >
                 History
@@ -1597,11 +1607,11 @@ exports[`ServicePage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-111 emotion-112"
+            class="emotion-114 emotion-115"
             data-testid="service-list"
           >
             <div
-              class="emotion-113 emotion-114"
+              class="emotion-116 emotion-117"
             >
               <div>
                 <button
@@ -1612,33 +1622,33 @@ exports[`ServicePage should render 1`] = `
               </div>
             </div>
             <table
-              class="emotion-116 emotion-117"
+              class="emotion-119 emotion-120"
               id="services-table"
             >
               <thead>
                 <tr>
                   <th
-                    class="emotion-118 emotion-119"
+                    class="emotion-121 emotion-122"
                   >
                     Service
                   </th>
                   <th
-                    class="emotion-118 emotion-119"
+                    class="emotion-121 emotion-122"
                   >
                     Modified Date
                   </th>
                   <th
-                    class="emotion-122 emotion-119"
+                    class="emotion-125 emotion-122"
                   >
                     Public Keys
                   </th>
                   <th
-                    class="emotion-122 emotion-119"
+                    class="emotion-125 emotion-122"
                   >
                     Tags
                   </th>
                   <th
-                    class="emotion-122 emotion-119"
+                    class="emotion-125 emotion-122"
                   >
                     Delete
                   </th>
@@ -1646,23 +1656,23 @@ exports[`ServicePage should render 1`] = `
               </thead>
               <tbody>
                 <tr
-                  class="emotion-128 emotion-129"
+                  class="emotion-131 emotion-132"
                   data-testid="service-row"
                 >
                   <td
-                    class="emotion-130 emotion-131"
+                    class="emotion-133 emotion-134"
                     color="#3570f40D"
                   >
                     bastion
                   </td>
                   <td
-                    class="emotion-130 emotion-131"
+                    class="emotion-133 emotion-134"
                     color="#3570f40D"
                   >
                     2017-12-21 18:59 UTC
                   </td>
                   <td
-                    class="emotion-134 emotion-131"
+                    class="emotion-137 emotion-134"
                     color="#3570f40D"
                   >
                     <svg
@@ -1683,7 +1693,7 @@ exports[`ServicePage should render 1`] = `
                     </svg>
                   </td>
                   <td
-                    class="emotion-134 emotion-131"
+                    class="emotion-137 emotion-134"
                     color="#3570f40D"
                   >
                     <svg
@@ -1707,7 +1717,7 @@ exports[`ServicePage should render 1`] = `
                     </svg>
                   </td>
                   <td
-                    class="emotion-134 emotion-131"
+                    class="emotion-137 emotion-134"
                     color="#3570f40D"
                   >
                     <svg
@@ -1732,23 +1742,23 @@ exports[`ServicePage should render 1`] = `
                   </td>
                 </tr>
                 <tr
-                  class="emotion-128 emotion-129"
+                  class="emotion-131 emotion-132"
                   data-testid="service-row"
                 >
                   <td
-                    class="emotion-145 emotion-131"
+                    class="emotion-148 emotion-134"
                     color=""
                   >
                     openhouse
                   </td>
                   <td
-                    class="emotion-145 emotion-131"
+                    class="emotion-148 emotion-134"
                     color=""
                   >
                     2017-12-19 20:24 UTC
                   </td>
                   <td
-                    class="emotion-149 emotion-131"
+                    class="emotion-152 emotion-134"
                     color=""
                   >
                     <svg
@@ -1769,7 +1779,7 @@ exports[`ServicePage should render 1`] = `
                     </svg>
                   </td>
                   <td
-                    class="emotion-149 emotion-131"
+                    class="emotion-152 emotion-134"
                     color=""
                   >
                     <svg
@@ -1793,7 +1803,7 @@ exports[`ServicePage should render 1`] = `
                     </svg>
                   </td>
                   <td
-                    class="emotion-149 emotion-131"
+                    class="emotion-152 emotion-134"
                     color=""
                   >
                     <svg
@@ -1826,11 +1836,11 @@ exports[`ServicePage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-158 emotion-159"
+          class="emotion-161 emotion-162"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-160"
+            class="emotion-163"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -1847,30 +1857,30 @@ exports[`ServicePage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-161 emotion-162"
+          class="emotion-164 emotion-165"
         >
           <div
-            class="emotion-163 emotion-164"
+            class="emotion-166 emotion-167"
           >
             <div
-              class="emotion-165 emotion-166"
+              class="emotion-168 emotion-169"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-167 emotion-168"
+                class="emotion-170 emotion-171"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-169 emotion-170"
+                class="emotion-172 emotion-173"
               >
                  | 
               </span>
               <a
-                class="emotion-167 emotion-168"
+                class="emotion-170 emotion-171"
                 href="/domain/manage"
               >
                 Manage
@@ -1878,10 +1888,10 @@ exports[`ServicePage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-173 emotion-174"
+            class="emotion-176 emotion-177"
           >
             <div
-              class="emotion-175 denali-input animated"
+              class="emotion-178 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -1922,17 +1932,17 @@ exports[`ServicePage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-177 emotion-178"
+            class="emotion-180 emotion-181"
             data-testid="domain-list"
           >
             <div
-              class="emotion-179 emotion-180"
+              class="emotion-182 emotion-183"
             >
               <div
-                class="emotion-181 emotion-182"
+                class="emotion-184 emotion-185"
               >
                 <svg
-                  class="emotion-183"
+                  class="emotion-186"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1955,20 +1965,20 @@ exports[`ServicePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-167 emotion-168"
+                class="emotion-170 emotion-171"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-179 emotion-180"
+              class="emotion-182 emotion-183"
             >
               <div
-                class="emotion-181 emotion-182"
+                class="emotion-184 emotion-185"
               >
                 <svg
-                  class="emotion-183"
+                  class="emotion-186"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1991,7 +2001,7 @@ exports[`ServicePage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-167 emotion-168"
+                class="emotion-170 emotion-171"
                 href="/domain/athens.ci/role"
               >
                 athens.ci

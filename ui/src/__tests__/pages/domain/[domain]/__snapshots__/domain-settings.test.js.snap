@@ -699,7 +699,50 @@ exports[`DomainSettingsPage should render 1`] = `
   vertical-align: text-bottom;
 }
 
-.emotion-98 {
+.emotion-100 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  color: #3697f2;
+}
+
+.emotion-100:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-100:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-100:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-100:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
+.emotion-101 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -714,7 +757,7 @@ exports[`DomainSettingsPage should render 1`] = `
   position: relative;
 }
 
-.emotion-98.vertical {
+.emotion-101.vertical {
   background: #f5f8fe;
   display: flex;
   -webkit-flex-direction: column;
@@ -727,7 +770,7 @@ exports[`DomainSettingsPage should render 1`] = `
   width: 300px;
 }
 
-.emotion-99 {
+.emotion-102 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -748,11 +791,11 @@ exports[`DomainSettingsPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-99:hover {
+.emotion-102:hover {
   color: #3570f4;
 }
 
-.emotion-99.active {
+.emotion-102.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -760,11 +803,11 @@ exports[`DomainSettingsPage should render 1`] = `
   cursor: initial;
 }
 
-.emotion-99.active:hover {
+.emotion-102.active:hover {
   color: #303030;
 }
 
-.emotion-99.vertical {
+.emotion-102.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -776,21 +819,21 @@ exports[`DomainSettingsPage should render 1`] = `
   text-align: left;
 }
 
-.emotion-99.vertical.active {
+.emotion-102.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-99.vertical.active:hover {
+.emotion-102.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-108 {
+.emotion-111 {
   margin: 20px;
 }
 
-.emotion-110 {
+.emotion-113 {
   width: 100%;
   border-spacing: 0 20px;
   display: table;
@@ -798,7 +841,7 @@ exports[`DomainSettingsPage should render 1`] = `
   border-color: grey;
 }
 
-.emotion-112 {
+.emotion-115 {
   box-sizing: border-box;
   margin-top: 10px;
   box-shadow: 0 1px 4px #d9d9d9;
@@ -808,7 +851,7 @@ exports[`DomainSettingsPage should render 1`] = `
   height: 50px;
 }
 
-.emotion-114 {
+.emotion-117 {
   text-align: left;
   width: auto;
   padding: 5px 0 5px 15px;
@@ -816,11 +859,11 @@ exports[`DomainSettingsPage should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-118 {
+.emotion-121 {
   display: flex;
 }
 
-.emotion-120 {
+.emotion-123 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -834,7 +877,7 @@ exports[`DomainSettingsPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-120 input {
+.emotion-123 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -860,42 +903,42 @@ exports[`DomainSettingsPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-120.animated input {
+.emotion-123.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-120 input::-webkit-input-placeholder {
+.emotion-123 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-120 input::-moz-placeholder {
+.emotion-123 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-120 input:-ms-input-placeholder {
+.emotion-123 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-120 input::placeholder {
+.emotion-123 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-120 input.focused,
-.emotion-120 input:active,
-.emotion-120 input:focus {
+.emotion-123 input.focused,
+.emotion-123 input:active,
+.emotion-123 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-120 input:invalid {
+.emotion-123 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-120 .message {
+.emotion-123 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -903,22 +946,22 @@ exports[`DomainSettingsPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-120.error input,
-.emotion-120.error input.focused,
-.emotion-120.error input:active,
-.emotion-120.error input:focus {
+.emotion-123.error input,
+.emotion-123.error input.focused,
+.emotion-123.error input:active,
+.emotion-123.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-120.error .message {
+.emotion-123.error .message {
   color: #d01111;
 }
 
-.emotion-121 {
+.emotion-124 {
   margin-top: 5px;
 }
 
-.emotion-177 {
+.emotion-180 {
   padding-bottom: 20px;
   display: flex;
   -webkit-box-pack: justify;
@@ -934,50 +977,7 @@ exports[`DomainSettingsPage should render 1`] = `
   flex-flow: row nowrap;
 }
 
-.emotion-179 {
-  border: none;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px #3697f2 inset;
-  box-sizing: border-box;
-  cursor: pointer;
-  display: inline-block;
-  font-family: Helvetica,Arial,sans-serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1;
-  margin: 5px;
-  outline: 0;
-  padding: 10px 24px;
-  text-align: center;
-  text-shadow: none;
-  text-transform: none;
-  -webkit-transition: all 0.2s ease-in;
-  transition: all 0.2s ease-in;
-  vertical-align: baseline;
-  white-space: nowrap;
-  background: transparent;
-  color: #3697f2;
-}
-
-.emotion-179:first-of-type {
-  margin-left: 0;
-}
-
-.emotion-179:disabled {
-  background: rgba(48,48,48,0.1);
-  color: rgba(48,48,48,0.2);
-  cursor: not-allowed;
-}
-
-.emotion-179:disabled {
-  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
-}
-
-.emotion-179:hover:not(:disabled) {
-  background: #d7e2fd;
-}
-
-.emotion-181 {
+.emotion-184 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1000,13 +1000,13 @@ exports[`DomainSettingsPage should render 1`] = `
   width: 20px;
 }
 
-.emotion-183 {
+.emotion-186 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-184 {
+.emotion-187 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -1021,7 +1021,7 @@ exports[`DomainSettingsPage should render 1`] = `
   width: 350px;
 }
 
-.emotion-186 {
+.emotion-189 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -1037,28 +1037,28 @@ exports[`DomainSettingsPage should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-188 {
+.emotion-191 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-190 {
+.emotion-193 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-192 {
+.emotion-195 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-196 {
+.emotion-199 {
   padding: 0 30px 15px 15px;
 }
 
-.emotion-198 {
+.emotion-201 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -1072,7 +1072,7 @@ exports[`DomainSettingsPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-198 input {
+.emotion-201 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -1098,42 +1098,42 @@ exports[`DomainSettingsPage should render 1`] = `
   width: 100%;
 }
 
-.emotion-198.animated input {
+.emotion-201.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-198 input::-webkit-input-placeholder {
+.emotion-201 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-198 input::-moz-placeholder {
+.emotion-201 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-198 input:-ms-input-placeholder {
+.emotion-201 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-198 input::placeholder {
+.emotion-201 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-198 input.focused,
-.emotion-198 input:active,
-.emotion-198 input:focus {
+.emotion-201 input.focused,
+.emotion-201 input:active,
+.emotion-201 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-198 input:invalid {
+.emotion-201 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-198 .message {
+.emotion-201 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1141,22 +1141,22 @@ exports[`DomainSettingsPage should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-198.error input,
-.emotion-198.error input.focused,
-.emotion-198.error input:active,
-.emotion-198.error input:focus {
+.emotion-201.error input,
+.emotion-201.error input.focused,
+.emotion-201.error input:active,
+.emotion-201.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-198.error .message {
+.emotion-201.error .message {
   color: #d01111;
 }
 
-.emotion-198 input {
+.emotion-201 input {
   padding-right: 28px;
 }
 
-.emotion-198 .input-icon {
+.emotion-201 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1168,31 +1168,31 @@ exports[`DomainSettingsPage should render 1`] = `
   z-index: 1;
 }
 
-.emotion-198 .input-icon[onclick] {
+.emotion-201 .input-icon[onclick] {
   cursor: pointer;
   -webkit-transition: opacity 0.2s ease-in-out;
   transition: opacity 0.2s ease-in-out;
 }
 
-.emotion-198 .input-icon[onclick]:hover {
+.emotion-201 .input-icon[onclick]:hover {
   opacity: 0.7;
 }
 
-.emotion-200 {
+.emotion-203 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-202 {
+.emotion-205 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-204 {
+.emotion-207 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-206 {
+.emotion-209 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1590,62 +1590,72 @@ exports[`DomainSettingsPage should render 1`] = `
                     />
                   </svg>
                 </div>
+                <div
+                  class="emotion-52 emotion-53"
+                >
+                  <button
+                    class="emotion-100 denali-button"
+                    data-testid="export-domain"
+                  >
+                    Export Domain
+                  </button>
+                </div>
               </div>
             </div>
             <div
-              class="emotion-98 denali-tab-group"
+              class="emotion-101 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 Roles
               </div>
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 Groups
               </div>
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 Services
               </div>
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 Policies
               </div>
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 Tags
               </div>
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 Templates
               </div>
               <div
-                class="emotion-99 denali-tab active"
+                class="emotion-102 denali-tab active"
                 data-active="true"
               >
                 Settings
               </div>
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 Visibility
               </div>
               <div
-                class="emotion-99 denali-tab"
+                class="emotion-102 denali-tab"
                 data-active="false"
               >
                 History
@@ -1653,32 +1663,32 @@ exports[`DomainSettingsPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-108 emotion-109"
+            class="emotion-111 emotion-112"
           >
             <table
-              class="emotion-110 emotion-111"
+              class="emotion-113 emotion-114"
               data-testid="setting-table"
             >
               <tbody>
                 <tr
-                  class="emotion-112 emotion-113"
+                  class="emotion-115 emotion-116"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-114 emotion-115"
+                    class="emotion-117 emotion-118"
                     width="auto"
                   >
                     User Expiry (Days)
                   </td>
                   <td
-                    class="emotion-114 emotion-115"
+                    class="emotion-117 emotion-118"
                     width="auto"
                   >
                     <div
-                      class="emotion-118 emotion-119"
+                      class="emotion-121 emotion-122"
                     >
                       <div
-                        class="emotion-120 denali-input animated emotion-121 emotion-122"
+                        class="emotion-123 denali-input animated emotion-124 emotion-125"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1697,31 +1707,31 @@ exports[`DomainSettingsPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-114 emotion-115"
+                    class="emotion-117 emotion-118"
                     width="auto"
                   >
                     All user members in the domain will have specified max expiry days
                   </td>
                 </tr>
                 <tr
-                  class="emotion-112 emotion-113"
+                  class="emotion-115 emotion-116"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-114 emotion-115"
+                    class="emotion-117 emotion-118"
                     width="auto"
                   >
                     Group Expiry (Days)
                   </td>
                   <td
-                    class="emotion-114 emotion-115"
+                    class="emotion-117 emotion-118"
                     width="auto"
                   >
                     <div
-                      class="emotion-118 emotion-119"
+                      class="emotion-121 emotion-122"
                     >
                       <div
-                        class="emotion-120 denali-input animated emotion-121 emotion-122"
+                        class="emotion-123 denali-input animated emotion-124 emotion-125"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1740,31 +1750,31 @@ exports[`DomainSettingsPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-114 emotion-115"
+                    class="emotion-117 emotion-118"
                     width="auto"
                   >
                     All group members in the domain will have specified max expiry days
                   </td>
                 </tr>
                 <tr
-                  class="emotion-112 emotion-113"
+                  class="emotion-115 emotion-116"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-114 emotion-115"
+                    class="emotion-117 emotion-118"
                     width="auto"
                   >
                     Service Expiry (Days)
                   </td>
                   <td
-                    class="emotion-114 emotion-115"
+                    class="emotion-117 emotion-118"
                     width="auto"
                   >
                     <div
-                      class="emotion-118 emotion-119"
+                      class="emotion-121 emotion-122"
                     >
                       <div
-                        class="emotion-120 denali-input animated emotion-121 emotion-122"
+                        class="emotion-123 denali-input animated emotion-124 emotion-125"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1783,31 +1793,31 @@ exports[`DomainSettingsPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-114 emotion-115"
+                    class="emotion-117 emotion-118"
                     width="auto"
                   >
                     All services in the domain will have specified max expiry days
                   </td>
                 </tr>
                 <tr
-                  class="emotion-112 emotion-113"
+                  class="emotion-115 emotion-116"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-114 emotion-115"
+                    class="emotion-117 emotion-118"
                     width="auto"
                   >
                     Token Expiry (Mins)
                   </td>
                   <td
-                    class="emotion-114 emotion-115"
+                    class="emotion-117 emotion-118"
                     width="auto"
                   >
                     <div
-                      class="emotion-118 emotion-119"
+                      class="emotion-121 emotion-122"
                     >
                       <div
-                        class="emotion-120 denali-input animated emotion-121 emotion-122"
+                        class="emotion-123 denali-input animated emotion-124 emotion-125"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1826,31 +1836,31 @@ exports[`DomainSettingsPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-114 emotion-115"
+                    class="emotion-117 emotion-118"
                     width="auto"
                   >
                     Tokens issued for this domain will have specified max timeout in mins
                   </td>
                 </tr>
                 <tr
-                  class="emotion-112 emotion-113"
+                  class="emotion-115 emotion-116"
                   data-testid="setting-row"
                 >
                   <td
-                    class="emotion-114 emotion-115"
+                    class="emotion-117 emotion-118"
                     width="auto"
                   >
                     Role Certificate Expiry (Mins)
                   </td>
                   <td
-                    class="emotion-114 emotion-115"
+                    class="emotion-117 emotion-118"
                     width="auto"
                   >
                     <div
-                      class="emotion-118 emotion-119"
+                      class="emotion-121 emotion-122"
                     >
                       <div
-                        class="emotion-120 denali-input animated emotion-121 emotion-122"
+                        class="emotion-123 denali-input animated emotion-124 emotion-125"
                         data-testid="input-wrapper"
                       >
                         <input
@@ -1869,7 +1879,7 @@ exports[`DomainSettingsPage should render 1`] = `
                     </div>
                   </td>
                   <td
-                    class="emotion-114 emotion-115"
+                    class="emotion-117 emotion-118"
                     width="auto"
                   >
                     Role Certs issued for this domain will have specified max timeout in mins
@@ -1878,17 +1888,17 @@ exports[`DomainSettingsPage should render 1`] = `
               </tbody>
             </table>
             <div
-              class="emotion-177 emotion-178"
+              class="emotion-180 emotion-181"
             >
               <div>
                 <button
-                  class="emotion-179 denali-button"
+                  class="emotion-100 denali-button"
                   disabled=""
                 >
                   Submit
                 </button>
                 <button
-                  class="emotion-179 denali-button"
+                  class="emotion-100 denali-button"
                 >
                   Reset
                 </button>
@@ -1901,11 +1911,11 @@ exports[`DomainSettingsPage should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-181 emotion-182"
+          class="emotion-184 emotion-185"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-183"
+            class="emotion-186"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -1922,30 +1932,30 @@ exports[`DomainSettingsPage should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-184 emotion-185"
+          class="emotion-187 emotion-188"
         >
           <div
-            class="emotion-186 emotion-187"
+            class="emotion-189 emotion-190"
           >
             <div
-              class="emotion-188 emotion-189"
+              class="emotion-191 emotion-192"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-190 emotion-191"
+                class="emotion-193 emotion-194"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-192 emotion-193"
+                class="emotion-195 emotion-196"
               >
                  | 
               </span>
               <a
-                class="emotion-190 emotion-191"
+                class="emotion-193 emotion-194"
                 href="/domain/manage"
               >
                 Manage
@@ -1953,10 +1963,10 @@ exports[`DomainSettingsPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-196 emotion-197"
+            class="emotion-199 emotion-200"
           >
             <div
-              class="emotion-198 denali-input animated"
+              class="emotion-201 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -1997,17 +2007,17 @@ exports[`DomainSettingsPage should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-200 emotion-201"
+            class="emotion-203 emotion-204"
             data-testid="domain-list"
           >
             <div
-              class="emotion-202 emotion-203"
+              class="emotion-205 emotion-206"
             >
               <div
-                class="emotion-204 emotion-205"
+                class="emotion-207 emotion-208"
               >
                 <svg
-                  class="emotion-206"
+                  class="emotion-209"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -2030,20 +2040,20 @@ exports[`DomainSettingsPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-190 emotion-191"
+                class="emotion-193 emotion-194"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-202 emotion-203"
+              class="emotion-205 emotion-206"
             >
               <div
-                class="emotion-204 emotion-205"
+                class="emotion-207 emotion-208"
               >
                 <svg
-                  class="emotion-206"
+                  class="emotion-209"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -2066,7 +2076,7 @@ exports[`DomainSettingsPage should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-190 emotion-191"
+                class="emotion-193 emotion-194"
                 href="/domain/athens.ci/role"
               >
                 athens.ci

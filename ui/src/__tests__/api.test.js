@@ -108,6 +108,32 @@ describe('Fetchr Client API Test', () => {
         });
         afterEach(() => fetchrStub.restore());
     });
+    describe('exportDomain test', () => {
+        it('exportDomain test success', async () => {
+            myDataService = {
+                name: 'domain-export',
+                read: function (req, resource, params, config, callback) {
+                    callback(null, DATA);
+                },
+            };
+            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
+            fetchrStub.returns(myDataService);
+            result = await api.exportDomain('dummy');
+            expect(result).toEqual(DATA);
+        });
+        it('exportDomain test error', async () => {
+            myDataServiceErr = {
+                name: 'domain-export',
+                read: function (req, resource, params, config, callback) {
+                    callback({}, null);
+                },
+            };
+            fetchrStub = sinon.stub(Fetchr, 'isRegistered');
+            fetchrStub.returns(myDataServiceErr);
+            await expect(api.exportDomain('dummy')).rejects.not.toBeNull();
+        });
+        afterEach(() => fetchrStub.restore());
+    });
     describe('createSubDomain test', () => {
         it('createSubDomain test success', async () => {
             myDataService = {

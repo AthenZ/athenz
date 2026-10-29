@@ -20,7 +20,7 @@ import {
     getStateWithDomainData,
 } from '../../../tests_utils/ComponentsTestUtils';
 import MockApi from '../../../mock/MockApi';
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import DomainDetails from '../../../components/header/DomainDetails';
 import * as constants from '../../../components/constants/constants';
 
@@ -192,5 +192,87 @@ describe('DomainDetails', () => {
 
         const organizationName = screen.getByTestId('organization-name');
         expect(organizationName).toHaveTextContent('N/A');
+    });
+
+    it('should download the domain as a json file when export is clicked', async () => {
+        const exportedDomain = {
+            name: 'dom',
+            roles: [{ name: 'dom:role.admin' }],
+        };
+        MockApi.setMockApi({
+            getAllUsers: jest.fn().mockResolvedValue({ users: [] }),
+        });
+        const api = {
+            exportDomain: jest.fn().mockResolvedValue(exportedDomain),
+        };
+        const createObjectURL = jest.fn().mockReturnValue('blob:dom');
+        const revokeObjectURL = jest.fn();
+        window.URL.createObjectURL = createObjectURL;
+        window.URL.revokeObjectURL = revokeObjectURL;
+        let downloadLink;
+        const clickSpy = jest
+            .spyOn(HTMLAnchorElement.prototype, 'click')
+            .mockImplementation(function () {
+                downloadLink = this;
+            });
+
+        const domainData = buildDomainDataForState({
+            name: 'dom',
+            modified: '2020-02-12T21:44:37.792Z',
+        });
+        renderWithRedux(
+            <DomainDetails api={api} />,
+            getStateWithDomainData(domainData)
+        );
+
+        fireEvent.click(screen.getByTestId('export-domain'));
+
+        await waitFor(() => expect(clickSpy).toHaveBeenCalledTimes(1));
+        expect(api.exportDomain).toHaveBeenCalledWith('dom');
+        expect(downloadLink.download).toEqual('dom.json');
+        expect(downloadLink.isConnected).toBe(false);
+        const jsonFile = createObjectURL.mock.calls[0][0];
+        expect(jsonFile.type).toEqual('application/json');
+        const jsonText = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.readAsText(jsonFile);
+        });
+        expect(JSON.parse(jsonText)).toEqual(exportedDomain);
+        await waitFor(() =>
+            expect(revokeObjectURL).toHaveBeenCalledWith('blob:dom')
+        );
+
+        clickSpy.mockRestore();
+        delete window.URL.createObjectURL;
+        delete window.URL.revokeObjectURL;
+    });
+
+    it('should show an error when the domain export fails', async () => {
+        MockApi.setMockApi({
+            getAllUsers: jest.fn().mockResolvedValue({ users: [] }),
+        });
+        const api = {
+            exportDomain: jest.fn().mockRejectedValue({
+                statusCode: 404,
+                body: { message: 'No such domain: dom' },
+            }),
+        };
+
+        const domainData = buildDomainDataForState({
+            name: 'dom',
+            modified: '2020-02-12T21:44:37.792Z',
+        });
+        renderWithRedux(
+            <DomainDetails api={api} />,
+            getStateWithDomainData(domainData)
+        );
+
+        fireEvent.click(screen.getByTestId('export-domain'));
+
+        expect(
+            await screen.findByText('Status: 404. Message: No such domain: dom')
+        ).toBeInTheDocument();
+        expect(api.exportDomain).toHaveBeenCalledWith('dom');
     });
 });
