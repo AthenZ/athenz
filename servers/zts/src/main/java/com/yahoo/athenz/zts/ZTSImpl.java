@@ -1835,6 +1835,29 @@ public class ZTSImpl implements ZTSHandler {
         return tokenTimeout;
     }
 
+    int determineTokenExchangeTimeout(DataCache data, Set<String> roles, AccessTokenRequest accessTokenRequest,
+            long issueTime, final String principalDomain, final String caller) {
+
+        int tokenTimeout = determineTokenTimeout(data, roles, null, accessTokenRequest.getExpiryTime());
+        OAuth2Token subjectToken = accessTokenRequest.getSubjectTokenObj();
+        // Also recognize the signed token type when an access token is submitted as a generic JWT.
+        if (!ZTSConsts.OAUTH_TOKEN_TYPE_ACCESS.equals(accessTokenRequest.getSubjectTokenType())
+                && !JwtsHelper.TYPE_AT_JWT.equalsIgnoreCase(subjectToken.getTokenType())) {
+            return tokenTimeout;
+        }
+
+        // An exchanged access token must not outlive its subject access token.
+        // Apply this after the existing request, server, role, and domain limits.
+
+        long subjectExpiryTime = subjectToken.getExpiryTime();
+        if (subjectExpiryTime <= issueTime) {
+            throw requestError("Subject access token has expired", caller,
+                    accessTokenRequest.getAudience(), principalDomain);
+        }
+
+        return (int) Math.min(tokenTimeout, subjectExpiryTime - issueTime);
+    }
+
     int getConfiguredTokenExpiryTimeMins(DataCache data, Set<String> roles) {
 
         // first we're going to determine the min allowed expiry
@@ -2957,8 +2980,9 @@ public class ZTSImpl implements ZTSHandler {
             }
         }
 
-        int tokenTimeout = determineTokenTimeout(targetData, roles, null, accessTokenRequest.getExpiryTime());
         long iat = System.currentTimeMillis() / 1000;
+        int tokenTimeout = determineTokenExchangeTimeout(targetData, roles, accessTokenRequest,
+                iat, principalDomain, caller);
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
@@ -3195,8 +3219,9 @@ public class ZTSImpl implements ZTSHandler {
             }
         }
 
-        int tokenTimeout = determineTokenTimeout(targetData, roles, null, accessTokenRequest.getExpiryTime());
         long iat = System.currentTimeMillis() / 1000;
+        int tokenTimeout = determineTokenExchangeTimeout(targetData, roles, accessTokenRequest,
+                iat, principalDomain, caller);
 
         AccessToken accessToken = new AccessToken();
         accessToken.setVersion(1);
