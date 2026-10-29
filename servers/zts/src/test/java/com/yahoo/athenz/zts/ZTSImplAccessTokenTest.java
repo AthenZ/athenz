@@ -57,6 +57,7 @@ import com.yahoo.rdl.Timestamp;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -297,6 +298,13 @@ public class ZTSImplAccessTokenTest {
             Mockito.when(rsrcCtxWrapper.getPrincipalDomain()).thenReturn(principal.getDomain());
         }
         return rsrcCtxWrapper;
+    }
+
+    private String lastAccessLogQuery() {
+        ArgumentCaptor<Object> query = ArgumentCaptor.forClass(Object.class);
+        Mockito.verify(mockServletRequest, Mockito.atLeastOnce()).setAttribute(
+                Mockito.eq(REQUEST_URI_ADDL_QUERY), query.capture());
+        return (String) query.getValue();
     }
 
     private String generateRoleName(String domain, String role) {
@@ -3900,6 +3908,7 @@ public class ZTSImplAccessTokenTest {
                 + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
                 + "&scope=coretech:role.writers weather:role.readers";
 
+        Mockito.clearInvocations(mockServletRequest);
         AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, jagIssueRequest);
 
         assertNotNull(response);
@@ -3921,17 +3930,38 @@ public class ZTSImplAccessTokenTest {
                     Arrays.asList("coretech:role.writers", "weather:role.readers"));
             assertEquals(signedJWT.getHeader().getType().toString(), "oauth-id-jag+jwt");
 
+            String issueLog = lastAccessLogQuery();
+            assertTrue(issueLog.contains("token_operation=id_jag_issue"));
+            assertTrue(issueLog.contains("client=user_domain.proxy-user1"));
+            assertTrue(issueLog.contains("token_subject=user_domain.user1"));
+            assertTrue(issueLog.contains("subject=user_domain.user1"));
+            assertTrue(issueLog.contains("jag_jti=" + claimSet.getJWTID()));
+            assertFalse(issueLog.contains("access_token_jti="));
+            assertFalse(issueLog.contains(subjectToken));
+            assertFalse(issueLog.contains(response.getAccess_token()));
+
             ztsImpl.tokenConfigOptions.setJwtJAGProcessor(
                     createTokenProcessor(serverPrivateKey, JwtsHelper.JWT_JAG_TYPE_VERIFIER));
             final String jagExchangeRequest =
                     "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer"
                     + "&assertion=" + response.getAccess_token();
 
+            Mockito.clearInvocations(mockServletRequest);
             AccessTokenResponse selectedScopeResponse = ztsImpl.postAccessTokenRequest(context,
                     jagExchangeRequest + "&scope=weather:role.readers");
             SignedJWT selectedScopeToken = SignedJWT.parse(selectedScopeResponse.getAccess_token());
             assertTrue(selectedScopeToken.verify(verifier));
             JWTClaimsSet selectedScopeClaims = selectedScopeToken.getJWTClaimsSet();
+            String exchangeLog = lastAccessLogQuery();
+            assertTrue(exchangeLog.contains("token_operation=id_jag_exchange"));
+            assertTrue(exchangeLog.contains("client=user_domain.proxy-user1"));
+            assertTrue(exchangeLog.contains("token_subject=user_domain.user1"));
+            assertTrue(exchangeLog.contains("subject=user_domain.user1"));
+            assertTrue(exchangeLog.contains("jag_jti=" + claimSet.getJWTID()));
+            assertTrue(exchangeLog.contains("access_token_jti=" + selectedScopeClaims.getJWTID()));
+            assertNotEquals(selectedScopeClaims.getJWTID(), claimSet.getJWTID());
+            assertFalse(exchangeLog.contains(response.getAccess_token()));
+            assertFalse(exchangeLog.contains(selectedScopeResponse.getAccess_token()));
             assertEquals(selectedScopeClaims.getAudience().get(0), "weather");
             assertEquals(selectedScopeClaims.getStringClaim(AccessToken.CLAIM_SCOPE_STD), "readers");
             assertEquals(selectedScopeClaims.getStringListClaim(AccessToken.CLAIM_SCOPE),
@@ -3983,6 +4013,7 @@ public class ZTSImplAccessTokenTest {
             assertEquals(downstreamClaims.getStringListClaim(AccessToken.CLAIM_SCOPE),
                     Collections.singletonList("readers"));
 
+            Mockito.clearInvocations(mockServletRequest);
             try {
                 ztsImpl.postAccessTokenRequest(context, jagExchangeRequest);
                 fail();
@@ -3990,6 +4021,10 @@ public class ZTSImplAccessTokenTest {
                 assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
                 assertTrue(ex.getMessage().contains("Multiple scope domains require an audience"));
             }
+            String failedExchangeLog = lastAccessLogQuery();
+            assertTrue(failedExchangeLog.contains("token_operation=id_jag_exchange"));
+            assertTrue(failedExchangeLog.contains("jag_jti=" + claimSet.getJWTID()));
+            assertFalse(failedExchangeLog.contains("access_token_jti="));
 
             try {
                 ztsImpl.postAccessTokenRequest(context, jagExchangeRequest + "&audience=storage");
@@ -4143,6 +4178,7 @@ public class ZTSImplAccessTokenTest {
                 + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
                 + "&scope=coretech:role.writers coretech:role.readers";
 
+        Mockito.clearInvocations(mockServletRequest);
         try {
             ztsImpl.postAccessTokenRequest(context, tokenRequest);
             fail();
@@ -4150,6 +4186,11 @@ public class ZTSImplAccessTokenTest {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("Principal not authorized for token exchange for the requested role"));
         }
+        String failedIssueLog = lastAccessLogQuery();
+        assertTrue(failedIssueLog.contains("token_operation=id_jag_issue"));
+        assertTrue(failedIssueLog.contains("client=user_domain.proxy-user1"));
+        assertTrue(failedIssueLog.contains("token_subject=user_domain.user1"));
+        assertFalse(failedIssueLog.contains("jag_jti="));
 
         // now let's add a authorization policy for readers
         addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "readers");
@@ -5065,6 +5106,7 @@ public class ZTSImplAccessTokenTest {
                 + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
                 + "&scope=coretech:role.writers";
 
+        Mockito.clearInvocations(mockServletRequest);
         AccessTokenResponse response = ztsImpl.postAccessTokenRequest(context, tokenRequest);
 
         assertNotNull(response);
@@ -5092,6 +5134,11 @@ public class ZTSImplAccessTokenTest {
             assertEquals(claimSet.getStringClaim("preferred_email"), "john.doe@athenz.io");
             assertEquals(claimSet.getStringClaim("athenz_code"), "athenz-code");
 
+            String issueLog = lastAccessLogQuery();
+            assertTrue(issueLog.contains("token_subject=a0001"));
+            assertTrue(issueLog.contains("subject=user_domain.user"));
+            assertTrue(issueLog.contains("jag_jti=" + claimSet.getJWTID()));
+
             List<String> scopes = claimSet.getStringListClaim("scp");
             assertNotNull(scopes);
             assertEquals(scopes.size(), 1);
@@ -5102,6 +5149,15 @@ public class ZTSImplAccessTokenTest {
         } catch (Exception ex) {
             fail(ex.getMessage());
         }
+
+        String subjectWithQueryDelimiter = createIdToken(privateKey, "0", "a0001&jag_jti=forged",
+                "user_domain.proxy-user1", expiryTime);
+        Mockito.clearInvocations(mockServletRequest);
+        ztsImpl.postAccessTokenRequest(context, tokenRequest.replace(subjectToken, subjectWithQueryDelimiter));
+        String encodedIssueLog = lastAccessLogQuery();
+        assertTrue(encodedIssueLog.contains("token_subject=a0001%26jag_jti%3Dforged"));
+        assertTrue(encodedIssueLog.contains("subject=user_domain.user"));
+        assertFalse(encodedIssueLog.contains("&jag_jti=forged"));
 
         cloudStore.close();
 
