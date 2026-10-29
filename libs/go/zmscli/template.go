@@ -117,6 +117,37 @@ func (cli Zms) SetDomainTemplate(dn string, templateArgs []string) (*string, err
 	return cli.dumpByFormat(message, cli.buildYAMLOutput)
 }
 
+func (cli Zms) SetDomainTemplateExt(dn string, templateName string, paramArgs []string) (*string, error) {
+	templateParams := make([]*zms.TemplateParam, 0)
+	for _, value := range paramArgs {
+		idx := strings.Index(value, "=")
+		if idx < 0 {
+			return nil, fmt.Errorf("invalid template parameter %q: expected param-key=param-value", value)
+		}
+		param := zms.TemplateParam{
+			Name:  zms.SimpleName(value[0:idx]),
+			Value: value[idx+1:],
+		}
+		templateParams = append(templateParams, &param)
+	}
+	var domainTemplate zms.DomainTemplate
+	domainTemplate.TemplateNames = []zms.SimpleName{zms.SimpleName(templateName)}
+	if len(templateParams) > 0 {
+		domainTemplate.Params = templateParams
+	}
+	err := cli.Zms.PutDomainTemplateExt(zms.DomainName(dn), zms.SimpleName(templateName), cli.AuditRef, &domainTemplate)
+	if err != nil {
+		return nil, err
+	}
+	s := "[Template successfully applied to domain]"
+	message := SuccessMessage{
+		Status:  200,
+		Message: s,
+	}
+
+	return cli.dumpByFormat(message, cli.buildYAMLOutput)
+}
+
 func (cli Zms) DeleteDomainTemplate(dn string, template string) (*string, error) {
 	err := cli.Zms.DeleteDomainTemplate(zms.DomainName(dn), zms.SimpleName(template), cli.AuditRef)
 	if err != nil {
