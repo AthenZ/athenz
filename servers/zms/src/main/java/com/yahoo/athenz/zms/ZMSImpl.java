@@ -8213,6 +8213,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setSshCertSignerKeyId(domain.getSshCertSignerKeyId());
         domainData.setExternalMemberValidator(domain.getExternalMemberValidator());
         domainData.setCostCenter(domain.getCostCenter());
+        domainData.setFeatureFlags(domain.getFeatureFlags());
     }
 
     SignedDomain retrieveSignedDomain(Domain domain, final String metaAttr, boolean setMetaDataOnly, boolean masterCopy, boolean includeConditions) {
@@ -8283,6 +8284,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setCertDnsDomain(athenzDomain.getDomain().getCertDnsDomain());
         domainData.setOrg(athenzDomain.getDomain().getOrg());
         domainData.setUserAuthorityFilter(athenzDomain.getDomain().getUserAuthorityFilter());
+        domainData.setFeatureFlags(athenzDomain.getDomain().getFeatureFlags());
         if (athenzDomain.getDomain().getServiceCertExpiryMins() != null) {
             domainData.setServiceCertExpiryMins(athenzDomain.getDomain().getServiceCertExpiryMins());
         }

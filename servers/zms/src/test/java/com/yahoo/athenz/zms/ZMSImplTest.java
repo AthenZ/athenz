@@ -19406,7 +19406,7 @@ public class ZMSImplTest {
                 .setAzureSubscription("4567").setAzureTenant("321").setAzureClient("999")
                 .setBusinessService("123:business service").setGcpProject("gcp").setGcpProjectNumber("1240")
                 .setProductId("abcd-123").setExternalMemberValidator("com.yahoo.test.Validator")
-                .setCostCenter("cost-center-123");
+                .setCostCenter("cost-center-123").setFeatureFlags(5);
         SignedDomain domain = zmsImpl.retrieveSignedDomainMeta(domainMeta, null);
         assertNull(domain.getDomain().getAccount());
         assertNull(domain.getDomain().getAwsAccountName());
@@ -19576,6 +19576,7 @@ public class ZMSImplTest {
         assertEquals(domain.getDomain().getProductId(), "abcd-123");
         assertEquals(domain.getDomain().getExternalMemberValidator(), "com.yahoo.test.Validator");
         assertEquals(domain.getDomain().getCostCenter(), "cost-center-123");
+        assertEquals(domain.getDomain().getFeatureFlags(), Integer.valueOf(5));
         assertNull(domain.getDomain().getSlackChannel());
         assertNull(domain.getDomain().getOnCall());
 
@@ -19876,6 +19877,7 @@ public class ZMSImplTest {
         dom1.setGroupExpiryDays(50);
         dom1.setServiceExpiryDays(60);
         dom1.setMemberPurgeExpiryDays(90);
+        dom1.setFeatureFlags(3);
 
         Authority authority = Mockito.mock(Authority.class);
         when(authority.isAttributeRevocable(anyString())).thenReturn(true);
@@ -19907,6 +19909,7 @@ public class ZMSImplTest {
         assertEquals(Integer.valueOf(50), signedDomain.getDomain().getGroupExpiryDays());
         assertEquals(Integer.valueOf(60), signedDomain.getDomain().getServiceExpiryDays());
         assertEquals(Integer.valueOf(90), signedDomain.getDomain().getMemberPurgeExpiryDays());
+        assertEquals(Integer.valueOf(3), signedDomain.getDomain().getFeatureFlags());
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
         zmsImpl.userAuthority = savedAuthority;
@@ -23561,6 +23564,7 @@ public class ZMSImplTest {
         TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
                 "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
         dom1.setMemberPurgeExpiryDays(90);
+        dom1.setFeatureFlags(3);
         zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
 
         Response response = zmsImpl.getJWSDomain(ctx, domainName, null, null);
@@ -23570,6 +23574,7 @@ public class ZMSImplTest {
         assertNotNull(domainData);
         assertEquals(domainData.getName(), "jws-domain");
         assertEquals(domainData.getMemberPurgeExpiryDays(), 90);
+        assertEquals(domainData.getFeatureFlags(), Integer.valueOf(3));
 
         Map<String, String> header = jwsDomain.getHeader();
         assertEquals(header.get("kid"), "0");
