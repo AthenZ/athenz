@@ -235,7 +235,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON policy.domain_id=domain.domain_id "
             + "WHERE assertion.assertion_id=? AND domain.name=? AND policy.name=?;";
     private static final String SQL_CHECK_ASSERTION = "SELECT assertion_id FROM assertion "
-            + "WHERE policy_id=? AND role=? AND resource=CAST(? AS BINARY) AND action=CAST(? AS BINARY) AND effect=?;";
+            + "WHERE policy_id=? AND role=? AND resource=CAST(? AS BINARY) AND action=CAST(? AS BINARY) AND effect=? AND case_sensitive=?;";
     private static final String SQL_INSERT_ASSERTION = "INSERT INTO assertion "
             + "(policy_id, role, resource, action, effect, case_sensitive) VALUES (?,?,?,?,?,?);";
     private static final String SQL_DELETE_ASSERTION = "DELETE FROM assertion "
@@ -3489,12 +3489,14 @@ public class JDBCConnection implements ObjectStoreConnection {
         // special handling for assertions since we don't want to have duplicates
         // and we don't want to setup a unique key across all values in the row
 
+        final boolean caseSensitive = processInsertValue(assertion.getCaseSensitive(), false);
         try (PreparedStatement ps = con.prepareStatement(SQL_CHECK_ASSERTION)) {
             ps.setInt(1, policyId);
             ps.setString(2, roleName);
             ps.setString(3, assertion.getResource());
             ps.setString(4, assertion.getAction());
             ps.setString(5, processInsertValue(assertion.getEffect()));
+            ps.setBoolean(6, caseSensitive);
             try (ResultSet rs = executeQuery(ps, caller)) {
                 if (rs.next()) {
                     return true;
@@ -3514,7 +3516,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(3, assertion.getResource());
             ps.setString(4, assertion.getAction());
             ps.setString(5, processInsertValue(assertion.getEffect()));
-            ps.setBoolean(6, processInsertValue(assertion.getCaseSensitive(), false));
+            ps.setBoolean(6, caseSensitive);
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);

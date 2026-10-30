@@ -3487,7 +3487,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(2)).setString(3, "my-domain:*");
         Mockito.verify(mockPrepStmt, times(2)).setString(4, "read");
         Mockito.verify(mockPrepStmt, times(2)).setString(5, "ALLOW");
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(6, false);
+        Mockito.verify(mockPrepStmt, times(2)).setBoolean(6, false); // check + insert
         jdbcConn.close();
     }
 
@@ -3518,7 +3518,7 @@ public class JDBCConnectionTest {
 
         Mockito.verify(mockPrepStmt, times(2)).setString(3, "my-domain:Resource");
         Mockito.verify(mockPrepStmt, times(2)).setString(4, "Read");
-        Mockito.verify(mockPrepStmt, times(1)).setBoolean(6, true);
+        Mockito.verify(mockPrepStmt, times(2)).setBoolean(6, true); // check + insert
         jdbcConn.close();
     }
 
@@ -3559,6 +3559,7 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(1)).setString(3, "my-domain:*");
         Mockito.verify(mockPrepStmt, times(1)).setString(4, "read");
         Mockito.verify(mockPrepStmt, times(1)).setString(5, "ALLOW");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(6, false);
         jdbcConn.close();
     }
     @Test

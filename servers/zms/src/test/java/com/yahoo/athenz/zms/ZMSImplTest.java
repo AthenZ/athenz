@@ -17453,6 +17453,68 @@ public class ZMSImplTest {
     }
 
     @Test
+    public void testPutAssertionDifferentCaseSensitiveFlagOnly() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "case-sensitive-flag-only";
+        final String policyName = "policy1";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        // create a policy with a single case-sensitive assertion with lower-case values
+
+        final String role = ResourceUtils.roleResourceName(domainName, "admin");
+        final String resource = domainName + ":resource";
+        Policy policy = new Policy().setName(ResourceUtils.policyResourceName(domainName, policyName));
+        List<Assertion> assertions = new ArrayList<>();
+        assertions.add(new Assertion().setRole(role).setResource(resource).setAction("read")
+                .setEffect(AssertionEffect.ALLOW).setCaseSensitive(true));
+        policy.setAssertions(assertions);
+        zmsImpl.putPolicy(ctx, domainName, policyName, auditRef, false, null, policy);
+
+        // add the same assertion without the case-sensitive flag. the assertions
+        // are not equivalent so both must be stored
+
+        zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, null,
+                new Assertion().setRole(role).setResource(resource).setAction("read")
+                        .setEffect(AssertionEffect.ALLOW));
+
+        Policy policyRes = zmsImpl.getPolicy(ctx, domainName, policyName);
+        assertEquals(policyRes.getAssertions().size(), 2);
+        int caseSensitiveCount = 0;
+        for (Assertion assertion : policyRes.getAssertions()) {
+            assertEquals(assertion.getAction(), "read");
+            assertEquals(assertion.getResource(), resource);
+            assertEquals(assertion.getRole(), role);
+            assertNotNull(assertion.getId());
+            if (assertion.getCaseSensitive() == Boolean.TRUE) {
+                caseSensitiveCount++;
+            } else {
+                assertNull(assertion.getCaseSensitive());
+            }
+        }
+        assertEquals(caseSensitiveCount, 1);
+
+        // adding exact duplicates (including the flag) must not create new assertions
+
+        zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, null,
+                new Assertion().setRole(role).setResource(resource).setAction("read")
+                        .setEffect(AssertionEffect.ALLOW).setCaseSensitive(true));
+        zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, null,
+                new Assertion().setRole(role).setResource(resource).setAction("read")
+                        .setEffect(AssertionEffect.ALLOW).setCaseSensitive(false));
+
+        policyRes = zmsImpl.getPolicy(ctx, domainName, policyName);
+        assertEquals(policyRes.getAssertions().size(), 2);
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
     public void testPutAssertionCaseSensitive() {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
