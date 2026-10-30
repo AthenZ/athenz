@@ -1788,6 +1788,18 @@ public class ZTSImpl implements ZTSHandler {
         }
     }
 
+    Integer convertInstanceExpiryTimeToSeconds(Integer expiryTimeMins) {
+
+        // the expiry time in the instance register/refresh information
+        // object is specified in minutes (for the certificate request)
+        // so we need to convert it to seconds for our tokens
+
+        if (expiryTimeMins == null || expiryTimeMins <= 0) {
+            return null;
+        }
+        return (expiryTimeMins > Integer.MAX_VALUE / 60) ? Integer.MAX_VALUE : expiryTimeMins * 60;
+    }
+
     int determineTokenTimeout(DataCache data, Set<String> roles, Integer minExpiryTime,
                               Integer maxExpiryTime) {
 
@@ -5563,7 +5575,8 @@ public class ZTSImpl implements ZTSHandler {
             // service principals 12 hours as the max timeout, unless the client
             // is explicitly asking for something smaller.
 
-            long expiryTime = iat + determineOIDCIdTokenTimeout(domain, cn, info.getExpiryTime());
+            long expiryTime = iat + determineOIDCIdTokenTimeout(domain, cn,
+                    convertInstanceExpiryTimeToSeconds(info.getExpiryTime()));
             idToken.setExpiryTime(expiryTime);
 
             ServerPrivateKey signPrivateKey = getSignPrivateKey(info.getJwtSVIDKeyType());
@@ -5664,7 +5677,8 @@ public class ZTSImpl implements ZTSHandler {
         // service principals 12 hours as the max timeout, unless the client
         // is explicitly asking for something smaller.
 
-        long expiryTime = iat + determineOIDCIdTokenTimeout(principalDomain, cn, info.getExpiryTime());
+        long expiryTime = iat + determineOIDCIdTokenTimeout(principalDomain, cn,
+                convertInstanceExpiryTimeToSeconds(info.getExpiryTime()));
         idToken.setExpiryTime(expiryTime);
 
         ServerPrivateKey signPrivateKey = getSignPrivateKey(info.getJwtSVIDKeyType());
