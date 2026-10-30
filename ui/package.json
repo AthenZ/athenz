@@ -94,7 +94,7 @@
         "lodash.clone": "4.5.0",
         "moment": "2.31.0",
         "moment-timezone": "0.5.37",
-        "multer": "2.4.0",
+        "multer": "2.5.0",
         "next": "16.4.1",
         "next-redux-wrapper": "8.0.0",
         "passport": "0.6.0",
