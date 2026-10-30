@@ -113,6 +113,9 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_MOD_TIMESTAMP = "SELECT modified FROM domain WHERE name=?;";
     private static final String SQL_LIST_DOMAIN = "SELECT * FROM domain;";
     private static final String SQL_LIST_DOMAIN_MODIFIED = "SELECT * FROM domain WHERE modified>?;";
+    private static final String SQL_LIST_DOMAIN_META = "SELECT name, modified, enabled FROM domain;";
+    private static final String SQL_LIST_DOMAIN_META_MODIFIED = "SELECT name, modified, enabled FROM domain "
+            + "WHERE modified>?;";
     private static final String SQL_LIST_DOMAIN_NAME = "SELECT name FROM domain;";
     private static final String SQL_LIST_DOMAIN_NAME_PREFIX = "SELECT name FROM domain WHERE name>=? AND name<?;";
     private static final String SQL_LIST_DOMAIN_NAME_MODIFIED = "SELECT name FROM domain WHERE modified>?;";
@@ -1027,6 +1030,12 @@ public class JDBCConnection implements ObjectStoreConnection {
         return domain;
     }
 
+    Domain saveDomainMetaSettings(String domainName, ResultSet rs) throws SQLException {
+        return new Domain().setName(domainName)
+                .setEnabled(rs.getBoolean(JDBCConsts.DB_COLUMN_ENABLED))
+                .setModified(Timestamp.fromMillis(rs.getTimestamp(JDBCConsts.DB_COLUMN_MODIFIED).getTime()));
+    }
+
     @Override
     public Domain getDomain(String domainName) throws ServerResourceException {
 
@@ -1384,6 +1393,20 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setTimestamp(1, new java.sql.Timestamp(modifiedSince), cal);
         } else {
             ps = con.prepareStatement(SQL_LIST_DOMAIN);
+        }
+        return ps;
+    }
+
+    PreparedStatement prepareDomainMetaScanStatement(long modifiedSince)
+            throws SQLException {
+
+        PreparedStatement ps;
+        if (modifiedSince != 0) {
+            ps = con.prepareStatement(SQL_LIST_DOMAIN_META_MODIFIED);
+            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(MYSQL_SERVER_TIMEZONE));
+            ps.setTimestamp(1, new java.sql.Timestamp(modifiedSince), cal);
+        } else {
+            ps = con.prepareStatement(SQL_LIST_DOMAIN_META);
         }
         return ps;
     }
@@ -4798,17 +4821,24 @@ public class JDBCConnection implements ObjectStoreConnection {
 
     @Override
     public DomainMetaList listModifiedDomains(long modifiedSince) throws ServerResourceException {
+        return listModifiedDomains(modifiedSince, true);
+    }
+
+    @Override
+    public DomainMetaList listModifiedDomains(long modifiedSince, boolean fetchFullRow) throws ServerResourceException {
 
         final String caller = "listModifiedDomains";
 
         DomainMetaList domainModifiedList = new DomainMetaList();
         List<Domain> nameMods = new ArrayList<>();
 
-        try (PreparedStatement ps = prepareDomainRowScanStatement(modifiedSince)) {
+        try (PreparedStatement ps = fetchFullRow ? prepareDomainRowScanStatement(modifiedSince) :
+                prepareDomainMetaScanStatement(modifiedSince)) {
             try (ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     final String domainName = rs.getString(JDBCConsts.DB_COLUMN_NAME);
-                    nameMods.add(saveDomainSettings(domainName, rs, false));
+                    nameMods.add(fetchFullRow ? saveDomainSettings(domainName, rs, false) :
+                            saveDomainMetaSettings(domainName, rs));
                 }
             }
         } catch (SQLException ex) {

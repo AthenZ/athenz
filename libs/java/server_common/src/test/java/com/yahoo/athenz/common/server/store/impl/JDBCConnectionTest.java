@@ -6234,6 +6234,28 @@ public class JDBCConnectionTest {
     }
 
     @Test
+    public void testPrepareDomainMetaScanStatementModifiedTime() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        jdbcConn.prepareDomainMetaScanStatement(100);
+        Mockito.verify(mockConn, times(1)).prepareStatement("SELECT name, modified, enabled FROM domain WHERE modified>?;");
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(ArgumentMatchers.eq(1), ArgumentMatchers.eq(new java.sql.Timestamp(100)), ArgumentMatchers.isA(Calendar.class));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testPrepareDomainMetaScanStatementModifiedZero() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        jdbcConn.prepareDomainMetaScanStatement(0);
+        Mockito.verify(mockConn, times(1)).prepareStatement("SELECT name, modified, enabled FROM domain;");
+        Mockito.verify(mockPrepStmt, times(0)).setTimestamp(Mockito.anyInt(), Mockito.isA(java.sql.Timestamp.class), Mockito.isA(Calendar.class));
+        jdbcConn.close();
+    }
+
+    @Test
     public void testPrepareScanByRoleStatement() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
@@ -6759,7 +6781,7 @@ public class JDBCConnectionTest {
     }
 
     @Test
-    public void testListModifiedDomains() throws Exception {
+    public void testListModifiedDomainsFullRow() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next()).thenReturn(true) // 3 domains without tags
@@ -6797,8 +6819,9 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_EXTERNAL_MEMBER_VALIDATOR)).thenReturn("");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_COST_CENTER)).thenReturn("");
 
-        DomainMetaList list = jdbcConn.listModifiedDomains(1454358900);
+        DomainMetaList list = jdbcConn.listModifiedDomains(1454358900, true);
 
+        Mockito.verify(mockConn, times(1)).prepareStatement("SELECT * FROM domain WHERE modified>?;");
         Mockito.verify(mockPrepStmt, times(1)).setTimestamp(ArgumentMatchers.eq(1),
                 ArgumentMatchers.eq(new java.sql.Timestamp(1454358900)), ArgumentMatchers.isA(Calendar.class));
 
@@ -6818,10 +6841,61 @@ public class JDBCConnectionTest {
                     domain3Found = true;
                     break;
             }
+            assertEquals(dom.getAccount(), "acct" + dom.getName().substring(6));
         }
         assertTrue(domain1Found);
         assertTrue(domain2Found);
         assertTrue(domain3Found);
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListModifiedDomainsMetaOnly() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_NAME))
+                .thenReturn("domain1").thenReturn("domain2");
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_ENABLED))
+                .thenReturn(true).thenReturn(false);
+        Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(JDBCConsts.DB_COLUMN_MODIFIED);
+
+        DomainMetaList list = jdbcConn.listModifiedDomains(1454358900, false);
+
+        Mockito.verify(mockConn, times(1))
+                .prepareStatement("SELECT name, modified, enabled FROM domain WHERE modified>?;");
+        Mockito.verify(mockPrepStmt, times(1)).setTimestamp(ArgumentMatchers.eq(1),
+                ArgumentMatchers.eq(new java.sql.Timestamp(1454358900)), ArgumentMatchers.isA(Calendar.class));
+
+        assertEquals(list.getDomains().size(), 2);
+
+        Domain domain1 = list.getDomains().get(0);
+        assertEquals(domain1.getName(), "domain1");
+        assertTrue(domain1.getEnabled());
+        assertEquals(domain1.getModified(), Timestamp.fromMillis(1454358916));
+
+        Domain domain2 = list.getDomains().get(1);
+        assertEquals(domain2.getName(), "domain2");
+        assertFalse(domain2.getEnabled());
+
+        Mockito.verify(mockResultSet, times(0)).getString(JDBCConsts.DB_COLUMN_ACCOUNT);
+        Mockito.verify(mockResultSet, times(0)).getString(JDBCConsts.DB_COLUMN_DESCRIPTION);
+        Mockito.verify(mockResultSet, times(0)).getBoolean(JDBCConsts.DB_COLUMN_AUDIT_ENABLED);
+
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListModifiedDomainsFullRowOverload() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+
+        DomainMetaList list = jdbcConn.listModifiedDomains(1454358900);
+        assertEquals(list.getDomains().size(), 0);
+
+        Mockito.verify(mockConn, times(1)).prepareStatement("SELECT * FROM domain WHERE modified>?;");
 
         jdbcConn.close();
     }
@@ -6832,7 +6906,7 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockResultSet.next()).thenReturn(false); // no entries
 
-        DomainMetaList list = jdbcConn.listModifiedDomains(1454358900);
+        DomainMetaList list = jdbcConn.listModifiedDomains(1454358900, false);
         assertEquals(list.getDomains().size(), 0);
 
         jdbcConn.close();
@@ -6846,7 +6920,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
 
         try {
-            jdbcConn.listModifiedDomains(1454358900);
+            jdbcConn.listModifiedDomains(1454358900, false);
             fail();
         } catch (ServerResourceException ex) {
             assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);

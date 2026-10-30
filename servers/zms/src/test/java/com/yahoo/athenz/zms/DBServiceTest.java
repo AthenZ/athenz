@@ -15120,7 +15120,7 @@ public class DBServiceTest {
         assertStoreConnectionFailure(() -> zms.dbService.listEntities(domainName));
         assertStoreConnectionFailure(() -> zms.dbService.isTrustRoleForTenant("provider", "role1", "prefix", "group1", domainName));
         assertStoreConnectionFailure(() -> zms.dbService.isTenantRolePrefixMatch("role1", "prefix", "group1", domainName));
-        assertStoreConnectionFailure(() -> zms.dbService.listModifiedDomains(0, false));
+        assertStoreConnectionFailure(() -> zms.dbService.listModifiedDomains(0, false, false));
         assertStoreConnectionFailure(() -> zms.dbService.getQuota(domainName));
         assertStoreConnectionFailure(() -> zms.dbService.getPendingDomainRoleMembers("user.joe", domainName));
         assertStoreConnectionFailure(() -> zms.dbService.getPendingMembershipApproverRoles(1));
