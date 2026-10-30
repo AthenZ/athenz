@@ -235,9 +235,9 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON policy.domain_id=domain.domain_id "
             + "WHERE assertion.assertion_id=? AND domain.name=? AND policy.name=?;";
     private static final String SQL_CHECK_ASSERTION = "SELECT assertion_id FROM assertion "
-            + "WHERE policy_id=? AND role=? AND resource=? AND action=? AND effect=?;";
+            + "WHERE policy_id=? AND role=? AND resource=CAST(? AS BINARY) AND action=CAST(? AS BINARY) AND effect=?;";
     private static final String SQL_INSERT_ASSERTION = "INSERT INTO assertion "
-            + "(policy_id, role, resource, action, effect) VALUES (?,?,?,?,?);";
+            + "(policy_id, role, resource, action, effect, case_sensitive) VALUES (?,?,?,?,?,?);";
     private static final String SQL_DELETE_ASSERTION = "DELETE FROM assertion "
             + "WHERE policy_id=? AND assertion_id=?;";
     private static final String SQL_SELECT_TENANT_ASSUME_ROLE_POLICY_IDS = "SELECT * " 
@@ -324,7 +324,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_GET_DOMAIN_POLICIES = "SELECT * FROM policy WHERE domain_id=?;";
     private static final String SQL_GET_DOMAIN_POLICY_ASSERTIONS = "SELECT policy.policy_id, "
             + "assertion.effect, assertion.action, assertion.role, assertion.resource, "
-            + "assertion.assertion_id FROM assertion "
+            + "assertion.case_sensitive, assertion.assertion_id FROM assertion "
             + "JOIN policy ON policy.policy_id=assertion.policy_id "
             + "WHERE policy.domain_id=?;";
     private static final String SQL_GET_DOMAIN_SERVICES = "SELECT * FROM service WHERE domain_id=?;";
@@ -340,7 +340,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN assertion ON policy.policy_id=assertion.policy_id "
             + "WHERE policy.domain_id=? AND assertion.role=?;";
     private static final String SQL_LIST_ROLE_ASSERTIONS = "SELECT assertion.role, assertion.resource, "
-            + "assertion.action, assertion.effect, assertion.assertion_id, policy.domain_id, domain.name FROM assertion "
+            + "assertion.action, assertion.effect, assertion.case_sensitive, assertion.assertion_id, policy.domain_id, domain.name FROM assertion "
             + "JOIN policy ON assertion.policy_id=policy.policy_id "
             + "JOIN domain ON policy.domain_id=domain.domain_id";
     private static final String SQL_LIST_ROLE_ASSERTION_QUERY_ACTION = " WHERE assertion.action=?;";
@@ -3207,6 +3207,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     assertion.setResource(rs.getString(JDBCConsts.DB_COLUMN_RESOURCE));
                     assertion.setAction(rs.getString(JDBCConsts.DB_COLUMN_ACTION));
                     assertion.setEffect(AssertionEffect.valueOf(rs.getString(JDBCConsts.DB_COLUMN_EFFECT)));
+                    assertion.setCaseSensitive(nullIfDefaultValue(rs.getBoolean(JDBCConsts.DB_COLUMN_CASE_SENSITIVE), false));
                     assertion.setId((long) rs.getInt(JDBCConsts.DB_COLUMN_ASSERT_ID));
                 }
             }
@@ -3513,6 +3514,7 @@ public class JDBCConnection implements ObjectStoreConnection {
             ps.setString(3, assertion.getResource());
             ps.setString(4, assertion.getAction());
             ps.setString(5, processInsertValue(assertion.getEffect()));
+            ps.setBoolean(6, processInsertValue(assertion.getCaseSensitive(), false));
             affectedRows = executeUpdate(ps, caller);
         } catch (SQLException ex) {
             throw sqlError(ex, caller);
@@ -3644,6 +3646,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     assertion.setResource(rs.getString(JDBCConsts.DB_COLUMN_RESOURCE));
                     assertion.setAction(rs.getString(JDBCConsts.DB_COLUMN_ACTION));
                     assertion.setEffect(AssertionEffect.valueOf(rs.getString(JDBCConsts.DB_COLUMN_EFFECT)));
+                    assertion.setCaseSensitive(nullIfDefaultValue(rs.getBoolean(JDBCConsts.DB_COLUMN_CASE_SENSITIVE), false));
                     assertion.setId((long) rs.getInt(JDBCConsts.DB_COLUMN_ASSERT_ID));
                     assertions.add(assertion);
                 }
@@ -4500,6 +4503,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     assertion.setResource(rs.getString(JDBCConsts.DB_COLUMN_RESOURCE));
                     assertion.setAction(rs.getString(JDBCConsts.DB_COLUMN_ACTION));
                     assertion.setEffect(AssertionEffect.valueOf(rs.getString(JDBCConsts.DB_COLUMN_EFFECT)));
+                    assertion.setCaseSensitive(nullIfDefaultValue(rs.getBoolean(JDBCConsts.DB_COLUMN_CASE_SENSITIVE), false));
                     assertion.setId(rs.getLong(JDBCConsts.DB_COLUMN_ASSERT_ID));
 
                     assertions.add(assertion);
@@ -4903,6 +4907,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                     assertion.setResource(rs.getString(JDBCConsts.DB_COLUMN_RESOURCE));
                     assertion.setAction(rs.getString(JDBCConsts.DB_COLUMN_ACTION));
                     assertion.setEffect(AssertionEffect.valueOf(rs.getString(JDBCConsts.DB_COLUMN_EFFECT)));
+                    assertion.setCaseSensitive(nullIfDefaultValue(rs.getBoolean(JDBCConsts.DB_COLUMN_CASE_SENSITIVE), false));
                     assertion.setId((long) rs.getInt(JDBCConsts.DB_COLUMN_ASSERT_ID));
 
                     String index = roleIndex(rs.getString(JDBCConsts.DB_COLUMN_DOMAIN_ID), roleName);

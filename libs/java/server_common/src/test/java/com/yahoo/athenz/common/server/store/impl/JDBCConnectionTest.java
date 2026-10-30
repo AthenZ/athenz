@@ -3487,6 +3487,38 @@ public class JDBCConnectionTest {
         Mockito.verify(mockPrepStmt, times(2)).setString(3, "my-domain:*");
         Mockito.verify(mockPrepStmt, times(2)).setString(4, "read");
         Mockito.verify(mockPrepStmt, times(2)).setString(5, "ALLOW");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(6, false);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertAssertionCaseSensitive() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Assertion assertion = new Assertion()
+                .setAction("Read")
+                .setEffect(AssertionEffect.ALLOW)
+                .setResource("my-domain:Resource")
+                .setRole("my-domain:role.role1")
+                .setCaseSensitive(true);
+
+        Mockito.when(mockResultSet.getInt(1))
+            .thenReturn(5) // domain id
+            .thenReturn(7); // policy id
+        Mockito.when(mockResultSet.next())
+            .thenReturn(true) // this one is for domain id
+            .thenReturn(true) // this one is for policy id
+            .thenReturn(false); // insertion is not found
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+
+        boolean requestSuccess = jdbcConn.insertAssertion("my-domain", "policy1", null, assertion);
+        assertTrue(requestSuccess);
+
+        Mockito.verify(mockPrepStmt, times(2)).setString(3, "my-domain:Resource");
+        Mockito.verify(mockPrepStmt, times(2)).setString(4, "Read");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(6, true);
         jdbcConn.close();
     }
 
@@ -4742,6 +4774,9 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_ASSERT_ID))
                 .thenReturn(11)
                 .thenReturn(12);
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_CASE_SENSITIVE))
+                .thenReturn(false)
+                .thenReturn(true);
 
         List<Assertion> assertions = jdbcConn.listAssertions("my-domain", "policy1", null);
 
@@ -4750,11 +4785,13 @@ public class JDBCConnectionTest {
         assertEquals(assertions.get(0).getResource(), "my-domain:*");
         assertEquals(assertions.get(0).getAction(), "*");
         assertEquals(assertions.get(0).getEffect().toString(), "ALLOW");
+        assertNull(assertions.get(0).getCaseSensitive());
 
         assertEquals(assertions.get(1).getRole(), "my-domain:role.role2");
         assertEquals(assertions.get(1).getResource(), "my-domain:service.*");
         assertEquals(assertions.get(1).getAction(), "read");
         assertEquals(assertions.get(1).getEffect().toString(), "DENY");
+        assertEquals(assertions.get(1).getCaseSensitive(), Boolean.TRUE);
         jdbcConn.close();
     }
 
@@ -7928,6 +7965,10 @@ public class JDBCConnectionTest {
             .thenReturn("update");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_EFFECT))
             .thenReturn("ALLOW");
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_CASE_SENSITIVE))
+            .thenReturn(false)
+            .thenReturn(true)
+            .thenReturn(false);
 
         Map<String, List<Assertion>> roleAssertions = jdbcConn.getRoleAssertions("update", "getRoleAssertions");
         assertEquals(roleAssertions.size(), 2);
@@ -7939,11 +7980,13 @@ public class JDBCConnectionTest {
         assertEquals(assertions.get(0).getResource(), "resource1");
         assertEquals(assertions.get(0).getAction(), "update");
         assertEquals(assertions.get(0).getEffect().toString(), "ALLOW");
+        assertNull(assertions.get(0).getCaseSensitive());
 
         assertEquals(assertions.get(1).getRole(), "dom1:role.role1");
         assertEquals(assertions.get(1).getResource(), "resource2");
         assertEquals(assertions.get(1).getAction(), "update");
         assertEquals(assertions.get(1).getEffect().toString(), "ALLOW");
+        assertEquals(assertions.get(1).getCaseSensitive(), Boolean.TRUE);
 
         assertions = roleAssertions.get("102:role3");
         assertEquals(assertions.size(), 1);
@@ -8625,6 +8668,8 @@ public class JDBCConnectionTest {
             .thenReturn("*");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_EFFECT))
             .thenReturn("ALLOW");
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_CASE_SENSITIVE))
+            .thenReturn(true);
 
         Assertion assertion = jdbcConn.getAssertion("my-domain", "policy1", 101L);
 
@@ -8632,6 +8677,7 @@ public class JDBCConnectionTest {
         assertEquals(assertion.getResource(), "my-domain:*");
         assertEquals(assertion.getAction(), "*");
         assertEquals(assertion.getEffect().toString(), "ALLOW");
+        assertEquals(assertion.getCaseSensitive(), Boolean.TRUE);
 
         Mockito.verify(mockPrepStmt, times(1)).setInt(1, 101);
         Mockito.verify(mockPrepStmt, times(1)).setString(2, "my-domain");
@@ -15182,6 +15228,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_ACTION)).thenReturn("*");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_EFFECT)).thenReturn("ALLOW");
         Mockito.when(mockResultSet.getLong(JDBCConsts.DB_COLUMN_ASSERT_ID)).thenReturn(1L);
+        Mockito.when(mockResultSet.getBoolean(JDBCConsts.DB_COLUMN_CASE_SENSITIVE)).thenReturn(true);
 
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_KEY)).thenReturn("key1");
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_OPERATOR)).thenReturn("EQUALS");
@@ -15191,6 +15238,7 @@ public class JDBCConnectionTest {
         AthenzDomain athenzDomain = new AthenzDomain("dom1");
         jdbcConn.getAthenzDomainPolicies("dom1", 1, athenzDomain);
         assertNotNull(athenzDomain.getPolicies().get(0).getAssertions().get(0).getConditions());
+        assertEquals(athenzDomain.getPolicies().get(0).getAssertions().get(0).getCaseSensitive(), Boolean.TRUE);
         AssertionCondition ac1 = new AssertionCondition().setId(1);
         Map<String, AssertionConditionData> m1 = new HashMap<>();
         m1.put("key1", new AssertionConditionData().setOperator(AssertionConditionOperator.EQUALS).setValue("value1"));
