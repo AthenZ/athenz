@@ -1,13 +1,14 @@
 # Development Environment
 
 * [Development Tools](#development-tools)
-  * [Build Within Docker Container](#build-within-docker-container)
+  * [CI Build Environment](#ci-build-environment)
   * [Manual Installation of Development Tools](#manual-installation-of-development-tools)
-      * [Java Platform JDK 11](#java-platform-jdk-11)
+      * [Java Platform JDK 17](#java-platform-jdk-17)
       * [Maven](#maven)
       * [Git Client](#git-client)
       * [Go](#go)
       * [Node JS](#node-js)
+      * [Docker](#docker)
 * [Build Steps](#build-steps)
 
 ## Development Tools
@@ -16,27 +17,22 @@ If you would like to build your own copy of Athenz rather than
 using the pre-built binary packages, then here is the list of
 development tools you need to have installed on your system.
 
-### Build Within Docker Container
+### CI Build Environment
 
-You can replicate the container environment that Athenz users within
-Screwdriver to build and deploy Athenz packages. You can start a new
-container using the `openjdk:11` image. Once you check out the Athenz
-source tree, you can execute the `install_deps.sh` script
-to install the required development tools:
-
-```shell
-$ git clone https://github.com/AthenZ/athenz.git
-$ cd athenz
-$ sh screwdriver/scripts/install_deps.sh
-```
+Athenz packages are built and released using GitHub Actions. The
+workflow files in the [.github/workflows](https://github.com/AthenZ/athenz/tree/master/.github/workflows)
+directory (e.g. [pull-request.yaml](https://github.com/AthenZ/athenz/blob/master/.github/workflows/pull-request.yaml))
+are the authoritative reference for the versions of the development
+tools used to build and test Athenz.
 
 ### Manual Installation of Development Tools
 
-#### Java Platform JDK 11
+#### Java Platform JDK 17
 
-To build Athenz components, you must have Java Platform JDK 11 installed
+To build Athenz components, you must have Java Platform JDK 17 installed
 on your machine. The main authorization services - ZMS and ZTS, are
-written in Java and using embedded Jetty.
+written in Java and using embedded Jetty 12, which requires JDK 17.
+The client libraries are still compiled for and supported on JDK 11.
 
 Make sure you have set the $JAVA_HOME environment variable.
 
@@ -87,6 +83,15 @@ $ npm install -g nodemon
 $ nodemon --version
 3.0.3
 ```
+
+#### Docker
+
+The ZMS server unit tests start a MySQL server using
+[Testcontainers](https://testcontainers.com/), so you must have
+[Docker](https://docs.docker.com/get-docker/) installed and running
+on your machine to run the full build including the tests. The tests
+use the `mysql/mysql-server:8.0` image by default. You can use a different
+MySQL image by setting the `ZMS_TEST_MYSQL_IMAGE` environment variable.
 
 ## Build Steps
 

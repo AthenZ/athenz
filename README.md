@@ -103,10 +103,8 @@ credentials for configured AWS IAM roles.
 
 Please refer to the [contributing file](CONTRIBUTING.md) for information about how to get involved. We welcome issues, questions, and pull requests.
 
-You can also contact us for any user and development discussions through our groups:
-
-* [Athenz-Dev](https://groups.google.com/d/forum/athenz-dev) for development discussions
-* [Athenz-Users](https://groups.google.com/d/forum/athenz-users) for users questions
+You can also contact us for any user and development discussions through
+[GitHub Discussions](https://github.com/AthenZ/athenz/discussions).
 
 The [sourcespy dashboard](https://sourcespy.com/github/yahooathenz/) provides a high level overview of the repository including [module dependencies](https://sourcespy.com/github/yahooathenz/xx-omodulesc-.html), [module hierarchy](https://sourcespy.com/github/yahooathenz/xx-omodules-.html), [external libraries](https://sourcespy.com/github/yahooathenz/xx-ojavalibs-.html), [web services](https://sourcespy.com/github/yahooathenz/xx-owebservices-.html), and other components of the system.
 
