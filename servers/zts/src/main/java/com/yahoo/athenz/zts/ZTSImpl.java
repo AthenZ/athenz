@@ -258,6 +258,8 @@ public class ZTSImpl implements ZTSHandler {
     private static final String USER_AGENT_HDR = "User-Agent";
 
     private static final String ACCESS_LOG_ADDL_QUERY = "com.yahoo.athenz.uri.addl_query";
+    private static final int JAG_ACCESS_LOG_VALUE_MAX_LENGTH = 256;
+    private static final String JAG_ACCESS_LOG_TRUNCATED_MARKER = "...%5Btruncated%5D";
 
     private static final String SYS_AUTH = "sys.auth";
 
@@ -2837,14 +2839,19 @@ public class ZTSImpl implements ZTSHandler {
             throw requestError(ex.getMessage(), caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
-        validateRequest(ctx.request(), principalDomain, caller, false,
-            accessTokenRequest.getRequestType() == RequestType.ID_TOKEN_EXCHANGE);
-
         // we want to log the request body in our access log so
         // we know what is the client asking for, but we'll just
         // limit the request up to 1K
 
-        ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY, accessTokenRequest.getQueryLogData());
+        if (accessTokenRequest.getRequestType() == RequestType.JAG_TOKEN_EXCHANGE ||
+                accessTokenRequest.getRequestType() == RequestType.JAG_JWT_BEARER) {
+            setJAGAccessLogData(ctx, accessTokenRequest, principal, null, null);
+        } else {
+            ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY, accessTokenRequest.getQueryLogData());
+        }
+
+        validateRequest(ctx.request(), principalDomain, caller, false,
+            accessTokenRequest.getRequestType() == RequestType.ID_TOKEN_EXCHANGE);
 
         // if our principal is still null, then our request was not properly
         // authenticated so we'll return as such.
@@ -2872,6 +2879,55 @@ public class ZTSImpl implements ZTSHandler {
             default:
                 return processAccessTokenStandardRequest(ctx, principal, accessTokenRequest, principalDomain, caller);
         }
+    }
+
+    private void setJAGAccessLogData(ResourceContext ctx, AccessTokenRequest request, Principal client,
+            String subjectIdentity, String issuedTokenJti) {
+
+        // The source token has already been validated by AccessTokenRequest. Log its
+        // subject even when a later authorization check fails. The resolved Athenz
+        // identity and the issued token id are added only after successful issuance.
+
+        final boolean issuingJAG = request.getRequestType() == RequestType.JAG_TOKEN_EXCHANGE;
+        final OAuth2Token sourceToken = issuingJAG ? request.getSubjectTokenObj() : request.getJagTokenObj();
+        StringBuilder query = new StringBuilder(request.getQueryLogData());
+        appendAccessLogQueryParam(query, "token_operation", issuingJAG ? "id_jag_issue" : "id_jag_exchange");
+        appendAccessLogQueryParam(query, "client", client == null ? null : client.getFullName());
+        appendAccessLogQueryParam(query, "token_subject", sourceToken.getSubject());
+        appendAccessLogQueryParam(query, "subject", subjectIdentity);
+        appendAccessLogQueryParam(query, "jag_jti", issuingJAG ? issuedTokenJti : sourceToken.getJwtId());
+        if (!issuingJAG) {
+            appendAccessLogQueryParam(query, "access_token_jti", issuedTokenJti);
+        }
+        ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY, query.toString());
+    }
+
+    private void appendAccessLogQueryParam(StringBuilder query, String name, String value) {
+        if (StringUtil.isEmpty(value)) {
+            return;
+        }
+        String encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8);
+        if (encodedValue.length() > JAG_ACCESS_LOG_VALUE_MAX_LENGTH) {
+            // Keep the encoded value bounded without splitting a UTF-8 character or
+            // a percent escape. ZTS-issued token ids are UUIDs and remain intact.
+            StringBuilder prefix = new StringBuilder(JAG_ACCESS_LOG_VALUE_MAX_LENGTH);
+            for (int offset = 0; offset < value.length();) {
+                int codePoint = value.codePointAt(offset);
+                String encodedCodePoint = URLEncoder.encode(new String(Character.toChars(codePoint)),
+                        StandardCharsets.UTF_8);
+                if (prefix.length() + encodedCodePoint.length() >
+                        JAG_ACCESS_LOG_VALUE_MAX_LENGTH - JAG_ACCESS_LOG_TRUNCATED_MARKER.length()) {
+                    break;
+                }
+                prefix.append(encodedCodePoint);
+                offset += Character.charCount(codePoint);
+            }
+            encodedValue = prefix.append(JAG_ACCESS_LOG_TRUNCATED_MARKER).toString();
+        }
+        if (query.length() > 0) {
+            query.append('&');
+        }
+        query.append(name).append('=').append(encodedValue);
     }
 
     AccessTokenResponse processAccessTokenExchangeRequest(ResourceContext ctx, Principal principal,
@@ -3669,6 +3725,8 @@ public class ZTSImpl implements ZTSHandler {
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(),
                 privateKey.getAlgorithm(), AccessToken.HDR_TOKEN_JAG);
 
+        setJAGAccessLogData(ctx, accessTokenRequest, principal, subjectIdentity, accessToken.getJwtId());
+
         return new AccessTokenResponse().setAccess_token(accessJwts).setToken_type(OAUTH_NA_TOKEN)
                 .setIssued_token_type(OAUTH_JAG_TOKEN).setExpires_in(tokenTimeout)
                 .setScope(generateScopeResponse(roleList, false));
@@ -3955,6 +4013,8 @@ public class ZTSImpl implements ZTSHandler {
 
         ServerPrivateKey privateKey = getSignPrivateKey(accessTokenRequest.getKeyType());
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
+
+        setJAGAccessLogData(ctx, accessTokenRequest, principal, principalName, accessToken.getJwtId());
 
         AccessTokenResponse response = new AccessTokenResponse().setAccess_token(accessJwts)
                 .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in(tokenTimeout);
