@@ -66,5 +66,5 @@ func assertEqual(t *testing.T, a interface{}, b interface{}, message string) {
 
 	message += fmt.Sprintf("%v != %v", a, b)
 
-	t.Fatalf(message)
+	t.Fatal(message)
 }
