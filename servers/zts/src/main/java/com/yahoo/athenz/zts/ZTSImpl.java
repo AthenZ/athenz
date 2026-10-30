@@ -258,6 +258,8 @@ public class ZTSImpl implements ZTSHandler {
     private static final String USER_AGENT_HDR = "User-Agent";
 
     private static final String ACCESS_LOG_ADDL_QUERY = "com.yahoo.athenz.uri.addl_query";
+    private static final int JAG_ACCESS_LOG_VALUE_MAX_LENGTH = 256;
+    private static final String JAG_ACCESS_LOG_TRUNCATED_MARKER = "...%5Btruncated%5D";
 
     private static final String SYS_AUTH = "sys.auth";
 
@@ -2869,10 +2871,28 @@ public class ZTSImpl implements ZTSHandler {
         if (StringUtil.isEmpty(value)) {
             return;
         }
+        String encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8);
+        if (encodedValue.length() > JAG_ACCESS_LOG_VALUE_MAX_LENGTH) {
+            // Keep the encoded value bounded without splitting a UTF-8 character or
+            // a percent escape. ZTS-issued token ids are UUIDs and remain intact.
+            StringBuilder prefix = new StringBuilder(JAG_ACCESS_LOG_VALUE_MAX_LENGTH);
+            for (int offset = 0; offset < value.length();) {
+                int codePoint = value.codePointAt(offset);
+                String encodedCodePoint = URLEncoder.encode(new String(Character.toChars(codePoint)),
+                        StandardCharsets.UTF_8);
+                if (prefix.length() + encodedCodePoint.length() >
+                        JAG_ACCESS_LOG_VALUE_MAX_LENGTH - JAG_ACCESS_LOG_TRUNCATED_MARKER.length()) {
+                    break;
+                }
+                prefix.append(encodedCodePoint);
+                offset += Character.charCount(codePoint);
+            }
+            encodedValue = prefix.append(JAG_ACCESS_LOG_TRUNCATED_MARKER).toString();
+        }
         if (query.length() > 0) {
             query.append('&');
         }
-        query.append(name).append('=').append(URLEncoder.encode(value, StandardCharsets.UTF_8));
+        query.append(name).append('=').append(encodedValue);
     }
 
     AccessTokenResponse processAccessTokenExchangeRequest(ResourceContext ctx, Principal principal,

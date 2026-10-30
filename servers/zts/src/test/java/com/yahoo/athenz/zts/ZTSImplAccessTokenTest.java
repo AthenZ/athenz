@@ -68,6 +68,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
 
 import java.io.*;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -4026,6 +4027,28 @@ public class ZTSImplAccessTokenTest {
             assertTrue(failedExchangeLog.contains("jag_jti=" + claimSet.getJWTID()));
             assertFalse(failedExchangeLog.contains("access_token_jti="));
 
+            String longJti = claimSet.getJWTID() + "&access_token_jti=forged" + "x".repeat(300);
+            SignedJWT longJtiJag = new SignedJWT(signedJWT.getHeader(),
+                    new JWTClaimsSet.Builder(claimSet).jwtID(longJti).build());
+            longJtiJag.sign(JwtsHelper.getJWSSigner(serverPrivateKey.getKey()));
+            Mockito.clearInvocations(mockServletRequest);
+            try {
+                ztsImpl.postAccessTokenRequest(context, jagExchangeRequest.replace(
+                        response.getAccess_token(), longJtiJag.serialize()));
+                fail();
+            } catch (ResourceException ex) {
+                assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            }
+            String longJtiLog = lastAccessLogQuery();
+            String loggedJti = Arrays.stream(longJtiLog.split("&"))
+                    .filter(param -> param.startsWith("jag_jti="))
+                    .findFirst().orElseThrow().substring("jag_jti=".length());
+            assertTrue(loggedJti.length() <= 256);
+            assertTrue(loggedJti.startsWith(claimSet.getJWTID()));
+            assertTrue(loggedJti.endsWith("...%5Btruncated%5D"));
+            assertFalse(longJtiLog.contains("&access_token_jti=forged"));
+            assertFalse(longJtiLog.contains("access_token_jti="));
+
             try {
                 ztsImpl.postAccessTokenRequest(context, jagExchangeRequest + "&audience=storage");
                 fail();
@@ -5046,7 +5069,7 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
-    public void testProcessJAGTokenIssueRequestSuccessWithExternalProvider() throws JOSEException {
+    public void testProcessJAGTokenIssueRequestSuccessWithExternalProvider() throws JOSEException, ParseException {
 
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
         System.setProperty(ZTSConsts.ZTS_PROP_PROVIDER_CONFIG_FILE, "src/test/resources/provider.config.json");
@@ -5158,6 +5181,25 @@ public class ZTSImplAccessTokenTest {
         assertTrue(encodedIssueLog.contains("token_subject=a0001%26jag_jti%3Dforged"));
         assertTrue(encodedIssueLog.contains("subject=user_domain.user"));
         assertFalse(encodedIssueLog.contains("&jag_jti=forged"));
+
+        String longSubject = "a0001&jag_jti=forged" + "\u6f22".repeat(300);
+        String longSubjectToken = createIdToken(privateKey, "0", longSubject,
+                "user_domain.proxy-user1", expiryTime);
+        Mockito.clearInvocations(mockServletRequest);
+        AccessTokenResponse longSubjectResponse = ztsImpl.postAccessTokenRequest(context,
+                tokenRequest.replace(subjectToken, longSubjectToken));
+        String longSubjectLog = lastAccessLogQuery();
+        String loggedSubject = Arrays.stream(longSubjectLog.split("&"))
+                .filter(param -> param.startsWith("token_subject="))
+                .findFirst().orElseThrow().substring("token_subject=".length());
+        assertTrue(loggedSubject.length() <= 256);
+        assertTrue(loggedSubject.endsWith("...%5Btruncated%5D"));
+        String decodedSubject = URLDecoder.decode(loggedSubject, StandardCharsets.UTF_8);
+        assertTrue(decodedSubject.startsWith("a0001&jag_jti=forged"));
+        assertFalse(decodedSubject.contains("\uFFFD"));
+        String issuedJti = SignedJWT.parse(longSubjectResponse.getAccess_token()).getJWTClaimsSet().getJWTID();
+        assertTrue(longSubjectLog.contains("jag_jti=" + issuedJti));
+        assertFalse(longSubjectLog.contains("access_token_jti="));
 
         cloudStore.close();
 
