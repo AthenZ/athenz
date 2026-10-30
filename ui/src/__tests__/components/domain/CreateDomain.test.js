@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import CreateDomain from '../../../components/domain/CreateDomain';
-import API from '../../../api';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
+import MockApi from '../../../mock/MockApi';
+
+afterEach(() => {
+    MockApi.cleanMockApi();
+});
 
 describe('CreateDomains', () => {
     it('should render', () => {
@@ -29,5 +33,58 @@ describe('CreateDomains', () => {
         );
         const userDomains = getByTestId('buttongroup');
         expect(userDomains).toMatchSnapshot();
+    });
+
+    it('should not show description input for top level domain', () => {
+        renderWithRedux(<CreateDomain createDomainMessage={''} />);
+
+        expect(screen.queryByText('Description')).toBeNull();
+    });
+
+    it('should create sub domain with description', async () => {
+        const api = {
+            createSubDomain: jest.fn().mockReturnValue(Promise.resolve()),
+        };
+        MockApi.setMockApi(api);
+
+        renderWithRedux(
+            <CreateDomain
+                createDomainMessage={''}
+                userId={'testuser'}
+                _csrf={'csrf-token'}
+            />,
+            { domains: { domainsList: [] } }
+        );
+
+        fireEvent.click(screen.getByText('Sub Domain'));
+        expect(screen.getByText('Description')).toBeInTheDocument();
+
+        fireEvent.change(
+            screen.getByPlaceholderText('Enter an existing domain'),
+            {
+                target: { value: 'athens' },
+            }
+        );
+        fireEvent.change(
+            screen.getByPlaceholderText('Enter a new sub-domain'),
+            {
+                target: { value: 'ci' },
+            }
+        );
+        fireEvent.change(
+            screen.getByPlaceholderText('Enter a description (optional)'),
+            { target: { value: '  test sub domain  ' } }
+        );
+        fireEvent.click(screen.getByText('Submit'));
+
+        await waitFor(() =>
+            expect(api.createSubDomain).toHaveBeenCalledWith(
+                'athens',
+                'ci',
+                'user.testuser',
+                'test sub domain',
+                'csrf-token'
+            )
+        );
     });
 });

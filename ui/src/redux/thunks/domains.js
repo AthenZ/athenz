@@ -137,7 +137,7 @@ export const getBusinessServicesAll = () => async (dispatch, getState) => {
 };
 
 export const createSubDomain =
-    (parentDomain, subDomain, adminUser, _csrf) =>
+    (parentDomain, subDomain, adminUser, description, _csrf) =>
     async (dispatch, getState) => {
         await dispatch(getUserDomainsList());
         const domainName = getFullName(
@@ -149,7 +149,13 @@ export const createSubDomain =
         if (domain) {
             throw buildErrorForDuplicateCase('Domain', domainName);
         }
-        await API().createSubDomain(parentDomain, subDomain, adminUser, _csrf);
+        await API().createSubDomain(
+            parentDomain,
+            subDomain,
+            adminUser,
+            description,
+            _csrf
+        );
         dispatch(addDomainToUserDomainsList(domainName));
         return Promise.resolve();
     };
