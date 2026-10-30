@@ -3038,6 +3038,30 @@ public class DataStoreTest {
     }
 
     @Test
+    public void testProcessJWSDomainCaseSensitiveAssertion() {
+
+        ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                pkey, "0");
+        DataStore store = new DataStore(clogStore, null, ztsMetric);
+        store.loadAthenzPublicKeys();
+
+        // the case-sensitive flag is not part of the policy signature so
+        // setting it after the domain is signed must not invalidate the data
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather");
+        com.yahoo.athenz.zms.Assertion assertion = signedDomain.getDomain().getPolicies()
+                .getContents().getPolicies().get(0).getAssertions().get(0);
+        assertion.setCaseSensitive(true);
+        JWSDomain jwsDomain = signJwsDomain(signedDomain.getDomain(), "0");
+        assertTrue(store.processJWSDomain(jwsDomain, false));
+
+        DomainData domainData = store.getDomainData("coretech");
+        assertNotNull(domainData);
+        assertEquals(domainData.getPolicies().getContents().getPolicies().get(0)
+                .getAssertions().get(0).getCaseSensitive(), Boolean.TRUE);
+    }
+
+    @Test
     public void testProcessLocalJWSDomainDisabled() {
 
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",

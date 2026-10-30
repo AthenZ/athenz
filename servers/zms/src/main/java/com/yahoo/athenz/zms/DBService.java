@@ -698,6 +698,10 @@ public class DBService implements RolesProvider, DomainProvider {
                 insertOp, deleteOp, updateModTimestamp);
     }
 
+    boolean isCaseSensitive(Assertion assertion) {
+        return assertion.getCaseSensitive() == Boolean.TRUE;
+    }
+
     boolean removeMatchedAssertion(Assertion assertion, List<Assertion> assertions, List<Assertion> matchedAssertions) {
 
         AssertionEffect effect = AssertionEffect.ALLOW;
@@ -726,6 +730,10 @@ public class DBService implements RolesProvider, DomainProvider {
             }
 
             if (effect != checkEffect) {
+                continue;
+            }
+
+            if (isCaseSensitive(assertion) != isCaseSensitive(checkAssertion)) {
                 continue;
             }
 
@@ -6135,6 +6143,7 @@ public class DBService implements RolesProvider, DomainProvider {
             for (Assertion assertion : assertions) {
                 Assertion newAssertion = new Assertion();
                 newAssertion.setEffect(assertion.getEffect());
+                newAssertion.setCaseSensitive(assertion.getCaseSensitive());
 
                 // process our assertion resource and role for any requested substitutions
 

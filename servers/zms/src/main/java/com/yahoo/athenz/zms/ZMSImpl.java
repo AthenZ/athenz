@@ -8675,6 +8675,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     Assertion newAssertion = new Assertion();
                     if (includeConditions) {
                         newAssertion.setId(assertion.getId());
+                        if (assertion.getCaseSensitive() == Boolean.TRUE) {
+                            newAssertion.setCaseSensitive(Boolean.TRUE);
+                        }
                         if (assertion.getConditions() != null) {
                             AssertionConditions assertionConditionsCopy = new AssertionConditions();
                             assertionConditionsCopy.setConditionsList(assertion.getConditions().getConditionsList().stream()

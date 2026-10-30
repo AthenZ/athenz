@@ -61,6 +61,7 @@ public final class JDBCConsts {
     public static final String DB_COLUMN_RESOURCE           = "resource";
     public static final String DB_COLUMN_ACTION             = "action";
     public static final String DB_COLUMN_EFFECT             = "effect";
+    public static final String DB_COLUMN_CASE_SENSITIVE     = "case_sensitive";
     public static final String DB_COLUMN_KEY_VALUE          = "key_value";
     public static final String DB_COLUMN_KEY_ID             = "key_id";
     public static final String DB_COLUMN_SVC_USER           = "svc_user";

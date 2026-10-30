@@ -5309,7 +5309,10 @@ public class ZMSImplTest {
         // modify the assertion: result is add of new assertion, delete of old
         //
         obj.setAction("layup");
-        // We'll set the policy to not be case-sensitive. So even though we didn't override the resource name, it will be lower-cased
+        // We'll set the policy and the assertion (which is returned with its stored case-sensitive flag)
+        // to not be case-sensitive. So even though we didn't override the resource name, it will be lower-cased
+        assertEquals(obj.getCaseSensitive(), Boolean.TRUE);
+        obj.setCaseSensitive(false);
         policy1.setCaseSensitive(false);
         obj.setEffect(AssertionEffect.DENY);
         List<Assertion> assertions = new ArrayList<>();
@@ -5497,13 +5500,44 @@ public class ZMSImplTest {
         assertNotNull(policyRes2);
         assertEquals(policyRes2.getName(), "PolicyAddDom1:policy.Policy1".toLowerCase());
         List<Assertion> assertions = policyRes2.getAssertions();
-        assertEquals(assertions.size(), 3); // assertion 2 and 3 are considered identical so only one remained
+        assertEquals(assertions.size(), 4); // assertion 2 and 3 differ in case only so both are stored
 
         assertEquals(assertions.get(1).getAction(), "ReaD");
         assertEquals(assertions.get(1).getResource(), "coretech:RESOURCE");
 
-        assertEquals(assertions.get(2).getAction(), "WritE");
-        assertEquals(assertions.get(2).getResource(), "coretech:OtherResource");
+        assertEquals(assertions.get(2).getAction(), "READ");
+        assertEquals(assertions.get(2).getResource(), "coretech:Resource");
+
+        assertEquals(assertions.get(3).getAction(), "WritE");
+        assertEquals(assertions.get(3).getResource(), "coretech:OtherResource");
+
+        // now create a policy with the same assertions but without the case-sensitive
+        // flag. all values are lower-cased so assertion 2 and 3 become identical
+        // and only one of them is stored
+
+        Policy policy2 = zmsTestInitializer.createPolicyObject("PolicyAddDom1", "Policy2");
+        policy2.getAssertions().add(new Assertion().setAction("ReaD").setEffect(AssertionEffect.ALLOW)
+                .setResource("coretech:RESOURCE").setRole("PolicyAddDom1:role.provider"));
+        policy2.getAssertions().add(new Assertion().setAction("READ").setEffect(AssertionEffect.ALLOW)
+                .setResource("coretech:Resource").setRole("PolicyAddDom1:role.provider"));
+        policy2.getAssertions().add(new Assertion().setAction("WritE").setEffect(AssertionEffect.ALLOW)
+                .setResource("coretech:OtherResource").setRole("PolicyAddDom1:role.provider"));
+
+        zmsImpl.putPolicy(ctx, "PolicyAddDom1", "Policy2", auditRef, false, null, policy2);
+
+        Policy policyRes3 = zmsImpl.getPolicy(ctx, "PolicyAddDom1", "Policy2");
+        assertNotNull(policyRes3);
+        assertEquals(policyRes3.getName(), "PolicyAddDom1:policy.Policy2".toLowerCase());
+        assertions = policyRes3.getAssertions();
+        assertEquals(assertions.size(), 3); // assertion 2 and 3 are identical once lower-cased
+
+        assertEquals(assertions.get(1).getAction(), "read");
+        assertEquals(assertions.get(1).getResource(), "coretech:resource");
+        assertNull(assertions.get(1).getCaseSensitive());
+
+        assertEquals(assertions.get(2).getAction(), "write");
+        assertEquals(assertions.get(2).getResource(), "coretech:otherresource");
+        assertNull(assertions.get(2).getCaseSensitive());
 
         zmsImpl.deleteTopLevelDomain(ctx, "PolicyAddDom1", auditRef, null);
     }
@@ -17045,7 +17079,7 @@ public class ZMSImplTest {
     }
 
     @Test
-    public void testGetAssertionCaseSensitive() {
+    public void testGetAssertionCaseSensitive() throws Exception {
 
         ZMSImpl zmsImpl = zmsTestInitializer.getZms();
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
@@ -17070,18 +17104,55 @@ public class ZMSImplTest {
         Policy policyRes = zmsImpl.getPolicy(ctx, domainName, "policy1");
         Long assertionId = policyRes.getAssertions().get(0).getId();
 
+        assertEquals(policyRes.getAssertions().get(0).getCaseSensitive(), Boolean.TRUE);
+
         Assertion assertion = zmsImpl.getAssertion(ctx, domainName, "policy1", assertionId);
         assertNotNull(assertion);
         assertEquals(assertion.getAction(), "ActioN1");
         assertEquals(assertion.getResource(), domainName + ":SomeResource");
+        assertEquals(assertion.getCaseSensitive(), Boolean.TRUE);
 
         policyRes = zmsImpl.getPolicy(ctx, domainName, "policy2");
         assertionId = policyRes.getAssertions().get(0).getId();
+        assertNull(policyRes.getAssertions().get(0).getCaseSensitive());
 
         assertion = zmsImpl.getAssertion(ctx, domainName, "policy2", assertionId);
         assertNotNull(assertion);
         assertEquals(assertion.getAction(), "action2");
         assertEquals(assertion.getResource(), domainName + ":someresource2");
+        assertNull(assertion.getCaseSensitive());
+
+        // the case-sensitive flag must be included in the domain data that zts retrieves
+
+        Response response = zmsImpl.getJWSDomain(ctx, domainName, null, null);
+        DomainData domainData = zmsTestInitializer.getDomainData((JWSDomain) response.getEntity());
+        for (Policy domainPolicy : domainData.getPolicies().getContents().getPolicies()) {
+            Boolean caseSensitive = domainPolicy.getAssertions().get(0).getCaseSensitive();
+            if (domainPolicy.getName().equals(domainName + ":policy.policy1")) {
+                assertEquals(caseSensitive, Boolean.TRUE);
+            } else {
+                assertNull(caseSensitive);
+            }
+        }
+
+        // a new policy version must keep the case-sensitive flag
+
+        zmsImpl.putPolicyVersion(ctx, domainName, "policy1",
+                new PolicyOptions().setVersion("new-version"), auditRef, false, null);
+        Policy versionPolicy = zmsImpl.getPolicyVersion(ctx, domainName, "policy1", "new-version");
+        assertEquals(versionPolicy.getAssertions().get(0).getAction(), "ActioN1");
+        assertEquals(versionPolicy.getAssertions().get(0).getCaseSensitive(), Boolean.TRUE);
+
+        // turning off the case-sensitive flag on an otherwise identical
+        // assertion must be persisted as well
+
+        Policy updatePolicy = zmsTestInitializer.createPolicyObject(domainName, "policy2", "Role1",
+                "action2", domainName + ":someresource2", AssertionEffect.ALLOW);
+        updatePolicy.setCaseSensitive(true);
+        zmsImpl.putPolicy(ctx, domainName, "policy2", auditRef, false, null, updatePolicy);
+        policyRes = zmsImpl.getPolicy(ctx, domainName, "policy2");
+        assertEquals(policyRes.getAssertions().size(), 1);
+        assertEquals(policyRes.getAssertions().get(0).getCaseSensitive(), Boolean.TRUE);
 
         zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
@@ -17273,6 +17344,174 @@ public class ZMSImplTest {
         } finally {
             zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
         }
+    }
+
+    private Assertion createCaseSensitiveAssertion(final String domainName, final String action) {
+        return new Assertion().setRole(ResourceUtils.roleResourceName(domainName, "admin"))
+                .setResource(domainName + ":Resource").setAction(action)
+                .setEffect(AssertionEffect.ALLOW).setCaseSensitive(true);
+    }
+
+    private Map<String, Assertion> getPolicyAssertionsByAction(ZMSImpl zmsImpl, RsrcCtxWrapper ctx,
+            final String domainName, final String policyName) {
+
+        Policy policy = zmsImpl.getPolicy(ctx, domainName, policyName);
+        Map<String, Assertion> assertions = new HashMap<>();
+        for (Assertion assertion : policy.getAssertions()) {
+            assertNull(assertions.put(assertion.getAction(), assertion));
+        }
+        return assertions;
+    }
+
+    private void verifyCaseSensitiveAssertions(Map<String, Assertion> assertions, final String domainName,
+            final String... actions) {
+
+        assertEquals(assertions.size(), actions.length);
+        for (String action : actions) {
+            Assertion assertion = assertions.get(action);
+            assertNotNull(assertion, "missing assertion with action: " + action);
+            assertEquals(assertion.getResource(), domainName + ":Resource");
+            assertEquals(assertion.getRole(), ResourceUtils.roleResourceName(domainName, "admin"));
+            assertEquals(assertion.getEffect(), AssertionEffect.ALLOW);
+            assertEquals(assertion.getCaseSensitive(), Boolean.TRUE);
+            assertNotNull(assertion.getId());
+        }
+    }
+
+    @Test
+    public void testCaseSensitiveAssertionsDifferentActionCase() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        // the domain admin must be the principal from our context
+        // to be authorized to delete the assertion
+
+        final String domainName = "case-sensitive-actions";
+        final String policyName = "policy1";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", "user.user1");
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        // create a policy with two case-sensitive assertions where
+        // the only difference is the case of the action
+
+        Policy policy = new Policy().setName(ResourceUtils.policyResourceName(domainName, policyName));
+        List<Assertion> assertions = new ArrayList<>();
+        assertions.add(createCaseSensitiveAssertion(domainName, "GET"));
+        assertions.add(createCaseSensitiveAssertion(domainName, "get"));
+        policy.setAssertions(assertions);
+        zmsImpl.putPolicy(ctx, domainName, policyName, auditRef, false, null, policy);
+
+        Map<String, Assertion> policyAssertions = getPolicyAssertionsByAction(zmsImpl, ctx, domainName, policyName);
+        verifyCaseSensitiveAssertions(policyAssertions, domainName, "GET", "get");
+
+        // add another case-sensitive assertion with action Get
+
+        Assertion assertion = zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, null,
+                createCaseSensitiveAssertion(domainName, "Get"));
+        assertEquals(assertion.getAction(), "Get");
+        assertEquals(assertion.getCaseSensitive(), Boolean.TRUE);
+
+        policyAssertions = getPolicyAssertionsByAction(zmsImpl, ctx, domainName, policyName);
+        verifyCaseSensitiveAssertions(policyAssertions, domainName, "GET", "get", "Get");
+
+        Assertion getAssertion = zmsImpl.getAssertion(ctx, domainName, policyName, assertion.getId());
+        assertEquals(getAssertion.getAction(), "Get");
+        assertEquals(getAssertion.getCaseSensitive(), Boolean.TRUE);
+
+        // remove the assertion with action GET and verify the others are not affected
+
+        final Long getUpperId = policyAssertions.get("GET").getId();
+        zmsImpl.deleteAssertion(ctx, domainName, policyName, getUpperId, auditRef, null);
+
+        try {
+            zmsImpl.getAssertion(ctx, domainName, policyName, getUpperId);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.NOT_FOUND);
+        }
+
+        Map<String, Assertion> updatedAssertions = getPolicyAssertionsByAction(zmsImpl, ctx, domainName, policyName);
+        verifyCaseSensitiveAssertions(updatedAssertions, domainName, "get", "Get");
+        assertEquals(updatedAssertions.get("get").getId(), policyAssertions.get("get").getId());
+        assertEquals(updatedAssertions.get("Get").getId(), policyAssertions.get("Get").getId());
+
+        // finally put the policy with the original two assertions. the GET
+        // assertion must be added back, the Get assertion removed and the
+        // get assertion must be kept as is
+
+        zmsImpl.putPolicy(ctx, domainName, policyName, auditRef, false, null, policy);
+
+        Map<String, Assertion> finalAssertions = getPolicyAssertionsByAction(zmsImpl, ctx, domainName, policyName);
+        verifyCaseSensitiveAssertions(finalAssertions, domainName, "GET", "get");
+        assertEquals(finalAssertions.get("get").getId(), policyAssertions.get("get").getId());
+        assertNotEquals(finalAssertions.get("GET").getId(), getUpperId);
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
+    }
+
+    @Test
+    public void testPutAssertionDifferentCaseSensitiveFlagOnly() {
+
+        ZMSImpl zmsImpl = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String auditRef = zmsTestInitializer.getAuditRef();
+
+        final String domainName = "case-sensitive-flag-only";
+        final String policyName = "policy1";
+        TopLevelDomain dom1 = zmsTestInitializer.createTopLevelDomainObject(domainName,
+                "Test Domain1", "testOrg", zmsTestInitializer.getAdminUser());
+        zmsImpl.postTopLevelDomain(ctx, auditRef, null, dom1);
+
+        // create a policy with a single case-sensitive assertion with lower-case values
+
+        final String role = ResourceUtils.roleResourceName(domainName, "admin");
+        final String resource = domainName + ":resource";
+        Policy policy = new Policy().setName(ResourceUtils.policyResourceName(domainName, policyName));
+        List<Assertion> assertions = new ArrayList<>();
+        assertions.add(new Assertion().setRole(role).setResource(resource).setAction("read")
+                .setEffect(AssertionEffect.ALLOW).setCaseSensitive(true));
+        policy.setAssertions(assertions);
+        zmsImpl.putPolicy(ctx, domainName, policyName, auditRef, false, null, policy);
+
+        // add the same assertion without the case-sensitive flag. the assertions
+        // are not equivalent so both must be stored
+
+        zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, null,
+                new Assertion().setRole(role).setResource(resource).setAction("read")
+                        .setEffect(AssertionEffect.ALLOW));
+
+        Policy policyRes = zmsImpl.getPolicy(ctx, domainName, policyName);
+        assertEquals(policyRes.getAssertions().size(), 2);
+        int caseSensitiveCount = 0;
+        for (Assertion assertion : policyRes.getAssertions()) {
+            assertEquals(assertion.getAction(), "read");
+            assertEquals(assertion.getResource(), resource);
+            assertEquals(assertion.getRole(), role);
+            assertNotNull(assertion.getId());
+            if (assertion.getCaseSensitive() == Boolean.TRUE) {
+                caseSensitiveCount++;
+            } else {
+                assertNull(assertion.getCaseSensitive());
+            }
+        }
+        assertEquals(caseSensitiveCount, 1);
+
+        // adding exact duplicates (including the flag) must not create new assertions
+
+        zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, null,
+                new Assertion().setRole(role).setResource(resource).setAction("read")
+                        .setEffect(AssertionEffect.ALLOW).setCaseSensitive(true));
+        zmsImpl.putAssertion(ctx, domainName, policyName, auditRef, null,
+                new Assertion().setRole(role).setResource(resource).setAction("read")
+                        .setEffect(AssertionEffect.ALLOW).setCaseSensitive(false));
+
+        policyRes = zmsImpl.getPolicy(ctx, domainName, policyName);
+        assertEquals(policyRes.getAssertions().size(), 2);
+
+        zmsImpl.deleteTopLevelDomain(ctx, domainName, auditRef, null);
     }
 
     @Test
@@ -17696,6 +17935,30 @@ public class ZMSImplTest {
         // Verify case-sensitivity isn't returned
         assertNull(result.get(0).getCaseSensitive());
         assertNull(testAssertion.getCaseSensitive());
+
+        // with conditions requested, the assertion case-sensitive flag is returned
+        // only when it's set to true
+
+        Assertion assertion2 = new Assertion();
+        assertion2.setAction("read");
+        assertion2.setEffect(AssertionEffect.ALLOW);
+        assertion2.setResource(domainName + ":resource2");
+        assertion2.setRole(ResourceUtils.roleResourceName(domainName, "admin"));
+        assertion2.setId(102L);
+        assertion2.setCaseSensitive(false);
+        policy.getAssertions().add(assertion2);
+
+        result = zmsImpl.getDomainPolicyList(policyList, true);
+        assertEquals(result.size(), 1);
+        assertNull(result.get(0).getCaseSensitive());
+        List<Assertion> testAssertions = result.get(0).getAssertions();
+        for (Assertion check : testAssertions) {
+            if (Long.valueOf(101L).equals(check.getId())) {
+                assertEquals(check.getCaseSensitive(), Boolean.TRUE);
+            } else {
+                assertNull(check.getCaseSensitive());
+            }
+        }
     }
 
     @Test
@@ -23121,9 +23384,23 @@ public class ZMSImplTest {
 
         assertFalse(zmsImpl.dbService.removeMatchedAssertion(checkAssertion, assertions, matchedAssertions));
 
-        // full match
+        // match the effect but not the case-sensitive flag
 
         checkAssertion.setEffect(AssertionEffect.ALLOW);
+        checkAssertion.setCaseSensitive(true);
+        assertFalse(zmsImpl.dbService.removeMatchedAssertion(checkAssertion, assertions, matchedAssertions));
+
+        // full match - null and false case-sensitive flags are equivalent
+
+        checkAssertion.setCaseSensitive(false);
+        assertTrue(zmsImpl.dbService.removeMatchedAssertion(checkAssertion, assertions, matchedAssertions));
+
+        // full match with case-sensitive flag set on both
+
+        assertions.add(new Assertion().setAction("Action").setResource("Resource")
+                .setRole("role").setEffect(AssertionEffect.ALLOW).setCaseSensitive(true));
+        checkAssertion = new Assertion().setAction("Action").setResource("Resource")
+                .setRole("role").setEffect(AssertionEffect.ALLOW).setCaseSensitive(true);
         assertTrue(zmsImpl.dbService.removeMatchedAssertion(checkAssertion, assertions, matchedAssertions));
     }
 
