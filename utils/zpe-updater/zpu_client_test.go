@@ -288,8 +288,8 @@ func TestPolicyUpdaterWrongzts(t *testing.T) {
 func TestExpired(t *testing.T) {
 	a := assert.New(t)
 	current := time.Now()
-	future := rdl.NewTimestamp(current.AddDate(0, 0, 2))
-	past := rdl.NewTimestamp(current.AddDate(0, 0, -2))
+	future := rdl.NewTimestamp(current.Add(48 * time.Hour))
+	past := rdl.NewTimestamp(current.Add(-48 * time.Hour))
 	expireFlag := expired(past, 0)
 	a.Equal(expireFlag, true, "The date is in past")
 	expireFlag = expired(future, 0)
