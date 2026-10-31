@@ -1,3 +1,34 @@
+Athenz v1.12.51 Release / Oct 30, 2026
+--------------------------------------
+
+#3546 zms: support dynamic authorized services reload
+#3559 ui - run functional tests on macOS 14 in Sauce Labs
+#3560 ui - split self-service functional spec to stay under Sauce maxDuration
+#3561 ui - disable Sauce Labs extended debugging for functional tests
+#3562 Bump follow-redirects from 1.16.0 to 1.16.1 in /ui
+#3563 zts: reject role/group style audience values in caller specified token audiences
+#3565 zms/zts: reject over-long name values to prevent validator StackOverflowError
+#3567 sia: add sia_main_dir option to configure the athenz.conf directory
+#3568 zts: github actions provider - require lowercase for configured branch names
+#3570 ui - fix setOktaCookieinClients ReferenceError in clients middleware
+#3571 ui - fall back to zms when cloud sso resource access call fails
+#3572 Fix: Limit AT=>AT exchange to the assertion (AT)’s expiry
+#3573 zms - select only required columns for modified domain listings
+#3574 ui - allow entering a description when creating a sub domain
+#3576 zms: include domain featureFlags in signed domain responses
+#3578 docs - update development environment and server jdk requirements
+#3580 zts: correlate ID-JAG issuance and exchange in access logs
+#3582 add a new command in zmscli to use putDomainTemplateExt api
+#3583 zts: convert instance register expiry time from minutes to seconds for id tokens
+#3584 Bump multer from 2.4.0 to 2.5.0 in /ui
+#3587 Bump qs, body-parser and express in /ui
+#3588 Bump systeminformation from 5.33.15 to 5.33.18 in /ui
+#3589 zms: persist assertion case-sensitive flag and propagate to zts
+#3590 update java/go/nodejs dependencies to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20261030.sql
+
 Athenz v1.12.50 Release / Oct 18, 2026
 --------------------------------------
 
