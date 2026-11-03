@@ -17,6 +17,7 @@ package com.yahoo.athenz.zts;
 
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.zms.Assertion;
 import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.DomainPolicies;
@@ -235,5 +236,35 @@ public class ZTSAuthorizerTest {
         assertFalse(authz.access("update", "athenz:token", principal, null));
 
         ZTSAuthorizer.setRoleBasedAuthzSupport(false);
+    }
+
+    @Test
+    public void testValidateCaseSensitiveModeSupport() {
+
+        DataStore dataStore = Mockito.mock(DataStore.class);
+        Mockito.when(dataStore.isJwsDomainSupport()).thenReturn(false);
+
+        // disabled mode does not require jws support
+
+        ZTSAuthorizer authz = new ZTSAuthorizer(dataStore);
+        assertTrue(authz.validateCaseSensitiveModeSupport());
+
+        ZTSAuthorizer.setCaseSensitiveMode(AuthzHelper.CaseSensitiveMode.MONITOR);
+        try {
+            // without a data store there is nothing to check
+
+            assertTrue(new ZTSAuthorizer(null).validateCaseSensitiveModeSupport());
+
+            // monitor/enforce modes require jws support
+
+            assertFalse(authz.validateCaseSensitiveModeSupport());
+            ZTSAuthorizer.setCaseSensitiveMode(AuthzHelper.CaseSensitiveMode.ENFORCE);
+            assertFalse(authz.validateCaseSensitiveModeSupport());
+
+            Mockito.when(dataStore.isJwsDomainSupport()).thenReturn(true);
+            assertTrue(authz.validateCaseSensitiveModeSupport());
+        } finally {
+            ZTSAuthorizer.setCaseSensitiveMode(AuthzHelper.CaseSensitiveMode.DISABLED);
+        }
     }
 }

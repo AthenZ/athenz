@@ -56,6 +56,24 @@ public class ZTSAuthorizer implements Authorizer {
     public ZTSAuthorizer(final DataStore dataStore) {
         this.dataStore = dataStore;
         groupMembersFetcher = new ZTSGroupMembersFetcher(dataStore);
+        validateCaseSensitiveModeSupport();
+    }
+
+    boolean validateCaseSensitiveModeSupport() {
+
+        // the case-sensitive flag for assertions is only included in the
+        // domain data that zts retrieves from zms when jws domain support
+        // is enabled. without it, all assertions are matched case-insensitive
+        // regardless of the configured mode or the caller request
+
+        if (caseSensitiveMode != CaseSensitiveMode.DISABLED && dataStore != null
+                && !dataStore.isJwsDomainSupport()) {
+            LOGGER.warn("Case-sensitive authorization mode {} requires jws domain support "
+                    + "(athenz.zts.zms_domain_jws_support=true). Without it, all assertions "
+                    + "are matched case-insensitive", caseSensitiveMode);
+            return false;
+        }
+        return true;
     }
 
     public static void setRoleBasedAuthzSupport(boolean roleAuthzSupport) {
