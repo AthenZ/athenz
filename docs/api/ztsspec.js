@@ -1028,6 +1028,85 @@ var ztsspec = {
         }
       }
     },
+    "/v1/usercert" : {
+      "post" : {
+        "description" : "Return a TLS certificate for the given principal user",
+        "operationId" : "postUserCertificateRequest",
+        "requestBody" : {
+          "description" : "csr request",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UserCertificateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "User certificate issued successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserCertificate"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResourceError"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResourceError"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResourceError"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResourceError"
+                }
+              }
+            }
+          },
+          "429" : {
+            "description" : "Too many requests",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResourceError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/rolecert" : {
       "post" : {
         "description" : "Return a TLS certificate for a role that the principal can assume. The role arn is in the CN field of the Subject and the principal is in the SAN URI field.",
@@ -2371,6 +2450,56 @@ var ztsspec = {
             "items" : {
               "type" : "string"
             }
+          }
+        }
+      },
+      "ResourceError" : {
+        "type" : "object",
+        "properties" : {
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        }
+      },
+      "UserCertificateRequest" : {
+        "type" : "object",
+        "required" : [ "name", "csr", "attestationData" ],
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Name of the user"
+          },
+          "csr" : {
+            "type" : "string",
+            "description" : "User certificate signing request"
+          },
+          "attestationData" : {
+            "type" : "string",
+            "description" : "Identity attestation data"
+          },
+          "expiryTime" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Expiry time in minutes for the certificate (server enforces max expiry)"
+          },
+          "x509CertSignerKeyId" : {
+            "type" : "string",
+            "pattern" : "^[a-zA-Z0-9_][a-zA-Z0-9_-]*$",
+            "maxLength" : 512,
+            "description" : "Requested x509 cert signer key id"
+          }
+        }
+      },
+      "UserCertificate" : {
+        "type" : "object",
+        "required" : [ "x509Certificate" ],
+        "properties" : {
+          "x509Certificate" : {
+            "type" : "string"
           }
         }
       },
