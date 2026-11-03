@@ -25,6 +25,8 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -484,10 +486,13 @@ func TestHostCertificateLinePresent(test *testing.T) {
 		{"valid-mid-mix", "PermitTunnel no\n \t HostCertificate /sshd.config\nUseDNS no", "/sshd.config", true},
 		{"valid-end", "PermitTunnel no\nHostCertificate /sshd.config", "/sshd.config", true},
 		{"valid-commented", "PermitTunnel no\n#HostCertificate /sshd.config\nUseDNS no", "/sshd.config", false},
+		{"valid-case-insensitive", "PermitTunnel no\nhostcertificate /sshd.config\nUseDNS no", "/sshd.config", true},
+		{"valid-tab-separator", "PermitTunnel no\nHostCertificate\t/sshd.config\nUseDNS no", "/sshd.config", true},
 		{"valid-not-present1", "PermitTunnel no\nHostCertificateOther /sshd.config\nUseDNS no", "/sshd.config", false},
 		{"valid-not-present2", "PermitTunnel no\nHostCertificate/sshd.config\nUseDNS no", "/sshd.config", false},
 		{"valid-not-present3", "PermitTunnel no\n\nUseDNS no\n", "/sshd.config", false},
 		{"valid-not-present3", "PermitTunnel no\nHostCertificate /sshd2.config\nUseDNS no\n", "/sshd.config", false},
+		{"valid-partial-match", "PermitTunnel no\nHostCertificate /sshd.config.old\nUseDNS no\n", "/sshd.config", false},
 	}
 	for _, tt := range tests {
 		test.Run(tt.name, func(t *testing.T) {
@@ -496,7 +501,7 @@ func TestHostCertificateLinePresent(test *testing.T) {
 				log.Fatal("Cannot create temporary file", err)
 			}
 			defer os.Remove(tmpFile.Name())
-			os.WriteFile(tmpFile.Name(), []byte(tt.data), 644)
+			os.WriteFile(tmpFile.Name(), []byte(tt.data), 0644)
 			result, _ := hostCertificateLinePresent(tmpFile.Name(), tt.certFile)
 			if result != tt.result {
 				test.Errorf("%s: invalid value returned - expected: %v, received %v", tt.name, tt.result, result)
@@ -507,12 +512,53 @@ func TestHostCertificateLinePresent(test *testing.T) {
 
 func TestUpdateSSHConfigFile(test *testing.T) {
 	tests := []struct {
-		name   string
-		data   string
-		result string
+		name     string
+		data     string
+		certFile string
+		result   string
 	}{
-		{"test1", "PermitTunnel no\nUseDNS no", "PermitTunnel no\nUseDNS no\nHostCertificate /sshd.config\n"},
-		{"test2", "PermitTunnel no\n#HostCertificate /sshd.config\nUseDNS no\n", "PermitTunnel no\n#HostCertificate /sshd.config\nUseDNS no\n\nHostCertificate /sshd.config\n"},
+		{
+			"append-at-end",
+			"PermitTunnel no\nUseDNS no",
+			"/sshd.config",
+			"PermitTunnel no\nUseDNS no\nHostCertificate /sshd.config\n",
+		},
+		{
+			"commented-line-not-considered",
+			"PermitTunnel no\n#HostCertificate /sshd.config\nUseDNS no\n",
+			"/sshd.config",
+			"PermitTunnel no\n#HostCertificate /sshd.config\nUseDNS no\n\nHostCertificate /sshd.config\n",
+		},
+		{
+			"rsa-to-ecdsa-comments-out-rsa",
+			"HostKey /etc/ssh/ssh_host_rsa_key\nHostCertificate /etc/ssh/ssh_host_rsa_key-cert.pub\nUseDNS no\n",
+			"/etc/ssh/ssh_host_ecdsa_key-cert.pub",
+			"HostKey /etc/ssh/ssh_host_rsa_key\n#HostCertificate /etc/ssh/ssh_host_rsa_key-cert.pub\nUseDNS no\n\nHostCertificate /etc/ssh/ssh_host_ecdsa_key-cert.pub\n",
+		},
+		{
+			"ecdsa-to-rsa-comments-out-ecdsa",
+			"HostCertificate /etc/ssh/ssh_host_ecdsa_key-cert.pub\nUseDNS no\n",
+			"/etc/ssh/ssh_host_rsa_key-cert.pub",
+			"#HostCertificate /etc/ssh/ssh_host_ecdsa_key-cert.pub\nUseDNS no\n\nHostCertificate /etc/ssh/ssh_host_rsa_key-cert.pub\n",
+		},
+		{
+			"multiple-stale-types-commented-out",
+			"HostCertificate /etc/ssh/ssh_host_rsa_key-cert.pub\nHostCertificate /etc/ssh/ssh_host_ed25519_key-cert.pub\n",
+			"/etc/ssh/ssh_host_ecdsa_key-cert.pub",
+			"#HostCertificate /etc/ssh/ssh_host_rsa_key-cert.pub\n#HostCertificate /etc/ssh/ssh_host_ed25519_key-cert.pub\n\nHostCertificate /etc/ssh/ssh_host_ecdsa_key-cert.pub\n",
+		},
+		{
+			"custom-path-cert-not-touched",
+			"HostCertificate /etc/ssh/operator-managed-cert.pub\nUseDNS no\n",
+			"/etc/ssh/ssh_host_ecdsa_key-cert.pub",
+			"HostCertificate /etc/ssh/operator-managed-cert.pub\nUseDNS no\n\nHostCertificate /etc/ssh/ssh_host_ecdsa_key-cert.pub\n",
+		},
+		{
+			"insert-before-match-block",
+			"UseDNS no\nHostCertificate /etc/ssh/ssh_host_rsa_key-cert.pub\nMatch User backup\n\tPermitTTY no\n",
+			"/etc/ssh/ssh_host_ecdsa_key-cert.pub",
+			"UseDNS no\n#HostCertificate /etc/ssh/ssh_host_rsa_key-cert.pub\nHostCertificate /etc/ssh/ssh_host_ecdsa_key-cert.pub\nMatch User backup\n\tPermitTTY no\n",
+		},
 	}
 	for _, tt := range tests {
 		test.Run(tt.name, func(t *testing.T) {
@@ -521,8 +567,8 @@ func TestUpdateSSHConfigFile(test *testing.T) {
 				log.Fatal("Cannot create temporary file", err)
 			}
 			defer os.Remove(tmpFile.Name())
-			os.WriteFile(tmpFile.Name(), []byte(tt.data), 644)
-			err = updateSSHConfigFile(tmpFile.Name(), "/sshd.config")
+			os.WriteFile(tmpFile.Name(), []byte(tt.data), 0644)
+			err = updateSSHConfigFile(tmpFile.Name(), tt.certFile, false)
 			if err != nil {
 				test.Errorf("%s: unable to update file %s - error: %v", tt.name, tmpFile.Name(), err)
 			}
@@ -530,6 +576,126 @@ func TestUpdateSSHConfigFile(test *testing.T) {
 			if tt.result != string(data) {
 				test.Errorf("%s: invalid value returned - expected: %v, received %v", tt.name, tt.result, string(data))
 			}
+		})
+	}
+}
+
+func TestSiblingHostCertFiles(test *testing.T) {
+	certFiles := siblingHostCertFiles("/etc/ssh/ssh_host_ecdsa_key-cert.pub")
+	assert.Equal(test, []string{"/etc/ssh/ssh_host_rsa_key-cert.pub", "/etc/ssh/ssh_host_ed25519_key-cert.pub"}, certFiles)
+	certFiles = siblingHostCertFiles("/etc/ssh/ssh_host_rsa_key-cert.pub")
+	assert.Equal(test, []string{"/etc/ssh/ssh_host_ecdsa_key-cert.pub", "/etc/ssh/ssh_host_ed25519_key-cert.pub"}, certFiles)
+}
+
+func TestHostCertificateFile(test *testing.T) {
+	tests := []struct {
+		name     string
+		line     string
+		certFile string
+	}{
+		{"standard", "HostCertificate /etc/ssh/cert.pub", "/etc/ssh/cert.pub"},
+		{"leading-whitespace", " \t HostCertificate /etc/ssh/cert.pub", "/etc/ssh/cert.pub"},
+		{"case-insensitive", "HOSTCERTIFICATE /etc/ssh/cert.pub", "/etc/ssh/cert.pub"},
+		{"commented", "#HostCertificate /etc/ssh/cert.pub", ""},
+		{"no-value", "HostCertificate", ""},
+		{"other-keyword", "HostKey /etc/ssh/ssh_host_rsa_key", ""},
+		{"empty", "", ""},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.certFile, hostCertificateFile(tt.line))
+		})
+	}
+}
+
+// createFakeCommand creates an executable shell script with the given body
+// in the given directory and returns its path
+func createFakeCommand(test *testing.T, dir, name, body string) string {
+	command := filepath.Join(dir, name)
+	if err := os.WriteFile(command, []byte("#!/bin/sh\n"+body+"\n"), 0755); err != nil {
+		test.Fatalf("unable to create fake %s command, error: %v", name, err)
+	}
+	return command
+}
+
+func TestCheckSshdConfig(test *testing.T) {
+	dir := test.TempDir()
+	sshd := createFakeCommand(test, dir, "sshd", "exit 0")
+	if err := checkSshdConfig(sshd, "/sshd.config"); err != nil {
+		test.Errorf("unexpected error for valid config: %v", err)
+	}
+	sshd = createFakeCommand(test, dir, "sshd-bad", "echo \"/sshd.config line 5: Bad configuration option\" >&2\nexit 255")
+	err := checkSshdConfig(sshd, "/sshd.config")
+	if err == nil {
+		test.Fatal("expected error for invalid config")
+	}
+	if !strings.Contains(err.Error(), "Bad configuration option") {
+		test.Errorf("expected error to include sshd output, got: %v", err)
+	}
+}
+
+func TestReloadSshdService(test *testing.T) {
+	tests := []struct {
+		name            string
+		systemctlBody   string
+		expectedErrs    []string
+		expectedReloads []string
+	}{
+		{
+			//the common case: the sshd unit reloads
+			name:            "reload-sshd-unit",
+			systemctlBody:   "exit 0",
+			expectedReloads: []string{"reload-or-restart sshd"},
+		},
+		{
+			//debian/ubuntu without the sshd alias: the sshd unit is
+			//unknown so we must fall back to the ssh unit
+			name:            "fallback-to-ssh-unit",
+			systemctlBody:   "if [ \"$2\" = \"ssh\" ]; then exit 0; fi\necho \"Unit sshd.service not found.\" >&2\nexit 5",
+			expectedReloads: []string{"reload-or-restart sshd", "reload-or-restart ssh"},
+		},
+		{
+			//when both unit names fail the error must carry the
+			//output of both attempts
+			name:          "all-units-fail",
+			systemctlBody: "echo \"Job for $2.service failed.\" >&2\nexit 1",
+			expectedErrs: []string{
+				"unable to reload sshd service",
+				"reload-or-restart sshd", "Job for sshd.service failed.",
+				"reload-or-restart ssh", "Job for ssh.service failed.",
+			},
+			expectedReloads: []string{"reload-or-restart sshd", "reload-or-restart ssh"},
+		},
+	}
+	for _, tt := range tests {
+		test.Run(tt.name, func(t *testing.T) {
+			dir := t.TempDir()
+			logFile := filepath.Join(dir, "systemctl.log")
+			//the fake systemctl records every invocation before
+			//executing the test case specific body
+			systemctl := createFakeCommand(t, dir, "systemctl",
+				"printf '%s\\n' \"$*\" >> \""+logFile+"\"\n"+tt.systemctlBody)
+			err := reloadSshdService(systemctl)
+			if len(tt.expectedErrs) == 0 {
+				if err != nil {
+					t.Fatalf("unexpected error: %v", err)
+				}
+			} else {
+				if err == nil {
+					t.Fatal("expected error")
+				}
+				for _, expected := range tt.expectedErrs {
+					if !strings.Contains(err.Error(), expected) {
+						t.Errorf("expected error to contain %q, got: %v", expected, err)
+					}
+				}
+			}
+			contents, err := os.ReadFile(logFile)
+			if err != nil {
+				t.Fatalf("unable to read systemctl log file, error: %v", err)
+			}
+			reloads := strings.Split(strings.TrimSuffix(string(contents), "\n"), "\n")
+			assert.Equal(t, tt.expectedReloads, reloads)
 		})
 	}
 }
