@@ -191,6 +191,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected SolutionTemplatesManager solutionTemplatesManager = null;
     protected Map<String, String> serverPublicKeyMap = null;
     protected DynamicConfigBoolean readOnlyMode;
+    protected AuthzHelper.CaseSensitiveMode caseSensitiveMode;
     protected DynamicConfigBoolean validateServiceRoleMembers;
     protected DynamicConfigBoolean validateUserRoleMembers;
     protected DynamicConfigBoolean validatePolicyAssertionRoles;
@@ -277,7 +278,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                 boolean isCaseSensitive = (assertion.getCaseSensitive() != null) ? assertion.getCaseSensitive() : false;
                 if (isCaseSensitive) {
                     // If flag is set, resource and action should be kept as is. We should still lower the domain part in resource
-                    String resourceWithLoweredDomain = ZMSUtils.lowerDomainInResource(assertion.getResource());
+                    String resourceWithLoweredDomain = AuthzHelper.lowerDomainInResource(assertion.getResource());
                     assertion.setResource(resourceWithLoweredDomain);
                 } else {
                     assertion.setAction(assertion.getAction().toLowerCase());
@@ -906,6 +907,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // check if we need to run in maintenance read only mode
 
         readOnlyMode = new DynamicConfigBoolean(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_READ_ONLY_MODE, false);
+
+        // check how we need to handle assertions created with the case-sensitive flag
+
+        caseSensitiveMode = AuthzHelper.parseCaseSensitiveMode(
+                System.getProperty(ZMSConsts.ZMS_PROP_AUTHZ_CASE_SENSITIVE_MODE, "disabled"));
 
         // check to see if we need to validate all user and service members
         // when adding them to roles
@@ -3790,6 +3796,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     AccessStatus evaluateAccess(AthenzDomain domain, String identity, String action, String resource,
+            String actionExact, String resourceExact, AuthzHelper.CaseSensitiveMode mode,
             List<String> authenticatedRoles, String trustDomain, Principal principal) {
 
         // In ZMS, mTLS restricted certs cannot be used in APIs that require authorization
@@ -3852,8 +3859,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
                 // if no match then process the next assertion
 
-                if (!assertionMatch(assertion, identity, action, resource, domain.getName(),
-                        roles, authenticatedRoles, trustDomain)) {
+                if (!assertionMatch(assertion, identity, action, resource, actionExact, resourceExact,
+                        mode, domain.getName(), roles, authenticatedRoles, trustDomain)) {
                     continue;
                 }
 
@@ -3909,6 +3916,18 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
     public boolean access(String action, String resource, Principal principal, String trustDomain) {
 
+        // for assertions that are marked as case-sensitive, the action and
+        // resource are stored in their original case with only the domain
+        // part of the resource converted to lower case, so we need to keep
+        // the original values if case-sensitive checks are enabled
+
+        String actionExact = null;
+        String resourceExact = null;
+        if (caseSensitiveMode != AuthzHelper.CaseSensitiveMode.DISABLED) {
+            actionExact = action;
+            resourceExact = userHomeDomainResource(AuthzHelper.lowerDomainInResource(resource));
+        }
+
         // for consistent handling of all requests, we're going to convert
         // all incoming object values into lower case (e.g. domain, role,
         // policy, service, etc name)
@@ -3963,12 +3982,23 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             throw new ResourceException(ResourceException.FORBIDDEN, "Disabled Domain");
         }
 
-        AccessStatus accessStatus = hasAccess(domain, action, resource, principal, trustDomain);
+        AccessStatus accessStatus = hasAccess(domain, action, resource, actionExact, resourceExact,
+                caseSensitiveMode, principal, trustDomain);
         return accessStatus == AccessStatus.ALLOWED;
     }
 
     AccessStatus hasAccess(AthenzDomain domain, String action, String resource,
             Principal principal, String trustDomain) {
+
+        // for internal checks the action and resource values are already
+        // in their expected case, so we'll use them for exact matches
+
+        return hasAccess(domain, action, resource, action, resource, caseSensitiveMode,
+                principal, trustDomain);
+    }
+
+    AccessStatus hasAccess(AthenzDomain domain, String action, String resource, String actionExact,
+            String resourceExact, AuthzHelper.CaseSensitiveMode mode, Principal principal, String trustDomain) {
 
         String identity = principal.getFullName();
 
@@ -3984,12 +4014,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // evaluate our domain's roles and policies to see if access
         // is allowed or not for the given operation and resource
 
-        return evaluateAccess(domain, identity, action, resource, authenticatedRoles, trustDomain, principal);
+        return evaluateAccess(domain, identity, action, resource, actionExact, resourceExact, mode,
+                authenticatedRoles, trustDomain, principal);
     }
 
     @Override
     public Access getAccessExt(ResourceContext ctx, String action, String resource,
-            String trustDomain, String checkPrincipal) {
+            String trustDomain, String checkPrincipal, Boolean caseSensitive) {
 
         final String caller = ctx.getApiName();
         logPrincipal(ctx);
@@ -3998,7 +4029,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validate(action, TYPE_COMPOUND_NAME, caller);
 
         return getAccessCheck(((RsrcCtxWrapper) ctx).principal(), action, resource,
-                trustDomain, checkPrincipal, ctx);
+                trustDomain, checkPrincipal, caseSensitive == Boolean.TRUE, ctx);
     }
 
     @Override
@@ -4013,16 +4044,33 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         validate(resource, TYPE_RESOURCE_NAME, caller);
 
         return getAccessCheck(((RsrcCtxWrapper) ctx).principal(), action, resource,
-                trustDomain, checkPrincipal, ctx);
+                trustDomain, checkPrincipal, false, ctx);
     }
 
     Access getAccessCheck(Principal principal, String action, String resource,
-            String trustDomain, String checkPrincipal, ResourceContext ctx) {
+            String trustDomain, String checkPrincipal, boolean caseSensitive, ResourceContext ctx) {
 
         final String caller = "getaccess";
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("getAccessCheck:({}, {}, {}, {}, {})", action, resource, principal, trustDomain, checkPrincipal);
+            LOG.debug("getAccessCheck:({}, {}, {}, {}, {}, {})", action, resource, principal, trustDomain,
+                    checkPrincipal, caseSensitive);
+        }
+
+        // if the caller has requested case-sensitive check then we're going
+        // to enforce it regardless of the server configured mode. for
+        // assertions that are marked as case-sensitive, the action and
+        // resource are stored in their original case with only the domain
+        // part of the resource converted to lower case, so we need to keep
+        // the original values if case-sensitive checks are enabled
+
+        final AuthzHelper.CaseSensitiveMode mode = caseSensitive ? AuthzHelper.CaseSensitiveMode.ENFORCE
+                : caseSensitiveMode;
+        String actionExact = null;
+        String resourceExact = null;
+        if (mode != AuthzHelper.CaseSensitiveMode.DISABLED) {
+            actionExact = action;
+            resourceExact = AuthzHelper.lowerDomainInResource(resource);
         }
 
         // for consistent handling of all requests, we're going to convert
@@ -4071,7 +4119,8 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             }
         }
 
-        boolean accessAllowed = hasAccess(domain, action, resource, principal, trustDomain) == AccessStatus.ALLOWED;
+        boolean accessAllowed = hasAccess(domain, action, resource, actionExact, resourceExact, mode,
+                principal, trustDomain) == AccessStatus.ALLOWED;
         return new Access().setGranted(accessAllowed);
     }
 
@@ -7261,21 +7310,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     }
 
     boolean assertionMatch(Assertion assertion, String identity, String action, String resource,
-            String domain, List<Role> roles, List<String> authenticatedRoles, String trustDomain) {
+            String actionExact, String resourceExact, AuthzHelper.CaseSensitiveMode mode, String domain,
+            List<Role> roles, List<String> authenticatedRoles, String trustDomain) {
 
-        String actionPattern = StringUtils.patternFromGlob(assertion.getAction().toLowerCase());
         if (LOG.isDebugEnabled()) {
-            LOG.debug("assertionMatch: action '{}' pattern '{}'", action, actionPattern);
-        }
-        if (!action.matches(actionPattern)) {
-            return false;
+            LOG.debug("assertionMatch: action '{}' resource '{}' assertion action '{}' resource '{}'",
+                    action, resource, assertion.getAction(), assertion.getResource());
         }
 
-        String rezPattern = StringUtils.patternFromGlob(assertion.getResource().toLowerCase());
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("assertionMatch: resource '{}' pattern '{}'", resource, rezPattern);
-        }
-        if (!resource.matches(rezPattern)) {
+        if (!AuthzHelper.assertionActionResourceMatch(assertion, action, resource, actionExact,
+                resourceExact, mode, domain)) {
             return false;
         }
 
@@ -9763,7 +9807,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
          String resource = provSvcDomain + ":tenant." + provSvcName;
          AccessStatus accessStatus = evaluateAccess(domain, authorizedService, "update",
-                 resource, null, null, principal);
+                 resource, "update", resource, caseSensitiveMode, null, null, principal);
 
         return accessStatus == AccessStatus.ALLOWED;
     }

@@ -192,7 +192,7 @@ public class ZTSRDLGeneratedClient {
         }
     }
 
-    public ResourceAccess getResourceAccessExt(String action, String resource, String domain, String checkPrincipal) throws URISyntaxException, IOException {
+    public ResourceAccess getResourceAccessExt(String action, String resource, String domain, String checkPrincipal, Boolean caseSensitive) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/access/{action}")
             .resolveTemplate("action", action);
         URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
@@ -204,6 +204,9 @@ public class ZTSRDLGeneratedClient {
         }
         if (checkPrincipal != null) {
             uriBuilder.setParameter("principal", checkPrincipal);
+        }
+        if (caseSensitive != null) {
+            uriBuilder.setParameter("caseSensitive", String.valueOf(caseSensitive));
         }
         ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
             .setUri(uriBuilder.build())

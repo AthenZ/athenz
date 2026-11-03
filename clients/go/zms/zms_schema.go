@@ -2822,6 +2822,7 @@ func init() {
 	mGetAccessExt.Input("resource", "String", false, "resource", "", false, nil, "the resource to check access against, i.e. \"media.news:articles\"")
 	mGetAccessExt.Input("domain", "DomainName", false, "domain", "", true, nil, "usually null. If present, it specifies an alternate domain for cross-domain trust relation")
 	mGetAccessExt.Input("checkPrincipal", "PrincipalName", false, "principal", "", true, nil, "usually null. If present, carry out the access check for this principal")
+	mGetAccessExt.Input("caseSensitive", "Bool", false, "caseSensitive", "", true, nil, "usually null. If true, match the action and resource of assertions created with the case-sensitive flag in their original case")
 	mGetAccessExt.Auth("", "", true, "")
 	mGetAccessExt.Exception("BAD_REQUEST", "ResourceError", "")
 	mGetAccessExt.Exception("FORBIDDEN", "ResourceError", "")

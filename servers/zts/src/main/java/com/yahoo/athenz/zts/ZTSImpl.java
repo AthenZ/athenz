@@ -7055,7 +7055,7 @@ public class ZTSImpl implements ZTSHandler {
 
     @Override
     public ResourceAccess getResourceAccessExt(ResourceContext ctx, String action, String resource,
-            String trustDomain, String checkPrincipal) {
+            String trustDomain, String checkPrincipal, Boolean caseSensitive) {
 
         final String caller = ctx.getApiName();
         final String principalDomain = logPrincipalAndGetDomain(ctx);
@@ -7064,7 +7064,7 @@ public class ZTSImpl implements ZTSHandler {
         validate(action, TYPE_COMPOUND_NAME, principalDomain, caller);
 
         return getResourceAccessCheck(ctx, ((RsrcCtxWrapper) ctx).principal(), action, resource,
-                trustDomain, checkPrincipal, caller);
+                trustDomain, checkPrincipal, caseSensitive == Boolean.TRUE, caller);
     }
 
     @Override
@@ -7079,11 +7079,11 @@ public class ZTSImpl implements ZTSHandler {
         validate(resource, TYPE_RESOURCE_NAME, principalDomain, caller);
 
         return getResourceAccessCheck(ctx, ((RsrcCtxWrapper) ctx).principal(), action, resource,
-                trustDomain, checkPrincipal, caller);
+                trustDomain, checkPrincipal, false, caller);
     }
 
     ResourceAccess getResourceAccessCheck(ResourceContext ctx, Principal principal, String action, String resource,
-            String trustDomain, String checkPrincipal, final String caller) {
+            String trustDomain, String checkPrincipal, boolean caseSensitive, final String caller) {
 
         final String domainName = principal.getDomain();
         setRequestDomain(ctx, domainName);
@@ -7099,7 +7099,7 @@ public class ZTSImpl implements ZTSHandler {
         // or not the principal has access to the resource
 
         ResourceAccess access = new ResourceAccess();
-        access.setGranted(authorizer.access(action, resource, principal, trustDomain));
+        access.setGranted(authorizer.access(action, resource, principal, trustDomain, caseSensitive));
 
         return access;
     }

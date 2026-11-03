@@ -42,6 +42,7 @@ import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
+import com.yahoo.athenz.common.server.util.AuthzHelper;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
@@ -1078,7 +1079,8 @@ public class ZTSImplTest {
         domainData.getPolicies().setContents(new com.yahoo.athenz.zms.DomainPolicies());
         domainData.getPolicies().getContents().setPolicies(new ArrayList<>());
         domainData.getPolicies().getContents().getPolicies().add(policy);
-        assertEquals(authorizer.evaluateAccess(domain, null, null, null, null, null), AccessStatus.DENIED);
+        assertEquals(authorizer.evaluateAccess(domain, null, null, null, null, null,
+                AuthzHelper.CaseSensitiveMode.DISABLED, null, null), AccessStatus.DENIED);
     }
 
     @Test
@@ -1106,7 +1108,8 @@ public class ZTSImplTest {
         domainData.getPolicies().getContents().getPolicies().add(policy);
 
         assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1",
-                null, null), AccessStatus.DENIED);
+                "read", "coretech:resource1",
+                AuthzHelper.CaseSensitiveMode.DISABLED, null, null), AccessStatus.DENIED);
     }
 
     @Test
@@ -1135,7 +1138,8 @@ public class ZTSImplTest {
 
         ZTSAuthorizer spiedZtsAuthorizer = Mockito.spy(authorizer);
         AccessStatus result = spiedZtsAuthorizer.evaluateAccess(domain, "user_domain.user1", "read",
-                "coretech:resource1", null, null);
+                "coretech:resource1", "read", "coretech:resource1",
+                AuthzHelper.CaseSensitiveMode.DISABLED, null, null);
         assertEquals(result, AccessStatus.DENIED);
 
         // Verify that it was denied by explicit "Deny" assertion and not because no match was found
@@ -1177,14 +1181,16 @@ public class ZTSImplTest {
         domainData.getPolicies().getContents().getPolicies().add(policy);
 
         assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1",
-                null, null), AccessStatus.ALLOWED);
+                "read", "coretech:resource1",
+                AuthzHelper.CaseSensitiveMode.DISABLED, null, null), AccessStatus.ALLOWED);
 
         // we're going to mark the policy as inactive in which case
         // our access will return denied
 
         policy.setActive(false);
         assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1",
-                null, null), AccessStatus.DENIED);
+                "read", "coretech:resource1",
+                AuthzHelper.CaseSensitiveMode.DISABLED, null, null), AccessStatus.DENIED);
     }
 
     @Test
@@ -1218,7 +1224,8 @@ public class ZTSImplTest {
         domainData.getPolicies().getContents().getPolicies().add(policy);
 
         assertEquals(authorizer.evaluateAccess(domain, "user_domain.user1", "read", "coretech:resource1",
-                null, null), AccessStatus.ALLOWED);
+                "read", "coretech:resource1",
+                AuthzHelper.CaseSensitiveMode.DISABLED, null, null), AccessStatus.ALLOWED);
     }
 
     @Test
@@ -4036,10 +4043,10 @@ public class ZTSImplTest {
         access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, principal.getFullName().replace(":", "."));
         assertTrue(access.getGranted());
 
-        access = zts.getResourceAccessExt(ctx, "update", domainName + ":table1", null, null);
+        access = zts.getResourceAccessExt(ctx, "update", domainName + ":table1", null, null, null);
         assertTrue(access.getGranted());
 
-        access = zts.getResourceAccessExt(ctx, "update", domainName + ":table1", null, principal.getFullName());
+        access = zts.getResourceAccessExt(ctx, "update", domainName + ":table1", null, principal.getFullName(), null);
         assertTrue(access.getGranted());
 
         access = zts.getResourceAccess(ctx, "update", domainName + ":table2", null, null);
@@ -4048,16 +4055,16 @@ public class ZTSImplTest {
         access = zts.getResourceAccess(ctx, "update", domainName + ":table2", null, principal.getFullName());
         assertFalse(access.getGranted());
 
-        access = zts.getResourceAccessExt(ctx, "update", domainName + ":table2", null, null);
+        access = zts.getResourceAccessExt(ctx, "update", domainName + ":table2", null, null, null);
         assertFalse(access.getGranted());
 
-        access = zts.getResourceAccessExt(ctx, "update", domainName + ":table2", null, principal.getFullName());
+        access = zts.getResourceAccessExt(ctx, "update", domainName + ":table2", null, principal.getFullName(), null);
         assertFalse(access.getGranted());
 
         access = zts.getResourceAccess(ctx, "delete", domainName + ":table1", null, null);
         assertFalse(access.getGranted());
 
-        access = zts.getResourceAccessExt(ctx, "delete", domainName + ":table1", null, null);
+        access = zts.getResourceAccessExt(ctx, "delete", domainName + ":table1", null, null, null);
         assertFalse(access.getGranted());
 
         access = zts.getResourceAccess(ctx, "update", domainName + ":table1", null, "user.user2");
@@ -4106,6 +4113,155 @@ public class ZTSImplTest {
 
         access = zts.getResourceAccess(context, "update", domainName + "1:resource4", null, null);
         assertFalse(access.getGranted());
+    }
+
+    private static final String CASE_SENSITIVE_DOMAIN = "access-case-sensitive";
+
+    private ResourceContext setupCaseSensitiveAccessDomain() {
+
+        final String domainName = CASE_SENSITIVE_DOMAIN;
+
+        List<Role> roles = new ArrayList<>();
+        roles.add(ZTSTestUtils.createRoleObject(domainName, "readers", "user.user1"));
+
+        // case-sensitive assertions where the action and resource are kept
+        // in their original case and regular ones where the stored mixed
+        // case values must always be matched case-insensitive
+
+        List<Policy> policies = new ArrayList<>();
+        Policy policy = ZTSTestUtils.createPolicyObject(domainName, "policy1", "readers", true,
+                "Read", domainName + ":Data.File", AssertionEffect.ALLOW);
+        policy.getAssertions().get(0).setCaseSensitive(true);
+        policy.getAssertions().add(new Assertion().setRole(domainName + ":role.readers")
+                .setAction("read").setResource(domainName + ":Data.Secret*").setCaseSensitive(true)
+                .setEffect(AssertionEffect.DENY));
+        policy.getAssertions().add(new Assertion().setRole(domainName + ":role.readers")
+                .setAction("read").setResource(domainName + ":data.secret*").setEffect(AssertionEffect.ALLOW));
+        policy.getAssertions().add(new Assertion().setRole(domainName + ":role.readers")
+                .setAction("Update").setResource(domainName + ":Legacy").setCaseSensitive(false)
+                .setEffect(AssertionEffect.ALLOW));
+        policies.add(policy);
+
+        SignedDomain signedDomain = ZTSTestUtils.createSignedDomain(domainName, roles, policies,
+                null, null, privateKey);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user", "user1",
+                "v=U1;d=user;n=user1;s=signature", 0, null);
+        return createResourceContext(principal);
+    }
+
+    private boolean checkCaseSensitiveAccess(ResourceContext context, final String action, final String entity,
+            Boolean caseSensitive, boolean extApi) {
+        final String resource = CASE_SENSITIVE_DOMAIN + ":" + entity;
+        if (extApi) {
+            return zts.getResourceAccessExt(context, action, resource, null, null, caseSensitive).getGranted();
+        } else {
+            return zts.getResourceAccess(context, action, resource, null, null).getGranted();
+        }
+    }
+
+    private void verifyCaseInsensitiveAccess(ResourceContext context, Boolean caseSensitive, boolean extApi) {
+
+        // case-sensitive allow assertion matches any case
+
+        assertTrue(checkCaseSensitiveAccess(context, "Read", "Data.File", caseSensitive, extApi));
+        assertTrue(checkCaseSensitiveAccess(context, "read", "Data.File", caseSensitive, extApi));
+        assertTrue(checkCaseSensitiveAccess(context, "READ", "data.file", caseSensitive, extApi));
+
+        // case-sensitive deny assertion blocks any case
+
+        assertFalse(checkCaseSensitiveAccess(context, "read", "Data.Secret1", caseSensitive, extApi));
+        assertFalse(checkCaseSensitiveAccess(context, "read", "data.secret1", caseSensitive, extApi));
+        assertFalse(checkCaseSensitiveAccess(context, "READ", "DATA.SECRET2", caseSensitive, extApi));
+
+        // regular assertion matches any case
+
+        assertTrue(checkCaseSensitiveAccess(context, "update", "legacy", caseSensitive, extApi));
+        assertTrue(checkCaseSensitiveAccess(context, "UPDATE", "LEGACY", caseSensitive, extApi));
+    }
+
+    private void verifyCaseSensitiveAccess(ResourceContext context, Boolean caseSensitive, boolean extApi) {
+
+        // exact case match for the case-sensitive allow assertion including
+        // when the domain part of the resource is in a different case
+
+        assertTrue(checkCaseSensitiveAccess(context, "Read", "Data.File", caseSensitive, extApi));
+        if (extApi) {
+            assertTrue(zts.getResourceAccessExt(context, "Read", "Access-Case-Sensitive:Data.File",
+                    null, null, caseSensitive).getGranted());
+        } else {
+            assertTrue(zts.getResourceAccess(context, "Read", "Access-Case-Sensitive:Data.File",
+                    null, null).getGranted());
+        }
+
+        // different case for the action or resource does not match
+
+        assertFalse(checkCaseSensitiveAccess(context, "read", "Data.File", caseSensitive, extApi));
+        assertFalse(checkCaseSensitiveAccess(context, "READ", "Data.File", caseSensitive, extApi));
+        assertFalse(checkCaseSensitiveAccess(context, "Read", "data.File", caseSensitive, extApi));
+
+        // case-sensitive deny only applies to the exact case. the other
+        // versions of the resource are allowed by the regular assertion
+
+        assertFalse(checkCaseSensitiveAccess(context, "read", "Data.Secret1", caseSensitive, extApi));
+        assertTrue(checkCaseSensitiveAccess(context, "read", "data.secret1", caseSensitive, extApi));
+        assertTrue(checkCaseSensitiveAccess(context, "READ", "DATA.SECRET2", caseSensitive, extApi));
+
+        // regular assertion matches any case
+
+        assertTrue(checkCaseSensitiveAccess(context, "update", "legacy", caseSensitive, extApi));
+        assertTrue(checkCaseSensitiveAccess(context, "UPDATE", "LEGACY", caseSensitive, extApi));
+    }
+
+    @Test
+    public void testGetResourceAccessCaseSensitiveDisabledMode() {
+
+        ResourceContext context = setupCaseSensitiveAccessDomain();
+
+        // default mode is disabled so unless the caller requests
+        // case-sensitive check, all assertions are case-insensitive
+
+        verifyCaseInsensitiveAccess(context, null, false);
+        verifyCaseInsensitiveAccess(context, null, true);
+        verifyCaseInsensitiveAccess(context, false, true);
+        verifyCaseSensitiveAccess(context, true, true);
+
+        store.getCacheStore().invalidate(CASE_SENSITIVE_DOMAIN);
+    }
+
+    @Test
+    public void testGetResourceAccessCaseSensitiveMonitorMode() {
+
+        ResourceContext context = setupCaseSensitiveAccessDomain();
+
+        ZTSAuthorizer.setCaseSensitiveMode(AuthzHelper.CaseSensitiveMode.MONITOR);
+        try {
+            verifyCaseInsensitiveAccess(context, null, false);
+            verifyCaseInsensitiveAccess(context, null, true);
+            verifyCaseInsensitiveAccess(context, false, true);
+            verifyCaseSensitiveAccess(context, true, true);
+        } finally {
+            ZTSAuthorizer.setCaseSensitiveMode(AuthzHelper.CaseSensitiveMode.DISABLED);
+            store.getCacheStore().invalidate(CASE_SENSITIVE_DOMAIN);
+        }
+    }
+
+    @Test
+    public void testGetResourceAccessCaseSensitiveEnforceMode() {
+
+        ResourceContext context = setupCaseSensitiveAccessDomain();
+
+        ZTSAuthorizer.setCaseSensitiveMode(AuthzHelper.CaseSensitiveMode.ENFORCE);
+        try {
+            verifyCaseSensitiveAccess(context, null, false);
+            verifyCaseSensitiveAccess(context, null, true);
+            verifyCaseSensitiveAccess(context, false, true);
+            verifyCaseSensitiveAccess(context, true, true);
+        } finally {
+            ZTSAuthorizer.setCaseSensitiveMode(AuthzHelper.CaseSensitiveMode.DISABLED);
+            store.getCacheStore().invalidate(CASE_SENSITIVE_DOMAIN);
+        }
     }
 
     @Test

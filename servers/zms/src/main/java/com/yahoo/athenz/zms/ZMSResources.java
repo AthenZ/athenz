@@ -4031,13 +4031,14 @@ public class ZMSResources {
         @Parameter(description = "action as specified in the policy assertion, i.e. update or read", required = true) @PathParam("action") String action,
         @Parameter(description = "the resource to check access against, i.e. \"media.news:articles\"", required = true) @QueryParam("resource") String resource,
         @Parameter(description = "usually null. If present, it specifies an alternate domain for cross-domain trust relation", required = false) @QueryParam("domain") String domain,
-        @Parameter(description = "usually null. If present, carry out the access check for this principal", required = false) @QueryParam("principal") String checkPrincipal) {
+        @Parameter(description = "usually null. If present, carry out the access check for this principal", required = false) @QueryParam("principal") String checkPrincipal,
+        @Parameter(description = "usually null. If true, match the action and resource of assertions created with the case-sensitive flag in their original case", required = false) @QueryParam("caseSensitive") Boolean caseSensitive) {
         int code = ResourceException.OK;
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getAccessExt");
             context.authenticate();
-            return this.delegate.getAccessExt(context, action, resource, domain, checkPrincipal);
+            return this.delegate.getAccessExt(context, action, resource, domain, checkPrincipal, caseSensitive);
         } catch (ResourceException e) {
             code = e.getCode();
             switch (code) {
