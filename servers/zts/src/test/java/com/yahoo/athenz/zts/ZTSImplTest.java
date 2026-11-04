@@ -13036,6 +13036,55 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testGetOpenIDConfigWithHostMapping() throws IOException {
+
+        String mappingFile = "/tmp/zts_server_unit_tests/host_issuer_mapping.json";
+        Files.write(Paths.get(mappingFile),
+                "[{\"host\":\"zts-ext.athenz.io\",\"issuer\":\"https://zts-ext.athenz.io/zts/v1\"}]"
+                        .getBytes());
+        System.setProperty(ZTSConsts.ZTS_PROP_HOST_ISSUER_MAPPING_FILE, mappingFile);
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        try {
+            // request with the mapped Host header - discovery doc should reflect the mapped issuer
+
+            HttpServletRequest mappedRequest = Mockito.mock(HttpServletRequest.class);
+            Mockito.when(mappedRequest.isSecure()).thenReturn(true);
+            Mockito.when(mappedRequest.getLocalPort()).thenReturn(443);
+            Mockito.when(mappedRequest.getHeader("Host")).thenReturn("zts-ext.athenz.io");
+
+            RsrcCtxWrapper mappedCtx = Mockito.mock(RsrcCtxWrapper.class);
+            Mockito.when(mappedCtx.request()).thenReturn(mappedRequest);
+
+            OpenIDConfig openIDConfig = ztsImpl.getOpenIDConfig(mappedCtx);
+            assertNotNull(openIDConfig);
+            assertEquals(openIDConfig.getIssuer(), "https://zts-ext.athenz.io/zts/v1");
+            assertEquals(openIDConfig.getJwks_uri(), "https://zts-ext.athenz.io/zts/v1/oauth2/keys?rfc=true");
+
+            // request with a non-matching Host header - existing port-based fallback is unchanged
+
+            HttpServletRequest unmappedRequest = Mockito.mock(HttpServletRequest.class);
+            Mockito.when(unmappedRequest.isSecure()).thenReturn(true);
+            Mockito.when(unmappedRequest.getLocalPort()).thenReturn(4443);
+            Mockito.when(unmappedRequest.getHeader("Host")).thenReturn("athenz.cloud");
+
+            RsrcCtxWrapper unmappedCtx = Mockito.mock(RsrcCtxWrapper.class);
+            Mockito.when(unmappedCtx.request()).thenReturn(unmappedRequest);
+
+            openIDConfig = ztsImpl.getOpenIDConfig(unmappedCtx);
+            assertNotNull(openIDConfig);
+            assertEquals(openIDConfig.getIssuer(), "https://athenz.cloud:4443/zts/v1");
+        } finally {
+            System.clearProperty(ZTSConsts.ZTS_PROP_HOST_ISSUER_MAPPING_FILE);
+            Files.deleteIfExists(Paths.get(mappingFile));
+        }
+    }
+
+    @Test
     public void testGetOAuthConfig() {
 
         ResourceContext ctx = createResourceContext(null);

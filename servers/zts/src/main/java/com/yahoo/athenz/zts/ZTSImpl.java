@@ -7257,6 +7257,12 @@ public class ZTSImpl implements ZTSHandler {
         final String principalDomain = logPrincipalAndGetDomain(ctx);
 
         validateOIDCRequest(ctx.request(), principalDomain, caller);
+
+        final String hostMappedIssuer = issuerResolver.getHostMappedIssuer(ctx.request());
+        if (hostMappedIssuer != null) {
+            return createOpenidIDConfigObject(hostMappedIssuer);
+        }
+
         return isOidcPortRequest(ctx.request(), null) ? oidcPortConfig : openIDConfig;
     }
 
