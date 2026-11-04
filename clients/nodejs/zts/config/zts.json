@@ -1093,6 +1093,13 @@
           "comment": "usually null. If present, carry out the access check for this principal",
           "queryParam": "principal",
           "optional": true
+        },
+        {
+          "name": "caseSensitive",
+          "type": "Bool",
+          "comment": "usually null. If true, match the action and resource of assertions created with the case-sensitive flag in their original case",
+          "queryParam": "caseSensitive",
+          "optional": true
         }
       ],
       "auth": {

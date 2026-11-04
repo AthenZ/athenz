@@ -3785,9 +3785,9 @@ func (client ZMSClient) GetAccess(action ActionName, resource ResourceName, doma
 	}
 }
 
-func (client ZMSClient) GetAccessExt(action ActionName, resource string, domain DomainName, checkPrincipal PrincipalName) (*Access, error) {
+func (client ZMSClient) GetAccessExt(action ActionName, resource string, domain DomainName, checkPrincipal PrincipalName, caseSensitive *bool) (*Access, error) {
 	var data *Access
-	url := client.URL + "/access/" + fmt.Sprint(action) + encodeParams(encodeStringParam("resource", string(resource), ""), encodeStringParam("domain", string(domain), ""), encodeStringParam("principal", string(checkPrincipal), ""))
+	url := client.URL + "/access/" + fmt.Sprint(action) + encodeParams(encodeStringParam("resource", string(resource), ""), encodeStringParam("domain", string(domain), ""), encodeStringParam("principal", string(checkPrincipal), ""), encodeOptionalBoolParam("caseSensitive", caseSensitive))
 	resp, err := client.httpGet(url, nil)
 	if err != nil {
 		return data, err

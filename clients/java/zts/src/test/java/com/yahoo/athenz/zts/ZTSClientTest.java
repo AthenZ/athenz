@@ -2579,6 +2579,14 @@ public class ZTSClientTest {
         access = client.getResourceAccessExt("access", "resource", null, "principal1");
         assertFalse(access.getGranted());
 
+        // verify the case-sensitive flag is passed to the server
+
+        access = client.getResourceAccessExt("access", "resource", null, "principal", true);
+        assertTrue(access.getGranted());
+
+        access = client.getResourceAccessExt("access", "resource", null, "principal", false);
+        assertFalse(access.getGranted());
+
         try {
             client.getResourceAccessExt("exc", "resource", null, "principal");
             fail();

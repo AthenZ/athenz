@@ -3086,7 +3086,9 @@ public class DataStoreTest {
         ChangeLogStore clogStore = new MockZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
                 pkey, "0");
         DataStore store = new DataStore(clogStore, null, ztsMetric);
+        assertFalse(store.isJwsDomainSupport());
         store.jwsDomainSupport = true;
+        assertTrue(store.isJwsDomainSupport());
         store.loadAthenzPublicKeys();
 
         JWSDomain jwsDomain = createJWSDomain("coretech", "weather", "0");

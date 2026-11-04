@@ -178,6 +178,112 @@ public class AuthzHelper {
         return resource.substring(0, idx);
     }
 
+    public static String lowerDomainInResource(final String resource) {
+        if (resource == null) {
+            return null;
+        }
+
+        int idx = resource.indexOf(':');
+        if (idx == -1) {
+            return resource;
+        }
+
+        // most requests already have the domain in lower case so
+        // we'll avoid creating a new string object in that case
+
+        final String domainName = resource.substring(0, idx);
+        final String lowerDomainName = domainName.toLowerCase();
+        if (domainName.equals(lowerDomainName)) {
+            return resource;
+        }
+        return lowerDomainName + resource.substring(idx);
+    }
+
+    // enum to represent how we handle assertions that were created with
+    // the case-sensitive flag:
+    //   DISABLED - action and resource are matched case-insensitive
+    //   MONITOR  - action and resource are matched case-insensitive but
+    //              we log any assertion that only matched because case
+    //              was ignored
+    //   ENFORCE  - action and resource are matched in their original case
+    // regardless of the server mode, if the caller requests case-sensitive
+    // check, then the assertions are matched in their original case
+
+    public enum CaseSensitiveMode {
+        DISABLED,
+        MONITOR,
+        ENFORCE
+    }
+
+    public static CaseSensitiveMode parseCaseSensitiveMode(final String value) {
+        try {
+            return CaseSensitiveMode.valueOf(value.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            LOGGER.error("Invalid case-sensitive authorization mode: {}, using disabled", value);
+            return CaseSensitiveMode.DISABLED;
+        }
+    }
+
+    /**
+     * Check if the action and resource match the given assertion. The action
+     * and resource values must be in lower case while the actionExact and
+     * resourceExact values must be in their original case with only the domain
+     * part of the resource in lower case. The exact values are only required
+     * if the mode is not DISABLED.
+     * @param assertion assertion to check against
+     * @param action action value in lower case
+     * @param resource resource value in lower case
+     * @param actionExact action value in its original case
+     * @param resourceExact resource value in its original case
+     * @param mode case-sensitive mode for the request
+     * @param domainName name of the domain the assertion belongs to
+     * @return true if the action and resource match the assertion
+     */
+    public static boolean assertionActionResourceMatch(Assertion assertion, final String action,
+            final String resource, final String actionExact, final String resourceExact,
+            CaseSensitiveMode mode, final String domainName) {
+
+        final boolean caseSensitiveAssertion = assertion.getCaseSensitive() == Boolean.TRUE;
+
+        // for case-sensitive assertions in enforce mode we match the action
+        // and resource against the original request values
+
+        if (caseSensitiveAssertion && mode == CaseSensitiveMode.ENFORCE) {
+            return assertionExactActionResourceMatch(assertion, actionExact, resourceExact);
+        }
+
+        // Lowercase action and resource as it is possible to store them case-sensitive
+
+        String actionPattern = StringUtils.patternFromGlob(assertion.getAction().toLowerCase());
+        if (!action.matches(actionPattern)) {
+            return false;
+        }
+
+        String rezPattern = StringUtils.patternFromGlob(assertion.getResource().toLowerCase());
+        if (!resource.matches(rezPattern)) {
+            return false;
+        }
+
+        // in monitor mode we log any case-sensitive assertion that has
+        // matched only because the case was ignored. we don't change
+        // the result of the check
+
+        if (caseSensitiveAssertion && mode == CaseSensitiveMode.MONITOR
+                && !assertionExactActionResourceMatch(assertion, actionExact, resourceExact)) {
+            LOGGER.warn("case-sensitive assertion matched only case-insensitive: domain: {}, assertion: {}/{}/{}/{},"
+                    + " request action: {}, resource: {}", domainName, assertion.getRole(), assertion.getAction(),
+                    assertion.getResource(), assertion.getEffect(), actionExact, resourceExact);
+        }
+
+        return true;
+    }
+
+    static boolean assertionExactActionResourceMatch(Assertion assertion, final String actionExact,
+            final String resourceExact) {
+        return actionExact.matches(StringUtils.patternFromGlob(assertion.getAction()))
+                && resourceExact.matches(StringUtils.patternFromGlob(assertion.getResource()));
+    }
+
     public static boolean authorityAuthorizationAllowed(Principal principal) {
 
         Authority authority = principal.getAuthority();

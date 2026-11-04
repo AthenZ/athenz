@@ -369,20 +369,6 @@ public class ZMSUtils {
         return authorityFilter;
     }
 
-    public static String lowerDomainInResource(String resource) {
-        if (resource == null) {
-            return null;
-        }
-
-        int delimiterIndex = resource.indexOf(":");
-        if (delimiterIndex == -1) {
-            return resource;
-        }
-
-        String lowerCasedDomain = resource.substring(0, delimiterIndex).toLowerCase();
-        return lowerCasedDomain + resource.substring(delimiterIndex);
-    }
-
     public static boolean userAuthorityAttrMissing(final String origAttrList, final String checkAttrList) {
 
         // if the original attr list is empty then there is nothing to check

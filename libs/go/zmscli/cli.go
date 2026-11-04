@@ -548,7 +548,7 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 				}
 				return cli.ShowAccess(dn, args[0], args[1], altPrincipal, trustDomain)
 			}
-		case "show-access-ext":
+		case "show-access-ext", "show-access-ext-case-sensitive":
 			if argc >= 2 {
 				var trustDomain *string
 				var altPrincipal *string
@@ -558,7 +558,7 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 						trustDomain = &args[3]
 					}
 				}
-				return cli.ShowAccessExt(dn, args[0], args[1], altPrincipal, trustDomain)
+				return cli.ShowAccessExt(dn, args[0], args[1], altPrincipal, trustDomain, cmd == "show-access-ext-case-sensitive")
 			}
 		case "list-role", "list-roles":
 			return cli.ListRoles(dn)
@@ -2206,6 +2206,27 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   " + domainExample + " show-access-ext node_sudo node.host1\n")
 		buf.WriteString("   " + domainExample + " show-access-ext node_sudo coretech:node.host1\n")
 		buf.WriteString("   " + domainExample + " show-access-ext node_sudo coretech:node.host1 " + cli.UserDomain + ".john\n")
+	case "show-access-ext-case-sensitive":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " show-access-ext-case-sensitive action resource [alt_identity [trust_domain]]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain       : name of the domain that resource belongs to\n")
+		}
+		buf.WriteString("   action       : access check action value\n")
+		buf.WriteString("   resource     : access check resource (resource name)\n")
+		buf.WriteString("                : client will prepend 'domain:' to resource if not specified\n")
+		buf.WriteString("   alt_identity : run the access check for this identity instead of the caller\n")
+		buf.WriteString("   trust_domain : when checking for cross-domain trust relationship\n")
+		buf.WriteString("                : only check this trusted domain\n")
+		buf.WriteString(" notes:\n")
+		buf.WriteString("   the action and resource of assertions created with the case-sensitive\n")
+		buf.WriteString("   flag are matched in their original case. all other assertions are\n")
+		buf.WriteString("   matched case-insensitive as with the show-access-ext command\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " show-access-ext-case-sensitive ReaD Node.Host1\n")
+		buf.WriteString("   " + domainExample + " show-access-ext-case-sensitive ReaD coretech:Node.Host1\n")
+		buf.WriteString("   " + domainExample + " show-access-ext-case-sensitive ReaD coretech:Node.Host1 " + cli.UserDomain + ".john\n")
 	case "show-resource":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   show-resource principal action [filter]\n")
@@ -3924,6 +3945,7 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   set-active-policy-version policy version\n")
 	buf.WriteString("   show-access action resource [alt_identity [trust_domain]]\n")
 	buf.WriteString("   show-access-ext action resource [alt_identity [trust_domain]]\n")
+	buf.WriteString("   show-access-ext-case-sensitive action resource [alt_identity [trust_domain]]\n")
 	buf.WriteString("   show-resource principal action\n")
 	buf.WriteString("   add-policy-tag policy tag_key tag_value [tag_value ...]\n")
 	buf.WriteString("   delete-policy-tag policy tag_key [tag_value]\n")

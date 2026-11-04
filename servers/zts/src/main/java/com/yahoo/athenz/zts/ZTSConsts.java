@@ -215,6 +215,7 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS    = "athenz.zts.validate_service_skip_domains";
     public static final String ZTS_PROP_MAX_AUTHZ_DETAILS_LENGTH         = "athenz.zts.max_authz_details_length";
     public static final String ZTS_PROP_ROLE_BASED_AUTHZ_SUPPORT         = "athenz.zts.role_based_authz_support";
+    public static final String ZTS_PROP_AUTHZ_CASE_SENSITIVE_MODE        = "athenz.zts.authz_case_sensitive_mode";
     public static final String ZTS_PROP_VALIDATE_ROLE_CERT_DNS_NAMES     = "athenz.zts.validate_role_cert_dns_names";
     public static final String ZTS_PROP_VALIDATE_CERT_URI_SCHEMES        = "athenz.zts.validate_cert_uri_schemes";
 

@@ -35,11 +35,12 @@ resource ResourceAccess GET "/access/{action}/{resource}?domain={domain}&princip
 //Check access for the specified operation on the specified resource
 //for the currently authenticated user. This is the slow centralized
 //access for control-plane purposes.
-resource ResourceAccess GET "/access/{action}?resource={resource}&domain={domain}&principal={checkPrincipal}" (name=GetResourceAccessExt) {
+resource ResourceAccess GET "/access/{action}?resource={resource}&domain={domain}&principal={checkPrincipal}&caseSensitive={caseSensitive}" (name=GetResourceAccessExt) {
     ActionName action; //action as specified in the policy assertion, i.e. update or read
     String resource; //the resource to check access against, i.e. "media.news:articles"
     DomainName domain (optional); //usually null. If present, it specifies an alternate domain for cross-domain trust relation
     PrincipalName checkPrincipal (optional); //usually null. If present, carry out the access check for this principal
+    Bool caseSensitive (optional); //usually null. If true, match the action and resource of assertions created with the case-sensitive flag in their original case
     authenticate;
     expected OK;
     exceptions {

@@ -2064,6 +2064,10 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
         return cacheStore;
     }
 
+    public boolean isJwsDomainSupport() {
+        return jwsDomainSupport;
+    }
+
     public Map<String, String> getPublicKeyCache() {
         return publicKeyCache;
     }

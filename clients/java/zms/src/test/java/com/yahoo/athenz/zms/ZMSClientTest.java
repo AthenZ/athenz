@@ -3912,14 +3912,21 @@ public class ZMSClientTest {
         ZMSRDLGeneratedClient c = Mockito.mock(ZMSRDLGeneratedClient.class);
         client.setZMSRDLGeneratedClient(c);
         Access access = new Access().setGranted(true);
-        Mockito.when(c.getAccessExt("update", "service1", "athenz", "user.johndoe"))
+        Mockito.when(c.getAccessExt("update", "service1", "athenz", "user.johndoe", null))
                 .thenReturn(access)
                 .thenThrow(new ZMSClientException(401, "fail"))
                 .thenThrow(new IllegalArgumentException("other-error"));
+        Mockito.when(c.getAccessExt("update", "service1", "athenz", "user.johndoe", true))
+                .thenReturn(new Access().setGranted(false));
 
         Access accessCheck = client.getAccessExt("update", "service1", "athenz", "user.johndoe");
         assertNotNull(accessCheck);
         assertTrue(accessCheck.getGranted());
+
+        // verify the case-sensitive flag is passed to the server
+
+        accessCheck = client.getAccessExt("update", "service1", "athenz", "user.johndoe", true);
+        assertFalse(accessCheck.getGranted());
 
         // second time it fails
 

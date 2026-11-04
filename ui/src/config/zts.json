@@ -2975,6 +2975,15 @@
                     "queryParam": "principal",
                     "optional": true,
                     "flag": false
+                },
+                {
+                    "name": "caseSensitive",
+                    "type": "Bool",
+                    "comment": "usually null. If true, match the action and resource of assertions created with the case-sensitive flag in their original case",
+                    "pathParam": false,
+                    "queryParam": "caseSensitive",
+                    "optional": true,
+                    "flag": false
                 }
             ],
             "auth": {

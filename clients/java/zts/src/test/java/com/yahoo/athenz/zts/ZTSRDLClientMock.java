@@ -589,12 +589,13 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
 
     @Override
     public ResourceAccess getResourceAccessExt(String action, String resource,
-                                            String trustDomain, String principal) {
+                                            String trustDomain, String principal, Boolean caseSensitive) {
         if (action.equals("exc")) {
             throw new ClientResourceException(400, "Invalid request");
         }
         ResourceAccess access = new ResourceAccess();
-        access.setGranted(action.equals("access") && resource.equals("resource") && principal.equals("principal"));
+        access.setGranted(action.equals("access") && resource.equals("resource") && principal.equals("principal")
+                && caseSensitive != Boolean.FALSE);
         return access;
     }
 

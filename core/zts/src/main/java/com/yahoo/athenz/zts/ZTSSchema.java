@@ -757,6 +757,7 @@ public class ZTSSchema {
             .queryParam("resource", "resource", "String", null, "the resource to check access against, i.e. \"media.news:articles\"")
             .queryParam("domain", "domain", "DomainName", null, "usually null. If present, it specifies an alternate domain for cross-domain trust relation")
             .queryParam("principal", "checkPrincipal", "PrincipalName", null, "usually null. If present, carry out the access check for this principal")
+            .queryParam("caseSensitive", "caseSensitive", "Bool", null, "usually null. If true, match the action and resource of assertions created with the case-sensitive flag in their original case")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

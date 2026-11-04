@@ -65,13 +65,19 @@ func (cli Zms) ShowAccess(dn string, action string, resource string, altIdent *s
 }
 
 // ShowAccessExt returns access indicator as string:
-// 'access: granted' or 'access: denied'.
-func (cli Zms) ShowAccessExt(dn string, action string, resource string, altIdent *string, altDomain *string) (*string, error) {
+// 'access: granted' or 'access: denied'. If caseSensitive is true, the
+// action and resource of assertions created with the case-sensitive
+// flag are matched in their original case.
+func (cli Zms) ShowAccessExt(dn string, action string, resource string, altIdent *string, altDomain *string, caseSensitive bool) (*string, error) {
 	fullResourceName, trustDomain, altPrincipal, err := cli.getAccessParameters(dn, action, resource, altIdent, altDomain)
 	if err != nil {
 		return nil, err
 	}
-	access, err := cli.Zms.GetAccessExt(zms.ActionName(action), fullResourceName, zms.DomainName(trustDomain), zms.PrincipalName(altPrincipal))
+	var caseSensitiveParam *bool
+	if caseSensitive {
+		caseSensitiveParam = &caseSensitive
+	}
+	access, err := cli.Zms.GetAccessExt(zms.ActionName(action), fullResourceName, zms.DomainName(trustDomain), zms.PrincipalName(altPrincipal), caseSensitiveParam)
 	if err != nil {
 		return nil, err
 	}

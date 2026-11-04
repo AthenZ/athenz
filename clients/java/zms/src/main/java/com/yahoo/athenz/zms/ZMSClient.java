@@ -2871,8 +2871,27 @@ public class ZMSClient implements Closeable {
      * @throws ZMSClientException in case of failure
      */
     public Access getAccessExt(String action, String resource, String trustDomain, String principal) {
+        return getAccessExt(action, resource, trustDomain, principal, null);
+    }
+
+    /**
+     * Requests the ZMS to indicate whether or not the specific request for the
+     * specified resource with authentication details will be granted or not.
+     *
+     * @param action        value of the action to be carried out (e.g. "UPDATE", "DELETE")
+     * @param resource      resource string.
+     * @param trustDomain   (optional) if the access checks involves cross domain check only
+     *                      check the specified trusted domain and ignore all others
+     * @param principal     (optional) carry out the access check for specified principal
+     * @param caseSensitive (optional) if true, the action and resource of assertions created
+     *                      with the case-sensitive flag are matched in their original case
+     * @return Access object indicating whether or not the request will be granted or not
+     * @throws ZMSClientException in case of failure
+     */
+    public Access getAccessExt(String action, String resource, String trustDomain, String principal,
+            Boolean caseSensitive) {
         try {
-            return client.getAccessExt(action, resource, trustDomain, principal);
+            return client.getAccessExt(action, resource, trustDomain, principal, caseSensitive);
         } catch (ClientResourceException ex) {
             throw new ZMSClientException(ex.getCode(), ex.getData());
         } catch (Exception ex) {
