@@ -13040,7 +13040,7 @@ public class ZTSImplTest {
 
         String mappingFile = "/tmp/zts_server_unit_tests/host_issuer_mapping.json";
         Files.write(Paths.get(mappingFile),
-                "[{\"host\":\"zts-ext.athenz.io\",\"issuer\":\"https://zts-ext.athenz.io/zts/v1\"}]"
+                "[{\"host\":\"zts-int.athenz.io\",\"issuer\":\"https://zts-ext.athenz.io/zts/v1\"}]"
                         .getBytes());
         System.setProperty(ZTSConsts.ZTS_PROP_HOST_ISSUER_MAPPING_FILE, mappingFile);
 
@@ -13055,7 +13055,7 @@ public class ZTSImplTest {
             HttpServletRequest mappedRequest = Mockito.mock(HttpServletRequest.class);
             Mockito.when(mappedRequest.isSecure()).thenReturn(true);
             Mockito.when(mappedRequest.getLocalPort()).thenReturn(443);
-            Mockito.when(mappedRequest.getHeader("Host")).thenReturn("zts-ext.athenz.io");
+            Mockito.when(mappedRequest.getHeader("Host")).thenReturn("zts-int.athenz.io");
 
             RsrcCtxWrapper mappedCtx = Mockito.mock(RsrcCtxWrapper.class);
             Mockito.when(mappedCtx.request()).thenReturn(mappedRequest);
