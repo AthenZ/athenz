@@ -13036,6 +13036,111 @@ public class ZTSImplTest {
     }
 
     @Test
+    public void testGetOpenIDConfigWithHostMapping() throws IOException {
+
+        String mappingFile = "/tmp/zts_server_unit_tests/host_issuer_mapping.json";
+        Files.write(Paths.get(mappingFile),
+                "[{\"host\":\"zts-int.athenz.io\",\"issuer\":\"https://zts-ext.athenz.io/zts/v1\"}]"
+                        .getBytes());
+        System.setProperty(ZTSConsts.ZTS_PROP_HOST_ISSUER_MAPPING_FILE, mappingFile);
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        try {
+            // request with the mapped Host header - discovery doc should reflect the mapped issuer
+
+            HttpServletRequest mappedRequest = Mockito.mock(HttpServletRequest.class);
+            Mockito.when(mappedRequest.isSecure()).thenReturn(true);
+            Mockito.when(mappedRequest.getLocalPort()).thenReturn(443);
+            Mockito.when(mappedRequest.getHeader("Host")).thenReturn("zts-int.athenz.io");
+
+            RsrcCtxWrapper mappedCtx = Mockito.mock(RsrcCtxWrapper.class);
+            Mockito.when(mappedCtx.request()).thenReturn(mappedRequest);
+
+            OpenIDConfig openIDConfig = ztsImpl.getOpenIDConfig(mappedCtx);
+            assertNotNull(openIDConfig);
+            assertEquals(openIDConfig.getIssuer(), "https://zts-ext.athenz.io/zts/v1");
+            assertEquals(openIDConfig.getJwks_uri(), "https://zts-ext.athenz.io/zts/v1/oauth2/keys?rfc=true");
+
+            // request with a non-matching Host header - existing port-based fallback is unchanged
+
+            HttpServletRequest unmappedRequest = Mockito.mock(HttpServletRequest.class);
+            Mockito.when(unmappedRequest.isSecure()).thenReturn(true);
+            Mockito.when(unmappedRequest.getLocalPort()).thenReturn(4443);
+            Mockito.when(unmappedRequest.getHeader("Host")).thenReturn("athenz.cloud");
+
+            RsrcCtxWrapper unmappedCtx = Mockito.mock(RsrcCtxWrapper.class);
+            Mockito.when(unmappedCtx.request()).thenReturn(unmappedRequest);
+
+            openIDConfig = ztsImpl.getOpenIDConfig(unmappedCtx);
+            assertNotNull(openIDConfig);
+            assertEquals(openIDConfig.getIssuer(), "https://athenz.cloud:4443/zts/v1");
+        } finally {
+            System.clearProperty(ZTSConsts.ZTS_PROP_HOST_ISSUER_MAPPING_FILE);
+            Files.deleteIfExists(Paths.get(mappingFile));
+        }
+    }
+
+    @Test
+    public void testGetOpenIDConfigWithHostMappingPrecedenceOverOidcPort() throws IOException {
+
+        // host mapping must take precedence over oidc-port-based issuer selection, even
+        // when the request arrives on the configured oidc port
+
+        String mappingFile = "/tmp/zts_server_unit_tests/host_issuer_mapping_oidc_port.json";
+        Files.write(Paths.get(mappingFile),
+                "[{\"host\":\"zts-int.athenz.io\",\"issuer\":\"https://zts-ext.athenz.io/zts/v1\"}]"
+                        .getBytes());
+        System.setProperty(ZTSConsts.ZTS_PROP_HOST_ISSUER_MAPPING_FILE, mappingFile);
+        System.setProperty(ZTSConsts.ZTS_PROP_OIDC_PORT, "8443");
+        System.setProperty(ZTSConsts.ZTS_PROP_OIDC_PORT_ISSUER, "https://zts-oidc-port.athenz.io/zts/v1");
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        try {
+            // request on the oidc port with the mapped Host header - mapped issuer wins
+
+            HttpServletRequest mappedRequest = Mockito.mock(HttpServletRequest.class);
+            Mockito.when(mappedRequest.isSecure()).thenReturn(true);
+            Mockito.when(mappedRequest.getLocalPort()).thenReturn(8443);
+            Mockito.when(mappedRequest.getHeader("Host")).thenReturn("zts-int.athenz.io");
+
+            RsrcCtxWrapper mappedCtx = Mockito.mock(RsrcCtxWrapper.class);
+            Mockito.when(mappedCtx.request()).thenReturn(mappedRequest);
+
+            OpenIDConfig openIDConfig = ztsImpl.getOpenIDConfig(mappedCtx);
+            assertNotNull(openIDConfig);
+            assertEquals(openIDConfig.getIssuer(), "https://zts-ext.athenz.io/zts/v1");
+
+            // request on the same oidc port with a non-matching Host header - falls back
+            // to the oidc-port issuer, confirming port-based detection still works
+
+            HttpServletRequest unmappedRequest = Mockito.mock(HttpServletRequest.class);
+            Mockito.when(unmappedRequest.isSecure()).thenReturn(true);
+            Mockito.when(unmappedRequest.getLocalPort()).thenReturn(8443);
+            Mockito.when(unmappedRequest.getHeader("Host")).thenReturn("unknown.athenz.io");
+
+            RsrcCtxWrapper unmappedCtx = Mockito.mock(RsrcCtxWrapper.class);
+            Mockito.when(unmappedCtx.request()).thenReturn(unmappedRequest);
+
+            openIDConfig = ztsImpl.getOpenIDConfig(unmappedCtx);
+            assertNotNull(openIDConfig);
+            assertEquals(openIDConfig.getIssuer(), "https://zts-oidc-port.athenz.io/zts/v1");
+        } finally {
+            System.clearProperty(ZTSConsts.ZTS_PROP_HOST_ISSUER_MAPPING_FILE);
+            System.clearProperty(ZTSConsts.ZTS_PROP_OIDC_PORT);
+            System.clearProperty(ZTSConsts.ZTS_PROP_OIDC_PORT_ISSUER);
+            Files.deleteIfExists(Paths.get(mappingFile));
+        }
+    }
+
+    @Test
     public void testGetOAuthConfig() {
 
         ResourceContext ctx = createResourceContext(null);
