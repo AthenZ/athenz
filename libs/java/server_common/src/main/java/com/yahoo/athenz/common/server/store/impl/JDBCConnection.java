@@ -339,12 +339,16 @@ public class JDBCConnection implements ObjectStoreConnection {
     private static final String SQL_LIST_POLICY_REFERENCING_ROLE = "SELECT name FROM policy "
             + "JOIN assertion ON policy.policy_id=assertion.policy_id "
             + "WHERE policy.domain_id=? AND assertion.role=?;";
+    // MySQL accepts at most 65,535 placeholders; each pair uses two and action
+    // may use one more, so configured values above 32,767 can fail at PREPARE.
+    static final int DEFAULT_RESOURCE_ACCESS_ROLE_PAIRS_PER_QUERY = 1000;
     private static final String SQL_LIST_ROLE_ASSERTIONS = "SELECT assertion.role, assertion.resource, "
             + "assertion.action, assertion.effect, assertion.case_sensitive, assertion.assertion_id, policy.domain_id, domain.name FROM assertion "
             + "JOIN policy ON assertion.policy_id=policy.policy_id "
-            + "JOIN domain ON policy.domain_id=domain.domain_id";
-    private static final String SQL_LIST_ROLE_ASSERTION_QUERY_ACTION = " WHERE assertion.action=?;";
-    private static final String SQL_LIST_ROLE_ASSERTION_NO_ACTION = " WHERE assertion.action!='assume_role';";
+            + "JOIN domain ON policy.domain_id=domain.domain_id "
+            + "WHERE (policy.domain_id, assertion.role) IN (";
+    private static final String SQL_LIST_ROLE_ASSERTION_QUERY_ACTION = ") AND assertion.action=?;";
+    private static final String SQL_LIST_ROLE_ASSERTION_NO_ACTION = ") AND assertion.action!='assume_role';";
     private static final String SQL_LIST_ROLE_PRINCIPALS = "SELECT role.domain_id, role.name AS role_name FROM principal "
             + "JOIN role_member ON principal.principal_id=role_member.principal_id "
             + "JOIN role ON role_member.role_id=role.role_id WHERE principal.name=? "
@@ -830,6 +834,7 @@ public class JDBCConnection implements ObjectStoreConnection {
     private int auditLogRoleKeepCount;
     private int auditLogGroupMaxLimit;
     private int auditLogGroupKeepCount;
+    private int resourceAccessRolePairsPerQuery = DEFAULT_RESOURCE_ACCESS_ROLE_PAIRS_PER_QUERY;
 
     private Object synchronizer = new Object();
     private volatile static Map<String, List<String>> SERVER_TRUST_ROLES_MAP;
@@ -842,6 +847,10 @@ public class JDBCConnection implements ObjectStoreConnection {
         con.setAutoCommit(autoCommit);
         transactionCompleted = autoCommit;
         objectMap = new HashMap<>();
+    }
+
+    void setResourceAccessRolePairsPerQuery(int rolePairsPerQuery) {
+        resourceAccessRolePairsPerQuery = rolePairsPerQuery;
     }
 
     public void setObjectSynchronizer(Object synchronizer) {
@@ -4883,24 +4892,52 @@ public class JDBCConnection implements ObjectStoreConnection {
         return domainId + ':' + roleName;
     }
 
-    PreparedStatement prepareRoleAssertionsStatement(String action)
+    String rolePairPlaceholders(int count) {
+        return String.join(",", Collections.nCopies(count, "(?,?)"));
+    }
+
+    PreparedStatement prepareRoleAssertionsStatement(String action, List<String> domainRolePairs)
             throws SQLException {
 
-        PreparedStatement ps;
+        String sql = SQL_LIST_ROLE_ASSERTIONS + rolePairPlaceholders(domainRolePairs.size());
         if (!StringUtil.isEmpty(action)) {
-            ps = con.prepareStatement(SQL_LIST_ROLE_ASSERTIONS + SQL_LIST_ROLE_ASSERTION_QUERY_ACTION);
-            ps.setString(1, action);
+            sql += SQL_LIST_ROLE_ASSERTION_QUERY_ACTION;
         } else {
-            ps = con.prepareStatement(SQL_LIST_ROLE_ASSERTIONS + SQL_LIST_ROLE_ASSERTION_NO_ACTION);
+            sql += SQL_LIST_ROLE_ASSERTION_NO_ACTION;
+        }
+        PreparedStatement ps = con.prepareStatement(sql);
+        int parameterIndex = 1;
+        for (String domainRolePair : domainRolePairs) {
+            int separator = domainRolePair.indexOf(':');
+            ps.setLong(parameterIndex++, Long.parseLong(domainRolePair.substring(0, separator)));
+            ps.setString(parameterIndex++, domainRolePair.substring(separator + 1));
+        }
+        if (!StringUtil.isEmpty(action)) {
+            ps.setString(parameterIndex, action);
         }
         return ps;
     }
 
-    Map<String, List<Assertion>> getRoleAssertions(String action, String caller) throws ServerResourceException {
+    Map<String, List<Assertion>> getRoleAssertions(Set<String> effectiveDomainRolePairs, String action, String caller)
+            throws ServerResourceException {
 
         Map<String, List<Assertion>> roleAssertions = new HashMap<>();
-        try (PreparedStatement ps = prepareRoleAssertionsStatement(action)) {
-            try (ResultSet rs = executeQuery(ps, caller)) {
+        if (effectiveDomainRolePairs.isEmpty()) {
+            return roleAssertions;
+        }
+
+        List<String> sortedDomainRolePairs = new ArrayList<>(effectiveDomainRolePairs);
+        Collections.sort(sortedDomainRolePairs);
+        // Batch the principal's effective domain-role pairs to avoid an unbounded IN list.
+        // Large lists can increase MySQL work or exceed
+        // its prepared-statement placeholder limit.
+        // Trade-off: when multiple batches are needed, their DB queries run sequentially,
+        // adding round trips to the request's latency.
+        for (int start = 0; start < sortedDomainRolePairs.size(); start += resourceAccessRolePairsPerQuery) {
+            List<String> batch = sortedDomainRolePairs.subList(start,
+                    Math.min(start + resourceAccessRolePairsPerQuery, sortedDomainRolePairs.size()));
+            try (PreparedStatement ps = prepareRoleAssertionsStatement(action, batch);
+                    ResultSet rs = executeQuery(ps, caller)) {
                 while (rs.next()) {
                     Assertion assertion = new Assertion();
                     String domainName = rs.getString(JDBCConsts.DB_COLUMN_NAME);
@@ -4921,9 +4958,9 @@ public class JDBCConnection implements ObjectStoreConnection {
 
                     assertions.add(assertion);
                 }
+            } catch (SQLException ex) {
+                throw sqlError(ex, caller);
             }
-        } catch (SQLException ex) {
-            throw sqlError(ex, caller);
         }
 
         return roleAssertions;
@@ -5154,18 +5191,23 @@ public class JDBCConnection implements ObjectStoreConnection {
             return rsrcAccessList;
         }
 
-        // now let's get the list of role assertions. if we have
-        // no matches, then we have nothing to do
+        // Add trusted roles mapped from the principal's roles before querying assertions.
+        // Then we scope the assertion query to all of those effective roles
+        // to avoid loading unrelated assertions into ZMS memory.
+        Map<String, List<String>> trustedRoles = getTrustedRoles(caller);
+        Set<String> effectiveDomainRolePairs = new HashSet<>(rolePrincipals);
+        for (String roleIndex : rolePrincipals) {
+            List<String> mappedRoles = trustedRoles.get(roleIndex);
+            if (mappedRoles != null) {
+                effectiveDomainRolePairs.addAll(mappedRoles);
+            }
+        }
 
-        Map<String, List<Assertion>> roleAssertions = getRoleAssertions(action, caller);
+        Map<String, List<Assertion>> roleAssertions = getRoleAssertions(effectiveDomainRolePairs, action, caller);
         if (roleAssertions.isEmpty()) {
             resources.add(getResourceAccessObject(principal, null));
             return rsrcAccessList;
         }
-
-        // finally we need to get all the trusted role maps
-
-        Map<String, List<String>> trustedRoles = getTrustedRoles(caller);
 
         // now let's go ahead and combine all of our data together
         // we're going to go through each principal, lookup
