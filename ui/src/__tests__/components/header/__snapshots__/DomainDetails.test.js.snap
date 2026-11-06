@@ -359,6 +359,16 @@ exports[`DomainDetails should render snapshot with full metadata 1`] = `
     >
       <button
         class="emotion-52 denali-button"
+        data-testid="export-domain"
+      >
+        Export Domain
+      </button>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <button
+        class="emotion-52 denali-button"
       >
         Onboard to AWS
       </button>
@@ -533,6 +543,49 @@ exports[`DomainDetails should render snapshot with minimal metadata 1`] = `
   vertical-align: text-bottom;
 }
 
+.emotion-52 {
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px #3697f2 inset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Helvetica,Arial,sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1;
+  margin: 5px;
+  outline: 0;
+  padding: 10px 24px;
+  text-align: center;
+  text-shadow: none;
+  text-transform: none;
+  -webkit-transition: all 0.2s ease-in;
+  transition: all 0.2s ease-in;
+  vertical-align: baseline;
+  white-space: nowrap;
+  background: transparent;
+  color: #3697f2;
+}
+
+.emotion-52:first-of-type {
+  margin-left: 0;
+}
+
+.emotion-52:disabled {
+  background: rgba(48,48,48,0.1);
+  color: rgba(48,48,48,0.2);
+  cursor: not-allowed;
+}
+
+.emotion-52:disabled {
+  box-shadow: 0 0 0 1px rgba(48,48,48,0.1) inset;
+}
+
+.emotion-52:hover:not(:disabled) {
+  background: #d7e2fd;
+}
+
 <div
   class="emotion-0 emotion-1"
   data-testid="domain-details"
@@ -676,6 +729,16 @@ exports[`DomainDetails should render snapshot with minimal metadata 1`] = `
           d="M512 558.933l-140.8-140.8c-7.461-8.401-18.291-13.668-30.351-13.668-13.957 0-26.267 7.055-33.558 17.793l-0.091 0.142c-5.319 7.276-8.51 16.4-8.51 26.27 0 12.199 4.876 23.259 12.785 31.338l-0.008-0.008 170.667 168.533c7.434 8.083 18.061 13.13 29.867 13.13s22.432-5.047 29.84-13.101l0.026-0.029 170.667-168.533c7.901-8.071 12.777-19.131 12.777-31.33 0-9.87-3.192-18.994-8.599-26.397l0.088 0.127c-7.382-10.88-19.691-17.934-33.649-17.934-12.060 0-22.89 5.267-30.315 13.626l-0.036 0.042z"
         />
       </svg>
+    </div>
+    <div
+      class="emotion-4 emotion-5"
+    >
+      <button
+        class="emotion-52 denali-button"
+        data-testid="export-domain"
+      >
+        Export Domain
+      </button>
     </div>
   </div>
 </div>

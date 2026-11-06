@@ -742,7 +742,7 @@ exports[`Tag Page should render 1`] = `
   background: #d7e2fd;
 }
 
-.emotion-107 {
+.emotion-110 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -757,7 +757,7 @@ exports[`Tag Page should render 1`] = `
   position: relative;
 }
 
-.emotion-107.vertical {
+.emotion-110.vertical {
   background: #f5f8fe;
   display: flex;
   -webkit-flex-direction: column;
@@ -770,7 +770,7 @@ exports[`Tag Page should render 1`] = `
   width: 300px;
 }
 
-.emotion-108 {
+.emotion-111 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -791,11 +791,11 @@ exports[`Tag Page should render 1`] = `
   z-index: 1;
 }
 
-.emotion-108:hover {
+.emotion-111:hover {
   color: #3570f4;
 }
 
-.emotion-108.active {
+.emotion-111.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -803,11 +803,11 @@ exports[`Tag Page should render 1`] = `
   cursor: initial;
 }
 
-.emotion-108.active:hover {
+.emotion-111.active:hover {
   color: #303030;
 }
 
-.emotion-108.vertical {
+.emotion-111.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -819,21 +819,21 @@ exports[`Tag Page should render 1`] = `
   text-align: left;
 }
 
-.emotion-108.vertical.active {
+.emotion-111.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-108.vertical.active:hover {
+.emotion-111.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-117 {
+.emotion-120 {
   margin: 20px;
 }
 
-.emotion-119 {
+.emotion-122 {
   padding-bottom: 20px;
   display: flex;
   -webkit-box-pack: justify;
@@ -850,7 +850,7 @@ exports[`Tag Page should render 1`] = `
   float: right;
 }
 
-.emotion-122 {
+.emotion-125 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -873,13 +873,13 @@ exports[`Tag Page should render 1`] = `
   width: 20px;
 }
 
-.emotion-124 {
+.emotion-127 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-125 {
+.emotion-128 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -894,7 +894,7 @@ exports[`Tag Page should render 1`] = `
   width: 350px;
 }
 
-.emotion-127 {
+.emotion-130 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -910,28 +910,28 @@ exports[`Tag Page should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-129 {
+.emotion-132 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-131 {
+.emotion-134 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-133 {
+.emotion-136 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-137 {
+.emotion-140 {
   padding: 0 30px 15px 15px;
 }
 
-.emotion-139 {
+.emotion-142 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -945,7 +945,7 @@ exports[`Tag Page should render 1`] = `
   width: 100%;
 }
 
-.emotion-139 input {
+.emotion-142 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -971,42 +971,42 @@ exports[`Tag Page should render 1`] = `
   width: 100%;
 }
 
-.emotion-139.animated input {
+.emotion-142.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-139 input::-webkit-input-placeholder {
+.emotion-142 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-139 input::-moz-placeholder {
+.emotion-142 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-139 input:-ms-input-placeholder {
+.emotion-142 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-139 input::placeholder {
+.emotion-142 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-139 input.focused,
-.emotion-139 input:active,
-.emotion-139 input:focus {
+.emotion-142 input.focused,
+.emotion-142 input:active,
+.emotion-142 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-139 input:invalid {
+.emotion-142 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-139 .message {
+.emotion-142 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1014,22 +1014,22 @@ exports[`Tag Page should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-139.error input,
-.emotion-139.error input.focused,
-.emotion-139.error input:active,
-.emotion-139.error input:focus {
+.emotion-142.error input,
+.emotion-142.error input.focused,
+.emotion-142.error input:active,
+.emotion-142.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-139.error .message {
+.emotion-142.error .message {
   color: #d01111;
 }
 
-.emotion-139 input {
+.emotion-142 input {
   padding-right: 28px;
 }
 
-.emotion-139 .input-icon {
+.emotion-142 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1041,31 +1041,31 @@ exports[`Tag Page should render 1`] = `
   z-index: 1;
 }
 
-.emotion-139 .input-icon[onclick] {
+.emotion-142 .input-icon[onclick] {
   cursor: pointer;
   -webkit-transition: opacity 0.2s ease-in-out;
   transition: opacity 0.2s ease-in-out;
 }
 
-.emotion-139 .input-icon[onclick]:hover {
+.emotion-142 .input-icon[onclick]:hover {
   opacity: 0.7;
 }
 
-.emotion-141 {
+.emotion-144 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-143 {
+.emotion-146 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-145 {
+.emotion-148 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-147 {
+.emotion-150 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1483,6 +1483,16 @@ exports[`Tag Page should render 1`] = `
                 >
                   <button
                     class="emotion-106 denali-button"
+                    data-testid="export-domain"
+                  >
+                    Export Domain
+                  </button>
+                </div>
+                <div
+                  class="emotion-52 emotion-53"
+                >
+                  <button
+                    class="emotion-106 denali-button"
                   >
                     Onboard to AWS
                   </button>
@@ -1490,59 +1500,59 @@ exports[`Tag Page should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-107 denali-tab-group"
+              class="emotion-110 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 Roles
               </div>
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 Groups
               </div>
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 Services
               </div>
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 Policies
               </div>
               <div
-                class="emotion-108 denali-tab active"
+                class="emotion-111 denali-tab active"
                 data-active="true"
               >
                 Tags
               </div>
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 Templates
               </div>
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 Settings
               </div>
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 Visibility
               </div>
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 History
@@ -1550,11 +1560,11 @@ exports[`Tag Page should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-117 emotion-118"
+            class="emotion-120 emotion-121"
             data-testid="tag-list"
           >
             <div
-              class="emotion-119 emotion-120"
+              class="emotion-122 emotion-123"
             >
               <div>
                 <button
@@ -1572,11 +1582,11 @@ exports[`Tag Page should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-122 emotion-123"
+          class="emotion-125 emotion-126"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-124"
+            class="emotion-127"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -1593,30 +1603,30 @@ exports[`Tag Page should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-125 emotion-126"
+          class="emotion-128 emotion-129"
         >
           <div
-            class="emotion-127 emotion-128"
+            class="emotion-130 emotion-131"
           >
             <div
-              class="emotion-129 emotion-130"
+              class="emotion-132 emotion-133"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-131 emotion-132"
+                class="emotion-134 emotion-135"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-133 emotion-134"
+                class="emotion-136 emotion-137"
               >
                  | 
               </span>
               <a
-                class="emotion-131 emotion-132"
+                class="emotion-134 emotion-135"
                 href="/domain/manage"
               >
                 Manage
@@ -1624,10 +1634,10 @@ exports[`Tag Page should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-137 emotion-138"
+            class="emotion-140 emotion-141"
           >
             <div
-              class="emotion-139 denali-input animated"
+              class="emotion-142 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -1668,17 +1678,17 @@ exports[`Tag Page should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-141 emotion-142"
+            class="emotion-144 emotion-145"
             data-testid="domain-list"
           >
             <div
-              class="emotion-143 emotion-144"
+              class="emotion-146 emotion-147"
             >
               <div
-                class="emotion-145 emotion-146"
+                class="emotion-148 emotion-149"
               >
                 <svg
-                  class="emotion-147"
+                  class="emotion-150"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1701,20 +1711,20 @@ exports[`Tag Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-131 emotion-132"
+                class="emotion-134 emotion-135"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-143 emotion-144"
+              class="emotion-146 emotion-147"
             >
               <div
-                class="emotion-145 emotion-146"
+                class="emotion-148 emotion-149"
               >
                 <svg
-                  class="emotion-147"
+                  class="emotion-150"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1737,7 +1747,7 @@ exports[`Tag Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-131 emotion-132"
+                class="emotion-134 emotion-135"
                 href="/domain/athens.ci/role"
               >
                 athens.ci
