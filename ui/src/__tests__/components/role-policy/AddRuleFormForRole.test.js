@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import AddRuleFormForRole from '../../../components/role-policy/AddRuleFormForRole';
+import { WELL_KNOWN_POLICY_ACTIONS } from '../../../components/constants/constants';
 
 describe('AddRuleForm', () => {
     it('should render', () => {
@@ -44,5 +45,27 @@ describe('AddRuleForm', () => {
         const { getByTestId } = render(<AddRuleFormForRole api={api} />);
         const addRuleFormForRole = getByTestId('add-rule-form-for-role');
         expect(addRuleFormForRole).toMatchSnapshot();
+    });
+    it('should suggest well known actions and accept custom ones', () => {
+        const onChange = jest.fn();
+        const { getByTestId, getByPlaceholderText } = render(
+            <AddRuleFormForRole id='policy1' onChange={onChange} />
+        );
+        const actionInput = getByPlaceholderText('Rule Action');
+        const suggestions = getByTestId('rule-action-suggestions');
+        expect(actionInput.getAttribute('list')).toEqual(
+            'rule-action-suggestions-policy1'
+        );
+        expect(suggestions.getAttribute('id')).toEqual(
+            'rule-action-suggestions-policy1'
+        );
+        expect(
+            Array.from(suggestions.querySelectorAll('option')).map(
+                (option) => option.value
+            )
+        ).toEqual(WELL_KNOWN_POLICY_ACTIONS);
+
+        fireEvent.change(actionInput, { target: { value: 'custom_action' } });
+        expect(onChange).toHaveBeenCalledWith('action', 'custom_action');
     });
 });

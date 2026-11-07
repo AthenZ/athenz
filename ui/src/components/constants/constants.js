@@ -120,6 +120,19 @@ export const SEGMENTATION_PROTOCOL = [
 
 export const DELETE_AUDIT_REFERENCE = 'deleted using Athenz UI';
 
+// well known actions suggested when creating policy assertions. users
+// can still enter any other custom action value
+export const WELL_KNOWN_POLICY_ACTIONS = [
+    'get',
+    'put',
+    'exec',
+    'update',
+    'create',
+    'read',
+    'assume_role',
+    'assume_aws_role',
+];
+
 // VIP -> VIP name -> FQDN (represents a virtual ip construct)
 // ENTERPRISE_APPLIANCE -> pes short id -> random string only contains characters, numbers, _ and : (represents generic network devices which can not be bootstrapped with an identity due to limitations)
 // CLOUD_LB -> FQDN (represents a public cloud load balancer)
