@@ -17,6 +17,7 @@ package com.yahoo.athenz.instance.provider.impl;
 
 import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
+import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.common.server.util.IPBlock;
 import com.yahoo.athenz.instance.provider.ProviderResourceException;
@@ -63,6 +64,61 @@ public class InstanceUtils {
         }
 
         return value;
+    }
+
+    /**
+     * Add an attribute to the confirmation object that ZTS forwards to the
+     * CertSigner when generating the X.509 certificate. The name is prefixed
+     * with {@link InstanceProvider#ZTS_CERT_SIGNER_ATTR_PREFIX}. Empty names
+     * or values are ignored. Providers must only call this method with values
+     * derived from verified evidence and after all validation has passed.
+     * @param confirmation instance confirmation object returned by the provider
+     * @param name attribute name (without the prefix)
+     * @param value attribute value
+     */
+    public static void setCertSignerAttribute(InstanceConfirmation confirmation, final String name,
+            final String value) {
+
+        if (StringUtil.isEmpty(name) || StringUtil.isEmpty(value)) {
+            return;
+        }
+
+        Map<String, String> attributes = confirmation.getAttributes();
+        if (attributes == null) {
+            attributes = new HashMap<>();
+            confirmation.setAttributes(attributes);
+        }
+        attributes.put(InstanceProvider.ZTS_CERT_SIGNER_ATTR_PREFIX + name, value);
+    }
+
+    /**
+     * Remove all attributes with the {@link InstanceProvider#ZTS_CERT_SIGNER_ATTR_PREFIX}
+     * prefix from the given map and return them with the prefix removed.
+     * Entries with an empty name after the prefix are removed but not returned.
+     * @param attributes attributes returned by the provider (modified in place)
+     * @return map of cert signer attributes, never null
+     */
+    public static Map<String, String> extractCertSignerAttributes(Map<String, String> attributes) {
+
+        if (attributes == null || attributes.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        final int prefixLen = InstanceProvider.ZTS_CERT_SIGNER_ATTR_PREFIX.length();
+        Map<String, String> signerAttributes = new HashMap<>();
+        Iterator<Map.Entry<String, String>> iterator = attributes.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, String> entry = iterator.next();
+            final String key = entry.getKey();
+            if (key == null || !key.startsWith(InstanceProvider.ZTS_CERT_SIGNER_ATTR_PREFIX)) {
+                continue;
+            }
+            iterator.remove();
+            if (key.length() > prefixLen) {
+                signerAttributes.put(key.substring(prefixLen), entry.getValue());
+            }
+        }
+        return signerAttributes;
     }
 
     static int dnsSuffixMatchIndex(final String hostname, final List<String> dnsSuffixes) {

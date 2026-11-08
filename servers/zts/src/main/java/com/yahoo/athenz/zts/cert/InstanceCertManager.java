@@ -759,16 +759,33 @@ public class InstanceCertManager {
 
     public String generateX509Certificate(final String provider, final String certIssuer, final String csr,
             final String keyUsage, int expiryTime, Priority priority, final String keySignerId) {
+        return generateX509Certificate(provider, certIssuer, csr, keyUsage, expiryTime, priority,
+                keySignerId, Collections.emptyMap());
+    }
+
+    public String generateX509Certificate(final String provider, final String certIssuer, final String csr,
+            final String keyUsage, int expiryTime, Priority priority, final String keySignerId,
+            final Map<String, String> signerAttributes) {
 
         if (certSigner == null) {
             LOGGER.error("CertSigner is not available");
             return null;
         }
 
+        CertSignerParameters params = CertSignerParameters.builder()
+                .provider(provider)
+                .certIssuer(certIssuer)
+                .csr(csr)
+                .keyUsage(keyUsage)
+                .expiryTime(expiryTime)
+                .priority(priority)
+                .signerKeyId(keySignerId)
+                .attributes(signerAttributes)
+                .build();
+
         String pemCert = null;
         try {
-            pemCert = certSigner.generateX509Certificate(provider, certIssuer, csr, keyUsage,
-                    expiryTime, priority, keySignerId);
+            pemCert = certSigner.generateX509Certificate(params);
         } catch (ServerResourceException ex) {
             LOGGER.error("generateX509Certificate: CertSigner was unable to generate X509 certificate", ex);
         }
@@ -796,11 +813,18 @@ public class InstanceCertManager {
     public InstanceIdentity generateIdentity(final String provider, final String certIssuer,
             final String csr, final String cn, final String keyUsage, int expiryTime,
             Priority priority, final String signerKeyId) {
-        
+        return generateIdentity(provider, certIssuer, csr, cn, keyUsage, expiryTime, priority,
+                signerKeyId, Collections.emptyMap());
+    }
+
+    public InstanceIdentity generateIdentity(final String provider, final String certIssuer,
+            final String csr, final String cn, final String keyUsage, int expiryTime,
+            Priority priority, final String signerKeyId, final Map<String, String> signerAttributes) {
+
         // generate a certificate for this certificate request
 
         final String pemCert = generateX509Certificate(provider, certIssuer, csr, keyUsage,
-                expiryTime, priority, signerKeyId);
+                expiryTime, priority, signerKeyId, signerAttributes);
         if (StringUtil.isEmpty(pemCert)) {
             return null;
         }

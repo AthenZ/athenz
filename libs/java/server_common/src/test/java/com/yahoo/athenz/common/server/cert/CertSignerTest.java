@@ -19,6 +19,8 @@ import com.yahoo.athenz.common.server.ServerResourceException;
 import org.testng.annotations.*;
 import org.mockito.Mockito;
 
+import java.util.Map;
+
 import static org.testng.Assert.*;
 
 public class CertSignerTest {
@@ -45,6 +47,36 @@ public class CertSignerTest {
         assertNull(signer.getCACertificate("aws", "keyid"));
         assertEquals(signer.getMaxCertExpiryTimeMins(), 0);
         signer.close();
+    }
+
+    @Test
+    public void testCertSignerParametersDefaultMethod() throws ServerResourceException {
+
+        CertSigner signer = new CertSigner() {
+            @Override
+            public String generateX509Certificate(String provider, String certIssuer, String csr,
+                    String keyUsage, int expiryTime, Priority priority, String signerKeyId) {
+                return String.join(":", provider, certIssuer, csr, keyUsage,
+                        Integer.toString(expiryTime), priority.name(), signerKeyId);
+            }
+        };
+
+        CertSignerParameters params = CertSignerParameters.builder()
+                .provider("aws")
+                .certIssuer("issuer")
+                .csr("csr")
+                .keyUsage("client")
+                .expiryTime(60)
+                .priority(Priority.Medium)
+                .signerKeyId("keyid")
+                .attributes(Map.of("attr1", "value1"))
+                .build();
+
+        assertEquals(signer.generateX509Certificate(params), "aws:issuer:csr:client:60:Medium:keyid");
+
+        CertSigner defaultSigner = new CertSigner() {
+        };
+        assertNull(defaultSigner.generateX509Certificate(params));
     }
 
     @Test

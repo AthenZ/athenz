@@ -81,6 +81,12 @@ public interface InstanceProvider {
     String ZTS_INSTANCE_SERVICE_FEATURE_FLAGS       = "serviceFeatureFlags";
     String ZTS_INSTANCE_DOMAIN_FEATURE_FLAGS        = "domainFeatureFlags";
     /**
+     * Prefix for attributes returned by the provider that ZTS forwards
+     * (with the prefix removed) to the CertSigner when generating the
+     * X.509 certificate. These attributes are not returned to the client.
+     */
+    String ZTS_CERT_SIGNER_ATTR_PREFIX              = "certSignerAttr:";
+    /**
      * Host cert specific attribute names
      */
     String ZTS_ATTESTED_SSH_CERT_PRINCIPALS         = "attestedSshCertPrincipals";

@@ -5516,6 +5516,7 @@ public class ZTSImpl implements ZTSHandler {
             sshCertAllowed = ZTSUtils.parseBoolean(instanceAttrs.remove(InstanceProvider.ZTS_CERT_SSH), false);
             attestedSshCertPrincipals = instanceAttrs.remove(InstanceProvider.ZTS_ATTESTED_SSH_CERT_PRINCIPALS);
         }
+        Map<String, String> certSignerAttrs = InstanceUtils.extractCertSignerAttributes(instanceAttrs);
 
         // validate the CSR subject ou field. We're doing this check here
         // because the provider can tell us what the ou field should be
@@ -5536,7 +5537,8 @@ public class ZTSImpl implements ZTSHandler {
         Object timerX509CertMetric = metric.startTiming("certsignx509_timing", null, principalDomain);
         InstanceIdentity identity = instanceCertManager.generateIdentity(provider, null, info.getCsr(),
                 cn, certUsage, certExpiryTime, Priority.High,
-                getServiceX509KeySignerId(domainData, serviceIdentity, validateCertSignerKeyId(info.getX509CertSignerKeyId())));
+                getServiceX509KeySignerId(domainData, serviceIdentity, validateCertSignerKeyId(info.getX509CertSignerKeyId())),
+                certSignerAttrs);
         metric.stopTiming(timerX509CertMetric, null, principalDomain);
 
         if (identity == null) {
@@ -6303,6 +6305,7 @@ public class ZTSImpl implements ZTSHandler {
             sshCertAllowed = ZTSUtils.parseBoolean(instanceAttrs.remove(InstanceProvider.ZTS_CERT_SSH), false);
             attestedSshCertPrincipals = instanceAttrs.remove(InstanceProvider.ZTS_ATTESTED_SSH_CERT_PRINCIPALS);
         }
+        Map<String, String> certSignerAttrs = InstanceUtils.extractCertSignerAttributes(instanceAttrs);
 
         // validate the CSR subject ou field. We're doing this check here
         // because the provider can tell us what the ou field should be
@@ -6342,7 +6345,8 @@ public class ZTSImpl implements ZTSHandler {
         Object timerX509CertMetric = metric.startTiming("certsignx509_timing", null, principalDomain);
         InstanceIdentity identity = instanceCertManager.generateIdentity(provider, null, info.getCsr(),
                 principalName, certUsage, certExpiryTime, priority,
-                getServiceX509KeySignerId(domainData, serviceIdentity, validateCertSignerKeyId(info.getX509CertSignerKeyId())));
+                getServiceX509KeySignerId(domainData, serviceIdentity, validateCertSignerKeyId(info.getX509CertSignerKeyId())),
+                certSignerAttrs);
         metric.stopTiming(timerX509CertMetric, null, principalDomain);
 
         if (identity == null) {
