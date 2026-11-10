@@ -57,6 +57,19 @@ public class X509RoleCertRequestTest {
     }
 
     @Test
+    public void testX509RoleCertRequestCommonNameExceedingRfc5280Limit() throws IOException {
+        Path path = Paths.get("src/test/resources/role_long_cn.csr");
+        String csr = new String(Files.readAllBytes(path));
+
+        X509RoleCertRequest certReq = new X509RoleCertRequest(csr, spiffeUriManager, certificateDataValidator);
+
+        // RFC 5280 limits commonName to 64 characters. Keep accepting longer role names because
+        // ZTS derives the requested role from the certificate request's common name.
+        assertEquals(certReq.getReqRoleDomain(), "coretech");
+        assertEquals(certReq.getReqRoleName(), "long-role-name-segment-that-exceeds-the-rfc5280-common-name-limit");
+    }
+
+    @Test
     public void testValidateSpiffeRoleCert() throws IOException {
 
         Path path = Paths.get("src/test/resources/spiffe_role.csr");
