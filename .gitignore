@@ -30,8 +30,6 @@ clients/go/zms/examples/get-access/get-access
 clients/go/zts/pkg/
 clients/go/zts/src/
 clients/go/zts/bin/
-clients/go/msd/pkg/
-clients/go/msd/bin/
 clients/go/zts/examples/get-role-token/get-role-token
 clients/java/zpe/src/test/resources/upd_pol_dir/
 clients/java/zpe/src/test/resources/pol_dir/angler.pol
@@ -131,7 +129,6 @@ utils/zts-svctoken/src/
 utils/zts-usercert/src/
 utils/zts-usercert/bin/
 utils/zts-usercert/pkg/
-utils/msd-agent/pkg/
 utils/zts-accesstoken/zts-accesstoken
 utils/zts-rolecert/zts-rolecert
 utils/zts-roletoken/zts-roletoken
