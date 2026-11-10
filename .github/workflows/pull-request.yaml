@@ -82,4 +82,4 @@ jobs:
           architecture: ${{ env.JAVA_ARCH }}
 
       - name: Build Athenz Clients
-        run: mvn -B -pl core/zms,core/zts,core/msd,libs/java/auth_core,libs/java/client_common,libs/java/cert_refresher,clients/java/zms,clients/java/zts,clients/java/zpe,clients/java/msd,libs/java/gcp_zts_creds install
+        run: mvn -B -pl core/zms,core/zts,libs/java/auth_core,libs/java/client_common,libs/java/cert_refresher,clients/java/zms,clients/java/zts,clients/java/zpe,libs/java/gcp_zts_creds install

@@ -159,7 +159,6 @@
     <module>rdl/rdl-gen-athenz-java-client</module>
     <module>core/zms</module>
     <module>core/zts</module>
-    <module>core/msd</module>
     <module>libs/java/auth_core</module>
     <module>libs/java/client_common</module>
     <module>libs/java/cert_refresher</module>
@@ -176,7 +175,6 @@
     <module>libs/java/server_msg_pulsar</module>
     <module>libs/java/server_notification_slack</module>
     <module>clients/java/zpe</module>
-    <module>clients/java/msd</module>
     <module>libs/java/gcp_zts_creds</module>
     <module>servers/zms</module>
     <module>servers/zts</module>
@@ -186,7 +184,6 @@
     <module>syncers/zms_gcp_domain_syncer</module>
     <module>clients/go/zms</module>
     <module>clients/go/zts</module>
-    <module>clients/go/msd</module>
     <module>libs/go/sia</module>
     <module>libs/go/zmscli</module>
     <module>libs/go/zmssvctoken</module>
@@ -217,7 +214,6 @@
     <module>utils/zts-svccert</module>
     <module>utils/zts-svctoken</module>
     <module>utils/zts-usercert</module>
-    <module>utils/msd-agent</module>
     <module>libs/nodejs/auth_core</module>
     <module>clients/nodejs/zts</module>
     <module>clients/nodejs/zpe</module>
@@ -354,7 +350,6 @@
                 <exclude>*Test</exclude>
                 <exclude>**/*ZMSRDLGeneratedClient*.class</exclude>
                 <exclude>**/*ZTSRDLGeneratedClient*.class</exclude>
-                <exclude>**/*MSDRDLGeneratedClient*.class</exclude>
                 <exclude>**/ZMSResources.class</exclude>
                 <exclude>**/ZTSResources.class</exclude>
                 <exclude>**/ZMSHandler.class</exclude>

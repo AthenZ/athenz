@@ -31,20 +31,17 @@ then
   deployProject "com.yahoo.athenz:athenz"
   deployProject "com.yahoo.athenz:athenz-zms-core"
   deployProject "com.yahoo.athenz:athenz-zts-core"
-  deployProject "com.yahoo.athenz:athenz-msd-core"
   deployProject "com.yahoo.athenz:athenz-auth-core"
   deployProject "com.yahoo.athenz:athenz-client-common"
   deployProject "com.yahoo.athenz:athenz-cert-refresher"
   deployProject "com.yahoo.athenz:athenz-zms-java-client"
   deployProject "com.yahoo.athenz:athenz-zts-java-client"
   deployProject "com.yahoo.athenz:athenz-zpe-java-client"
-  deployProject "com.yahoo.athenz:athenz-msd-java-client"
   deployProject "com.yahoo.athenz:athenz-gcp-zts-creds"
 else
   mvn -B install --projects "com.yahoo.athenz:athenz" -Dmaven.test.skip=true
   mvn -B install --projects "com.yahoo.athenz:athenz-zms-core" -Dmaven.test.skip=true
   mvn -B install --projects "com.yahoo.athenz:athenz-zts-core" -Dmaven.test.skip=true
-  mvn -B install --projects "com.yahoo.athenz:athenz-msd-core" -Dmaven.test.skip=true
   mvn -B install --projects "com.yahoo.athenz:athenz-auth-core" -Dmaven.test.skip=true
   mvn -B install --projects "com.yahoo.athenz:athenz-client-common" -Dmaven.test.skip=true
   mvn -B install --projects "com.yahoo.athenz:athenz-cert-refresher" -Dmaven.test.skip=true
