@@ -108,6 +108,11 @@ An attribute is omitted when the attestation data doesn't provide a verified
 value. For example, the region isn't available when a Lambda function or an ECS
 task authenticates with STS credentials only.
 
+Custom subclasses of `InstanceAWSProvider` that override the original
+`validateAWSDocument` method (without the `certSignerAttrs` argument) continue to
+work, but the document attributes aren't passed to the signer for them. Override
+the variant with the `certSignerAttrs` argument to include them.
+
 ## Configuration
 ----------------
 

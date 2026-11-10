@@ -1073,4 +1073,139 @@ public class InstanceAWSProviderTest {
             assertEquals(ex.getCode(), 403);
         }
     }
+
+    // subclass written against the original 7-argument document validation hook
+    static class LegacyDocumentValidationProvider extends MockInstanceAWSProvider {
+
+        boolean documentResult;
+        int documentCalls = 0;
+
+        @Override
+        protected boolean validateAWSDocument(final String provider, AWSAttestationData info,
+                final String awsAccount, final String instanceId, boolean checkTime,
+                StringBuilder privateIp, StringBuilder errMsg) {
+            documentCalls++;
+            if (!documentResult) {
+                errMsg.append("legacy document check failed");
+                return false;
+            }
+            privateIp.append("10.10.10.12");
+            return true;
+        }
+    }
+
+    static class LegacyDocumentValidationChildProvider extends LegacyDocumentValidationProvider {
+    }
+
+    private InstanceConfirmation legacyProviderConfirmation() {
+        String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 100).toString();
+        InstanceConfirmation confirmation = new InstanceConfirmation()
+                .setAttestationData("{\"document\": \"{\\\"accountId\\\": \\\"1234\\\",\\\"pendingTime\\\": \\\""
+                        + bootTime + "\\\",\\\"region\\\": \\\"us-west-2\\\",\\\"instanceId\\\": \\\"i-1234\\\"}\","
+                        + "\"signature\": \"signature\",\"role\": \"athenz.service\"}")
+                .setDomain("athenz").setProvider("athenz.aws.us-west-2").setService("service");
+        HashMap<String, String> attributes = new HashMap<>();
+        attributes.put("awsAccount", "1234");
+        attributes.put("instanceId", "i-1234");
+        attributes.put("sanDNS", "service.athenz.athenz.cloud,i-1234.instanceid.athenz.athenz.cloud");
+        confirmation.setAttributes(attributes);
+        return confirmation;
+    }
+
+    @Test
+    public void testOverridesLegacyValidateAWSDocument() {
+        assertFalse(InstanceAWSProvider.overridesLegacyValidateAWSDocument(InstanceAWSProvider.class));
+        assertFalse(InstanceAWSProvider.overridesLegacyValidateAWSDocument(InstanceAWSECSProvider.class));
+        assertFalse(InstanceAWSProvider.overridesLegacyValidateAWSDocument(InstanceAWSLambdaProvider.class));
+        assertFalse(InstanceAWSProvider.overridesLegacyValidateAWSDocument(MockInstanceAWSProvider.class));
+        assertFalse(InstanceAWSProvider.overridesLegacyValidateAWSDocument(Object.class));
+        assertTrue(InstanceAWSProvider.overridesLegacyValidateAWSDocument(LegacyDocumentValidationProvider.class));
+        assertTrue(InstanceAWSProvider.overridesLegacyValidateAWSDocument(LegacyDocumentValidationChildProvider.class));
+    }
+
+    @Test
+    public void testLegacyValidateAWSDocumentDelegates() {
+
+        MockInstanceAWSProvider provider = new MockInstanceAWSProvider();
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+
+        String bootTime = Timestamp.fromMillis(System.currentTimeMillis() - 100).toString();
+        AWSAttestationData data = new AWSAttestationData();
+        data.setDocument("{\"accountId\": \"1234\",\"pendingTime\": \""
+                + bootTime + "\",\"region\":\"us-west-2\",\"instanceId\": \"i-1234\",\"privateIp\": \"10.10.10.11\"}");
+        data.setSignature("signature");
+
+        StringBuilder privateIp = new StringBuilder(64);
+        StringBuilder errMsg = new StringBuilder(256);
+        assertTrue(provider.validateAWSDocument("athenz.aws.us-west-2", data,
+                "1234", "i-1234", true, privateIp, errMsg));
+        assertEquals(privateIp.toString(), "10.10.10.11");
+
+        errMsg.setLength(0);
+        assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data,
+                "1235", "i-1234", true, new StringBuilder(), errMsg));
+        assertTrue(errMsg.toString().contains("mismatch between account values"));
+    }
+
+    @Test
+    public void testConfirmInstanceLegacyDocumentValidationOverride() throws ProviderResourceException {
+
+        System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        LegacyDocumentValidationProvider provider = new LegacyDocumentValidationChildProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+
+        // the legacy override rejects the document so the request must be rejected
+
+        provider.documentResult = false;
+        try {
+            provider.confirmInstance(legacyProviderConfirmation());
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("legacy document check failed"));
+        }
+        assertEquals(provider.documentCalls, 1);
+
+        // the legacy override accepts the document - its outputs are used but no
+        // document attributes are passed to the cert signer
+
+        provider.documentResult = true;
+        InstanceConfirmation result = provider.confirmInstance(legacyProviderConfirmation());
+        assertEquals(provider.documentCalls, 2);
+        Map<String, String> attrs = result.getAttributes();
+        assertEquals(attrs.get("instancePrivateIp"), "10.10.10.12");
+        assertNull(attrs.get("certSignerAttr:awsRuntimeAccount"));
+        assertNull(attrs.get("certSignerAttr:awsRuntimeRegion"));
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
+    }
+
+    @Test
+    public void testRefreshInstanceLegacyDocumentValidationOverride() throws ProviderResourceException {
+
+        System.setProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX, "athenz.cloud");
+        System.setProperty(InstanceAWSUtils.AWS_PROP_PUBLIC_CERT, "src/test/resources/aws_public.cert");
+        LegacyDocumentValidationProvider provider = new LegacyDocumentValidationProvider();
+        provider.initialize("provider", "com.yahoo.athenz.instance.provider.impl.InstanceAWSProvider", null, null);
+
+        provider.documentResult = false;
+        try {
+            provider.refreshInstance(legacyProviderConfirmation());
+            fail();
+        } catch (ProviderResourceException ex) {
+            assertEquals(ex.getCode(), 403);
+            assertTrue(ex.getMessage().contains("legacy document check failed"));
+        }
+        assertEquals(provider.documentCalls, 1);
+
+        provider.documentResult = true;
+        InstanceConfirmation result = provider.refreshInstance(legacyProviderConfirmation());
+        assertEquals(provider.documentCalls, 2);
+        Map<String, String> attrs = result.getAttributes();
+        assertEquals(attrs.get("instancePrivateIp"), "10.10.10.12");
+        assertNull(attrs.get("certSignerAttr:awsRuntimeAccount"));
+        assertNull(attrs.get("certSignerAttr:awsRuntimeRegion"));
+        System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
+    }
 }

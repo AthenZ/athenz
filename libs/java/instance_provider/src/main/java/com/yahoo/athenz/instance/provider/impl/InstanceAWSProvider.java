@@ -83,6 +83,7 @@ public class InstanceAWSProvider implements InstanceProvider {
     AWSAttestationValidator attestationValidator;
     Authorizer authorizer;
     Principal providerPrincipal;
+    final boolean legacyDocumentValidation = overridesLegacyValidateAWSDocument(getClass());
 
     @Override
     public void setAuthorizer(Authorizer authorizer) {
@@ -247,6 +248,24 @@ public class InstanceAWSProvider implements InstanceProvider {
         return true;
     }
 
+    /**
+     * Validate the AWS instance identity document. Subclasses that override this
+     * method are still called during register and refresh, but since the provider
+     * can't tell whether the override verified the document, no document attributes
+     * are passed to the cert signer for them. Override the variant with the
+     * certSignerAttrs argument instead to support cert signer attributes.
+     */
+    protected boolean validateAWSDocument(final String provider, AWSAttestationData info,
+            final String awsAccount, final String instanceId, boolean checkTime,
+            StringBuilder privateIp, StringBuilder errMsg) {
+        return validateAWSDocument(provider, info, awsAccount, instanceId, checkTime,
+                privateIp, new HashMap<>(), errMsg);
+    }
+
+    /**
+     * Validate the AWS instance identity document and, after all checks pass, add
+     * the verified document attributes for the cert signer to certSignerAttrs.
+     */
     protected boolean validateAWSDocument(final String provider, AWSAttestationData info,
             final String awsAccount, final String instanceId, boolean checkTime,
             StringBuilder privateIp, Map<String, String> certSignerAttrs, StringBuilder errMsg) {
@@ -305,6 +324,33 @@ public class InstanceAWSProvider implements InstanceProvider {
         certSignerAttrs.put(ZTS_CERT_SIGNER_ATTR_AWS_RUNTIME_ACCOUNT, docAccount);
         certSignerAttrs.put(ZTS_CERT_SIGNER_ATTR_AWS_RUNTIME_REGION, region);
         return true;
+    }
+
+    private boolean verifyAWSDocument(final String provider, AWSAttestationData info,
+            final String awsAccount, final String instanceId, boolean checkTime,
+            StringBuilder privateIp, Map<String, String> certSignerAttrs, StringBuilder errMsg) {
+
+        // dispatch to a subclass override of the original hook so its validation still runs
+
+        if (legacyDocumentValidation) {
+            return validateAWSDocument(provider, info, awsAccount, instanceId, checkTime, privateIp, errMsg);
+        }
+        return validateAWSDocument(provider, info, awsAccount, instanceId, checkTime, privateIp,
+                certSignerAttrs, errMsg);
+    }
+
+    static boolean overridesLegacyValidateAWSDocument(Class<?> providerClass) {
+        for (Class<?> clazz = providerClass; clazz != null && clazz != InstanceAWSProvider.class;
+                clazz = clazz.getSuperclass()) {
+            try {
+                clazz.getDeclaredMethod("validateAWSDocument", String.class, AWSAttestationData.class,
+                        String.class, String.class, boolean.class, StringBuilder.class, StringBuilder.class);
+                return true;
+            } catch (NoSuchMethodException ignored) {
+                // not declared at this level - keep walking up the class hierarchy
+            }
+        }
+        return false;
     }
     
     protected String getInstanceId(AWSAttestationData info, Struct instanceDocument, final String reqInstanceId) {
@@ -374,7 +420,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         Map<String, String> certSignerAttrs = new HashMap<>();
         if (instanceDocumentCreds) {
             StringBuilder errMsg = new StringBuilder(256);
-            if (!validateAWSDocument(confirmation.getProvider(), info, awsAccount,
+            if (!verifyAWSDocument(confirmation.getProvider(), info, awsAccount,
                     instanceId.toString(), InstanceUtils.shouldCheckBootTime(instanceAttributes),
                     privateIp, certSignerAttrs, errMsg)) {
                 throw error("Unable to validate AWS document: " + errMsg);
@@ -457,7 +503,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         Map<String, String> certSignerAttrs = new HashMap<>();
         if (instanceDocumentCreds) {
             StringBuilder errMsg = new StringBuilder(256);
-            if (!validateAWSDocument(confirmation.getProvider(), info, awsAccount,
+            if (!verifyAWSDocument(confirmation.getProvider(), info, awsAccount,
                     instanceId.toString(), false, privateIp, certSignerAttrs, errMsg)) {
                 throw error("Unable to validate AWS document: " + errMsg);
             }
