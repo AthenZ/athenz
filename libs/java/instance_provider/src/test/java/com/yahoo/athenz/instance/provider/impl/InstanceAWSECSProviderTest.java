@@ -19,11 +19,15 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
+import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.rdl.Struct;
 import com.yahoo.rdl.Timestamp;
@@ -63,8 +67,11 @@ public class InstanceAWSECSProviderTest {
         data.setDocument("{\"accountId\": \"1234\",\"pendingTime\": \""
                 + bootTime + "\",\"region\": \"us-west-2\",\"instanceId\": \"i-1234\"}");
         data.setSignature("signature");
+        Map<String, String> certSignerAttrs = new HashMap<>();
         assertTrue(provider.validateAWSDocument("athenz.aws-ecs.us-west-2", data,
-                "1234", "i-1234", true, privateIp, errMsg));
+                "1234", "i-1234", true, privateIp, certSignerAttrs, errMsg));
+        assertEquals(certSignerAttrs, Map.of(InstanceProvider.ZTS_CERT_SIGNER_ATTR_AWS_RUNTIME_ACCOUNT, "1234",
+                InstanceProvider.ZTS_CERT_SIGNER_ATTR_AWS_RUNTIME_REGION, "us-west-2"));
     }
     
     @Test

@@ -95,6 +95,19 @@ Guidelines for providers:
 * Keep the set small, since the signer may include every attribute in every
   certificate issued for that provider.
 
+The AWS providers (`InstanceAWSProvider`, `InstanceAWSECSProvider` and
+`InstanceAWSLambdaProvider`) set the following attributes (names are available as
+constants in `InstanceProvider`):
+
+| Attribute           | Value                                                    | Source                                                                                                                                      |
+|---------------------|----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| `awsRuntimeAccount` | AWS account id where the workload is running             | Signed instance identity document, account matched by the STS `GetCallerIdentity` ARN, or the `aws_account` claim of the web identity token |
+| `awsRuntimeRegion`  | AWS region where the workload is running                 | Signed instance identity document or the `source_region` claim of the web identity token                                                    |
+
+An attribute is omitted when the attestation data doesn't provide a verified
+value. For example, the region isn't available when a Lambda function or an ECS
+task authenticates with STS credentials only.
+
 ## Configuration
 ----------------
 

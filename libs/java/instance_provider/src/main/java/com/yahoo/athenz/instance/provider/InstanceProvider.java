@@ -87,6 +87,12 @@ public interface InstanceProvider {
      */
     String ZTS_CERT_SIGNER_ATTR_PREFIX              = "certSignerAttr:";
     /**
+     * CertSigner attribute names (without the prefix) set by the AWS providers
+     * for the verified AWS account and region where the workload is running
+     */
+    String ZTS_CERT_SIGNER_ATTR_AWS_RUNTIME_ACCOUNT = "awsRuntimeAccount";
+    String ZTS_CERT_SIGNER_ATTR_AWS_RUNTIME_REGION  = "awsRuntimeRegion";
+    /**
      * Host cert specific attribute names
      */
     String ZTS_ATTESTED_SSH_CERT_PRINCIPALS         = "attestedSshCertPrincipals";
