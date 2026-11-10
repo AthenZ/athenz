@@ -7921,8 +7921,14 @@ public class JDBCConnectionTest {
     public void testPrepareRoleAssertionsStatementWithAction() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.prepareRoleAssertionsStatement("create");
-        Mockito.verify(mockPrepStmt, times(1)).setString(ArgumentMatchers.eq(1), ArgumentMatchers.eq("create"));
+        jdbcConn.prepareRoleAssertionsStatement("create", List.of("101:role1", "102:role2"));
+        Mockito.verify(mockConn).prepareStatement(ArgumentMatchers.argThat(sql ->
+                sql.contains("(policy.domain_id, assertion.role) IN ((?,?),(?,?)) AND assertion.action=?")));
+        Mockito.verify(mockPrepStmt).setLong(1, 101L);
+        Mockito.verify(mockPrepStmt).setString(2, "role1");
+        Mockito.verify(mockPrepStmt).setLong(3, 102L);
+        Mockito.verify(mockPrepStmt).setString(4, "role2");
+        Mockito.verify(mockPrepStmt).setString(5, "create");
         jdbcConn.close();
     }
 
@@ -7930,9 +7936,13 @@ public class JDBCConnectionTest {
     public void testPrepareRoleAssertionsStatementEmptyAction() throws Exception {
 
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
-        jdbcConn.prepareRoleAssertionsStatement("");
-        jdbcConn.prepareRoleAssertionsStatement(null);
-        Mockito.verify(mockPrepStmt, times(0)).setString(ArgumentMatchers.isA(Integer.class), ArgumentMatchers.isA(String.class));
+        jdbcConn.prepareRoleAssertionsStatement("", List.of("101:role1"));
+        jdbcConn.prepareRoleAssertionsStatement(null, List.of("101:role1"));
+        Mockito.verify(mockConn, times(2)).prepareStatement(ArgumentMatchers.argThat(sql ->
+                sql.contains("(policy.domain_id, assertion.role) IN ((?,?)) AND assertion.action!='assume_role'")));
+        Mockito.verify(mockPrepStmt, times(2)).setLong(1, 101L);
+        Mockito.verify(mockPrepStmt, times(2)).setString(2, "role1");
+        Mockito.verify(mockPrepStmt, times(0)).setString(3, "");
         jdbcConn.close();
     }
 
@@ -7971,8 +7981,11 @@ public class JDBCConnectionTest {
             .thenReturn(true)
             .thenReturn(false);
 
-        Map<String, List<Assertion>> roleAssertions = jdbcConn.getRoleAssertions("update", "getRoleAssertions");
+        Map<String, List<Assertion>> roleAssertions = jdbcConn.getRoleAssertions(
+                Set.of("101:role1", "102:role3"), "update", "getRoleAssertions");
         assertEquals(roleAssertions.size(), 2);
+        Mockito.verify(mockConn, times(1)).prepareStatement(ArgumentMatchers.argThat(sql ->
+                sql.contains("(policy.domain_id, assertion.role) IN ((?,?),(?,?))")));
 
         List<Assertion> assertions = roleAssertions.get("101:role1");
         assertEquals(assertions.size(), 2);
@@ -7997,6 +8010,42 @@ public class JDBCConnectionTest {
         assertEquals(assertions.get(0).getAction(), "update");
         assertEquals(assertions.get(0).getEffect().toString(), "ALLOW");
 
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetRoleAssertionsBatchesLargeRoleSet() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        Set<String> roles = new HashSet<>();
+        for (int i = 0; i < 1001; i++) {
+            roles.add("101:role" + i);
+        }
+        PreparedStatement largePrepStmt = Mockito.mock(PreparedStatement.class, Mockito.withSettings().stubOnly());
+        Mockito.when(mockConn.prepareStatement(ArgumentMatchers.anyString())).thenReturn(largePrepStmt);
+        Mockito.when(largePrepStmt.executeQuery()).thenReturn(mockResultSet);
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+
+        assertTrue(jdbcConn.getRoleAssertions(roles, null, "getRoleAssertions").isEmpty());
+
+        Mockito.verify(mockConn).prepareStatement(ArgumentMatchers.argThat(sql ->
+                sql.contains("(policy.domain_id, assertion.role) IN (")
+                        && sql.contains("assertion.action!='assume_role'")
+                        && sql.chars().filter(c -> c == '?').count() == 2000));
+        Mockito.verify(mockConn).prepareStatement(ArgumentMatchers.argThat(sql ->
+                sql.contains("(policy.domain_id, assertion.role) IN (")
+                        && sql.contains("assertion.action!='assume_role'")
+                        && sql.chars().filter(c -> c == '?').count() == 2));
+        Mockito.verify(mockConn, times(2)).prepareStatement(ArgumentMatchers.anyString());
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetRoleAssertionsWithNoRolesDoesNotQuery() throws Exception {
+
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        assertTrue(jdbcConn.getRoleAssertions(Collections.emptySet(), null, "getRoleAssertions").isEmpty());
+        Mockito.verify(mockConn, times(0)).prepareStatement(ArgumentMatchers.anyString());
         jdbcConn.close();
     }
 
@@ -8029,6 +8078,28 @@ public class JDBCConnectionTest {
         assertTrue(rolePrincipals.contains("101:role1"));
         assertTrue(rolePrincipals.contains("102:role3"));
 
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListResourceAccessIncludesTrustedRoleWithoutDirectAssertions() throws Exception {
+
+        JDBCConnection jdbcConn = Mockito.spy(new JDBCConnection(mockConn, true));
+        Assertion trustedAssertion = new Assertion().setRole("dom2:role.trusted").setResource("dom2:resource");
+        Mockito.doReturn(Set.of("101:direct")).when(jdbcConn).getRolePrincipals("user.user1", "listResourceAccess");
+        Mockito.doReturn(Map.of("101:direct", List.of("102:trusted")))
+                .when(jdbcConn).getTrustedRoles("listResourceAccess");
+        Mockito.doReturn(Map.of("102:trusted", List.of(trustedAssertion))).when(jdbcConn)
+                .getRoleAssertions(ArgumentMatchers.anySet(), ArgumentMatchers.eq("read"),
+                        ArgumentMatchers.eq("listResourceAccess"));
+
+        ResourceAccessList accessList = jdbcConn.listResourceAccess("user.user1", "read", "user");
+
+        assertEquals(accessList.getResources().size(), 1);
+        assertEquals(accessList.getResources().get(0).getAssertions(), List.of(trustedAssertion));
+        Mockito.verify(jdbcConn).getRoleAssertions(ArgumentMatchers.argThat(roles ->
+                roles.contains("101:direct") && roles.contains("102:trusted") && roles.size() == 2),
+                ArgumentMatchers.eq("read"), ArgumentMatchers.eq("listResourceAccess"));
         jdbcConn.close();
     }
 
@@ -8348,8 +8419,9 @@ public class JDBCConnectionTest {
     @Test
     public void testListResourceAccessEmptyRoleAssertions() throws Exception {
 
-        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        JDBCConnection jdbcConn = Mockito.spy(new JDBCConnection(mockConn, true));
         jdbcConn.resetTrustRolesMap();
+        Mockito.doReturn(Collections.emptyMap()).when(jdbcConn).getTrustedRoles("listResourceAccess");
 
         Mockito.when(mockResultSet.next())
             .thenReturn(true)
@@ -8387,8 +8459,9 @@ public class JDBCConnectionTest {
     @Test
     public void testListResourceAccess() throws Exception {
 
-        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        JDBCConnection jdbcConn = Mockito.spy(new JDBCConnection(mockConn, true));
         jdbcConn.resetTrustRolesMap();
+        Mockito.doReturn(Collections.emptyMap()).when(jdbcConn).getTrustedRoles("listResourceAccess");
 
         Mockito.when(mockResultSet.next())
             .thenReturn(true)
@@ -8399,8 +8472,7 @@ public class JDBCConnectionTest {
             .thenReturn(true)
             .thenReturn(true)
             .thenReturn(true)
-            .thenReturn(false) // up to here is role assertions
-            .thenReturn(false); // no trusted role
+            .thenReturn(false); // all role assertions from one query
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_NAME))
             .thenReturn("dom1")
             .thenReturn("dom1")
@@ -8453,8 +8525,9 @@ public class JDBCConnectionTest {
     @Test
     public void testListResourceAccessAws() throws Exception {
 
-        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+        JDBCConnection jdbcConn = Mockito.spy(new JDBCConnection(mockConn, true));
         jdbcConn.resetTrustRolesMap();
+        Mockito.doReturn(Collections.emptyMap()).when(jdbcConn).getTrustedRoles("listResourceAccess");
 
         Mockito.when(mockResultSet.next())
             .thenReturn(true)
@@ -8465,16 +8538,7 @@ public class JDBCConnectionTest {
             .thenReturn(true)
             .thenReturn(true)
             .thenReturn(true)
-            .thenReturn(false) // up to here is role assertions
-            .thenReturn(true) // this is for last modified timestamp
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false) // up to here standard trusted roles
-            .thenReturn(false) // up to here wildcard trusted roles
-            .thenReturn(true)
-            .thenReturn(true)
-            .thenReturn(false); // up to here is aws domains
+            .thenReturn(false); // all role assertions from one query
         Mockito.when(mockResultSet.getTimestamp(JDBCConsts.DB_COLUMN_MODIFIED))
             .thenReturn(new java.sql.Timestamp(1454358916));
         Mockito.when(mockResultSet.getString(JDBCConsts.DB_COLUMN_NAME))
@@ -15047,7 +15111,7 @@ public class JDBCConnectionTest {
         Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("sql error"));
 
         try {
-            jdbcConn.getRoleAssertions("update", "test");
+            jdbcConn.getRoleAssertions(Set.of("101:role1"), "update", "test");
             fail();
         } catch (ServerResourceException ex) {
             assertTrue(ex.getMessage().contains("sql error"));
