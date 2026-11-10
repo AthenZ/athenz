@@ -113,9 +113,11 @@ public class InstanceUtils {
             if (key == null || !key.startsWith(InstanceProvider.ZTS_CERT_SIGNER_ATTR_PREFIX)) {
                 continue;
             }
+            // capture the value before removing: TreeMap may reuse the removed entry for its successor
+            final String value = entry.getValue();
             iterator.remove();
             if (key.length() > prefixLen) {
-                signerAttributes.put(key.substring(prefixLen), entry.getValue());
+                signerAttributes.put(key.substring(prefixLen), value);
             }
         }
         return signerAttributes;

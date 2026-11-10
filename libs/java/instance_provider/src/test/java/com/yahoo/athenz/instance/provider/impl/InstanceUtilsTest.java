@@ -799,4 +799,22 @@ public class InstanceUtilsTest {
         assertEquals(signerAttributes, Map.of("attr1", "value1", "attr2", "value2"));
         assertEquals(attributes, Map.of(InstanceProvider.ZTS_INSTANCE_CLIENT_IP, "10.1.1.1"));
     }
+
+    @Test
+    public void testExtractCertSignerAttributesTreeMap() {
+
+        // with three keys the middle one is the tree root with two children. removing
+        // it makes TreeMap copy the successor's key/value into the removed entry node
+
+        Map<String, String> attributes = new TreeMap<>();
+        attributes.put("aaa", "value0");
+        attributes.put("certSignerAttr:awsRuntimeAccount", "123456789012");
+        attributes.put("certSignerAttr:awsRuntimeRegion", "us-west-2");
+
+        Map<String, String> signerAttributes = InstanceUtils.extractCertSignerAttributes(attributes);
+
+        assertEquals(signerAttributes, Map.of("awsRuntimeAccount", "123456789012",
+                "awsRuntimeRegion", "us-west-2"));
+        assertEquals(attributes, Map.of("aaa", "value0"));
+    }
 }
