@@ -459,19 +459,6 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     }
 
     @Override
-    public String getPolicyBundle(String domainName, String bundleName, String matchingTag) {
-        if ("invalid-domain".equals(domainName)) {
-            throw new ClientResourceException(404, "not found domain");
-        } else if (domainName == null) {
-            throw new IllegalArgumentException("Invalid request");
-        }
-        if (matchingTag != null) {
-            return null;
-        }
-        return "bundle-" + bundleName;
-    }
-
-    @Override
     public PolicyBundleEntries getPolicyBundleEntries(String domainName, String engine) {
         if ("invalid-domain".equals(domainName)) {
             throw new ClientResourceException(404, "not found domain");

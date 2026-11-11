@@ -429,42 +429,6 @@ public class ZTSRDLGeneratedClient {
         }
     }
 
-    public String getPolicyBundle(String domainName, String bundleName, String matchingTag) throws URISyntaxException, IOException {
-        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/bundle/{bundleName}")
-            .resolveTemplate("domainName", domainName)
-            .resolveTemplate("bundleName", bundleName);
-        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
-        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
-            .setUri(uriBuilder.build())
-            .build();
-        if (credsHeader != null) {
-            httpUriRequest.addHeader(credsHeader, credsToken);
-        }
-        if (matchingTag != null) {
-            httpUriRequest.addHeader("If-None-Match", matchingTag);
-        }
-        HttpEntity httpResponseEntity = null;
-        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
-            int code = httpResponse.getCode();
-            httpResponseEntity = httpResponse.getEntity();
-            switch (code) {
-            case 200:
-            case 304:
-                if (code == 304) {
-                    return null;
-                }
-                return jsonMapper.readValue(httpResponseEntity.getContent(), String.class);
-            default:
-                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
-                throw (errorData != null && !errorData.isEmpty())
-                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
-                    : new ClientResourceException(code);
-            }
-        } finally {
-            EntityUtils.consumeQuietly(httpResponseEntity);
-        }
-    }
-
     public PolicyBundleEntries getPolicyBundleEntries(String domainName, String engine) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/bundles")
             .resolveTemplate("domainName", domainName);

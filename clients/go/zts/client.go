@@ -564,43 +564,6 @@ func (client ZTSClient) PostSignedPolicyRequest(domainName DomainName, request *
 	}
 }
 
-func (client ZTSClient) GetPolicyBundle(domainName DomainName, bundleName EntityName, matchingTag string) (PolicyBundle, error) {
-	var data PolicyBundle
-	headers := map[string]string{
-		"If-None-Match": matchingTag,
-	}
-	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/bundle/" + fmt.Sprint(bundleName)
-	resp, err := client.httpGet(url, headers)
-	if err != nil {
-		return data, err
-	}
-	defer resp.Body.Close()
-	switch resp.StatusCode {
-	case 200, 304:
-		if 304 != resp.StatusCode {
-			err = json.NewDecoder(resp.Body).Decode(&data)
-			if err != nil {
-				return data, err
-			}
-		}
-		return data, nil
-	default:
-		var errobj rdl.ResourceError
-		contentBytes, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return data, err
-		}
-		json.Unmarshal(contentBytes, &errobj)
-		if errobj.Code == 0 {
-			errobj.Code = resp.StatusCode
-		}
-		if errobj.Message == "" {
-			errobj.Message = string(contentBytes)
-		}
-		return data, errobj
-	}
-}
-
 func (client ZTSClient) GetPolicyBundleEntries(domainName DomainName, engine SimpleName) (*PolicyBundleEntries, error) {
 	var data *PolicyBundleEntries
 	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/bundles" + encodeParams(encodeStringParam("engine", string(engine), ""))

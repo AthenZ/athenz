@@ -3498,26 +3498,6 @@ public class ZTSClient implements Closeable {
     }
 
     /**
-     * Retrieve the specified policy bundle from the ZTS Server. It will pass an
-     * optional matchingTag so that ZTS can skip returning the bundle if no
-     * changes have taken place since that tag was issued.
-     * @param domainName name of the domain
-     * @param bundleName name of the policy bundle
-     * @param matchingTag name of the tag issued with last request (optional)
-     * @return policy bundle content, or null if the bundle has not been modified
-     *   (304 response). ZTSClientException will be thrown in case of failure
-     */
-    public String getPolicyBundle(String domainName, String bundleName, String matchingTag) {
-        try {
-            return ztsClient.getPolicyBundle(domainName, bundleName, matchingTag);
-        } catch (ClientResourceException ex) {
-            throw new ZTSClientException(ex.getCode(), ex.getData());
-        } catch (Exception ex) {
-            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
-        }
-    }
-
-    /**
      * Retrieve the list of policy bundles in the domain that the caller is
      * authorized to fetch from the ZTS Server
      * @param domainName name of the domain
