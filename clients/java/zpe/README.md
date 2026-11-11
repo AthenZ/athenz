@@ -63,6 +63,22 @@ System properties:
       where ec is the smallest integer such that ec * monitor_timeout_secs >= cleanup_tokens_secs
       Ex: monitor_timeout_secs=300, cleanup_tokens_secs=500, ec = 600 seconds
 
+  athenz.zpe.authz_case_sensitive_mode
+      Default value: disabled
+      Specifies how the library handles assertions created with the
+      case-sensitive flag during authorization checks. Possible values are:
+        disabled - action and resource are matched case-insensitive
+        monitor  - action and resource are matched case-insensitive but the
+                   library logs any case-sensitive assertion that matched
+                   only because the case was ignored
+        enforce  - action and resource of case-sensitive assertions are
+                   matched in their original case
+      Assertions without the case-sensitive flag are always matched
+      case-insensitive and the domain part of the resource is never
+      case-sensitive. The case-sensitive flag is only included in the
+      policy files retrieved from ZTS in the jws format, so this feature
+      requires the policy updater to be configured with jws policy support.
+
 ## License
 
 Copyright The Athenz Authors

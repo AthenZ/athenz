@@ -607,6 +607,153 @@ public class TestAuthZpe {
     }
 
     @Test
+    public void testCaseSensitiveAssertionsModeDisabled() {
+
+        // by default the case-sensitive flag is ignored and all the
+        // assertions are matched case-insensitive
+
+        RoleToken roleToken = createRoleToken("angler", Collections.singletonList("case_sensitive"), "0");
+        StringBuilder roleName = new StringBuilder();
+
+        assertEquals(AuthZpeClient.allowAccess(roleToken, "angler:Reports/Q1.PDF", "ReadData", roleName),
+                AccessCheckStatus.ALLOW);
+        assertEquals(roleName.toString(), "case_sensitive");
+        assertEquals(AuthZpeClient.allowAccess(roleToken, "angler:reports/q1.pdf", "readdata", roleName),
+                AccessCheckStatus.ALLOW);
+        assertEquals(AuthZpeClient.allowAccess(roleToken, "angler:REPORTS/HIDDEN.PDF", "READSECRET", roleName),
+                AccessCheckStatus.DENY);
+        assertEquals(AuthZpeClient.allowAccess(roleToken, "angler:Reports/hidden.pdf", "ReadSecret", roleName),
+                AccessCheckStatus.DENY);
+
+        RoleToken wildcardRoleToken = createRoleToken("angler",
+                Collections.singletonList("case_sensitive_reader"), "0");
+        assertEquals(AuthZpeClient.allowAccess(wildcardRoleToken, "angler:reports", "list", roleName),
+                AccessCheckStatus.ALLOW);
+        assertEquals(roleName.toString(), "case_sensitive_*");
+    }
+
+    @Test
+    public void testCaseSensitiveAssertionsModeMonitor() {
+
+        // in monitor mode the assertions are still matched case-insensitive
+
+        AuthZpeClient.setCaseSensitiveMode(AuthZpeClient.CaseSensitiveMode.MONITOR);
+        try {
+            RoleToken roleToken = createRoleToken("angler", Collections.singletonList("case_sensitive"), "0");
+            StringBuilder roleName = new StringBuilder();
+
+            assertEquals(AuthZpeClient.allowAccess(roleToken, "angler:Reports/Q1.PDF", "ReadData", roleName),
+                    AccessCheckStatus.ALLOW);
+            assertEquals(roleName.toString(), "case_sensitive");
+            assertEquals(AuthZpeClient.allowAccess(roleToken, "angler:reports/q1.pdf", "readdata", roleName),
+                    AccessCheckStatus.ALLOW);
+            assertEquals(AuthZpeClient.allowAccess(roleToken, "angler:Reports/Hidden.PDF", "ReadSecret", roleName),
+                    AccessCheckStatus.DENY);
+            assertEquals(AuthZpeClient.allowAccess(roleToken, "angler:REPORTS/HIDDEN.PDF", "READSECRET", roleName),
+                    AccessCheckStatus.DENY);
+
+            RoleToken wildcardRoleToken = createRoleToken("angler",
+                    Collections.singletonList("case_sensitive_reader"), "0");
+            assertEquals(AuthZpeClient.allowAccess(wildcardRoleToken, "angler:Reports", "List", roleName),
+                    AccessCheckStatus.ALLOW);
+            assertEquals(AuthZpeClient.allowAccess(wildcardRoleToken, "angler:reports", "list", roleName),
+                    AccessCheckStatus.ALLOW);
+            assertEquals(roleName.toString(), "case_sensitive_*");
+        } finally {
+            AuthZpeClient.setCaseSensitiveMode(AuthZpeClient.CaseSensitiveMode.DISABLED);
+        }
+    }
+
+    @Test
+    public void testCaseSensitiveAssertionsModeEnforce() {
+
+        AuthZpeClient.setCaseSensitiveMode(AuthZpeClient.CaseSensitiveMode.ENFORCE);
+        try {
+            RoleToken roleToken = createRoleToken("angler", Collections.singletonList("case_sensitive"), "0");
+            StringBuilder roleName = new StringBuilder();
+
+            // action and resource must match in their original case while
+            // the domain part of the resource is still case-insensitive
+
+            assertEquals(AuthZpeClient.allowAccess(roleToken, "angler:Reports/Q1.PDF", "ReadData", roleName),
+                    AccessCheckStatus.ALLOW);
+            assertEquals(roleName.toString(), "case_sensitive");
+            assertEquals(AuthZpeClient.allowAccess(roleToken, "ANGLER:Reports/Q1.PDF", "ReadData", roleName),
+                    AccessCheckStatus.ALLOW);
+
+            roleName.setLength(0);
+            assertEquals(AuthZpeClient.allowAccess(roleToken, "angler:Reports/Q1.PDF", "readdata", roleName),
+                    AccessCheckStatus.DENY_NO_MATCH);
+            assertEquals(roleName.toString(), "");
+            assertEquals(AuthZpeClient.allowAccess(roleToken, "angler:reports/q1.pdf", "ReadData", roleName),
+                    AccessCheckStatus.DENY_NO_MATCH);
+
+            // deny assertions are matched in their original case as well
+
+            assertEquals(AuthZpeClient.allowAccess(roleToken, "angler:Reports/Hidden.PDF", "ReadSecret", roleName),
+                    AccessCheckStatus.DENY);
+            assertEquals(AuthZpeClient.allowAccess(roleToken, "angler:Reports/hidden.pdf", "ReadSecret", roleName),
+                    AccessCheckStatus.ALLOW);
+            assertEquals(AuthZpeClient.allowAccess(roleToken, "angler:REPORTS/HIDDEN.PDF", "READSECRET", roleName),
+                    AccessCheckStatus.DENY_NO_MATCH);
+
+            // assertions for wildcard roles
+
+            RoleToken wildcardRoleToken = createRoleToken("angler",
+                    Collections.singletonList("case_sensitive_reader"), "0");
+            assertEquals(AuthZpeClient.allowAccess(wildcardRoleToken, "angler:Reports", "List", roleName),
+                    AccessCheckStatus.ALLOW);
+            assertEquals(roleName.toString(), "case_sensitive_*");
+            assertEquals(AuthZpeClient.allowAccess(wildcardRoleToken, "angler:reports", "list", roleName),
+                    AccessCheckStatus.DENY_NO_MATCH);
+
+            // assertions without the case-sensitive flag are always
+            // matched case-insensitive
+
+            assertEquals(AuthZpeClient.allowAccess(rToken0AnglerPublic, "angler:STUFF", "READ", roleName),
+                    AccessCheckStatus.ALLOW);
+            assertEquals(AuthZpeClient.allowAccess(rToken0AnglerPachinko, "angler:tables.blah2", "access2", roleName),
+                    AccessCheckStatus.ALLOW);
+        } finally {
+            AuthZpeClient.setCaseSensitiveMode(AuthZpeClient.CaseSensitiveMode.DISABLED);
+        }
+    }
+
+    @Test
+    public void testParseCaseSensitiveMode() {
+        assertEquals(AuthZpeClient.parseCaseSensitiveMode("disabled"), AuthZpeClient.CaseSensitiveMode.DISABLED);
+        assertEquals(AuthZpeClient.parseCaseSensitiveMode("monitor"), AuthZpeClient.CaseSensitiveMode.MONITOR);
+        assertEquals(AuthZpeClient.parseCaseSensitiveMode("Enforce"), AuthZpeClient.CaseSensitiveMode.ENFORCE);
+        assertEquals(AuthZpeClient.parseCaseSensitiveMode("unknown"), AuthZpeClient.CaseSensitiveMode.DISABLED);
+    }
+
+    @Test
+    public void testSetCaseSensitiveModeNull() {
+
+        // null values are ignored and the current mode is not changed
+
+        AuthZpeClient.setCaseSensitiveMode(AuthZpeClient.CaseSensitiveMode.ENFORCE);
+        try {
+            AuthZpeClient.setCaseSensitiveMode(null);
+
+            RoleToken roleToken = createRoleToken("angler", Collections.singletonList("case_sensitive"), "0");
+            StringBuilder roleName = new StringBuilder();
+            assertEquals(AuthZpeClient.allowAccess(roleToken, "angler:reports/q1.pdf", "readdata", roleName),
+                    AccessCheckStatus.DENY_NO_MATCH);
+        } finally {
+            AuthZpeClient.setCaseSensitiveMode(AuthZpeClient.CaseSensitiveMode.DISABLED);
+        }
+    }
+
+    @Test
+    public void testLowerDomainInResource() {
+        assertEquals(AuthZpeClient.lowerDomainInResource("Reports/Q1.PDF"), "Reports/Q1.PDF");
+        assertEquals(AuthZpeClient.lowerDomainInResource("angler:Reports/Q1.PDF"), "angler:Reports/Q1.PDF");
+        assertEquals(AuthZpeClient.lowerDomainInResource("AngLer:Reports/Q1.PDF"), "angler:Reports/Q1.PDF");
+        assertEquals(AuthZpeClient.lowerDomainInResource("ANGLER:Reports:Q1.PDF"), "angler:Reports:Q1.PDF");
+    }
+
+    @Test
     public void testInvalidAccessResource() {
         String action      = "ACCESS";
         String angResource = "angler:tables.blahblah";
