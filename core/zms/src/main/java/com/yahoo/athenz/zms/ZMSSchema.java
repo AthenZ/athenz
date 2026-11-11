@@ -2730,7 +2730,7 @@ public class ZMSSchema {
             .comment("Get all policy bundles (including their files) provisioned in this domain.")
             .pathParam("domainName", "DomainName", "name of the domain")
             .queryParam("includeNonActive", "includeNonActive", "Bool", false, "include non-active bundle versions")
-            .auth("", "", true)
+            .auth("zms.getbundle", "{domainName}:bundle.*")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -2747,7 +2747,7 @@ public class ZMSSchema {
             .comment("Read the active version of the specified policy bundle.")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("bundleName", "EntityName", "name of the bundle")
-            .auth("", "", true)
+            .auth("zms.getbundle", "{domainName}:bundle.{bundleName}")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -2767,7 +2767,7 @@ public class ZMSSchema {
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
             .input("bundle", "PolicyBundle", "PolicyBundle object to be added or updated in the domain")
-            .auth("update", "{domainName}:bundle.{bundleName}")
+            .auth("zms.updatebundle", "{domainName}:bundle.{bundleName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -2787,7 +2787,7 @@ public class ZMSSchema {
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("bundleName", "EntityName", "name of the bundle")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
-            .auth("delete", "{domainName}:bundle.{bundleName}")
+            .auth("zms.deletebundle", "{domainName}:bundle.{bundleName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -2809,7 +2809,7 @@ public class ZMSSchema {
             .pathParam("bundleName", "EntityName", "name of the bundle")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .input("file", "PolicyBundleFile", "file to be added or replaced in the bundle")
-            .auth("update", "{domainName}:bundle.{bundleName}")
+            .auth("zms.updatebundle", "{domainName}:bundle.{bundleName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -2831,7 +2831,7 @@ public class ZMSSchema {
             .pathParam("bundleName", "EntityName", "name of the bundle")
             .queryParam("path", "path", "String", null, "path of the file to be removed from the bundle, relative to the bundle root")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
-            .auth("update", "{domainName}:bundle.{bundleName}")
+            .auth("zms.updatebundle", "{domainName}:bundle.{bundleName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -2870,7 +2870,7 @@ public class ZMSSchema {
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("bundleName", "EntityName", "name of the bundle")
             .pathParam("version", "SimpleName", "name of the version to be retrieved")
-            .auth("", "", true)
+            .auth("zms.getbundle", "{domainName}:bundle.{bundleName}")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -2891,7 +2891,7 @@ public class ZMSSchema {
             .input("bundleOptions", "PolicyBundleOptions", "name of the new version and the source version to copy from")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
             .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
-            .auth("update", "{domainName}:bundle.{bundleName}")
+            .auth("zms.updatebundle", "{domainName}:bundle.{bundleName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -2907,13 +2907,13 @@ public class ZMSSchema {
 ;
 
         sb.resource("PolicyBundleOptions", "PUT", "/domain/{domainName}/bundle/{bundleName}/version/active")
-            .comment("Mark the specified policy bundle version as active. A separate \"activate\" action allows domain administrators to split publishing a version from activating it (publish-then-activate flow).")
+            .comment("Mark the specified policy bundle version as active.")
             .name("setActivePolicyBundleVersion")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("bundleName", "EntityName", "name of the bundle")
             .input("bundleOptions", "PolicyBundleOptions", "name of the version to be activated")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
-            .auth("activate", "{domainName}:bundle.{bundleName}")
+            .auth("zms.updatebundle", "{domainName}:bundle.{bundleName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -2935,7 +2935,7 @@ public class ZMSSchema {
             .pathParam("bundleName", "EntityName", "name of the bundle")
             .pathParam("version", "SimpleName", "name of the version to be deleted")
             .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
-            .auth("delete", "{domainName}:bundle.{bundleName}")
+            .auth("zms.deletebundle", "{domainName}:bundle.{bundleName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
 

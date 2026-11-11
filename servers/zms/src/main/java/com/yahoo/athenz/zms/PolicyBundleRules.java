@@ -121,12 +121,12 @@ public class PolicyBundleRules {
             throw ZMSUtils.requestError("bundle description exceeds maximum length of " + MAX_DESCRIPTION_LENGTH, caller);
         }
 
-        validateRoots(bundle.getRoots(), caller);
+        validateRoots(domainName, bundle.getRoots(), caller);
         validateFiles(engine, bundle.getFiles(), caller);
         validateContent(domainName, bundleName, bundle, caller);
     }
 
-    void validateRoots(List<String> roots, final String caller) {
+    void validateRoots(final String domainName, List<String> roots, final String caller) {
 
         if (roots == null) {
             return;
@@ -134,9 +134,17 @@ public class PolicyBundleRules {
         if (roots.size() > maxRoots) {
             throw ZMSUtils.requestError("bundle roots exceed maximum count of " + maxRoots, caller);
         }
+        // roots must be within the domain namespace (<domain with . as />)
+        // so one domain cannot claim data owned by another domain
+
+        final String domainRoot = domainName.replace('.', '/');
         for (String root : roots) {
             if (root == null || root.length() > MAX_ROOT_LENGTH || !ROOT_PATTERN.matcher(root).matches()) {
                 throw ZMSUtils.requestError("invalid bundle root: " + root, caller);
+            }
+            if (!root.equals(domainRoot) && !root.startsWith(domainRoot + "/")) {
+                throw ZMSUtils.requestError("bundle root must be within the domain namespace '"
+                        + domainRoot + "': " + root, caller);
             }
         }
     }

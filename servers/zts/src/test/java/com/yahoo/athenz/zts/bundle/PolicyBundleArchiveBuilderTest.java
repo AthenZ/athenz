@@ -158,6 +158,9 @@ public class PolicyBundleArchiveBuilderTest {
         assertEquals(header.get("kid").asText(), "ec-1");
         assertEquals(header.get("typ").asText(), "JWT");
 
+        JsonNode payload = json(Base64.getUrlDecoder().decode(parts[1]));
+        assertEquals(payload.get("scope").asText(), "sports:bundle.api");
+
         // ES256 signatures must be in P1363 format - 64 bytes for P-256
 
         assertEquals(Base64.getUrlDecoder().decode(parts[2]).length, 64);

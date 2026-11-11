@@ -113,7 +113,7 @@ public class PolicyBundleArchiveBuilder {
         TarArchiveWriter tarWriter = new TarArchiveWriter(bundle.getModified() == null ? 0
                 : bundle.getModified().millis() / 1000);
         if (signingKey != null) {
-            tarWriter.addFile(FILE_SIGNATURES, generateSignatures(manifest, files, signingKey));
+            tarWriter.addFile(FILE_SIGNATURES, generateSignatures(domainName, bundleName, manifest, files, signingKey));
         }
         tarWriter.addFile(FILE_MANIFEST, manifest);
         for (Map.Entry<String, byte[]> entry : files.entrySet()) {
@@ -143,7 +143,7 @@ public class PolicyBundleArchiveBuilder {
         return jsonMapper.writeValueAsBytes(manifest);
     }
 
-    byte[] generateSignatures(final byte[] manifest, Map<String, byte[]> files, ServerPrivateKey signingKey)
+    byte[] generateSignatures(final String domainName, final String bundleName, final byte[] manifest, Map<String, byte[]> files, ServerPrivateKey signingKey)
             throws IOException {
 
         List<Map<String, String>> fileInfoList = new ArrayList<>();
@@ -154,6 +154,12 @@ public class PolicyBundleArchiveBuilder {
 
         Map<String, Object> payload = new TreeMap<>();
         payload.put("files", fileInfoList);
+
+        // bind the signature to this bundle so a validly signed bundle of
+        // another domain/bundle cannot be substituted. verifiers must
+        // configure the matching scope (e.g. sports:bundle.api)
+
+        payload.put("scope", domainName + ":bundle." + bundleName);
 
         Map<String, String> header = new TreeMap<>();
         header.put("alg", signingKey.getAlgorithm());

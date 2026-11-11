@@ -3164,7 +3164,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyBundles");
-            context.authenticate();
+            context.authorize("zms.getbundle", "" + domainName + ":bundle.*", null);
             return this.delegate.getPolicyBundles(context, domainName, includeNonActive);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -3199,7 +3199,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyBundle");
-            context.authenticate();
+            context.authorize("zms.getbundle", "" + domainName + ":bundle." + bundleName + "", null);
             return this.delegate.getPolicyBundle(context, domainName, bundleName);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -3238,7 +3238,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putPolicyBundle");
-            context.authorize("update", "" + domainName + ":bundle." + bundleName + "", null);
+            context.authorize("zms.updatebundle", "" + domainName + ":bundle." + bundleName + "", null);
             return this.delegate.putPolicyBundle(context, domainName, bundleName, auditRef, returnObj, bundle);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -3277,7 +3277,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deletePolicyBundle");
-            context.authorize("delete", "" + domainName + ":bundle." + bundleName + "", null);
+            context.authorize("zms.deletebundle", "" + domainName + ":bundle." + bundleName + "", null);
             this.delegate.deletePolicyBundle(context, domainName, bundleName, auditRef);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -3318,7 +3318,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putPolicyBundleFile");
-            context.authorize("update", "" + domainName + ":bundle." + bundleName + "", null);
+            context.authorize("zms.updatebundle", "" + domainName + ":bundle." + bundleName + "", null);
             this.delegate.putPolicyBundleFile(context, domainName, bundleName, auditRef, file);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -3358,7 +3358,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deletePolicyBundleFile");
-            context.authorize("update", "" + domainName + ":bundle." + bundleName + "", null);
+            context.authorize("zms.updatebundle", "" + domainName + ":bundle." + bundleName + "", null);
             this.delegate.deletePolicyBundleFile(context, domainName, bundleName, path, auditRef);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -3432,7 +3432,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyBundleVersion");
-            context.authenticate();
+            context.authorize("zms.getbundle", "" + domainName + ":bundle." + bundleName + "", null);
             return this.delegate.getPolicyBundleVersion(context, domainName, bundleName, version);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -3471,7 +3471,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putPolicyBundleVersion");
-            context.authorize("update", "" + domainName + ":bundle." + bundleName + "", null);
+            context.authorize("zms.updatebundle", "" + domainName + ":bundle." + bundleName + "", null);
             return this.delegate.putPolicyBundleVersion(context, domainName, bundleName, bundleOptions, auditRef, returnObj);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -3502,7 +3502,7 @@ public class ZMSResources {
     @Path("/domain/{domainName}/bundle/{bundleName}/version/active")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(description = "Mark the specified policy bundle version as active. A separate \"activate\" action allows domain administrators to split publishing a version from activating it (publish-then-activate flow).")
+    @Operation(description = "Mark the specified policy bundle version as active.")
     public void setActivePolicyBundleVersion(
         @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
         @Parameter(description = "name of the bundle", required = true) @PathParam("bundleName") String bundleName,
@@ -3512,7 +3512,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "setActivePolicyBundleVersion");
-            context.authorize("activate", "" + domainName + ":bundle." + bundleName + "", null);
+            context.authorize("zms.updatebundle", "" + domainName + ":bundle." + bundleName + "", null);
             this.delegate.setActivePolicyBundleVersion(context, domainName, bundleName, bundleOptions, auditRef);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -3552,7 +3552,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deletePolicyBundleVersion");
-            context.authorize("delete", "" + domainName + ":bundle." + bundleName + "", null);
+            context.authorize("zms.deletebundle", "" + domainName + ":bundle." + bundleName + "", null);
             this.delegate.deletePolicyBundleVersion(context, domainName, bundleName, version, auditRef);
         } catch (ResourceException e) {
             code = e.getCode();

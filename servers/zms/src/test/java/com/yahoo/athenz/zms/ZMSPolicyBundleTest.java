@@ -134,7 +134,7 @@ public class ZMSPolicyBundleTest {
         // are lower-cased. no version means version "0" and active
 
         PolicyBundle bundle = regoBundle(domainName, "B1", null, "package a", "package b")
-                .setRoots(Collections.singletonList("authz"))
+                .setRoots(Collections.singletonList(domainName + "/authz"))
                 .setDescription("test bundle");
         bundle.setName(domainName + ":bundle.B1").setEngine("REGO");
         PolicyBundle created = putBundle(zms, ctx, domainName, "B1", bundle);
@@ -143,7 +143,7 @@ public class ZMSPolicyBundleTest {
         assertEquals(created.getEngine(), "rego");
         assertEquals(created.getVersion(), "0");
         assertEquals(created.getActive(), Boolean.TRUE);
-        assertEquals(created.getRoots(), Collections.singletonList("authz"));
+        assertEquals(created.getRoots(), Collections.singletonList(domainName + "/authz"));
         assertEquals(created.getDescription(), "test bundle");
         assertEquals(created.getFiles().size(), 2);
         for (PolicyBundleFile f : created.getFiles()) {
