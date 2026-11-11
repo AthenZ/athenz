@@ -15,6 +15,7 @@
  */
 package com.yahoo.athenz.instance.provider.impl;
 
+import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -23,7 +24,10 @@ import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityRequest;
 import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 
+import java.util.Map;
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -195,7 +199,9 @@ public class AWSStsCredentialsAttestationValidatorTest {
         AWSAttestationData info = new AWSAttestationData();
         info.setRole("athenz.service");
         StringBuilder errMsg = new StringBuilder(256);
-        assertTrue(validator.validateIdentity(null, info, "1234", errMsg));
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        assertTrue(validator.validateIdentity(confirmation, info, "1234", errMsg));
+        assertEquals(confirmation.getAttributes(), Map.of("certSignerAttr:awsRuntimeAccount", "1234"));
     }
 
     @Test
@@ -214,7 +220,9 @@ public class AWSStsCredentialsAttestationValidatorTest {
         AWSAttestationData info = new AWSAttestationData();
         info.setRole("athenz.service");
         StringBuilder errMsg = new StringBuilder(256);
-        assertTrue(validator.validateIdentity(null, info, "1234,5678", errMsg));
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        assertTrue(validator.validateIdentity(confirmation, info, "1234,5678", errMsg));
+        assertEquals(confirmation.getAttributes(), Map.of("certSignerAttr:awsRuntimeAccount", "5678"));
     }
 
     @Test

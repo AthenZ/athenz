@@ -302,7 +302,33 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
         AWSAttestationData info = new AWSAttestationData();
         info.setIdentityToken(token);
         StringBuilder errMsg = new StringBuilder(256);
-        assertTrue(validator.validateIdentity(confirmation(), info, "123456789012", errMsg));
+        InstanceConfirmation confirmation = confirmation();
+        assertTrue(validator.validateIdentity(confirmation, info, "123456789012", errMsg));
+
+        // no source_region claim in the token so only the account is set
+        assertEquals(confirmation.getAttributes(), Map.of("certSignerAttr:awsRuntimeAccount", "123456789012"));
+    }
+
+    @Test
+    public void testValidateIdentityCertSignerAttributesWithRegion() throws Exception {
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_AUDIENCE, AUDIENCE);
+        System.setProperty(AWSWebIdentityTokenAttestationValidator.AWS_PROP_WEB_IDENTITY_ALLOWED_ORG_IDS, "o-qwsedrftg3");
+        Authorizer authorizer = Mockito.mock(Authorizer.class);
+        Mockito.when(authorizer.access(eq("launch"), eq("athenz:api:223456789012"), any(Principal.class), any()))
+                .thenReturn(true);
+        AWSWebIdentityTokenAttestationValidator validator = newValidator(authorizer);
+        Map<String, Object> claim = stsClaim("223456789012", "o-qwsedrftg3");
+        claim.put(AWSWebIdentityTokenAttestationValidator.STS_CLAIM_SOURCE_REGION, "us-east-1");
+        final String token = generateToken(AWS_ISSUER, AUDIENCE, "arn:aws:iam::223456789012:role/athenz.api", claim);
+        AWSAttestationData info = new AWSAttestationData();
+        info.setIdentityToken(token);
+        StringBuilder errMsg = new StringBuilder(256);
+        InstanceConfirmation confirmation = confirmation();
+
+        // cross-account launch: the runtime account is the token account, not the domain account
+        assertTrue(validator.validateIdentity(confirmation, info, "123456789012", errMsg));
+        assertEquals(confirmation.getAttributes(), Map.of("certSignerAttr:awsRuntimeAccount", "223456789012",
+                "certSignerAttr:awsRuntimeRegion", "us-east-1"));
     }
 
     @Test
@@ -582,8 +608,10 @@ public class AWSWebIdentityTokenAttestationValidatorTest {
         AWSAttestationData info = new AWSAttestationData();
         info.setIdentityToken(token);
         StringBuilder errMsg = new StringBuilder(256);
-        assertFalse(validator.validateIdentity(confirmation(), info, "1234", errMsg));
+        InstanceConfirmation confirmation = confirmation();
+        assertFalse(validator.validateIdentity(confirmation, info, "1234", errMsg));
         assertTrue(errMsg.toString().contains("principal validation failed"));
+        assertNull(confirmation.getAttributes().get("certSignerAttr:awsRuntimeAccount"));
     }
 
     @Test
