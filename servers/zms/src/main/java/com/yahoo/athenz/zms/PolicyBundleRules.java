@@ -153,6 +153,18 @@ public class PolicyBundleRules {
             }
             totalLength += root.length() + 1;
         }
+        // opa requires manifest roots to be non-overlapping so reject
+        // duplicates and ancestor/descendant pairs
+
+        for (int i = 0; i < roots.size(); i++) {
+            for (int j = i + 1; j < roots.size(); j++) {
+                final String r1 = roots.get(i);
+                final String r2 = roots.get(j);
+                if (r1.equals(r2) || r1.startsWith(r2 + "/") || r2.startsWith(r1 + "/")) {
+                    throw ZMSUtils.requestError("overlapping bundle roots: " + r1 + ", " + r2, caller);
+                }
+            }
+        }
         if (totalLength - 1 > MAX_ROOTS_TOTAL_LENGTH) {
             throw ZMSUtils.requestError("bundle roots exceed maximum total length of " + MAX_ROOTS_TOTAL_LENGTH, caller);
         }

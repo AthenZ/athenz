@@ -8947,6 +8947,13 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         signedPolicies.setSignature(signature).setKeyId(privateKey.getId());
 
         domainData.setPolicies(signedPolicies);
+
+        // the signed domain endpoint only authenticates the caller, so any
+        // authenticated principal can read the bundle files included here
+        // regardless of the zms.getbundle and zts.getbundle authorization
+        // checks. authorization of bundle disclosure on this path will be
+        // addressed in a future major release.
+
         domainData.setPolicyBundles(athenzDomain.getPolicyBundles());
 
         return signJwsDomain(domainData, signatureP1363Format);

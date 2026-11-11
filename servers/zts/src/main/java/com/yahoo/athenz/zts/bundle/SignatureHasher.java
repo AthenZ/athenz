@@ -18,6 +18,7 @@ package com.yahoo.athenz.zts.bundle;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -82,6 +83,7 @@ public class SignatureHasher {
             .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
             .enable(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN)
+            .disable(JsonWriteFeature.WRITE_HEX_UPPER_CASE)
             .addModule(new SimpleModule().addSerializer(RawNumber.class, new RawNumberSerializer()))
             .build();
 

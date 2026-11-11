@@ -22,7 +22,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `zms_server`.`policy_bundle_file` (
   `bundle_id` INT UNSIGNED NOT NULL,
   `path` VARCHAR(512) CHARACTER SET 'ascii' COLLATE 'ascii_bin' NOT NULL,
-  `content` MEDIUMTEXT NOT NULL,
+  `content` MEDIUMTEXT CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_bin' NOT NULL,
   `sha256` CHAR(64) NOT NULL,
   `modified` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`bundle_id`, `path`),

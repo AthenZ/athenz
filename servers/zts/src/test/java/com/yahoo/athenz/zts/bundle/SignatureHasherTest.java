@@ -112,6 +112,16 @@ public class SignatureHasherTest {
     }
 
     @Test
+    public void testCanonicalControlCharacterEscapes() throws Exception {
+        // go encodes control characters with lowercase hex digits and writes
+        // the delete character raw. expected value generated with go's
+        // encoding/json (html escaping disabled)
+        final byte[] input = "{\"s\":\"\\u001b\\u001f\\u000b\\u007f\\b\\f\"}".getBytes(StandardCharsets.UTF_8);
+        final byte[] expected = "{\"s\":\"\\u001b\\u001f\\u000b\u007f\\b\\f\"}".getBytes(StandardCharsets.UTF_8);
+        assertEquals(SignatureHasher.canonicalJson(input), expected);
+    }
+
+    @Test
     public void testInvalidJson() {
         for (String doc : new String[] { "{\"a\":", "{not json}", "", "   ", "{} {}", "{}x", "[1,2" }) {
             try {

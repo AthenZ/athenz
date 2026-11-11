@@ -190,7 +190,10 @@ ZMS (`zms.properties`):
 Add `bundle` to `athenz.zms.audit_ref_check_objects` to require audit
 references for bundle changes in audit-enabled domains.
 
-ZTS (`zts.properties`): `athenz.zts.bundle_signing_enabled`,
+ZTS (`zts.properties`): `athenz.zts.bundle_enabled` (default `false`) must be
+set to `true` for ZTS to serve bundle archives; while it is `false` every
+archive download is rejected with a 400 error even if bundles are enabled in
+ZMS. Dynamic: can be changed at runtime. Other settings: `athenz.zts.bundle_signing_enabled`,
 `athenz.zts.bundle_include_jwks`, `athenz.zts.bundle_cache_size` (generated archives kept in memory).
 
 Schema: `servers/zms/schema/updates/update-20261105.sql` adds the

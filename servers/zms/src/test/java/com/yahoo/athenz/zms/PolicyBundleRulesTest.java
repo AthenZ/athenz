@@ -97,7 +97,7 @@ public class PolicyBundleRulesTest {
         PolicyBundleRules rules = new PolicyBundleRules(null);
         PolicyBundle bundle = regoBundle(file("policy.rego", "package a"), file("sub/dir/data.json", "{\"a\": 1}"),
                 file("my-mod_1.v2/x.rego", "package b"))
-                .setRoots(Arrays.asList("bundledom", "bundledom/b-c"))
+                .setRoots(Arrays.asList("bundledom/a", "bundledom/b-c"))
                 .setDescription("desc");
         rules.validate(DOMAIN, BUNDLE, bundle, CALLER);
         assertEquals(bundle.getFiles().get(0).getSha256(), PolicyBundleRules.sha256Hex("package a".getBytes()));
@@ -165,7 +165,13 @@ public class PolicyBundleRulesTest {
                 "within the domain namespace");
         assertInvalid(rules, regoBundle(file("a.rego", "x")).setRoots(Arrays.asList("bundledom", "otherdom/x")),
                 "within the domain namespace");
-        rules.validate(DOMAIN, BUNDLE, regoBundle(file("a.rego", "x")).setRoots(Arrays.asList("bundledom", "bundledom/b")),
+        assertInvalid(rules, regoBundle(file("a.rego", "x")).setRoots(Arrays.asList("bundledom", "bundledom")),
+                "overlapping bundle roots");
+        assertInvalid(rules, regoBundle(file("a.rego", "x")).setRoots(Arrays.asList("bundledom", "bundledom/b")),
+                "overlapping bundle roots");
+        assertInvalid(rules, regoBundle(file("a.rego", "x")).setRoots(Arrays.asList("bundledom/b", "bundledom")),
+                "overlapping bundle roots");
+        rules.validate(DOMAIN, BUNDLE, regoBundle(file("a.rego", "x")).setRoots(Arrays.asList("bundledom/a", "bundledom/ab")),
                 CALLER);
     }
 
