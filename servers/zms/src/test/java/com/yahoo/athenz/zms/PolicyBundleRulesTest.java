@@ -225,11 +225,15 @@ public class PolicyBundleRulesTest {
         for (String path : invalid) {
             assertInvalid(rules, regoBundle(file(path, "x")), "invalid bundle file path");
         }
-        assertInvalid(rules, regoBundle(file("athenz/a.rego", "x")), "reserved directory");
-        assertInvalid(rules, regoBundle(file("athenz/sub/a.rego", "x")), "reserved directory");
-        // athenz.rego at the top level or athenz as a non-first segment is fine
+        // only the generated keys file under the first root is reserved: with the
+        // default root that is <domain>/<bundle>, otherwise the first configured root
+        final String defaultKeys = "bundledom/b1/athenz/zts/keys/data.json";
+        assertInvalid(rules, regoBundle(file("a.rego", "x"), file(defaultKeys, "{}")), "reserved for generated files");
+        assertInvalid(rules, regoBundle(file("a.rego", "x"), file("bundledom/athenz/zts/keys/data.json", "{}"))
+                .setRoots(Collections.singletonList("bundledom")), "reserved for generated files");
         rules.validate(DOMAIN, BUNDLE, regoBundle(file("athenz.rego", "x")), CALLER);
-        rules.validate(DOMAIN, BUNDLE, regoBundle(file("x/athenz/a.rego", "x")), CALLER);
+        rules.validate(DOMAIN, BUNDLE, regoBundle(file("athenz/a.rego", "x"), file("athenz/zts/keys/data.json", "{}")), CALLER);
+        rules.validate(DOMAIN, BUNDLE, regoBundle(file("a.rego", "x"), file("bundledom/athenz/zts/keys/data.json", "{}")), CALLER);
     }
 
     @Test

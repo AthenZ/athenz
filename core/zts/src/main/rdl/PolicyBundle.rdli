@@ -38,12 +38,10 @@ type PolicyBundleEntries Struct {
     Array<PolicyBundleEntry> list; //list of bundles
 }
 
-type PolicyBundle String
-
 //Get the active version of the policy bundle as an OPA bundle archive (gzipped tar).
 //If the If-None-Match header is provided, and it matches the ETag (bundle revision) that would be
 //returned, then a NOT_MODIFIED response is returned instead of the bundle.
-resource PolicyBundle GET "/domain/{domainName}/bundle/{bundleName}" {
+resource String GET "/domain/{domainName}/bundle/{bundleName}" (name=GetPolicyBundle) {
     DomainName domainName; //name of the domain
     EntityName bundleName; //name of the bundle
     String matchingTag (header="If-None-Match", optional); //bundle revision from a previous request

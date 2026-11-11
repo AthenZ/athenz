@@ -203,8 +203,6 @@ public class ZTSSchema {
             .comment("List of policy bundles")
             .arrayField("list", "PolicyBundleEntry", false, "list of bundles");
 
-    
-
         sb.structType("RoleCertificate")
             .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
             .field("x509Certificate", "String", false, "");
@@ -891,8 +889,9 @@ public class ZTSSchema {
             .exception("UNAUTHORIZED", "ResourceError", "")
 ;
 
-        sb.resource("PolicyBundle", "GET", "/domain/{domainName}/bundle/{bundleName}")
+        sb.resource("String", "GET", "/domain/{domainName}/bundle/{bundleName}")
             .comment("Get the active version of the policy bundle as an OPA bundle archive (gzipped tar). If the If-None-Match header is provided, and it matches the ETag (bundle revision) that would be returned, then a NOT_MODIFIED response is returned instead of the bundle.")
+            .name("GetPolicyBundle")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("bundleName", "EntityName", "name of the bundle")
             .headerParam("If-None-Match", "matchingTag", "String", null, "bundle revision from a previous request")

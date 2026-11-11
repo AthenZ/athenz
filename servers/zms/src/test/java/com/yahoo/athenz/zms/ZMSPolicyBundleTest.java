@@ -376,7 +376,7 @@ public class ZMSPolicyBundleTest {
         assertRequestFails(() -> zms.putPolicyBundleFile(ctx, domainName, "b1", auditRef,
                 file("data.json", "{bad")), 400, "is not valid json");
         assertRequestFails(() -> zms.putPolicyBundleFile(ctx, domainName, "b1", auditRef,
-                file("athenz/x.rego", "package x")), 400, "reserved directory");
+                file(domainName + "/b1/athenz/zts/keys/data.json", "{}")), 400, "reserved for generated files");
         bundle = zms.getPolicyBundle(ctx, domainName, "b1");
         assertEquals(paths(bundle), new TreeSet<>(Arrays.asList("mod0.rego", "sub/new.rego")));
 
