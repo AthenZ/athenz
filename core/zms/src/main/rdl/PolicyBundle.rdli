@@ -9,7 +9,7 @@ include "PolicyBundle.tdl";
 //List policy bundles provisioned in this domain.
 resource PolicyBundleList GET "/domain/{domainName}/bundle" {
     DomainName domainName; //name of the domain
-    authenticate;
+    authorize("zms.getbundle", "{domainName}:bundle");
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
@@ -23,7 +23,7 @@ resource PolicyBundleList GET "/domain/{domainName}/bundle" {
 resource PolicyBundles GET "/domain/{domainName}/bundles?includeNonActive={includeNonActive}" {
     DomainName domainName; //name of the domain
     Bool includeNonActive (optional, default=false); //include non-active bundle versions
-    authorize("zms.getbundle", "{domainName}:bundle.*");
+    authorize("zms.getbundle", "{domainName}:bundle");
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;
@@ -128,7 +128,7 @@ resource PolicyBundle DELETE "/domain/{domainName}/bundle/{bundleName}/file?path
 resource PolicyBundleList GET "/domain/{domainName}/bundle/{bundleName}/version" (name=getPolicyBundleVersionList) {
     DomainName domainName; //name of the domain
     EntityName bundleName; //name of the bundle
-    authenticate;
+    authorize("zms.getbundle", "{domainName}:bundle.{bundleName}");
     exceptions {
         ResourceError BAD_REQUEST;
         ResourceError NOT_FOUND;

@@ -220,6 +220,7 @@ public final class ZMSConsts {
     public static final String ACTION_ASSUME_GCP_SERVICE = "assume_gcp_service";
     public static final String ACTION_UPDATE             = "update";
     public static final String ACTION_AUDIT_LOG_ACCESS   = "zms.auditlogaccess";
+    public static final String ACTION_BUNDLE_ACCESS      = "zms.getbundle";
 
     public static final String SYSTEM_META_PRODUCT_ID         = "productid";
     public static final String SYSTEM_META_ACCOUNT            = "account";

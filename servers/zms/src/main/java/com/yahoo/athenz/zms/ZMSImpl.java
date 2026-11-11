@@ -47,7 +47,6 @@ import com.yahoo.athenz.common.server.status.StatusCheckException;
 import com.yahoo.athenz.common.server.status.StatusChecker;
 import com.yahoo.athenz.common.server.status.StatusCheckerFactory;
 import com.yahoo.athenz.common.server.store.*;
-import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.*;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigCsv;
@@ -8881,29 +8880,16 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     .build();
         }
 
-        // check to see if the principal is authorized to get service creds
-        // if that feature is enabled. by default, we're going to allow it
-        // since if we have a service creds encryption key then we're going
-        // update that value and set it accordingly. But for installations
-        // that don't have a service creds encryption key, we're going to
-        // set it to true since we don't have any service creds to worry about.
-
-        boolean allowedServiceCreds = true;
-        if (serviceCredsEncryptionKey != null) {
-            Principal principal = ((RsrcCtxWrapper) ctx).principal();
-            allowedServiceCreds = isAllowedSystemAccess(principal, "access", SYS_AUTH + ":attribute.creds");
-        }
-
         // generate our signed domain object and return in response
 
         return Response
                 .status(ResourceException.OK)
-                .entity(generateJWSDomain(athenzDomain, signatureP1363Format, allowedServiceCreds))
+                .entity(generateJWSDomain(((RsrcCtxWrapper) ctx).principal(), athenzDomain, signatureP1363Format))
                 .header("ETag", ENTITY_TAG_HEADER_DELEGATE.toString(eTag))
                 .build();
     }
 
-    JWSDomain generateJWSDomain(AthenzDomain athenzDomain, Boolean signatureP1363Format, boolean allowedServiceCreds) {
+    JWSDomain generateJWSDomain(Principal principal, AthenzDomain athenzDomain, Boolean signatureP1363Format) {
 
         // set all domain attributes including roles and services
 
@@ -8922,9 +8908,17 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setGroups(athenzDomain.getGroups());
         domainData.setEntities(athenzDomain.getEntities());
 
-        // set our services. if we're allowed to return service creds
-        // then we'll set the data as is otherwise we need to remove
-        // the creds from the service objects
+        // check to see if the principal is authorized to get service creds
+        // if that feature is enabled. by default, we're going to allow it
+        // since if we have a service creds encryption key then we're going
+        // update that value and set it accordingly. But for installations
+        // that don't have a service creds encryption key, we're going to
+        // set it to true since we don't have any service creds to worry about.
+
+        boolean allowedServiceCreds = true;
+        if (serviceCredsEncryptionKey != null) {
+            allowedServiceCreds = isAllowedSystemAccess(principal, "access", SYS_AUTH + ":attribute.creds");
+        }
 
         domainData.setServices(setupServiceIdentityList(athenzDomain, Boolean.TRUE, Boolean.TRUE,
                 null, null, !allowedServiceCreds));
@@ -8948,13 +8942,22 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
 
         domainData.setPolicies(signedPolicies);
 
-        // the signed domain endpoint only authenticates the caller, so any
-        // authenticated principal can read the bundle files included here
-        // regardless of the zms.getbundle and zts.getbundle authorization
-        // checks. authorization of bundle disclosure on this path will be
-        // addressed in a future major release.
+        // the signed domain endpoint only authenticates the caller, so we need
+        // to make sure if we're returning bundles to verify that the principal
+        // has access to bundles within this domain. we also support system wide
+        // access (e.g. zts needs to have access to the bundles)
 
-        domainData.setPolicyBundles(athenzDomain.getPolicyBundles());
+        List<PolicyBundle> policyBundles = athenzDomain.getPolicyBundles();
+        if (!ZMSUtils.isCollectionEmpty(policyBundles)) {
+            boolean bundleAccess = hasAccess(athenzDomain, ZMSConsts.ACTION_BUNDLE_ACCESS, domain.getName() + ":bundle",
+                principal, null) == AccessStatus.ALLOWED;
+            if (!bundleAccess) {
+                bundleAccess = isAllowedSystemAccess(principal, ZMSConsts.ACTION_BUNDLE_ACCESS, SYS_AUTH + ":attribute.bundle");
+            }
+            if (bundleAccess) {
+                domainData.setPolicyBundles(athenzDomain.getPolicyBundles());
+            }
+        }
 
         return signJwsDomain(domainData, signatureP1363Format);
     }

@@ -2713,7 +2713,7 @@ public class ZMSSchema {
         sb.resource("PolicyBundleList", "GET", "/domain/{domainName}/bundle")
             .comment("List policy bundles provisioned in this domain.")
             .pathParam("domainName", "DomainName", "name of the domain")
-            .auth("", "", true)
+            .auth("zms.getbundle", "{domainName}:bundle")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -2730,7 +2730,7 @@ public class ZMSSchema {
             .comment("Get all policy bundles (including their files) provisioned in this domain.")
             .pathParam("domainName", "DomainName", "name of the domain")
             .queryParam("includeNonActive", "includeNonActive", "Bool", false, "include non-active bundle versions")
-            .auth("zms.getbundle", "{domainName}:bundle.*")
+            .auth("zms.getbundle", "{domainName}:bundle")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 
@@ -2851,7 +2851,7 @@ public class ZMSSchema {
             .name("getPolicyBundleVersionList")
             .pathParam("domainName", "DomainName", "name of the domain")
             .pathParam("bundleName", "EntityName", "name of the bundle")
-            .auth("", "", true)
+            .auth("zms.getbundle", "{domainName}:bundle.{bundleName}")
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")
 

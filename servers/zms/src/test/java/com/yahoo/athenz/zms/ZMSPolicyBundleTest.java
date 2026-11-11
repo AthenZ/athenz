@@ -18,8 +18,10 @@ package com.yahoo.athenz.zms;
 import com.yahoo.athenz.auth.Authority;
 import com.yahoo.athenz.auth.ServerPrivateKey;
 import com.yahoo.athenz.auth.Principal;
+import com.yahoo.athenz.auth.impl.SimplePrincipal;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.common.server.store.AthenzDomain;
 import com.yahoo.athenz.common.server.store.PolicyBundleValidator;
 import com.yahoo.athenz.common.server.store.PolicyBundleValidatorFactory;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
@@ -644,5 +646,116 @@ public class ZMSPolicyBundleTest {
         RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
         assertRequestFails(() -> zms.getPolicyBundleList(ctx, "sys.auth"), 400,
                 "Policy bundle support is not enabled");
+    }
+
+    private void grantBundleAccess(ZMSImpl zms, RsrcCtxWrapper ctx, String domainName, String resource,
+            String roleName, String member) {
+
+        final String auditRef = zmsTestInitializer.getAuditRef();
+        Role role = new Role().setName(roleName)
+                .setRoleMembers(new ArrayList<>(Collections.singletonList(new RoleMember().setMemberName(member))));
+        zms.putRole(ctx, domainName, roleName, auditRef, false, null, role);
+
+        Assertion assertion = new Assertion().setAction(ZMSConsts.ACTION_BUNDLE_ACCESS).setResource(resource)
+                .setEffect(AssertionEffect.ALLOW).setRole(domainName + ":role." + roleName);
+        Policy policy = new Policy().setName(roleName).setAssertions(Collections.singletonList(assertion));
+        zms.putPolicy(ctx, domainName, roleName, auditRef, false, null, policy);
+    }
+
+    private DomainData signedDomainData(ZMSImpl zms, Principal principal, String domainName) throws Exception {
+        AthenzDomain athenzDomain = zms.getAthenzDomain(domainName, false);
+        return zmsTestInitializer.getDomainData(zms.generateJWSDomain(principal, athenzDomain, null));
+    }
+
+    @Test
+    public void testGenerateJWSDomainBundleAuthorization() throws Exception {
+
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String domainName = "bundle-jws-authz";
+        zmsTestInitializer.createTopLevelDomain(domainName);
+
+        Principal reader = SimplePrincipal.create("user", "bundlereader", "v=U1;d=user;n=bundlereader;s=sig");
+        Principal sysReader = SimplePrincipal.create("user", "sysbundlereader", "v=U1;d=user;n=sysbundlereader;s=sig");
+        Principal other = SimplePrincipal.create("user", "otheruser", "v=U1;d=user;n=otheruser;s=sig");
+
+        // no bundles - the response is returned without bundle data regardless of access
+
+        DomainData data = signedDomainData(zms, other, domainName);
+        assertTrue(data.getPolicyBundles() == null || data.getPolicyBundles().isEmpty());
+
+        putBundle(zms, ctx, domainName, "b1", regoBundle(domainName, "b1", "0", "package a"));
+
+        // principal without any access does not get the bundles, but still
+        // gets the rest of the domain data
+
+        data = signedDomainData(zms, other, domainName);
+        assertEquals(data.getName(), domainName);
+        assertTrue(data.getPolicyBundles() == null || data.getPolicyBundles().isEmpty());
+
+        // the domain admin has access through the domain admin policy
+
+        Principal admin = SimplePrincipal.create("user", zmsTestInitializer.getAdminUser().substring(5),
+                "v=U1;d=user;n=admin;s=sig");
+        data = signedDomainData(zms, admin, domainName);
+        assertEquals(data.getPolicyBundles().size(), 1);
+        assertEquals(data.getPolicyBundles().get(0).getName(), domainName + ":bundle.b1");
+
+        // domain level grant for a specific principal
+
+        grantBundleAccess(zms, ctx, domainName, domainName + ":bundle", "bundle-readers", reader.getFullName());
+        data = signedDomainData(zms, reader, domainName);
+        assertEquals(data.getPolicyBundles().size(), 1);
+        data = signedDomainData(zms, other, domainName);
+        assertTrue(data.getPolicyBundles() == null || data.getPolicyBundles().isEmpty());
+
+        // system wide access through sys.auth:attribute.bundle
+
+        data = signedDomainData(zms, sysReader, domainName);
+        assertTrue(data.getPolicyBundles() == null || data.getPolicyBundles().isEmpty());
+        grantBundleAccess(zms, ctx, "sys.auth", "sys.auth:attribute.bundle", "bundle-sys-readers",
+                sysReader.getFullName());
+        data = signedDomainData(zms, sysReader, domainName);
+        assertEquals(data.getPolicyBundles().size(), 1);
+        data = signedDomainData(zms, other, domainName);
+        assertTrue(data.getPolicyBundles() == null || data.getPolicyBundles().isEmpty());
+
+        zms.deletePolicy(ctx, "sys.auth", "bundle-sys-readers", zmsTestInitializer.getAuditRef(), null);
+        zms.deleteRole(ctx, "sys.auth", "bundle-sys-readers", zmsTestInitializer.getAuditRef(), null);
+    }
+
+    @Test
+    public void testGenerateJWSDomainServiceCredsAuthorization() throws Exception {
+
+        ZMSImpl zms = zmsTestInitializer.getZms();
+        RsrcCtxWrapper ctx = zmsTestInitializer.getMockDomRsrcCtx();
+        final String domainName = "bundle-jws-creds";
+        zmsTestInitializer.createTopLevelDomain(domainName);
+
+        Principal credsReader = SimplePrincipal.create("user", "credsreader", "v=U1;d=user;n=credsreader;s=sig");
+        Principal other = SimplePrincipal.create("user", "otheruser", "v=U1;d=user;n=otheruser;s=sig");
+
+        // with an encryption key, the creds check is evaluated per principal
+
+        zms.serviceCredsEncryptionKey = Crypto.generateAESSecretKey(
+                "test-encryption-key-at-least-32chars".toCharArray(), 32);
+        try {
+            assertNotNull(signedDomainData(zms, other, domainName));
+
+            Role role = new Role().setName("creds-readers")
+                    .setRoleMembers(new ArrayList<>(Collections.singletonList(new RoleMember().setMemberName(credsReader.getFullName()))));
+            zms.putRole(ctx, "sys.auth", "creds-readers", zmsTestInitializer.getAuditRef(), false, null, role);
+            Assertion assertion = new Assertion().setAction("access").setResource("sys.auth:attribute.creds")
+                    .setEffect(AssertionEffect.ALLOW).setRole("sys.auth:role.creds-readers");
+            Policy policy = new Policy().setName("creds-readers").setAssertions(Collections.singletonList(assertion));
+            zms.putPolicy(ctx, "sys.auth", "creds-readers", zmsTestInitializer.getAuditRef(), false, null, policy);
+
+            assertNotNull(signedDomainData(zms, credsReader, domainName));
+
+            zms.deletePolicy(ctx, "sys.auth", "creds-readers", zmsTestInitializer.getAuditRef(), null);
+            zms.deleteRole(ctx, "sys.auth", "creds-readers", zmsTestInitializer.getAuditRef(), null);
+        } finally {
+            zms.serviceCredsEncryptionKey = null;
+        }
     }
 }

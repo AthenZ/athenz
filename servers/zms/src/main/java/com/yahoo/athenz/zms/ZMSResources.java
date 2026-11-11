@@ -3129,7 +3129,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyBundleList");
-            context.authenticate();
+            context.authorize("zms.getbundle", "" + domainName + ":bundle", null);
             return this.delegate.getPolicyBundleList(context, domainName);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -3164,7 +3164,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyBundles");
-            context.authorize("zms.getbundle", "" + domainName + ":bundle.*", null);
+            context.authorize("zms.getbundle", "" + domainName + ":bundle", null);
             return this.delegate.getPolicyBundles(context, domainName, includeNonActive);
         } catch (ResourceException e) {
             code = e.getCode();
@@ -3396,7 +3396,7 @@ public class ZMSResources {
         ResourceContext context = null;
         try {
             context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyBundleVersionList");
-            context.authenticate();
+            context.authorize("zms.getbundle", "" + domainName + ":bundle." + bundleName + "", null);
             return this.delegate.getPolicyBundleVersionList(context, domainName, bundleName);
         } catch (ResourceException e) {
             code = e.getCode();
