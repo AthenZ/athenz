@@ -319,7 +319,7 @@
           <execution>
             <id>attach-javadocs</id>
             <configuration>
-              <source>17</source>
+              <source>8</source>
             </configuration>
             <goals>
               <goal>jar</goal>
