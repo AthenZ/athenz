@@ -50,17 +50,20 @@ the failure mode without a validator is "no change", not "fail open".
 
 ## Managing bundles
 
-The usual Athenz authorization applies. The resource is
-`<domain>:bundle.<bundle>`:
+The usual Athenz authorization applies:
 
-| operation                                              | action              |
-|--------------------------------------------------------|---------------------|
-| get bundle, get bundle version, get all bundles        | `zms.getbundle`     |
-| create/update bundle, add file, new version, activate  | `zms.updatebundle`  |
-| delete bundle, file or version                         | `zms.deletebundle`  |
+| operation                                                         | action             | resource                     |
+|-------------------------------------------------------------------|--------------------|------------------------------|
+| list bundle names, get all bundles                                | `zms.getbundle`    | `<domain>:bundle`            |
+| get bundle, list versions, get bundle version                     | `zms.getbundle`    | `<domain>:bundle.<bundle>`   |
+| create/update bundle, add or delete file, new version, activate   | `zms.updatebundle` | `<domain>:bundle.<bundle>`   |
+| delete bundle, delete version                                     | `zms.deletebundle` | `<domain>:bundle.<bundle>`   |
 
-Listing bundle names and bundle version names only requires an authenticated
-principal. The get-all-bundles api is authorized against `<domain>:bundle.*`.
+Deleting a single file from a bundle is an update of the bundle and requires
+`zms.updatebundle`, not `zms.deletebundle`. A grant on `<domain>:bundle.*`
+covers all of the per-bundle resources but not the domain level
+`<domain>:bundle` resource used for listing, so delegated readers need both
+resources.
 
 Domain administrators can do everything. Each domain is limited to
 `athenz.zms.quota_bundle` bundles and each bundle to
@@ -99,7 +102,13 @@ the normal domain sync.
 ## Signing and sync
 
 ZMS includes the policy bundles in the signed JWS domain data as
-`policyBundles`, so they are covered by the domain signature. Each file
+`policyBundles`, so they are covered by the domain signature. The
+signed domain api only authenticates the caller, so the bundles are included
+in the response only if the principal is authorized for `zms.getbundle` on
+`<domain>:bundle`, or for `zms.getbundle` on `sys.auth:attribute.bundle`
+(system wide access, which the ZTS service identity must be granted).
+Principals without access still receive the rest of the domain data, without
+the bundles. Each file
 carries its SHA-256 digest. Policy bundles are only distributed through JWS
 domain sync: ZTS must run with `athenz.zts.zms_domain_jws_support=true`.
 The legacy SignedDomain signature does not cover the bundles, so ZTS ignores
