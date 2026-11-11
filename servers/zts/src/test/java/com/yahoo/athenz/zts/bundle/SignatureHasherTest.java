@@ -62,6 +62,15 @@ public class SignatureHasherTest {
     }
 
     @Test
+    public void testKeysSortedByUtf8Bytes() throws IOException {
+        // Go sorts keys by utf-8 bytes: U+E000 (EF 80 80) sorts before U+1F600 (F0 9F 98 80),
+        // while utf-16 code unit order (D83D < E000) would put the emoji first
+        byte[] canonical = SignatureHasher.canonicalJson(
+                "{\"\ud83d\ude00\":1,\"\ue000\":2}".getBytes(StandardCharsets.UTF_8));
+        assertEquals(new String(canonical, StandardCharsets.UTF_8), "{\"\ue000\":2,\"\ud83d\ude00\":1}");
+    }
+
+    @Test
     public void testInvalidStructuredJson() {
         for (String doc : new String[] { "", "  ", "{} {}", "{\"a\":1} 2", "{bad", "[1,", "{\"a\":}" }) {
             try {

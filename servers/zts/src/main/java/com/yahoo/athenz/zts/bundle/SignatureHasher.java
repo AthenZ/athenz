@@ -15,25 +15,22 @@
  */
 package com.yahoo.athenz.zts.bundle;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.SerializableString;
-import com.fasterxml.jackson.core.io.CharacterEscapes;
-import com.fasterxml.jackson.core.io.SerializedString;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -78,39 +75,10 @@ public class SignatureHasher {
     // 2. Metadata representation matching FileInfo in hash.go
     public record FileInfo(String name, String hash, Algorithm algorithm) { }
 
-    /**
-     * Go encoding/json (with html escaping disabled) additionally escapes the
-     * line and paragraph separators. Jackson already matches Go for the
-     * quote, backslash and control characters and does not escape html.
-     */
-    private static final class GoCharacterEscapes extends CharacterEscapes {
-
-        private static final SerializableString LINE_SEPARATOR = new SerializedString("\\u2028");
-        private static final SerializableString PARAGRAPH_SEPARATOR = new SerializedString("\\u2029");
-
-        private final int[] asciiEscapes = CharacterEscapes.standardAsciiEscapesForJSON();
-
-        @Override
-        public int[] getEscapeCodesForAscii() {
-            return asciiEscapes;
-        }
-
-        @Override
-        public SerializableString getEscapeSequence(int ch) {
-            return switch (ch) {
-                case 0x2028 -> LINE_SEPARATOR;
-                case 0x2029 -> PARAGRAPH_SEPARATOR;
-                default -> null;
-            };
-        }
-    }
-
     // Jackson mapper configured to match Go's deterministic json.Marshal encoding:
-    // sorted keys, no whitespace, numbers without exponent and Go string escaping
+    // keys sorted by utf-8 bytes, no whitespace, numbers without exponent and Go string escaping
 
-    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder(
-                    new JsonFactory().setCharacterEscapes(new GoCharacterEscapes()))
-            .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
             .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
             .enable(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN)
@@ -121,6 +89,12 @@ public class SignatureHasher {
 
     private static final String FILE_DATA_JSON = "data.json";
     private static final String FILE_MANIFEST = ".manifest";
+
+    // Go sorts map keys by their utf-8 bytes, which differs from String's
+    // utf-16 code unit order for supplementary characters vs. U+E000-U+FFFF
+
+    private static final Comparator<String> UTF8_KEY_ORDER = (a, b) -> Arrays.compareUnsigned(
+            a.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8));
 
     private final Algorithm algorithm;
 
@@ -198,14 +172,26 @@ public class SignatureHasher {
             if (parser.nextToken() != null) {
                 throw new IOException("unexpected trailing content after json document");
             }
-            return OBJECT_MAPPER.writeValueAsBytes(value);
+            return toGoJson(value);
         }
+    }
+
+    // Go encoding/json (with html escaping disabled) escapes the line and paragraph
+    // separators and writes every other non-ascii character, including supplementary
+    // ones, as raw utf-8. Jackson's utf-8 byte generator escapes supplementary
+    // characters as surrogate pairs, so serialize to a string and encode it here.
+
+    private static byte[] toGoJson(final Object value) throws IOException {
+        return OBJECT_MAPPER.writeValueAsString(value)
+                .replace("\u2028", "\\u2028")
+                .replace("\u2029", "\\u2029")
+                .getBytes(StandardCharsets.UTF_8);
     }
 
     private static Object readValue(JsonParser parser) throws IOException {
         switch (parser.currentToken()) {
             case START_OBJECT:
-                Map<String, Object> map = new TreeMap<>();
+                Map<String, Object> map = new TreeMap<>(UTF8_KEY_ORDER);
                 while (parser.nextToken() == JsonToken.FIELD_NAME) {
                     final String name = parser.currentName();
                     parser.nextToken();
