@@ -37,6 +37,13 @@ public class UtilsTest {
     }
 
     @Test
+    public void testExtractPolicyBundleName() {
+        assertEquals(Utils.extractPolicyBundleName("sports", "sports:bundle.api"), "api");
+        assertNull(Utils.extractPolicyBundleName("sports", "weather:bundle.api"));
+        assertNull(Utils.extractPolicyBundleName("sports", "sports:policy.api"));
+    }
+
+    @Test
     public void testParseAwsAccountsNull() {
         assertTrue(Utils.parseAwsAccounts(null).isEmpty());
     }

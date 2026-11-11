@@ -674,6 +674,36 @@ public class ZMSSchema {
             .arrayField("names", "EntityName", false, "list of policy names")
             .field("next", "String", true, "if the response is a paginated list, this attribute specifies the value to be used in the next policy list request as the value for the skip query parameter.");
 
+        sb.structType("PolicyBundleFile")
+            .comment("A single file in a policy bundle - policy source (Rego module), schema or data file. The path is relative to the bundle root.")
+            .field("path", "String", false, "relative path of the file in the bundle, e.g. \"authz.rego\" or \"regions/data.json\"")
+            .field("content", "String", false, "content of the file")
+            .field("sha256", "String", true, "sha-256 digest (hex) of the content - computed by the server");
+
+        sb.structType("PolicyBundle")
+            .comment("A policy bundle is a named, versioned set of policy files for an external policy engine (e.g. OPA/Rego). ZMS stores and signs the bundle; ZTS serves it to authorized workloads. The content is not interpreted by the Athenz authorization engine.")
+            .field("name", "ResourceName", false, "name of the bundle, e.g. sports:bundle.api")
+            .field("engine", "SimpleName", false, "policy engine for the bundle content: rego")
+            .arrayField("files", "PolicyBundleFile", false, "list of files in the bundle")
+            .arrayField("roots", "String", true, "optional OPA manifest roots; derived from domain/bundle name if not specified")
+            .field("version", "SimpleName", true, "optional version string, defaults to 0")
+            .field("active", "Bool", true, "if multi-version bundle then indicates active version")
+            .field("description", "String", true, "a description of the bundle")
+            .field("modified", "Timestamp", true, "last modification timestamp of this bundle");
+
+        sb.structType("PolicyBundles")
+            .comment("The representation of list of policy bundle objects")
+            .arrayField("list", "PolicyBundle", false, "list of policy bundle objects");
+
+        sb.structType("PolicyBundleList")
+            .comment("The representation for an enumeration of policy bundles in the namespace")
+            .arrayField("names", "EntityName", false, "list of bundle names (or versions)");
+
+        sb.structType("PolicyBundleOptions")
+            .comment("Options for Policy Bundle version management requests")
+            .field("version", "SimpleName", false, "bundle version")
+            .field("fromVersion", "SimpleName", true, "optional source version used when creating a new version, defaults to 0");
+
         sb.structType("Tenancy")
             .comment("A representation of tenant.")
             .field("domain", "DomainName", false, "the domain that is to get a tenancy")
@@ -734,6 +764,7 @@ public class ZMSSchema {
             .arrayField("services", "ServiceIdentity", false, "list of services in the domain")
             .arrayField("entities", "Entity", false, "list of entities in the domain")
             .arrayField("groups", "Group", false, "list of groups in the domain")
+            .arrayField("policyBundles", "PolicyBundle", false, "list of active policy bundles defined in the domain")
             .field("modified", "Timestamp", false, "last modification timestamp");
 
         sb.structType("SignedDomain")
@@ -2669,6 +2700,246 @@ public class ZMSSchema {
             .auth("update", "{domainName}:meta.policy.ownership.{policyName}")
             .expected("NO_CONTENT")
             .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyBundleList", "GET", "/domain/{domainName}/bundle")
+            .comment("List policy bundles provisioned in this domain.")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyBundles", "GET", "/domain/{domainName}/bundles")
+            .comment("Get all policy bundles (including their files) provisioned in this domain.")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .queryParam("includeNonActive", "includeNonActive", "Bool", false, "include non-active bundle versions")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyBundle", "GET", "/domain/{domainName}/bundle/{bundleName}")
+            .comment("Read the active version of the specified policy bundle.")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("bundleName", "EntityName", "name of the bundle")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyBundle", "PUT", "/domain/{domainName}/bundle/{bundleName}")
+            .comment("Create or update the specified policy bundle. If the version attribute is not specified, the active version of the bundle is created/updated. If the version is specified and the bundle already exists, the given version is updated or created as a non-active version.")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("bundleName", "EntityName", "name of the bundle")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
+            .input("bundle", "PolicyBundle", "PolicyBundle object to be added or updated in the domain")
+            .auth("update", "{domainName}:bundle.{bundleName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyBundle", "DELETE", "/domain/{domainName}/bundle/{bundleName}")
+            .comment("Delete the specified policy bundle including all of its versions. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("bundleName", "EntityName", "name of the bundle")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .auth("delete", "{domainName}:bundle.{bundleName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyBundleFile", "PUT", "/domain/{domainName}/bundle/{bundleName}/file")
+            .comment("Add or replace a single file in the active version of the specified policy bundle.")
+            .name("putPolicyBundleFile")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("bundleName", "EntityName", "name of the bundle")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .input("file", "PolicyBundleFile", "file to be added or replaced in the bundle")
+            .auth("update", "{domainName}:bundle.{bundleName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyBundle", "DELETE", "/domain/{domainName}/bundle/{bundleName}/file")
+            .comment("Delete a single file from the active version of the specified policy bundle.")
+            .name("deletePolicyBundleFile")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("bundleName", "EntityName", "name of the bundle")
+            .queryParam("path", "path", "String", null, "path of the file to be removed from the bundle, relative to the bundle root")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .auth("update", "{domainName}:bundle.{bundleName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyBundleList", "GET", "/domain/{domainName}/bundle/{bundleName}/version")
+            .comment("List the versions of the specified policy bundle.")
+            .name("getPolicyBundleVersionList")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("bundleName", "EntityName", "name of the bundle")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyBundle", "GET", "/domain/{domainName}/bundle/{bundleName}/version/{version}")
+            .comment("Get the specified policy bundle version.")
+            .name("getPolicyBundleVersion")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("bundleName", "EntityName", "name of the bundle")
+            .pathParam("version", "SimpleName", "name of the version to be retrieved")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyBundleOptions", "PUT", "/domain/{domainName}/bundle/{bundleName}/version/create")
+            .comment("Create a new non-active policy bundle version based on the given source version")
+            .name("putPolicyBundleVersion")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("bundleName", "EntityName", "name of the bundle")
+            .input("bundleOptions", "PolicyBundleOptions", "name of the new version and the source version to copy from")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .headerParam("Athenz-Return-Object", "returnObj", "Bool", false, "Return object param updated object back.")
+            .auth("update", "{domainName}:bundle.{bundleName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyBundleOptions", "PUT", "/domain/{domainName}/bundle/{bundleName}/version/active")
+            .comment("Mark the specified policy bundle version as active. A separate \"activate\" action allows domain administrators to split publishing a version from activating it (publish-then-activate flow).")
+            .name("setActivePolicyBundleVersion")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("bundleName", "EntityName", "name of the bundle")
+            .input("bundleOptions", "PolicyBundleOptions", "name of the version to be activated")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .auth("activate", "{domainName}:bundle.{bundleName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyBundle", "DELETE", "/domain/{domainName}/bundle/{bundleName}/version/{version}")
+            .comment("Delete the specified non-active policy bundle version. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+            .name("deletePolicyBundleVersion")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("bundleName", "EntityName", "name of the bundle")
+            .pathParam("version", "SimpleName", "name of the version to be deleted")
+            .headerParam("Y-Audit-Ref", "auditRef", "String", null, "Audit param required(not empty) if domain auditEnabled is true.")
+            .auth("delete", "{domainName}:bundle.{bundleName}")
+            .expected("NO_CONTENT")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("CONFLICT", "ResourceError", "")
 
             .exception("FORBIDDEN", "ResourceError", "")
 

@@ -175,6 +175,36 @@ public class ZTSSchema {
             .mapField("policyVersions", "String", "String", false, "")
             .field("signatureP1363Format", "Bool", false, "true if signature must be in P1363 format instead of ASN.1 DER");
 
+        sb.structType("PolicyBundleFileData")
+            .comment("A single file in a policy bundle")
+            .field("path", "String", false, "relative path of the file in the bundle")
+            .field("content", "String", false, "content of the file")
+            .field("sha256", "String", false, "sha-256 digest (hex) of the content");
+
+        sb.structType("PolicyBundleData")
+            .comment("The active version of a policy bundle as served by ZTS")
+            .field("domain", "DomainName", false, "name of the domain")
+            .field("name", "EntityName", false, "name of the bundle")
+            .field("engine", "SimpleName", false, "policy engine: rego")
+            .field("version", "SimpleName", false, "active version of the bundle")
+            .field("revision", "String", false, "bundle revision - changes when the bundle content changes")
+            .arrayField("roots", "String", true, "OPA manifest roots")
+            .arrayField("files", "PolicyBundleFileData", false, "list of files in the bundle");
+
+        sb.structType("PolicyBundleEntry")
+            .comment("Summary of a policy bundle the caller is authorized to fetch")
+            .field("domain", "DomainName", false, "name of the domain")
+            .field("name", "EntityName", false, "name of the bundle")
+            .field("engine", "SimpleName", false, "policy engine: rego")
+            .field("version", "SimpleName", false, "active version of the bundle")
+            .field("revision", "String", false, "bundle revision - changes when the bundle content changes");
+
+        sb.structType("PolicyBundleEntries")
+            .comment("List of policy bundles")
+            .arrayField("list", "PolicyBundleEntry", false, "list of bundles");
+
+    
+
         sb.structType("RoleCertificate")
             .comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
             .field("x509Certificate", "String", false, "");
@@ -850,6 +880,39 @@ public class ZTSSchema {
             .input("request", "SignedPolicyRequest", "policy version request details")
             .headerParam("If-None-Match", "matchingTag", "String", null, "Retrieved from the previous request, this timestamp specifies to the server to return any policies modified since this time")
             .output("ETag", "tag", "String", "The current latest modification timestamp is returned in this header")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyBundle", "GET", "/domain/{domainName}/bundle/{bundleName}")
+            .comment("Get the active version of the policy bundle as an OPA bundle archive (gzipped tar). If the If-None-Match header is provided, and it matches the ETag (bundle revision) that would be returned, then a NOT_MODIFIED response is returned instead of the bundle.")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .pathParam("bundleName", "EntityName", "name of the bundle")
+            .headerParam("If-None-Match", "matchingTag", "String", null, "bundle revision from a previous request")
+            .auth("", "", true)
+            .expected("OK")
+            .exception("BAD_REQUEST", "ResourceError", "")
+
+            .exception("FORBIDDEN", "ResourceError", "")
+
+            .exception("NOT_FOUND", "ResourceError", "")
+
+            .exception("TOO_MANY_REQUESTS", "ResourceError", "")
+
+            .exception("UNAUTHORIZED", "ResourceError", "")
+;
+
+        sb.resource("PolicyBundleEntries", "GET", "/domain/{domainName}/bundles")
+            .comment("List the policy bundles in the domain that the caller is authorized to fetch")
+            .pathParam("domainName", "DomainName", "name of the domain")
+            .queryParam("engine", "engine", "SimpleName", null, "optional filter to return only bundles for the given engine")
             .auth("", "", true)
             .expected("OK")
             .exception("BAD_REQUEST", "ResourceError", "")

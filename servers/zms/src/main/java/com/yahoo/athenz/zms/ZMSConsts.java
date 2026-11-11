@@ -136,6 +136,7 @@ public final class ZMSConsts {
     public static final String ZMS_AUDIT_TYPE_ENTITY   = "entity";
     public static final String ZMS_AUDIT_TYPE_TENANCY  = "tenancy";
     public static final String ZMS_AUDIT_TYPE_TEMPLATE = "template";
+    public static final String ZMS_AUDIT_TYPE_BUNDLE   = "bundle";
 
     public static final String ZMS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS = "athenz.zms.private_key_store_factory_class";
     public static final String ZMS_PRIVATE_KEY_STORE_FACTORY_CLASS      = "com.yahoo.athenz.auth.impl.FilePrivateKeyStoreFactory";
@@ -368,4 +369,23 @@ public final class ZMSConsts {
     public static final String TYPE_POLICY           = "Policy";
     public static final String TYPE_SERVICE_IDENTITY = "ServiceIdentity";
     public static final String TYPE_GROUP            = "Group";
+
+    // policy bundle settings
+
+    public static final String ZMS_PROP_BUNDLE_ENABLED                 = "athenz.zms.bundle_enabled";
+    public static final String ZMS_PROP_QUOTA_BUNDLE                   = "athenz.zms.quota_bundle";
+    public static final String ZMS_PROP_BUNDLE_ENGINES                 = "athenz.zms.bundle_engines";
+    public static final String ZMS_PROP_MAX_BUNDLE_VERSIONS            = "athenz.zms.max_bundle_versions";
+    public static final String ZMS_PROP_MAX_BUNDLE_FILES               = "athenz.zms.max_bundle_files";
+    public static final String ZMS_PROP_MAX_BUNDLE_FILE_SIZE           = "athenz.zms.max_bundle_file_size";
+    public static final String ZMS_PROP_MAX_BUNDLE_SIZE                = "athenz.zms.max_bundle_size";
+    public static final String ZMS_PROP_MAX_BUNDLE_ROOTS               = "athenz.zms.max_bundle_roots";
+    public static final String ZMS_PROP_BUNDLE_VALIDATION_MODE         = "athenz.zms.bundle_validation_mode";
+    public static final String ZMS_PROP_BUNDLE_VALIDATOR_FACTORY_CLASS = "athenz.zms.bundle_validator_factory_class";
+
+    public static final String BUNDLE_ENGINE_REGO  = "rego";
+
+    public static final String BUNDLE_VALIDATION_MODE_OFF     = "off";
+    public static final String BUNDLE_VALIDATION_MODE_WARN    = "warn";
+    public static final String BUNDLE_VALIDATION_MODE_ENFORCE = "enforce";
 }

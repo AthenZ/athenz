@@ -1382,5 +1382,32 @@ public class DataCacheTest {
         assertNull(cache.getServiceIdentityClientId(domainName + ".service2"));
         assertEquals("client3", cache.getServiceIdentityClientId(domainName + ".service3"));
     }
-}
 
+    @Test
+    public void testPolicyBundles() {
+
+        DataCache cache = new DataCache();
+        assertTrue(cache.getPolicyBundles().isEmpty());
+        assertNull(cache.getPolicyBundle("api"));
+
+        com.yahoo.athenz.zms.PolicyBundle bundle1 = new com.yahoo.athenz.zms.PolicyBundle().setName("sports:bundle.b1");
+        com.yahoo.athenz.zms.PolicyBundle bundle2 = new com.yahoo.athenz.zms.PolicyBundle().setName("sports:bundle.a1");
+        cache.addPolicyBundle("b1", bundle1);
+        cache.addPolicyBundle("a1", bundle2);
+
+        assertSame(cache.getPolicyBundle("b1"), bundle1);
+        assertSame(cache.getPolicyBundle("a1"), bundle2);
+        assertNull(cache.getPolicyBundle("unknown"));
+
+        // bundles are returned sorted by name
+
+        assertEquals(new ArrayList<>(cache.getPolicyBundles().keySet()), Arrays.asList("a1", "b1"));
+
+        // replace an existing bundle
+
+        com.yahoo.athenz.zms.PolicyBundle bundle3 = new com.yahoo.athenz.zms.PolicyBundle().setName("sports:bundle.b1");
+        cache.addPolicyBundle("b1", bundle3);
+        assertSame(cache.getPolicyBundle("b1"), bundle3);
+        assertEquals(cache.getPolicyBundles().size(), 2);
+    }
+}

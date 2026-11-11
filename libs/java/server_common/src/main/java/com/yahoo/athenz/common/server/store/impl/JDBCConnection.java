@@ -300,6 +300,33 @@ public class JDBCConnection implements ObjectStoreConnection {
             + "JOIN domain ON domain_template.domain_id=domain.domain_id "
             + "WHERE domain.name=?;";
     private static final String SQL_GET_DOMAIN_ENTITIES = "SELECT * FROM entity WHERE domain_id=?;";
+    private static final String SQL_GET_POLICY_BUNDLE = "SELECT * FROM policy_bundle WHERE domain_id=? AND name=? AND active=true;";
+    private static final String SQL_GET_POLICY_BUNDLE_VERSION = "SELECT * FROM policy_bundle WHERE domain_id=? AND name=? AND version=?;";
+    private static final String SQL_GET_POLICY_BUNDLE_ID = "SELECT bundle_id FROM policy_bundle WHERE domain_id=? AND name=? AND active=true;";
+    private static final String SQL_GET_POLICY_BUNDLE_VERSION_ID = "SELECT bundle_id FROM policy_bundle WHERE domain_id=? AND name=? AND version=?;";
+    private static final String SQL_GET_POLICY_BUNDLE_FILES = "SELECT * FROM policy_bundle_file WHERE bundle_id=? ORDER BY path;";
+    private static final String SQL_GET_DOMAIN_POLICY_BUNDLES = "SELECT * FROM policy_bundle WHERE domain_id=?;";
+    private static final String SQL_GET_DOMAIN_ACTIVE_POLICY_BUNDLES = "SELECT * FROM policy_bundle WHERE domain_id=? AND active=true;";
+    private static final String SQL_GET_DOMAIN_POLICY_BUNDLE_FILES = "SELECT policy_bundle_file.* FROM policy_bundle_file "
+            + "JOIN policy_bundle ON policy_bundle.bundle_id=policy_bundle_file.bundle_id "
+            + "WHERE policy_bundle.domain_id=? ORDER BY policy_bundle_file.path;";
+    private static final String SQL_GET_DOMAIN_ACTIVE_POLICY_BUNDLE_FILES = "SELECT policy_bundle_file.* FROM policy_bundle_file "
+            + "JOIN policy_bundle ON policy_bundle.bundle_id=policy_bundle_file.bundle_id "
+            + "WHERE policy_bundle.domain_id=? AND policy_bundle.active=true ORDER BY policy_bundle_file.path;";
+    private static final String SQL_INSERT_POLICY_BUNDLE = "INSERT INTO policy_bundle "
+            + "(domain_id, name, engine, version, active, roots, description) VALUES (?,?,?,?,?,?,?);";
+    private static final String SQL_UPDATE_POLICY_BUNDLE = "UPDATE policy_bundle SET engine=?, roots=?, "
+            + "description=?, modified=CURRENT_TIMESTAMP(3) WHERE bundle_id=?;";
+    private static final String SQL_DELETE_POLICY_BUNDLE = "DELETE FROM policy_bundle WHERE domain_id=? AND name=?;";
+    private static final String SQL_DELETE_POLICY_BUNDLE_VERSION = "DELETE FROM policy_bundle WHERE domain_id=? AND name=? AND version=? AND active=false;";
+    private static final String SQL_SET_ACTIVE_POLICY_BUNDLE_VERSION = "UPDATE policy_bundle SET active = CASE WHEN version=? THEN true ELSE false END, "
+            + "modified=CURRENT_TIMESTAMP(3) WHERE domain_id=? AND name=?;";
+    private static final String SQL_LIST_POLICY_BUNDLE = "SELECT name FROM policy_bundle WHERE domain_id=? AND active=true;";
+    private static final String SQL_LIST_POLICY_BUNDLE_VERSION = "SELECT version FROM policy_bundle WHERE domain_id=? AND name=?;";
+    private static final String SQL_COUNT_POLICY_BUNDLE = "SELECT COUNT(*) FROM policy_bundle WHERE domain_id=? AND active=true;";
+    private static final String SQL_INSERT_POLICY_BUNDLE_FILE = "INSERT INTO policy_bundle_file (bundle_id, path, content, sha256) VALUES (?,?,?,?);";
+    private static final String SQL_DELETE_POLICY_BUNDLE_FILE = "DELETE FROM policy_bundle_file WHERE bundle_id=? AND path=?;";
+    private static final String SQL_DELETE_POLICY_BUNDLE_FILES = "DELETE FROM policy_bundle_file WHERE bundle_id=?;";
     private static final String SQL_GET_DOMAIN_ROLES = "SELECT * FROM role WHERE domain_id=?;";
     private static final String SQL_GET_DOMAIN_ROLE_MEMBERS = "SELECT role.name, principal.name, role_member.expiration, "
             + "role_member.review_reminder, role_member.system_disabled, role_member.req_principal FROM principal "
@@ -4326,6 +4353,407 @@ public class JDBCConnection implements ObjectStoreConnection {
         return count;
     }
 
+    // Policy Bundle commands
+
+    static final String POLICY_BUNDLE_DEFAULT_VERSION = "0";
+
+    String bundleListToDbValue(List<String> list) {
+        return (list == null || list.isEmpty()) ? "" : String.join(",", list);
+    }
+
+    List<String> bundleListFromDbValue(final String value) {
+        if (StringUtil.isEmpty(value)) {
+            return null;
+        }
+        return new ArrayList<>(Arrays.asList(value.split(",")));
+    }
+
+    PolicyBundle retrievePolicyBundle(ResultSet rs, final String domainName) throws SQLException {
+        return new PolicyBundle()
+                .setName(ResourceUtils.policyBundleResourceName(domainName, rs.getString(JDBCConsts.DB_COLUMN_NAME)))
+                .setEngine(rs.getString(JDBCConsts.DB_COLUMN_ENGINE))
+                .setVersion(rs.getString(JDBCConsts.DB_COLUMN_VERSION))
+                .setActive(rs.getBoolean(JDBCConsts.DB_COLUMN_ACTIVE))
+                .setRoots(bundleListFromDbValue(rs.getString(JDBCConsts.DB_COLUMN_ROOTS)))
+                .setDescription(saveValue(rs.getString(JDBCConsts.DB_COLUMN_DESCRIPTION)))
+                .setModified(Timestamp.fromMillis(rs.getTimestamp(JDBCConsts.DB_COLUMN_MODIFIED).getTime()))
+                .setFiles(new ArrayList<>());
+    }
+
+    PolicyBundleFile retrievePolicyBundleFile(ResultSet rs) throws SQLException {
+        return new PolicyBundleFile()
+                .setPath(rs.getString(JDBCConsts.DB_COLUMN_PATH))
+                .setContent(rs.getString(JDBCConsts.DB_COLUMN_CONTENT))
+                .setSha256(rs.getString(JDBCConsts.DB_COLUMN_SHA256));
+    }
+
+    int getPolicyBundleId(int domainId, final String bundleName, final String version) {
+
+        final String caller = "getPolicyBundleId";
+
+        int bundleId = 0;
+        final boolean activeVersion = StringUtil.isEmpty(version);
+        try (PreparedStatement ps = con.prepareStatement(activeVersion ? SQL_GET_POLICY_BUNDLE_ID : SQL_GET_POLICY_BUNDLE_VERSION_ID)) {
+            ps.setInt(1, domainId);
+            ps.setString(2, bundleName);
+            if (!activeVersion) {
+                ps.setString(3, version);
+            }
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    bundleId = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            LOG.error("unable to get policy bundle id for name: {} error code: {} msg: {}",
+                    bundleName, ex.getErrorCode(), ex.getMessage());
+        }
+        return bundleId;
+    }
+
+    int getRequiredPolicyBundleId(final String caller, final String domainName, final String bundleName,
+            final String version) throws ServerResourceException {
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_DOMAIN, domainName);
+        }
+        int bundleId = getPolicyBundleId(domainId, bundleName, version);
+        if (bundleId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_BUNDLE,
+                    ResourceUtils.policyBundleResourceName(domainName, bundleName));
+        }
+        return bundleId;
+    }
+
+    @Override
+    public PolicyBundle getPolicyBundle(String domainName, String bundleName, String version) throws ServerResourceException {
+
+        final String caller = "getPolicyBundle";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_DOMAIN, domainName);
+        }
+
+        PolicyBundle bundle = null;
+        int bundleId = 0;
+        final boolean activeVersion = StringUtil.isEmpty(version);
+        try (PreparedStatement ps = con.prepareStatement(activeVersion ? SQL_GET_POLICY_BUNDLE : SQL_GET_POLICY_BUNDLE_VERSION)) {
+            ps.setInt(1, domainId);
+            ps.setString(2, bundleName);
+            if (!activeVersion) {
+                ps.setString(3, version);
+            }
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    bundle = retrievePolicyBundle(rs, domainName);
+                    bundleId = rs.getInt(JDBCConsts.DB_COLUMN_BUNDLE_ID);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        if (bundle == null) {
+            return null;
+        }
+
+        try (PreparedStatement ps = con.prepareStatement(SQL_GET_POLICY_BUNDLE_FILES)) {
+            ps.setInt(1, bundleId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    bundle.getFiles().add(retrievePolicyBundleFile(rs));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return bundle;
+    }
+
+    List<PolicyBundle> getDomainPolicyBundles(final String caller, final String domainName, int domainId,
+            boolean includeNonActive) throws ServerResourceException {
+
+        Map<Integer, PolicyBundle> bundleMap = new TreeMap<>();
+        try (PreparedStatement ps = con.prepareStatement(includeNonActive ? SQL_GET_DOMAIN_POLICY_BUNDLES
+                : SQL_GET_DOMAIN_ACTIVE_POLICY_BUNDLES)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    bundleMap.put(rs.getInt(JDBCConsts.DB_COLUMN_BUNDLE_ID), retrievePolicyBundle(rs, domainName));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+
+        if (bundleMap.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        try (PreparedStatement ps = con.prepareStatement(includeNonActive ? SQL_GET_DOMAIN_POLICY_BUNDLE_FILES
+                : SQL_GET_DOMAIN_ACTIVE_POLICY_BUNDLE_FILES)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    PolicyBundle bundle = bundleMap.get(rs.getInt(JDBCConsts.DB_COLUMN_BUNDLE_ID));
+                    if (bundle != null) {
+                        bundle.getFiles().add(retrievePolicyBundleFile(rs));
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return new ArrayList<>(bundleMap.values());
+    }
+
+    @Override
+    public List<PolicyBundle> getPolicyBundles(String domainName, boolean includeNonActive) throws ServerResourceException {
+
+        final String caller = "getPolicyBundles";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_DOMAIN, domainName);
+        }
+        return getDomainPolicyBundles(caller, domainName, domainId, includeNonActive);
+    }
+
+    @Override
+    public boolean insertPolicyBundle(String domainName, PolicyBundle bundle) throws ServerResourceException {
+
+        final String caller = "insertPolicyBundle";
+
+        String bundleName = Utils.extractPolicyBundleName(domainName, bundle.getName());
+        if (bundleName == null) {
+            throw requestError(caller, "domain name mismatch: " + domainName +
+                    " insert bundle name: " + bundle.getName());
+        }
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_DOMAIN, domainName);
+        }
+
+        final String version = StringUtil.isEmpty(bundle.getVersion()) ? POLICY_BUNDLE_DEFAULT_VERSION : bundle.getVersion();
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_POLICY_BUNDLE)) {
+            ps.setInt(1, domainId);
+            ps.setString(2, bundleName);
+            ps.setString(3, processInsertValue(bundle.getEngine()));
+            ps.setString(4, version);
+            ps.setBoolean(5, processInsertValue(bundle.getActive(), true));
+            ps.setString(6, bundleListToDbValue(bundle.getRoots()));
+            ps.setString(7, processInsertValue(bundle.getDescription()));
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean updatePolicyBundle(String domainName, PolicyBundle bundle) throws ServerResourceException {
+
+        final String caller = "updatePolicyBundle";
+
+        String bundleName = Utils.extractPolicyBundleName(domainName, bundle.getName());
+        if (bundleName == null) {
+            throw requestError(caller, "domain name mismatch: " + domainName +
+                    " update bundle name: " + bundle.getName());
+        }
+
+        int bundleId = getRequiredPolicyBundleId(caller, domainName, bundleName, bundle.getVersion());
+
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_UPDATE_POLICY_BUNDLE)) {
+            ps.setString(1, processInsertValue(bundle.getEngine()));
+            ps.setString(2, bundleListToDbValue(bundle.getRoots()));
+            ps.setString(3, processInsertValue(bundle.getDescription()));
+            ps.setInt(4, bundleId);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean deletePolicyBundle(String domainName, String bundleName) throws ServerResourceException {
+
+        final String caller = "deletePolicyBundle";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_POLICY_BUNDLE)) {
+            ps.setInt(1, domainId);
+            ps.setString(2, bundleName);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean deletePolicyBundleVersion(String domainName, String bundleName, String version) throws ServerResourceException {
+
+        final String caller = "deletePolicyBundleVersion";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_POLICY_BUNDLE_VERSION)) {
+            ps.setInt(1, domainId);
+            ps.setString(2, bundleName);
+            ps.setString(3, version);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean setActivePolicyBundleVersion(String domainName, String bundleName, String version) throws ServerResourceException {
+
+        final String caller = "setActivePolicyBundleVersion";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_DOMAIN, domainName);
+        }
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_SET_ACTIVE_POLICY_BUNDLE_VERSION)) {
+            ps.setString(1, version);
+            ps.setInt(2, domainId);
+            ps.setString(3, bundleName);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    List<String> listPolicyBundleStrings(final String caller, final String sql, final String domainName,
+            final String bundleName) throws ServerResourceException {
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_DOMAIN, domainName);
+        }
+        List<String> items = new ArrayList<>();
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, domainId);
+            if (bundleName != null) {
+                ps.setString(2, bundleName);
+            }
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                while (rs.next()) {
+                    items.add(rs.getString(1));
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        Collections.sort(items);
+        return items;
+    }
+
+    @Override
+    public List<String> listPolicyBundles(String domainName) throws ServerResourceException {
+        return listPolicyBundleStrings("listPolicyBundles", SQL_LIST_POLICY_BUNDLE, domainName, null);
+    }
+
+    @Override
+    public List<String> listPolicyBundleVersions(String domainName, String bundleName) throws ServerResourceException {
+        return listPolicyBundleStrings("listPolicyBundleVersions", SQL_LIST_POLICY_BUNDLE_VERSION, domainName, bundleName);
+    }
+
+    @Override
+    public int countPolicyBundles(String domainName) throws ServerResourceException {
+
+        final String caller = "countPolicyBundles";
+
+        int domainId = getDomainId(domainName);
+        if (domainId == 0) {
+            throw notFoundError(caller, JDBCConsts.OBJECT_DOMAIN, domainName);
+        }
+        int count = 0;
+        try (PreparedStatement ps = con.prepareStatement(SQL_COUNT_POLICY_BUNDLE)) {
+            ps.setInt(1, domainId);
+            try (ResultSet rs = executeQuery(ps, caller)) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return count;
+    }
+
+    @Override
+    public boolean insertPolicyBundleFile(String domainName, String bundleName, String version,
+            PolicyBundleFile file) throws ServerResourceException {
+
+        final String caller = "insertPolicyBundleFile";
+
+        int bundleId = getRequiredPolicyBundleId(caller, domainName, bundleName, version);
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_INSERT_POLICY_BUNDLE_FILE)) {
+            ps.setInt(1, bundleId);
+            ps.setString(2, file.getPath());
+            ps.setString(3, file.getContent());
+            ps.setString(4, file.getSha256());
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean deletePolicyBundleFile(String domainName, String bundleName, String version,
+            String path) throws ServerResourceException {
+
+        final String caller = "deletePolicyBundleFile";
+
+        int bundleId = getRequiredPolicyBundleId(caller, domainName, bundleName, version);
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_POLICY_BUNDLE_FILE)) {
+            ps.setInt(1, bundleId);
+            ps.setString(2, path);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
+    @Override
+    public boolean deletePolicyBundleFiles(String domainName, String bundleName, String version) throws ServerResourceException {
+
+        final String caller = "deletePolicyBundleFiles";
+
+        int bundleId = getRequiredPolicyBundleId(caller, domainName, bundleName, version);
+        int affectedRows;
+        try (PreparedStatement ps = con.prepareStatement(SQL_DELETE_POLICY_BUNDLE_FILES)) {
+            ps.setInt(1, bundleId);
+            affectedRows = executeUpdate(ps, caller);
+        } catch (SQLException ex) {
+            throw sqlError(ex, caller);
+        }
+        return (affectedRows > 0);
+    }
+
     Role retrieveRole(ResultSet rs, final String domainName, final String roleName) throws SQLException {
         Role role = new Role().setName(ResourceUtils.roleResourceName(domainName, roleName))
                 .setModified(Timestamp.fromMillis(rs.getTimestamp(JDBCConsts.DB_COLUMN_MODIFIED).getTime()))
@@ -4821,6 +5249,7 @@ public class JDBCConnection implements ObjectStoreConnection {
         getAthenzDomainPolicies(domainName, domainId, athenzDomain);
         getAthenzDomainServices(domainName, domainId, athenzDomain);
         getAthenzDomainEntities(domainName, domainId, athenzDomain);
+        athenzDomain.setPolicyBundles(getDomainPolicyBundles(caller, domainName, domainId, false));
 
         return athenzDomain;
     }

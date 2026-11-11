@@ -11,6 +11,7 @@ namespace com.yahoo.athenz.zts;
 include "Access.rdli";
 include "ServiceIdentity.rdli";
 include "SignedPolicies.rdli";
+include "PolicyBundle.rdli";
 include "Token.rdli";
 include "Tenancy.rdli";
 include "Identity.rdli";

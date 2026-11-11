@@ -26,6 +26,7 @@ class QuotaChecker {
 
     private final Quota defaultQuota;
     private boolean quotaCheckEnabled;
+    private final int bundleQuota;
     int assertionConditionsQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_ASSERTION_CONDITIONS, "10"));
 
     public QuotaChecker() {
@@ -44,6 +45,7 @@ class QuotaChecker {
         int serviceHostQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_SERVICE_HOST, "10"));
         int publicKeyQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_PUBLIC_KEY, "100"));
         int entityQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_ENTITY, "100"));
+        bundleQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_BUNDLE, "20"));
         int subDomainQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_SUBDOMAIN, "100"));
         int groupQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_GROUP, "100"));
         int groupMemberQuota = Integer.parseInt(System.getProperty(ZMSConsts.ZMS_PROP_QUOTA_GROUP_MEMBER, "100"));
@@ -440,6 +442,27 @@ class QuotaChecker {
                     + quota.getEntity() + " actual: " + objectCount, caller);
         }
     }
+
+    void checkPolicyBundleQuota(ObjectStoreConnection con, String domainName, String caller)
+            throws ServerResourceException {
+
+        // if quota check is disabled we have nothing to do
+
+        if (!quotaCheckEnabled) {
+            return;
+        }
+
+        // this check is only called when a new bundle is being
+        // created, so we're going to check if we'll be allowed
+        // to add one more bundle in the domain
+
+        int objectCount = con.countPolicyBundles(domainName) + 1;
+        if (bundleQuota < objectCount) {
+            throw ZMSUtils.quotaLimitError("bundle quota exceeded - limit: "
+                    + bundleQuota + " actual: " + objectCount, caller);
+        }
+    }
+
     void checkAssertionConditionsQuota(ObjectStoreConnection con, long assertionId, AssertionConditions assertionConditions,
                                        String caller) throws ServerResourceException {
 

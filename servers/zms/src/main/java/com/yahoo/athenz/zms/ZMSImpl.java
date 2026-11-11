@@ -155,6 +155,9 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     private static final String TYPE_ASSERTION_CONDITIONS = "AssertionConditions";
     private static final String TYPE_ASSERTION_CONDITION = "AssertionCondition";
     private static final String TYPE_POLICY_OPTIONS = "PolicyOptions";
+    private static final String TYPE_POLICY_BUNDLE = "PolicyBundle";
+    private static final String TYPE_POLICY_BUNDLE_FILE = "PolicyBundleFile";
+    private static final String TYPE_POLICY_BUNDLE_OPTIONS = "PolicyBundleOptions";
     private static final String TYPE_TAG_KEY = "TagKey";
     private static final String TYPE_TAG_COMPOUND_VALUE = "TagCompoundValue";
     private static final String TYPE_RESOURCE_OWNER_NAME = "ResourceOwnerName";
@@ -191,6 +194,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
     protected SolutionTemplatesManager solutionTemplatesManager = null;
     protected Map<String, String> serverPublicKeyMap = null;
     protected DynamicConfigBoolean readOnlyMode;
+    protected DynamicConfigBoolean policyBundleEnabled;
     protected AuthzHelper.CaseSensitiveMode caseSensitiveMode;
     protected DynamicConfigBoolean validateServiceRoleMembers;
     protected DynamicConfigBoolean validateUserRoleMembers;
@@ -613,6 +617,27 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
                     policyOptions.setFromVersion(policyOptions.getFromVersion().toLowerCase());
                 }
             }
+        },
+        POLICY_BUNDLE {
+            @Override
+            void convertToLowerCase(Object obj) {
+                PolicyBundle bundle = (PolicyBundle) obj;
+                bundle.setName(bundle.getName().toLowerCase());
+                bundle.setEngine(bundle.getEngine().toLowerCase());
+                if (!StringUtil.isEmpty(bundle.getVersion())) {
+                    bundle.setVersion(bundle.getVersion().toLowerCase());
+                }
+            }
+        },
+        POLICY_BUNDLE_OPTIONS {
+            @Override
+            void convertToLowerCase(Object obj) {
+                PolicyBundleOptions bundleOptions = (PolicyBundleOptions) obj;
+                bundleOptions.setVersion(bundleOptions.getVersion().toLowerCase());
+                if (!StringUtil.isEmpty(bundleOptions.getFromVersion())) {
+                    bundleOptions.setFromVersion(bundleOptions.getFromVersion().toLowerCase());
+                }
+            }
         };
 
         abstract void convertToLowerCase(Object obj);
@@ -737,6 +762,10 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // load the resource validator
 
         loadResourceValidator();
+
+        // load the policy bundle validator
+
+        loadPolicyBundleValidator();
 
         // initialize the background solution templates reload task
 
@@ -907,6 +936,11 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         // check if we need to run in maintenance read only mode
 
         readOnlyMode = new DynamicConfigBoolean(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_READ_ONLY_MODE, false);
+
+        // policy bundle support is opt-in. when disabled all policy
+        // bundle endpoints reject the requests right away
+
+        policyBundleEnabled = new DynamicConfigBoolean(CONFIG_MANAGER, ZMSConsts.ZMS_PROP_BUNDLE_ENABLED, false);
 
         // check how we need to handle assertions created with the case-sensitive flag
 
@@ -1519,6 +1553,26 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
             LOG.error("Invalid ResourceValidatorFactory class: {}", resourceValidatorFactoryClass, ex);
             throw new IllegalArgumentException("Invalid resource validator factory class");
         }
+    }
+
+    void loadPolicyBundleValidator() {
+
+        // the policy bundle content validator is optional. if one is not
+        // configured, only the structural per-engine rules are enforced
+
+        final String factoryClass = System.getProperty(ZMSConsts.ZMS_PROP_BUNDLE_VALIDATOR_FACTORY_CLASS);
+        PolicyBundleValidator bundleValidator = null;
+        if (!StringUtil.isEmpty(factoryClass)) {
+            try {
+                PolicyBundleValidatorFactory factory = (PolicyBundleValidatorFactory)
+                        Class.forName(factoryClass).getDeclaredConstructor().newInstance();
+                bundleValidator = factory.create();
+            } catch (Exception ex) {
+                LOG.error("Invalid PolicyBundleValidatorFactory class: {}", factoryClass, ex);
+                throw new IllegalArgumentException("Invalid policy bundle validator factory class");
+            }
+        }
+        dbService.bundleRules = new PolicyBundleRules(bundleValidator);
     }
 
     void initObjectStore() {
@@ -4281,6 +4335,259 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
 
         dbService.executeDeleteEntity(ctx, domainName, entityName, auditRef, caller);
+    }
+
+    // Policy Bundle APIs
+
+    void validatePolicyBundleRequest(ResourceContext ctx, final String domainName, final String bundleName,
+            final String caller, boolean writeRequest) {
+
+        if (!policyBundleEnabled.get()) {
+            throw ZMSUtils.requestError("Policy bundle support is not enabled", caller);
+        }
+
+        if (writeRequest && readOnlyMode.get()) {
+            throw ZMSUtils.requestError(SERVER_READ_ONLY_MESSAGE, caller);
+        }
+
+        validateRequest(ctx.request(), caller);
+        validate(domainName, TYPE_DOMAIN_NAME, caller);
+        if (bundleName != null) {
+            validate(bundleName, TYPE_ENTITY_NAME, caller);
+        }
+
+        // verify that request is properly authenticated for this request
+
+        if (writeRequest) {
+            verifyAuthorizedServiceOperation(((RsrcCtxWrapper) ctx).principal().getAuthorizedService(), caller);
+        }
+    }
+
+    @Override
+    public PolicyBundleList getPolicyBundleList(ResourceContext ctx, String domainName) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validatePolicyBundleRequest(ctx, domainName, null, caller, false);
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        return new PolicyBundleList().setNames(dbService.listPolicyBundles(domainName));
+    }
+
+    @Override
+    public PolicyBundles getPolicyBundles(ResourceContext ctx, String domainName, Boolean includeNonActive) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validatePolicyBundleRequest(ctx, domainName, null, caller, false);
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        return new PolicyBundles().setList(dbService.getPolicyBundles(domainName, includeNonActive == Boolean.TRUE));
+    }
+
+    @Override
+    public PolicyBundle getPolicyBundle(ResourceContext ctx, String domainName, String bundleName) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validatePolicyBundleRequest(ctx, domainName, bundleName, caller, false);
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        bundleName = bundleName.toLowerCase();
+
+        PolicyBundle bundle = dbService.getPolicyBundle(domainName, bundleName, null);
+        if (bundle == null) {
+            throw ZMSUtils.notFoundError("Bundle not found: '" +
+                    ResourceUtils.policyBundleResourceName(domainName, bundleName) + "'", caller);
+        }
+        return bundle;
+    }
+
+    @Override
+    public Response putPolicyBundle(ResourceContext ctx, String domainName, String bundleName, String auditRef,
+            Boolean returnObj, PolicyBundle bundle) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validatePolicyBundleRequest(ctx, domainName, bundleName, caller, true);
+        validate(bundle, TYPE_POLICY_BUNDLE, caller);
+
+        // for consistent handling of all requests, we're going to convert
+        // all incoming object values into lower case. file paths and
+        // content are preserved as is
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        bundleName = bundleName.toLowerCase();
+        AthenzObject.POLICY_BUNDLE.convertToLowerCase(bundle);
+
+        // validate the bundle content based on the engine rules
+
+        dbService.bundleRules.validate(domainName, bundleName, bundle, caller);
+
+        PolicyBundle dbBundle = dbService.executePutPolicyBundle(ctx, domainName, bundleName, bundle,
+                auditRef, caller, returnObj);
+        return ZMSUtils.returnPutResponse(returnObj, dbBundle);
+    }
+
+    @Override
+    public void deletePolicyBundle(ResourceContext ctx, String domainName, String bundleName, String auditRef) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validatePolicyBundleRequest(ctx, domainName, bundleName, caller, true);
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        bundleName = bundleName.toLowerCase();
+
+        dbService.executeDeletePolicyBundle(ctx, domainName, bundleName, auditRef, caller);
+    }
+
+    @Override
+    public void putPolicyBundleFile(ResourceContext ctx, String domainName, String bundleName, String auditRef,
+            PolicyBundleFile file) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validatePolicyBundleRequest(ctx, domainName, bundleName, caller, true);
+        validate(file, TYPE_POLICY_BUNDLE_FILE, caller);
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        final String bundleDomainName = domainName;
+        final String lowerBundleName = bundleName.toLowerCase();
+
+        // the updated bundle is validated as a whole before being stored
+
+        dbService.executePutPolicyBundleFile(ctx, domainName, lowerBundleName, file, auditRef, caller,
+                bundle -> dbService.bundleRules.validate(bundleDomainName, lowerBundleName, bundle, caller));
+    }
+
+    @Override
+    public void deletePolicyBundleFile(ResourceContext ctx, String domainName, String bundleName, String path,
+            String auditRef) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validatePolicyBundleRequest(ctx, domainName, bundleName, caller, true);
+        dbService.bundleRules.validatePath(path, caller);
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        final String bundleDomainName = domainName;
+        final String lowerBundleName = bundleName.toLowerCase();
+
+        // the updated bundle is validated as a whole before being stored
+
+        dbService.executeDeletePolicyBundleFile(ctx, domainName, lowerBundleName, path, auditRef, caller,
+                bundle -> dbService.bundleRules.validate(bundleDomainName, lowerBundleName, bundle, caller));
+    }
+
+    @Override
+    public PolicyBundleList getPolicyBundleVersionList(ResourceContext ctx, String domainName, String bundleName) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validatePolicyBundleRequest(ctx, domainName, bundleName, caller, false);
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        bundleName = bundleName.toLowerCase();
+
+        return new PolicyBundleList().setNames(dbService.listPolicyBundleVersions(domainName, bundleName));
+    }
+
+    @Override
+    public PolicyBundle getPolicyBundleVersion(ResourceContext ctx, String domainName, String bundleName, String version) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validatePolicyBundleRequest(ctx, domainName, bundleName, caller, false);
+        validate(version, TYPE_SIMPLE_NAME, caller);
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        bundleName = bundleName.toLowerCase();
+        version = version.toLowerCase();
+
+        PolicyBundle bundle = dbService.getPolicyBundle(domainName, bundleName, version);
+        if (bundle == null) {
+            throw ZMSUtils.notFoundError("Bundle not found: '" +
+                    ResourceUtils.policyBundleResourceName(domainName, bundleName) + "' with version: " + version, caller);
+        }
+        return bundle;
+    }
+
+    @Override
+    public Response putPolicyBundleVersion(ResourceContext ctx, String domainName, String bundleName,
+            PolicyBundleOptions bundleOptions, String auditRef, Boolean returnObj) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validatePolicyBundleRequest(ctx, domainName, bundleName, caller, true);
+        validate(bundleOptions, TYPE_POLICY_BUNDLE_OPTIONS, caller);
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        bundleName = bundleName.toLowerCase();
+        AthenzObject.POLICY_BUNDLE_OPTIONS.convertToLowerCase(bundleOptions);
+
+        PolicyBundle dbBundle = dbService.executePutPolicyBundleVersion(ctx, domainName, bundleName,
+                bundleOptions.getVersion(), bundleOptions.getFromVersion(), auditRef, caller, returnObj);
+        return ZMSUtils.returnPutResponse(returnObj, dbBundle);
+    }
+
+    @Override
+    public void setActivePolicyBundleVersion(ResourceContext ctx, String domainName, String bundleName,
+            PolicyBundleOptions bundleOptions, String auditRef) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validatePolicyBundleRequest(ctx, domainName, bundleName, caller, true);
+        validate(bundleOptions, TYPE_POLICY_BUNDLE_OPTIONS, caller);
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        bundleName = bundleName.toLowerCase();
+        AthenzObject.POLICY_BUNDLE_OPTIONS.convertToLowerCase(bundleOptions);
+
+        dbService.executeSetActivePolicyBundleVersion(ctx, domainName, bundleName,
+                bundleOptions.getVersion(), auditRef, caller);
+    }
+
+    @Override
+    public void deletePolicyBundleVersion(ResourceContext ctx, String domainName, String bundleName,
+            String version, String auditRef) {
+
+        final String caller = ctx.getApiName();
+        logPrincipal(ctx);
+
+        validatePolicyBundleRequest(ctx, domainName, bundleName, caller, true);
+        validate(version, TYPE_SIMPLE_NAME, caller);
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+        bundleName = bundleName.toLowerCase();
+        version = version.toLowerCase();
+
+        dbService.executeDeletePolicyBundleVersion(ctx, domainName, bundleName, version, auditRef, caller);
     }
 
     public ServerTemplateList getServerTemplateList(ResourceContext ctx) {
@@ -8356,7 +8663,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         domainData.setTags(athenzDomain.getDomain().getTags());
         domainData.setContacts(athenzDomain.getDomain().getContacts());
 
-        // set the roles, groups and entities
+        // set the roles, groups, entities and policy bundles
 
         domainData.setRoles(athenzDomain.getRoles());
         domainData.setGroups(athenzDomain.getGroups());
@@ -8640,6 +8947,7 @@ public class ZMSImpl implements Authorizer, KeyStore, ZMSHandler {
         signedPolicies.setSignature(signature).setKeyId(privateKey.getId());
 
         domainData.setPolicies(signedPolicies);
+        domainData.setPolicyBundles(athenzDomain.getPolicyBundles());
 
         return signJwsDomain(domainData, signatureP1363Format);
     }

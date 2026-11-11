@@ -6,6 +6,7 @@ include "Role.tdl";
 include "ServiceIdentity.tdl";
 include "Entity.tdl";
 include "Domain.tdl";
+include "PolicyBundle.tdl";
 
 //We need to include the name of the domain in this struct since
 //this data will be passed back to ZPU through ZTS so we need to
@@ -32,6 +33,7 @@ type DomainData DomainMeta {
     Array<ServiceIdentity> services; //list of services in the domain
     Array<Entity> entities; //list of entities in the domain
     Array<Group> groups; //list of groups in the domain
+    Array<PolicyBundle> policyBundles; //list of active policy bundles defined in the domain
     Timestamp modified; //last modification timestamp
 }
 

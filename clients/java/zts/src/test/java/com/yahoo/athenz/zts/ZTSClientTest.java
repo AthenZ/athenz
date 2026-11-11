@@ -2141,6 +2141,65 @@ public class ZTSClientTest {
     }
 
     @Test
+    public void testGetPolicyBundle() {
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        assertEquals(client.getPolicyBundle("coretech", "bundle1", null), "bundle-bundle1");
+        assertNull(client.getPolicyBundle("coretech", "bundle1", "tag"));
+
+        try {
+            client.getPolicyBundle("invalid-domain", "bundle1", null);
+            fail();
+        } catch (ClientResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        try {
+            client.getPolicyBundle(null, "bundle1", null);
+            fail();
+        } catch (ClientResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        client.close();
+    }
+
+    @Test
+    public void testGetPolicyBundleEntries() {
+        ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=S1;d=user_domain;n=user;s=sig", PRINCIPAL_AUTHORITY);
+        ZTSClient client = new ZTSClient("http://localhost:4080", principal);
+        client.setZTSRDLGeneratedClient(ztsClientMock);
+
+        PolicyBundleEntries entries = client.getPolicyBundleEntries("coretech", "rego");
+        assertNotNull(entries);
+        assertEquals(entries.getList().size(), 1);
+        assertEquals(entries.getList().get(0).getName(), "bundle1");
+        assertEquals(entries.getList().get(0).getEngine(), "rego");
+
+        try {
+            client.getPolicyBundleEntries("invalid-domain", null);
+            fail();
+        } catch (ClientResourceException ex) {
+            assertEquals(ex.getCode(), 404);
+        }
+
+        try {
+            client.getPolicyBundleEntries(null, null);
+            fail();
+        } catch (ClientResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+        }
+
+        client.close();
+    }
+
+    @Test
     public void testGetTenantDomains() {
         ZTSRDLClientMock ztsClientMock = new ZTSRDLClientMock();
         List<String> tenantDomains = new ArrayList<>();

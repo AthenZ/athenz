@@ -37,6 +37,7 @@ public class ResourceUtilsTest {
     public void testEntityResourceName() {
         assertEquals(ResourceUtils.entityResourceName("athenz", "entity1"), "athenz:entity.entity1");
         assertEquals(ResourceUtils.entityResourceName("athenz.api", "entity1"), "athenz.api:entity.entity1");
+        assertEquals(ResourceUtils.policyBundleResourceName("athenz", "api"), "athenz:bundle.api");
     }
 
     @Test

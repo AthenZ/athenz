@@ -1,0 +1,44 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//Policy Bundle Types
+include "Names.tdl";
+
+//A single file in a policy bundle - policy source (Rego module),
+//schema or data file. The path is relative to the bundle root.
+type PolicyBundleFile Struct {
+    String path; //relative path of the file in the bundle, e.g. "authz.rego" or "regions/data.json"
+    String content; //content of the file
+    String sha256 (optional); //sha-256 digest (hex) of the content - computed by the server
+}
+
+//A policy bundle is a named, versioned set of policy files for an external
+//policy engine (e.g. OPA/Rego). ZMS stores and signs the bundle;
+//ZTS serves it to authorized workloads. The content is not interpreted by
+//the Athenz authorization engine.
+type PolicyBundle Struct {
+    ResourceName name; //name of the bundle, e.g. sports:bundle.api
+    SimpleName engine; //policy engine for the bundle content: rego
+    Array<PolicyBundleFile> files; //list of files in the bundle
+    Array<String> roots (optional); //optional OPA manifest roots; derived from domain/bundle name if not specified
+    SimpleName version (optional); //optional version string, defaults to 0
+    Bool active (optional); //if multi-version bundle then indicates active version
+    String description (optional); //a description of the bundle
+    Timestamp modified (optional); //last modification timestamp of this bundle
+}
+
+//The representation of list of policy bundle objects
+type PolicyBundles Struct {
+    Array<PolicyBundle> list; //list of policy bundle objects
+}
+
+//The representation for an enumeration of policy bundles in the namespace
+type PolicyBundleList Struct {
+    Array<EntityName> names; //list of bundle names (or versions)
+}
+
+//Options for Policy Bundle version management requests
+type PolicyBundleOptions Struct {
+    SimpleName version; //bundle version
+    SimpleName fromVersion (optional); //optional source version used when creating a new version, defaults to 0
+}

@@ -853,6 +853,54 @@ func (cli Zms) EvalCommand(params []string) (*string, error) {
 			if argc == 1 {
 				return cli.ShowEntity(dn, args[0])
 			}
+		case "list-bundle", "list-bundles":
+			if argc == 0 {
+				return cli.ListPolicyBundles(dn)
+			}
+		case "show-bundle":
+			if argc == 1 {
+				return cli.ShowPolicyBundle(dn, args[0], "")
+			} else if argc == 2 {
+				return cli.ShowPolicyBundle(dn, args[0], args[1])
+			}
+		case "list-bundle-versions":
+			if argc == 1 {
+				return cli.ListPolicyBundleVersions(dn, args[0])
+			}
+		case "add-bundle":
+			if argc > 2 {
+				return cli.AddPolicyBundle(dn, args[0], args[1], args[2:])
+			}
+		case "add-bundle-version":
+			if argc > 3 {
+				return cli.AddPolicyBundleVersion(dn, args[0], args[1], args[2], args[3:])
+			}
+		case "copy-bundle-version":
+			if argc == 2 {
+				return cli.CopyPolicyBundleVersion(dn, args[0], args[1], "")
+			} else if argc == 3 {
+				return cli.CopyPolicyBundleVersion(dn, args[0], args[1], args[2])
+			}
+		case "add-bundle-file":
+			if argc == 2 {
+				return cli.AddPolicyBundleFile(dn, args[0], args[1])
+			}
+		case "delete-bundle-file":
+			if argc == 2 {
+				return cli.DeletePolicyBundleFile(dn, args[0], args[1])
+			}
+		case "set-active-bundle-version":
+			if argc == 2 {
+				return cli.SetActivePolicyBundleVersion(dn, args[0], args[1])
+			}
+		case "delete-bundle-version":
+			if argc == 2 {
+				return cli.DeletePolicyBundleVersion(dn, args[0], args[1])
+			}
+		case "delete-bundle":
+			if argc == 1 {
+				return cli.DeletePolicyBundle(dn, args[0])
+			}
 		case "add-tenant":
 			if argc == 2 {
 				return cli.AddTenant(dn, args[0], args[1])
@@ -2857,6 +2905,128 @@ func (cli Zms) HelpSpecificCommand(interactive bool, cmd string) string {
 		buf.WriteString("   service : name of the service to be deleted\n")
 		buf.WriteString(" examples:\n")
 		buf.WriteString("   " + domainExample + " delete-service storage\n")
+	case "list-bundle":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " list-bundle\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain      : name of the domain that bundle belongs to\n")
+		}
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " list-bundle\n")
+	case "show-bundle":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " show-bundle bundle [version]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain      : name of the domain that bundle belongs to\n")
+		}
+		buf.WriteString("   bundle      : name of the bundle\n")
+		buf.WriteString("   version     : optional version (default: active version)\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " show-bundle api\n")
+		buf.WriteString("   " + domainExample + " show-bundle api 2\n")
+	case "list-bundle-versions":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " list-bundle-versions bundle\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain      : name of the domain that bundle belongs to\n")
+		}
+		buf.WriteString("   bundle      : name of the bundle\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " list-bundle-versions api\n")
+	case "add-bundle":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " add-bundle bundle engine file [file ...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain      : name of the domain that bundle belongs to\n")
+		}
+		buf.WriteString("   bundle      : name of the bundle\n")
+		buf.WriteString("   engine      : policy engine - rego\n")
+		buf.WriteString("   file        : local_path[=bundle_path] - file to include; bundle_path defaults to local_path\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " add-bundle api rego authz.rego regions/data.json\n")
+	case "add-bundle-version":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " add-bundle-version bundle version engine file [file ...]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain      : name of the domain that bundle belongs to\n")
+		}
+		buf.WriteString("   bundle      : name of the bundle\n")
+		buf.WriteString("   version     : version to be created (non-active) or updated\n")
+		buf.WriteString("   engine      : policy engine - rego\n")
+		buf.WriteString("   file        : local_path[=bundle_path] - file to include; bundle_path defaults to local_path\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " add-bundle-version api 2 rego authz.rego\n")
+	case "copy-bundle-version":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " copy-bundle-version bundle version [from_version]\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain      : name of the domain that bundle belongs to\n")
+		}
+		buf.WriteString("   bundle      : name of the bundle\n")
+		buf.WriteString("   version     : new non-active version to be created\n")
+		buf.WriteString("   from_version: source version (default: active version)\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " copy-bundle-version api 2 1\n")
+	case "add-bundle-file":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " add-bundle-file bundle file\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain      : name of the domain that bundle belongs to\n")
+		}
+		buf.WriteString("   bundle      : name of the bundle\n")
+		buf.WriteString("   file        : local_path[=bundle_path] - file to include; bundle_path defaults to local_path\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " add-bundle-file api authz.rego\n")
+	case "delete-bundle-file":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " delete-bundle-file bundle path\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain      : name of the domain that bundle belongs to\n")
+		}
+		buf.WriteString("   bundle      : name of the bundle\n")
+		buf.WriteString("   path        : path of the file in the bundle to be removed\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " delete-bundle-file api authz.rego\n")
+	case "set-active-bundle-version":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " set-active-bundle-version bundle version\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain      : name of the domain that bundle belongs to\n")
+		}
+		buf.WriteString("   bundle      : name of the bundle\n")
+		buf.WriteString("   version     : version to be activated\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " set-active-bundle-version api 2\n")
+	case "delete-bundle-version":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " delete-bundle-version bundle version\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain      : name of the domain that bundle belongs to\n")
+		}
+		buf.WriteString("   bundle      : name of the bundle\n")
+		buf.WriteString("   version     : non-active version to be deleted\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " delete-bundle-version api 1\n")
+	case "delete-bundle":
+		buf.WriteString(" syntax:\n")
+		buf.WriteString("   " + domainParam + " delete-bundle bundle\n")
+		buf.WriteString(" parameters:\n")
+		if !interactive {
+			buf.WriteString("   domain      : name of the domain that bundle belongs to\n")
+		}
+		buf.WriteString("   bundle      : name of the bundle to be deleted (all versions)\n")
+		buf.WriteString(" examples:\n")
+		buf.WriteString("   " + domainExample + " delete-bundle api\n")
 	case "list-entity":
 		buf.WriteString(" syntax:\n")
 		buf.WriteString("   " + domainParam + " list-entity\n")
@@ -4061,6 +4231,19 @@ func (cli Zms) HelpListCommand() string {
 	buf.WriteString("   show-entity entity\n")
 	buf.WriteString("   add-entity entity key=value [key=value ...]\n")
 	buf.WriteString("   delete-entity entity\n")
+	buf.WriteString("\n")
+	buf.WriteString(" Policy Bundle commands:\n")
+	buf.WriteString("   list-bundle\n")
+	buf.WriteString("   show-bundle bundle [version]\n")
+	buf.WriteString("   list-bundle-versions bundle\n")
+	buf.WriteString("   add-bundle bundle engine file[=path] [file[=path] ...]\n")
+	buf.WriteString("   add-bundle-version bundle version engine file[=path] [file[=path] ...]\n")
+	buf.WriteString("   copy-bundle-version bundle version [from_version]\n")
+	buf.WriteString("   add-bundle-file bundle file[=path]\n")
+	buf.WriteString("   delete-bundle-file bundle path\n")
+	buf.WriteString("   set-active-bundle-version bundle version\n")
+	buf.WriteString("   delete-bundle-version bundle version\n")
+	buf.WriteString("   delete-bundle bundle\n")
 	buf.WriteString("\n")
 	buf.WriteString(" Tenancy commands:\n")
 	buf.WriteString("   add-tenant provider_service tenant_domain\n")

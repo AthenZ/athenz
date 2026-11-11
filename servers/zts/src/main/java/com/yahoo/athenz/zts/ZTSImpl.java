@@ -16,6 +16,8 @@
 package com.yahoo.athenz.zts;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.primitives.Bytes;
 import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.impl.CertificateAuthority;
@@ -73,8 +75,10 @@ import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import com.yahoo.athenz.instance.provider.impl.InstanceUtils;
 import com.yahoo.athenz.zms.DomainData;
+import com.yahoo.athenz.zms.PolicyBundle;
 import com.yahoo.athenz.zms.RoleMeta;
 import com.yahoo.athenz.zms.TagValueList;
+import com.yahoo.athenz.zts.bundle.PolicyBundleArchiveBuilder;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
@@ -182,6 +186,7 @@ public class ZTSImpl implements ZTSHandler {
     protected boolean verifyCertSubjectOU = false;
     protected DynamicConfigBoolean validateInstanceServiceIdentity;
     protected DynamicConfigBoolean validateUserAuthorityPrincipals;
+    protected DynamicConfigBoolean policyBundleEnabled;
     protected String ztsOAuthIssuer;
     protected File healthCheckFile = null;
     protected int maxAuthzDetailsLength;
@@ -840,6 +845,7 @@ public class ZTSImpl implements ZTSHandler {
 
         validateInstanceServiceIdentity = new DynamicConfigBoolean(CONFIG_MANAGER, ZTSConsts.ZTS_PROP_VALIDATE_SERVICE_IDENTITY, true);
         validateUserAuthorityPrincipals = new DynamicConfigBoolean(CONFIG_MANAGER, ZTSConsts.ZTS_PROP_VALIDATE_USER_AUTHORITY_PRINCIPALS, false);
+        policyBundleEnabled = new DynamicConfigBoolean(CONFIG_MANAGER, ZTSConsts.ZTS_PROP_BUNDLE_ENABLED, false);
 
         // configured max length for authz details claims
 
@@ -1767,6 +1773,145 @@ public class ZTSImpl implements ZTSHandler {
                 .setKeyId(privateKey.getId());
 
         return Response.status(ResourceException.OK).entity(result).header("ETag", tag).build();
+    }
+
+    // Policy Bundle APIs
+
+    final PolicyBundleArchiveBuilder policyBundleArchiveBuilder = new PolicyBundleArchiveBuilder();
+    final Cache<String, byte[]> policyBundleArchiveCache = CacheBuilder.newBuilder()
+            .maximumSize(Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_BUNDLE_CACHE_SIZE, "1000"))).build();
+    boolean policyBundleSigningEnabled = Boolean.parseBoolean(
+            System.getProperty(ZTSConsts.ZTS_PROP_BUNDLE_SIGNING_ENABLED, "true"));
+    boolean policyBundleIncludeJwks = Boolean.parseBoolean(
+            System.getProperty(ZTSConsts.ZTS_PROP_BUNDLE_INCLUDE_JWKS, "false"));
+
+    boolean isPolicyBundleAccessAllowed(Principal principal, final String domainName, final String bundleName) {
+
+        // the principal must be authorized for the GetBundle action on
+        // the bundle resource - domain:bundle.{bundleName}
+
+        if (principal == null) {
+            return false;
+        }
+        final String resource = domainName + ServerCommonConsts.BUNDLE_SEP + bundleName;
+        return authorizer.access(ZTSConsts.ZTS_ACTION_GET_BUNDLE, resource, principal, null);
+    }
+
+    DataCache getPolicyBundleDomainCache(ResourceContext ctx, String domainName, final String caller,
+            final String principalDomain) {
+
+        DataCache dataCache = dataStore.getDataCache(domainName);
+        if (dataCache == null) {
+            setRequestDomain(ctx, ZTSConsts.ZTS_UNKNOWN_DOMAIN);
+            throw notFoundError("Domain not found: '" + domainName + "'", caller,
+                    ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+        return dataCache;
+    }
+
+    PolicyBundle getAuthorizedPolicyBundle(ResourceContext ctx, DataCache dataCache, final String domainName,
+            final String bundleName, final String caller, final String principalDomain) {
+
+        PolicyBundle bundle = dataCache.getPolicyBundle(bundleName);
+        if (bundle == null) {
+            throw notFoundError("Bundle not found: '" + domainName + ":bundle." + bundleName + "'",
+                    caller, domainName, principalDomain);
+        }
+        if (!isPolicyBundleAccessAllowed(((RsrcCtxWrapper) ctx).principal(), domainName, bundleName)) {
+            throw forbiddenError("Principal is not authorized to fetch bundle: " + bundleName,
+                    caller, domainName, principalDomain);
+        }
+        return bundle;
+    }
+
+    String getPolicyBundleTag(PolicyBundle bundle) {
+        return ENTITY_TAG_HEADER_DELEGATE.toString(new EntityTag(PolicyBundleArchiveBuilder.getRevision(bundle)));
+    }
+
+    @Override
+    public Response getPolicyBundle(ResourceContext ctx, String domainName, String bundleName, String matchingTag) {
+
+        final String caller = ctx.getApiName();
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+
+        validateRequest(ctx.request(), principalDomain, caller);
+
+        if (!policyBundleEnabled.get()) {
+            throw requestError("Policy bundle support is not enabled", caller, domainName, principalDomain);
+        }
+
+        validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
+        validate(bundleName, TYPE_ENTITY_NAME, principalDomain, caller);
+
+        domainName = domainName.toLowerCase();
+        bundleName = bundleName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        DataCache dataCache = getPolicyBundleDomainCache(ctx, domainName, caller, principalDomain);
+        PolicyBundle bundle = getAuthorizedPolicyBundle(ctx, dataCache, domainName, bundleName, caller, principalDomain);
+
+        final String tag = getPolicyBundleTag(bundle);
+        if (tag.equals(matchingTag)) {
+            return Response.status(ResourceException.NOT_MODIFIED).header("ETag", tag).build();
+        }
+
+        // the archive is cached per bundle revision and signing key
+
+        ServerPrivateKey signingKey = policyBundleSigningEnabled ? getServerPrivateKey(keyAlgoForJsonWebObjects) : null;
+        final String cacheKey = domainName + ":" + bundleName + ":" + PolicyBundleArchiveBuilder.getRevision(bundle)
+                + ":" + (signingKey == null ? "" : signingKey.getId());
+
+        byte[] archive = policyBundleArchiveCache.getIfPresent(cacheKey);
+        if (archive == null) {
+            try {
+                final JWKList jwkList = policyBundleIncludeJwks ? dataStore.getZtsJWKList(Boolean.TRUE) : null;
+                final String jwksData = jwkList != null ? jsonMapper.writeValueAsString(jwkList) : null;
+                archive = policyBundleArchiveBuilder.build(domainName, bundleName, bundle,
+                        jwksData, signingKey);
+            } catch (Exception ex) {
+                LOGGER.error("unable to generate policy bundle archive for {}:bundle.{}", domainName, bundleName, ex);
+                throw serverError("Unable to generate bundle archive", caller, domainName, principalDomain);
+            }
+            policyBundleArchiveCache.put(cacheKey, archive);
+        }
+
+        return Response.status(ResourceException.OK).entity(archive)
+                .type(ZTSConsts.MEDIA_TYPE_GZIP).header("ETag", tag).build();
+    }
+
+    @Override
+    public PolicyBundleEntries getPolicyBundleEntries(ResourceContext ctx, String domainName, String engine) {
+
+        final String caller = ctx.getApiName();
+        final String principalDomain = logPrincipalAndGetDomain(ctx);
+
+        validateRequest(ctx.request(), principalDomain, caller);
+        validate(domainName, TYPE_DOMAIN_NAME, principalDomain, caller);
+        if (engine != null) {
+            validate(engine, TYPE_SIMPLE_NAME, principalDomain, caller);
+            engine = engine.toLowerCase();
+        }
+
+        domainName = domainName.toLowerCase();
+        setRequestDomain(ctx, domainName);
+
+        DataCache dataCache = getPolicyBundleDomainCache(ctx, domainName, caller, principalDomain);
+        final Principal principal = ((RsrcCtxWrapper) ctx).principal();
+
+        List<PolicyBundleEntry> entries = new ArrayList<>();
+        for (Map.Entry<String, PolicyBundle> entry : dataCache.getPolicyBundles().entrySet()) {
+            PolicyBundle bundle = entry.getValue();
+            if (engine != null && !engine.equals(bundle.getEngine())) {
+                continue;
+            }
+            if (!isPolicyBundleAccessAllowed(principal, domainName, entry.getKey())) {
+                continue;
+            }
+            entries.add(new PolicyBundleEntry().setDomain(domainName).setName(entry.getKey())
+                    .setEngine(bundle.getEngine()).setVersion(bundle.getVersion())
+                    .setRevision(PolicyBundleArchiveBuilder.getRevision(bundle)));
+        }
+        return new PolicyBundleEntries().setList(entries);
     }
 
     String convertEmptyStringToNull(String value) {

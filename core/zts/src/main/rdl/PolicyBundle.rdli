@@ -1,0 +1,73 @@
+// Copyright The Athenz Authors
+// Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms.
+
+//Policy Bundle API - ZTS serves the active policy bundles (OPA/Rego)
+//defined in ZMS to authorized workloads. The OPA bundle archive itself
+//(gzipped tar) is served at GET /domain/{domainName}/bundle/{bundleName}.
+include "Names.tdl";
+
+//A single file in a policy bundle
+type PolicyBundleFileData Struct {
+    String path; //relative path of the file in the bundle
+    String content; //content of the file
+    String sha256; //sha-256 digest (hex) of the content
+}
+
+//The active version of a policy bundle as served by ZTS
+type PolicyBundleData Struct {
+    DomainName domain; //name of the domain
+    EntityName name; //name of the bundle
+    SimpleName engine; //policy engine: rego
+    SimpleName version; //active version of the bundle
+    String revision; //bundle revision - changes when the bundle content changes
+    Array<String> roots (optional); //OPA manifest roots
+    Array<PolicyBundleFileData> files; //list of files in the bundle
+}
+
+//Summary of a policy bundle the caller is authorized to fetch
+type PolicyBundleEntry Struct {
+    DomainName domain; //name of the domain
+    EntityName name; //name of the bundle
+    SimpleName engine; //policy engine: rego
+    SimpleName version; //active version of the bundle
+    String revision; //bundle revision - changes when the bundle content changes
+}
+
+//List of policy bundles
+type PolicyBundleEntries Struct {
+    Array<PolicyBundleEntry> list; //list of bundles
+}
+
+type PolicyBundle String
+
+//Get the active version of the policy bundle as an OPA bundle archive (gzipped tar).
+//If the If-None-Match header is provided, and it matches the ETag (bundle revision) that would be
+//returned, then a NOT_MODIFIED response is returned instead of the bundle.
+resource PolicyBundle GET "/domain/{domainName}/bundle/{bundleName}" {
+    DomainName domainName; //name of the domain
+    EntityName bundleName; //name of the bundle
+    String matchingTag (header="If-None-Match", optional); //bundle revision from a previous request
+    produces application/gzip|application/octet-stream|application/vnd.openpolicyagent.bundles
+    authenticate;
+    expected OK, NOT_MODIFIED;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError FORBIDDEN;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
+
+//List the policy bundles in the domain that the caller is authorized to fetch
+resource PolicyBundleEntries GET "/domain/{domainName}/bundles?engine={engine}" {
+    DomainName domainName; //name of the domain
+    SimpleName engine (optional); //optional filter to return only bundles for the given engine
+    authenticate;
+    exceptions {
+        ResourceError BAD_REQUEST;
+        ResourceError NOT_FOUND;
+        ResourceError UNAUTHORIZED;
+        ResourceError TOO_MANY_REQUESTS;
+    }
+}
