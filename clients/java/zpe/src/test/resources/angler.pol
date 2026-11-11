@@ -163,6 +163,32 @@
                     ],
                     "modified": "2014-05-24T00:35:11.387Z",
                     "name": "angler:policy.full_regex"
+                },
+                {
+                    "assertions": [
+                        {
+                            "action": "Read*",
+                            "role": "angler:role.case_sensitive",
+                            "resource": "angler:Reports/*",
+                            "caseSensitive": true
+                        },
+                        {
+                            "action": "ReadSecret",
+                            "role": "angler:role.case_sensitive",
+                            "resource": "angler:Reports/Hidden.PDF",
+                            "effect": "DENY",
+                            "caseSensitive": true
+                        },
+                        {
+                            "action": "List",
+                            "role": "angler:role.case_sensitive_*",
+                            "resource": "angler:Reports",
+                            "caseSensitive": true
+                        }
+                    ],
+                    "modified": "2014-05-24T00:35:11.387Z",
+                    "name": "angler:policy.case_sensitive",
+                    "caseSensitive": true
                 }
             ]
         },

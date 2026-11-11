@@ -545,6 +545,20 @@ public class ZpeUpdPolLoader implements Closeable {
                 matchStruct = getMatchObject(rsrc);
                 strAssert.put(ZpeConsts.ZPE_RESOURCE_MATCH_STRUCT, matchStruct);
 
+                // assertions created with the case-sensitive flag have their action
+                // and resource stored in their original case (with only the domain
+                // part of the resource in lower case) so we're going to generate
+                // the match objects for those values as well. they are used when
+                // the library is configured to honor the case-sensitive flag
+
+                if (assertion.getCaseSensitive() == Boolean.TRUE) {
+                    strAssert.put(ZpeConsts.ZPE_ACTION_EXACT_MATCH_STRUCT, getMatchObject(assertion.getAction()));
+                    final String passertResourceExact = AuthZpeClient.lowerDomainInResource(assertion.getResource());
+                    final String rsrcExact = AuthZpeClient.stripDomainPrefix(passertResourceExact, domainName,
+                            passertResourceExact);
+                    strAssert.put(ZpeConsts.ZPE_RESOURCE_EXACT_MATCH_STRUCT, getMatchObject(rsrcExact));
+                }
+
                 final String passertRole = assertion.getRole();
                 String pRoleName = AuthZpeClient.stripDomainPrefix(passertRole, domainName, passertRole);
                 // strip the prefix "role." too

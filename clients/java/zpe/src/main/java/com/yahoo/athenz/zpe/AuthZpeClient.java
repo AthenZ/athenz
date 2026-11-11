@@ -76,6 +76,23 @@ public class AuthZpeClient {
     private static final List<List<Rdn>> X509_ISSUERS_RDNS = new ArrayList<>();
 
     private static int maxTokenCacheSize = 10240;
+    private static CaseSensitiveMode caseSensitiveMode = CaseSensitiveMode.DISABLED;
+
+    // enum to represent how we handle assertions that were created with
+    // the case-sensitive flag:
+    //   DISABLED - action and resource are matched case-insensitive
+    //   MONITOR  - action and resource are matched case-insensitive but
+    //              we log any assertion that only matched because case
+    //              was ignored
+    //   ENFORCE  - action and resource are matched in their original case
+    // assertions without the case-sensitive flag are always matched
+    // case-insensitive regardless of the configured mode
+
+    public enum CaseSensitiveMode {
+        DISABLED,
+        MONITOR,
+        ENFORCE
+    }
 
     public enum AccessCheckStatus {
         ALLOW {
@@ -177,6 +194,11 @@ public class AuthZpeClient {
         
         setX509CAIssuers(System.getProperty(ZpeConsts.ZPE_PROP_X509_CA_ISSUERS));
 
+        // set the case-sensitive authorization mode
+
+        setCaseSensitiveMode(parseCaseSensitiveMode(
+                System.getProperty(ZpeConsts.ZPE_PROP_AUTHZ_CASE_SENSITIVE_MODE, "disabled")));
+
         // initialize the access token signing key resolver
 
         initializeAccessTokenSignKeyResolver(false);
@@ -225,6 +247,35 @@ public class AuthZpeClient {
         setAccessTokenSignKeyResolver(serverUrl, sslContext, proxyUrl);
         tokenSignKeyResolverInitialized = true;
         setMillisBetweenZtsCalls(Long.parseLong(System.getProperty(ZPE_PROP_MILLIS_BETWEEN_ZTS_CALLS, Long.toString(30 * 1000 * 60))));
+    }
+
+    /**
+     * Set how the library handles assertions that were created with the
+     * case-sensitive flag during authorization checks. In DISABLED mode
+     * (default) the action and resource are matched case-insensitive. In
+     * MONITOR mode the action and resource are matched case-insensitive
+     * but the library logs any case-sensitive assertion that matched only
+     * because the case was ignored. In ENFORCE mode the action and resource
+     * of case-sensitive assertions are matched in their original case.
+     * The domain part of the resource is always matched case-insensitive.
+     * The value can also be configured by using the
+     * athenz.zpe.authz_case_sensitive_mode system property.
+     * @param mode case-sensitive authorization mode
+     */
+    public static void setCaseSensitiveMode(CaseSensitiveMode mode) {
+        // skip any invalid values
+        if (mode != null) {
+            caseSensitiveMode = mode;
+        }
+    }
+
+    static CaseSensitiveMode parseCaseSensitiveMode(final String value) {
+        try {
+            return CaseSensitiveMode.valueOf(value.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            LOG.error("Invalid case-sensitive authorization mode: {}, using disabled", value);
+            return CaseSensitiveMode.DISABLED;
+        }
     }
 
     /**
@@ -915,6 +966,24 @@ public class AuthZpeClient {
         return assertString.substring(index + 1);
     }
 
+    static String lowerDomainInResource(final String resource) {
+
+        int idx = resource.indexOf(':');
+        if (idx == -1) {
+            return resource;
+        }
+
+        // most requests already have the domain in lower case so
+        // we'll avoid creating a new string object in that case
+
+        final String domainName = resource.substring(0, idx);
+        final String lowerDomainName = domainName.toLowerCase();
+        if (domainName.equals(lowerDomainName)) {
+            return resource;
+        }
+        return lowerDomainName + resource.substring(idx);
+    }
+
     // check action access in the domain to the resource with the given roles
 
     /**
@@ -964,12 +1033,24 @@ public class AuthZpeClient {
             LOG.error("{} ERROR: No action so access denied", msgPrefix);
             return AccessCheckStatus.DENY_INVALID_PARAMETERS;
         }
-        action = action.toLowerCase();
 
         if (resource == null || resource.isEmpty()) {
             LOG.error("{} ERROR: No resource so access denied", msgPrefix);
             return AccessCheckStatus.DENY_INVALID_PARAMETERS;
         }
+
+        // for consistent handling of all requests, we're going to convert
+        // the action and resource values into lower case. However, we need
+        // to keep the original values for assertions that are marked as
+        // case-sensitive. For those assertions the action and resource are
+        // stored in their original case with only the domain part of the
+        // resource converted to lower case.
+
+        final CaseSensitiveMode mode = caseSensitiveMode;
+        final String actionExact = action;
+        final String resourceOrig = resource;
+
+        action = action.toLowerCase();
         resource = resource.toLowerCase();
 
         // Note: if domain in token doesn't match domain in resource then there
@@ -981,11 +1062,21 @@ public class AuthZpeClient {
         // for multiple domains, if the resource might contain :, it's the responsibility
         // of the caller to include the "domain-name:" prefix as part of the resource
 
-        resource = stripDomainPrefix(resource, tokenDomain, zpeClt.getDomainCount() == 1 ? resource : null);
+        final boolean singleDomain = zpeClt.getDomainCount() == 1;
+        resource = stripDomainPrefix(resource, tokenDomain, singleDomain ? resource : null);
         if (resource == null) {
             LOG.error("{} ERROR: Domain mismatch in token({}) and resource so access denied",
                     msgPrefix, tokenDomain);
             return AccessCheckStatus.DENY_DOMAIN_MISMATCH;
+        }
+
+        // the exact resource value is only needed if we're going to
+        // process case-sensitive assertions
+
+        String resourceExact = null;
+        if (mode != CaseSensitiveMode.DISABLED) {
+            resourceExact = stripDomainPrefix(lowerDomainInResource(resourceOrig), tokenDomain,
+                    singleDomain ? resourceOrig : null);
         }
 
         // first hunt by role for deny assertions since deny takes precedence
@@ -994,7 +1085,8 @@ public class AuthZpeClient {
         AccessCheckStatus status = AccessCheckStatus.DENY_DOMAIN_NOT_FOUND;
         Map<String, List<Struct>> roleMap = zpeClt.getRoleDenyAssertions(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
-            if (actionByRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
+            if (actionByRole(action, tokenDomain, resource, actionExact, resourceExact, mode,
+                    roles, roleMap, matchRoleName)) {
                 return AccessCheckStatus.DENY;
             } else {
                 status = AccessCheckStatus.DENY_NO_MATCH;
@@ -1008,7 +1100,8 @@ public class AuthZpeClient {
         
         roleMap = zpeClt.getWildcardDenyAssertions(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
-            if (actionByWildCardRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
+            if (actionByWildCardRole(action, tokenDomain, resource, actionExact, resourceExact, mode,
+                    roles, roleMap, matchRoleName)) {
                 return AccessCheckStatus.DENY;
             } else {
                 status = AccessCheckStatus.DENY_NO_MATCH;
@@ -1022,7 +1115,8 @@ public class AuthZpeClient {
         
         roleMap = zpeClt.getRoleAllowAssertions(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
-            if (actionByRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
+            if (actionByRole(action, tokenDomain, resource, actionExact, resourceExact, mode,
+                    roles, roleMap, matchRoleName)) {
                 return AccessCheckStatus.ALLOW;
             } else {
                 status = AccessCheckStatus.DENY_NO_MATCH;
@@ -1036,7 +1130,8 @@ public class AuthZpeClient {
         
         roleMap = zpeClt.getWildcardAllowAssertions(tokenDomain);
         if (roleMap != null && !roleMap.isEmpty()) {
-            if (actionByWildCardRole(action, tokenDomain, resource, roles, roleMap, matchRoleName)) {
+            if (actionByWildCardRole(action, tokenDomain, resource, actionExact, resourceExact, mode,
+                    roles, roleMap, matchRoleName)) {
                 return AccessCheckStatus.ALLOW;
             } else {
                 status = AccessCheckStatus.DENY_NO_MATCH;
@@ -1055,7 +1150,8 @@ public class AuthZpeClient {
     }
 
     static boolean matchAssertions(List<Struct> asserts, String role, String action,
-            String resource, StringBuilder matchRoleName, String msgPrefix) {
+            String resource, String actionExact, String resourceExact, CaseSensitiveMode mode,
+            StringBuilder matchRoleName, String msgPrefix) {
         
         ZpeMatch matchStruct;
         String passertAction = null;
@@ -1079,25 +1175,57 @@ public class AuthZpeClient {
                         msgPrefix, polName, passertAction, passertResource, passertRole);
             }
             
+            // the exact match objects are only available for assertions
+            // that were created with the case-sensitive flag
+
+            ZpeMatch actionExactMatch = null;
+            ZpeMatch resourceExactMatch = null;
+            if (mode != CaseSensitiveMode.DISABLED) {
+                actionExactMatch = (ZpeMatch) strAssert.get(ZpeConsts.ZPE_ACTION_EXACT_MATCH_STRUCT);
+                resourceExactMatch = (ZpeMatch) strAssert.get(ZpeConsts.ZPE_RESOURCE_EXACT_MATCH_STRUCT);
+            }
+            final boolean caseSensitiveAssertion = actionExactMatch != null && resourceExactMatch != null;
+
+            // for case-sensitive assertions in enforce mode we match the action
+            // and resource against the original request values
+
+            final boolean exactMatch = caseSensitiveAssertion && mode == CaseSensitiveMode.ENFORCE;
+
             // ex: "mod*
-            
-            matchStruct = (ZpeMatch) strAssert.get(ZpeConsts.ZPE_ACTION_MATCH_STRUCT);
-            if (!matchStruct.matches(action)) {
+
+            final String matchAction = exactMatch ? actionExact : action;
+            matchStruct = exactMatch ? actionExactMatch
+                    : (ZpeMatch) strAssert.get(ZpeConsts.ZPE_ACTION_MATCH_STRUCT);
+            if (!matchStruct.matches(matchAction)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{}: policy({}) regexpr-match: FAILed: assert-action({}) doesn't match action({})",
-                            msgPrefix, polName, passertAction, action);
+                            msgPrefix, polName, passertAction, matchAction);
                 }
                 continue;
             }
             
             // ex: "weather:service.storage.tenant.sports.*"
-            matchStruct = (ZpeMatch) strAssert.get(ZpeConsts.ZPE_RESOURCE_MATCH_STRUCT);
-            if (!matchStruct.matches(resource)) {
+
+            final String matchResource = exactMatch ? resourceExact : resource;
+            matchStruct = exactMatch ? resourceExactMatch
+                    : (ZpeMatch) strAssert.get(ZpeConsts.ZPE_RESOURCE_MATCH_STRUCT);
+            if (!matchStruct.matches(matchResource)) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("{}: policy({}) regexpr-match: FAILed: assert-resource({}) doesn't match resource({})",
-                            msgPrefix, polName, passertResource, resource);
+                            msgPrefix, polName, passertResource, matchResource);
                 }
                 continue;
+            }
+
+            // in monitor mode we log any case-sensitive assertion that has
+            // matched only because the case was ignored. we don't change
+            // the result of the check
+
+            if (caseSensitiveAssertion && mode == CaseSensitiveMode.MONITOR
+                    && !(actionExactMatch.matches(actionExact) && resourceExactMatch.matches(resourceExact))) {
+                LOG.warn("case-sensitive assertion matched only case-insensitive: policy: {}, role: {},"
+                        + " request action: {}, resource: {}", strAssert.getString(ZpeConsts.ZPE_FIELD_POLICY_NAME),
+                        role, actionExact, resourceExact);
             }
             
             // update the match role name
@@ -1111,8 +1239,9 @@ public class AuthZpeClient {
         return false;
     }
     
-    static boolean actionByRole(String action, String domain, String resource,
-            List<String> roles, Map<String, List<Struct>> roleMap, StringBuilder matchRoleName) {
+    static boolean actionByRole(String action, String domain, String resource, String actionExact,
+            String resourceExact, CaseSensitiveMode mode, List<String> roles,
+            Map<String, List<Struct>> roleMap, StringBuilder matchRoleName) {
 
         // msgPrefix is only used in our debug statements so we're only
         // going to generate the value if debug is enabled
@@ -1143,7 +1272,8 @@ public class AuthZpeClient {
             // the assert resource value has the domain prefix
             // ex: "angler:angler.stuff"
             
-            if (matchAssertions(asserts, role, action, resource, matchRoleName, msgPrefix)) {
+            if (matchAssertions(asserts, role, action, resource, actionExact, resourceExact, mode,
+                    matchRoleName, msgPrefix)) {
                 return true;
             }
         }
@@ -1151,8 +1281,9 @@ public class AuthZpeClient {
         return false;
     }
 
-    static boolean actionByWildCardRole(String action, String domain, String resource,
-            List<String> roles, Map<String, List<Struct>> roleMap, StringBuilder matchRoleName) {
+    static boolean actionByWildCardRole(String action, String domain, String resource, String actionExact,
+            String resourceExact, CaseSensitiveMode mode, List<String> roles,
+            Map<String, List<Struct>> roleMap, StringBuilder matchRoleName) {
 
         String msgPrefix = null;
         if (LOG.isDebugEnabled()) {
@@ -1203,7 +1334,8 @@ public class AuthZpeClient {
                 // the assert resource value has the domain prefix
                 // ex: "angler:angler.stuff"
                 
-                if (matchAssertions(asserts, roleName, action, resource, matchRoleName, msgPrefix)) {
+                if (matchAssertions(asserts, roleName, action, resource, actionExact, resourceExact, mode,
+                        matchRoleName, msgPrefix)) {
                     return true;
                 }
             }
