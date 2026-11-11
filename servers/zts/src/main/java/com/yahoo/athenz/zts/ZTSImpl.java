@@ -157,6 +157,7 @@ public class ZTSImpl implements ZTSHandler {
     protected String userDomainAliasPrefix;
     protected boolean leastPrivilegePrincipal = false;
     protected boolean logUnrequestedRolesEnabled = false;
+    protected boolean allowLegacyRoleCertMatching = false;
     protected Set<String> authorizedProxyUsers = null;
     protected Set<String> validUserX509CertSignerKeyIds = null;
     protected Set<String> validExternalMemberX509CertSignerKeyIds = null;
@@ -669,6 +670,11 @@ public class ZTSImpl implements ZTSHandler {
 
         logUnrequestedRolesEnabled = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_LOG_UNREQUESTED_ROLES, "false"));
+
+        // optionally restore suffix matching for role certificate requests
+
+        allowLegacyRoleCertMatching = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_ALLOW_LEGACY_ROLE_CERT_MATCHING, "false"));
 
         // Default Role Token timeout is 2 hours. If the client asks for role tokens
         // with a min expiry time of 1 hour, the setting of 2 hours allows the client
@@ -4419,13 +4425,12 @@ public class ZTSImpl implements ZTSHandler {
 
         String[] requestedRoleList = { roleName };
         Set<String> roles = new HashSet<>();
-        dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoleList, true, roles, false);
+        final boolean fullNameMatch = !allowLegacyRoleCertMatching;
+        dataStore.getAccessibleRoles(data, domainName, principalName, requestedRoleList, fullNameMatch, roles, false);
 
-        // the accessible role lookup carries out a suffix match against the
-        // requested role name, so we must verify that the role we're asked to
-        // issue a certificate for is a role the principal is actually a member of
+        // require the requested role unless legacy suffix matching is enabled
 
-        if (!roles.contains(roleName)) {
+        if (allowLegacyRoleCertMatching ? roles.isEmpty() : !roles.contains(roleName)) {
             throw forbiddenError(tokenErrorMessage(caller, principalName, domainName, requestedRoleList),
                     caller, domainName, principalDomain);
         }
@@ -4438,13 +4443,13 @@ public class ZTSImpl implements ZTSHandler {
         if (proxyForPrincipal != null) {
 
             Set<String> rolesForProxy = new HashSet<>();
-            dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal, requestedRoleList, true, rolesForProxy, false);
+            dataStore.getAccessibleRoles(data, domainName, proxyForPrincipal, requestedRoleList,
+                    fullNameMatch, rolesForProxy, false);
             roles.retainAll(rolesForProxy);
 
-            // check again in case the proxy principal is not a member of the
-            // requested role and we ended up removing it from our set
+            // apply the same check to the roles shared by both principals
 
-            if (!roles.contains(roleName)) {
+            if (allowLegacyRoleCertMatching ? roles.isEmpty() : !roles.contains(roleName)) {
                 throw forbiddenError(tokenErrorMessage(caller, proxyForPrincipal, domainName, requestedRoleList),
                         caller, domainName, principalDomain);
             }
@@ -4482,6 +4487,15 @@ public class ZTSImpl implements ZTSHandler {
                         validateCertSignerKeyId(req.getX509CertSignerKeyId()), true));
         if (StringUtil.isEmpty(x509Cert)) {
             throw serverError("Unable to create certificate from the cert signer", caller, domainName, principalDomain);
+        }
+
+        // log only certificates that depend on legacy matching, after signing
+        // succeeds. Extra suffix matches do not indicate a mismatch if the
+        // requested role itself is also authorized by both principals.
+
+        if (allowLegacyRoleCertMatching && !roles.contains(roleName)) {
+            LOGGER.info("rolecert_legacy_match api={} principal={} proxy_for={} domain={} requested_role={} matched_roles={}",
+                    caller, principal.getFullName(), proxyForPrincipal, domainName, roleName, String.join(",", roles));
         }
 
         return x509Cert;
