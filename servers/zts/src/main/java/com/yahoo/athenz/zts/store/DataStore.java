@@ -276,7 +276,7 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
                 return true;
             }
 
-            processDomainData(domainData);
+            processDomainData(domainData, false);
 
             if (saveInStore) {
                 changeLogStore.saveLocalDomain(domainName, signedDomain);
@@ -488,7 +488,7 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
                 return true;
             }
 
-            processDomainData(domainData);
+            processDomainData(domainData, true);
 
             if (saveInStore) {
                 changeLogStore.saveLocalDomain(domainName, jwsDomain);
@@ -1289,6 +1289,18 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
     }
 
     public void processDomainData(DomainData domainData) {
+        processDomainData(domainData, true);
+    }
+
+    /**
+     * Process the domain data and update the cache
+     * @param domainData domain data
+     * @param policyBundlesAuthenticated true if the domain data was
+     *        received in a verified jws payload. The legacy signed domain
+     *        signature does not cover the policy bundles so bundles are
+     *        only accepted from jws domains
+     */
+    public void processDomainData(DomainData domainData, boolean policyBundlesAuthenticated) {
 
         // generate our cache object */
 
@@ -1316,7 +1328,12 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
 
         // process policy bundles
 
-        processDomainPolicyBundles(domainData, domainCache);
+        if (policyBundlesAuthenticated) {
+            processDomainPolicyBundles(domainData, domainCache);
+        } else if (domainData.getPolicyBundles() != null && !domainData.getPolicyBundles().isEmpty()) {
+            LOGGER.error("ignoring policy bundles of domain {}: not received in a signed jws domain - "
+                    + "enable athenz.zts.zms_domain_jws_support", domainData.getName());
+        }
 
         // Athenz System domain special role processing
 

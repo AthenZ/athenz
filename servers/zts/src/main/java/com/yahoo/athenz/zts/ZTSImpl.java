@@ -79,6 +79,7 @@ import com.yahoo.athenz.zms.PolicyBundle;
 import com.yahoo.athenz.zms.RoleMeta;
 import com.yahoo.athenz.zms.TagValueList;
 import com.yahoo.athenz.zts.bundle.PolicyBundleArchiveBuilder;
+import com.yahoo.athenz.zts.bundle.SignatureHasher;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cert.*;
 import com.yahoo.athenz.zts.notification.ZTSNotificationTaskFactory;
@@ -638,6 +639,10 @@ public class ZTSImpl implements ZTSHandler {
     }
 
     void loadConfigurationSettings() {
+
+        // policy bundle settings
+
+        loadPolicyBundleSettings();
 
         // make sure all requests run in secure mode
 
@@ -1778,12 +1783,18 @@ public class ZTSImpl implements ZTSHandler {
     // Policy Bundle APIs
 
     final PolicyBundleArchiveBuilder policyBundleArchiveBuilder = new PolicyBundleArchiveBuilder();
-    final Cache<String, byte[]> policyBundleArchiveCache = CacheBuilder.newBuilder()
-            .maximumSize(Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_BUNDLE_CACHE_SIZE, "1000"))).build();
-    boolean policyBundleSigningEnabled = Boolean.parseBoolean(
-            System.getProperty(ZTSConsts.ZTS_PROP_BUNDLE_SIGNING_ENABLED, "true"));
-    boolean policyBundleIncludeJwks = Boolean.parseBoolean(
-            System.getProperty(ZTSConsts.ZTS_PROP_BUNDLE_INCLUDE_JWKS, "false"));
+    Cache<String, byte[]> policyBundleArchiveCache;
+    boolean policyBundleSigningEnabled = true;
+    boolean policyBundleIncludeJwks = false;
+
+    void loadPolicyBundleSettings() {
+        policyBundleArchiveCache = CacheBuilder.newBuilder()
+                .maximumSize(Long.parseLong(System.getProperty(ZTSConsts.ZTS_PROP_BUNDLE_CACHE_SIZE, "1000"))).build();
+        policyBundleSigningEnabled = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_BUNDLE_SIGNING_ENABLED, "true"));
+        policyBundleIncludeJwks = Boolean.parseBoolean(
+                System.getProperty(ZTSConsts.ZTS_PROP_BUNDLE_INCLUDE_JWKS, "false"));
+    }
 
     boolean isPolicyBundleAccessAllowed(Principal principal, final String domainName, final String bundleName) {
 
@@ -1824,8 +1835,21 @@ public class ZTSImpl implements ZTSHandler {
         return bundle;
     }
 
-    String getPolicyBundleTag(PolicyBundle bundle) {
-        return ENTITY_TAG_HEADER_DELEGATE.toString(new EntityTag(PolicyBundleArchiveBuilder.getRevision(bundle)));
+    String getPolicyBundleTag(PolicyBundle bundle, ServerPrivateKey signingKey, final String jwksData) {
+
+        // the archive depends not only on the bundle but also on the signing
+        // key and the included jwks so the tag must change when those do
+
+        final String keyId = signingKey == null ? "" : signingKey.getId();
+        String revision = PolicyBundleArchiveBuilder.getRevision(bundle) + ":" + keyId;
+        if (jwksData != null) {
+            try {
+                revision += ":" + new SignatureHasher(SignatureHasher.Algorithm.SHA256).hashFileHex(jwksData);
+            } catch (Exception ex) {
+                throw new IllegalStateException(ex);
+            }
+        }
+        return ENTITY_TAG_HEADER_DELEGATE.toString(new EntityTag(revision));
     }
 
     @Override
@@ -1850,22 +1874,32 @@ public class ZTSImpl implements ZTSHandler {
         DataCache dataCache = getPolicyBundleDomainCache(ctx, domainName, caller, principalDomain);
         PolicyBundle bundle = getAuthorizedPolicyBundle(ctx, dataCache, domainName, bundleName, caller, principalDomain);
 
-        final String tag = getPolicyBundleTag(bundle);
+        ServerPrivateKey signingKey = policyBundleSigningEnabled ? getServerPrivateKey(keyAlgoForJsonWebObjects) : null;
+
+        String jwksData = null;
+        if (policyBundleIncludeJwks) {
+            try {
+                final JWKList jwkList = dataStore.getZtsJWKList(Boolean.TRUE);
+                jwksData = jwkList != null ? jsonMapper.writeValueAsString(jwkList) : null;
+            } catch (Exception ex) {
+                LOGGER.error("unable to serialize jwks for {}:bundle.{}", domainName, bundleName, ex);
+                throw serverError("Unable to generate bundle archive", caller, domainName, principalDomain);
+            }
+        }
+
+        // the tag and the cached archive cover the bundle revision, the
+        // signing key and the included jwks
+
+        final String tag = getPolicyBundleTag(bundle, signingKey, jwksData);
         if (tag.equals(matchingTag)) {
             return Response.status(ResourceException.NOT_MODIFIED).header("ETag", tag).build();
         }
 
-        // the archive is cached per bundle revision and signing key
-
-        ServerPrivateKey signingKey = policyBundleSigningEnabled ? getServerPrivateKey(keyAlgoForJsonWebObjects) : null;
-        final String cacheKey = domainName + ":" + bundleName + ":" + PolicyBundleArchiveBuilder.getRevision(bundle)
-                + ":" + (signingKey == null ? "" : signingKey.getId());
+        final String cacheKey = domainName + ":" + bundleName + ":" + tag;
 
         byte[] archive = policyBundleArchiveCache.getIfPresent(cacheKey);
         if (archive == null) {
             try {
-                final JWKList jwkList = policyBundleIncludeJwks ? dataStore.getZtsJWKList(Boolean.TRUE) : null;
-                final String jwksData = jwkList != null ? jsonMapper.writeValueAsString(jwkList) : null;
                 archive = policyBundleArchiveBuilder.build(domainName, bundleName, bundle,
                         jwksData, signingKey);
             } catch (Exception ex) {

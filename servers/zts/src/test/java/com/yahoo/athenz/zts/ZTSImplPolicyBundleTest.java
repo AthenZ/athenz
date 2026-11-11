@@ -233,9 +233,19 @@ public class ZTSImplPolicyBundleTest {
     @Test
     public void testGetPolicyBundleTag() {
         PolicyBundle bundle = bundle("api", "rego");
-        assertEquals(zts.getPolicyBundleTag(bundle),
-                "\"" + Timestamp.fromMillis(MODIFIED_MILLIS) + "\"");
-        assertEquals(zts.getPolicyBundleTag(new PolicyBundle()), "\"0\"");
+        assertEquals(zts.getPolicyBundleTag(bundle, null, null),
+                "\"" + Timestamp.fromMillis(MODIFIED_MILLIS) + ":\"");
+        assertEquals(zts.getPolicyBundleTag(new PolicyBundle(), null, null), "\"0:\"");
+
+        // the signing key and the jwks are part of the tag
+
+        ServerPrivateKey key = new ServerPrivateKey(ecKeyPair.getPrivate(), "key-1");
+        String tag = zts.getPolicyBundleTag(bundle, key, null);
+        assertEquals(tag, "\"" + Timestamp.fromMillis(MODIFIED_MILLIS) + ":key-1\"");
+        String jwksTag = zts.getPolicyBundleTag(bundle, key, "{\"keys\":[]}");
+        assertNotEquals(jwksTag, tag);
+        assertNotEquals(zts.getPolicyBundleTag(bundle, key, "{\"keys\":[1]}"), jwksTag);
+        assertNotEquals(zts.getPolicyBundleTag(bundle, new ServerPrivateKey(ecKeyPair.getPrivate(), "key-2"), null), tag);
     }
 
     // archive api
@@ -262,7 +272,7 @@ public class ZTSImplPolicyBundleTest {
         Response response = zts.getPolicyBundle(ctx, "sports", "api", null);
         assertEquals(response.getStatus(), 200);
         assertEquals(response.getMediaType().toString(), "application/gzip");
-        assertEquals(eTag(response), zts.getPolicyBundleTag(bundle("api", "rego")));
+        assertEquals(eTag(response), zts.getPolicyBundleTag(bundle("api", "rego"), zts.privateECKey, null));
 
         byte[] archive = (byte[]) response.getEntity();
         Map<String, byte[]> entries = TarTestUtils.readTar(TarTestUtils.gunzip(archive));
@@ -299,10 +309,10 @@ public class ZTSImplPolicyBundleTest {
         addDomain("sports", bundle("api", "rego"));
         ResourceContext ctx = createResourceContext(principal("sports", "svc"));
 
-        Response response = zts.getPolicyBundle(ctx, "sports", "api", "\"" + Timestamp.fromMillis(MODIFIED_MILLIS) + "\"");
+        Response response = zts.getPolicyBundle(ctx, "sports", "api", "\"" + Timestamp.fromMillis(MODIFIED_MILLIS) + ":ec-1\"");
         assertEquals(response.getStatus(), 304);
         assertNull(response.getEntity());
-        assertEquals(eTag(response), "\"" + Timestamp.fromMillis(MODIFIED_MILLIS) + "\"");
+        assertEquals(eTag(response), "\"" + Timestamp.fromMillis(MODIFIED_MILLIS) + ":ec-1\"");
 
         // different revision returns the bundle
 

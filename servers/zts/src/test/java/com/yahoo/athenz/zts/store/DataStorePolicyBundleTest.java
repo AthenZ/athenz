@@ -188,4 +188,31 @@ public class DataStorePolicyBundleTest {
         assertNotNull(cache);
         assertTrue(cache.getPolicyBundles().isEmpty());
     }
+
+    @Test
+    public void testProcessDomainDataLegacyIgnoresBundles() {
+
+        // bundles are not covered by the legacy signed domain signature
+        // so they are ignored unless the domain came from a jws payload
+
+        DomainData domainData = new DomainData().setName("sports");
+        domainData.setPolicyBundles(new ArrayList<>(Collections.singletonList(bundle("sports", "api"))));
+        store.processDomainData(domainData, false);
+
+        DataCache cache = store.getDataCache("sports");
+        assertNotNull(cache);
+        assertTrue(cache.getPolicyBundles().isEmpty());
+
+        // no bundles in a legacy domain
+
+        store.processDomainData(new DomainData().setName("weather"), false);
+        assertTrue(store.getDataCache("weather").getPolicyBundles().isEmpty());
+        store.processDomainData(new DomainData().setName("rain").setPolicyBundles(new ArrayList<>()), false);
+        assertTrue(store.getDataCache("rain").getPolicyBundles().isEmpty());
+
+        // jws domains accept them
+
+        store.processDomainData(domainData, true);
+        assertNotNull(store.getDataCache("sports").getPolicyBundle("api"));
+    }
 }

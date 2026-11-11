@@ -123,6 +123,26 @@ public class PolicyBundleRulesTest {
     }
 
     @Test
+    public void testRootsTotalLength() {
+        System.setProperty(ZMSConsts.ZMS_PROP_MAX_BUNDLE_ROOTS, "16");
+        PolicyBundleRules rules = new PolicyBundleRules(null);
+
+        // each root is 256 chars: 9 roots + separators exceed the 2048 column
+
+        List<String> roots = new ArrayList<>();
+        for (int i = 0; i < 9; i++) {
+            roots.add(("bundledom/" + i + "a".repeat(255)).substring(0, 256));
+        }
+        assertInvalid(rules, regoBundle(file("a.rego", "x")).setRoots(roots), "roots exceed maximum total length");
+
+        // 8 roots = 8 * 256 + 7 separators = 2055 > 2048, 7 roots fit
+
+        assertInvalid(rules, regoBundle(file("a.rego", "x")).setRoots(roots.subList(0, 8)),
+                "roots exceed maximum total length");
+        rules.validate(DOMAIN, BUNDLE, regoBundle(file("a.rego", "x")).setRoots(roots.subList(0, 7)), CALLER);
+    }
+
+    @Test
     public void testRoots() {
         System.setProperty(ZMSConsts.ZMS_PROP_MAX_BUNDLE_ROOTS, "2");
         PolicyBundleRules rules = new PolicyBundleRules(null);
@@ -182,6 +202,11 @@ public class PolicyBundleRulesTest {
         assertInvalid(rules, regoBundle(file("a.rego", "x"), file("a.rego", "y")), "duplicate bundle file path");
         assertInvalid(rules, regoBundle(file("a.rego", null)), "has no content");
         assertInvalid(rules, regoBundle(file("a.rego", "x"), file("data.json", "{bad")), "is not valid json");
+        assertInvalid(rules, regoBundle(file("a.rego", "x"), file("data.json", "")), "is not valid json");
+        assertInvalid(rules, regoBundle(file("a.rego", "x"), file("data.json", "  \n")), "is not valid json");
+        assertInvalid(rules, regoBundle(file("a.rego", "x"), file("data.json", "{} {}")), "is not valid json");
+        assertInvalid(rules, regoBundle(file("a.rego", "x"), file("data.json", "{\"a\":1} x")), "is not valid json");
+        rules.validate(DOMAIN, BUNDLE, regoBundle(file("a.rego", "x"), file("data.json", " {\"a\":1}\n")), CALLER);
     }
 
     @Test

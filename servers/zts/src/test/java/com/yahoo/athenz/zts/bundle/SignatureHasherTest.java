@@ -47,6 +47,32 @@ public class SignatureHasherTest {
     }
 
     @Test
+    public void testNumberTokensPreserved() throws Exception {
+        // OPA keeps the original number spelling (json.Number) so the
+        // canonical form must not normalize exponents, -0 or trailing zeros
+        String[][] docs = {
+            { "{ \"n\" : 1e3 }", "{\"n\":1e3}" },
+            { "[-0, 1.0, 1E+2, 0.10, 12345678901234567890123]", "[-0,1.0,1E+2,0.10,12345678901234567890123]" },
+            { "{\"b\":{\"z\":-0.0,\"a\":[1e-7]},\"a\":true}", "{\"a\":true,\"b\":{\"a\":[1e-7],\"z\":-0.0}}" },
+            { "-0", "-0" },
+        };
+        for (String[] doc : docs) {
+            assertEquals(hash(doc[0]), HASHER.hashFileHex(doc[1].getBytes(StandardCharsets.UTF_8)), doc[0]);
+        }
+    }
+
+    @Test
+    public void testInvalidStructuredJson() {
+        for (String doc : new String[] { "", "  ", "{} {}", "{\"a\":1} 2", "{bad", "[1,", "{\"a\":}" }) {
+            try {
+                hash(doc);
+                fail(doc);
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
+    @Test
     public void testRawFile() throws IOException {
         assertEquals(HASHER.hashBundleFileHex("x.rego", "package x\n".getBytes(StandardCharsets.UTF_8)),
                 "3ea66a23367f14bd3e79ebd5c296779a4c3c40ef3a2035e23863b56ab5894bc5");

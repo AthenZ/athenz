@@ -17,17 +17,26 @@ package com.yahoo.athenz.zts.bundle;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.SerializableString;
 import com.fasterxml.jackson.core.io.CharacterEscapes;
 import com.fasterxml.jackson.core.io.SerializedString;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
@@ -105,6 +114,7 @@ public class SignatureHasher {
             .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
             .enable(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN)
+            .addModule(new SimpleModule().addSerializer(RawNumber.class, new RawNumberSerializer()))
             .build();
 
     // bundle files whose content OPA hashes as canonical json instead of raw bytes
@@ -170,6 +180,70 @@ public class SignatureHasher {
         return new FileInfo(filename, hashFileHex(value), this.algorithm);
     }
 
+    /**
+     * OPA decodes json with UseNumber so numbers keep their original token
+     * spelling (1e3, -0, 1.0) when it re-encodes the document for hashing.
+     * We parse the document ourselves and keep the number tokens as is,
+     * sort the object keys and drop all whitespace.
+     * @param content json document
+     * @return canonical json bytes
+     * @throws IOException if the content is not exactly one valid json document
+     */
+    static byte[] canonicalJson(final byte[] content) throws IOException {
+        try (JsonParser parser = OBJECT_MAPPER.getFactory().createParser(content)) {
+            if (parser.nextToken() == null) {
+                throw new IOException("empty json document");
+            }
+            final Object value = readValue(parser);
+            if (parser.nextToken() != null) {
+                throw new IOException("unexpected trailing content after json document");
+            }
+            return OBJECT_MAPPER.writeValueAsBytes(value);
+        }
+    }
+
+    private static Object readValue(JsonParser parser) throws IOException {
+        switch (parser.currentToken()) {
+            case START_OBJECT:
+                Map<String, Object> map = new TreeMap<>();
+                while (parser.nextToken() == JsonToken.FIELD_NAME) {
+                    final String name = parser.currentName();
+                    parser.nextToken();
+                    map.put(name, readValue(parser));
+                }
+                return map;
+            case START_ARRAY:
+                List<Object> list = new ArrayList<>();
+                while (parser.nextToken() != JsonToken.END_ARRAY) {
+                    list.add(readValue(parser));
+                }
+                return list;
+            case VALUE_NUMBER_INT:
+            case VALUE_NUMBER_FLOAT:
+                return new RawNumber(parser.getText());
+            case VALUE_STRING:
+                return parser.getText();
+            case VALUE_TRUE:
+                return Boolean.TRUE;
+            case VALUE_FALSE:
+                return Boolean.FALSE;
+            case VALUE_NULL:
+                return null;
+            default:
+                throw new IOException("unexpected json token: " + parser.currentToken());
+        }
+    }
+
+    /** json number kept as its original text token */
+    private record RawNumber(String text) { }
+
+    private static final class RawNumberSerializer extends JsonSerializer<RawNumber> {
+        @Override
+        public void serialize(RawNumber value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeRawValue(value.text());
+        }
+    }
+
     public static boolean isStructuredFile(final String path) {
         final String fileName = path.substring(path.lastIndexOf('/') + 1);
         return FILE_DATA_JSON.equals(fileName) || FILE_MANIFEST.equals(fileName);
@@ -189,8 +263,7 @@ public class SignatureHasher {
             if (isStructuredFile(path)) {
                 // serialize first since hashFile treats a String as raw text
                 // and a top level json string must keep its quotes
-                final Object value = OBJECT_MAPPER.readValue(content, Object.class);
-                return hashFileHex(OBJECT_MAPPER.writeValueAsBytes(value));
+                return hashFileHex(canonicalJson(content));
             }
             return hashFileHex(content);
         } catch (IOException ex) {

@@ -98,10 +98,14 @@ the normal domain sync.
 
 ## Signing and sync
 
-ZMS includes the policy bundles in the signed domain data as
-`policyBundles`, so they are covered by the regular domain signature. Each
-file carries its SHA-256 digest. Rollout order: schema update, ZMS, ZTS, then
-point OPA at the new endpoint.
+ZMS includes the policy bundles in the signed JWS domain data as
+`policyBundles`, so they are covered by the domain signature. Each file
+carries its SHA-256 digest. Policy bundles are only distributed through JWS
+domain sync: ZTS must run with `athenz.zts.zms_domain_jws_support=true`.
+The legacy SignedDomain signature does not cover the bundles, so ZTS ignores
+(and logs an error for) any bundles it receives through the legacy sync.
+Rollout order: schema update, ZMS, ZTS (with JWS domain support enabled),
+then point OPA at the new endpoint.
 
 After the domain signature is validated, ZTS verifies the SHA-256 digest of
 every file against its content and caches the active versions. A bundle that
@@ -156,7 +160,7 @@ bundles:
     service: zts
     resource: domain/sports/bundle/api
     polling: {min_delay_seconds: 30, max_delay_seconds: 120}
-    signing: {keyid: zts-bundle-key}
+    signing: {keyid: zts-bundle-key, scope: "sports:bundle.api"}
 ```
 
 With the default roots (`sports/api`) the Rego modules use
