@@ -359,6 +359,7 @@ func init() {
 	tOpenIDConfig.ArrayField("subject_types_supported", "String", false, "list of supported subject identifier types")
 	tOpenIDConfig.ArrayField("id_token_signing_alg_values_supported", "String", false, "list of supported algorithms for issued id tokens")
 	tOpenIDConfig.ArrayField("claims_supported", "String", true, "list of supported id claims")
+	tOpenIDConfig.ArrayField("dpop_signing_alg_values_supported", "String", true, "list of supported DPoP proof JWS algorithms")
 	sb.AddType(tOpenIDConfig.Build())
 
 	tOAuthConfig := rdl.NewStructTypeBuilder("Struct", "OAuthConfig")
@@ -370,6 +371,7 @@ func init() {
 	tOAuthConfig.ArrayField("response_types_supported", "String", false, "list of supported response types")
 	tOAuthConfig.ArrayField("grant_types_supported", "String", false, "supported grant types")
 	tOAuthConfig.ArrayField("token_endpoint_auth_signing_alg_values_supported", "String", false, "list of supported algorithms for issued access tokens")
+	tOAuthConfig.ArrayField("dpop_signing_alg_values_supported", "String", true, "list of supported DPoP proof JWS algorithms")
 	sb.AddType(tOAuthConfig.Build())
 
 	tJWKList := rdl.NewStructTypeBuilder("Struct", "JWKList")

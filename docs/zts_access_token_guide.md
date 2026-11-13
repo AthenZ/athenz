@@ -361,6 +361,58 @@ try {
 final String accessToken = tokenResponse.getAccess_token();
 ```
 
+## DPoP-Bound Access Tokens
+
+ZTS can issue access tokens that are bound to a client-held key using
+[RFC 9449: OAuth 2.0 Demonstrating Proof of Possession (DPoP)](https://www.rfc-editor.org/rfc/rfc9449).
+This is useful when mTLS is terminated before ZTS or the resource server
+(e.g. at an AWS ALB), because the mTLS binding (`cnf.x5t#S256`) can't be
+verified there and the token otherwise works as a plain bearer token.
+
+The feature is disabled by default. Enable it on the ZTS server with:
+
+```
+athenz.zts.dpop_enabled=true
+```
+
+The client sends a signed DPoP proof JWT in the `DPoP` header of the token request:
+
+```
+POST /zts/v1/oauth2/token HTTP/1.1
+Host: <zts-address>
+Content-Type: application/x-www-form-urlencoded
+DPoP: eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2IiwiandrIjp7Imt0eSI6...
+
+grant_type=client_credentials&scope=demo%3Adomain
+```
+
+If the proof is valid, ZTS returns `"token_type":"DPoP"` and adds the RFC 7638
+SHA-256 thumbprint of the proof's public key to the `cnf` claim of the access
+token. If the client also authenticated with an X.509 certificate, the
+certificate binding is kept so existing mTLS resource servers continue to work:
+
+```
+"cnf": {
+  "x5t#S256": "A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0",
+  "jkt": "0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I"
+}
+```
+
+An invalid proof is rejected with a `400` error whose message starts with
+`invalid_dpop_proof:`. Notes:
+
+- If ZTS is reached through a different URL (e.g. an external load balancer),
+  that token endpoint URL must be listed in `athenz.zts.dpop_allowed_htu` since
+  the proof's `htu` claim is never matched against the request `Host` header.
+- The `id_token` returned with the `openid` scope is not DPoP bound.
+- DPoP binding only adds protection when the resource server enforces it.
+  Resource servers that don't check `cnf.jkt` accept the token as a bearer token.
+
+With the Java client, call `ztsClient.setDPoPKey(privateKey, publicKey)` (or
+`setDPoPKeyProvider`) and the client adds a fresh proof to every token request.
+With the CLI, use `zts-accesstoken -dpop`. See [DPoP-Bound Access Tokens](zts_dpop_access_tokens.md)
+for the full feature description and configuration reference.
+
 ## Command Line Utility to Fetch Access Tokens
 
 Athenz team also provides a command line utility called `zts-accesstoken`
@@ -380,7 +432,8 @@ will return the following 4xx error codes if it's unable to successfully
 process the request:
 
 -   **400** The domain name specified in the request to issue an access token
-    is inconsistent with other scopes.
+    is inconsistent with other scopes, or the DPoP proof included in the
+    request is not valid (the message starts with `invalid_dpop_proof:`).
 -   **401** The request could not be successfully authenticated.
 -   **403** The service identity does not have access to any resources
     in the specified domain.

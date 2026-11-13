@@ -3531,7 +3531,7 @@ public class ZTSClientTest {
                 "auth_creds", PRINCIPAL_AUTHORITY);
         ZTSClient client = new ZTSClient("http://localhost:4080", principal);
 
-        assertNull(client.lookupAccessTokenResponseInCache(cacheKey, 3600));
+        assertNull(client.lookupAccessTokenResponseInCache(cacheKey, 3600, DPoPBinding.NONE));
 
         AccessTokenResponse response1 = new AccessTokenResponse();
         response1.setExpires_in(3600);
@@ -3539,12 +3539,12 @@ public class ZTSClientTest {
 
         // with standard 1 hour check, our entry is not expired
 
-        assertNotNull(client.lookupAccessTokenResponseInCache(cacheKey, 3600));
+        assertNotNull(client.lookupAccessTokenResponseInCache(cacheKey, 3600, DPoPBinding.NONE));
 
         // with a 60 hour check, our entry is expired, however our entry
         // will not be removed from the cache
 
-        assertNull(client.lookupAccessTokenResponseInCache(cacheKey, 36000));
+        assertNull(client.lookupAccessTokenResponseInCache(cacheKey, 36000, DPoPBinding.NONE));
         assertNotNull(ZTSClient.ACCESS_TOKEN_CACHE.get(cacheKey));
 
         // add a second entry with 1 second timeout
@@ -3559,7 +3559,7 @@ public class ZTSClientTest {
 
         // entry is not returned from lookup and also removed from the cache
 
-        assertNull(client.lookupAccessTokenResponseInCache(cacheKey, 3600));
+        assertNull(client.lookupAccessTokenResponseInCache(cacheKey, 3600, DPoPBinding.NONE));
         assertNull(ZTSClient.ACCESS_TOKEN_CACHE.get(cacheKey));
         client.close();
     }

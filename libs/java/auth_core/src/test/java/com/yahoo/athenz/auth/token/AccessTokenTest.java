@@ -1592,4 +1592,59 @@ public class AccessTokenTest {
             assertTrue(ex.getMessage().contains("Invalid token: mismatched issuer (athenz) and subject (athenz.api)"));
         }
     }
+
+    @Test
+    public void testConfirmJwkThumbprint() {
+
+        AccessToken accessToken = new AccessToken();
+        assertNull(accessToken.getConfirmJwkThumbprint());
+
+        accessToken.setConfirmJwkThumbprint("jkt-value");
+        assertEquals(accessToken.getConfirmJwkThumbprint(), "jkt-value");
+        assertEquals(accessToken.getConfirmEntry(AccessToken.CLAIM_CONFIRM_JWK_THUMBPRINT), "jkt-value");
+
+        // non-string values are not returned as thumbprints
+
+        accessToken.setConfirmEntry(AccessToken.CLAIM_CONFIRM_JWK_THUMBPRINT, 1234);
+        assertNull(accessToken.getConfirmJwkThumbprint());
+    }
+
+    @Test
+    public void testAccessTokenWithX509AndJwkConfirmation() throws IOException {
+
+        // a token bound to both the mTLS certificate and a DPoP key must
+        // still pass strict mTLS validation (cert offset 0 only allows the
+        // hash check) so existing resource servers are not affected
+
+        long now = System.currentTimeMillis() / 1000;
+        AccessToken accessToken = createAccessToken(now);
+        accessToken.setConfirmJwkThumbprint("NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs");
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(ecPrivateKey);
+        String accessJws = accessToken.getSignedToken(privateKey, "eckey1", "ES256");
+        assertNotNull(accessJws);
+
+        PublicKey publicKey = Crypto.loadPublicKey(ecPublicKey);
+        AccessToken checkToken = new AccessToken(accessJws, publicKey);
+        assertEquals(checkToken.getConfirmJwkThumbprint(), "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs");
+        assertEquals(checkToken.getConfirmEntry(AccessToken.CLAIM_CONFIRM_X509_HASH),
+                "A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0");
+
+        // cnf member order is deterministic: x5t#uri, x5t#S256 and then jkt
+
+        List<String> keys = new ArrayList<>(accessToken.getConfirm().keySet());
+        assertEquals(keys, Arrays.asList("x5t#uri", AccessToken.CLAIM_CONFIRM_X509_HASH,
+                AccessToken.CLAIM_CONFIRM_JWK_THUMBPRINT));
+
+        Path path = Paths.get("src/test/resources/mtls_token_spec.cert");
+        X509Certificate cert = Crypto.loadX509Certificate(new String(Files.readAllBytes(path)));
+
+        AccessToken.setAccessTokenCertOffset(0);
+        try {
+            assertTrue(checkToken.confirmMTLSBoundToken(cert, null));
+            assertTrue(checkToken.confirmMTLSBoundToken(cert, "A4DtL2JmUMhAsvJj5tKyn64SqzmuXbMrJa0n761y5v0"));
+        } finally {
+            AccessToken.setAccessTokenCertOffset(3600);
+        }
+    }
 }
