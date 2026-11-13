@@ -24,7 +24,6 @@ import com.yahoo.rdl.Validator.Result;
 import org.testng.annotations.Test;
 
 import java.util.*;
-import java.util.regex.Pattern;
 
 import static org.testng.Assert.*;
 
@@ -633,6 +632,10 @@ public class ZMSCoreTest {
         List<Group> gl =  new ArrayList<>();
         gl.add(new Group().setName("dev-team"));
 
+        List<PolicyBundle> bl = new ArrayList<>();
+        bl.add(new PolicyBundle().setName("test.domain:bundle.api").setEngine("rego")
+                .setFiles(Collections.singletonList(new PolicyBundleFile().setPath("authz.rego").setContent("package authz"))));
+
         // DomainData test
         List<Entity> elist = new ArrayList<>();
         DomainData dd = new DomainData().setName("test.domain").setAccount("aws").setYpmId(1).setRoles(rl)
@@ -641,7 +644,7 @@ public class ZMSCoreTest {
                 .setMemberExpiryDays(30).setServiceExpiryDays(40).setGroupExpiryDays(50)
                 .setTokenExpiryMins(300).setRoleCertExpiryMins(120)
                 .setServiceCertExpiryMins(150).setDescription("main domain").setOrg("org").setSignAlgorithm("rsa")
-                .setUserAuthorityFilter("OnShore").setGroups(gl)
+                .setUserAuthorityFilter("OnShore").setGroups(gl).setPolicyBundles(bl)
                 .setAzureSubscription("azure").setAzureTenant("tenant").setAzureClient("client")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp").setGcpProjectNumber("1235")
@@ -666,6 +669,7 @@ public class ZMSCoreTest {
         assertEquals((int) dd.getYpmId(), 1);
         assertEquals(dd.getRoles(), rl);
         assertEquals(dd.getGroups(), gl);
+        assertEquals(dd.getPolicyBundles(), bl);
         assertEquals(dd.getPolicies(), sp);
         assertEquals(dd.getServices(), sil);
         assertEquals(dd.getEntities(), elist);
@@ -707,7 +711,7 @@ public class ZMSCoreTest {
                 .setEnabled(true).setApplicationId("101").setCertDnsDomain("athenz.cloud").setAuditEnabled(false)
                 .setMemberExpiryDays(30).setTokenExpiryMins(300).setRoleCertExpiryMins(120).setServiceCertExpiryMins(150)
                 .setDescription("main domain").setOrg("org").setSignAlgorithm("rsa").setServiceExpiryDays(40)
-                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setGroups(gl)
+                .setUserAuthorityFilter("OnShore").setGroupExpiryDays(50).setGroups(gl).setPolicyBundles(bl)
                 .setAzureSubscription("azure").setAzureTenant("tenant").setAzureClient("client")
                 .setTags(Collections.singletonMap("tagKey", new TagValueList().setList(Collections.singletonList("tagValue"))))
                 .setBusinessService("business-service").setMemberPurgeExpiryDays(10).setGcpProject("gcp")
@@ -744,6 +748,15 @@ public class ZMSCoreTest {
         dd2.setGroups(null);
         assertNotEquals(dd, dd2);
         dd2.setGroups(gl);
+        assertEquals(dd, dd2);
+
+        List<PolicyBundle> bl2 = new ArrayList<>();
+        bl2.add(new PolicyBundle().setName("test.domain:bundle.other").setEngine("rego"));
+        dd2.setPolicyBundles(bl2);
+        assertNotEquals(dd, dd2);
+        dd2.setPolicyBundles(null);
+        assertNotEquals(dd, dd2);
+        dd2.setPolicyBundles(bl);
         assertEquals(dd, dd2);
 
         dd2.setEnvironment("staging");

@@ -3119,6 +3119,466 @@ public class ZMSResources {
         }
     }
 
+    @GET
+    @Path("/domain/{domainName}/bundle")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "List policy bundles provisioned in this domain.")
+    public PolicyBundleList getPolicyBundleList(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyBundleList");
+            context.authorize("zms.getbundle", "" + domainName + ":bundle", null);
+            return this.delegate.getPolicyBundleList(context, domainName);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPolicyBundleList");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/domain/{domainName}/bundles")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Get all policy bundles (including their files) provisioned in this domain.")
+    public PolicyBundles getPolicyBundles(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "include non-active bundle versions", required = false) @QueryParam("includeNonActive") @DefaultValue("false") Boolean includeNonActive) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyBundles");
+            context.authorize("zms.getbundle", "" + domainName + ":bundle", null);
+            return this.delegate.getPolicyBundles(context, domainName, includeNonActive);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPolicyBundles");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/domain/{domainName}/bundle/{bundleName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Read the active version of the specified policy bundle.")
+    public PolicyBundle getPolicyBundle(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the bundle", required = true) @PathParam("bundleName") String bundleName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyBundle");
+            context.authorize("zms.getbundle", "" + domainName + ":bundle." + bundleName + "", null);
+            return this.delegate.getPolicyBundle(context, domainName, bundleName);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPolicyBundle");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/bundle/{bundleName}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Create or update the specified policy bundle. If the version attribute is not specified, the active version of the bundle is created/updated. If the version is specified and the bundle already exists, the given version is updated or created as a non-active version.")
+    public Response putPolicyBundle(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the bundle", required = true) @PathParam("bundleName") String bundleName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Return object param updated object back.", required = false) @HeaderParam("Athenz-Return-Object") Boolean returnObj,
+        @Parameter(description = "PolicyBundle object to be added or updated in the domain", required = true) PolicyBundle bundle) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putPolicyBundle");
+            context.authorize("zms.updatebundle", "" + domainName + ":bundle." + bundleName + "", null);
+            return this.delegate.putPolicyBundle(context, domainName, bundleName, auditRef, returnObj, bundle);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putPolicyBundle");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @DELETE
+    @Path("/domain/{domainName}/bundle/{bundleName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete the specified policy bundle including all of its versions. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deletePolicyBundle(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the bundle", required = true) @PathParam("bundleName") String bundleName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deletePolicyBundle");
+            context.authorize("zms.deletebundle", "" + domainName + ":bundle." + bundleName + "", null);
+            this.delegate.deletePolicyBundle(context, domainName, bundleName, auditRef);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deletePolicyBundle");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/bundle/{bundleName}/file")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Add or replace a single file in the active version of the specified policy bundle.")
+    public void putPolicyBundleFile(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the bundle", required = true) @PathParam("bundleName") String bundleName,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "file to be added or replaced in the bundle", required = true) PolicyBundleFile file) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putPolicyBundleFile");
+            context.authorize("zms.updatebundle", "" + domainName + ":bundle." + bundleName + "", null);
+            this.delegate.putPolicyBundleFile(context, domainName, bundleName, auditRef, file);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putPolicyBundleFile");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @DELETE
+    @Path("/domain/{domainName}/bundle/{bundleName}/file")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete a single file from the active version of the specified policy bundle.")
+    public void deletePolicyBundleFile(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the bundle", required = true) @PathParam("bundleName") String bundleName,
+        @Parameter(description = "path of the file to be removed from the bundle, relative to the bundle root", required = false) @QueryParam("path") String path,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deletePolicyBundleFile");
+            context.authorize("zms.updatebundle", "" + domainName + ":bundle." + bundleName + "", null);
+            this.delegate.deletePolicyBundleFile(context, domainName, bundleName, path, auditRef);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deletePolicyBundleFile");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/domain/{domainName}/bundle/{bundleName}/version")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "List the versions of the specified policy bundle.")
+    public PolicyBundleList getPolicyBundleVersionList(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the bundle", required = true) @PathParam("bundleName") String bundleName) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyBundleVersionList");
+            context.authorize("zms.getbundle", "" + domainName + ":bundle." + bundleName + "", null);
+            return this.delegate.getPolicyBundleVersionList(context, domainName, bundleName);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPolicyBundleVersionList");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/domain/{domainName}/bundle/{bundleName}/version/{version}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Get the specified policy bundle version.")
+    public PolicyBundle getPolicyBundleVersion(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the bundle", required = true) @PathParam("bundleName") String bundleName,
+        @Parameter(description = "name of the version to be retrieved", required = true) @PathParam("version") String version) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyBundleVersion");
+            context.authorize("zms.getbundle", "" + domainName + ":bundle." + bundleName + "", null);
+            return this.delegate.getPolicyBundleVersion(context, domainName, bundleName, version);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPolicyBundleVersion");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/bundle/{bundleName}/version/create")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Create a new non-active policy bundle version based on the given source version")
+    public Response putPolicyBundleVersion(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the bundle", required = true) @PathParam("bundleName") String bundleName,
+        @Parameter(description = "name of the new version and the source version to copy from", required = true) PolicyBundleOptions bundleOptions,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef,
+        @Parameter(description = "Return object param updated object back.", required = false) @HeaderParam("Athenz-Return-Object") Boolean returnObj) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "putPolicyBundleVersion");
+            context.authorize("zms.updatebundle", "" + domainName + ":bundle." + bundleName + "", null);
+            return this.delegate.putPolicyBundleVersion(context, domainName, bundleName, bundleOptions, auditRef, returnObj);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource putPolicyBundleVersion");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @PUT
+    @Path("/domain/{domainName}/bundle/{bundleName}/version/active")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Mark the specified policy bundle version as active.")
+    public void setActivePolicyBundleVersion(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the bundle", required = true) @PathParam("bundleName") String bundleName,
+        @Parameter(description = "name of the version to be activated", required = true) PolicyBundleOptions bundleOptions,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "setActivePolicyBundleVersion");
+            context.authorize("zms.updatebundle", "" + domainName + ":bundle." + bundleName + "", null);
+            this.delegate.setActivePolicyBundleVersion(context, domainName, bundleName, bundleOptions, auditRef);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource setActivePolicyBundleVersion");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @DELETE
+    @Path("/domain/{domainName}/bundle/{bundleName}/version/{version}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "Delete the specified non-active policy bundle version. Upon successful completion of this delete request, the server will return NO_CONTENT status code without any data (no object will be returned).")
+    public void deletePolicyBundleVersion(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the bundle", required = true) @PathParam("bundleName") String bundleName,
+        @Parameter(description = "name of the version to be deleted", required = true) @PathParam("version") String version,
+        @Parameter(description = "Audit param required(not empty) if domain auditEnabled is true.", required = true) @HeaderParam("Y-Audit-Ref") String auditRef) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "deletePolicyBundleVersion");
+            context.authorize("zms.deletebundle", "" + domainName + ":bundle." + bundleName + "", null);
+            this.delegate.deletePolicyBundleVersion(context, domainName, bundleName, version, auditRef);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.CONFLICT:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource deletePolicyBundleVersion");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.publishChangeMessage(context, code);
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
     @PUT
     @Path("/domain/{domain}/service/{service}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -5181,7 +5641,7 @@ public class ZMSResources {
         Object data = e.getData();
         Object entity = eClass.isInstance(data) ? data : null;
         if (entity != null) {
-            return new WebApplicationException(Response.status(code).entity(entity).build());
+            return new WebApplicationException(Response.status(code).entity(entity).type(MediaType.APPLICATION_JSON).build());
         } else {
             return new WebApplicationException(code);
         }

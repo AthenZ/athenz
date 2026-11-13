@@ -125,6 +125,12 @@ public final class JDBCConsts {
     public static final String DB_COLUMN_ACTIVE             = "active";
     public static final String DB_COLUMN_VERSION            = "version";
     public static final String DB_COLUMN_POLICY_ID          = "policy_id";
+    public static final String DB_COLUMN_BUNDLE_ID          = "bundle_id";
+    public static final String DB_COLUMN_ENGINE             = "engine";
+    public static final String DB_COLUMN_ROOTS              = "roots";
+    public static final String DB_COLUMN_PATH               = "path";
+    public static final String DB_COLUMN_CONTENT            = "content";
+    public static final String DB_COLUMN_SHA256             = "sha256";
     public static final String DB_COLUMN_FEATURE_FLAGS      = "feature_flags";
     public static final String DB_COLUMN_MAX_MEMBERS        = "max_members";
     public static final String DB_COLUMN_SELF_RENEW         = "self_renew";
@@ -175,6 +181,7 @@ public final class JDBCConsts {
     public static final String OBJECT_PRINCIPAL = "principal";
     public static final String OBJECT_HOST      = "host";
     public static final String OBJECT_GROUP     = "group";
+    public static final String OBJECT_BUNDLE    = "bundle";
 
     public static final String ZMS_PROP_JDBC_NOTIFY_DETAILS_SELF_SERVE_ROLE  = "athenz.zms.jdbc.notify_details_self_serve_role";
     public static final String ZMS_PROP_JDBC_NOTIFY_DETAILS_SELF_SERVE_GROUP = "athenz.zms.jdbc.notify_details_self_serve_group";

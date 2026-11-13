@@ -271,11 +271,11 @@ public class {{cName}}Client {
             throw new IOException(ex);
         }
     }
-{{range .Resources}}
+{{range .Resources}}{{if not .Produces}}
     {{methodSig .}} {
         {{methodBody .}}
     }
-{{end}}
+{{end}}{{end}}
 }
 `
 

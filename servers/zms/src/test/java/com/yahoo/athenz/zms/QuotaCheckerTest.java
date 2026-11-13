@@ -654,6 +654,55 @@ public class QuotaCheckerTest {
     }
 
     @Test
+    public void testCheckPolicyBundleQuota() throws ServerResourceException {
+
+        QuotaChecker quotaCheck = new QuotaChecker();
+        ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
+
+        // default quota is 20 so 19 existing bundles is fine
+
+        Mockito.when(con.countPolicyBundles("athenz")).thenReturn(19);
+        quotaCheck.checkPolicyBundleQuota(con, "athenz", "caller");
+
+        Mockito.when(con.countPolicyBundles("athenz")).thenReturn(20);
+        try {
+            quotaCheck.checkPolicyBundleQuota(con, "athenz", "caller");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
+            assertTrue(ex.getMessage().contains("bundle quota exceeded - limit: 20 actual: 21"));
+        }
+
+        // with quota check disabled - no exceptions
+
+        quotaCheck.setQuotaCheckEnabled(false);
+        quotaCheck.checkPolicyBundleQuota(con, "athenz", "caller");
+    }
+
+    @Test
+    public void testCheckPolicyBundleQuotaCustomLimit() throws ServerResourceException {
+
+        System.setProperty(ZMSConsts.ZMS_PROP_QUOTA_BUNDLE, "2");
+        try {
+            QuotaChecker quotaCheck = new QuotaChecker();
+            ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
+            Mockito.when(con.countPolicyBundles("athenz")).thenReturn(1);
+            quotaCheck.checkPolicyBundleQuota(con, "athenz", "caller");
+
+            Mockito.when(con.countPolicyBundles("athenz")).thenReturn(2);
+            try {
+                quotaCheck.checkPolicyBundleQuota(con, "athenz", "caller");
+                fail();
+            } catch (ResourceException ex) {
+                assertEquals(ex.getCode(), ResourceException.TOO_MANY_REQUESTS);
+                assertTrue(ex.getMessage().contains("limit: 2 actual: 3"));
+            }
+        } finally {
+            System.clearProperty(ZMSConsts.ZMS_PROP_QUOTA_BUNDLE);
+        }
+    }
+
+    @Test
     public void testCheckGroupQuota() throws ServerResourceException {
 
         QuotaChecker quotaCheck = new QuotaChecker();

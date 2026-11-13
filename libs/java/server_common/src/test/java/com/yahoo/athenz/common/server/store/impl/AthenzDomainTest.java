@@ -39,6 +39,7 @@ public class AthenzDomainTest {
         assertTrue(athenzDomain.getPolicies().isEmpty());
         assertTrue(athenzDomain.getServices().isEmpty());
         assertTrue(athenzDomain.getEntities().isEmpty());
+        assertTrue(athenzDomain.getPolicyBundles().isEmpty());
 
         List<Role> roles = new ArrayList<>();
         roles.add(new Role().setName("role1"));
@@ -60,11 +61,16 @@ public class AthenzDomainTest {
         entities.add(new Entity().setName("entity1").setValue(new Struct().with("value", "data1")));
         athenzDomain.setEntities(entities);
 
+        List<PolicyBundle> bundles = new ArrayList<>();
+        bundles.add(new PolicyBundle().setName("coretech:bundle.api"));
+        athenzDomain.setPolicyBundles(bundles);
+
         assertEquals(athenzDomain.getRoles().size(), 1);
         assertEquals(athenzDomain.getGroups().size(), 1);
         assertEquals(athenzDomain.getPolicies().size(), 1);
         assertEquals(athenzDomain.getServices().size(), 1);
         assertEquals(athenzDomain.getEntities().size(), 1);
+        assertEquals(athenzDomain.getPolicyBundles().size(), 1);
     }
 
     @Test

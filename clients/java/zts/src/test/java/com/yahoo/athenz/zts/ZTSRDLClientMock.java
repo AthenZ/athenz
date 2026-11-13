@@ -459,6 +459,18 @@ public class ZTSRDLClientMock extends ZTSRDLGeneratedClient implements java.io.C
     }
 
     @Override
+    public PolicyBundleEntries getPolicyBundleEntries(String domainName, String engine) {
+        if ("invalid-domain".equals(domainName)) {
+            throw new ClientResourceException(404, "not found domain");
+        } else if (domainName == null) {
+            throw new IllegalArgumentException("Invalid request");
+        }
+        PolicyBundleEntry entry = new PolicyBundleEntry().setDomain(domainName).setName("bundle1")
+                .setEngine(engine).setVersion("1").setRevision("1");
+        return new PolicyBundleEntries().setList(Collections.singletonList(entry));
+    }
+
+    @Override
     public TenantDomains getTenantDomains(String providerDomainName, String userName,
             String roleName, String serviceName) {
         if (providerDomainName.equals("exc")) {
