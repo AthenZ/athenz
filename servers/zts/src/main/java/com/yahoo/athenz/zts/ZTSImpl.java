@@ -60,7 +60,6 @@ import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.ChangeLogStoreFactory;
 import com.yahoo.athenz.common.server.util.ConfigProperties;
 import com.yahoo.athenz.common.server.util.PrincipalUtils;
-import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.common.server.util.ResourceUtils;
 import com.yahoo.athenz.common.server.util.ServletRequestUtil;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
@@ -1924,6 +1923,10 @@ public class ZTSImpl implements ZTSHandler {
         if (engine != null) {
             validate(engine, TYPE_SIMPLE_NAME, principalDomain, caller);
             engine = engine.toLowerCase();
+        }
+
+        if (!policyBundleEnabled.get()) {
+            throw requestError("Policy bundle support is not enabled", caller, domainName, principalDomain);
         }
 
         domainName = domainName.toLowerCase();

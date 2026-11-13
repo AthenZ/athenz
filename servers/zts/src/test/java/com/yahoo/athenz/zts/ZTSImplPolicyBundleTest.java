@@ -265,6 +265,20 @@ public class ZTSImplPolicyBundleTest {
     }
 
     @Test
+    public void testGetPolicyBundleEntriesDisabled() {
+        addDomain("sports", bundle("api", "rego"));
+        ResourceContext ctx = createResourceContext(principal("sports", "svc"));
+        zts.policyBundleEnabled = new com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean(false);
+        try {
+            zts.getPolicyBundleEntries(ctx, "sports", "api");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), 400);
+            assertTrue(ex.getMessage().contains("Policy bundle support is not enabled"));
+        }
+    }
+
+    @Test
     public void testgetPolicyBundleEc() throws Exception {
         addDomain("sports", bundle("api", "rego"));
         ResourceContext ctx = createResourceContext(principal("sports", "svc"));

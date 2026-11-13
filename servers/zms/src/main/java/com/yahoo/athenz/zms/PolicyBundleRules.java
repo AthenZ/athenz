@@ -192,7 +192,6 @@ public class PolicyBundleRules {
         Set<String> paths = new HashSet<>();
         long bundleSize = 0;
         int policyFiles = 0;
-        int schemaFiles = 0;
 
         for (PolicyBundleFile file : files) {
 
