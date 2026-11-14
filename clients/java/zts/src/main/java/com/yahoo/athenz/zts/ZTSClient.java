@@ -131,6 +131,9 @@ public class ZTSClient implements Closeable {
 
     private volatile DPoPKeyProvider dpopKeyProvider = null;
     private volatile boolean dpopAllowBearerFallback = false;
+
+    // identifies the prefetch jobs scheduled by this client
+    private final Object prefetchOwner = new Object();
     private DPoPRequestInterceptor dpopRequestInterceptor = null;
     // binding of the token request running on this thread. it is static since
     // prefetch clients reuse a custom generated client whose interceptor is
@@ -207,9 +210,9 @@ public class ZTSClient implements Closeable {
     static AtomicLong FETCHER_LAST_RUN_AT = new AtomicLong(-1);
     static final ClientKeyRefresherListener KEY_REFRESHER_LISTENER = new ClientKeyRefresherListener();
 
-    // last DPoP key thumbprint used with each ssl context. tracked per context
-    // since prefetch tasks create new clients that share the same context
-    static final Map<SSLContext, String> DPOP_SSL_CONTEXT_THUMBPRINTS = Collections.synchronizedMap(new WeakHashMap<>());
+    // DPoP keys used with each ssl context. tracked per context since
+    // prefetch tasks create new clients that share the same context
+    static final Map<SSLContext, DPoPSslContextKeys> DPOP_SSL_CONTEXT_KEYS = new WeakHashMap<>();
 
     // allows outside implementations to get role tokens for special environments - ex. hadoop
     
@@ -719,11 +722,15 @@ public class ZTSClient implements Closeable {
     /**
      * Request DPoP-bound access tokens (RFC 9449) signed with the key pair
      * returned by the provider. The provider is called for every request so
-     * it can rotate keys. Pass null to disable DPoP.
+     * it can rotate keys. Pass null to disable DPoP. Changing the provider
+     * cancels the access token prefetch jobs scheduled with the previous one.
      * @param dpopKeyProvider DPoP key provider
      */
     public void setDPoPKeyProvider(DPoPKeyProvider dpopKeyProvider) {
-        this.dpopKeyProvider = dpopKeyProvider;
+        if (this.dpopKeyProvider != dpopKeyProvider) {
+            this.dpopKeyProvider = dpopKeyProvider;
+            cancelAccessTokenPrefetch();
+        }
     }
 
     /**
@@ -745,10 +752,41 @@ public class ZTSClient implements Closeable {
      * If DPoP is configured and the server returns a bearer token (e.g. the server
      * does not support or has not enabled DPoP), the client by default throws an
      * exception. When fallback is enabled, the bearer token is returned instead.
+     * Changing the setting cancels the access token prefetch jobs scheduled
+     * with the previous one.
      * @param allowBearerFallback true to accept bearer tokens for DPoP requests
      */
     public void setDPoPAllowBearerFallback(boolean allowBearerFallback) {
-        this.dpopAllowBearerFallback = allowBearerFallback;
+        if (this.dpopAllowBearerFallback != allowBearerFallback) {
+            this.dpopAllowBearerFallback = allowBearerFallback;
+            cancelAccessTokenPrefetch();
+        }
+    }
+
+    /**
+     * Access token prefetch jobs keep the DPoP settings they were scheduled with,
+     * so once the settings change they would keep requesting tokens nobody uses,
+     * and keep the retired keys, next to the jobs scheduled with the new settings.
+     * Jobs shared with other clients that still use those settings are kept.
+     */
+    void cancelAccessTokenPrefetch() {
+        PREFETCH_SCHEDULED_ITEMS.removeIf(item -> item.tokenType == TokenType.ACCESS
+                && item.owners.remove(prefetchOwner) && item.owners.isEmpty());
+    }
+
+    /**
+     * Replace any scheduled job matching the item but keep the clients that
+     * scheduled it, so cancelling one client's jobs leaves them to the others
+     */
+    void schedulePrefetchItem(PrefetchTokenScheduledItem item) {
+        item.owners.add(prefetchOwner);
+        for (PrefetchTokenScheduledItem scheduledItem : PREFETCH_SCHEDULED_ITEMS) {
+            if (scheduledItem.equals(item)) {
+                item.owners.addAll(scheduledItem.owners);
+            }
+        }
+        PREFETCH_SCHEDULED_ITEMS.remove(item);
+        PREFETCH_SCHEDULED_ITEMS.add(item);
     }
 
     KeyPair getDPoPKeyPair() {
@@ -762,37 +800,70 @@ public class ZTSClient implements Closeable {
      * while caching it under another key's thumbprint
      */
     DPoPBinding getDPoPBinding() {
-        final DPoPBinding binding = new DPoPBinding(getDPoPKeyPair(), dpopAllowBearerFallback);
-        if (binding.isEnabled()) {
-            invalidateTlsSessionsOnDPoPKeyChange(binding.getThumbprint());
-        }
-        return binding;
+        return new DPoPBinding(getDPoPKeyPair(), dpopAllowBearerFallback);
+    }
+
+    /**
+     * DPoP keys used with an ssl context: the current key and the key it replaced.
+     * Guarded by DPOP_SSL_CONTEXT_KEYS.
+     */
+    static final class DPoPSslContextKeys {
+        String currentThumbprint;
+        String retiredThumbprint;
     }
 
     /**
      * New connections resume cached TLS sessions, so after the identity key
      * and certificate are rotated ZTS would keep seeing the old certificate
      * while proofs are signed with the new key, which fails the server's
-     * certificate key match check. When the DPoP key used with the ssl context
-     * changes we drop its cached sessions so the next handshake presents the
-     * current certificate.
+     * certificate key match check. When the key changes we drop the sessions
+     * whose client certificate doesn't have the new key. Connections that were
+     * resuming an old session at that time can still cache a new session with
+     * the old certificate, so every token request also drops sessions with the
+     * retired key before it is sent.
      */
-    void invalidateTlsSessionsOnDPoPKeyChange(final String thumbprint) {
+    void invalidateStaleTlsSessions(final String thumbprint) {
         if (sslContext == null) {
             return;
         }
-        if (!thumbprint.equals(DPOP_SSL_CONTEXT_THUMBPRINTS.put(sslContext, thumbprint))) {
-            invalidateSessions(sslContext.getClientSessionContext());
+        final boolean keyChanged;
+        final String retiredThumbprint;
+        synchronized (DPOP_SSL_CONTEXT_KEYS) {
+            final DPoPSslContextKeys keys = DPOP_SSL_CONTEXT_KEYS.computeIfAbsent(sslContext,
+                    context -> new DPoPSslContextKeys());
+            keyChanged = !thumbprint.equals(keys.currentThumbprint);
+            if (keyChanged) {
+                keys.retiredThumbprint = keys.currentThumbprint;
+                keys.currentThumbprint = thumbprint;
+            }
+            retiredThumbprint = keys.retiredThumbprint;
+        }
+        if (keyChanged || retiredThumbprint != null) {
+            invalidateSessions(sslContext.getClientSessionContext(), thumbprint, keyChanged, retiredThumbprint);
         }
     }
 
-    static void invalidateSessions(SSLSessionContext sessionContext) {
+    static void invalidateSessions(SSLSessionContext sessionContext, final String thumbprint,
+            boolean keyChanged, final String retiredThumbprint) {
         final Enumeration<byte[]> sessionIds = sessionContext.getIds();
         while (sessionIds.hasMoreElements()) {
             final SSLSession session = sessionContext.getSession(sessionIds.nextElement());
-            if (session != null) {
+            if (session == null || session.getLocalCertificates() == null) {
+                continue;
+            }
+            final String sessionThumbprint = localCertificateThumbprint(session);
+            if (keyChanged ? !thumbprint.equals(sessionThumbprint) : retiredThumbprint.equals(sessionThumbprint)) {
                 session.invalidate();
             }
+        }
+    }
+
+    static String localCertificateThumbprint(SSLSession session) {
+        try {
+            return DPoPProof.computeJwkThumbprint(session.getLocalCertificates()[0].getPublicKey());
+        } catch (RuntimeException ex) {
+            // not an EC or RSA key so it can't be a DPoP key
+            return null;
         }
     }
 
@@ -813,6 +884,9 @@ public class ZTSClient implements Closeable {
 
     AccessTokenResponse postAccessTokenRequest(final String requestBody, DPoPBinding dpopBinding)
             throws URISyntaxException, IOException {
+        if (dpopBinding.isEnabled()) {
+            invalidateStaleTlsSessions(dpopBinding.getThumbprint());
+        }
         REQUEST_DPOP_BINDING.set(dpopBinding);
         try {
             return ztsClient.postAccessTokenRequest(requestBody);
@@ -2642,9 +2716,13 @@ public class ZTSClient implements Closeable {
                 .setScope(scope)
                 .setState(state)
                 .setFullArn(fullArn)
-                .setNotificationSender(notificationSender)
-                .setDPoPKeyProvider(dpopKeyProvider)
-                .setDPoPAllowBearerFallback(dpopAllowBearerFallback);
+                .setNotificationSender(notificationSender);
+
+        // only access tokens are dpop bound
+
+        if (tokenType == TokenType.ACCESS) {
+            item.setDPoPKeyProvider(dpopKeyProvider).setDPoPAllowBearerFallback(dpopAllowBearerFallback);
+        }
         
         // include our zts client only if it was overridden by
         // the caller (most likely for unit test mock)
@@ -2660,8 +2738,7 @@ public class ZTSClient implements Closeable {
         // method defines what attributes we're looking for
         // when comparing two items.
 
-        PREFETCH_SCHEDULED_ITEMS.remove(item);
-        PREFETCH_SCHEDULED_ITEMS.add(item);
+        schedulePrefetchItem(item);
 
         startPrefetch();
         return true;
@@ -2694,9 +2771,13 @@ public class ZTSClient implements Closeable {
                 .setSiaIdentityProvider(siaProvider)
                 .setSslContext(sslContext)
                 .setProxyUrl(proxyUrl)
-                .setNotificationSender(notificationSender)
-                .setDPoPKeyProvider(dpopKeyProvider)
-                .setDPoPAllowBearerFallback(dpopAllowBearerFallback);
+                .setNotificationSender(notificationSender);
+
+        // only access tokens are dpop bound
+
+        if (tokenType == TokenType.ACCESS) {
+            item.setDPoPKeyProvider(dpopKeyProvider).setDPoPAllowBearerFallback(dpopAllowBearerFallback);
+        }
 
         // include our zts client only if it was overridden by
         // the caller (most likely for unit test mock)
@@ -2712,8 +2793,7 @@ public class ZTSClient implements Closeable {
         // method defines what attributes we're looking for
         // when comparing two items.
 
-        PREFETCH_SCHEDULED_ITEMS.remove(item);
-        PREFETCH_SCHEDULED_ITEMS.add(item);
+        schedulePrefetchItem(item);
 
         startPrefetch();
         return true;
@@ -2746,9 +2826,13 @@ public class ZTSClient implements Closeable {
                 .setSiaIdentityProvider(siaProvider)
                 .setSslContext(sslContext)
                 .setProxyUrl(proxyUrl)
-                .setNotificationSender(notificationSender)
-                .setDPoPKeyProvider(dpopKeyProvider)
-                .setDPoPAllowBearerFallback(dpopAllowBearerFallback);
+                .setNotificationSender(notificationSender);
+
+        // only access tokens are dpop bound
+
+        if (tokenType == TokenType.ACCESS) {
+            item.setDPoPKeyProvider(dpopKeyProvider).setDPoPAllowBearerFallback(dpopAllowBearerFallback);
+        }
 
         // include our zts client only if it was overridden by
         // the caller (most likely for unit test mock)
@@ -2764,8 +2848,7 @@ public class ZTSClient implements Closeable {
         // method defines what attributes we're looking for
         // when comparing two items.
 
-        PREFETCH_SCHEDULED_ITEMS.remove(item);
-        PREFETCH_SCHEDULED_ITEMS.add(item);
+        schedulePrefetchItem(item);
 
         startPrefetch();
         return true;
@@ -4430,6 +4513,9 @@ public class ZTSClient implements Closeable {
             return this;
         }
         
+        // clients that scheduled this job, not part of the item's identity
+        final Set<Object> owners = ConcurrentHashMap.newKeySet();
+
         boolean isInvalid = false;
         PrefetchTokenScheduledItem setIsInvalid(boolean invalid) {
             isInvalid = invalid;

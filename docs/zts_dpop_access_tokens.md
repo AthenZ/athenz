@@ -478,9 +478,13 @@ Behavior once a key is configured:
   per token request. The proof, the cache key and the token type check all
   use that one key, so rotating keys mid-request can't cache a token under
   another key's thumbprint. When the key changes, the client also drops the
-  TLS sessions cached in its `SSLContext`. Otherwise new connections would
-  resume a session authenticated with the old certificate, and
-  `dpop_require_cert_key_match` would reject proofs signed with the new key.
+  TLS sessions cached in its `SSLContext` whose client certificate has a
+  different key. Otherwise new connections would resume a session
+  authenticated with the old certificate, and `dpop_require_cert_key_match`
+  would reject proofs signed with the new key. A connection that was resuming
+  an old session during the rotation can still cache a new session with the
+  old certificate, so every token request also drops sessions with the
+  replaced key before it is sent.
 - **No disk tokens.** Access tokens that SIA wrote to disk are bearer tokens, so
   they are skipped when DPoP is configured.
 - **Fail closed.** If the server returns any `token_type` other than `DPoP`
@@ -491,7 +495,12 @@ Behavior once a key is configured:
   `getJAGToken` and the ID token returned by the ID token exchange are exempt
   from this check since they're never DPoP bound.
 - **Prefetch.** Prefetched tokens use the same key provider as the client that
-  scheduled them.
+  scheduled them. Calling `setDPoPKey`, `setDPoPKeyProvider` or
+  `setDPoPAllowBearerFallback` with a new value cancels the client's access
+  token prefetch jobs for the old settings, unless another client with those
+  settings still uses the job. The next token request schedules a job with
+  the new settings. Clients that call `prefetchAccessToken` themselves, with
+  automatic prefetch disabled, need to call it again.
 - **Custom clients.** If you replace the generated client with
   `setZTSRDLGeneratedClient(...)`, register the interceptor on your own
   Apache HttpClient 5 client, built with the same `SSLContext` you passed to

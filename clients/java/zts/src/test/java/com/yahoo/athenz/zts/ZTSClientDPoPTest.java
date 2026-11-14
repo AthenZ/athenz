@@ -23,6 +23,7 @@ import com.yahoo.athenz.auth.token.DPoPProof;
 import com.yahoo.athenz.auth.token.DPoPProofOptions;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.mockito.AdditionalMatchers;
 import org.mockito.Mockito;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -36,9 +37,15 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.security.spec.ECGenParameterSpec;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.yahoo.athenz.zts.AccessTokenTestFileHelper.setupTokenFile;
@@ -521,61 +528,167 @@ public class ZTSClientDPoPTest {
         client.close();
     }
 
+    /**
+     * Client session cache that removes invalidated sessions like the jdk cache
+     */
+    private static final class SessionCache {
+
+        final SSLSessionContext context = Mockito.mock(SSLSessionContext.class);
+        final Map<Byte, SSLSession> sessions = new LinkedHashMap<>();
+        private byte nextId = 0;
+
+        SessionCache() {
+            Mockito.when(context.getIds()).thenAnswer(invocation -> {
+                List<byte[]> ids = new ArrayList<>();
+                for (Byte id : sessions.keySet()) {
+                    ids.add(new byte[] { id });
+                }
+                // an id whose session was removed while we iterate
+                ids.add(new byte[] { -1 });
+                return Collections.enumeration(ids);
+            });
+            Mockito.when(context.getSession(AdditionalMatchers.aryEq(new byte[] { -1 }))).thenReturn(null);
+        }
+
+        SSLSession add(PublicKey certKey) {
+            final byte id = nextId++;
+            SSLSession session = Mockito.mock(SSLSession.class);
+            if (certKey != null) {
+                X509Certificate cert = Mockito.mock(X509Certificate.class);
+                Mockito.when(cert.getPublicKey()).thenReturn(certKey);
+                Mockito.when(session.getLocalCertificates()).thenReturn(new Certificate[] { cert });
+            }
+            Mockito.doAnswer(invocation -> sessions.remove(id)).when(session).invalidate();
+            Mockito.when(context.getSession(AdditionalMatchers.aryEq(new byte[] { id })))
+                    .thenAnswer(invocation -> sessions.get(id));
+            sessions.put(id, session);
+            return session;
+        }
+
+        boolean contains(SSLSession session) {
+            return sessions.containsValue(session);
+        }
+    }
+
     @Test
-    public void testDPoPKeyChangeInvalidatesTlsSessions() {
+    public void testDPoPTokenRequestsInvalidateStaleTlsSessions() throws Exception {
 
-        final AtomicInteger invalidations = new AtomicInteger();
-        SSLSession session = Mockito.mock(SSLSession.class);
-        Mockito.doAnswer(invocation -> invalidations.incrementAndGet()).when(session).invalidate();
-
-        final byte[] sessionId = {1};
-        final byte[] removedSessionId = {2};
-        SSLSessionContext sessionContext = Mockito.mock(SSLSessionContext.class);
-        Mockito.when(sessionContext.getIds())
-                .thenAnswer(invocation -> Collections.enumeration(List.of(sessionId, removedSessionId)));
-        Mockito.when(sessionContext.getSession(sessionId)).thenReturn(session);
-        Mockito.when(sessionContext.getSession(removedSessionId)).thenReturn(null);
-
+        SessionCache cache = new SessionCache();
         SSLContext sslContext = Mockito.mock(SSLContext.class);
-        Mockito.when(sslContext.getClientSessionContext()).thenReturn(sessionContext);
+        Mockito.when(sslContext.getClientSessionContext()).thenReturn(cache.context);
 
+        ZTSRDLGeneratedClient rdlClient = Mockito.mock(ZTSRDLGeneratedClient.class);
+        Mockito.when(rdlClient.postAccessTokenRequest(CORETECH_REQUEST)).thenReturn(tokenResponse("dpop-token", "DPoP"));
         ZTSClient client = new ZTSClient(ZTS_URL, sslContext);
-        client.getDPoPBinding();
-        assertEquals(invalidations.get(), 0);
+        client.setZTSRDLGeneratedClient(rdlClient);
 
-        // the first key used with the ssl context drops sessions created before dpop was enabled
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("Ed25519");
+        final PublicKey unsupportedKey = generator.generateKeyPair().getPublic();
+
+        // bearer requests leave the sessions alone
+
+        SSLSession sessionA = cache.add(dpopKey.getPublic());
+        SSLSession noClientCert = cache.add(null);
+        SSLSession unsupported = cache.add(unsupportedKey);
+        client.postAccessTokenRequest(CORETECH_REQUEST, client.getDPoPBinding());
+        assertEquals(cache.sessions.size(), 3);
+
+        // the first key used with the ssl context drops sessions with other client certificates
 
         client.setDPoPKey(dpopKey.getPrivate(), dpopKey.getPublic());
-        client.getDPoPBinding();
-        assertEquals(invalidations.get(), 1);
-        client.getDPoPBinding();
-        assertEquals(invalidations.get(), 1);
-
-        // prefetch clients sharing the ssl context and key keep the sessions
-
-        ZTSClient prefetchClient = new ZTSClient(ZTS_URL, sslContext);
-        prefetchClient.setDPoPKey(dpopKey.getPrivate(), dpopKey.getPublic());
-        prefetchClient.getDPoPBinding();
-        assertEquals(invalidations.get(), 1);
+        client.postAccessTokenRequest(CORETECH_REQUEST, client.getDPoPBinding());
+        assertTrue(cache.contains(sessionA));
+        assertTrue(cache.contains(noClientCert));
+        assertFalse(cache.contains(unsupported));
 
         // a rotated key drops the sessions authenticated with the old certificate
 
         client.setDPoPKey(otherKey.getPrivate(), otherKey.getPublic());
-        client.getDPoPBinding();
-        assertEquals(invalidations.get(), 2);
-        client.getDPoPBinding();
-        assertEquals(invalidations.get(), 2);
+        client.postAccessTokenRequest(CORETECH_REQUEST, client.getDPoPBinding());
+        assertFalse(cache.contains(sessionA));
+        assertTrue(cache.contains(noClientCert));
+
+        // a connection that was resuming an old session during the rotation
+        // caches a new session with the old certificate. the next request from
+        // any client sharing the ssl context drops it before it is sent
+
+        SSLSession sessionB = cache.add(otherKey.getPublic());
+        SSLSession lateSessionA = cache.add(dpopKey.getPublic());
+        SSLSession lateUnsupported = cache.add(unsupportedKey);
+        ZTSClient prefetchClient = new ZTSClient(ZTS_URL, sslContext);
+        prefetchClient.setZTSRDLGeneratedClient(rdlClient);
+        prefetchClient.setDPoPKey(otherKey.getPrivate(), otherKey.getPublic());
+        prefetchClient.postAccessTokenRequest(CORETECH_REQUEST, prefetchClient.getDPoPBinding());
+        assertFalse(cache.contains(lateSessionA));
+        assertTrue(cache.contains(sessionB));
+        assertTrue(cache.contains(noClientCert));
+        assertTrue(cache.contains(lateUnsupported));
 
         prefetchClient.close();
         client.close();
     }
 
     @Test
-    public void testDPoPBindingWithoutSslContext() {
+    public void testDPoPSettingsChangeCancelsPrefetchJobs() {
+
+        ZTSClient.cancelPrefetch();
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder
+                .newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .domainName("coretech").expiryTime(3600);
+        final long expiry = System.currentTimeMillis() / 1000 + 3600;
 
         ZTSClient client = createClient(Mockito.mock(ZTSRDLGeneratedClient.class));
+        ZTSClient otherClient = createClient(Mockito.mock(ZTSRDLGeneratedClient.class));
+
+        // both clients use the same provider so they share one access token job
+
+        DPoPKeyProvider sharedProvider = () -> dpopKey;
+        client.setDPoPKeyProvider(sharedProvider);
+        otherClient.setDPoPKeyProvider(sharedProvider);
+        assertTrue(client.prefetchToken(builder, expiry, ZTSClient.TokenType.ACCESS));
+        assertTrue(otherClient.prefetchToken(builder, expiry, ZTSClient.TokenType.ACCESS));
+        assertTrue(client.prefetchToken("coretech", "readers", null, 900, 3600, null, null, null, null,
+                null, null, null, null, null, null, expiry, ZTSClient.TokenType.ROLE));
+        assertEquals(client.getScheduledItemsSize(), 2);
+
+        // a rotated key leaves the shared job to the other client
+
+        client.setDPoPKey(otherKey.getPrivate(), otherKey.getPublic());
+        assertEquals(client.getScheduledItemsSize(), 2);
+        assertTrue(client.prefetchToken(builder, expiry, ZTSClient.TokenType.ACCESS));
+        assertEquals(client.getScheduledItemsSize(), 3);
+
+        // rotating again cancels the job for the retired key instead of adding another one
+
         client.setDPoPKey(dpopKey.getPrivate(), dpopKey.getPublic());
-        assertTrue(client.getDPoPBinding().isEnabled());
+        assertEquals(client.getScheduledItemsSize(), 2);
+        assertTrue(client.prefetchToken(builder, expiry, ZTSClient.TokenType.ACCESS));
+        assertEquals(client.getScheduledItemsSize(), 3);
+
+        // clearing the provider stops the proofs for the client's jobs only
+
+        client.setDPoPKeyProvider(null);
+        assertEquals(client.getScheduledItemsSize(), 2);
+        otherClient.setDPoPKeyProvider(null);
+        assertEquals(client.getScheduledItemsSize(), 1);
+
+        // the role token job doesn't use dpop and still matches the client's requests
+
+        assertTrue(client.prefetchToken("coretech", "readers", null, 900, 3600, null, null, null, null,
+                null, null, null, null, null, null, expiry, ZTSClient.TokenType.ROLE));
+        assertEquals(client.getScheduledItemsSize(), 1);
+
+        // changing the bearer fallback cancels the access token jobs as well
+
+        assertTrue(client.prefetchToken(builder, expiry, ZTSClient.TokenType.ACCESS));
+        assertEquals(client.getScheduledItemsSize(), 2);
+        client.setDPoPAllowBearerFallback(false);
+        assertEquals(client.getScheduledItemsSize(), 2);
+        client.setDPoPAllowBearerFallback(true);
+        assertEquals(client.getScheduledItemsSize(), 1);
+
+        ZTSClient.cancelPrefetch();
+        otherClient.close();
         client.close();
     }
 
