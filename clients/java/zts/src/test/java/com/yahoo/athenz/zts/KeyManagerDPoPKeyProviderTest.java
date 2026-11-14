@@ -18,6 +18,10 @@ package com.yahoo.athenz.zts;
 import com.oath.auth.KeyManagerProxy;
 import com.oath.auth.KeyRefresher;
 import com.oath.auth.Utils;
+import com.sun.net.httpserver.HttpsConfigurator;
+import com.sun.net.httpserver.HttpsExchange;
+import com.sun.net.httpserver.HttpsParameters;
+import com.sun.net.httpserver.HttpsServer;
 import com.yahoo.athenz.auth.token.DPoPProof;
 import com.yahoo.athenz.auth.token.DPoPProofOptions;
 import com.yahoo.athenz.auth.util.Crypto;
@@ -32,9 +36,16 @@ import org.testng.annotations.Test;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509KeyManager;
 import java.io.File;
 import java.math.BigInteger;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyPair;
@@ -44,6 +55,8 @@ import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.ECGenParameterSpec;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
@@ -322,6 +335,93 @@ public class KeyManagerDPoPKeyProviderTest {
         } finally {
             System.clearProperty("athenz.cert_refresher.tls_algorithm");
         }
+    }
+
+    private static final TrustManager[] TRUST_ALL = { new X509ExtendedTrustManager() {
+        public void checkClientTrusted(X509Certificate[] chain, String authType) { }
+        public void checkServerTrusted(X509Certificate[] chain, String authType) { }
+        public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) { }
+        public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) { }
+        public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine) { }
+        public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine) { }
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+        }
+    } };
+
+    /**
+     * Token endpoint that requires the DPoP proof key to be the key of the
+     * client certificate on the TLS connection the request arrived on, like
+     * ZTS with athenz.zts.dpop_require_cert_key_match enabled
+     */
+    private static HttpsServer startCertKeyMatchTokenServer(List<String> peerThumbprints) throws Exception {
+
+        SSLContext serverContext = SSLContext.getInstance("TLS");
+        serverContext.init(identityKeyManagers(), TRUST_ALL, null);
+        HttpsServer server = HttpsServer.create(new InetSocketAddress("localhost", 0), 0);
+        server.setHttpsConfigurator(new HttpsConfigurator(serverContext) {
+            @Override
+            public void configure(HttpsParameters params) {
+                SSLParameters sslParameters = serverContext.getDefaultSSLParameters();
+                sslParameters.setWantClientAuth(true);
+                params.setSSLParameters(sslParameters);
+            }
+        });
+        final String htu = "https://localhost:" + server.getAddress().getPort() + "/zts/v1/oauth2/token";
+        final DPoPProofOptions options = DPoPProofOptions.builder().addAllowedHtu(htu).build();
+        server.createContext("/zts/v1/oauth2/token", exchange -> {
+            exchange.getRequestBody().readAllBytes();
+            final PublicKey peerKey = ((HttpsExchange) exchange).getSSLSession().getPeerCertificates()[0].getPublicKey();
+            final String peerThumbprint = DPoPProof.computeJwkThumbprint(peerKey);
+            peerThumbprints.add(peerThumbprint);
+            final String proofThumbprint = new DPoPProof(exchange.getRequestHeaders().getFirst(DPoPProof.HTTP_HEADER),
+                    "POST", options, System.currentTimeMillis() / 1000).getJwkThumbprint();
+            final int status = proofThumbprint.equals(peerThumbprint) ? 200 : 400;
+            final byte[] body = (status == 200
+                    ? "{\"access_token\":\"token-" + proofThumbprint + "\",\"token_type\":\"DPoP\",\"expires_in\":3600}"
+                    : "{\"code\":400,\"message\":\"invalid_dpop_proof: proof key does not match certificate key\"}")
+                    .getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", "application/json");
+            exchange.sendResponseHeaders(status, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        server.start();
+        return server;
+    }
+
+    @Test
+    public void testZTSClientIdentityKeyRotationOverTls() throws Exception {
+
+        // after the identity key and certificate are rotated, requests must not
+        // reach the server over a connection or resumed session authenticated
+        // with the old certificate while the proof is signed with the new key
+
+        final List<String> peerThumbprints = new CopyOnWriteArrayList<>();
+        HttpsServer server = startCertKeyMatchTokenServer(peerThumbprints);
+
+        KeyManagerProxy keyManagerProxy = new KeyManagerProxy(identityKeyManagers());
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(new KeyManager[] { keyManagerProxy }, TRUST_ALL, null);
+
+        final String identityThumbprint = DPoPProof.computeJwkThumbprint(certPublicKey(IDENTITY_CERT));
+        final String rotatedThumbprint = DPoPProof.computeJwkThumbprint(certPublicKey(ROTATED_CERT));
+
+        try (ZTSClient client = new ZTSClient("https://localhost:" + server.getAddress().getPort(), sslContext)) {
+            client.setDPoPKeyProvider(new KeyManagerDPoPKeyProvider(keyManagerProxy));
+
+            assertEquals(client.getAccessToken("coretech", null, 3600).getAccess_token(), "token-" + identityThumbprint);
+            assertEquals(client.getAccessToken("sports", null, 3600).getAccess_token(), "token-" + identityThumbprint);
+
+            keyManagerProxy.setKeyManager(Utils.getKeyManagers(ROTATED_CERT, ROTATED_KEY));
+
+            assertEquals(client.getAccessToken("coretech", null, 3600).getAccess_token(), "token-" + rotatedThumbprint);
+            assertEquals(client.getAccessToken("weather", null, 3600).getAccess_token(), "token-" + rotatedThumbprint);
+        } finally {
+            server.stop(0);
+        }
+        assertEquals(peerThumbprints, List.of(identityThumbprint, identityThumbprint,
+                rotatedThumbprint, rotatedThumbprint));
     }
 
     @Test

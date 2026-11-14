@@ -16,9 +16,11 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -450,6 +452,41 @@ func TestZtsClientWithDPoPRejectsBearerToken(t *testing.T) {
 	}
 	if resp.Token_type != DPoPTokenType {
 		t.Errorf("token_type: got %s, want %s", resp.Token_type, DPoPTokenType)
+	}
+}
+
+func TestDPoPTransportRejectsTokenEndpointRedirect(t *testing.T) {
+	t.Parallel()
+
+	// the generated client follows redirects, and the redirect target is not the
+	// token endpoint, so it would get neither a proof nor response verification
+	for _, status := range []int{http.StatusMovedPermanently, http.StatusFound, http.StatusSeeOther,
+		http.StatusTemporaryRedirect, http.StatusPermanentRedirect} {
+		t.Run(http.StatusText(status), func(t *testing.T) {
+			t.Parallel()
+			var redirectedCalls atomic.Int32
+			mux := http.NewServeMux()
+			mux.HandleFunc("/zts/v1/oauth2/token", func(w http.ResponseWriter, r *http.Request) {
+				http.Redirect(w, r, "/zts/v1/token-v2", status)
+			})
+			mux.HandleFunc("/zts/v1/token-v2", func(w http.ResponseWriter, r *http.Request) {
+				redirectedCalls.Add(1)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{"access_token":"a","token_type":"Bearer","expires_in":3600}`))
+			})
+			server := httptest.NewServer(mux)
+			defer server.Close()
+
+			ztsURL := server.URL + "/zts/v1"
+			client := zts.NewClient(ztsURL, NewDPoPTransport(nil, newECSigner(t, elliptic.P256()), ztsURL))
+			resp, err := client.PostAccessTokenRequest(zts.AccessTokenRequest("grant_type=client_credentials&scope=coretech%3Adomain"))
+			if err == nil || !strings.Contains(err.Error(), "dpop: token endpoint redirect") {
+				t.Fatalf("want redirect error, got response %+v, err %v", resp, err)
+			}
+			if got := redirectedCalls.Load(); got != 0 {
+				t.Errorf("redirect target called %d times, want 0", got)
+			}
+		})
 	}
 }
 

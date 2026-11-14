@@ -180,6 +180,44 @@ public class ZTSClientDPoPTest {
     }
 
     @Test
+    public void testPrefetchWithCustomClientDPoPKeySampledOncePerRequest() throws Exception {
+
+        // prefetch runs a new client with the caller's custom generated client whose
+        // interceptor is bound to the caller's client. the proof must still use the
+        // key sampled by the prefetch client so the token is cached under that key
+
+        final String[] proofThumbprint = new String[1];
+        ZTSRDLGeneratedClient rdlClient = Mockito.mock(ZTSRDLGeneratedClient.class);
+        ZTSClient client = createClient(rdlClient);
+        DPoPRequestInterceptor interceptor = new DPoPRequestInterceptor(PROOF_ZTS_URL, client::getRequestDPoPKeyPair);
+        Mockito.when(rdlClient.postAccessTokenRequest(CORETECH_REQUEST)).thenAnswer(invocation -> {
+            BasicHttpRequest post = new BasicHttpRequest("POST", "/zts/v1/oauth2/token");
+            interceptor.process(post, null, null);
+            proofThumbprint[0] = proofThumbprint(post.getFirstHeader(DPoPProof.HTTP_HEADER).getValue());
+            return tokenResponse("dpop-token", "DPoP");
+        });
+
+        DPoPKeyProvider provider = rotatingProvider(dpopKey, otherKey);
+        client.setDPoPKeyProvider(provider);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user", "auth_creds", principalAuthority);
+        ZTSClient prefetchClient = new ZTSClient(ZTS_URL, principal);
+        prefetchClient.setDPoPKeyProvider(provider);
+        ZTSClient.PrefetchTokenScheduledItem item = new ZTSClient.PrefetchTokenScheduledItem()
+                .setTokenType(ZTSClient.TokenType.ACCESS).setDomainName("coretech").setMaxDuration(3600)
+                .setZtsClient(rdlClient);
+        ZTSClient.processPrefetchTask(item, prefetchClient, null, System.currentTimeMillis() / 1000);
+
+        final String dpopKeyThumbprint = DPoPProof.computeJwkThumbprint(dpopKey.getPublic());
+        assertEquals(proofThumbprint[0], dpopKeyThumbprint);
+        final String baseKey = prefetchClient.getAccessTokenCacheKey("coretech", null, null, null, null, null);
+        assertEquals(ZTSClient.ACCESS_TOKEN_CACHE.keySet(), Collections.singleton(baseKey + ";j=" + dpopKeyThumbprint));
+
+        prefetchClient.close();
+        client.close();
+    }
+
+    @Test
     public void testGetAccessTokenDPoPKeyRemovedDuringRequest() throws Exception {
 
         // a provider that stops returning a key after the request started must

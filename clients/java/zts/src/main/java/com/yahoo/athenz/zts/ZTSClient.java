@@ -132,7 +132,10 @@ public class ZTSClient implements Closeable {
     private volatile DPoPKeyProvider dpopKeyProvider = null;
     private volatile boolean dpopAllowBearerFallback = false;
     private DPoPRequestInterceptor dpopRequestInterceptor = null;
-    private final ThreadLocal<DPoPBinding> requestDPoPBinding = new ThreadLocal<>();
+    // binding of the token request running on this thread. it is static since
+    // prefetch clients reuse a custom generated client whose interceptor is
+    // bound to the client that created it
+    private static final ThreadLocal<DPoPBinding> REQUEST_DPOP_BINDING = new ThreadLocal<>();
     private X509KeyManager identityKeyManager = null;
 
     private static final String OAUTH_JAG_TOKEN_TYPE = "urn:ietf:params:oauth:token-type:id-jag";
@@ -804,17 +807,17 @@ public class ZTSClient implements Closeable {
      * @return key pair to sign the proof with, or null if DPoP is disabled
      */
     public KeyPair getRequestDPoPKeyPair() {
-        final DPoPBinding binding = requestDPoPBinding.get();
+        final DPoPBinding binding = REQUEST_DPOP_BINDING.get();
         return binding != null ? binding.keyPair : getDPoPKeyPair();
     }
 
     AccessTokenResponse postAccessTokenRequest(final String requestBody, DPoPBinding dpopBinding)
             throws URISyntaxException, IOException {
-        requestDPoPBinding.set(dpopBinding);
+        REQUEST_DPOP_BINDING.set(dpopBinding);
         try {
             return ztsClient.postAccessTokenRequest(requestBody);
         } finally {
-            requestDPoPBinding.remove();
+            REQUEST_DPOP_BINDING.remove();
         }
     }
 

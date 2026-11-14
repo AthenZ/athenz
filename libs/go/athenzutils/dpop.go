@@ -156,7 +156,8 @@ func dpopSignatureAlgorithm(pub crypto.PublicKey) (jose.SignatureAlgorithm, erro
 // to every POST request sent to the ZTS token endpoint and fails closed: a
 // successful token endpoint response that does not carry a DPoP-bound token
 // (other than an ID-JAG or an ID token) is rejected with an error wrapping
-// ErrDPoPTokenNotIssued. Other requests are passed through unchanged.
+// ErrDPoPTokenNotIssued, and token endpoint redirects are rejected. Other
+// requests are passed through unchanged.
 type DPoPTransport struct {
 	base   http.RoundTripper
 	signer crypto.Signer
@@ -197,6 +198,11 @@ func (t *DPoPTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	resp, err := t.base.RoundTrip(clone)
 	if err != nil {
 		return nil, err
+	}
+	// a followed redirect would reach a url without a proof or response verification
+	if resp.StatusCode >= 300 && resp.StatusCode <= 399 {
+		_ = resp.Body.Close() // the response is discarded
+		return nil, fmt.Errorf("dpop: token endpoint redirect (status %d) not allowed", resp.StatusCode)
 	}
 	if err := verifyDPoPTokenResponse(resp); err != nil {
 		return nil, err

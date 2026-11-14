@@ -507,6 +507,14 @@ Behavior once a key is configured:
   ztsClient.setZTSRDLGeneratedClient(new ZTSRDLGeneratedClient(ztsClient.getZTSUrl(), httpClient));
   ```
 
+  Prefetch reuses this client, and its proofs use the key sampled by the
+  prefetch request. The default HttpClient 5 setup doesn't reuse mTLS
+  connections across requests, since each pooled connection is tagged with
+  the client certificate's principal. If you turn reuse on (for example with
+  `disableConnectionState()`), close idle connections after the identity key
+  rotates. Otherwise requests keep using connections authenticated with the
+  old certificate.
+
 To generate proofs for resource server calls, `DPoPProof.generate(...)` in
 auth_core accepts the access token and adds the `ath` claim:
 
@@ -537,7 +545,9 @@ if err != nil {
 - `DPoPTransport` fails closed. If a successful token endpoint response has a
   `token_type` other than `DPoP`, the request fails with an error wrapping
   `ErrDPoPTokenNotIssued`, so the bearer token never reaches the caller. ID-JAG
-  responses are exempt, and error responses are passed through unchanged.
+  and ID token responses are exempt, and error responses are passed through
+  unchanged. Redirects from the token endpoint fail the request, since the
+  redirected request would carry no proof and its response wouldn't be checked.
   `VerifyDPoPTokenType(tokenType)` applies the same check to a token type you
   got some other way.
 - `ZtsClientWithDPoP(ztsURL, keyFile, certFile, caCertFile, dpopKeyFile, proxy)`
