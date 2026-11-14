@@ -35,6 +35,7 @@ type OpenIDConfig Struct {
     Array<String> subject_types_supported; //list of supported subject identifier types
     Array<String> id_token_signing_alg_values_supported; //list of supported algorithms for issued id tokens
     Array<String> claims_supported (optional); //list of supported id claims
+    Array<String> dpop_signing_alg_values_supported (optional); //list of supported DPoP proof JWS algorithms
 }
 
 type OAuthConfig Struct {
@@ -46,6 +47,7 @@ type OAuthConfig Struct {
     Array<String> response_types_supported; //list of supported response types
     Array<String> grant_types_supported; //supported grant types
     Array<String> token_endpoint_auth_signing_alg_values_supported; //list of supported algorithms for issued access tokens
+    Array<String> dpop_signing_alg_values_supported (optional); //list of supported DPoP proof JWS algorithms
 }
 
 //JSON Web Key (JWK) List

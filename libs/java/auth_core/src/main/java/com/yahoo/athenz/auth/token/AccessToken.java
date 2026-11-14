@@ -49,6 +49,7 @@ public class AccessToken extends OAuth2Token {
     public static final String CLAIM_RESOURCE = "resource";
 
     public static final String CLAIM_CONFIRM_X509_HASH = "x5t#S256";
+    public static final String CLAIM_CONFIRM_JWK_THUMBPRINT = "jkt";
     public static final String CLAIM_CONFIRM_PROXY_SPIFFE = "proxy-principals#spiffe";
 
     private static final Logger LOG = LoggerFactory.getLogger(AccessToken.class);
@@ -322,6 +323,23 @@ public class AccessToken extends OAuth2Token {
 
     public void setConfirmX509CertHash(X509Certificate cert) {
         setConfirmEntry(CLAIM_CONFIRM_X509_HASH, getX509CertificateHash(cert));
+    }
+
+    /**
+     * Bind the token to a DPoP public key (RFC 9449 section 6)
+     *
+     * @param jkt RFC 7638 SHA-256 thumbprint of the DPoP public key
+     */
+    public void setConfirmJwkThumbprint(final String jkt) {
+        setConfirmEntry(CLAIM_CONFIRM_JWK_THUMBPRINT, jkt);
+    }
+
+    /**
+     * @return the DPoP jwk thumbprint (cnf.jkt) or null if the token is not DPoP bound
+     */
+    public String getConfirmJwkThumbprint() {
+        Object value = getConfirmEntry(CLAIM_CONFIRM_JWK_THUMBPRINT);
+        return value instanceof String ? (String) value : null;
     }
 
     public void setConfirmProxyPrincipalSpiffeUris(List<String> proxyPrincipalSpiffeUris) {

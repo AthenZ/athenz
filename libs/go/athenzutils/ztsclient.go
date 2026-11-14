@@ -63,6 +63,30 @@ func ZtsClient(ztsURL, keyFile, certFile, caCertFile string, proxy bool) (*zts.Z
 	return &client, nil
 }
 
+// ZtsClientWithDPoP creates a ZTS client like ZtsClient whose access token
+// requests carry a DPoP proof signed with the key in dpopKeyFile. When
+// dpopKeyFile is empty, the service identity key in keyFile is used. Token
+// responses that are not DPoP-bound are rejected with ErrDPoPTokenNotIssued.
+func ZtsClientWithDPoP(ztsURL, keyFile, certFile, caCertFile, dpopKeyFile string, proxy bool) (*zts.ZTSClient, error) {
+	client, err := ZtsClient(ztsURL, keyFile, certFile, caCertFile, proxy)
+	if err != nil {
+		return nil, err
+	}
+	if dpopKeyFile == "" {
+		dpopKeyFile = keyFile
+	}
+	keyPEM, err := os.ReadFile(dpopKeyFile)
+	if err != nil {
+		return nil, err
+	}
+	signer, _, err := ExtractSignerInfo(keyPEM)
+	if err != nil {
+		return nil, fmt.Errorf("unable to load dpop key: %w", err)
+	}
+	client.Transport = NewDPoPTransport(client.Transport, signer, ztsURL)
+	return client, nil
+}
+
 // GenerateAccessTokenRequestString generates and urlencodes an access token string.
 func GenerateAccessTokenRequestString(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris, proxyForPrincipal string, expiryTime int) string {
 

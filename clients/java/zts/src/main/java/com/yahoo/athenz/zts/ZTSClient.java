@@ -24,8 +24,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.*;
@@ -41,6 +43,7 @@ import com.oath.auth.KeyRefresher;
 import com.oath.auth.KeyRefresherException;
 import com.oath.auth.KeyRefresherListener;
 import com.oath.auth.Utils;
+import com.yahoo.athenz.auth.token.DPoPProof;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
 import org.apache.hc.client5.http.HttpRequestRetryStrategy;
 import org.apache.hc.client5.http.config.ConnectionConfig;
@@ -58,6 +61,7 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.bouncycastle.asn1.DERIA5String;
@@ -125,6 +129,17 @@ public class ZTSClient implements Closeable {
     private boolean enablePrefetch = true;
     private boolean ztsClientOverride = false;
 
+    private volatile DPoPKeyProvider dpopKeyProvider = null;
+    private volatile boolean dpopAllowBearerFallback = false;
+    private DPoPRequestInterceptor dpopRequestInterceptor = null;
+    // binding of the token request running on this thread. it is static since
+    // prefetch clients reuse a custom generated client whose interceptor is
+    // bound to the client that created it
+    private static final ThreadLocal<DPoPBinding> REQUEST_DPOP_BINDING = new ThreadLocal<>();
+    private X509KeyManager identityKeyManager = null;
+
+    private static final String OAUTH_JAG_TOKEN_TYPE = "urn:ietf:params:oauth:token-type:id-jag";
+
     @SuppressWarnings("unused")
     static private boolean initialized = initConfigValues();
     
@@ -191,6 +206,10 @@ public class ZTSClient implements Closeable {
     private static final Object TIMER_LOCK = new Object();
     static AtomicLong FETCHER_LAST_RUN_AT = new AtomicLong(-1);
     static final ClientKeyRefresherListener KEY_REFRESHER_LISTENER = new ClientKeyRefresherListener();
+
+    // last DPoP key thumbprint used with each ssl context. tracked per context
+    // since prefetch tasks create new clients that share the same context
+    static final Map<SSLContext, String> DPOP_SSL_CONTEXT_THUMBPRINTS = Collections.synchronizedMap(new WeakHashMap<>());
 
     // allows outside implementations to get role tokens for special environments - ex. hadoop
     
@@ -503,6 +522,49 @@ public class ZTSClient implements Closeable {
         this.proxyUrl = proxyUrl;
         initClient(ztsUrl, null, null, null, null);
     }
+
+    /**
+     * Constructs a new ZTSClient object that authenticates with the service
+     * identity key and x.509 certificate managed by the given key refresher.
+     * The SSLContext is built from the key refresher's key and trust manager
+     * proxies, so refreshed keys and certificates are used for new connections,
+     * and enableDPoPWithIdentityKey() can sign DPoP proofs with the same key.
+     * The caller remains responsible for starting and shutting down the key
+     * refresher. Default read and connect timeout values are 30000ms (30sec).
+     * The application can change these values by using the
+     * athenz.zts.client.read_timeout and athenz.zts.client.connect_timeout
+     * system properties. The values specified for timeouts must be in milliseconds.
+     * @param ztsUrl ZTS Server's URL (optional)
+     * @param keyRefresher key refresher that manages the service's private key and x.509 certificate
+     */
+    public ZTSClient(String ztsUrl, KeyRefresher keyRefresher) {
+        this(ztsUrl, null, keyRefresher);
+    }
+
+    /**
+     * Constructs a new ZTSClient object that authenticates with the service
+     * identity key and x.509 certificate managed by the given key refresher
+     * through the specified Proxy URL. See ZTSClient(String, KeyRefresher).
+     * @param ztsUrl ZTS Server's URL
+     * @param proxyUrl Proxy Server's URL
+     * @param keyRefresher key refresher that manages the service's private key and x.509 certificate
+     */
+    public ZTSClient(String ztsUrl, String proxyUrl, KeyRefresher keyRefresher) {
+        this(ztsUrl, proxyUrl, buildSSLContext(keyRefresher));
+        this.identityKeyManager = keyRefresher.getKeyManagerProxy();
+    }
+
+    static SSLContext buildSSLContext(KeyRefresher keyRefresher) {
+
+        if (keyRefresher == null || keyRefresher.getKeyManagerProxy() == null) {
+            throw new IllegalArgumentException("KeyRefresher object with a key manager must be specified");
+        }
+        try {
+            return Utils.buildSSLContext(keyRefresher.getKeyManagerProxy(), keyRefresher.getTrustManagerProxy());
+        } catch (KeyRefresherException ex) {
+            throw new IllegalArgumentException("Unable to create SSLContext from KeyRefresher: " + ex.getMessage(), ex);
+        }
+    }
     
     /**
      * Constructs a new ZTSClient object with the given service details
@@ -639,6 +701,165 @@ public class ZTSClient implements Closeable {
 
     public void setZTSClientCache(ZTSClientCache ztsClientCache) {
         this.ztsClientCache = ztsClientCache;
+    }
+
+    /**
+     * Request DPoP-bound access tokens (RFC 9449) signed with the given key pair.
+     * Every access token request will include a freshly generated DPoP proof
+     * and the client will reject bearer tokens returned by the server unless
+     * bearer fallback is enabled with setDPoPAllowBearerFallback.
+     * @param privateKey private key used to sign the DPoP proofs
+     * @param publicKey public key matching the private key
+     */
+    public void setDPoPKey(final PrivateKey privateKey, final PublicKey publicKey) {
+        final KeyPair keyPair = new KeyPair(publicKey, privateKey);
+        setDPoPKeyProvider(() -> keyPair);
+    }
+
+    /**
+     * Request DPoP-bound access tokens (RFC 9449) signed with the key pair
+     * returned by the provider. The provider is called for every request so
+     * it can rotate keys. Pass null to disable DPoP.
+     * @param dpopKeyProvider DPoP key provider
+     */
+    public void setDPoPKeyProvider(DPoPKeyProvider dpopKeyProvider) {
+        this.dpopKeyProvider = dpopKeyProvider;
+    }
+
+    /**
+     * Request DPoP-bound access tokens (RFC 9449) signed with the service
+     * identity key used for the client's mTLS connections. The proof key
+     * follows the key refresher, so refreshed keys are used without any
+     * additional configuration and the proof key always matches the client
+     * certificate key. Only available for clients created with a KeyRefresher.
+     * @throws IllegalStateException if the client was not created with a KeyRefresher
+     */
+    public void enableDPoPWithIdentityKey() {
+        if (identityKeyManager == null) {
+            throw new IllegalStateException("DPoP with the identity key requires a ZTSClient created with a KeyRefresher");
+        }
+        setDPoPKeyProvider(new KeyManagerDPoPKeyProvider(identityKeyManager));
+    }
+
+    /**
+     * If DPoP is configured and the server returns a bearer token (e.g. the server
+     * does not support or has not enabled DPoP), the client by default throws an
+     * exception. When fallback is enabled, the bearer token is returned instead.
+     * @param allowBearerFallback true to accept bearer tokens for DPoP requests
+     */
+    public void setDPoPAllowBearerFallback(boolean allowBearerFallback) {
+        this.dpopAllowBearerFallback = allowBearerFallback;
+    }
+
+    KeyPair getDPoPKeyPair() {
+        final DPoPKeyProvider provider = dpopKeyProvider;
+        return provider == null ? null : provider.getKeyPair();
+    }
+
+    /**
+     * Sample the key provider and fallback setting once per token request so
+     * a key rotation during the request cannot bind the token to one key
+     * while caching it under another key's thumbprint
+     */
+    DPoPBinding getDPoPBinding() {
+        final DPoPBinding binding = new DPoPBinding(getDPoPKeyPair(), dpopAllowBearerFallback);
+        if (binding.isEnabled()) {
+            invalidateTlsSessionsOnDPoPKeyChange(binding.getThumbprint());
+        }
+        return binding;
+    }
+
+    /**
+     * New connections resume cached TLS sessions, so after the identity key
+     * and certificate are rotated ZTS would keep seeing the old certificate
+     * while proofs are signed with the new key, which fails the server's
+     * certificate key match check. When the DPoP key used with the ssl context
+     * changes we drop its cached sessions so the next handshake presents the
+     * current certificate.
+     */
+    void invalidateTlsSessionsOnDPoPKeyChange(final String thumbprint) {
+        if (sslContext == null) {
+            return;
+        }
+        if (!thumbprint.equals(DPOP_SSL_CONTEXT_THUMBPRINTS.put(sslContext, thumbprint))) {
+            invalidateSessions(sslContext.getClientSessionContext());
+        }
+    }
+
+    static void invalidateSessions(SSLSessionContext sessionContext) {
+        final Enumeration<byte[]> sessionIds = sessionContext.getIds();
+        while (sessionIds.hasMoreElements()) {
+            final SSLSession session = sessionContext.getSession(sessionIds.nextElement());
+            if (session != null) {
+                session.invalidate();
+            }
+        }
+    }
+
+    /**
+     * Key pair the DPoPRequestInterceptor must sign the proof with: the key
+     * sampled for the token request running on this thread, or the provider's
+     * current key for requests sent outside of getAccessToken / getToken.
+     * Clients that replace the generated client with setZTSRDLGeneratedClient
+     * must pass this method (ztsClient::getRequestDPoPKeyPair) to their
+     * DPoPRequestInterceptor so the proof key always matches the key the
+     * token is cached under.
+     * @return key pair to sign the proof with, or null if DPoP is disabled
+     */
+    public KeyPair getRequestDPoPKeyPair() {
+        final DPoPBinding binding = REQUEST_DPOP_BINDING.get();
+        return binding != null ? binding.keyPair : getDPoPKeyPair();
+    }
+
+    AccessTokenResponse postAccessTokenRequest(final String requestBody, DPoPBinding dpopBinding)
+            throws URISyntaxException, IOException {
+        REQUEST_DPOP_BINDING.set(dpopBinding);
+        try {
+            return ztsClient.postAccessTokenRequest(requestBody);
+        } finally {
+            REQUEST_DPOP_BINDING.remove();
+        }
+    }
+
+    /**
+     * Bearer and DPoP-bound tokens must never share a cache entry, and tokens
+     * bound to different keys must not be shared either, so we include the
+     * key thumbprint in the cache key when DPoP is configured. Clients with
+     * bearer fallback may cache bearer tokens so they get their own entries
+     * to keep those tokens away from clients that require DPoP-bound tokens.
+     */
+    static String getDPoPCacheKey(final String cacheKey, DPoPBinding dpopBinding) {
+        if (cacheKey == null || !dpopBinding.isEnabled()) {
+            return cacheKey;
+        }
+        final String dpopCacheKey = cacheKey + ";j=" + dpopBinding.getThumbprint();
+        return dpopBinding.allowBearerFallback ? dpopCacheKey + ";fb" : dpopCacheKey;
+    }
+
+    static boolean isNonDPoPTokenForDPoPRequest(AccessTokenResponse accessTokenResponse, DPoPBinding dpopBinding) {
+
+        // the ID-JAG returned by the token exchange is an assertion for another
+        // authorization server and the ID token returned by the ID token exchange
+        // is not an access token, so neither is ever DPoP bound
+
+        return accessTokenResponse != null && dpopBinding.isEnabled()
+                && !OAUTH_JAG_TOKEN_TYPE.equals(accessTokenResponse.getIssued_token_type())
+                && !OAuthTokenRequestBuilder.OAUTH_TOKEN_TYPE_ID.equals(accessTokenResponse.getIssued_token_type())
+                && !DPoPProof.TOKEN_TYPE.equalsIgnoreCase(accessTokenResponse.getToken_type());
+    }
+
+    static void verifyDPoPTokenType(AccessTokenResponse accessTokenResponse, DPoPBinding dpopBinding) {
+
+        if (!isNonDPoPTokenForDPoPRequest(accessTokenResponse, dpopBinding)) {
+            return;
+        }
+        if (dpopBinding.allowBearerFallback) {
+            LOG.warn("DPoP-bound token requested but server returned token type: {}",
+                    accessTokenResponse.getToken_type());
+            return;
+        }
+        throw new ZTSClientException(ClientResourceException.BAD_REQUEST,
+                "DPoP-bound token requested but server returned token type: " + accessTokenResponse.getToken_type());
     }
 
     /**
@@ -784,12 +1005,15 @@ public class ZTSClient implements Closeable {
         RequestConfig config = RequestConfig.custom()
                 .setRedirectsEnabled(false)
                 .build();
-        return HttpClients.custom()
+        HttpClientBuilder builder = HttpClients.custom()
                 .setConnectionManager(poolingHttpClientConnectionManager)
                 .setDefaultRequestConfig(config)
                 .setRetryStrategy(retryStrategy)
-                .setProxy(proxy)
-                .build();
+                .setProxy(proxy);
+        if (dpopRequestInterceptor != null) {
+            builder.addRequestInterceptorLast(dpopRequestInterceptor);
+        }
+        return builder.build();
     }
 
     private void initClient(final String serverUrl, Principal identity, final String domainName,
@@ -828,6 +1052,11 @@ public class ZTSClient implements Closeable {
         }
 
         // determine our read and connect timeouts
+
+        // the dpop interceptor is always installed but only adds a proof
+        // once the caller configures a dpop key provider
+
+        dpopRequestInterceptor = new DPoPRequestInterceptor(ztsUrl, this::getRequestDPoPKeyPair);
 
         PoolingHttpClientConnectionManager connManager = createConnectionManager(sslContext, hostnameVerifier);
         CloseableHttpClient httpClient = createHttpClient(proxyUrl, connManager);
@@ -1382,16 +1611,17 @@ public class ZTSClient implements Closeable {
             boolean ignoreCache) {
 
         AccessTokenResponse accessTokenResponse = null;
+        final DPoPBinding dpopBinding = getDPoPBinding();
 
         // first lookup in our cache to see if it can be satisfied
         // only if we're not asked to ignore the cache
 
         String cacheKey = null;
         if (!cacheDisabled) {
-            cacheKey = getAccessTokenCacheKey(domainName, roleNames, idTokenServiceName,
-                    proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris);
+            cacheKey = getDPoPCacheKey(getAccessTokenCacheKey(domainName, roleNames, idTokenServiceName,
+                    proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris), dpopBinding);
             if (cacheKey != null && !ignoreCache) {
-                accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, expiryTime);
+                accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, expiryTime, dpopBinding);
                 if (accessTokenResponse != null) {
                     return accessTokenResponse;
                 }
@@ -1400,7 +1630,7 @@ public class ZTSClient implements Closeable {
                     if (prefetchAccessToken(domainName, roleNames, idTokenServiceName,
                             proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris,
                             clientAssertionType, clientAssertion, expiryTime, openIdIssuer)) {
-                        accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, expiryTime);
+                        accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, expiryTime, dpopBinding);
                     }
                     if (accessTokenResponse != null) {
                         return accessTokenResponse;
@@ -1410,9 +1640,11 @@ public class ZTSClient implements Closeable {
             }
         }
 
-        // if no hit then we need to look up in disk
+        // if no hit then we need to look up in disk. tokens on disk are
+        // bearer tokens so we skip the lookup if dpop is configured
+
         try {
-            if (ztsAccessTokenFileLoader != null) {
+            if (ztsAccessTokenFileLoader != null && !dpopBinding.isEnabled()) {
                 accessTokenResponse = ztsAccessTokenFileLoader.lookupAccessTokenFromDisk(domainName, roleNames);
             }
         } catch (IOException ex) {
@@ -1429,13 +1661,13 @@ public class ZTSClient implements Closeable {
                         clientAssertionType, clientAssertion, expiryTime, openIdIssuer);
                 if (cacheKey != null) {
                     accessTokenResponse = ACCESS_TOKEN_FLIGHT.execute(cacheKey,
-                            () -> ztsClient.postAccessTokenRequest(requestBody));
+                            () -> postAccessTokenRequest(requestBody, dpopBinding));
                 } else {
-                    accessTokenResponse = ztsClient.postAccessTokenRequest(requestBody);
+                    accessTokenResponse = postAccessTokenRequest(requestBody, dpopBinding);
                 }
             } catch (ClientResourceException ex) {
                 if (cacheKey != null && !ignoreCache) {
-                    accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1);
+                    accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1, dpopBinding);
                     if (accessTokenResponse != null) {
                         return accessTokenResponse;
                     }
@@ -1443,13 +1675,14 @@ public class ZTSClient implements Closeable {
                 throw new ZTSClientException(ex.getCode(), ex.getData());
             } catch (Exception ex) {
                 if (cacheKey != null && !ignoreCache) {
-                    accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1);
+                    accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1, dpopBinding);
                     if (accessTokenResponse != null) {
                         return accessTokenResponse;
                     }
                 }
                 throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
             }
+            verifyDPoPTokenType(accessTokenResponse, dpopBinding);
         }
 
         // need to add the token to our cache. If our principal was
@@ -1457,8 +1690,8 @@ public class ZTSClient implements Closeable {
 
         if (!cacheDisabled) {
             if (cacheKey == null) {
-                cacheKey = getAccessTokenCacheKey(domainName, roleNames, idTokenServiceName,
-                        proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris);
+                cacheKey = getDPoPCacheKey(getAccessTokenCacheKey(domainName, roleNames, idTokenServiceName,
+                        proxyForPrincipal, authorizationDetails, proxyPrincipalSpiffeUris), dpopBinding);
             }
             if (cacheKey != null) {
                 ACCESS_TOKEN_CACHE.put(cacheKey, new AccessTokenResponseCacheEntry(accessTokenResponse));
@@ -1554,22 +1787,23 @@ public class ZTSClient implements Closeable {
     AccessTokenResponse getToken(OAuthTokenRequestBuilder builder, boolean dontCache, boolean ignoreCache) {
 
         AccessTokenResponse accessTokenResponse = null;
+        final DPoPBinding dpopBinding = getDPoPBinding();
 
         // first lookup in our cache to see if it can be satisfied
         // only if we're not asked to ignore the cache
 
         String cacheKey = null;
         if (!cacheDisabled && !dontCache) {
-            cacheKey = builder.getCacheKey(domain, service, sslContext);
+            cacheKey = getDPoPCacheKey(builder.getCacheKey(domain, service, sslContext), dpopBinding);
             if (cacheKey != null && !ignoreCache) {
-                accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, builder.expiryTime);
+                accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, builder.expiryTime, dpopBinding);
                 if (accessTokenResponse != null) {
                     return accessTokenResponse;
                 }
                 // start prefetch for this token if prefetch is enabled
                 if (enablePrefetch && prefetchAutoEnable) {
                     if (prefetchToken(builder)) {
-                        accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, builder.expiryTime);
+                        accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, builder.expiryTime, dpopBinding);
                     }
                     if (accessTokenResponse != null) {
                         return accessTokenResponse;
@@ -1579,9 +1813,11 @@ public class ZTSClient implements Closeable {
             }
         }
 
-        // if no hit then we need to look up in disk
+        // if no hit then we need to look up in disk. tokens on disk are
+        // bearer tokens so we skip the lookup if dpop is configured
+
         try {
-            if (ztsAccessTokenFileLoader != null) {
+            if (ztsAccessTokenFileLoader != null && !dpopBinding.isEnabled()) {
                 accessTokenResponse = ztsAccessTokenFileLoader.lookupAccessTokenFromDisk(builder.domainName, builder.roleNames);
             }
         } catch (IOException ex) {
@@ -1593,10 +1829,10 @@ public class ZTSClient implements Closeable {
         if (accessTokenResponse == null) {
             updateServicePrincipal();
             try {
-                accessTokenResponse = ztsClient.postAccessTokenRequest(builder.getRequestBody());
+                accessTokenResponse = postAccessTokenRequest(builder.getRequestBody(), dpopBinding);
             } catch (ClientResourceException ex) {
                 if (cacheKey != null && !ignoreCache) {
-                    accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1);
+                    accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1, dpopBinding);
                     if (accessTokenResponse != null) {
                         return accessTokenResponse;
                     }
@@ -1604,13 +1840,14 @@ public class ZTSClient implements Closeable {
                 throw new ZTSClientException(ex.getCode(), ex.getData());
             } catch (Exception ex) {
                 if (cacheKey != null && !ignoreCache) {
-                    accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1);
+                    accessTokenResponse = lookupAccessTokenResponseInCache(cacheKey, -1, dpopBinding);
                     if (accessTokenResponse != null) {
                         return accessTokenResponse;
                     }
                 }
                 throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
             }
+            verifyDPoPTokenType(accessTokenResponse, dpopBinding);
         }
 
         // need to add the token to our cache. If our principal was
@@ -1618,7 +1855,7 @@ public class ZTSClient implements Closeable {
 
         if (!cacheDisabled && !dontCache) {
             if (cacheKey == null) {
-                cacheKey = builder.getCacheKey(domain, service, sslContext);
+                cacheKey = getDPoPCacheKey(builder.getCacheKey(domain, service, sslContext), dpopBinding);
             }
             if (cacheKey != null) {
                 ACCESS_TOKEN_CACHE.put(cacheKey, new AccessTokenResponseCacheEntry(accessTokenResponse));
@@ -1931,6 +2168,8 @@ public class ZTSClient implements Closeable {
                 client = new ZTSClient(item.providedZTSUrl, item.proxyUrl, item.identityDomain,
                         item.identityName, item.siaProvider);
             }
+            client.setDPoPKeyProvider(item.dpopKeyProvider);
+            client.setDPoPAllowBearerFallback(item.dpopAllowBearerFallback);
             return client;
         }
 
@@ -2403,7 +2642,9 @@ public class ZTSClient implements Closeable {
                 .setScope(scope)
                 .setState(state)
                 .setFullArn(fullArn)
-                .setNotificationSender(notificationSender);
+                .setNotificationSender(notificationSender)
+                .setDPoPKeyProvider(dpopKeyProvider)
+                .setDPoPAllowBearerFallback(dpopAllowBearerFallback);
         
         // include our zts client only if it was overridden by
         // the caller (most likely for unit test mock)
@@ -2453,7 +2694,9 @@ public class ZTSClient implements Closeable {
                 .setSiaIdentityProvider(siaProvider)
                 .setSslContext(sslContext)
                 .setProxyUrl(proxyUrl)
-                .setNotificationSender(notificationSender);
+                .setNotificationSender(notificationSender)
+                .setDPoPKeyProvider(dpopKeyProvider)
+                .setDPoPAllowBearerFallback(dpopAllowBearerFallback);
 
         // include our zts client only if it was overridden by
         // the caller (most likely for unit test mock)
@@ -2503,7 +2746,9 @@ public class ZTSClient implements Closeable {
                 .setSiaIdentityProvider(siaProvider)
                 .setSslContext(sslContext)
                 .setProxyUrl(proxyUrl)
-                .setNotificationSender(notificationSender);
+                .setNotificationSender(notificationSender)
+                .setDPoPKeyProvider(dpopKeyProvider)
+                .setDPoPAllowBearerFallback(dpopAllowBearerFallback);
 
         // include our zts client only if it was overridden by
         // the caller (most likely for unit test mock)
@@ -2740,7 +2985,7 @@ public class ZTSClient implements Closeable {
         return roleToken;
     }
 
-    AccessTokenResponse lookupAccessTokenResponseInCache(String cacheKey, long expiryTime) {
+    AccessTokenResponse lookupAccessTokenResponseInCache(String cacheKey, long expiryTime, DPoPBinding dpopBinding) {
 
         AccessTokenResponseCacheEntry accessTokenResponseCacheEntry = ACCESS_TOKEN_CACHE.get(cacheKey);
         if (accessTokenResponseCacheEntry == null) {
@@ -2762,7 +3007,17 @@ public class ZTSClient implements Closeable {
             return null;
         }
 
-        return accessTokenResponseCacheEntry.accessTokenResponse();
+        // cache hits and stale responses on errors bypass the token type
+        // verification so we must never return a non-DPoP token to a client
+        // that requires DPoP-bound tokens
+
+        final AccessTokenResponse accessTokenResponse = accessTokenResponseCacheEntry.accessTokenResponse();
+        if (!dpopBinding.allowBearerFallback && isNonDPoPTokenForDPoPRequest(accessTokenResponse, dpopBinding)) {
+            LOG.error("LookupAccessTokenResponseInCache: cache-lookup key: {} ignoring cached token type: {}",
+                    cacheKey, accessTokenResponse.getToken_type());
+            return null;
+        }
+        return accessTokenResponse;
     }
 
     AWSTemporaryCredentials lookupAwsCredInCache(String cacheKey, Integer minExpiryTime,
@@ -4271,6 +4526,18 @@ public class ZTSClient implements Closeable {
             return this;
         }
 
+        DPoPKeyProvider dpopKeyProvider = null;
+        PrefetchTokenScheduledItem setDPoPKeyProvider(DPoPKeyProvider dpopKeyProvider) {
+            this.dpopKeyProvider = dpopKeyProvider;
+            return this;
+        }
+
+        boolean dpopAllowBearerFallback = false;
+        PrefetchTokenScheduledItem setDPoPAllowBearerFallback(boolean dpopAllowBearerFallback) {
+            this.dpopAllowBearerFallback = dpopAllowBearerFallback;
+            return this;
+        }
+
         long lastFailTime = 0;
         PrefetchTokenScheduledItem setLastFailTime(long time) {
             lastFailTime = time;
@@ -4358,6 +4625,8 @@ public class ZTSClient implements Closeable {
             result = prime * result + ((keyType == null) ? 0 : keyType.hashCode());
             result = prime * result + ((fullArn == null) ? 0 : fullArn.hashCode());
             result = prime * result + ((oauthBuilder == null) ? 0 : oauthBuilder.hashCode());
+            result = prime * result + ((dpopKeyProvider == null) ? 0 : dpopKeyProvider.hashCode());
+            result = prime * result + Boolean.hashCode(dpopAllowBearerFallback);
             result = prime * result + ((idBuilder == null) ? 0 : idBuilder.hashCode());
             result = prime * result + tokenType.hashCode();
             result = prime * result + Boolean.hashCode(isInvalid);
@@ -4493,6 +4762,12 @@ public class ZTSClient implements Closeable {
                 return false;
             }
             if (tokenType != other.tokenType) {
+                return false;
+            }
+            if (!Objects.equals(dpopKeyProvider, other.dpopKeyProvider)) {
+                return false;
+            }
+            if (dpopAllowBearerFallback != other.dpopAllowBearerFallback) {
                 return false;
             }
             if (sslContext == null) {

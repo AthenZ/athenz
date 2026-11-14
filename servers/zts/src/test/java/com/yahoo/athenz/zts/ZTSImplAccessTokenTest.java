@@ -32,6 +32,7 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.yahoo.athenz.auth.*;
 import com.yahoo.athenz.auth.impl.*;
 import com.yahoo.athenz.auth.token.AccessToken;
+import com.yahoo.athenz.auth.token.DPoPProof;
 import com.yahoo.athenz.auth.token.OAuth2Token;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
@@ -74,12 +75,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.ECGenParameterSpec;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.*;
@@ -5941,8 +5945,13 @@ public class ZTSImplAccessTokenTest {
     }
 
     // Helper method to create a signed OAuth2Token for actor token
-    private String createActorToken(PrivateKey privateKey, String keyId, String subject, 
+    private String createActorToken(PrivateKey privateKey, String keyId, String subject,
                 String audience, long expiryTime) {
+        return createActorToken(privateKey, keyId, subject, audience, expiryTime, null);
+    }
+
+    private String createActorToken(PrivateKey privateKey, String keyId, String subject,
+                String audience, long expiryTime, Map<String, Object> confirm) {
         try {
             JWSSigner signer = JwtsHelper.getJWSSigner(privateKey);
             long now = System.currentTimeMillis() / 1000;
@@ -5954,6 +5963,7 @@ public class ZTSImplAccessTokenTest {
                     .audience(audience)
                     .claim("ver", 1)
                     .claim("auth_time", now)
+                    .claim("cnf", confirm)
                     .build();
             SignedJWT signedJWT = new SignedJWT(
                     new JWSHeader.Builder(JWSAlgorithm.ES256)
@@ -6796,6 +6806,113 @@ public class ZTSImplAccessTokenTest {
         }
 
         cloudStore.close();
+    }
+
+    private AccessTokenResponse processDPoPActorTokenDelegation(Map<String, Object> actorConfirm,
+            final String requestJkt) {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(new File("./src/test/resources/unit_test_zts_private_ec.pem"));
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user",
+                "sourcedomain", List.of("targetdomain:role.writers"), "user_domain.proxy-user1", null, expiryTime);
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1",
+                "targetdomain", expiryTime, actorConfirm);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(getServerPublicKeyProvider(privateKey));
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&actor_token=" + actorTokenStr
+                + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+        accessTokenRequest.setDPoPJwkThumbprint(requestJkt);
+
+        try {
+            return ztsImpl.processAccessTokenDelegationRequest(createResourceContext(principal), principal,
+                    accessTokenRequest.getActorTokenObj(), accessTokenRequest, "user_domain", "postAccessTokenRequest");
+        } finally {
+            cloudStore.close();
+        }
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestDPoPBoundActorTokenWithoutProof() {
+
+        try {
+            processDPoPActorTokenDelegation(Map.of("jkt", "actor-key-jkt"), null);
+            fail("DPoP-bound actor token must not be accepted without a proof");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("DPoP proof key does not match actor token cnf.jkt"));
+        }
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestDPoPBoundActorTokenOtherKey() {
+
+        try {
+            processDPoPActorTokenDelegation(Map.of("jkt", "actor-key-jkt"), "attacker-key-jkt");
+            fail("DPoP-bound actor token must not be accepted with a proof from another key");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("DPoP proof key does not match actor token cnf.jkt"));
+        }
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestDPoPBoundActorTokenMatchingProof() throws Exception {
+
+        AccessTokenResponse response = processDPoPActorTokenDelegation(Map.of("jkt", "actor-key-jkt"), "actor-key-jkt");
+
+        assertEquals(response.getToken_type(), "DPoP");
+        JWTClaimsSet claimSet = SignedJWT.parse(response.getAccess_token()).getJWTClaimsSet();
+        assertEquals(claimSet.getJSONObjectClaim("cnf").get("jkt"), "actor-key-jkt");
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestCertBoundActorTokenNoProof() {
+
+        // the check only applies to the DPoP binding of the actor token
+
+        AccessTokenResponse response = processDPoPActorTokenDelegation(Map.of("x5t#S256", "cert-hash"), null);
+        assertEquals(response.getToken_type(), "Bearer");
+    }
+
+    @Test
+    public void testGetConfirmJwkThumbprint() {
+
+        OAuth2Token token = Mockito.mock(OAuth2Token.class);
+        Mockito.when(token.getClaim("cnf")).thenReturn(null);
+        assertNull(ZTSImpl.getConfirmJwkThumbprint(token));
+
+        Mockito.when(token.getClaim("cnf")).thenReturn("not-a-map");
+        assertNull(ZTSImpl.getConfirmJwkThumbprint(token));
+
+        Mockito.when(token.getClaim("cnf")).thenReturn(Map.of("x5t#S256", "cert-hash"));
+        assertNull(ZTSImpl.getConfirmJwkThumbprint(token));
+
+        Mockito.when(token.getClaim("cnf")).thenReturn(Map.of("jkt", "key-jkt"));
+        assertEquals(ZTSImpl.getConfirmJwkThumbprint(token), "key-jkt");
     }
 
     @Test
@@ -8679,6 +8796,562 @@ public class ZTSImplAccessTokenTest {
             assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
             assertTrue(ex.getMessage().contains("Authorized service principal forbidden for token exchange"));
         }
+
+        cloudStore.close();
+    }
+
+    // DPoP (RFC 9449) bound access token tests
+
+    private KeyPair dpopKeyPair() {
+        try {
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("EC");
+            generator.initialize(new ECGenParameterSpec("secp256r1"));
+            return generator.generateKeyPair();
+        } catch (Exception ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    private String dpopProof(KeyPair keyPair, final String htu) {
+        return DPoPProof.generate(keyPair.getPrivate(), keyPair.getPublic(), "POST", htu, null, null,
+                System.currentTimeMillis() / 1000);
+    }
+
+    private ZTSImpl createDPoPZtsImpl(CloudStore cloudStore) {
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+        System.setProperty(ZTSConsts.ZTS_PROP_DPOP_ENABLED, "true");
+        try {
+            return new ZTSImpl(cloudStore, store);
+        } finally {
+            System.clearProperty(ZTSConsts.ZTS_PROP_DPOP_ENABLED);
+            System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+        }
+    }
+
+    private ResourceContext createDPoPResourceContext(Principal principal, Map<String, Object> attributes,
+            String... proofs) {
+        return createDPoPResourceContextWithHost("athenz.io:4443", principal, attributes, proofs);
+    }
+
+    private ResourceContext createDPoPResourceContextWithHost(final String host, Principal principal,
+            Map<String, Object> attributes, String... proofs) {
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(request.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
+        Mockito.when(request.isSecure()).thenReturn(true);
+        Mockito.when(request.getMethod()).thenReturn("POST");
+        Mockito.when(request.getHeaders(DPoPProof.HTTP_HEADER))
+                .thenAnswer(invocation -> Collections.enumeration(Arrays.asList(proofs)));
+        Mockito.when(request.getHeader("Host")).thenReturn(host);
+        Mockito.doAnswer(invocation -> attributes.put(invocation.getArgument(0), invocation.getArgument(1)))
+                .when(request).setAttribute(Mockito.eq(REQUEST_URI_ADDL_QUERY), Mockito.anyString());
+
+        ServerResourceContext rsrcCtx = Mockito.mock(ServerResourceContext.class);
+        Mockito.when(rsrcCtx.principal()).thenReturn(principal);
+        Mockito.when(rsrcCtx.request()).thenReturn(request);
+
+        RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(RsrcCtxWrapper.class);
+        Mockito.when(rsrcCtxWrapper.context()).thenReturn(rsrcCtx);
+        Mockito.when(rsrcCtxWrapper.principal()).thenReturn(principal);
+        Mockito.when(rsrcCtxWrapper.request()).thenReturn(request);
+        Mockito.when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
+        Mockito.when(rsrcCtxWrapper.logPrincipal()).thenReturn(principal.getFullName());
+        Mockito.when(rsrcCtxWrapper.getPrincipalDomain()).thenReturn(principal.getDomain());
+        return rsrcCtxWrapper;
+    }
+
+    private JWTClaimsSet verifyAccessToken(ZTSImpl ztsImpl, final String accessToken) {
+        ServerPrivateKey serverPrivateKey = getServerPrivateKey(ztsImpl, ztsImpl.keyAlgoForJsonWebObjects);
+        try {
+            JWSVerifier verifier = JwtsHelper.getJWSVerifier(Crypto.extractPublicKey(serverPrivateKey.getKey()));
+            SignedJWT signedJWT = SignedJWT.parse(accessToken);
+            assertTrue(signedJWT.verify(verifier));
+            return signedJWT.getJWTClaimsSet();
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+            return null;
+        }
+    }
+
+    private Principal mtlsUserPrincipal() throws IOException {
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "x509-certificate-details", 0, new CertificateAuthority());
+        ((SimplePrincipal) principal).setX509Certificate(loadMtlsTokenSpecCertificate());
+        return principal;
+    }
+
+    private void assertInvalidDPoPProof(ZTSImpl ztsImpl, ResourceContext context, final String request,
+            final String reason) {
+        try {
+            ztsImpl.postAccessTokenRequest(context, request);
+            fail("expected invalid dpop proof: " + reason);
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("invalid_dpop_proof: " + reason), ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testPostAccessTokenRequestDPoPDisabledIgnoresHeader() throws IOException {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        assertNull(ztsImpl.dpopProofValidator);
+        assertNull(ztsImpl.openIDConfig.getDpop_signing_alg_values_supported());
+        assertNull(ztsImpl.oidcPortConfig.getDpop_signing_alg_values_supported());
+        assertNull(ztsImpl.oauthConfig.getDpop_signing_alg_values_supported());
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        // with the feature disabled even an invalid proof is ignored and a
+        // bearer token is issued (RFC 9449 section 5)
+
+        Map<String, Object> attributes = new HashMap<>();
+        ResourceContext context = createDPoPResourceContext(mtlsUserPrincipal(), attributes,
+                dpopProof(dpopKeyPair(), ztsImpl.ztsOpenIDIssuer + "/oauth2/token"), "invalid-proof");
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:domain");
+        assertEquals(resp.getToken_type(), "Bearer");
+
+        JWTClaimsSet claimSet = verifyAccessToken(ztsImpl, resp.getAccess_token());
+        Map<String, Object> cnf = (Map<String, Object>) claimSet.getClaim("cnf");
+        assertEquals(cnf, Map.of("x5t#S256", MTLS_TOKEN_SPEC_CERT_HASH));
+        assertFalse(((String) attributes.get(REQUEST_URI_ADDL_QUERY)).contains("dpop_jkt"));
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testPostAccessTokenRequestDPoPEnabledNoHeader() {
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = createDPoPZtsImpl(cloudStore);
+        assertNotNull(ztsImpl.dpopProofValidator);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        Map<String, Object> attributes = new HashMap<>();
+        ResourceContext context = createDPoPResourceContext(principal, attributes);
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:domain");
+        assertEquals(resp.getToken_type(), "Bearer");
+        assertEquals(resp.getScope(), "coretech:role.writers");
+
+        JWTClaimsSet claimSet = verifyAccessToken(ztsImpl, resp.getAccess_token());
+        assertEquals(claimSet.getSubject(), "user_domain.user");
+        assertEquals(claimSet.getAudience(), List.of("coretech"));
+        assertEquals(claimSet.getIssuer(), ztsImpl.ztsOAuthIssuer);
+        assertEquals(claimSet.getClaim("scope"), "writers");
+        assertNull(claimSet.getClaim("cnf"));
+        assertEquals(attributes.get(REQUEST_URI_ADDL_QUERY), "scope=coretech%3Adomain");
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testPostAccessTokenRequestDPoPWithCertificate() throws IOException {
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = createDPoPZtsImpl(cloudStore);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        KeyPair dpopKey = dpopKeyPair();
+        final String jkt = DPoPProof.computeJwkThumbprint(dpopKey.getPublic());
+        Map<String, Object> attributes = new HashMap<>();
+        ResourceContext context = createDPoPResourceContext(mtlsUserPrincipal(), attributes,
+                dpopProof(dpopKey, ztsImpl.ztsOpenIDIssuer + "/oauth2/token"));
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:domain");
+        assertEquals(resp.getToken_type(), "DPoP");
+
+        // the token is bound to both the certificate and the dpop key
+
+        JWTClaimsSet claimSet = verifyAccessToken(ztsImpl, resp.getAccess_token());
+        Map<String, Object> cnf = (Map<String, Object>) claimSet.getClaim("cnf");
+        assertEquals(cnf, Map.of("x5t#S256", MTLS_TOKEN_SPEC_CERT_HASH, "jkt", jkt));
+        assertEquals(attributes.get(REQUEST_URI_ADDL_QUERY), "scope=coretech%3Adomain&dpop_jkt=" + jkt);
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testPostAccessTokenRequestDPoPWithoutCertificate() {
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = createDPoPZtsImpl(cloudStore);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        KeyPair dpopKey = dpopKeyPair();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createDPoPResourceContext(principal, new HashMap<>(),
+                dpopProof(dpopKey, ztsImpl.ztsOpenIDIssuer + "/oauth2/token"));
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=coretech:domain");
+        assertEquals(resp.getToken_type(), "DPoP");
+
+        JWTClaimsSet claimSet = verifyAccessToken(ztsImpl, resp.getAccess_token());
+        Map<String, Object> cnf = (Map<String, Object>) claimSet.getClaim("cnf");
+        assertEquals(cnf, Map.of("jkt", DPoPProof.computeJwkThumbprint(dpopKey.getPublic())));
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testPostAccessTokenRequestDPoPOpenIdScope() {
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = createDPoPZtsImpl(cloudStore);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        KeyPair dpopKey = dpopKeyPair();
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        ResourceContext context = createDPoPResourceContext(principal, new HashMap<>(),
+                dpopProof(dpopKey, ztsImpl.ztsOpenIDIssuer + "/oauth2/token"));
+
+        final String scope = URLEncoder.encode("coretech:domain openid coretech:service.api", StandardCharsets.UTF_8);
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=client_credentials&scope=" + scope);
+        assertEquals(resp.getToken_type(), "DPoP");
+        assertNotNull(resp.getId_token());
+
+        // the access token is bound while the id token is not
+
+        JWTClaimsSet claimSet = verifyAccessToken(ztsImpl, resp.getAccess_token());
+        assertNotNull(claimSet.getClaim("cnf"));
+        JWTClaimsSet idClaimSet = verifyAccessToken(ztsImpl, resp.getId_token());
+        assertNull(idClaimSet.getClaim("cnf"));
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testPostAccessTokenRequestDPoPInvalidProof() {
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = createDPoPZtsImpl(cloudStore);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        Principal principal = SimplePrincipal.create("user_domain", "user",
+                "v=U1;d=user_domain;n=user;s=signature", 0, null);
+        KeyPair dpopKey = dpopKeyPair();
+        final String htu = ztsImpl.ztsOpenIDIssuer + "/oauth2/token";
+        final String request = "grant_type=client_credentials&scope=coretech:domain";
+
+        assertInvalidDPoPProof(ztsImpl, createDPoPResourceContext(principal, new HashMap<>(), "invalid-proof"),
+                request, "malformed proof");
+        assertInvalidDPoPProof(ztsImpl, createDPoPResourceContext(principal, new HashMap<>(), ""),
+                request, "empty proof");
+        assertInvalidDPoPProof(ztsImpl, createDPoPResourceContext(principal, new HashMap<>(),
+                dpopProof(dpopKey, htu), dpopProof(dpopKey, htu)), request, "multiple DPoP headers");
+        assertInvalidDPoPProof(ztsImpl, createDPoPResourceContext(principal, new HashMap<>(),
+                dpopProof(dpopKey, "https://attacker.athenz.io/zts/v1/oauth2/token")), request, "htu mismatch");
+
+        final String expiredProof = DPoPProof.generate(dpopKey.getPrivate(), dpopKey.getPublic(), "POST", htu,
+                null, null, System.currentTimeMillis() / 1000 - 300);
+        assertInvalidDPoPProof(ztsImpl, createDPoPResourceContext(principal, new HashMap<>(), expiredProof),
+                request, "proof expired");
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testPostAccessTokenRequestDPoPUnauthenticated() {
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = createDPoPZtsImpl(cloudStore);
+
+        // the proof is not validated before the client is authenticated
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(request.isSecure()).thenReturn(true);
+        Mockito.when(request.getHeaders(DPoPProof.HTTP_HEADER))
+                .thenReturn(Collections.enumeration(List.of("invalid-proof")));
+        RsrcCtxWrapper context = Mockito.mock(RsrcCtxWrapper.class);
+        Mockito.when(context.request()).thenReturn(request);
+
+        try {
+            ztsImpl.postAccessTokenRequest(context, "grant_type=client_credentials&scope=coretech:domain");
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.UNAUTHORIZED);
+        }
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testPostAccessTokenRequestDPoPMetadata() {
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = createDPoPZtsImpl(cloudStore);
+
+        final List<String> algorithms = List.of("ES256", "ES384", "ES512", "RS256", "RS384", "RS512",
+                "PS256", "PS384", "PS512");
+        assertEquals(ztsImpl.dpopProofValidator.getSupportedAlgorithms(), algorithms);
+        assertEquals(ztsImpl.openIDConfig.getDpop_signing_alg_values_supported(), algorithms);
+        assertEquals(ztsImpl.oidcPortConfig.getDpop_signing_alg_values_supported(), algorithms);
+        assertEquals(ztsImpl.oauthConfig.getDpop_signing_alg_values_supported(), algorithms);
+
+        // grant types are not changed by the dpop support
+
+        assertEquals(ztsImpl.oauthConfig.getGrant_types_supported(), List.of("client_credentials"));
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testPostAccessTokenRequestDPoPHostMappedIssuer() throws IOException {
+
+        final String mappingFile = ZTS_DATA_STORE_PATH + "/../dpop_host_issuer_mapping.json";
+        Files.write(Paths.get(mappingFile),
+                "[{\"host\":\"zts-int.athenz.io\",\"issuer\":\"https://zts-ext.athenz.io/zts/v1\"}]".getBytes());
+        System.setProperty(ZTSConsts.ZTS_PROP_HOST_ISSUER_MAPPING_FILE, mappingFile);
+
+        CloudStore cloudStore = new CloudStore();
+        try {
+            ZTSImpl ztsImpl = createDPoPZtsImpl(cloudStore);
+
+            // the discovery document for the mapped host includes the dpop algorithms
+
+            HttpServletRequest mappedRequest = Mockito.mock(HttpServletRequest.class);
+            Mockito.when(mappedRequest.isSecure()).thenReturn(true);
+            Mockito.when(mappedRequest.getLocalPort()).thenReturn(443);
+            Mockito.when(mappedRequest.getHeader("Host")).thenReturn("zts-int.athenz.io");
+            RsrcCtxWrapper mappedCtx = Mockito.mock(RsrcCtxWrapper.class);
+            Mockito.when(mappedCtx.request()).thenReturn(mappedRequest);
+
+            OpenIDConfig openIDConfig = ztsImpl.getOpenIDConfig(mappedCtx);
+            assertEquals(openIDConfig.getIssuer(), "https://zts-ext.athenz.io/zts/v1");
+            assertEquals(openIDConfig.getDpop_signing_alg_values_supported(),
+                    ztsImpl.dpopProofValidator.getSupportedAlgorithms());
+
+            // a request to the mapped host accepts a proof signed for the
+            // externally mapped issuer's token endpoint
+
+            SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+            store.processSignedDomain(signedDomain, false);
+
+            Principal principal = SimplePrincipal.create("user_domain", "user",
+                    "v=U1;d=user_domain;n=user;s=signature", 0, null);
+            final String extHtu = "https://zts-ext.athenz.io/zts/v1/oauth2/token";
+            ResourceContext context = createDPoPResourceContextWithHost("zts-int.athenz.io", principal,
+                    new HashMap<>(), dpopProof(dpopKeyPair(), extHtu));
+            AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                    "grant_type=client_credentials&scope=coretech:domain");
+            assertEquals(resp.getToken_type(), "DPoP");
+
+            // the same proof is rejected through a host that is not mapped to that issuer
+
+            assertInvalidDPoPProof(ztsImpl, createDPoPResourceContext(principal, new HashMap<>(),
+                    dpopProof(dpopKeyPair(), extHtu)), "grant_type=client_credentials&scope=coretech:domain",
+                    "htu does not match request host");
+        } finally {
+            System.clearProperty(ZTSConsts.ZTS_PROP_HOST_ISSUER_MAPPING_FILE);
+            Files.deleteIfExists(Paths.get(mappingFile));
+            cloudStore.close();
+        }
+    }
+
+    @Test
+    public void testAccessTokenType() {
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials&scope=coretech:domain",
+                zts.tokenConfigOptions);
+        assertEquals(zts.accessTokenType(request), "Bearer");
+        request.setDPoPJwkThumbprint("jkt");
+        assertEquals(zts.accessTokenType(request), "DPoP");
+    }
+
+    @Test
+    public void testProcessJAGTokenExchangeRequestDPoP() throws IOException, JOSEException {
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = createDPoPZtsImpl(cloudStore);
+        ztsImpl.tokenConfigOptions.setJwtJAGProcessor(createJAGProcessor());
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+
+        File privateKeyFile = new File("src/test/resources/unit_test_zts_private_ec.pem");
+        PrivateKey privateKey = Crypto.loadPrivateKey(privateKeyFile);
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String jagToken = createJagToken(privateKey, "0", "user_domain.user", "coretech.jwt",
+                "coretech:domain", ztsImpl.ztsOAuthIssuer, expiryTime);
+
+        Principal principal = SimplePrincipal.create("coretech", "jwt",
+                "v=U1;d=coretech;n=jwt;s=signature", 0, null);
+        ((SimplePrincipal) principal).setX509Certificate(loadMtlsTokenSpecCertificate());
+
+        KeyPair dpopKey = dpopKeyPair();
+        final String jkt = DPoPProof.computeJwkThumbprint(dpopKey.getPublic());
+        Map<String, Object> attributes = new HashMap<>();
+        ResourceContext context = createDPoPResourceContext(principal, attributes,
+                dpopProof(dpopKey, ztsImpl.ztsOpenIDIssuer + "/oauth2/token"));
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(context,
+                "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=" + jagToken
+                + "&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                + "&client_assertion=" + createClientAssertionToken(privateKey));
+        assertEquals(resp.getToken_type(), "DPoP");
+
+        JWTClaimsSet claimSet = verifyAccessToken(ztsImpl, resp.getAccess_token());
+        Map<String, Object> cnf = (Map<String, Object>) claimSet.getClaim("cnf");
+        assertEquals(cnf, Map.of("x5t#S256", MTLS_TOKEN_SPEC_CERT_HASH, "jkt", jkt));
+
+        // the jag access log data includes the dpop thumbprint
+
+        final String logData = (String) attributes.get(REQUEST_URI_ADDL_QUERY);
+        assertTrue(logData.contains("dpop_jkt=" + jkt), logData);
+        assertTrue(logData.contains("token_operation=id_jag_exchange"), logData);
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessJAGTokenIssueRequestDPoP() {
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = createDPoPZtsImpl(cloudStore);
+        ztsImpl.tokenConfigOptions.setJwtIDTProcessor(createIDTokenProcessor());
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+        addJAGExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(new File("./src/test/resources/unit_test_zts_private_ec.pem"));
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        final String tokenRequest = "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:id-jag"
+                + "&subject_token=" + createIdToken(privateKey, "0", "user_domain.user",
+                        "user_domain.proxy-user1", expiryTime)
+                + "&audience=https://athenz.io"
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:id_token"
+                + "&scope=coretech:role.writers";
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        KeyPair dpopKey = dpopKeyPair();
+        final String htu = ztsImpl.ztsOpenIDIssuer + "/oauth2/token";
+
+        // a valid proof is accepted but the ID-JAG is not bound
+
+        AccessTokenResponse resp = ztsImpl.postAccessTokenRequest(
+                createDPoPResourceContext(principal, new HashMap<>(), dpopProof(dpopKey, htu)), tokenRequest);
+        assertEquals(resp.getToken_type(), "N_A");
+        assertEquals(resp.getIssued_token_type(), "urn:ietf:params:oauth:token-type:id-jag");
+        assertNull(verifyAccessToken(ztsImpl, resp.getAccess_token()).getClaim("cnf"));
+
+        // an invalid proof is rejected
+
+        assertInvalidDPoPProof(ztsImpl, createDPoPResourceContext(principal, new HashMap<>(),
+                dpopProof(dpopKey, "https://other.athenz.io/oauth2/token")), tokenRequest, "htu mismatch");
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenImpersonationRequestDPoP() {
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = createDPoPZtsImpl(cloudStore);
+
+        store.processSignedDomain(createSignedDomain("sourcedomain", "weather", "storage", true), false);
+        store.processSignedDomain(createSignedDomain("targetdomain", "weather", "storage", true), false);
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(new File("./src/test/resources/unit_test_zts_private_ec.pem"));
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectTokenStr = createSubjectToken(privateKey, "0", "user_domain.user",
+                "sourcedomain", List.of("targetdomain:role.writers"), expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(getServerPublicKeyProvider(privateKey));
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+        accessTokenRequest.setDPoPJwkThumbprint("impersonation-jkt");
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenImpersonationRequest(
+                createResourceContext(principal), principal, accessTokenRequest, "user_domain",
+                "postAccessTokenRequest");
+        assertEquals(response.getToken_type(), "DPoP");
+
+        JWTClaimsSet claimSet = verifyAccessToken(ztsImpl, response.getAccess_token());
+        assertEquals(claimSet.getClaim("cnf"), Map.of("jkt", "impersonation-jkt"));
+
+        cloudStore.close();
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestDPoP() {
+
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = createDPoPZtsImpl(cloudStore);
+
+        store.processSignedDomain(createSignedDomain("sourcedomain", "weather", "storage", true), false);
+        store.processSignedDomain(createSignedDomain("targetdomain", "weather", "storage", true), false);
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(new File("./src/test/resources/unit_test_zts_private_ec.pem"));
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user",
+                "sourcedomain", List.of("targetdomain:role.writers"), "user_domain.proxy-user1", null, expiryTime);
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1",
+                "targetdomain", expiryTime);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(getServerPublicKeyProvider(privateKey));
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&actor_token=" + actorTokenStr
+                + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+        accessTokenRequest.setDPoPJwkThumbprint("delegation-jkt");
+
+        AccessTokenResponse response = ztsImpl.processAccessTokenDelegationRequest(
+                createResourceContext(principal), principal, accessTokenRequest.getActorTokenObj(),
+                accessTokenRequest, "user_domain", "postAccessTokenRequest");
+        assertEquals(response.getToken_type(), "DPoP");
+
+        JWTClaimsSet claimSet = verifyAccessToken(ztsImpl, response.getAccess_token());
+        assertEquals(claimSet.getClaim("cnf"), Map.of("jkt", "delegation-jkt"));
+        assertNotNull(claimSet.getClaim("act"));
 
         cloudStore.close();
     }

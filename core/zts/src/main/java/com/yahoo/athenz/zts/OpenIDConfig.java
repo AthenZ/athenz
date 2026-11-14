@@ -23,6 +23,9 @@ public class OpenIDConfig {
     @RdlOptional
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<String> claims_supported;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public List<String> dpop_signing_alg_values_supported;
 
     public OpenIDConfig setIssuer(String issuer) {
         this.issuer = issuer;
@@ -80,6 +83,13 @@ public class OpenIDConfig {
     public List<String> getClaims_supported() {
         return claims_supported;
     }
+    public OpenIDConfig setDpop_signing_alg_values_supported(List<String> dpop_signing_alg_values_supported) {
+        this.dpop_signing_alg_values_supported = dpop_signing_alg_values_supported;
+        return this;
+    }
+    public List<String> getDpop_signing_alg_values_supported() {
+        return dpop_signing_alg_values_supported;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -110,6 +120,9 @@ public class OpenIDConfig {
                 return false;
             }
             if (claims_supported == null ? a.claims_supported != null : !claims_supported.equals(a.claims_supported)) {
+                return false;
+            }
+            if (dpop_signing_alg_values_supported == null ? a.dpop_signing_alg_values_supported != null : !dpop_signing_alg_values_supported.equals(a.dpop_signing_alg_values_supported)) {
                 return false;
             }
         }

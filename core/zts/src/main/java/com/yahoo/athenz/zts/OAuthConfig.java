@@ -4,6 +4,7 @@
 
 package com.yahoo.athenz.zts;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 import com.yahoo.rdl.*;
 
@@ -20,6 +21,9 @@ public class OAuthConfig {
     public List<String> response_types_supported;
     public List<String> grant_types_supported;
     public List<String> token_endpoint_auth_signing_alg_values_supported;
+    @RdlOptional
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    public List<String> dpop_signing_alg_values_supported;
 
     public OAuthConfig setIssuer(String issuer) {
         this.issuer = issuer;
@@ -77,6 +81,13 @@ public class OAuthConfig {
     public List<String> getToken_endpoint_auth_signing_alg_values_supported() {
         return token_endpoint_auth_signing_alg_values_supported;
     }
+    public OAuthConfig setDpop_signing_alg_values_supported(List<String> dpop_signing_alg_values_supported) {
+        this.dpop_signing_alg_values_supported = dpop_signing_alg_values_supported;
+        return this;
+    }
+    public List<String> getDpop_signing_alg_values_supported() {
+        return dpop_signing_alg_values_supported;
+    }
 
     @Override
     public boolean equals(Object another) {
@@ -107,6 +118,9 @@ public class OAuthConfig {
                 return false;
             }
             if (token_endpoint_auth_signing_alg_values_supported == null ? a.token_endpoint_auth_signing_alg_values_supported != null : !token_endpoint_auth_signing_alg_values_supported.equals(a.token_endpoint_auth_signing_alg_values_supported)) {
+                return false;
+            }
+            if (dpop_signing_alg_values_supported == null ? a.dpop_signing_alg_values_supported != null : !dpop_signing_alg_values_supported.equals(a.dpop_signing_alg_values_supported)) {
                 return false;
             }
         }

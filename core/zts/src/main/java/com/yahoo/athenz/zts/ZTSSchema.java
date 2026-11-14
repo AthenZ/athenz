@@ -309,7 +309,8 @@ public class ZTSSchema {
             .arrayField("response_types_supported", "String", false, "list of supported response types")
             .arrayField("subject_types_supported", "String", false, "list of supported subject identifier types")
             .arrayField("id_token_signing_alg_values_supported", "String", false, "list of supported algorithms for issued id tokens")
-            .arrayField("claims_supported", "String", true, "list of supported id claims");
+            .arrayField("claims_supported", "String", true, "list of supported id claims")
+            .arrayField("dpop_signing_alg_values_supported", "String", true, "list of supported DPoP proof JWS algorithms");
 
         sb.structType("OAuthConfig")
             .field("issuer", "String", false, "url using the https scheme")
@@ -319,7 +320,8 @@ public class ZTSSchema {
             .field("jwks_uri", "String", false, "public server jwk set url")
             .arrayField("response_types_supported", "String", false, "list of supported response types")
             .arrayField("grant_types_supported", "String", false, "supported grant types")
-            .arrayField("token_endpoint_auth_signing_alg_values_supported", "String", false, "list of supported algorithms for issued access tokens");
+            .arrayField("token_endpoint_auth_signing_alg_values_supported", "String", false, "list of supported algorithms for issued access tokens")
+            .arrayField("dpop_signing_alg_values_supported", "String", true, "list of supported DPoP proof JWS algorithms");
 
         sb.structType("JWKList")
             .comment("JSON Web Key (JWK) List")

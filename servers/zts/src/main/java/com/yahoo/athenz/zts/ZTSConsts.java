@@ -104,6 +104,16 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_SECURE_REQUESTS_ONLY       = "athenz.zts.secure_requests_only";
     public static final String ZTS_PROP_STATUS_CERT_SIGNER         = "athenz.zts.status_cert_signer";
     public static final String ZTS_PROP_INTROSPECT_SUPPORT_ENABLED = "athenz.zts.introspect_support_enabled";
+
+    public static final String ZTS_PROP_DPOP_ENABLED               = "athenz.zts.dpop_enabled";
+    public static final String ZTS_PROP_DPOP_SIGNING_ALGORITHMS    = "athenz.zts.dpop_signing_algorithms";
+    public static final String ZTS_PROP_DPOP_PROOF_MAX_AGE         = "athenz.zts.dpop_proof_max_age";
+    public static final String ZTS_PROP_DPOP_PROOF_CLOCK_SKEW      = "athenz.zts.dpop_proof_clock_skew";
+    public static final String ZTS_PROP_DPOP_ALLOWED_HTU           = "athenz.zts.dpop_allowed_htu";
+    public static final String ZTS_PROP_DPOP_HTU_MATCH_REQUEST_HOST = "athenz.zts.dpop_htu_match_request_host";
+    public static final String ZTS_PROP_DPOP_REQUIRE_CERT_KEY_MATCH = "athenz.zts.dpop_require_cert_key_match";
+    public static final String ZTS_PROP_DPOP_MAX_PROOF_SIZE        = "athenz.zts.dpop_max_proof_size";
+    public static final String ZTS_PROP_DPOP_MIN_RSA_KEY_SIZE      = "athenz.zts.dpop_min_rsa_key_size";
     public static final String ZTS_PROP_USER_CERT_MAX_TIMEOUT      = "athenz.zts.user_cert_max_timeout";
     public static final String ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT  = "athenz.zts.user_cert_default_timeout";
     public static final String ZTS_PROP_USER_CERT_PROVIDER         = "athenz.zts.user_cert_provider";

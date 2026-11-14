@@ -97,6 +97,7 @@ public class AccessTokenRequest {
     String actorTokenType = null;
     String keyType = null;
     List<String> proxyPrincipalsSpiffeUris = null;
+    String dpopJwkThumbprint = null;
     Principal principal = null;
     int expiryTime = 0;
     boolean useOpenIDIssuer = false;
@@ -610,6 +611,18 @@ public class AccessTokenRequest {
         return roleInAudClaim;
     }
 
+    /**
+     * @return RFC 7638 thumbprint of the validated DPoP proof key, or null
+     * if the request did not include a DPoP proof
+     */
+    public String getDPoPJwkThumbprint() {
+        return dpopJwkThumbprint;
+    }
+
+    public void setDPoPJwkThumbprint(final String jkt) {
+        this.dpopJwkThumbprint = jkt;
+    }
+
     public Principal getPrincipal() {
         return principal;
     }
@@ -650,6 +663,9 @@ public class AccessTokenRequest {
         }
         if (!StringUtil.isEmpty(keyType)) {
             stringBuilder.append("&key_type=").append(URLEncoder.encode(keyType, StandardCharsets.UTF_8));
+        }
+        if (!StringUtil.isEmpty(dpopJwkThumbprint)) {
+            stringBuilder.append("&dpop_jkt=").append(URLEncoder.encode(dpopJwkThumbprint, StandardCharsets.UTF_8));
         }
 
         // make sure our log line is limited to 1024 characters
