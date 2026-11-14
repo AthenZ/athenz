@@ -5945,8 +5945,13 @@ public class ZTSImplAccessTokenTest {
     }
 
     // Helper method to create a signed OAuth2Token for actor token
-    private String createActorToken(PrivateKey privateKey, String keyId, String subject, 
+    private String createActorToken(PrivateKey privateKey, String keyId, String subject,
                 String audience, long expiryTime) {
+        return createActorToken(privateKey, keyId, subject, audience, expiryTime, null);
+    }
+
+    private String createActorToken(PrivateKey privateKey, String keyId, String subject,
+                String audience, long expiryTime, Map<String, Object> confirm) {
         try {
             JWSSigner signer = JwtsHelper.getJWSSigner(privateKey);
             long now = System.currentTimeMillis() / 1000;
@@ -5958,6 +5963,7 @@ public class ZTSImplAccessTokenTest {
                     .audience(audience)
                     .claim("ver", 1)
                     .claim("auth_time", now)
+                    .claim("cnf", confirm)
                     .build();
             SignedJWT signedJWT = new SignedJWT(
                     new JWSHeader.Builder(JWSAlgorithm.ES256)
@@ -6800,6 +6806,113 @@ public class ZTSImplAccessTokenTest {
         }
 
         cloudStore.close();
+    }
+
+    private AccessTokenResponse processDPoPActorTokenDelegation(Map<String, Object> actorConfirm,
+            final String requestJkt) {
+
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
+        CloudStore cloudStore = new CloudStore();
+        ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
+        System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_private.pem");
+
+        SignedDomain sourceDomain = createSignedDomain("sourcedomain", "weather", "storage", true);
+        store.processSignedDomain(sourceDomain, false);
+        SignedDomain targetDomain = createSignedDomain("targetdomain", "weather", "storage", true);
+        store.processSignedDomain(targetDomain, false);
+        addTokenSourceExchangePolicy("sourcedomain", "targetdomain", "user_domain.proxy-user1");
+        addTokenTargetExchangePolicy("targetdomain", "sourcedomain", "user_domain.proxy-user1", "writers");
+
+        PrivateKey privateKey = Crypto.loadPrivateKey(new File("./src/test/resources/unit_test_zts_private_ec.pem"));
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        String subjectTokenStr = createAccessToken(privateKey, "0", "user_domain.user",
+                "sourcedomain", List.of("targetdomain:role.writers"), "user_domain.proxy-user1", null, expiryTime);
+        String actorTokenStr = createActorToken(privateKey, "0", "user_domain.proxy-user1",
+                "targetdomain", expiryTime, actorConfirm);
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+        TokenConfigOptions tokenConfigOptions = createTokenConfigOptions(ztsImpl);
+        tokenConfigOptions.setOauth2Issuers(Set.of("https://athenz.io:4443/zts/v1"));
+        tokenConfigOptions.setPublicKeyProvider(getServerPublicKeyProvider(privateKey));
+        AccessTokenRequest accessTokenRequest = new AccessTokenRequest(
+                "grant_type=urn:ietf:params:oauth:grant-type:token-exchange"
+                + "&requested_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&subject_token=" + subjectTokenStr
+                + "&subject_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&actor_token=" + actorTokenStr
+                + "&actor_token_type=urn:ietf:params:oauth:token-type:access_token"
+                + "&audience=targetdomain"
+                + "&scope=targetdomain:role.writers",
+                tokenConfigOptions);
+        accessTokenRequest.setDPoPJwkThumbprint(requestJkt);
+
+        try {
+            return ztsImpl.processAccessTokenDelegationRequest(createResourceContext(principal), principal,
+                    accessTokenRequest.getActorTokenObj(), accessTokenRequest, "user_domain", "postAccessTokenRequest");
+        } finally {
+            cloudStore.close();
+        }
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestDPoPBoundActorTokenWithoutProof() {
+
+        try {
+            processDPoPActorTokenDelegation(Map.of("jkt", "actor-key-jkt"), null);
+            fail("DPoP-bound actor token must not be accepted without a proof");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("DPoP proof key does not match actor token cnf.jkt"));
+        }
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestDPoPBoundActorTokenOtherKey() {
+
+        try {
+            processDPoPActorTokenDelegation(Map.of("jkt", "actor-key-jkt"), "attacker-key-jkt");
+            fail("DPoP-bound actor token must not be accepted with a proof from another key");
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.FORBIDDEN);
+            assertTrue(ex.getMessage().contains("DPoP proof key does not match actor token cnf.jkt"));
+        }
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestDPoPBoundActorTokenMatchingProof() throws Exception {
+
+        AccessTokenResponse response = processDPoPActorTokenDelegation(Map.of("jkt", "actor-key-jkt"), "actor-key-jkt");
+
+        assertEquals(response.getToken_type(), "DPoP");
+        JWTClaimsSet claimSet = SignedJWT.parse(response.getAccess_token()).getJWTClaimsSet();
+        assertEquals(claimSet.getJSONObjectClaim("cnf").get("jkt"), "actor-key-jkt");
+    }
+
+    @Test
+    public void testProcessAccessTokenDelegationRequestCertBoundActorTokenNoProof() {
+
+        // the check only applies to the DPoP binding of the actor token
+
+        AccessTokenResponse response = processDPoPActorTokenDelegation(Map.of("x5t#S256", "cert-hash"), null);
+        assertEquals(response.getToken_type(), "Bearer");
+    }
+
+    @Test
+    public void testGetConfirmJwkThumbprint() {
+
+        OAuth2Token token = Mockito.mock(OAuth2Token.class);
+        Mockito.when(token.getClaim("cnf")).thenReturn(null);
+        assertNull(ZTSImpl.getConfirmJwkThumbprint(token));
+
+        Mockito.when(token.getClaim("cnf")).thenReturn("not-a-map");
+        assertNull(ZTSImpl.getConfirmJwkThumbprint(token));
+
+        Mockito.when(token.getClaim("cnf")).thenReturn(Map.of("x5t#S256", "cert-hash"));
+        assertNull(ZTSImpl.getConfirmJwkThumbprint(token));
+
+        Mockito.when(token.getClaim("cnf")).thenReturn(Map.of("jkt", "key-jkt"));
+        assertEquals(ZTSImpl.getConfirmJwkThumbprint(token), "key-jkt");
     }
 
     @Test

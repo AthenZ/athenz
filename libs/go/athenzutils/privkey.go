@@ -8,11 +8,19 @@ import (
 	"encoding/pem"
 	"fmt"
 	"reflect"
+	"strings"
 )
 
 // ExtractSignerInfo extracts crypto.Signer and x509.SignatureAlgorithm from the given private key (ECDSA or RSA).
+// Like tls.X509KeyPair, PEM blocks before the private key (e.g. EC PARAMETERS) are skipped.
 func ExtractSignerInfo(privateKeyPEM []byte) (crypto.Signer, x509.SignatureAlgorithm, error) {
-	block, _ := pem.Decode(privateKeyPEM)
+	var block *pem.Block
+	for rest := privateKeyPEM; ; {
+		block, rest = pem.Decode(rest)
+		if block == nil || block.Type == "PRIVATE KEY" || strings.HasSuffix(block.Type, " PRIVATE KEY") {
+			break
+		}
+	}
 	if block == nil {
 		return nil, x509.UnknownSignatureAlgorithm, fmt.Errorf("unable to load private key")
 	}

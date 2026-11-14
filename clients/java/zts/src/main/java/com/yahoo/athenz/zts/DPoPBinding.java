@@ -30,10 +30,12 @@ final class DPoPBinding {
 
     final KeyPair keyPair;
     final boolean allowBearerFallback;
+    private final String thumbprint;
 
     DPoPBinding(final KeyPair keyPair, boolean allowBearerFallback) {
         this.keyPair = keyPair;
         this.allowBearerFallback = allowBearerFallback;
+        this.thumbprint = keyPair == null ? null : DPoPProof.computeJwkThumbprint(keyPair.getPublic());
     }
 
     boolean isEnabled() {
@@ -41,6 +43,6 @@ final class DPoPBinding {
     }
 
     String getThumbprint() {
-        return DPoPProof.computeJwkThumbprint(keyPair.getPublic());
+        return thumbprint;
     }
 }

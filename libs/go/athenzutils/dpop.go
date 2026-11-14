@@ -39,6 +39,9 @@ const (
 	// the ID-JAG is an assertion for another authorization server and is never DPoP bound
 	idJAGTokenType = "urn:ietf:params:oauth:token-type:id-jag"
 
+	// the ID token returned by the ID token exchange is not an access token and is never DPoP bound
+	idTokenType = "urn:ietf:params:oauth:token-type:id_token"
+
 	maxTokenResponseSize = 1 << 20
 )
 
@@ -152,8 +155,8 @@ func dpopSignatureAlgorithm(pub crypto.PublicKey) (jose.SignatureAlgorithm, erro
 // DPoPTransport is an http.RoundTripper that adds a freshly generated DPoP proof
 // to every POST request sent to the ZTS token endpoint and fails closed: a
 // successful token endpoint response that does not carry a DPoP-bound token
-// (other than an ID-JAG) is rejected with an error wrapping ErrDPoPTokenNotIssued.
-// Other requests are passed through unchanged.
+// (other than an ID-JAG or an ID token) is rejected with an error wrapping
+// ErrDPoPTokenNotIssued. Other requests are passed through unchanged.
 type DPoPTransport struct {
 	base   http.RoundTripper
 	signer crypto.Signer
@@ -222,7 +225,7 @@ func verifyDPoPTokenResponse(resp *http.Response) error {
 	if err := json.Unmarshal(body, &token); err != nil {
 		return fmt.Errorf("dpop: unable to parse token response: %w", err)
 	}
-	if token.IssuedTokenType != idJAGTokenType {
+	if token.IssuedTokenType != idJAGTokenType && token.IssuedTokenType != idTokenType {
 		if err := VerifyDPoPTokenType(token.TokenType); err != nil {
 			return err
 		}

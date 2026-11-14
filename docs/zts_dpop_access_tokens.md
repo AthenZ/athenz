@@ -369,6 +369,13 @@ isn't secret.
 The `id_token` returned with the `openid` scope in the client credentials flow
 is never bound.
 
+In a delegation request the `actor_token` authenticates the actor. If it's a
+DPoP-bound token (it has a `cnf.jkt` claim), the request must include a proof
+signed with that key. Otherwise ZTS returns `403` with `DPoP proof key does not
+match actor token cnf.jkt`, so a stolen actor token can't be exchanged without
+its key. When DPoP is disabled on the server, the `DPoP` header is ignored, so
+DPoP-bound actor tokens are always rejected.
+
 ## Errors
 
 An invalid proof returns `400 Bad Request` with the standard ZTS `ResourceError`
@@ -470,7 +477,10 @@ Behavior once a key is configured:
 - **Key rotation.** The key provider and the fallback setting are read once
   per token request. The proof, the cache key and the token type check all
   use that one key, so rotating keys mid-request can't cache a token under
-  another key's thumbprint.
+  another key's thumbprint. When the key changes, the client also drops the
+  TLS sessions cached in its `SSLContext`. Otherwise new connections would
+  resume a session authenticated with the old certificate, and
+  `dpop_require_cert_key_match` would reject proofs signed with the new key.
 - **No disk tokens.** Access tokens that SIA wrote to disk are bearer tokens, so
   they are skipped when DPoP is configured.
 - **Fail closed.** If the server returns any `token_type` other than `DPoP`
@@ -478,13 +488,24 @@ Behavior once a key is configured:
   rollout), the client throws `ZTSClientException` (400) and doesn't cache the
   token. Call `setDPoPAllowBearerFallback(true)` to accept bearer tokens
   instead, which helps during gradual rollout. The ID-JAG returned by
-  `getJAGToken` is exempt from this check since it's never DPoP bound.
+  `getJAGToken` and the ID token returned by the ID token exchange are exempt
+  from this check since they're never DPoP bound.
 - **Prefetch.** Prefetched tokens use the same key provider as the client that
   scheduled them.
 - **Custom clients.** If you replace the generated client with
   `setZTSRDLGeneratedClient(...)`, register the interceptor on your own
-  Apache HttpClient 5 client:
-  `HttpClients.custom().addRequestInterceptorLast(new DPoPRequestInterceptor(ztsUrl, keyProvider))`.
+  Apache HttpClient 5 client, built with the same `SSLContext` you passed to
+  `ZTSClient`. Use the client's request key accessor, not the key provider
+  itself, so the proof is signed with the same key the token is cached under:
+
+  ```java
+  CloseableHttpClient httpClient = HttpClients.custom()
+          .addRequestInterceptorLast(new DPoPRequestInterceptor(ztsClient.getZTSUrl(),
+                  ztsClient::getRequestDPoPKeyPair))
+          // connection manager, timeouts, ...
+          .build();
+  ztsClient.setZTSRDLGeneratedClient(new ZTSRDLGeneratedClient(ztsClient.getZTSUrl(), httpClient));
+  ```
 
 To generate proofs for resource server calls, `DPoPProof.generate(...)` in
 auth_core accepts the access token and adds the `ath` claim:

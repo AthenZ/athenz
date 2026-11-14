@@ -204,6 +204,10 @@ public class ZTSClient implements Closeable {
     static AtomicLong FETCHER_LAST_RUN_AT = new AtomicLong(-1);
     static final ClientKeyRefresherListener KEY_REFRESHER_LISTENER = new ClientKeyRefresherListener();
 
+    // last DPoP key thumbprint used with each ssl context. tracked per context
+    // since prefetch tasks create new clients that share the same context
+    static final Map<SSLContext, String> DPOP_SSL_CONTEXT_THUMBPRINTS = Collections.synchronizedMap(new WeakHashMap<>());
+
     // allows outside implementations to get role tokens for special environments - ex. hadoop
     
     private static ServiceLoader<ZTSClientService> ztsTokenProviders;
@@ -755,15 +759,51 @@ public class ZTSClient implements Closeable {
      * while caching it under another key's thumbprint
      */
     DPoPBinding getDPoPBinding() {
-        return new DPoPBinding(getDPoPKeyPair(), dpopAllowBearerFallback);
+        final DPoPBinding binding = new DPoPBinding(getDPoPKeyPair(), dpopAllowBearerFallback);
+        if (binding.isEnabled()) {
+            invalidateTlsSessionsOnDPoPKeyChange(binding.getThumbprint());
+        }
+        return binding;
     }
 
     /**
-     * Key used by the interceptor to sign the proof: the key sampled for the
-     * token request running on this thread, or the provider's current key for
-     * requests sent outside of getAccessToken / getToken
+     * New connections resume cached TLS sessions, so after the identity key
+     * and certificate are rotated ZTS would keep seeing the old certificate
+     * while proofs are signed with the new key, which fails the server's
+     * certificate key match check. When the DPoP key used with the ssl context
+     * changes we drop its cached sessions so the next handshake presents the
+     * current certificate.
      */
-    KeyPair getRequestDPoPKeyPair() {
+    void invalidateTlsSessionsOnDPoPKeyChange(final String thumbprint) {
+        if (sslContext == null) {
+            return;
+        }
+        if (!thumbprint.equals(DPOP_SSL_CONTEXT_THUMBPRINTS.put(sslContext, thumbprint))) {
+            invalidateSessions(sslContext.getClientSessionContext());
+        }
+    }
+
+    static void invalidateSessions(SSLSessionContext sessionContext) {
+        final Enumeration<byte[]> sessionIds = sessionContext.getIds();
+        while (sessionIds.hasMoreElements()) {
+            final SSLSession session = sessionContext.getSession(sessionIds.nextElement());
+            if (session != null) {
+                session.invalidate();
+            }
+        }
+    }
+
+    /**
+     * Key pair the DPoPRequestInterceptor must sign the proof with: the key
+     * sampled for the token request running on this thread, or the provider's
+     * current key for requests sent outside of getAccessToken / getToken.
+     * Clients that replace the generated client with setZTSRDLGeneratedClient
+     * must pass this method (ztsClient::getRequestDPoPKeyPair) to their
+     * DPoPRequestInterceptor so the proof key always matches the key the
+     * token is cached under.
+     * @return key pair to sign the proof with, or null if DPoP is disabled
+     */
+    public KeyPair getRequestDPoPKeyPair() {
         final DPoPBinding binding = requestDPoPBinding.get();
         return binding != null ? binding.keyPair : getDPoPKeyPair();
     }
@@ -796,10 +836,12 @@ public class ZTSClient implements Closeable {
     static boolean isNonDPoPTokenForDPoPRequest(AccessTokenResponse accessTokenResponse, DPoPBinding dpopBinding) {
 
         // the ID-JAG returned by the token exchange is an assertion for another
-        // authorization server and not a DPoP-bound access token
+        // authorization server and the ID token returned by the ID token exchange
+        // is not an access token, so neither is ever DPoP bound
 
         return accessTokenResponse != null && dpopBinding.isEnabled()
                 && !OAUTH_JAG_TOKEN_TYPE.equals(accessTokenResponse.getIssued_token_type())
+                && !OAuthTokenRequestBuilder.OAUTH_TOKEN_TYPE_ID.equals(accessTokenResponse.getIssued_token_type())
                 && !DPoPProof.TOKEN_TYPE.equalsIgnoreCase(accessTokenResponse.getToken_type());
     }
 

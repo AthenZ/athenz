@@ -29,7 +29,8 @@ import java.security.KeyPair;
  * A new proof (new jti and iat) is generated for each execution, including
  * retries. ZTSClient installs this interceptor automatically; callers that
  * provide their own client with ZTSClient.setZTSRDLGeneratedClient must
- * register it on their http client.
+ * register it on their http client with ztsClient::getRequestDPoPKeyPair as
+ * the key provider so the proof is signed with the key sampled for the request.
  */
 public class DPoPRequestInterceptor implements HttpRequestInterceptor {
 

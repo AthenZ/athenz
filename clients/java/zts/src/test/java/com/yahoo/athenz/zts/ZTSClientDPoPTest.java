@@ -30,12 +30,15 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSessionContext;
 import java.io.File;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.spec.ECGenParameterSpec;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.yahoo.athenz.zts.AccessTokenTestFileHelper.setupTokenFile;
@@ -449,6 +452,92 @@ public class ZTSClientDPoPTest {
         AccessTokenResponse response = client.getJAGToken(builder);
         assertEquals(response.getAccess_token(), "id-jag");
         assertEquals(response.getToken_type(), "N_A");
+        client.close();
+    }
+
+    @Test
+    public void testGetIdTokenExchangeDPoP() throws Exception {
+
+        // the id token issued by the id token exchange is never dpop bound
+
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder
+                .newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_TOKEN_EXCHANGE)
+                .requestedTokenType(OAuthTokenRequestBuilder.OAUTH_TOKEN_TYPE_ID)
+                .domainName("coretech").expiryTime(3600);
+
+        ZTSRDLGeneratedClient rdlClient = Mockito.mock(ZTSRDLGeneratedClient.class);
+        Mockito.when(rdlClient.postAccessTokenRequest(builder.getRequestBody()))
+                .thenReturn(new AccessTokenResponse().setId_token("id-token").setToken_type("Bearer")
+                        .setIssued_token_type(OAuthTokenRequestBuilder.OAUTH_TOKEN_TYPE_ID).setExpires_in(3600));
+
+        ZTSClient client = createClient(rdlClient);
+        client.setDPoPKey(dpopKey.getPrivate(), dpopKey.getPublic());
+
+        AccessTokenResponse response = client.getAccessToken(builder, false);
+        assertEquals(response.getId_token(), "id-token");
+        assertEquals(response.getToken_type(), "Bearer");
+
+        // the cached response is returned as well
+
+        assertSame(client.getAccessToken(builder, false), response);
+        client.close();
+    }
+
+    @Test
+    public void testDPoPKeyChangeInvalidatesTlsSessions() {
+
+        final AtomicInteger invalidations = new AtomicInteger();
+        SSLSession session = Mockito.mock(SSLSession.class);
+        Mockito.doAnswer(invocation -> invalidations.incrementAndGet()).when(session).invalidate();
+
+        final byte[] sessionId = {1};
+        final byte[] removedSessionId = {2};
+        SSLSessionContext sessionContext = Mockito.mock(SSLSessionContext.class);
+        Mockito.when(sessionContext.getIds())
+                .thenAnswer(invocation -> Collections.enumeration(List.of(sessionId, removedSessionId)));
+        Mockito.when(sessionContext.getSession(sessionId)).thenReturn(session);
+        Mockito.when(sessionContext.getSession(removedSessionId)).thenReturn(null);
+
+        SSLContext sslContext = Mockito.mock(SSLContext.class);
+        Mockito.when(sslContext.getClientSessionContext()).thenReturn(sessionContext);
+
+        ZTSClient client = new ZTSClient(ZTS_URL, sslContext);
+        client.getDPoPBinding();
+        assertEquals(invalidations.get(), 0);
+
+        // the first key used with the ssl context drops sessions created before dpop was enabled
+
+        client.setDPoPKey(dpopKey.getPrivate(), dpopKey.getPublic());
+        client.getDPoPBinding();
+        assertEquals(invalidations.get(), 1);
+        client.getDPoPBinding();
+        assertEquals(invalidations.get(), 1);
+
+        // prefetch clients sharing the ssl context and key keep the sessions
+
+        ZTSClient prefetchClient = new ZTSClient(ZTS_URL, sslContext);
+        prefetchClient.setDPoPKey(dpopKey.getPrivate(), dpopKey.getPublic());
+        prefetchClient.getDPoPBinding();
+        assertEquals(invalidations.get(), 1);
+
+        // a rotated key drops the sessions authenticated with the old certificate
+
+        client.setDPoPKey(otherKey.getPrivate(), otherKey.getPublic());
+        client.getDPoPBinding();
+        assertEquals(invalidations.get(), 2);
+        client.getDPoPBinding();
+        assertEquals(invalidations.get(), 2);
+
+        prefetchClient.close();
+        client.close();
+    }
+
+    @Test
+    public void testDPoPBindingWithoutSslContext() {
+
+        ZTSClient client = createClient(Mockito.mock(ZTSRDLGeneratedClient.class));
+        client.setDPoPKey(dpopKey.getPrivate(), dpopKey.getPublic());
+        assertTrue(client.getDPoPBinding().isEnabled());
         client.close();
     }
 

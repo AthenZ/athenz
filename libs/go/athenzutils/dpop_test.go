@@ -16,6 +16,8 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -351,6 +353,7 @@ func TestDPoPTransportTokenTypeVerification(t *testing.T) {
 		{"bearer-token", tokenURL, http.StatusOK, `{"access_token":"a","token_type":"Bearer"}`, true, true},
 		{"missing-token-type", tokenURL, http.StatusOK, `{"access_token":"a"}`, true, true},
 		{"id-jag", tokenURL, http.StatusOK, `{"access_token":"a","token_type":"N_A","issued_token_type":"urn:ietf:params:oauth:token-type:id-jag"}`, false, false},
+		{"id-token-exchange", tokenURL, http.StatusOK, `{"id_token":"a","token_type":"Bearer","issued_token_type":"urn:ietf:params:oauth:token-type:id_token"}`, false, false},
 		{"bearer-access-token-exchange", tokenURL, http.StatusOK, `{"access_token":"a","token_type":"Bearer","issued_token_type":"urn:ietf:params:oauth:token-type:access_token"}`, true, true},
 		{"invalid-json", tokenURL, http.StatusOK, `not-json`, true, false},
 		{"too-large", tokenURL, http.StatusOK, `{"token_type":"DPoP","pad":"` + strings.Repeat("a", maxTokenResponseSize) + `"}`, true, false},
@@ -582,6 +585,17 @@ func TestDPoPTransportProofError(t *testing.T) {
 func TestZtsClientWithDPoP(t *testing.T) {
 	t.Parallel()
 
+	// key file as written by openssl ecparam -genkey, which the TLS loader accepts
+	keyPEM, err := os.ReadFile("data/svc-test-key1.pem")
+	if err != nil {
+		t.Fatalf("read key: %v", err)
+	}
+	keyWithParamsFile := filepath.Join(t.TempDir(), "svc-test-key1-params.pem")
+	params := []byte("-----BEGIN EC PARAMETERS-----\nBggqhkjOPQMBBw==\n-----END EC PARAMETERS-----\n")
+	if err := os.WriteFile(keyWithParamsFile, append(params, keyPEM...), 0600); err != nil {
+		t.Fatalf("write key: %v", err)
+	}
+
 	tests := []struct {
 		name        string
 		keyFile     string
@@ -591,6 +605,7 @@ func TestZtsClientWithDPoP(t *testing.T) {
 	}{
 		{"default-dpop-key", "data/svc-test-key1.pem", "data/svc-test-cert1.pem", "", false},
 		{"explicit-dpop-key", "data/svc-test-key1.pem", "data/svc-test-cert1.pem", "data/svc-test-key1.pem", false},
+		{"key-with-ec-parameters", keyWithParamsFile, "data/svc-test-cert1.pem", "", false},
 		{"invalid-svc-key", "invalid-key-file", "data/svc-test-cert1.pem", "", true},
 		{"missing-dpop-key", "data/svc-test-key1.pem", "data/svc-test-cert1.pem", "missing-dpop-key", true},
 		{"invalid-dpop-key", "data/svc-test-key1.pem", "data/svc-test-cert1.pem", "data/svc-test-cert1.pem", true},

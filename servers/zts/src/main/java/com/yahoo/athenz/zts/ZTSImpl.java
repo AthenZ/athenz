@@ -3014,6 +3014,15 @@ public class ZTSImpl implements ZTSHandler {
         }
     }
 
+    static String getConfirmJwkThumbprint(final OAuth2Token token) {
+        final Object confirm = token.getClaim(AccessToken.CLAIM_CONFIRM);
+        if (!(confirm instanceof Map)) {
+            return null;
+        }
+        final Object jkt = ((Map<?, ?>) confirm).get(AccessToken.CLAIM_CONFIRM_JWK_THUMBPRINT);
+        return jkt == null ? null : jkt.toString();
+    }
+
     String extractSpiffeIdFromToken(final OAuth2Token token) {
         if (token == null) {
             return null;
@@ -3287,6 +3296,15 @@ public class ZTSImpl implements ZTSHandler {
 
         if (!principal.getFullName().equals(actorToken.getSubject())) {
             throw forbiddenError("Request principal does not match actor token principal",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
+        // the actor token authenticates the actor so a DPoP-bound actor token
+        // is only accepted with a proof signed by the key it's bound to
+
+        final String actorTokenJkt = getConfirmJwkThumbprint(actorToken);
+        if (actorTokenJkt != null && !actorTokenJkt.equals(accessTokenRequest.getDPoPJwkThumbprint())) {
+            throw forbiddenError("DPoP proof key does not match actor token cnf.jkt",
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
