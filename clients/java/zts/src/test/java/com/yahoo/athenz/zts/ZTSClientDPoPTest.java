@@ -46,7 +46,12 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import static com.yahoo.athenz.zts.AccessTokenTestFileHelper.setupTokenFile;
 import static org.testng.Assert.*;
@@ -690,6 +695,61 @@ public class ZTSClientDPoPTest {
         ZTSClient.cancelPrefetch();
         otherClient.close();
         client.close();
+    }
+
+    @Test
+    public void testConcurrentPrefetchSchedulingKeepsOwners() throws Exception {
+
+        // clients sharing a job schedule it at the same time, then all but one
+        // cancel at the same time: the job must stay for the remaining client
+        // and go away once that client cancels as well
+
+        ZTSClient.cancelPrefetch();
+        OAuthTokenRequestBuilder builder = OAuthTokenRequestBuilder
+                .newBuilder(OAuthTokenRequestBuilder.OAUTH_GRANT_CLIENT_CREDENTIALS)
+                .domainName("coretech").expiryTime(3600);
+        final long expiry = System.currentTimeMillis() / 1000 + 3600;
+
+        final int clientCount = 8;
+        DPoPKeyProvider sharedProvider = () -> dpopKey;
+        List<ZTSClient> clients = new ArrayList<>();
+        for (int i = 0; i < clientCount; i++) {
+            ZTSClient client = createClient(Mockito.mock(ZTSRDLGeneratedClient.class));
+            client.setDPoPKeyProvider(sharedProvider);
+            clients.add(client);
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(clientCount);
+        try {
+            for (int round = 0; round < 200; round++) {
+                runConcurrently(executor, clients, client -> client.prefetchToken(builder, expiry,
+                        ZTSClient.TokenType.ACCESS));
+                runConcurrently(executor, clients.subList(1, clientCount), ZTSClient::cancelAccessTokenPrefetch);
+                assertEquals(clients.get(0).getScheduledItemsSize(), 1, "round " + round);
+                clients.get(0).cancelAccessTokenPrefetch();
+                assertEquals(clients.get(0).getScheduledItemsSize(), 0, "round " + round);
+            }
+        } finally {
+            executor.shutdownNow();
+            ZTSClient.cancelPrefetch();
+            clients.forEach(ZTSClient::close);
+        }
+    }
+
+    private static void runConcurrently(ExecutorService executor, List<ZTSClient> clients,
+            Consumer<ZTSClient> action) throws Exception {
+        final CyclicBarrier barrier = new CyclicBarrier(clients.size());
+        List<Future<?>> futures = new ArrayList<>();
+        for (ZTSClient client : clients) {
+            futures.add(executor.submit(() -> {
+                barrier.await();
+                action.accept(client);
+                return null;
+            }));
+        }
+        for (Future<?> future : futures) {
+            future.get();
+        }
     }
 
     @Test

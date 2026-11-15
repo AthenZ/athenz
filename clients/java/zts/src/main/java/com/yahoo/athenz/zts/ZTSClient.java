@@ -205,6 +205,7 @@ public class ZTSClient implements Closeable {
     final static ConcurrentHashMap<String, OIDCResponse> ID_TOKEN_CACHE = new ConcurrentHashMap<>();
 
     private static final Queue<PrefetchTokenScheduledItem> PREFETCH_SCHEDULED_ITEMS = new ConcurrentLinkedQueue<>();
+    private static final Object PREFETCH_OWNERS_LOCK = new Object();
     private static Timer FETCH_TIMER;
     private static final Object TIMER_LOCK = new Object();
     static AtomicLong FETCHER_LAST_RUN_AT = new AtomicLong(-1);
@@ -770,23 +771,29 @@ public class ZTSClient implements Closeable {
      * Jobs shared with other clients that still use those settings are kept.
      */
     void cancelAccessTokenPrefetch() {
-        PREFETCH_SCHEDULED_ITEMS.removeIf(item -> item.tokenType == TokenType.ACCESS
-                && item.owners.remove(prefetchOwner) && item.owners.isEmpty());
+        synchronized (PREFETCH_OWNERS_LOCK) {
+            PREFETCH_SCHEDULED_ITEMS.removeIf(item -> item.tokenType == TokenType.ACCESS
+                    && item.owners.remove(prefetchOwner) && item.owners.isEmpty());
+        }
     }
 
     /**
      * Replace any scheduled job matching the item but keep the clients that
-     * scheduled it, so cancelling one client's jobs leaves them to the others
+     * scheduled it, so cancelling one client's jobs leaves them to the others.
+     * Merging the owners and replacing the job is atomic with other scheduling
+     * and cancel calls so an owner is neither lost nor restored after it cancelled.
      */
     void schedulePrefetchItem(PrefetchTokenScheduledItem item) {
-        item.owners.add(prefetchOwner);
-        for (PrefetchTokenScheduledItem scheduledItem : PREFETCH_SCHEDULED_ITEMS) {
-            if (scheduledItem.equals(item)) {
-                item.owners.addAll(scheduledItem.owners);
+        synchronized (PREFETCH_OWNERS_LOCK) {
+            item.owners.add(prefetchOwner);
+            for (PrefetchTokenScheduledItem scheduledItem : PREFETCH_SCHEDULED_ITEMS) {
+                if (scheduledItem.equals(item)) {
+                    item.owners.addAll(scheduledItem.owners);
+                }
             }
+            PREFETCH_SCHEDULED_ITEMS.remove(item);
+            PREFETCH_SCHEDULED_ITEMS.add(item);
         }
-        PREFETCH_SCHEDULED_ITEMS.remove(item);
-        PREFETCH_SCHEDULED_ITEMS.add(item);
     }
 
     KeyPair getDPoPKeyPair() {
@@ -4513,8 +4520,9 @@ public class ZTSClient implements Closeable {
             return this;
         }
         
-        // clients that scheduled this job, not part of the item's identity
-        final Set<Object> owners = ConcurrentHashMap.newKeySet();
+        // clients that scheduled this job, not part of the item's identity.
+        // guarded by PREFETCH_OWNERS_LOCK
+        final Set<Object> owners = new HashSet<>();
 
         boolean isInvalid = false;
         PrefetchTokenScheduledItem setIsInvalid(boolean invalid) {
