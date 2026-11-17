@@ -72,11 +72,12 @@ func makeHostCert(sshDir, keyId, certBaseName string) (string, error) {
 func makeHostCertFromKey(keyId string, prikey crypto.PrivateKey, pubkey crypto.PublicKey, certType uint32) (*ssh.Certificate, error) {
 	pkey, _ := ssh.NewPublicKey(pubkey)
 	cert := &ssh.Certificate{
-		KeyId:       keyId,
-		Key:         pkey,
-		CertType:    certType,
-		ValidAfter:  uint64(time.Now().Unix() - 100),
-		ValidBefore: uint64(time.Now().Unix() + 100),
+		KeyId:           keyId,
+		Key:             pkey,
+		CertType:        certType,
+		ValidPrincipals: []string{"localhost"},
+		ValidAfter:      uint64(time.Now().Unix() - 100),
+		ValidBefore:     uint64(time.Now().Unix() + 100),
 	}
 	signer, err := ssh.NewSignerFromKey(prikey)
 	if err != nil {
