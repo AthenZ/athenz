@@ -19,6 +19,7 @@ package com.yahoo.athenz.common.server.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yahoo.athenz.auth.AuthorityConsts;
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.ServerResourceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +95,10 @@ public class Utils {
 
     public static String extractEntityName(String domainName, String fullEntityName) {
         return extractObjectName(domainName, fullEntityName, AuthorityConsts.ENTITY_SEP);
+    }
+
+    public static String extractPolicyBundleName(String domainName, String fullBundleName) {
+        return extractObjectName(domainName, fullBundleName, ServerCommonConsts.BUNDLE_SEP);
     }
 
     public static String extractServiceName(String domainName, String fullServiceName) {

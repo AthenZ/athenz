@@ -23,6 +23,8 @@ public final class ServerCommonConsts {
     public static final String OBJECT_POLICY    = "policy";
     public static final String OBJECT_ASSERTION = "assertion";
     public static final String OBJECT_ENTITY    = "entity";
+    public static final String OBJECT_BUNDLE    = "bundle";
+    public static final String BUNDLE_SEP       = ":bundle.";
     public static final String USER_DOMAIN      = "user";
 
     public static final String USER_DOMAIN_PREFIX = "user.";

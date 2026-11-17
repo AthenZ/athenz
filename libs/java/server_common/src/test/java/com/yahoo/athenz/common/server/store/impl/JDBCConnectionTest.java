@@ -7105,6 +7105,8 @@ public class JDBCConnectionTest {
         assertEquals(athenzDomain.getServices().get(0).getPublicKeys().get(0).getKey(), "Value1");
         assertEquals(athenzDomain.getServices().get(0).getHosts().size(), 1);
         assertEquals(athenzDomain.getServices().get(0).getHosts().get(0), "host1");
+        assertNotNull(athenzDomain.getPolicyBundles());
+        assertTrue(athenzDomain.getPolicyBundles().isEmpty());
 
         assertEquals(athenzDomain.getRoles().get(0).getTags().get("role1-tag-key").getList().get(0), "role1-tag-val");
         assertEquals(athenzDomain.getRoles().get(1).getTags().get("role2-tag-key").getList().get(0), "role2-tag-val");
@@ -18725,6 +18727,817 @@ public class JDBCConnectionTest {
             assertTrue(ex.getMessage().contains("sql error"));
         }
 
+        jdbcConn.close();
+    }
+
+    // Policy Bundle tests
+
+    private static final String BUNDLE_SQL_ERR = "failed operation";
+
+    private void setupBundleRow(String name, String roots, String services) throws SQLException {
+        Mockito.doReturn(name).when(mockResultSet).getString(JDBCConsts.DB_COLUMN_NAME);
+        Mockito.doReturn("rego").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_ENGINE);
+        Mockito.doReturn("1").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_VERSION);
+        Mockito.doReturn(true).when(mockResultSet).getBoolean(JDBCConsts.DB_COLUMN_ACTIVE);
+        Mockito.doReturn(roots).when(mockResultSet).getString(JDBCConsts.DB_COLUMN_ROOTS);
+        Mockito.doReturn("bundle desc").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_DESCRIPTION);
+        Mockito.doReturn(new java.sql.Timestamp(1454358916)).when(mockResultSet).getTimestamp(JDBCConsts.DB_COLUMN_MODIFIED);
+    }
+
+    private void setupBundleFile(String path) throws SQLException {
+        Mockito.doReturn(path).when(mockResultSet).getString(JDBCConsts.DB_COLUMN_PATH);
+        Mockito.doReturn("content").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_CONTENT);
+        Mockito.doReturn("sha").when(mockResultSet).getString(JDBCConsts.DB_COLUMN_SHA256);
+    }
+
+    @Test
+    public void testBundleListConversion() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        assertEquals(jdbcConn.bundleListToDbValue(null), "");
+        assertEquals(jdbcConn.bundleListToDbValue(new ArrayList<>()), "");
+        assertEquals(jdbcConn.bundleListToDbValue(Collections.singletonList("a")), "a");
+        assertEquals(jdbcConn.bundleListToDbValue(Arrays.asList("a", "b")), "a,b");
+
+        assertNull(jdbcConn.bundleListFromDbValue(null));
+        assertNull(jdbcConn.bundleListFromDbValue(""));
+        assertEquals(jdbcConn.bundleListFromDbValue("a"), Collections.singletonList("a"));
+        assertEquals(jdbcConn.bundleListFromDbValue("a,b"), Arrays.asList("a", "b"));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPolicyBundleIdActiveAndVersion() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(7).when(mockResultSet).getInt(1);
+
+        assertEquals(jdbcConn.getPolicyBundleId(5, "b1", null), 7);
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "b1");
+        Mockito.verify(mockPrepStmt, times(0)).setString(ArgumentMatchers.eq(3), ArgumentMatchers.anyString());
+
+        assertEquals(jdbcConn.getPolicyBundleId(5, "b1", ""), 7);
+        assertEquals(jdbcConn.getPolicyBundleId(5, "b1", "2"), 7);
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "2");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPolicyBundleIdNotFoundAndException() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        assertEquals(jdbcConn.getPolicyBundleId(5, "b1", null), 0);
+
+        Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException(BUNDLE_SQL_ERR, "state", 1001));
+        assertEquals(jdbcConn.getPolicyBundleId(5, "b1", "2"), 0);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetRequiredPolicyBundleId() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // success
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        assertEquals(jdbcConn.getRequiredPolicyBundleId("caller", "my-domain", "b1", null), 5);
+
+        // domain not found (domain id is cached after first success so use a new connection)
+        jdbcConn.close();
+        jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        try {
+            jdbcConn.getRequiredPolicyBundleId("caller", "my-domain", "b1", null);
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("my-domain"));
+        }
+
+        // bundle not found
+        jdbcConn.close();
+        jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        try {
+            jdbcConn.getRequiredPolicyBundleId("caller", "my-domain", "b1", "2");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+            assertTrue(ex.getMessage().contains("my-domain:bundle.b1"));
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPolicyBundleActive() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // domain, bundle, one file, end of files
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        Mockito.doReturn(9).when(mockResultSet).getInt(JDBCConsts.DB_COLUMN_BUNDLE_ID);
+        setupBundleRow("b1", "root1,root2", "svc1");
+        setupBundleFile("a/b.rego");
+
+        PolicyBundle bundle = jdbcConn.getPolicyBundle("my-domain", "b1", null);
+        assertNotNull(bundle);
+        assertEquals(bundle.getName(), "my-domain:bundle.b1");
+        assertEquals(bundle.getEngine(), "rego");
+        assertEquals(bundle.getVersion(), "1");
+        assertTrue(bundle.getActive());
+        assertEquals(bundle.getRoots(), Arrays.asList("root1", "root2"));
+        assertEquals(bundle.getDescription(), "bundle desc");
+        assertEquals(bundle.getFiles().size(), 1);
+        assertEquals(bundle.getFiles().get(0).getPath(), "a/b.rego");
+        assertEquals(bundle.getFiles().get(0).getContent(), "content");
+        assertEquals(bundle.getFiles().get(0).getSha256(), "sha");
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 9);
+        Mockito.verify(mockPrepStmt, times(0)).setString(ArgumentMatchers.eq(3), ArgumentMatchers.anyString());
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPolicyBundleVersionNoRootsNoFiles() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // domain, bundle, no files
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        Mockito.doReturn(9).when(mockResultSet).getInt(JDBCConsts.DB_COLUMN_BUNDLE_ID);
+        setupBundleRow("b1", "", "");
+
+        PolicyBundle bundle = jdbcConn.getPolicyBundle("my-domain", "b1", "1");
+        assertNotNull(bundle);
+        assertNull(bundle.getRoots());
+        assertTrue(bundle.getFiles().isEmpty());
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "1");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPolicyBundleNotFound() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // domain found, bundle not found
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        assertNull(jdbcConn.getPolicyBundle("my-domain", "b1", null));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPolicyBundleInvalidDomain() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        try {
+            jdbcConn.getPolicyBundle("my-domain", "b1", null);
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPolicyBundleExceptions() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // bundle query fails
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        Mockito.when(mockPrepStmt.executeQuery()).thenReturn(mockResultSet)
+                .thenThrow(new SQLException(BUNDLE_SQL_ERR, "state", 1001));
+        try {
+            jdbcConn.getPolicyBundle("my-domain", "b1", null);
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+
+        // files query fails
+        jdbcConn.close();
+        jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(9).when(mockResultSet).getInt(JDBCConsts.DB_COLUMN_BUNDLE_ID);
+        setupBundleRow("b1", "", "");
+        Mockito.doReturn(mockResultSet).doReturn(mockResultSet)
+                .doThrow(new SQLException(BUNDLE_SQL_ERR, "state", 1001)).when(mockPrepStmt).executeQuery();
+        try {
+            jdbcConn.getPolicyBundle("my-domain", "b1", null);
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPolicyBundles() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // domain, 1 bundle, files: unknown bundle id, known bundle id
+        Mockito.when(mockResultSet.next()).thenReturn(true)
+                .thenReturn(true).thenReturn(false)
+                .thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        Mockito.when(mockResultSet.getInt(JDBCConsts.DB_COLUMN_BUNDLE_ID))
+                .thenReturn(7).thenReturn(99).thenReturn(7);
+        setupBundleRow("b1", "root1", "");
+        setupBundleFile("a.rego");
+
+        List<PolicyBundle> bundles = jdbcConn.getPolicyBundles("my-domain", true);
+        assertEquals(bundles.size(), 1);
+        assertEquals(bundles.get(0).getName(), "my-domain:bundle.b1");
+        assertEquals(bundles.get(0).getFiles().size(), 1);
+        Mockito.verify(mockPrepStmt, times(2)).setInt(1, 5);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPolicyBundlesActiveOnly() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // domain, 1 bundle, 1 file
+        Mockito.when(mockResultSet.next()).thenReturn(true)
+                .thenReturn(true).thenReturn(false)
+                .thenReturn(true).thenReturn(false);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        Mockito.doReturn(7).when(mockResultSet).getInt(JDBCConsts.DB_COLUMN_BUNDLE_ID);
+        setupBundleRow("b1", "", "svc1");
+        setupBundleFile("a.rego");
+
+        List<PolicyBundle> bundles = jdbcConn.getPolicyBundles("my-domain", false);
+        assertEquals(bundles.size(), 1);
+        assertEquals(bundles.get(0).getFiles().size(), 1);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPolicyBundlesEmpty() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // domain found, no bundles - file query is skipped
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+
+        List<PolicyBundle> bundles = jdbcConn.getPolicyBundles("my-domain", true);
+        assertTrue(bundles.isEmpty());
+        Mockito.verify(mockPrepStmt, times(2)).executeQuery();
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPolicyBundlesInvalidDomain() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        try {
+            jdbcConn.getPolicyBundles("my-domain", true);
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testGetPolicyBundlesExceptions() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+
+        // bundles query fails
+        Mockito.when(mockPrepStmt.executeQuery()).thenReturn(mockResultSet)
+                .thenThrow(new SQLException(BUNDLE_SQL_ERR, "state", 1001));
+        try {
+            jdbcConn.getPolicyBundles("my-domain", true);
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+
+        // files query fails
+        jdbcConn.close();
+        jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(7).when(mockResultSet).getInt(JDBCConsts.DB_COLUMN_BUNDLE_ID);
+        setupBundleRow("b1", "", "");
+        Mockito.doReturn(mockResultSet).doReturn(mockResultSet)
+                .doThrow(new SQLException(BUNDLE_SQL_ERR, "state", 1001)).when(mockPrepStmt).executeQuery();
+        try {
+            jdbcConn.getPolicyBundles("my-domain", false);
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertPolicyBundle() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        PolicyBundle bundle = new PolicyBundle().setName("my-domain:bundle.b1").setEngine(" rego ")
+                .setVersion("2").setActive(false).setRoots(Arrays.asList("r1", "r2"))
+                .setDescription("desc");
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+
+        assertTrue(jdbcConn.insertPolicyBundle("my-domain", bundle));
+
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "b1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "rego");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "2");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(5, false);
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "r1,r2");
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "desc");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertPolicyBundleDefaults() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        PolicyBundle bundle = new PolicyBundle().setName("my-domain:bundle.b1");
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+
+        assertFalse(jdbcConn.insertPolicyBundle("my-domain", bundle));
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "0");
+        Mockito.verify(mockPrepStmt, times(1)).setBoolean(5, true);
+        Mockito.verify(mockPrepStmt, times(1)).setString(6, "");
+        Mockito.verify(mockPrepStmt, times(1)).setString(7, "");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertPolicyBundleErrors() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // domain name mismatch
+        try {
+            jdbcConn.insertPolicyBundle("my-domain", new PolicyBundle().setName("other:bundle.b1"));
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.BAD_REQUEST);
+        }
+
+        // domain not found
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        try {
+            jdbcConn.insertPolicyBundle("my-domain", new PolicyBundle().setName("my-domain:bundle.b1"));
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+
+        // sql exception
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException(BUNDLE_SQL_ERR, "state", 1001));
+        try {
+            jdbcConn.insertPolicyBundle("my-domain", new PolicyBundle().setName("my-domain:bundle.b1"));
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdatePolicyBundle() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        PolicyBundle bundle = new PolicyBundle().setName("my-domain:bundle.b1").setEngine("rego")
+                .setRoots(Arrays.asList("r1", "r2")).setDescription("desc");
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+
+        assertTrue(jdbcConn.updatePolicyBundle("my-domain", bundle));
+
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "rego");
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "r1,r2");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "desc");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(4, 5);
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        assertFalse(jdbcConn.updatePolicyBundle("my-domain", bundle));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testUpdatePolicyBundleErrors() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // domain name mismatch
+        try {
+            jdbcConn.updatePolicyBundle("my-domain", new PolicyBundle().setName("other:bundle.b1"));
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.BAD_REQUEST);
+        }
+
+        // domain not found
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        try {
+            jdbcConn.updatePolicyBundle("my-domain", new PolicyBundle().setName("my-domain:bundle.b1"));
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+
+        // bundle not found
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        try {
+            jdbcConn.updatePolicyBundle("my-domain", new PolicyBundle().setName("my-domain:bundle.b1").setVersion("3"));
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+
+        // sql exception
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException(BUNDLE_SQL_ERR, "state", 1001));
+        try {
+            jdbcConn.updatePolicyBundle("my-domain", new PolicyBundle().setName("my-domain:bundle.b1"));
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePolicyBundle() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+
+        assertTrue(jdbcConn.deletePolicyBundle("my-domain", "b1"));
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "b1");
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        assertFalse(jdbcConn.deletePolicyBundle("my-domain", "b1"));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePolicyBundleErrors() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        try {
+            jdbcConn.deletePolicyBundle("my-domain", "b1");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException(BUNDLE_SQL_ERR, "state", 1001));
+        try {
+            jdbcConn.deletePolicyBundle("my-domain", "b1");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePolicyBundleVersion() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+
+        assertTrue(jdbcConn.deletePolicyBundleVersion("my-domain", "b1", "2"));
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "b1");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "2");
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        assertFalse(jdbcConn.deletePolicyBundleVersion("my-domain", "b1", "2"));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePolicyBundleVersionErrors() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        try {
+            jdbcConn.deletePolicyBundleVersion("my-domain", "b1", "2");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException(BUNDLE_SQL_ERR, "state", 1001));
+        try {
+            jdbcConn.deletePolicyBundleVersion("my-domain", "b1", "2");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testSetActivePolicyBundleVersion() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.doReturn(2).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+
+        assertTrue(jdbcConn.setActivePolicyBundleVersion("my-domain", "b1", "2"));
+        Mockito.verify(mockPrepStmt, times(1)).setString(1, "2");
+        Mockito.verify(mockPrepStmt, times(1)).setInt(2, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "b1");
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        assertFalse(jdbcConn.setActivePolicyBundleVersion("my-domain", "b1", "2"));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testSetActivePolicyBundleVersionErrors() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        try {
+            jdbcConn.setActivePolicyBundleVersion("my-domain", "b1", "2");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException(BUNDLE_SQL_ERR, "state", 1001));
+        try {
+            jdbcConn.setActivePolicyBundleVersion("my-domain", "b1", "2");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListPolicyBundles() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        // domain, 2 names, end
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        Mockito.when(mockResultSet.getString(1)).thenReturn("b2").thenReturn("b1");
+
+        List<String> names = jdbcConn.listPolicyBundles("my-domain");
+        assertEquals(names, Arrays.asList("b1", "b2"));
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(0)).setString(ArgumentMatchers.eq(2), ArgumentMatchers.anyString());
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListPolicyBundleVersions() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        Mockito.when(mockResultSet.getString(1)).thenReturn("2").thenReturn("1");
+
+        List<String> versions = jdbcConn.listPolicyBundleVersions("my-domain", "b1");
+        assertEquals(versions, Arrays.asList("1", "2"));
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 5);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "b1");
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testListPolicyBundlesErrors() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        try {
+            jdbcConn.listPolicyBundles("my-domain");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+        try {
+            jdbcConn.listPolicyBundleVersions("my-domain", "b1");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        Mockito.when(mockPrepStmt.executeQuery()).thenReturn(mockResultSet)
+                .thenThrow(new SQLException(BUNDLE_SQL_ERR, "state", 1001));
+        try {
+            jdbcConn.listPolicyBundles("my-domain");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testCountPolicyBundles() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        assertEquals(jdbcConn.countPolicyBundles("my-domain"), 5);
+
+        // domain found, no count row
+        jdbcConn.close();
+        jdbcConn = new JDBCConnection(mockConn, true);
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        assertEquals(jdbcConn.countPolicyBundles("my-domain"), 0);
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testCountPolicyBundlesErrors() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(false);
+        try {
+            jdbcConn.countPolicyBundles("my-domain");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        Mockito.when(mockPrepStmt.executeQuery()).thenReturn(mockResultSet)
+                .thenThrow(new SQLException(BUNDLE_SQL_ERR, "state", 1001));
+        try {
+            jdbcConn.countPolicyBundles("my-domain");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertPolicyBundleFile() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        PolicyBundleFile file = new PolicyBundleFile().setPath("a/b.rego").setContent("content").setSha256("sha");
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(8); // domain id, bundle id
+
+        assertTrue(jdbcConn.insertPolicyBundleFile("my-domain", "b1", null, file));
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 8);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "a/b.rego");
+        Mockito.verify(mockPrepStmt, times(1)).setString(3, "content");
+        Mockito.verify(mockPrepStmt, times(1)).setString(4, "sha");
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        assertFalse(jdbcConn.insertPolicyBundleFile("my-domain", "b1", null, file));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testInsertPolicyBundleFileErrors() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        PolicyBundleFile file = new PolicyBundleFile().setPath("a/b.rego").setContent("content").setSha256("sha");
+
+        // bundle not found
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        try {
+            jdbcConn.insertPolicyBundleFile("my-domain", "b1", "1", file);
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+
+        // sql exception
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException(BUNDLE_SQL_ERR, "state", 1001));
+        try {
+            jdbcConn.insertPolicyBundleFile("my-domain", "b1", "1", file);
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePolicyBundleFile() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.doReturn(1).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(8); // domain id, bundle id
+
+        assertTrue(jdbcConn.deletePolicyBundleFile("my-domain", "b1", null, "a/b.rego"));
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 8);
+        Mockito.verify(mockPrepStmt, times(1)).setString(2, "a/b.rego");
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        assertFalse(jdbcConn.deletePolicyBundleFile("my-domain", "b1", null, "a/b.rego"));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePolicyBundleFileErrors() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        try {
+            jdbcConn.deletePolicyBundleFile("my-domain", "b1", "1", "a/b.rego");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException(BUNDLE_SQL_ERR, "state", 1001));
+        try {
+            jdbcConn.deletePolicyBundleFile("my-domain", "b1", "1", "a/b.rego");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePolicyBundleFiles() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.doReturn(2).when(mockPrepStmt).executeUpdate();
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockResultSet.getInt(1)).thenReturn(5).thenReturn(8); // domain id, bundle id
+
+        assertTrue(jdbcConn.deletePolicyBundleFiles("my-domain", "b1", null));
+        Mockito.verify(mockPrepStmt, times(1)).setInt(1, 8);
+
+        Mockito.doReturn(0).when(mockPrepStmt).executeUpdate();
+        assertFalse(jdbcConn.deletePolicyBundleFiles("my-domain", "b1", "1"));
+        jdbcConn.close();
+    }
+
+    @Test
+    public void testDeletePolicyBundleFilesErrors() throws Exception {
+        JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
+
+        Mockito.when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.doReturn(5).when(mockResultSet).getInt(1);
+        try {
+            jdbcConn.deletePolicyBundleFiles("my-domain", "b1", "1");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+        }
+
+        Mockito.when(mockResultSet.next()).thenReturn(true);
+        Mockito.when(mockPrepStmt.executeUpdate()).thenThrow(new SQLException(BUNDLE_SQL_ERR, "state", 1001));
+        try {
+            jdbcConn.deletePolicyBundleFiles("my-domain", "b1", "1");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
         jdbcConn.close();
     }
 }

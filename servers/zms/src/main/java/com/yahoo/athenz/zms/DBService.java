@@ -54,6 +54,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -67,6 +68,7 @@ public class DBService implements RolesProvider, DomainProvider {
     private final AuthHistoryStore authHistoryStore;
     Cache<String, DataCache> cacheStore;
     QuotaChecker quotaCheck;
+    PolicyBundleRules bundleRules;
     int retrySleepTime;
     int defaultRetryCount;
     int defaultOpTimeout;
@@ -87,8 +89,10 @@ public class DBService implements RolesProvider, DomainProvider {
     public static int AUDIT_TYPE_TENANCY  = 5;
     public static int AUDIT_TYPE_TEMPLATE = 6;
     public static int AUDIT_TYPE_GROUP    = 7;
+    public static int AUDIT_TYPE_BUNDLE   = 8;
 
     private static final String CALLER_TEMPLATE = "putSolutionTemplate";
+    static final String POLICY_BUNDLE_DEFAULT_VERSION = "0";
 
     private static final String ROLE_PREFIX = "role.";
     private static final String POLICY_PREFIX = "policy.";
@@ -195,6 +199,7 @@ public class DBService implements RolesProvider, DomainProvider {
         // create our quota checker class
 
         quotaCheck = new QuotaChecker();
+        bundleRules = new PolicyBundleRules(null);
 
         // start our thread to process user authority changes daily
 
@@ -268,6 +273,9 @@ public class DBService implements RolesProvider, DomainProvider {
                     break;
                 case ZMSConsts.ZMS_AUDIT_TYPE_TEMPLATE:
                     auditRefSet.set(AUDIT_TYPE_TEMPLATE);
+                    break;
+                case ZMSConsts.ZMS_AUDIT_TYPE_BUNDLE:
+                    auditRefSet.set(AUDIT_TYPE_BUNDLE);
                     break;
             }
         }
@@ -2726,6 +2734,535 @@ public class DBService implements RolesProvider, DomainProvider {
                 // add domain change event
                 addDomainChangeMessage(ctx, domainName, entityName, DomainChangeMessage.ObjectType.ENTITY);
                 
+                return;
+
+            } catch (ServerResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ZMSUtils.error(ex);
+                }
+            }
+        }
+    }
+
+    // Policy Bundle operations
+
+    PolicyBundle getPolicyBundle(String domainName, String bundleName, String version) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.getPolicyBundle(domainName, bundleName, version);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
+    }
+
+    List<PolicyBundle> getPolicyBundles(String domainName, boolean includeNonActive) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.getPolicyBundles(domainName, includeNonActive);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
+    }
+
+    List<String> listPolicyBundles(String domainName) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.listPolicyBundles(domainName);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
+    }
+
+    List<String> listPolicyBundleVersions(String domainName, String bundleName) {
+        try (ObjectStoreConnection con = store.getConnection(true, false)) {
+            return con.listPolicyBundleVersions(domainName, bundleName);
+        } catch (ServerResourceException ex) {
+            throw ZMSUtils.error(ex);
+        }
+    }
+
+    void auditLogPolicyBundle(StringBuilder auditDetails, PolicyBundle bundle) {
+        auditDetails.append("{\"name\": \"").append(bundle.getName())
+                .append("\", \"engine\": \"").append(bundle.getEngine())
+                .append("\", \"version\": \"").append(bundle.getVersion())
+                .append("\", \"active\": \"").append(bundle.getActive())
+                .append("\", \"files\": [");
+        boolean firstEntry = true;
+        if (bundle.getFiles() != null) {
+            for (PolicyBundleFile file : bundle.getFiles()) {
+                if (!firstEntry) {
+                    auditDetails.append(", ");
+                }
+                firstEntry = false;
+                auditDetails.append("{\"path\": \"").append(file.getPath())
+                        .append("\", \"sha256\": \"").append(file.getSha256()).append("\"}");
+            }
+        }
+        auditDetails.append("]}");
+    }
+
+    boolean insertPolicyBundleFiles(ObjectStoreConnection con, final String domainName, final String bundleName,
+            final String version, List<PolicyBundleFile> files) throws ServerResourceException {
+        for (PolicyBundleFile file : files) {
+            if (!con.insertPolicyBundleFile(domainName, bundleName, version, file)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    PolicyBundle executePutPolicyBundle(ResourceContext ctx, String domainName, String bundleName, PolicyBundle bundle,
+            String auditRef, String caller, Boolean returnObj) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_BUNDLE);
+
+                // if no version is specified then we're dealing with the
+                // active version of the bundle. if the version is specified
+                // and the bundle already exists, then we're either updating
+                // that version or creating a new non-active version
+
+                PolicyBundle originalBundle = con.getPolicyBundle(domainName, bundleName, bundle.getVersion());
+
+                boolean requestSuccess;
+                if (originalBundle == null) {
+
+                    List<String> versions = con.listPolicyBundleVersions(domainName, bundleName);
+                    if (versions.isEmpty()) {
+
+                        // brand-new bundle so check our quota and create
+                        // it as the active version
+
+                        quotaCheck.checkPolicyBundleQuota(con, domainName, caller);
+                        bundle.setActive(true);
+
+                    } else {
+
+                        if (StringUtil.isEmpty(bundle.getVersion())) {
+                            rollbackChanges(con);
+                            throw ZMSUtils.requestError("bundle " + bundleName + " has no active version", caller);
+                        }
+
+                        if (versions.size() >= bundleRules.getMaxVersions()) {
+                            rollbackChanges(con);
+                            throw ZMSUtils.quotaLimitError("unable to put bundle: " + bundleName + ", version: "
+                                    + bundle.getVersion() + ", max number of versions reached ("
+                                    + bundleRules.getMaxVersions() + ")", caller);
+                        }
+                        bundle.setActive(false);
+                    }
+                    if (StringUtil.isEmpty(bundle.getVersion())) {
+                        bundle.setVersion(POLICY_BUNDLE_DEFAULT_VERSION);
+                    }
+                    requestSuccess = con.insertPolicyBundle(domainName, bundle);
+                } else {
+                    bundle.setVersion(originalBundle.getVersion());
+                    bundle.setActive(originalBundle.getActive());
+                    requestSuccess = con.updatePolicyBundle(domainName, bundle);
+                    if (requestSuccess) {
+                        con.deletePolicyBundleFiles(domainName, bundleName, bundle.getVersion());
+                    }
+                }
+
+                if (!requestSuccess || !insertPolicyBundleFiles(con, domainName, bundleName,
+                        bundle.getVersion(), bundle.getFiles())) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.internalServerError("unable to put bundle: " + bundle.getName(), caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogPolicyBundle(auditDetails, bundle);
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        bundleName, auditDetails.toString());
+
+                // add domain change event
+
+                addDomainChangeMessage(ctx, domainName, bundleName, DomainChangeMessage.ObjectType.BUNDLE);
+
+                return returnObj == Boolean.TRUE ? con.getPolicyBundle(domainName, bundleName, bundle.getVersion()) : null;
+
+            } catch (ServerResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ZMSUtils.error(ex);
+                }
+            }
+        }
+    }
+
+    void executePutPolicyBundleFile(ResourceContext ctx, String domainName, String bundleName, PolicyBundleFile file,
+            String auditRef, String caller, Consumer<PolicyBundle> bundleValidator) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_BUNDLE);
+
+                // the file is added to/replaced in the active version
+
+                PolicyBundle bundle = con.getPolicyBundle(domainName, bundleName, null);
+                if (bundle == null) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.notFoundError("unknown bundle: " + bundleName, caller);
+                }
+
+                List<PolicyBundleFile> files = new ArrayList<>();
+                for (PolicyBundleFile bundleFile : bundle.getFiles()) {
+                    if (!bundleFile.getPath().equals(file.getPath())) {
+                        files.add(bundleFile);
+                    }
+                }
+                files.add(file);
+                bundle.setFiles(files);
+
+                // validate the updated bundle as a whole - this also
+                // computes the sha-256 digest for the new file
+
+                try {
+                    bundleValidator.accept(bundle);
+                } catch (Exception ex) {
+                    rollbackChanges(con);
+                    throw ex;
+                }
+
+                con.deletePolicyBundleFile(domainName, bundleName, bundle.getVersion(), file.getPath());
+                if (!con.insertPolicyBundleFile(domainName, bundleName, bundle.getVersion(), file)
+                        || !con.updatePolicyBundle(domainName, bundle)) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.internalServerError("unable to put bundle file: " + file.getPath(), caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT, bundleName,
+                        "{\"version\": \"" + bundle.getVersion() + "\", \"path\": \"" + file.getPath()
+                                + "\", \"sha256\": \"" + file.getSha256() + "\"}");
+
+                // add domain change event
+
+                addDomainChangeMessage(ctx, domainName, bundleName, DomainChangeMessage.ObjectType.BUNDLE);
+                return;
+
+            } catch (ServerResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ZMSUtils.error(ex);
+                }
+            }
+        }
+    }
+
+    void executeDeletePolicyBundleFile(ResourceContext ctx, String domainName, String bundleName, String path,
+            String auditRef, String caller, Consumer<PolicyBundle> bundleValidator) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_BUNDLE);
+
+                // the file is removed from the active version
+
+                PolicyBundle bundle = con.getPolicyBundle(domainName, bundleName, null);
+                if (bundle == null) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.notFoundError("unknown bundle: " + bundleName, caller);
+                }
+
+                List<PolicyBundleFile> files = new ArrayList<>();
+                for (PolicyBundleFile bundleFile : bundle.getFiles()) {
+                    if (!bundleFile.getPath().equals(path)) {
+                        files.add(bundleFile);
+                    }
+                }
+                if (files.size() == bundle.getFiles().size()) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.notFoundError("unknown bundle file: " + path, caller);
+                }
+                bundle.setFiles(files);
+
+                // validate the updated bundle as a whole - this rejects
+                // removal of the last (or last policy) file of the bundle
+
+                try {
+                    bundleValidator.accept(bundle);
+                } catch (Exception ex) {
+                    rollbackChanges(con);
+                    throw ex;
+                }
+
+                if (!con.deletePolicyBundleFile(domainName, bundleName, bundle.getVersion(), path)
+                        || !con.updatePolicyBundle(domainName, bundle)) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.internalServerError("unable to delete bundle file: " + path, caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE, bundleName,
+                        "{\"version\": \"" + bundle.getVersion() + "\", \"path\": \"" + path + "\"}");
+
+                // add domain change event
+
+                addDomainChangeMessage(ctx, domainName, bundleName, DomainChangeMessage.ObjectType.BUNDLE);
+                return;
+
+            } catch (ServerResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ZMSUtils.error(ex);
+                }
+            }
+        }
+    }
+
+    void executeDeletePolicyBundle(ResourceContext ctx, String domainName, String bundleName,
+            String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_BUNDLE);
+
+                // process our delete bundle request - all versions are deleted
+
+                if (!con.deletePolicyBundle(domainName, bundleName)) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.notFoundError("unable to delete bundle: " + bundleName, caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE, bundleName, null);
+
+                // add domain change event
+
+                addDomainChangeMessage(ctx, domainName, bundleName, DomainChangeMessage.ObjectType.BUNDLE);
+                return;
+
+            } catch (ServerResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ZMSUtils.error(ex);
+                }
+            }
+        }
+    }
+
+    PolicyBundle executePutPolicyBundleVersion(ResourceContext ctx, String domainName, String bundleName,
+            String version, String fromVersion, String auditRef, String caller, Boolean returnObj) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_BUNDLE);
+
+                // verify the bundle hasn't reached maximum number of versions allowed
+                // and the requested version does not exist
+
+                List<String> versions = con.listPolicyBundleVersions(domainName, bundleName);
+                if (versions.contains(version)) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.requestError("bundle: " + bundleName + ", version: " + version
+                            + " already exists", caller);
+                }
+                if (versions.size() >= bundleRules.getMaxVersions()) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.quotaLimitError("unable to put bundle: " + bundleName + ", version: " + version
+                            + ", max number of versions reached (" + bundleRules.getMaxVersions() + ")", caller);
+                }
+
+                // retrieve our source bundle version (active version if not specified)
+
+                PolicyBundle bundle = con.getPolicyBundle(domainName, bundleName, fromVersion);
+                if (bundle == null) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.notFoundError("unable to fetch bundle: " + bundleName + ", version: "
+                            + fromVersion, caller);
+                }
+
+                // create the new non-active version with the same files
+
+                bundle.setVersion(version);
+                bundle.setActive(false);
+                if (!con.insertPolicyBundle(domainName, bundle) || !insertPolicyBundleFiles(con, domainName,
+                        bundleName, version, bundle.getFiles())) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.internalServerError("unable to put bundle: " + bundleName + ", version: "
+                            + version, caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogPolicyBundle(auditDetails, bundle);
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT,
+                        bundleName + ":" + version, auditDetails.toString());
+
+                // add domain change event
+
+                addDomainChangeMessage(ctx, domainName, bundleName, DomainChangeMessage.ObjectType.BUNDLE);
+
+                return returnObj == Boolean.TRUE ? con.getPolicyBundle(domainName, bundleName, version) : null;
+
+            } catch (ServerResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ZMSUtils.error(ex);
+                }
+            }
+        }
+    }
+
+    void executeSetActivePolicyBundleVersion(ResourceContext ctx, String domainName, String bundleName,
+            String version, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_BUNDLE);
+
+                // verify the requested version exists
+
+                PolicyBundle bundle = con.getPolicyBundle(domainName, bundleName, version);
+                if (bundle == null) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.notFoundError("unable to fetch bundle: " + bundleName + ", version: "
+                            + version, caller);
+                }
+
+                if (!con.setActivePolicyBundleVersion(domainName, bundleName, version)) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.internalServerError("unable to set active bundle: " + bundleName
+                            + ", version: " + version, caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_PUT, bundleName,
+                        "{\"active-version\": \"" + version + "\"}");
+
+                // add domain change event
+
+                addDomainChangeMessage(ctx, domainName, bundleName, DomainChangeMessage.ObjectType.BUNDLE);
+                return;
+
+            } catch (ServerResourceException ex) {
+                if (!shouldRetryOperation(ex, retryCount)) {
+                    throw ZMSUtils.error(ex);
+                }
+            }
+        }
+    }
+
+    void executeDeletePolicyBundleVersion(ResourceContext ctx, String domainName, String bundleName,
+            String version, String auditRef, String caller) {
+
+        // our exception handling code does the check for retry count
+        // and throws the exception it had received when the retry
+        // count reaches 0
+
+        for (int retryCount = defaultRetryCount; ; retryCount--) {
+
+            try (ObjectStoreConnection con = store.getConnection(false, true)) {
+
+                // first verify that auditing requirements are met
+
+                checkDomainAuditEnabled(con, domainName, auditRef, caller, getPrincipalName(ctx), AUDIT_TYPE_BUNDLE);
+
+                PolicyBundle bundle = con.getPolicyBundle(domainName, bundleName, version);
+                if (bundle == null) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.notFoundError("unable to fetch bundle: " + bundleName + ", version: "
+                            + version, caller);
+                }
+                if (bundle.getActive() == Boolean.TRUE) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.requestError("unable to delete active bundle version. Bundle: " + bundleName
+                            + ", version: " + version, caller);
+                }
+
+                if (!con.deletePolicyBundleVersion(domainName, bundleName, version)) {
+                    rollbackChanges(con);
+                    throw ZMSUtils.notFoundError("unable to delete bundle: " + bundleName + ", version: "
+                            + version, caller);
+                }
+
+                // update our domain time-stamp and save changes
+
+                saveChanges(con, domainName);
+
+                // audit log the request
+
+                StringBuilder auditDetails = new StringBuilder(ZMSConsts.STRING_BLDR_SIZE_DEFAULT);
+                auditLogPolicyBundle(auditDetails, bundle);
+                auditLogRequest(ctx, domainName, auditRef, caller, ZMSConsts.HTTP_DELETE,
+                        bundleName + ":" + version, auditDetails.toString());
+
+                // add domain change event
+
+                addDomainChangeMessage(ctx, domainName, bundleName, DomainChangeMessage.ObjectType.BUNDLE);
                 return;
 
             } catch (ServerResourceException ex) {

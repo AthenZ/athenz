@@ -58,6 +58,7 @@ public class DataCache {
     private final Map<String, List<AuthzDetailsEntity>> authzDetailsCache;
     private final Map<String, Map<String, List<String>>> transportRulesCache;
     private final Set<String> workloadStoreExcludeProvidersCache;
+    private final Map<String, PolicyBundle> policyBundleCache;
 
     public static final String ACTION_ASSUME_ROLE = "assume_role";
     public static final String ACTION_ASSUME_AWS_ROLE = "assume_aws_role";
@@ -86,6 +87,24 @@ public class DataCache {
         authzDetailsCache = new HashMap<>();
         transportRulesCache = new HashMap<>();
         workloadStoreExcludeProvidersCache = new HashSet<>();
+        policyBundleCache = new TreeMap<>();
+    }
+
+    /**
+     * Add a verified (active) policy bundle to the cache
+     * @param bundleName name of the bundle without the domain prefix
+     * @param bundle policy bundle object
+     */
+    public void addPolicyBundle(final String bundleName, PolicyBundle bundle) {
+        policyBundleCache.put(bundleName, bundle);
+    }
+
+    public PolicyBundle getPolicyBundle(final String bundleName) {
+        return policyBundleCache.get(bundleName);
+    }
+
+    public Map<String, PolicyBundle> getPolicyBundles() {
+        return policyBundleCache;
     }
     
     public void setDomainData(DomainData domainData) {

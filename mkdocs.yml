@@ -55,6 +55,7 @@ nav:
     - Self-Served Roles: self_serve_roles.md
     - Athenz Templates: athenz_templates.md
     - Principal Groups: principal_groups.md
+    - Policy Bundles (OPA): policy_bundles.md
 - Authentication:
     - Athenz Service Identity X.509 Certificate: service_authentication.md
     - Athenz Service Identity X.509 Certificate for AWS EC2 instances: service_x509_credentials_aws.md

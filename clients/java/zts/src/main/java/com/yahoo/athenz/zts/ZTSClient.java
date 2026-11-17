@@ -3498,6 +3498,23 @@ public class ZTSClient implements Closeable {
     }
 
     /**
+     * Retrieve the list of policy bundles in the domain that the caller is
+     * authorized to fetch from the ZTS Server
+     * @param domainName name of the domain
+     * @param engine optional engine filter (rego)
+     * @return list of policy bundles. ZTSClientException will be thrown in case of failure
+     */
+    public PolicyBundleEntries getPolicyBundleEntries(String domainName, String engine) {
+        try {
+            return ztsClient.getPolicyBundleEntries(domainName, engine);
+        } catch (ClientResourceException ex) {
+            throw new ZTSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZTSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Verify if the given principal has access to the specified role in the
      * domain or not.
      * @param domainName name of the domain

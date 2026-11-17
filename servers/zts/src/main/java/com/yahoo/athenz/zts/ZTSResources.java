@@ -290,6 +290,75 @@ public class ZTSResources {
     }
 
     @GET
+    @Path("/domain/{domainName}/bundle/{bundleName}")
+    @Produces({ "application/gzip", "application/octet-stream", "application/vnd.openpolicyagent.bundles" })
+    @Operation(description = "Get the active version of the policy bundle as an OPA bundle archive (gzipped tar). If the If-None-Match header is provided, and it matches the ETag (bundle revision) that would be returned, then a NOT_MODIFIED response is returned instead of the bundle.")
+    public Response getPolicyBundle(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "name of the bundle", required = true) @PathParam("bundleName") String bundleName,
+        @Parameter(description = "bundle revision from a previous request", required = false) @HeaderParam("If-None-Match") String matchingTag) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyBundle");
+            context.authenticate();
+            return this.delegate.getPolicyBundle(context, domainName, bundleName, matchingTag);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.FORBIDDEN:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPolicyBundle");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
+    @Path("/domain/{domainName}/bundles")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(description = "List the policy bundles in the domain that the caller is authorized to fetch")
+    public PolicyBundleEntries getPolicyBundleEntries(
+        @Parameter(description = "name of the domain", required = true) @PathParam("domainName") String domainName,
+        @Parameter(description = "optional filter to return only bundles for the given engine", required = false) @QueryParam("engine") String engine) {
+        int code = ResourceException.OK;
+        ResourceContext context = null;
+        try {
+            context = this.delegate.newResourceContext(this.servletContext, this.request, this.response, "getPolicyBundleEntries");
+            context.authenticate();
+            return this.delegate.getPolicyBundleEntries(context, domainName, engine);
+        } catch (ResourceException e) {
+            code = e.getCode();
+            switch (code) {
+            case ResourceException.BAD_REQUEST:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.NOT_FOUND:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.TOO_MANY_REQUESTS:
+                throw typedException(code, e, ResourceError.class);
+            case ResourceException.UNAUTHORIZED:
+                throw typedException(code, e, ResourceError.class);
+            default:
+                System.err.println("*** Warning: undeclared exception (" + code + ") for resource getPolicyBundleEntries");
+                throw typedException(code, e, ResourceError.class);
+            }
+        } finally {
+            this.delegate.recordMetrics(context, code);
+        }
+    }
+
+    @GET
     @Path("/domain/{domainName}/token")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(description = "Return a security token for the specific role in the namespace that the principal can assume. If the role is omitted, then all roles in the namespace that the authenticated user can assume are returned. the caller can specify how long the RoleToken should be valid for by specifying the minExpiryTime and maxExpiryTime parameters. The minExpiryTime specifies that the returned RoleToken must be at least valid (min/lower bound) for specified number of seconds, while maxExpiryTime specifies that the RoleToken must be at most valid (max/upper bound) for specified number of seconds. If both values are the same, the server must return a RoleToken for that many seconds. If no values are specified, the server's default RoleToken Timeout value is used.")
@@ -1345,7 +1414,7 @@ public class ZTSResources {
         Object data = e.getData();
         Object entity = eClass.isInstance(data) ? data : null;
         if (entity != null) {
-            return new WebApplicationException(Response.status(code).entity(entity).build());
+            return new WebApplicationException(Response.status(code).entity(entity).type(MediaType.APPLICATION_JSON).build());
         } else {
             return new WebApplicationException(code);
         }

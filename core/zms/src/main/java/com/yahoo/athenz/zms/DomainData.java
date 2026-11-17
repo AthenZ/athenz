@@ -134,6 +134,7 @@ public class DomainData {
     public List<ServiceIdentity> services;
     public List<Entity> entities;
     public List<Group> groups;
+    public List<PolicyBundle> policyBundles;
     public Timestamp modified;
 
     public DomainData setDescription(String description) {
@@ -444,6 +445,13 @@ public class DomainData {
     public List<Group> getGroups() {
         return groups;
     }
+    public DomainData setPolicyBundles(List<PolicyBundle> policyBundles) {
+        this.policyBundles = policyBundles;
+        return this;
+    }
+    public List<PolicyBundle> getPolicyBundles() {
+        return policyBundles;
+    }
     public DomainData setModified(Timestamp modified) {
         this.modified = modified;
         return this;
@@ -589,6 +597,9 @@ public class DomainData {
                 return false;
             }
             if (groups == null ? a.groups != null : !groups.equals(a.groups)) {
+                return false;
+            }
+            if (policyBundles == null ? a.policyBundles != null : !policyBundles.equals(a.policyBundles)) {
                 return false;
             }
             if (modified == null ? a.modified != null : !modified.equals(a.modified)) {

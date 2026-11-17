@@ -296,9 +296,19 @@ public final class ZTSConsts {
     public static final String ZTS_ACTION_ID_TOKEN_EXCHANGE     = "zts.id_token_exchange";
     public static final String ZTS_ACTION_TOKEN_SOURCE_EXCHANGE = "zts.token_source_exchange";
     public static final String ZTS_ACTION_TOKEN_TARGET_EXCHANGE = "zts.token_target_exchange";
+    public static final String ZTS_ACTION_GET_BUNDLE            = "zts.getbundle";
 
     public static final String OAUTH_TOKEN_TYPE_JAG    = "urn:ietf:params:oauth:token-type:id-jag";
     public static final String OAUTH_TOKEN_TYPE_ID     = "urn:ietf:params:oauth:token-type:id_token";
     public static final String OAUTH_TOKEN_TYPE_ACCESS = "urn:ietf:params:oauth:token-type:access_token";
     public static final String OAUTH_TOKEN_TYPE_JWT    = "urn:ietf:params:oauth:token-type:jwt";
+
+    // policy bundle settings
+
+    public static final String ZTS_PROP_BUNDLE_ENABLED         = "athenz.zts.bundle_enabled";
+    public static final String ZTS_PROP_BUNDLE_SIGNING_ENABLED = "athenz.zts.bundle_signing_enabled";
+    public static final String ZTS_PROP_BUNDLE_INCLUDE_JWKS    = "athenz.zts.bundle_include_jwks";
+    public static final String ZTS_PROP_BUNDLE_CACHE_SIZE      = "athenz.zts.bundle_cache_size";
+
+    public static final String MEDIA_TYPE_GZIP = "application/gzip";
 }

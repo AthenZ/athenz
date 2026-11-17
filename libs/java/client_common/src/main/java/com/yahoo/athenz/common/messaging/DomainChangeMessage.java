@@ -29,7 +29,8 @@ public class DomainChangeMessage {
         GROUP,
         POLICY, 
         SERVICE,
-        ENTITY
+        ENTITY,
+        BUNDLE
     } 
     
     private String domainName;
