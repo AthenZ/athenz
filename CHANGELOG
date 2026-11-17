@@ -1,3 +1,20 @@
+Athenz v1.12.52 Release / Nov 16, 2026
+--------------------------------------
+
+#3591 Bump follow-redirects from 1.16.1 to 1.16.2 in /ui
+#3593 docs(zts): document user certificate issuance API
+#3594 zms/zts: opt-in case-sensitive authorization checks
+#3595 Athenz ext OIDC issuer config
+#3599 feat: ability to pass identity context to CertSigner
+#3601 Remove MSD code from Athenz
+#3602 zms/zts: add OPA policy bundle support
+#3605 add dpop support in zts
+#3606 Bump next from 16.4.1 to 16.4.6 in /ui
+#3608 update java/go/nodejs deps to their latest releases
+
+This release includes a required schema update:
+https://github.com/AthenZ/athenz/blob/master/servers/zms/schema/updates/update-20261105.sql
+
 Athenz v1.12.51 Release / Oct 30, 2026
 --------------------------------------
 
