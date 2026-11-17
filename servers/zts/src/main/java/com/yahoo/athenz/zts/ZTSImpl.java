@@ -181,6 +181,8 @@ public class ZTSImpl implements ZTSHandler {
     protected Status successServerStatus = null;
     protected boolean includeRoleCompleteFlag = true;
     protected boolean introspectSupportEnabled = false;
+    protected boolean dpopEnabled = false;
+    protected DPoPProofValidator dpopProofValidator = null;
     protected DynamicConfigBoolean readOnlyMode;
     protected boolean verifyCertRequestIP = false;
     protected boolean verifyCertSubjectOU = false;
@@ -257,6 +259,7 @@ public class ZTSImpl implements ZTSHandler {
 
     private static final String OAUTH_GRANT_CREDENTIALS = "client_credentials";
     private static final String OAUTH_BEARER_TOKEN = "Bearer";
+    private static final String OAUTH_DPOP_TOKEN = DPoPProof.TOKEN_TYPE;
     private static final String OAUTH_NA_TOKEN = "N_A";
     private static final String OAUTH_JAG_TOKEN = "urn:ietf:params:oauth:token-type:id-jag";
 
@@ -459,6 +462,12 @@ public class ZTSImpl implements ZTSHandler {
 
         loadExternalProviderConfigManager();
 
+        // load our DPoP proof validator if enabled. this must be done after
+        // the issuer resolver is created since the allowed htu values are
+        // derived from our configured issuers
+
+        loadDPoPProofValidator();
+
         // load our principal identity issuer
 
         principalIdentityIssuer = new PrincipalIdentityIssuer(System.getProperty(ZTSConsts.ZTS_PROP_PRINCIPAL_IDENTITY_ISSUER_MAP_FNAME));
@@ -486,6 +495,24 @@ public class ZTSImpl implements ZTSHandler {
         tokenConfigOptions.setOauth2Issuers(issuerResolver.getOauth2Issuers());
         tokenConfigOptions.setJwtIDTProcessor(JwtsHelper.getJWTProcessor(jwtsResolvers, JwtsHelper.JWT_TYPE_VERIFIER));
         tokenConfigOptions.setJwtJAGProcessor(JwtsHelper.getJWTProcessor(jwtsResolvers, JwtsHelper.JWT_JAG_TYPE_VERIFIER));
+    }
+
+    void loadDPoPProofValidator() {
+
+        if (!dpopEnabled) {
+            return;
+        }
+
+        dpopProofValidator = new DPoPProofValidator(issuerResolver.getOauth2Issuers(),
+                issuerResolver::getHostMappedIssuer);
+
+        // our metadata objects are created before the issuer resolver
+        // so we need to update them with the supported dpop algorithms
+
+        final List<String> dpopAlgorithms = dpopProofValidator.getSupportedAlgorithms();
+        openIDConfig.setDpop_signing_alg_values_supported(dpopAlgorithms);
+        oidcPortConfig.setDpop_signing_alg_values_supported(dpopAlgorithms);
+        oauthConfig.setDpop_signing_alg_values_supported(dpopAlgorithms);
     }
 
     void loadJsonMapper() {
@@ -547,6 +574,9 @@ public class ZTSImpl implements ZTSHandler {
         config.setSubject_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_SUBJECT_TYPE_PUBLIC));
         config.setResponse_types_supported(Collections.singletonList(ZTSConsts.ZTS_OPENID_RESPONSE_IT_ONLY));
         config.setId_token_signing_alg_values_supported(getSupportedSigningAlgValues());
+        if (dpopProofValidator != null) {
+            config.setDpop_signing_alg_values_supported(dpopProofValidator.getSupportedAlgorithms());
+        }
         return config;
     }
 
@@ -870,6 +900,10 @@ public class ZTSImpl implements ZTSHandler {
 
         introspectSupportEnabled = Boolean.parseBoolean(
                 System.getProperty(ZTSConsts.ZTS_PROP_INTROSPECT_SUPPORT_ENABLED, "false"));
+
+        // check if DPoP bound access tokens (RFC 9449) are enabled
+
+        dpopEnabled = Boolean.parseBoolean(System.getProperty(ZTSConsts.ZTS_PROP_DPOP_ENABLED, "false"));
 
         // check if JWT curve RFC support only is enabled
 
@@ -3021,16 +3055,7 @@ public class ZTSImpl implements ZTSHandler {
             throw requestError(ex.getMessage(), caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
-        // we want to log the request body in our access log so
-        // we know what is the client asking for, but we'll just
-        // limit the request up to 1K
-
-        if (accessTokenRequest.getRequestType() == RequestType.JAG_TOKEN_EXCHANGE ||
-                accessTokenRequest.getRequestType() == RequestType.JAG_JWT_BEARER) {
-            setJAGAccessLogData(ctx, accessTokenRequest, principal, null, null);
-        } else {
-            ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY, accessTokenRequest.getQueryLogData());
-        }
+        setAccessTokenRequestLogData(ctx, accessTokenRequest, principal);
 
         validateRequest(ctx.request(), principalDomain, caller, false,
             accessTokenRequest.getRequestType() == RequestType.ID_TOKEN_EXCHANGE);
@@ -3044,6 +3069,25 @@ public class ZTSImpl implements ZTSHandler {
 
         if (!StringUtil.isEmpty(accessTokenRequest.getKeyType())) {
             validate(accessTokenRequest.getKeyType(), TYPE_SIMPLE_NAME, principalDomain, caller);
+        }
+
+        // validate the optional DPoP proof only after the client is authenticated
+        // so unauthenticated callers can't trigger signature verification. If
+        // the feature is disabled, the header is ignored and a bearer token is
+        // issued as permitted by RFC 9449 section 5
+
+        if (dpopProofValidator != null) {
+            try {
+                accessTokenRequest.setDPoPJwkThumbprint(dpopProofValidator.validate(ctx.request(), principal));
+            } catch (DPoPProofException ex) {
+                LOGGER.info("postAccessTokenRequest: invalid DPoP proof from {}: {}",
+                        principal.getFullName(), ex.getMessage());
+                throw requestError("invalid_dpop_proof: " + ex.getMessage(), caller,
+                        ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+            }
+            if (accessTokenRequest.getDPoPJwkThumbprint() != null) {
+                setAccessTokenRequestLogData(ctx, accessTokenRequest, principal);
+            }
         }
 
         // handle the request based on the type of token requested
@@ -3061,6 +3105,25 @@ public class ZTSImpl implements ZTSHandler {
             default:
                 return processAccessTokenStandardRequest(ctx, principal, accessTokenRequest, principalDomain, caller);
         }
+    }
+
+    private void setAccessTokenRequestLogData(ResourceContext ctx, AccessTokenRequest accessTokenRequest,
+            Principal principal) {
+
+        // we want to log the request body in our access log so
+        // we know what is the client asking for, but we'll just
+        // limit the request up to 1K
+
+        if (accessTokenRequest.getRequestType() == RequestType.JAG_TOKEN_EXCHANGE ||
+                accessTokenRequest.getRequestType() == RequestType.JAG_JWT_BEARER) {
+            setJAGAccessLogData(ctx, accessTokenRequest, principal, null, null);
+        } else {
+            ctx.request().setAttribute(ACCESS_LOG_ADDL_QUERY, accessTokenRequest.getQueryLogData());
+        }
+    }
+
+    String accessTokenType(AccessTokenRequest accessTokenRequest) {
+        return accessTokenRequest.getDPoPJwkThumbprint() != null ? OAUTH_DPOP_TOKEN : OAUTH_BEARER_TOKEN;
     }
 
     private void setJAGAccessLogData(ResourceContext ctx, AccessTokenRequest request, Principal client,
@@ -3261,7 +3324,7 @@ public class ZTSImpl implements ZTSHandler {
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
 
         return new AccessTokenResponse().setAccess_token(accessJwts)
-                .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in(tokenTimeout)
+                .setToken_type(accessTokenType(accessTokenRequest)).setExpires_in(tokenTimeout)
                 .setScope(generateScopeResponse(roles, requestDomainName, false));
     }
 
@@ -3274,6 +3337,15 @@ public class ZTSImpl implements ZTSHandler {
         X509Certificate cert = principal.getX509Certificate();
         if (cert != null) {
             accessToken.setConfirmX509CertHash(cert);
+        }
+
+        // if the client presented a valid DPoP proof then we're going to
+        // bind the access token to the proof key as well. we keep the
+        // certificate hash so existing mTLS resource servers continue to work
+
+        final String jkt = accessTokenRequest.getDPoPJwkThumbprint();
+        if (jkt != null) {
+            accessToken.setConfirmJwkThumbprint(jkt);
         }
 
         // include the optional proxy principals if specified
@@ -3400,6 +3472,15 @@ public class ZTSImpl implements ZTSHandler {
                     caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
         }
 
+        // the actor token authenticates the actor so a DPoP-bound actor token
+        // is only accepted with a proof signed by the key it's bound to
+
+        final String actorTokenJkt = actorToken.getConfirmJwkThumbprint();
+        if (actorTokenJkt != null && !actorTokenJkt.equals(accessTokenRequest.getDPoPJwkThumbprint())) {
+            throw forbiddenError("DPoP proof key does not match actor token cnf.jkt",
+                    caller, ZTSConsts.ZTS_UNKNOWN_DOMAIN, principalDomain);
+        }
+
         // Optional actor parameter means: issue this delegated AT with may_act
         // so that the next actor can perform another delegated token exchange.
         final String actor = accessTokenRequest.getActor();
@@ -3517,7 +3598,7 @@ public class ZTSImpl implements ZTSHandler {
         String accessJwts = accessToken.getSignedToken(privateKey.getKey(), privateKey.getId(), privateKey.getAlgorithm());
 
         return new AccessTokenResponse().setAccess_token(accessJwts)
-                .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in(tokenTimeout)
+                .setToken_type(accessTokenType(accessTokenRequest)).setExpires_in(tokenTimeout)
                 .setScope(generateScopeResponse(roles, requestDomainName, false));
     }
 
@@ -4199,7 +4280,7 @@ public class ZTSImpl implements ZTSHandler {
         setJAGAccessLogData(ctx, accessTokenRequest, principal, principalName, accessToken.getJwtId());
 
         AccessTokenResponse response = new AccessTokenResponse().setAccess_token(accessJwts)
-                .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in(tokenTimeout);
+                .setToken_type(accessTokenType(accessTokenRequest)).setExpires_in(tokenTimeout);
 
         // if either we were asked for full domain roles or the requested list of roles
         // does not match the returned list of roles then we need to return the updated
@@ -4438,7 +4519,7 @@ public class ZTSImpl implements ZTSHandler {
         }
 
         AccessTokenResponse response = new AccessTokenResponse().setAccess_token(accessJwts)
-                .setToken_type(OAUTH_BEARER_TOKEN).setExpires_in(tokenTimeout).setId_token(idJwts);
+                .setToken_type(accessTokenType(accessTokenRequest)).setExpires_in(tokenTimeout).setId_token(idJwts);
 
         // if either we were asked for full domain roles or the requested list of roles
         // does not match the returned list of roles then we need to return the updated

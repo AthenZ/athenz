@@ -5,6 +5,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -31,6 +32,7 @@ func usage() {
 	fmt.Println("usage: zts-accesstoken -domain <domain> [-roles <roles>] [-service <service>] <credentials> -zts <zts-server-url> [-expire-time <time-in-mins>] [-authorization-details <authz-details>] [-proxy-principal-spiffe-uris <spiffe-uris>]")
 	fmt.Println("           <credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-svc-cacert-file <ca-cert-file>] | ")
 	fmt.Println("           	             -ntoken-file <ntoken-file> [-hdr <auth-header-name>]")
+	fmt.Println("           [-dpop [-dpop-key-file <dpop-private-key-file>]] request a DPoP-bound access token (RFC 9449)")
 	fmt.Println("")
 	fmt.Println("  JAG Token Issue (external IdP ID Token -> ID-JAG):")
 	fmt.Println("       zts-accesstoken -domain <domain> -roles <roles> -grant-type token-exchange -subject-token <id-token-file> -audience <audience> <credentials> -zts <zts-server-url>")
@@ -62,6 +64,7 @@ func main() {
 	var grantType, subjectToken, subjectTokenType, requestedTokenType, audience, assertion, actorToken, actorTokenType string
 	var expireTime int
 	var proxy, validate, claims, tokenOnly, showVersion, roleInAudClaim, openidIssuer bool
+	var dpop dpopOptions
 	flag.StringVar(&domain, "domain", "", "name of provider domain")
 	flag.StringVar(&service, "service", "", "name of provider service")
 	flag.StringVar(&roles, "roles", "", "comma separated list of provider roles")
@@ -93,6 +96,8 @@ func main() {
 	flag.StringVar(&assertion, "assertion", "", "file path to the assertion token (ID-JAG) for jwt-bearer grant")
 	flag.StringVar(&actorToken, "actor-token", "", "file path to the actor token for token exchange delegation")
 	flag.StringVar(&actorTokenType, "actor-token-type", "", "actor token type")
+	flag.BoolVar(&dpop.enabled, "dpop", false, "request a DPoP-bound access token (uses -svc-key-file unless -dpop-key-file is set)")
+	flag.StringVar(&dpop.keyFile, "dpop-key-file", "", "private key file used to sign DPoP proofs")
 	flag.Parse()
 
 	if showVersion {
@@ -107,16 +112,19 @@ func main() {
 		subjectTokenType = normalizeOAuthTokenType(subjectTokenType)
 		actorTokenType = normalizeOAuthTokenType(actorTokenType)
 		if requestedTokenType == "urn:ietf:params:oauth:token-type:id-jag" {
+			if dpop.enabled {
+				log.Fatalln("-dpop is not supported for ID-JAG issue requests: the ID-JAG is not a DPoP-bound access token")
+			}
 			fetchJAGTokenIssue(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, subjectToken, subjectTokenType, requestedTokenType, audience, proxy, expireTime, tokenOnly)
 		} else if requestedTokenType == "urn:ietf:params:oauth:token-type:access_token" || requestedTokenType == "" {
-			fetchAccessTokenViaTokenExchange(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, subjectToken, subjectTokenType, requestedTokenType, audience, actorToken, actorTokenType, actor, proxy, expireTime, tokenOnly)
+			fetchAccessTokenViaTokenExchange(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, subjectToken, subjectTokenType, requestedTokenType, audience, actorToken, actorTokenType, actor, proxy, expireTime, tokenOnly, dpop)
 		} else {
 			usage()
 		}
 	} else if grantType == "jwt-bearer" {
-		fetchAccessTokenViaJAG(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, assertion, audience, proxy, tokenOnly)
+		fetchAccessTokenViaJAG(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, assertion, audience, proxy, tokenOnly, dpop)
 	} else {
-		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, actor, proxy, expireTime, tokenOnly, roleInAudClaim, openidIssuer, keyType)
+		fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, actor, proxy, expireTime, tokenOnly, roleInAudClaim, openidIssuer, keyType, dpop)
 	}
 }
 
@@ -177,7 +185,7 @@ func validateAccessToken(accessToken, conf string, showClaims bool) {
 	fmt.Println("Access Token successfully validated")
 }
 
-func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, actor string, proxy bool, expireTime int, tokenOnly bool, roleInAudClaim bool, openidIssuer bool, keyType string) {
+func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, authzDetails, proxyPrincipalSpiffeUris, actor string, proxy bool, expireTime int, tokenOnly bool, roleInAudClaim bool, openidIssuer bool, keyType string, dpop dpopOptions) {
 
 	defaultConfig, _ := athenzutils.ReadDefaultConfig()
 	// check to see if we need to use zts url from our default config file
@@ -216,6 +224,9 @@ func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, s
 	if err != nil {
 		log.Fatalf("unable to create zts client: %v\n", err)
 	}
+	if err := dpop.apply(client, ztsURL, svcKeyFile); err != nil {
+		log.Fatalf("unable to enable dpop: %v\n", err)
+	}
 
 	// generate the scope for the request, convert time to seconds
 	request := athenzutils.GenerateAccessTokenRequestString(domain, service, roles, authzDetails, proxyPrincipalSpiffeUris, "", expireTime*60)
@@ -244,9 +255,11 @@ func fetchAccessToken(domain, service, roles, ztsURL, svcKeyFile, svcCertFile, s
 
 	// request an access token
 	accessTokenResponse, err := client.PostAccessTokenRequest(zts.AccessTokenRequest(request))
+	dpop.checkTokenError(err)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	dpop.verify(accessTokenResponse, tokenOnly)
 
 	// check if we're asked only to return the access token
 	if tokenOnly {
@@ -320,7 +333,7 @@ func fetchJAGTokenIssue(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACer
 	fmt.Println(string(data))
 }
 
-func fetchAccessTokenViaTokenExchange(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, subjectTokenFile, subjectTokenType, requestedTokenType, audience, actorTokenFile, actorTokenType, actor string, proxy bool, expireTime int, tokenOnly bool) {
+func fetchAccessTokenViaTokenExchange(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, subjectTokenFile, subjectTokenType, requestedTokenType, audience, actorTokenFile, actorTokenType, actor string, proxy bool, expireTime int, tokenOnly bool, dpop dpopOptions) {
 
 	defaultConfig, _ := athenzutils.ReadDefaultConfig()
 	if ztsURL == "" && defaultConfig != nil {
@@ -377,13 +390,18 @@ func fetchAccessTokenViaTokenExchange(domain, roles, ztsURL, svcKeyFile, svcCert
 	if err != nil {
 		log.Fatalf("unable to create zts client: %v\n", err)
 	}
+	if err := dpop.apply(client, ztsURL, svcKeyFile); err != nil {
+		log.Fatalf("unable to enable dpop: %v\n", err)
+	}
 
 	request := athenzutils.GenerateTokenExchangeRequestString(domain, roles, subjectToken, subjectTokenType, requestedTokenType, audience, actorToken, actorTokenType, actor, expireTime*60)
 
 	accessTokenResponse, err := client.PostAccessTokenRequest(zts.AccessTokenRequest(request))
+	dpop.checkTokenError(err)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	dpop.verify(accessTokenResponse, tokenOnly)
 
 	if tokenOnly {
 		fmt.Print(accessTokenResponse.Access_token)
@@ -398,7 +416,7 @@ func fetchAccessTokenViaTokenExchange(domain, roles, ztsURL, svcKeyFile, svcCert
 	fmt.Println(string(data))
 }
 
-func fetchAccessTokenViaJAG(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, assertionFile, audience string, proxy bool, tokenOnly bool) {
+func fetchAccessTokenViaJAG(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcCACertFile, ntokenFile, hdr, assertionFile, audience string, proxy bool, tokenOnly bool, dpop dpopOptions) {
 
 	defaultConfig, _ := athenzutils.ReadDefaultConfig()
 	if ztsURL == "" && defaultConfig != nil {
@@ -442,6 +460,9 @@ func fetchAccessTokenViaJAG(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcC
 	if err != nil {
 		log.Fatalf("unable to create zts client: %v\n", err)
 	}
+	if err := dpop.apply(client, ztsURL, svcKeyFile); err != nil {
+		log.Fatalf("unable to enable dpop: %v\n", err)
+	}
 
 	// build the JAG token exchange request
 	request := athenzutils.GenerateJAGTokenExchangeRequestString(assertion)
@@ -465,9 +486,11 @@ func fetchAccessTokenViaJAG(domain, roles, ztsURL, svcKeyFile, svcCertFile, svcC
 	request = params.Encode()
 
 	accessTokenResponse, err := client.PostAccessTokenRequest(zts.AccessTokenRequest(request))
+	dpop.checkTokenError(err)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	dpop.verify(accessTokenResponse, tokenOnly)
 
 	if tokenOnly {
 		fmt.Print(accessTokenResponse.Access_token)
@@ -494,4 +517,57 @@ func ztsNtokenClient(ztsURL, ntokenFile, hdr string) (*zts.ZTSClient, error) {
 	client := zts.NewClient(ztsURL, nil)
 	client.AddCredentials(hdr, ntoken)
 	return &client, nil
+}
+
+// dpopOptions holds the -dpop and -dpop-key-file settings.
+type dpopOptions struct {
+	enabled bool
+	keyFile string
+}
+
+// apply wraps the client transport so token requests carry a DPoP proof.
+// The proof key defaults to the service identity key when -dpop-key-file is not set.
+func (o dpopOptions) apply(client *zts.ZTSClient, ztsURL, svcKeyFile string) error {
+	if !o.enabled {
+		return nil
+	}
+	keyFile := o.keyFile
+	if keyFile == "" {
+		keyFile = svcKeyFile
+	}
+	if keyFile == "" {
+		return fmt.Errorf("-dpop requires -svc-key-file or -dpop-key-file")
+	}
+	keyPEM, err := os.ReadFile(keyFile)
+	if err != nil {
+		return err
+	}
+	signer, _, err := athenzutils.ExtractSignerInfo(keyPEM)
+	if err != nil {
+		return err
+	}
+	client.Transport = athenzutils.NewDPoPTransport(client.Transport, signer, ztsURL)
+	return nil
+}
+
+// verify exits with an error when a DPoP-bound token was requested but the
+// server returned a different token type, so a bearer token is never printed.
+func (o dpopOptions) verify(resp *zts.AccessTokenResponse, tokenOnly bool) {
+	if !o.enabled {
+		return
+	}
+	if err := athenzutils.VerifyDPoPTokenType(resp.Token_type); err != nil {
+		o.checkTokenError(err)
+	}
+	if tokenOnly {
+		fmt.Fprintf(os.Stderr, "token_type: %s\n", resp.Token_type)
+	}
+}
+
+// checkTokenError exits with a DPoP specific hint when the token request
+// failed because the server did not issue a DPoP-bound token.
+func (o dpopOptions) checkTokenError(err error) {
+	if o.enabled && errors.Is(err, athenzutils.ErrDPoPTokenNotIssued) {
+		log.Fatalf("DPoP-bound token requested but not issued (is DPoP enabled on the ZTS server?): %v\n", err)
+	}
 }

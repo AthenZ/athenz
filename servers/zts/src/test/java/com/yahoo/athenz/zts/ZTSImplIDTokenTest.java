@@ -28,6 +28,7 @@ import com.yahoo.athenz.auth.TokenExchangeIdentityProvider;
 import com.yahoo.athenz.auth.impl.CertificateAuthority;
 import com.yahoo.athenz.auth.impl.FilePrivateKeyStore;
 import com.yahoo.athenz.auth.impl.SimplePrincipal;
+import com.yahoo.athenz.auth.token.DPoPProof;
 import com.yahoo.athenz.auth.token.OAuth2Token;
 import com.yahoo.athenz.auth.token.jwts.JwtsHelper;
 import com.yahoo.athenz.auth.token.jwts.JwtsSigningKeyResolver;
@@ -57,7 +58,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
+import java.security.spec.ECGenParameterSpec;
 import java.time.Instant;
 import java.util.*;
 
@@ -2019,5 +2023,83 @@ public class ZTSImplIDTokenTest {
             Mockito.when(mockServletRequest.getLocalPort()).thenReturn(0);
             ztsImpl.cloudStore.close();
         }
+    }
+
+    @Test
+    public void testIdTokenExchangeWithDPoPProof() throws Exception {
+
+        System.setProperty(ZTSConsts.ZTS_PROP_DPOP_ENABLED, "true");
+        ZTSImpl ztsImpl;
+        try {
+            ztsImpl = createZtsImpl();
+        } finally {
+            System.clearProperty(ZTSConsts.ZTS_PROP_DPOP_ENABLED);
+        }
+        assertNotNull(ztsImpl.dpopProofValidator);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "weather", "storage", true);
+        store.processSignedDomain(signedDomain, false);
+        addIdTokenExchangePolicy("coretech", "user_domain.proxy-user1", "writers");
+
+        long expiryTime = System.currentTimeMillis() / 1000 + 3600;
+        final String tokenRequest = buildIdTokenExchangeRequest(createIdToken(loadECPrivateKey(), "0",
+                "user_domain.user", "user_domain.proxy-user1", expiryTime), "coretech.storage",
+                "coretech:role.writers");
+
+        Principal principal = SimplePrincipal.create("user_domain", "proxy-user1",
+                "v=U1;d=user_domain;n=proxy-user1;s=signature", 0, null);
+
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("EC");
+        generator.initialize(new ECGenParameterSpec("secp256r1"));
+        KeyPair dpopKey = generator.generateKeyPair();
+        long now = System.currentTimeMillis() / 1000;
+
+        // a valid proof is accepted, but the id token is not bound
+
+        final String validProof = DPoPProof.generate(dpopKey.getPrivate(), dpopKey.getPublic(), "POST",
+                ztsImpl.ztsOpenIDIssuer + "/oauth2/token", null, null, now);
+        AccessTokenResponse response = ztsImpl.postAccessTokenRequest(
+                createDPoPResourceContext(principal, validProof), tokenRequest);
+        assertEquals(response.getToken_type(), "Bearer");
+        assertNotNull(response.getId_token());
+        assertNull(SignedJWT.parse(response.getId_token()).getJWTClaimsSet().getClaim("cnf"));
+
+        // an invalid proof is rejected
+
+        final String invalidProof = DPoPProof.generate(dpopKey.getPrivate(), dpopKey.getPublic(), "POST",
+                "https://other.athenz.io/zts/v1/oauth2/token", null, null, now);
+        try {
+            ztsImpl.postAccessTokenRequest(createDPoPResourceContext(principal, invalidProof), tokenRequest);
+            fail();
+        } catch (ResourceException ex) {
+            assertEquals(ex.getCode(), ResourceException.BAD_REQUEST);
+            assertTrue(ex.getMessage().contains("invalid_dpop_proof: htu mismatch"), ex.getMessage());
+        }
+
+        ztsImpl.cloudStore.close();
+    }
+
+    private ResourceContext createDPoPResourceContext(Principal principal, final String proof) {
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(request.getRemoteAddr()).thenReturn(MOCKCLIENTADDR);
+        Mockito.when(request.isSecure()).thenReturn(true);
+        Mockito.when(request.getMethod()).thenReturn("POST");
+        Mockito.when(request.getHeaders(DPoPProof.HTTP_HEADER))
+                .thenAnswer(invocation -> Collections.enumeration(List.of(proof)));
+        Mockito.when(request.getHeader("Host")).thenReturn("athenz.io:4443");
+
+        ServerResourceContext rsrcCtx = Mockito.mock(ServerResourceContext.class);
+        Mockito.when(rsrcCtx.principal()).thenReturn(principal);
+        Mockito.when(rsrcCtx.request()).thenReturn(request);
+
+        RsrcCtxWrapper rsrcCtxWrapper = Mockito.mock(RsrcCtxWrapper.class);
+        Mockito.when(rsrcCtxWrapper.context()).thenReturn(rsrcCtx);
+        Mockito.when(rsrcCtxWrapper.principal()).thenReturn(principal);
+        Mockito.when(rsrcCtxWrapper.request()).thenReturn(request);
+        Mockito.when(rsrcCtxWrapper.response()).thenReturn(mockServletResponse);
+        Mockito.when(rsrcCtxWrapper.logPrincipal()).thenReturn(principal.getFullName());
+        Mockito.when(rsrcCtxWrapper.getPrincipalDomain()).thenReturn(principal.getDomain());
+        return rsrcCtxWrapper;
     }
 }

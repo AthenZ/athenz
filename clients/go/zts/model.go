@@ -2751,6 +2751,11 @@ type OpenIDConfig struct {
 	// list of supported id claims
 	//
 	Claims_supported []string `json:"claims_supported,omitempty" rdl:"optional"`
+
+	//
+	// list of supported DPoP proof JWS algorithms
+	//
+	Dpop_signing_alg_values_supported []string `json:"dpop_signing_alg_values_supported,omitempty" rdl:"optional"`
 }
 
 // NewOpenIDConfig - creates an initialized OpenIDConfig instance, returns a pointer to it
@@ -2880,6 +2885,11 @@ type OAuthConfig struct {
 	// list of supported algorithms for issued access tokens
 	//
 	Token_endpoint_auth_signing_alg_values_supported []string `json:"token_endpoint_auth_signing_alg_values_supported"`
+
+	//
+	// list of supported DPoP proof JWS algorithms
+	//
+	Dpop_signing_alg_values_supported []string `json:"dpop_signing_alg_values_supported,omitempty" rdl:"optional"`
 }
 
 // NewOAuthConfig - creates an initialized OAuthConfig instance, returns a pointer to it

@@ -271,6 +271,23 @@ public class AccessTokenRequestTest {
     }
 
     @Test
+    public void testAccessTokenRequestDPoPJwkThumbprint() {
+
+        AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials"
+                + "&scope=coretech:domain", defaultConfigOptions);
+        assertNull(request.getDPoPJwkThumbprint());
+        assertEquals(request.getQueryLogData(), "scope=coretech%3Adomain");
+
+        request.setDPoPJwkThumbprint("NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs");
+        assertEquals(request.getDPoPJwkThumbprint(), "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs");
+        assertEquals(request.getQueryLogData(),
+                "scope=coretech%3Adomain&dpop_jkt=NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs");
+
+        request.setDPoPJwkThumbprint("");
+        assertEquals(request.getQueryLogData(), "scope=coretech%3Adomain");
+    }
+
+    @Test
     public void testAccessTokenRequestQueryDataWithAllFields() {
 
         AccessTokenRequest request = new AccessTokenRequest("grant_type=client_credentials"
