@@ -104,6 +104,38 @@ public class OAuth2TokenTest {
         assertEquals(oAuth2Token.getPrincipalIssuer(), "athenz");
     }
 
+    private OAuth2Token parseTokenWithConfirm(Object confirm) throws JOSEException {
+        long now = System.currentTimeMillis() / 1000;
+        JWSSigner signer = new ECDSASigner((ECPrivateKey) Crypto.loadPrivateKey(ecPrivateKey));
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("subject")
+                .issueTime(Date.from(Instant.ofEpochSecond(now)))
+                .expirationTime(Date.from(Instant.ofEpochSecond(now + 3600)))
+                .issuer("issuer")
+                .claim(OAuth2Token.CLAIM_CONFIRM, confirm)
+                .build();
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID("eckey1").build(), claimsSet);
+        signedJWT.sign(signer);
+        return new OAuth2Token(signedJWT.serialize(), Crypto.loadPublicKey(ecPublicKey));
+    }
+
+    @Test
+    public void testConfirmJwkThumbprint() throws JOSEException {
+
+        assertEquals(parseTokenWithConfirm(Map.of("jkt", "key-jkt")).getConfirmJwkThumbprint(), "key-jkt");
+
+        // a malformed binding is not treated as a token without a binding
+
+        assertEquals(parseTokenWithConfirm(Map.of("jkt", 1234)).getConfirmJwkThumbprint(), "1234");
+
+        // tokens that are not dpop bound
+
+        assertNull(parseTokenWithConfirm(Map.of("x5t#S256", "cert-hash")).getConfirmJwkThumbprint());
+        assertNull(parseTokenWithConfirm("not-a-map").getConfirmJwkThumbprint());
+        assertNull(parseTokenWithConfirm(null).getConfirmJwkThumbprint());
+        assertNull(new OAuth2Token().getConfirmJwkThumbprint());
+    }
+
     @Test
     public void testOauth2TokenWithUnsupportedTypes() throws JOSEException {
 

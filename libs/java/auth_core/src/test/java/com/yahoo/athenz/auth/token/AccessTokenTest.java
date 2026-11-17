@@ -1603,10 +1603,10 @@ public class AccessTokenTest {
         assertEquals(accessToken.getConfirmJwkThumbprint(), "jkt-value");
         assertEquals(accessToken.getConfirmEntry(AccessToken.CLAIM_CONFIRM_JWK_THUMBPRINT), "jkt-value");
 
-        // non-string values are not returned as thumbprints
+        // a malformed binding is not treated as a token without a binding
 
         accessToken.setConfirmEntry(AccessToken.CLAIM_CONFIRM_JWK_THUMBPRINT, 1234);
-        assertNull(accessToken.getConfirmJwkThumbprint());
+        assertEquals(accessToken.getConfirmJwkThumbprint(), "1234");
     }
 
     @Test

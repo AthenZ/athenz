@@ -6899,23 +6899,6 @@ public class ZTSImplAccessTokenTest {
     }
 
     @Test
-    public void testGetConfirmJwkThumbprint() {
-
-        OAuth2Token token = Mockito.mock(OAuth2Token.class);
-        Mockito.when(token.getClaim("cnf")).thenReturn(null);
-        assertNull(ZTSImpl.getConfirmJwkThumbprint(token));
-
-        Mockito.when(token.getClaim("cnf")).thenReturn("not-a-map");
-        assertNull(ZTSImpl.getConfirmJwkThumbprint(token));
-
-        Mockito.when(token.getClaim("cnf")).thenReturn(Map.of("x5t#S256", "cert-hash"));
-        assertNull(ZTSImpl.getConfirmJwkThumbprint(token));
-
-        Mockito.when(token.getClaim("cnf")).thenReturn(Map.of("jkt", "key-jkt"));
-        assertEquals(ZTSImpl.getConfirmJwkThumbprint(token), "key-jkt");
-    }
-
-    @Test
     public void testProcessAccessTokenDelegationRequestTargetDomainNotFound() {
         System.setProperty(FilePrivateKeyStore.ATHENZ_PROP_PRIVATE_KEY, "src/test/resources/unit_test_zts_at_private.pem");
 

@@ -43,13 +43,11 @@ public class AccessToken extends OAuth2Token {
     public static final String CLAIM_SCOPE = "scp";
     public static final String CLAIM_SCOPE_STD = "scope";
     public static final String CLAIM_UID = "uid";
-    public static final String CLAIM_CONFIRM = "cnf";
     public static final String CLAIM_PROXY = "proxy";
     public static final String CLAIM_AUTHZ_DETAILS = "authorization_details";
     public static final String CLAIM_RESOURCE = "resource";
 
     public static final String CLAIM_CONFIRM_X509_HASH = "x5t#S256";
-    public static final String CLAIM_CONFIRM_JWK_THUMBPRINT = "jkt";
     public static final String CLAIM_CONFIRM_PROXY_SPIFFE = "proxy-principals#spiffe";
 
     private static final Logger LOG = LoggerFactory.getLogger(AccessToken.class);
@@ -335,11 +333,14 @@ public class AccessToken extends OAuth2Token {
     }
 
     /**
+     * Reads the confirmation entries of the token so the thumbprint set on a
+     * token being created is returned as well.
      * @return the DPoP jwk thumbprint (cnf.jkt) or null if the token is not DPoP bound
      */
+    @Override
     public String getConfirmJwkThumbprint() {
         Object value = getConfirmEntry(CLAIM_CONFIRM_JWK_THUMBPRINT);
-        return value instanceof String ? (String) value : null;
+        return value == null ? null : value.toString();
     }
 
     public void setConfirmProxyPrincipalSpiffeUris(List<String> proxyPrincipalSpiffeUris) {
