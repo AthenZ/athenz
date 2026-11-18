@@ -36,6 +36,7 @@ public class JDBCObjectStore implements ObjectStore {
     private int auditLogRoleKeepCount;
     private int auditLogGroupMaxLimit;
     private int auditLogGroupKeepCount;
+    private final int resourceAccessRolePairsPerQuery;
     private DomainOptions domainOptions;
     private final Object synchronizer = new Object();
 
@@ -56,6 +57,10 @@ public class JDBCObjectStore implements ObjectStore {
         auditLogRoleKeepCount = Integer.parseInt(System.getProperty(JDBCConsts.ZMS_PROP_MYSQL_AUDIT_LOG_ROLE_KEEP_COUNT, "0"));
         auditLogGroupMaxLimit = Integer.parseInt(System.getProperty(JDBCConsts.ZMS_PROP_MYSQL_AUDIT_LOG_GROUP_MAX_LIMIT, "0"));
         auditLogGroupKeepCount = Integer.parseInt(System.getProperty(JDBCConsts.ZMS_PROP_MYSQL_AUDIT_LOG_GROUP_KEEP_COUNT, "0"));
+        int configuredRolePairsPerQuery = Integer.getInteger(JDBCConsts.ZMS_PROP_JDBC_RESOURCE_ACCESS_ROLE_PAIRS_PER_QUERY,
+                JDBCConnection.DEFAULT_RESOURCE_ACCESS_ROLE_PAIRS_PER_QUERY);
+        resourceAccessRolePairsPerQuery = configuredRolePairsPerQuery > 0 ? configuredRolePairsPerQuery :
+                JDBCConnection.DEFAULT_RESOURCE_ACCESS_ROLE_PAIRS_PER_QUERY;
     }
     
     @Override
@@ -69,6 +74,7 @@ public class JDBCObjectStore implements ObjectStore {
             jdbcConn.setTagLimit(domainTagsLimit, roleTagsLimit, groupTagsLimit, policyTagsLimit, serviceTagsLimit);
             jdbcConn.setAuditLogLimits(auditLogRoleMaxLimit, auditLogRoleKeepCount, auditLogGroupMaxLimit,
                     auditLogGroupKeepCount);
+            jdbcConn.setResourceAccessRolePairsPerQuery(resourceAccessRolePairsPerQuery);
             jdbcConn.setDomainOptions(domainOptions);
             return jdbcConn;
         } catch (Exception ex) {
