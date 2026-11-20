@@ -236,9 +236,6 @@ func init() {
 	tPolicyBundleEntries.ArrayField("list", "PolicyBundleEntry", false, "list of bundles")
 	sb.AddType(tPolicyBundleEntries.Build())
 
-	tPolicyBundle := rdl.NewAliasTypeBuilder("String", "PolicyBundle")
-	sb.AddType(tPolicyBundle.Build())
-
 	tRoleCertificate := rdl.NewStructTypeBuilder("Struct", "RoleCertificate")
 	tRoleCertificate.Comment("Copyright The Athenz Authors Licensed under the terms of the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate - a role certificate")
 	tRoleCertificate.Field("x509Certificate", "String", false, nil, "")
@@ -971,8 +968,9 @@ func init() {
 	mPostSignedPolicyRequest.Exception("UNAUTHORIZED", "ResourceError", "")
 	sb.AddResource(mPostSignedPolicyRequest.Build())
 
-	mGetPolicyBundle := rdl.NewResourceBuilder("PolicyBundle", "GET", "/domain/{domainName}/bundle/{bundleName}")
+	mGetPolicyBundle := rdl.NewResourceBuilder("String", "GET", "/domain/{domainName}/bundle/{bundleName}")
 	mGetPolicyBundle.Comment("Get the active version of the policy bundle as an OPA bundle archive (gzipped tar). If the If-None-Match header is provided, and it matches the ETag (bundle revision) that would be returned, then a NOT_MODIFIED response is returned instead of the bundle.")
+	mGetPolicyBundle.Name("GetPolicyBundle")
 	mGetPolicyBundle.Input("domainName", "DomainName", true, "", "", false, nil, "name of the domain")
 	mGetPolicyBundle.Input("bundleName", "EntityName", true, "", "", false, nil, "name of the bundle")
 	mGetPolicyBundle.Input("matchingTag", "String", false, "", "If-None-Match", true, nil, "bundle revision from a previous request")
