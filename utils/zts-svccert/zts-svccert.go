@@ -429,7 +429,7 @@ func fetchInstanceRegisterToken(ztsURL, svcKeyFile, svcCertFile, caCertFile, nto
 			return "", err
 		}
 		ntoken := strings.TrimSpace(string(ntokenBytes))
-		client, err = ntokenClient(ztsURL, ntoken, hdr, caCertFile)
+		client, err = ntokenClient(ztsURL, ntoken, caCertFile, hdr)
 	}
 	if err != nil {
 		return "", err
