@@ -83,8 +83,8 @@ func usage() {
 	fmt.Println("")
 	fmt.Println("      <certificate-details> := -dns-domain <san-dns-domain-component> (not required with -request-csr) [-signer-cert-file <ca-cert-output-file>] [-spiffe] [-spiffe-svid] [-expiry-time <mins>] [-subj-c <subject country>] [-subj-o <subject org>] [-subj-ou <subject orgunit>] [-ip <san-ip-address>] [-hostname <hostname>] [-signer-key-id <key-id>]")
 	fmt.Println("")
-	fmt.Println("      -spiffe-svid keeps only the SPIFFE URI SAN; instance ID and hostname are sent in the registration request")
-	fmt.Println("      Provider requests with -spiffe-svid require ZTS support for x509CertInstanceId; renew by registering again with fresh attestation")
+	fmt.Println("      -spiffe-svid keeps only the SPIFFE URI SAN and preserves -instance in a DNS SAN for provider refresh")
+	fmt.Println("      Instance ID and hostname are also sent in the registration request")
 	fmt.Println("")
 	fmt.Println("      <principal-credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-cacert <ca-cert-file>] |")
 	fmt.Println("                                 -ntoken-file <ntoken-file> [-hdr <auth-header-name>] [-cacert <ca-cert-file>]")
@@ -95,7 +95,7 @@ func usage() {
 func main() {
 	var ztsURL, serviceKey, serviceCert, domain, service, keyID, signerKeyID string
 	var caCertFile, certFile, signerCertFile, dnsDomain, hdr, ip string
-	var subjC, subjO, subjOU, uri, provider, instance, instanceId, hostname, hostnameUri string
+	var subjC, subjO, subjOU, uri, provider, instance, instanceId, instanceIdDNS, hostname, hostnameUri string
 	var svcKeyFile, svcCertFile, ntokenFile, attestationDataFile, spiffeTrustDomain, requestCsrFile string
 	var csr, spiffe, spiffeSvid, showVersion, getInstanceRegisterToken, useInstanceRegisterToken bool
 	var expiryTime int
@@ -212,6 +212,9 @@ func main() {
 			uriProvider = provider
 		}
 		instanceId = fmt.Sprintf("athenz://instanceid/%s/%s", uriProvider, instance)
+		if spiffeSvid {
+			instanceIdDNS = fmt.Sprintf("%s.instanceid.athenz.%s", instance, dnsDomain)
+		}
 	}
 	if hostname != "" {
 		if provider == "" && !csr {
@@ -257,7 +260,7 @@ func main() {
 			Country:            []string{subjC},
 		}
 
-		csrData, err = generateCSR(pkSigner, subj, host, instanceId, hostnameUri, ip, uri, spiffeSvid)
+		csrData, err = generateCSR(pkSigner, subj, host, instanceId, instanceIdDNS, hostnameUri, ip, uri, spiffeSvid)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -493,7 +496,7 @@ func validateX509SVIDURIs(uris []*url.URL) error {
 	return nil
 }
 
-func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, hostnameUri, ip, uri string, spiffeSvid bool) (string, error) {
+func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, instanceIdDNS, hostnameUri, ip, uri string, spiffeSvid bool) (string, error) {
 
 	template := x509.CertificateRequest{
 		Subject:            subj,
@@ -501,6 +504,9 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, hostnameUr
 	}
 	if host != "" {
 		template.DNSNames = []string{host}
+	}
+	if spiffeSvid && instanceIdDNS != "" {
+		template.DNSNames = append(template.DNSNames, instanceIdDNS)
 	}
 	sanURIs := []string{uri}
 	if !spiffeSvid {

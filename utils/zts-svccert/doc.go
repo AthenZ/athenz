@@ -6,7 +6,11 @@
 //
 // The -spiffe flag includes a SPIFFE URI but also permits Athenz URI SANs.
 // Use -spiffe-svid to keep exactly one SPIFFE URI SAN, including when -instance
-// or -hostname is specified. DNS and IP SANs and Subject fields are preserved.
+// or -hostname is specified. Existing DNS and IP SANs and Subject fields are
+// preserved. When -instance is set, its ID is included in the supported
+// <instance-id>.instanceid.athenz.<dns-domain> DNS SAN so ZTS can read it from
+// both the issued certificate and a newly generated provider refresh CSR.
+// The DNS suffix must be authorized for instance IDs by the provider.
 // With -spiffe-svid, a supplied -request-csr must already contain exactly one
 // SPIFFE URI SAN; its signed contents are never rewritten.
 // The -spiffe-svid flag follows the opt-in convention of zts-svctoken.
@@ -15,7 +19,6 @@
 // x509CertInstanceId, matching the existing athenz-issuer registration flow.
 // ZTS must support x509CertInstanceId when the CSR contains no instance ID.
 // The -hostname value is still sent as the registration request's hostname.
-// The resulting certificate does not contain the Athenz instance-ID URI used
-// by the traditional instance refresh API. Renew it by registering again
-// with fresh attestation rather than using that refresh API.
+// A pre-generated CSR must already carry a matching instance-ID DNS SAN to
+// support provider refresh; x509CertInstanceId alone only supports registration.
 package main
