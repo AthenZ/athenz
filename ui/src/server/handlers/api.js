@@ -336,6 +336,41 @@ Fetchr.registerService({
 });
 
 Fetchr.registerService({
+    name: 'domain-export',
+    read(req, resource, params, config, callback) {
+        // the signed domain api returns the full domain details (roles,
+        // groups, policies, services and entities) in a base64url encoded
+        // payload, so we decode it and return the domain data as json
+        req.clients.zms.getJWSDomain(
+            { name: params.domainName },
+            (err, jwsDomain) => {
+                if (err) {
+                    return responseHandler.call(
+                        { caller: 'getJWSDomain', callback, req },
+                        err
+                    );
+                }
+                let domainData;
+                try {
+                    domainData = JSON.parse(
+                        Buffer.from(jwsDomain.payload, 'base64url').toString()
+                    );
+                } catch (e) {
+                    return responseHandler.call(
+                        { caller: 'getJWSDomain', callback, req },
+                        {
+                            status: 500,
+                            message: `unable to decode domain data: ${e.message}`,
+                        }
+                    );
+                }
+                callback(null, domainData);
+            }
+        );
+    },
+});
+
+Fetchr.registerService({
     name: 'domain-templates',
     read(req, resource, params, config, callback) {
         req.clients.zms.getDomainTemplateList(

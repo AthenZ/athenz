@@ -742,7 +742,7 @@ exports[`Template Page should render 1`] = `
   background: #d7e2fd;
 }
 
-.emotion-107 {
+.emotion-110 {
   -webkit-align-items: stretch;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -757,7 +757,7 @@ exports[`Template Page should render 1`] = `
   position: relative;
 }
 
-.emotion-107.vertical {
+.emotion-110.vertical {
   background: #f5f8fe;
   display: flex;
   -webkit-flex-direction: column;
@@ -770,7 +770,7 @@ exports[`Template Page should render 1`] = `
   width: 300px;
 }
 
-.emotion-108 {
+.emotion-111 {
   font-family: Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 300;
@@ -791,11 +791,11 @@ exports[`Template Page should render 1`] = `
   z-index: 1;
 }
 
-.emotion-108:hover {
+.emotion-111:hover {
   color: #3570f4;
 }
 
-.emotion-108.active {
+.emotion-111.active {
   background: #fff;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
@@ -803,11 +803,11 @@ exports[`Template Page should render 1`] = `
   cursor: initial;
 }
 
-.emotion-108.active:hover {
+.emotion-111.active:hover {
   color: #303030;
 }
 
-.emotion-108.vertical {
+.emotion-111.vertical {
   background: #f5f8fe;
   border-left: solid 4px #f5f8fe;
   height: 24px;
@@ -819,27 +819,27 @@ exports[`Template Page should render 1`] = `
   text-align: left;
 }
 
-.emotion-108.vertical.active {
+.emotion-111.vertical.active {
   background: #fff;
   border-left: solid 4px #3697f2;
   color: #303030;
 }
 
-.emotion-108.vertical.active:hover {
+.emotion-111.vertical.active:hover {
   color: #303030;
 }
 
-.emotion-117 {
+.emotion-120 {
   margin: 20px;
 }
 
-.emotion-119 {
+.emotion-122 {
   font: 600 15px HelveticaNeue-Reg,Helvetica,Arial,sans-serif;
   margin-bottom: 20px;
   margin-top: 40px;
 }
 
-.emotion-121 {
+.emotion-124 {
   width: 100%;
   border-spacing: 0;
   display: table;
@@ -847,7 +847,7 @@ exports[`Template Page should render 1`] = `
   border-color: #9a9a9a;
 }
 
-.emotion-123 {
+.emotion-126 {
   text-align: left;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -859,7 +859,7 @@ exports[`Template Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-127 {
+.emotion-130 {
   text-align: center;
   border-bottom: 2px solid #d5d5d5;
   color: #9a9a9a;
@@ -871,7 +871,7 @@ exports[`Template Page should render 1`] = `
   word-break: break-all;
 }
 
-.emotion-151 {
+.emotion-154 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -894,13 +894,13 @@ exports[`Template Page should render 1`] = `
   width: 20px;
 }
 
-.emotion-153 {
+.emotion-156 {
   fill: #303030;
   cursor: inherit;
   vertical-align: text-bottom;
 }
 
-.emotion-154 {
+.emotion-157 {
   margin-right: 0;
   border-left: 1px solid #d5d5d5;
   -webkit-flex: 0 0 350px;
@@ -915,7 +915,7 @@ exports[`Template Page should render 1`] = `
   width: 350px;
 }
 
-.emotion-156 {
+.emotion-159 {
   -webkit-align-items: baseline;
   -webkit-box-align: baseline;
   -ms-flex-align: baseline;
@@ -931,28 +931,28 @@ exports[`Template Page should render 1`] = `
   padding: 20px 30px 20px 15px;
 }
 
-.emotion-158 {
+.emotion-161 {
   font-size: 16px;
   font-weight: 600;
 }
 
-.emotion-160 {
+.emotion-163 {
   color: #3570f4;
   -webkit-text-decoration: none;
   text-decoration: none;
   cursor: pointer;
 }
 
-.emotion-162 {
+.emotion-165 {
   padding: 0 5px;
   color: #d5d5d5;
 }
 
-.emotion-166 {
+.emotion-169 {
   padding: 0 30px 15px 15px;
 }
 
-.emotion-168 {
+.emotion-171 {
   box-sizing: border-box;
   display: inline-flex;
   -webkit-box-flex-flow: row nowrap;
@@ -966,7 +966,7 @@ exports[`Template Page should render 1`] = `
   width: 100%;
 }
 
-.emotion-168 input {
+.emotion-171 input {
   -webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
@@ -992,42 +992,42 @@ exports[`Template Page should render 1`] = `
   width: 100%;
 }
 
-.emotion-168.animated input {
+.emotion-171.animated input {
   -webkit-transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
   transition: background-color 0.2s ease-in-out,color 0.2s ease-in-out,border 0.2s ease-in-out;
 }
 
-.emotion-168 input::-webkit-input-placeholder {
+.emotion-171 input::-webkit-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-168 input::-moz-placeholder {
+.emotion-171 input::-moz-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-168 input:-ms-input-placeholder {
+.emotion-171 input:-ms-input-placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-168 input::placeholder {
+.emotion-171 input::placeholder {
   color: rgba(48,48,48,0.6);
 }
 
-.emotion-168 input.focused,
-.emotion-168 input:active,
-.emotion-168 input:focus {
+.emotion-171 input.focused,
+.emotion-171 input:active,
+.emotion-171 input:focus {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #3570f4;
   color: #303030;
 }
 
-.emotion-168 input:invalid {
+.emotion-171 input:invalid {
   background: rgba(53,112,244,0.05);
   border-bottom: 2px solid #d01111;
   color: #303030;
 }
 
-.emotion-168 .message {
+.emotion-171 .message {
   font-size: 12px;
   left: 0;
   line-height: 1.8;
@@ -1035,22 +1035,22 @@ exports[`Template Page should render 1`] = `
   top: 2.571rem;
 }
 
-.emotion-168.error input,
-.emotion-168.error input.focused,
-.emotion-168.error input:active,
-.emotion-168.error input:focus {
+.emotion-171.error input,
+.emotion-171.error input.focused,
+.emotion-171.error input:active,
+.emotion-171.error input:focus {
   border-bottom: 2px solid #d01111;
 }
 
-.emotion-168.error .message {
+.emotion-171.error .message {
   color: #d01111;
 }
 
-.emotion-168 input {
+.emotion-171 input {
   padding-right: 28px;
 }
 
-.emotion-168 .input-icon {
+.emotion-171 .input-icon {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -1062,31 +1062,31 @@ exports[`Template Page should render 1`] = `
   z-index: 1;
 }
 
-.emotion-168 .input-icon[onclick] {
+.emotion-171 .input-icon[onclick] {
   cursor: pointer;
   -webkit-transition: opacity 0.2s ease-in-out;
   transition: opacity 0.2s ease-in-out;
 }
 
-.emotion-168 .input-icon[onclick]:hover {
+.emotion-171 .input-icon[onclick]:hover {
   opacity: 0.7;
 }
 
-.emotion-170 {
+.emotion-173 {
   padding: 0 30px 0 15px;
 }
 
-.emotion-172 {
+.emotion-175 {
   padding: 10px 0;
   display: flex;
 }
 
-.emotion-174 {
+.emotion-177 {
   font-size: 1.25em;
   margin-right: 5px;
 }
 
-.emotion-176 {
+.emotion-179 {
   fill: #303030;
   cursor: inherit;
   vertical-align: baseline;
@@ -1504,6 +1504,16 @@ exports[`Template Page should render 1`] = `
                 >
                   <button
                     class="emotion-106 denali-button"
+                    data-testid="export-domain"
+                  >
+                    Export Domain
+                  </button>
+                </div>
+                <div
+                  class="emotion-52 emotion-53"
+                >
+                  <button
+                    class="emotion-106 denali-button"
                   >
                     Onboard to AWS
                   </button>
@@ -1511,59 +1521,59 @@ exports[`Template Page should render 1`] = `
               </div>
             </div>
             <div
-              class="emotion-107 denali-tab-group"
+              class="emotion-110 denali-tab-group"
               data-testid="tabgroup"
             >
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 Roles
               </div>
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 Groups
               </div>
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 Services
               </div>
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 Policies
               </div>
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 Tags
               </div>
               <div
-                class="emotion-108 denali-tab active"
+                class="emotion-111 denali-tab active"
                 data-active="true"
               >
                 Templates
               </div>
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 Settings
               </div>
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 Visibility
               </div>
               <div
-                class="emotion-108 denali-tab"
+                class="emotion-111 denali-tab"
                 data-active="false"
               >
                 History
@@ -1571,46 +1581,46 @@ exports[`Template Page should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-117 emotion-118"
+            class="emotion-120 emotion-121"
             data-testid="template-list"
           >
             <div
-              class="emotion-119 emotion-120"
+              class="emotion-122 emotion-123"
             >
               Domain Templates
             </div>
             <table
-              class="emotion-121 emotion-122"
+              class="emotion-124 emotion-125"
             >
               <thead>
                 <tr>
                   <th
-                    class="emotion-123 emotion-124"
+                    class="emotion-126 emotion-127"
                   >
                     TEMPLATE
                   </th>
                   <th
-                    class="emotion-123 emotion-124"
+                    class="emotion-126 emotion-127"
                   >
                     INFO
                   </th>
                   <th
-                    class="emotion-127 emotion-124"
+                    class="emotion-130 emotion-127"
                   >
                     CURRENT VERSION
                   </th>
                   <th
-                    class="emotion-127 emotion-124"
+                    class="emotion-130 emotion-127"
                   >
                     LATEST VERSION
                   </th>
                   <th
-                    class="emotion-127 emotion-124"
+                    class="emotion-130 emotion-127"
                   >
                     UPDATED DATE
                   </th>
                   <th
-                    class="emotion-127 emotion-124"
+                    class="emotion-130 emotion-127"
                   >
                     UPDATE VERSION
                   </th>
@@ -1619,42 +1629,42 @@ exports[`Template Page should render 1`] = `
               <tbody />
             </table>
             <div
-              class="emotion-119 emotion-120"
+              class="emotion-122 emotion-123"
             >
               Server Templates
             </div>
             <table
-              class="emotion-121 emotion-122"
+              class="emotion-124 emotion-125"
             >
               <thead>
                 <tr>
                   <th
-                    class="emotion-123 emotion-124"
+                    class="emotion-126 emotion-127"
                   >
                     TEMPLATE
                   </th>
                   <th
-                    class="emotion-123 emotion-124"
+                    class="emotion-126 emotion-127"
                   >
                     INFO
                   </th>
                   <th
-                    class="emotion-127 emotion-124"
+                    class="emotion-130 emotion-127"
                   >
                     CURRENT VERSION
                   </th>
                   <th
-                    class="emotion-127 emotion-124"
+                    class="emotion-130 emotion-127"
                   >
                     LATEST VERSION
                   </th>
                   <th
-                    class="emotion-127 emotion-124"
+                    class="emotion-130 emotion-127"
                   >
                     UPDATED DATE
                   </th>
                   <th
-                    class="emotion-127 emotion-124"
+                    class="emotion-130 emotion-127"
                   >
                     UPDATE VERSION
                   </th>
@@ -1669,11 +1679,11 @@ exports[`Template Page should render 1`] = `
         data-testid="user-domains"
       >
         <div
-          class="emotion-151 emotion-152"
+          class="emotion-154 emotion-155"
           data-testid="toggle-domain"
         >
           <svg
-            class="emotion-153"
+            class="emotion-156"
             data-testid="icon"
             data-wdio=""
             height="1em"
@@ -1690,30 +1700,30 @@ exports[`Template Page should render 1`] = `
           </svg>
         </div>
         <div
-          class="emotion-154 emotion-155"
+          class="emotion-157 emotion-158"
         >
           <div
-            class="emotion-156 emotion-157"
+            class="emotion-159 emotion-160"
           >
             <div
-              class="emotion-158 emotion-159"
+              class="emotion-161 emotion-162"
             >
               My Domains
             </div>
             <div>
               <a
-                class="emotion-160 emotion-161"
+                class="emotion-163 emotion-164"
                 href="/domain/create"
               >
                 Create
               </a>
               <span
-                class="emotion-162 emotion-163"
+                class="emotion-165 emotion-166"
               >
                  | 
               </span>
               <a
-                class="emotion-160 emotion-161"
+                class="emotion-163 emotion-164"
                 href="/domain/manage"
               >
                 Manage
@@ -1721,10 +1731,10 @@ exports[`Template Page should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-166 emotion-167"
+            class="emotion-169 emotion-170"
           >
             <div
-              class="emotion-168 denali-input animated"
+              class="emotion-171 denali-input animated"
               data-testid="input-wrapper"
             >
               <input
@@ -1765,17 +1775,17 @@ exports[`Template Page should render 1`] = `
             </div>
           </div>
           <div
-            class="emotion-170 emotion-171"
+            class="emotion-173 emotion-174"
             data-testid="domain-list"
           >
             <div
-              class="emotion-172 emotion-173"
+              class="emotion-175 emotion-176"
             >
               <div
-                class="emotion-174 emotion-175"
+                class="emotion-177 emotion-178"
               >
                 <svg
-                  class="emotion-176"
+                  class="emotion-179"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1798,20 +1808,20 @@ exports[`Template Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-160 emotion-161"
+                class="emotion-163 emotion-164"
                 href="/domain/athens/role"
               >
                 athens
               </a>
             </div>
             <div
-              class="emotion-172 emotion-173"
+              class="emotion-175 emotion-176"
             >
               <div
-                class="emotion-174 emotion-175"
+                class="emotion-177 emotion-178"
               >
                 <svg
-                  class="emotion-176"
+                  class="emotion-179"
                   data-testid="icon"
                   data-wdio=""
                   height="1em"
@@ -1834,7 +1844,7 @@ exports[`Template Page should render 1`] = `
                 </svg>
               </div>
               <a
-                class="emotion-160 emotion-161"
+                class="emotion-163 emotion-164"
                 href="/domain/athens.ci/role"
               >
                 athens.ci
