@@ -24,6 +24,7 @@ import com.yahoo.athenz.zts.Policy;
 import com.yahoo.athenz.zts.PolicyData;
 import com.yahoo.athenz.zts.SignedPolicyData;
 import com.yahoo.rdl.JSON;
+import com.yahoo.rdl.Struct;
 import org.apache.commons.io.FileUtils;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeClass;
@@ -741,6 +742,71 @@ public class TestZpeUpdPolLoader {
             loader.close();
         } finally {
             ZpeUpdPolLoader.checkPolicyZMSSignature = savedValue;
+            Files.deleteIfExists(polFile);
+        }
+    }
+
+    @Test
+    public void testLoadDBCaseSensitiveAssertions() throws IOException {
+
+        setupPolicyFiles("./src/test/resources/unit_test_zts_private_k0.pem",
+                "./src/test/resources/unit_test_zms_private_k0.pem", "0", "RS256", false);
+
+        Files.createDirectories(Paths.get(TEST_POL_DIR));
+        Path polFile = Paths.get(TEST_POL_DIR, TEST_POL_FILE);
+        Files.copy(Paths.get(TEST_JWS_POL_GOOD_FILE), polFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+        try {
+            java.io.File [] files = { polFile.toFile() };
+            ZpeUpdPolLoader loader = new ZpeUpdPolLoader(TEST_POL_DIR);
+            loader.loadDb(files);
+
+            ZpeUpdPolLoader.ZpeFileStatus fstat = loader.getFileStatusMap().get(polFile.toFile().getName());
+            assertTrue(fstat.validPolFile);
+
+            // assertions created with the case-sensitive flag must have both
+            // the lower case and the original case match objects
+
+            Map<String, List<Struct>> roleMap = loader.getStandardRoleAllowMap("angler");
+            List<Struct> asserts = roleMap.get("case_sensitive");
+            assertEquals(asserts.size(), 1);
+            Struct strAssert = asserts.get(0);
+
+            ZpeMatch matchStruct = (ZpeMatch) strAssert.get(ZpeConsts.ZPE_ACTION_MATCH_STRUCT);
+            assertTrue(matchStruct.matches("readdata"));
+            assertFalse(matchStruct.matches("ReadData"));
+            matchStruct = (ZpeMatch) strAssert.get(ZpeConsts.ZPE_ACTION_EXACT_MATCH_STRUCT);
+            assertTrue(matchStruct.matches("ReadData"));
+            assertFalse(matchStruct.matches("readdata"));
+
+            matchStruct = (ZpeMatch) strAssert.get(ZpeConsts.ZPE_RESOURCE_MATCH_STRUCT);
+            assertTrue(matchStruct.matches("reports/q1.pdf"));
+            assertFalse(matchStruct.matches("Reports/Q1.PDF"));
+            matchStruct = (ZpeMatch) strAssert.get(ZpeConsts.ZPE_RESOURCE_EXACT_MATCH_STRUCT);
+            assertTrue(matchStruct.matches("Reports/Q1.PDF"));
+            assertFalse(matchStruct.matches("reports/q1.pdf"));
+
+            asserts = loader.getStandardRoleDenyMap("angler").get("case_sensitive");
+            assertEquals(asserts.size(), 1);
+            matchStruct = (ZpeMatch) asserts.get(0).get(ZpeConsts.ZPE_RESOURCE_EXACT_MATCH_STRUCT);
+            assertTrue(matchStruct instanceof ZpeMatchEqual);
+            assertTrue(matchStruct.matches("Reports/Hidden.PDF"));
+
+            asserts = loader.getWildcardRoleAllowMap("angler").get("case_sensitive_*");
+            assertEquals(asserts.size(), 1);
+            matchStruct = (ZpeMatch) asserts.get(0).get(ZpeConsts.ZPE_ACTION_EXACT_MATCH_STRUCT);
+            assertTrue(matchStruct.matches("List"));
+            assertFalse(matchStruct.matches("list"));
+
+            // assertions without the case-sensitive flag must not have
+            // the original case match objects
+
+            for (Struct publicAssert : roleMap.get("public")) {
+                assertNull(publicAssert.get(ZpeConsts.ZPE_ACTION_EXACT_MATCH_STRUCT));
+                assertNull(publicAssert.get(ZpeConsts.ZPE_RESOURCE_EXACT_MATCH_STRUCT));
+            }
+            loader.close();
+        } finally {
             Files.deleteIfExists(polFile);
         }
     }
