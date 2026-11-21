@@ -18,6 +18,7 @@ package otel
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"os"
@@ -170,6 +171,17 @@ func initializeOTelSDK(ctx context.Context, oTelCfg config.OTel) (ShutdownFn, er
 	)
 
 	otel.SetMeterProvider(meterProvider)
+
+	// export the service certificate expiry metric for the newly registered
+	// certificate as well, otherwise it's only exported after the first refresh
+	if oTelCfg.ClientCertPath != "" && oTelCfg.ClientKeyPath != "" {
+		tlsCert, err := tls.LoadX509KeyPair(oTelCfg.ClientCertPath, oTelCfg.ClientKeyPath)
+		if err != nil || tlsCert.Leaf == nil {
+			log.Printf("oTel: unable to load client certificate for metric export, err: %v\n", err)
+		} else {
+			ExportServiceCertMetric(tlsCert.Leaf)
+		}
+	}
 
 	return meterProvider.Shutdown, nil
 }
