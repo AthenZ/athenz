@@ -1353,7 +1353,7 @@ public class JDBCConnection implements ObjectStoreConnection {
                 }
             }
         } catch (SQLException ex) {
-            // ignore any failures and return default value 0
+            throw sqlError(ex, caller);
         }
         return modTime;
     }

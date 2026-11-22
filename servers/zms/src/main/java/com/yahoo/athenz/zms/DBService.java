@@ -346,15 +346,25 @@ public class DBService implements RolesProvider, DomainProvider {
         // verifying the last modification time as opposed to reading the
         // full domain data from db
 
-        long modTime = 0;
+        long modTime;
 
         try {
             modTime = con.getDomainModTimestamp(domainName);
+
+            // a zero timestamp means the domain no longer exists in the
+            // store (e.g. it was deleted by another server instance) so
+            // we must not serve stale data from our cache
+
+            if (modTime == 0) {
+                cacheStore.invalidate(domainName);
+                return null;
+            }
         } catch (ServerResourceException ignored) {
             // if the exception is due to timeout or we were not able
             // to get a connection to the object store then we're
             // going to use our cache as is instead of rejecting
             // the operation
+            return data.getAthenzDomain();
         }
 
         // if our cache data is same or newer than db then return
