@@ -81,7 +81,10 @@ func usage() {
 	fmt.Println("")
 	fmt.Println("      <service-details> := -domain <domain-name> -service <service-name>")
 	fmt.Println("")
-	fmt.Println("      <certificate-details> := -dns-domain <san-dns-domain-component> (not required with -request-csr) [-signer-cert-file <ca-cert-output-file>] [-spiffe] [-expiry-time <mins>] [-subj-c <subject country>] [-subj-o <subject org>] [-subj-ou <subject orgunit>] [-ip <san-ip-address>] [-hostname <hostname>] [-signer-key-id <key-id>]")
+	fmt.Println("      <certificate-details> := -dns-domain <san-dns-domain-component> (not required with -request-csr) [-signer-cert-file <ca-cert-output-file>] [-spiffe] [-spiffe-svid] [-expiry-time <mins>] [-subj-c <subject country>] [-subj-o <subject org>] [-subj-ou <subject orgunit>] [-ip <san-ip-address>] [-hostname <hostname>] [-signer-key-id <key-id>]")
+	fmt.Println("")
+	fmt.Println("      -spiffe-svid keeps only the SPIFFE URI SAN and preserves -instance in a DNS SAN for provider refresh")
+	fmt.Println("      Instance ID and hostname are also sent in the registration request")
 	fmt.Println("")
 	fmt.Println("      <principal-credentials> := -svc-key-file <private-key-file> -svc-cert-file <service-cert-file> [-cacert <ca-cert-file>] |")
 	fmt.Println("                                 -ntoken-file <ntoken-file> [-hdr <auth-header-name>] [-cacert <ca-cert-file>]")
@@ -92,14 +95,15 @@ func usage() {
 func main() {
 	var ztsURL, serviceKey, serviceCert, domain, service, keyID, signerKeyID string
 	var caCertFile, certFile, signerCertFile, dnsDomain, hdr, ip string
-	var subjC, subjO, subjOU, uri, provider, instance, instanceId, hostname, hostnameUri string
+	var subjC, subjO, subjOU, uri, provider, instance, instanceId, instanceIdDNS, hostname, hostnameUri string
 	var svcKeyFile, svcCertFile, ntokenFile, attestationDataFile, spiffeTrustDomain, requestCsrFile string
-	var csr, spiffe, showVersion, getInstanceRegisterToken, useInstanceRegisterToken bool
+	var csr, spiffe, spiffeSvid, showVersion, getInstanceRegisterToken, useInstanceRegisterToken bool
 	var expiryTime int
 	flag.BoolVar(&csr, "csr", false, "request csr only")
 	flag.BoolVar(&getInstanceRegisterToken, "get-instance-register-token", false, "request instance register token only")
 	flag.BoolVar(&useInstanceRegisterToken, "use-instance-register-token", false, "request certificate using instance register token")
 	flag.BoolVar(&spiffe, "spiffe", true, "include spiffe uri in csr")
+	flag.BoolVar(&spiffeSvid, "spiffe-svid", false, "require exactly one SPIFFE URI SAN, omitting Athenz instance ID and hostname URI SANs")
 	flag.IntVar(&expiryTime, "expiry-time", 0, "expiry time in minutes")
 	flag.StringVar(&certFile, "cert-file", "", "output certificate file")
 	flag.StringVar(&ntokenFile, "ntoken-file", "", "service identity token file")
@@ -132,6 +136,9 @@ func main() {
 	if showVersion {
 		printVersion()
 		return
+	}
+	if spiffeSvid && requestCsrFile == "" && !spiffe && spiffeTrustDomain == "" {
+		log.Fatalln("Error: -spiffe-svid requires -spiffe or -spiffe-trust-domain")
 	}
 
 	// if we're asked to obtain instance register token then we can handle
@@ -205,6 +212,9 @@ func main() {
 			uriProvider = provider
 		}
 		instanceId = fmt.Sprintf("athenz://instanceid/%s/%s", uriProvider, instance)
+		if spiffeSvid {
+			instanceIdDNS = fmt.Sprintf("%s.instanceid.athenz.%s", instance, dnsDomain)
+		}
 	}
 	if hostname != "" {
 		if provider == "" && !csr {
@@ -216,7 +226,7 @@ func main() {
 
 	var csrData string
 	if requestCsrFile != "" {
-		csrData, err = loadCSR(requestCsrFile)
+		csrData, err = loadCSR(requestCsrFile, spiffeSvid)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -250,7 +260,7 @@ func main() {
 			Country:            []string{subjC},
 		}
 
-		csrData, err = generateCSR(pkSigner, subj, host, instanceId, hostnameUri, ip, uri)
+		csrData, err = generateCSR(pkSigner, subj, host, instanceId, instanceIdDNS, hostnameUri, ip, uri, spiffeSvid)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -310,7 +320,7 @@ func main() {
 
 	if provider != "" {
 
-		if instanceId == "" {
+		if instance == "" {
 			log.Println("Error: Please specify instance value. Run with -help for command line arguments")
 			usage()
 		}
@@ -338,6 +348,9 @@ func main() {
 			Service:         zts.SimpleName(service),
 			AttestationData: attestationData,
 			Csr:             csrData,
+		}
+		if spiffeSvid || requestCsrFile != "" {
+			req.X509CertInstanceId = zts.PathElement(instance)
 		}
 		if signerKeyID != "" {
 			req.X509CertSignerKeyId = zts.SimpleName(signerKeyID)
@@ -441,7 +454,7 @@ func fetchInstanceRegisterToken(ztsURL, svcKeyFile, svcCertFile, caCertFile, nto
 	return instanceRegisterToken.AttestationData, nil
 }
 
-func loadCSR(csrFile string) (string, error) {
+func loadCSR(csrFile string, spiffeSvid bool) (string, error) {
 	csrBytes, err := os.ReadFile(csrFile)
 	if err != nil {
 		return "", err
@@ -457,6 +470,11 @@ func loadCSR(csrFile string) (string, error) {
 	if err = csr.CheckSignature(); err != nil {
 		return "", fmt.Errorf("invalid certificate request signature in %s: %v", csrFile, err)
 	}
+	if spiffeSvid {
+		if err = validateX509SVIDURIs(csr.URIs); err != nil {
+			return "", err
+		}
+	}
 	// normalize the legacy openssl header to the standard one
 	block.Type = "CERTIFICATE REQUEST"
 	return string(pem.EncodeToMemory(block)), nil
@@ -470,7 +488,15 @@ func newSigner(privateKeyPEM []byte) (*signer, error) {
 	return &signer{key: key, algorithm: algorithm}, nil
 }
 
-func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, hostnameUri, ip, uri string) (string, error) {
+func validateX509SVIDURIs(uris []*url.URL) error {
+	// SPIFFE X509-SVID sections 2 and 5.2 require exactly one URI SAN.
+	if len(uris) != 1 || uris[0].Scheme != "spiffe" || uris[0].Host == "" || uris[0].Path == "" || uris[0].Path == "/" {
+		return errors.New("X.509-SVID requires exactly one SPIFFE URI SAN with a non-root path")
+	}
+	return nil
+}
+
+func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, instanceIdDNS, hostnameUri, ip, uri string, spiffeSvid bool) (string, error) {
 
 	template := x509.CertificateRequest{
 		Subject:            subj,
@@ -479,7 +505,14 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, hostnameUr
 	if host != "" {
 		template.DNSNames = []string{host}
 	}
-	for _, sanUri := range []string{uri, instanceId, hostnameUri} {
+	if spiffeSvid && instanceIdDNS != "" {
+		template.DNSNames = append(template.DNSNames, instanceIdDNS)
+	}
+	sanURIs := []string{uri}
+	if !spiffeSvid {
+		sanURIs = append(sanURIs, instanceId, hostnameUri)
+	}
+	for _, sanUri := range sanURIs {
 		if sanUri == "" {
 			continue
 		}
@@ -488,6 +521,11 @@ func generateCSR(keySigner *signer, subj pkix.Name, host, instanceId, hostnameUr
 			return "", fmt.Errorf("cannot parse SAN URI %q: %v", sanUri, err)
 		}
 		template.URIs = append(template.URIs, uriptr)
+	}
+	if spiffeSvid {
+		if err := validateX509SVIDURIs(template.URIs); err != nil {
+			return "", err
+		}
 	}
 	if ip != "" {
 		template.IPAddresses = []net.IP{net.ParseIP(ip)}
