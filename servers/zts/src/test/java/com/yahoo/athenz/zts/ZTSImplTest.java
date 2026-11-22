@@ -39,6 +39,8 @@ import com.yahoo.athenz.common.server.http.HttpDriverResponse;
 import com.yahoo.athenz.common.server.rest.Http;
 import com.yahoo.athenz.common.server.rest.ServerResourceContext;
 import com.yahoo.athenz.common.server.ServerResourceException;
+import com.yahoo.athenz.common.server.identity.SelfIdentityStore;
+import com.yahoo.athenz.zts.cert.impl.TestSelfIdentityStoreFactory;
 import com.yahoo.athenz.common.server.ssh.SSHCertRecord;
 import com.yahoo.athenz.common.server.store.ChangeLogStore;
 import com.yahoo.athenz.common.server.store.impl.ZMSFileChangeLogStore;
@@ -84,6 +86,8 @@ import com.yahoo.rdl.Timestamp;
 import com.yahoo.rdl.Validator;
 import jakarta.servlet.ServletContext;
 import org.eclipse.jetty.http.HttpHeader;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.GeneralName;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -10579,6 +10583,270 @@ public class ZTSImplTest {
         assertNotNull(ztsImpl.hostnameResolver);
 
         System.clearProperty(ZTSConsts.ZTS_PROP_HOSTNAME_RESOLVER_FACTORY_CLASS);
+    }
+
+    @Test
+    public void testLoadSelfIdentityManager() throws Exception {
+
+        // nothing is loaded unless configured
+
+        zts.selfIdentityManager = null;
+        zts.loadSelfIdentityManager();
+        assertNull(zts.selfIdentityManager);
+
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_IDENTITY_STORE_FACTORY_CLASS, "invalid.class");
+        try {
+            zts.loadSelfIdentityManager();
+            fail();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().contains("Invalid SelfIdentityStoreFactory class"));
+        }
+
+        // our instance cert manager signs the request with a test ca
+
+        PrivateKey caKey = Crypto.generateRSAPrivateKey(2048);
+        X509Certificate caCert = Crypto.generateX509Certificate(Crypto.getPKCS10CertRequest(
+                Crypto.generateX509CSR(caKey, "cn=Self Identity Test CA", null)), caKey,
+                new X500Name("cn=Self Identity Test CA"), 60, true);
+        InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
+        Mockito.when(certManager.generateX509Certificate(isNull(), isNull(), anyString(), eq("client"), anyInt(),
+                eq(Priority.Unspecified_priority), any())).thenAnswer(inv -> Crypto.convertToPEMFormat(
+                        Crypto.generateX509Certificate(Crypto.getPKCS10CertRequest(inv.getArgument(2)),
+                                caKey, caCert, 60, false)));
+
+        // the sys.auth.zts service must be registered
+
+        SignedDomain sysAuthDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
+        sysAuthDomain.getDomain().setServices(createServices("sys.auth", "zts"));
+        this.store.processDomainData(sysAuthDomain.getDomain());
+
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_IDENTITY_STORE_FACTORY_CLASS,
+                "com.yahoo.athenz.zts.cert.impl.TestSelfIdentityStoreFactory");
+        SelfIdentityStore store = Mockito.mock(SelfIdentityStore.class);
+        TestSelfIdentityStoreFactory.store = store;
+        InstanceCertManager savedCertManager = zts.instanceCertManager;
+        DynamicConfigBoolean savedValidateService = zts.validateInstanceServiceIdentity;
+        zts.instanceCertManager = certManager;
+        zts.validateInstanceServiceIdentity = new DynamicConfigBoolean(true);
+        try {
+            zts.loadSelfIdentityManager();
+            assertNotNull(zts.selfIdentityManager);
+
+            // the issued identity passed our service cert validation and was stored and logged
+
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<List<X509Certificate>> certCaptor = ArgumentCaptor.forClass(List.class);
+            Mockito.verify(store).storeIdentity(any(PrivateKey.class), certCaptor.capture(), any());
+            assertEquals(Crypto.extractX509CertCommonName(certCaptor.getValue().get(0)), "sys.auth.zts");
+            Mockito.verify(certManager).logX509Cert(isNull(), eq(InetAddress.getLoopbackAddress().getHostAddress()),
+                    eq("zts"), eq(ZTSImpl.serverHostName),
+                    eq(certCaptor.getValue().get(0)));
+            assertEquals(Crypto.extractX509CertURIs(certCaptor.getValue().get(0)).get(0),
+                    "spiffe://athenz.io/ns/default/sa/sys.auth.zts");
+            zts.selfIdentityManager.close();
+
+            // the basic spiffe uri format passes our validation as well
+
+            System.setProperty(ZTSConsts.ZTS_PROP_SELF_IDENTITY_SPIFFE_URI_FORMAT, "basic");
+            zts.loadSelfIdentityManager();
+            Mockito.verify(store, Mockito.times(2)).storeIdentity(any(PrivateKey.class), certCaptor.capture(), any());
+            assertEquals(Crypto.extractX509CertURIs(certCaptor.getValue().get(0)).get(0), "spiffe://sys.auth/sa/zts");
+            zts.selfIdentityManager.close();
+
+            // and so does a request without any spiffe uri
+
+            System.setProperty(ZTSConsts.ZTS_PROP_SELF_IDENTITY_SPIFFE_URI_FORMAT, "none");
+            zts.loadSelfIdentityManager();
+            Mockito.verify(store, Mockito.times(3)).storeIdentity(any(PrivateKey.class), certCaptor.capture(), any());
+            assertTrue(Crypto.extractX509CertURIs(certCaptor.getValue().get(0)).isEmpty());
+            zts.selfIdentityManager.close();
+
+            // failure to store the initial identity must stop the server startup
+
+            Mockito.doThrow(new ServerResourceException(ServerResourceException.INTERNAL_SERVER_ERROR, "disk full"))
+                    .when(store).storeIdentity(any(), any(), any());
+            try {
+                zts.loadSelfIdentityManager();
+                fail();
+            } catch (ResourceException ex) {
+                assertEquals(ex.getCode(), ResourceException.INTERNAL_SERVER_ERROR);
+                assertTrue(ex.getMessage().contains("disk full"));
+            }
+        } finally {
+            TestSelfIdentityStoreFactory.store = null;
+            zts.selfIdentityManager = null;
+            zts.instanceCertManager = savedCertManager;
+            zts.validateInstanceServiceIdentity = savedValidateService;
+            System.clearProperty(ZTSConsts.ZTS_PROP_SELF_IDENTITY_STORE_FACTORY_CLASS);
+            System.clearProperty(ZTSConsts.ZTS_PROP_SELF_IDENTITY_SPIFFE_URI_FORMAT);
+        }
+    }
+
+    @Test
+    public void testConstructorIssuesSelfIdentity() throws Exception {
+
+        // the identity is issued during startup with the configured cert signer
+        // and all the validators must already be available at that point
+
+        SignedDomain sysAuthDomain = ZTSTestUtils.signedAuthorizedProviderDomain(privateKey);
+        sysAuthDomain.getDomain().setServices(createServices("sys.auth", "zts"));
+        store.processDomainData(sysAuthDomain.getDomain());
+
+        System.setProperty(ZTSConsts.ZTS_PROP_SELF_IDENTITY_STORE_FACTORY_CLASS,
+                "com.yahoo.athenz.zts.cert.impl.TestSelfIdentityStoreFactory");
+        SelfIdentityStore identityStore = Mockito.mock(SelfIdentityStore.class);
+        TestSelfIdentityStoreFactory.store = identityStore;
+        ZTSImpl ztsImpl = null;
+        try {
+            ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<List<X509Certificate>> certCaptor = ArgumentCaptor.forClass(List.class);
+            Mockito.verify(identityStore).storeIdentity(any(PrivateKey.class), certCaptor.capture(), any());
+            assertEquals(Crypto.extractX509CertCommonName(certCaptor.getValue().get(0)), "sys.auth.zts");
+            assertEquals(Crypto.extractX509CertURIs(certCaptor.getValue().get(0)).get(0),
+                    "spiffe://athenz.io/ns/default/sa/sys.auth.zts");
+        } finally {
+            if (ztsImpl != null && ztsImpl.selfIdentityManager != null) {
+                ztsImpl.selfIdentityManager.close();
+            }
+            TestSelfIdentityStoreFactory.store = null;
+            System.clearProperty(ZTSConsts.ZTS_PROP_SELF_IDENTITY_STORE_FACTORY_CLASS);
+        }
+    }
+
+    private String generateServiceCsr(PrivateKey key, final String subject, final String spiffeUri)
+            throws Exception {
+        GeneralName[] sanArray = (spiffeUri == null) ? null
+                : new GeneralName[] { new GeneralName(GeneralName.uniformResourceIdentifier, spiffeUri) };
+        return Crypto.generateX509CSR(key, subject, sanArray);
+    }
+
+    @Test
+    public void testGenerateServiceX509Certificate() throws Exception {
+
+        ChangeLogStore structStore = new ZMSFileChangeLogStore("/tmp/zts_server_unit_tests/zts_root",
+                privateKey, "0");
+        DataStore store = new DataStore(structStore, null, ztsMetric);
+        ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
+
+        SignedDomain signedDomain = createSignedDomain("coretech", "sports", "api", true, null);
+        signedDomain.getDomain().setX509CertSignerKeyId("x509-keyid");
+        store.processDomainData(signedDomain.getDomain());
+
+        InstanceCertManager certManager = Mockito.mock(InstanceCertManager.class);
+        ztsImpl.instanceCertManager = certManager;
+        Mockito.when(certManager.getX509CertificateSigner(null, "x509-keyid")).thenReturn("ca-bundle");
+
+        PrivateKey key = Crypto.generateRSAPrivateKey(2048);
+        final String csr = generateServiceCsr(key, "cn=coretech.api", "spiffe://coretech/sa/api");
+
+        // the expiry time is capped by the service cert limit and the
+        // signer key id is taken from the domain configuration
+
+        X509Certificate cert = Crypto.generateX509Certificate(Crypto.getPKCS10CertRequest(csr), privateKey,
+                new X500Name("cn=Test CA"), 60, false);
+        final String certPem = Crypto.convertToPEMFormat(cert);
+        Mockito.when(certManager.generateX509Certificate(isNull(), isNull(), eq(csr), eq("client"), anyInt(),
+                eq(Priority.Unspecified_priority), eq("x509-keyid"))).thenReturn(certPem);
+
+        // the server default is used when no expiry is requested
+
+        ztsImpl.serviceCertDefaultExpiryMins = new DynamicConfigInteger(1440);
+        Identity identity = ztsImpl.generateServiceX509Certificate("coretech", "api", csr, 0);
+        assertEquals(identity.getName(), "coretech.api");
+        assertEquals(identity.getCertificate(), certPem);
+        assertEquals(identity.getCaCertBundle(), "ca-bundle");
+        ztsImpl.generateServiceX509Certificate("coretech", "api", csr, 2880);
+        verifyServiceCertExpiry(certManager, csr, 1440, 1);
+        verifyServiceCertExpiry(certManager, csr, 2880, 1);
+
+        // the domain service cert expiry caps the requested value
+
+        signedDomain.getDomain().setServiceCertExpiryMins(720);
+        store.processDomainData(signedDomain.getDomain());
+        ztsImpl.generateServiceX509Certificate("coretech", "api", csr, 0);
+        ztsImpl.generateServiceX509Certificate("coretech", "api", csr, 2880);
+        ztsImpl.generateServiceX509Certificate("coretech", "api", csr, 360);
+        verifyServiceCertExpiry(certManager, csr, 720, 2);
+        verifyServiceCertExpiry(certManager, csr, 360, 1);
+
+        // every issued certificate is logged with our hostname as the instance id
+
+        Mockito.verify(certManager, Mockito.times(5)).logX509Cert(null,
+                InetAddress.getLoopbackAddress().getHostAddress(), "zts", ZTSImpl.serverHostName, cert);
+
+        // without any configured value the cert signer default is used
+
+        signedDomain.getDomain().setServiceCertExpiryMins(null);
+        store.processDomainData(signedDomain.getDomain());
+        ztsImpl.serviceCertDefaultExpiryMins = new DynamicConfigInteger(0);
+        ztsImpl.generateServiceX509Certificate("coretech", "api", csr, -5);
+        verifyServiceCertExpiry(certManager, csr, 0, 1);
+
+        // failure to generate the certificate
+
+        Mockito.when(certManager.generateX509Certificate(null, null, csr, "client", 0,
+                Priority.Unspecified_priority, "x509-keyid")).thenReturn(null);
+        ServerResourceException ex = expectThrows(ServerResourceException.class,
+                () -> ztsImpl.generateServiceX509Certificate("coretech", "api", csr, 0));
+        assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+
+        // the service must be registered unless the validation is disabled
+
+        ztsImpl.validateInstanceServiceIdentity = new DynamicConfigBoolean(true);
+        final String unknownCsr = generateServiceCsr(key, "cn=coretech.unknown", null);
+        ex = expectThrows(ServerResourceException.class,
+                () -> ztsImpl.generateServiceX509Certificate("coretech", "unknown", unknownCsr, 0));
+        assertEquals(ex.getCode(), ServerResourceException.BAD_REQUEST);
+        assertTrue(ex.getMessage().contains("Service not registered"), ex.getMessage());
+
+        ztsImpl.validateInstanceServiceIdentity = new DynamicConfigBoolean(false);
+        Mockito.when(certManager.generateX509Certificate(null, null, unknownCsr, "client", 0,
+                Priority.Unspecified_priority, "x509-keyid")).thenReturn(certPem);
+        assertEquals(ztsImpl.generateServiceX509Certificate("coretech", "unknown", unknownCsr, 0).getCertificate(),
+                certPem);
+
+        ex = expectThrows(ServerResourceException.class,
+                () -> ztsImpl.generateServiceX509Certificate("unknown_domain", "api", csr, 0));
+        assertEquals(ex.getCode(), ServerResourceException.NOT_FOUND);
+
+        // csr validation failures
+
+        assertServiceCsrRejected(ztsImpl, "invalid-csr", "Unable to parse");
+        assertServiceCsrRejected(ztsImpl, generateServiceCsr(key, "cn=coretech.backup", null), "data mismatch");
+        assertServiceCsrRejected(ztsImpl, generateServiceCsr(key, "cn=coretech.api",
+                "spiffe://coretech/sa/backup"), "spiffe uri mismatch");
+
+        ztsImpl.validCertSubjectOrgValues = new HashSet<>(Collections.singletonList("Athenz"));
+        assertServiceCsrRejected(ztsImpl, generateServiceCsr(key, "o=Other,cn=coretech.api", null),
+                "invalid Subject O field");
+
+        ztsImpl.verifyCertSubjectOU = true;
+        ztsImpl.validCertSubjectOrgUnitValues = new HashSet<>(Collections.singletonList("Athenz"));
+        assertServiceCsrRejected(ztsImpl, generateServiceCsr(key, "ou=Other,o=Athenz,cn=coretech.api", null),
+                "invalid Subject OU field");
+
+        // valid O and OU values with the ou check enabled
+
+        final String fullCsr = generateServiceCsr(key, "ou=Athenz,o=Athenz,cn=coretech.api", null);
+        Mockito.when(certManager.generateX509Certificate(null, null, fullCsr, "client", 0,
+                Priority.Unspecified_priority, "x509-keyid")).thenReturn(certPem);
+        assertEquals(ztsImpl.generateServiceX509Certificate("coretech", "api", fullCsr, 0).getCertificate(),
+                certPem);
+    }
+
+    private void verifyServiceCertExpiry(InstanceCertManager certManager, final String csr, int expiryMins,
+            int times) {
+        Mockito.verify(certManager, Mockito.times(times)).generateX509Certificate(null, null, csr, "client",
+                expiryMins, Priority.Unspecified_priority, "x509-keyid");
+    }
+
+    private void assertServiceCsrRejected(ZTSImpl ztsImpl, final String csr, final String message) {
+        ServerResourceException ex = expectThrows(ServerResourceException.class,
+                () -> ztsImpl.generateServiceX509Certificate("coretech", "api", csr, 0));
+        assertEquals(ex.getCode(), ServerResourceException.BAD_REQUEST);
+        assertTrue(ex.getMessage().contains(message), ex.getMessage());
     }
 
     @Test
