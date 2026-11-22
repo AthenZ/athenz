@@ -318,6 +318,7 @@ func main() {
 	// if we're given provider then we're going to use our
 	// copper argos model to request the certificate
 
+	expiryTime32 := int32(expiryTime)
 	if provider != "" {
 
 		if instance == "" {
@@ -348,6 +349,7 @@ func main() {
 			Service:         zts.SimpleName(service),
 			AttestationData: attestationData,
 			Csr:             csrData,
+			ExpiryTime:      &expiryTime32,
 		}
 		if spiffeSvid || requestCsrFile != "" {
 			req.X509CertInstanceId = zts.PathElement(instance)
@@ -370,7 +372,6 @@ func main() {
 
 	} else {
 
-		expiryTime32 := int32(expiryTime)
 		req := &zts.InstanceRefreshRequest{
 			Csr:        csrData,
 			KeyId:      keyID,
