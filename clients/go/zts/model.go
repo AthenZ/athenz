@@ -1414,9 +1414,6 @@ func (self *PolicyBundleEntries) Validate() error {
 	return nil
 }
 
-// PolicyBundle -
-type PolicyBundle string
-
 // RoleCertificate - Copyright The Athenz Authors Licensed under the terms of
 // the Apache version 2.0 license. See LICENSE file for terms. RoleCertificate -
 // a role certificate
