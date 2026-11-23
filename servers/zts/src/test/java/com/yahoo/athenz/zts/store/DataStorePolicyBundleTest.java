@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static com.yahoo.athenz.common.ServerCommonConsts.PROP_ATHENZ_CONF;
 import static org.testng.Assert.*;
 
 public class DataStorePolicyBundleTest {
@@ -49,6 +50,8 @@ public class DataStorePolicyBundleTest {
 
     @BeforeMethod
     public void setup() throws Exception {
+
+        System.setProperty(PROP_ATHENZ_CONF, "src/test/resources/athenz.conf");
 
         ZTSTestUtils.deleteDirectory(new File(ZTS_DATA_STORE_PATH));
 

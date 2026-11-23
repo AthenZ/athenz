@@ -338,6 +338,33 @@ public class DBServiceTest {
     }
 
     @Test
+    public void testGetAthenzDomainFromCacheDomainDeleted() throws ServerResourceException {
+
+        final String domainName = "cache-deleted-domain";
+        AthenzDomain athenzDomain = new AthenzDomain(domainName);
+        zms.dbService.cacheStore.put(domainName, new DataCache(athenzDomain, 101));
+
+        ObjectStoreConnection con = Mockito.mock(ObjectStoreConnection.class);
+
+        // domain exists with same mod time - cache is used
+
+        Mockito.when(con.getDomainModTimestamp(domainName)).thenReturn(101L);
+        assertNotNull(zms.dbService.getAthenzDomainFromCache(con, domainName));
+
+        // db failure - cache is used as is
+
+        Mockito.when(con.getDomainModTimestamp(domainName)).thenThrow(
+                new ServerResourceException(ServerResourceException.INTERNAL_SERVER_ERROR, "failure"));
+        assertNotNull(zms.dbService.getAthenzDomainFromCache(con, domainName));
+
+        // domain was deleted (timestamp 0) by another instance - cache is invalidated
+
+        Mockito.doReturn(0L).when(con).getDomainModTimestamp(domainName);
+        assertNull(zms.dbService.getAthenzDomainFromCache(con, domainName));
+        assertNull(zms.dbService.cacheStore.getIfPresent(domainName));
+    }
+
+    @Test
     public void testCheckDomainAuditEnabledFlagTrueRefValid() throws ServerResourceException {
 
         String domainName = "audit-test-domain-name";

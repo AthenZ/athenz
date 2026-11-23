@@ -1096,7 +1096,12 @@ public class JDBCConnectionTest {
         JDBCConnection jdbcConn = new JDBCConnection(mockConn, true);
         Mockito.when(mockPrepStmt.executeQuery()).thenThrow(new SQLException("failed operation", "state", 1001));
 
-        assertEquals(jdbcConn.getDomainModTimestamp("my-domain"), 0);
+        try {
+            jdbcConn.getDomainModTimestamp("my-domain");
+            fail();
+        } catch (ServerResourceException ex) {
+            assertEquals(ex.getCode(), ServerResourceException.INTERNAL_SERVER_ERROR);
+        }
         jdbcConn.close();
     }
 
