@@ -75,10 +75,30 @@ func main() {
 		log.Fatalln(err)
 	}
 	if outputFile != "" {
-		if err := os.WriteFile(outputFile, []byte(ntoken), 0600); err != nil {
+		if err := writeTokenFile(outputFile, ntoken); err != nil {
 			log.Fatalln(err)
 		}
 		return
 	}
 	fmt.Println(ntoken)
+}
+
+// writeTokenFile stores the token in the given file with 0600 permissions.
+// The mode is enforced before any token data is written so that a
+// pre-existing file with permissive permissions is never exposed.
+func writeTokenFile(fileName, token string) error {
+	// do not use O_TRUNC so existing content is not touched before chmod
+	f, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return err
+	}
+	if err = f.Chmod(0600); err == nil {
+		if err = f.Truncate(0); err == nil {
+			_, err = f.WriteString(token)
+		}
+	}
+	if closeErr := f.Close(); err == nil {
+		err = closeErr
+	}
+	return err
 }
