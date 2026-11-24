@@ -31,8 +31,9 @@ func printVersion() {
 
 func main() {
 
-	var privateKeyFile, domain, service, keyVersion string
+	var privateKeyFile, domain, service, keyVersion, outputFile string
 	var showVersion bool
+	flag.StringVar(&outputFile, "output-file", "", "output file to store the token; defaults to stdout")
 	flag.StringVar(&privateKeyFile, "private-key", "", "private key file")
 	flag.StringVar(&domain, "domain", "", "domain of service")
 	flag.StringVar(&service, "service", "", "name of service")
@@ -46,7 +47,7 @@ func main() {
 	}
 
 	if privateKeyFile == "" || domain == "" || service == "" || keyVersion == "" {
-		log.Fatalln("usage: zms-svctoken -domain <domain> -service <service> -private-key <key-file> -key-version <version>")
+		log.Fatalln("usage: zms-svctoken -domain <domain> -service <service> -private-key <key-file> -key-version <version> [-output-file <output-file>]")
 	}
 
 	// load private key
@@ -73,5 +74,31 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	if outputFile != "" {
+		if err := writeTokenFile(outputFile, ntoken); err != nil {
+			log.Fatalln(err)
+		}
+		return
+	}
 	fmt.Println(ntoken)
+}
+
+// writeTokenFile stores the token in the given file with 0600 permissions.
+// The mode is enforced before any token data is written so that a
+// pre-existing file with permissive permissions is never exposed.
+func writeTokenFile(fileName, token string) error {
+	// do not use O_TRUNC so existing content is not touched before chmod
+	f, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return err
+	}
+	if err = f.Chmod(0600); err == nil {
+		if err = f.Truncate(0); err == nil {
+			_, err = f.WriteString(token)
+		}
+	}
+	if closeErr := f.Close(); err == nil {
+		err = closeErr
+	}
+	return err
 }

@@ -5,7 +5,7 @@ ZMS Service Token Client application in Go to generate service tokens
 based on given private key and service details:
 
 ```shell
-$ zms-svctoken -domain <domain> -service <service> -private-key <key-file> -key-version <version>
+$ zms-svctoken -domain <domain> -service <service> -private-key <key-file> -key-version <version> [-output-file <output-file>]
 ```
 
 ## License
