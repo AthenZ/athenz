@@ -44,6 +44,7 @@ import com.yahoo.athenz.common.server.dns.HostnameResolver;
 import com.yahoo.athenz.common.server.dns.HostnameResolverFactory;
 import com.yahoo.athenz.common.server.external.ExternalCredentialsProvider;
 import com.yahoo.athenz.common.server.external.IdTokenSigner;
+import com.yahoo.athenz.common.server.identity.SelfIdentityStoreFactory;
 import com.yahoo.athenz.common.server.log.AuditLogger;
 import com.yahoo.athenz.common.server.log.AuditLoggerFactory;
 import com.yahoo.athenz.common.server.notification.NotificationManager;
@@ -144,6 +145,7 @@ public class ZTSImpl implements ZTSHandler {
     protected String keyAlgoForInstanceProviders;
     protected PrivateKeyStore privateKeyStore = null;
     protected HostnameResolver hostnameResolver = null;
+    protected SelfIdentityManager selfIdentityManager = null;
     protected int roleTokenDefaultTimeout;
     protected int roleTokenMaxTimeout;
     protected int idTokenMaxTimeout;
@@ -413,6 +415,21 @@ public class ZTSImpl implements ZTSHandler {
 
         instanceCertManager = new InstanceCertManager(privateKeyStore, authorizer, hostnameResolver, readOnlyMode);
 
+        // load the certificate data validator if configured
+
+        loadCertificateDataValidator();
+
+        // load spiffe uri validators
+
+        spiffeUriManager = new SpiffeUriManager();
+
+        // issue our own identity before the provider manager loads the
+        // provider client ssl context that may be using those files. the
+        // certificate data validator and spiffe uri validators must be
+        // loaded already since the request is validated with them
+
+        loadSelfIdentityManager();
+
         instanceProviderManager = new InstanceProviderManager(dataStore,
                 ZTSUtils.getAthenzServerSSLContext(privateKeyStore),
                 ZTSUtils.getAthenzProviderClientSSLContext(privateKeyStore),
@@ -430,10 +447,6 @@ public class ZTSImpl implements ZTSHandler {
 
         loadStatusChecker();
 
-        // load the certificate data validator if configured
-
-        loadCertificateDataValidator();
-
         // load the certificate email validator if configured
 
         loadX509CertEmailValidator();
@@ -449,10 +462,6 @@ public class ZTSImpl implements ZTSHandler {
         // initialize our external credentials providers
 
         externalCredentialsManager = new ExternalCredentialsManager(authorizer);
-
-        // load spiffe uri validators
-
-        spiffeUriManager = new SpiffeUriManager();
 
         // initialize our issuer resolver
 
@@ -1065,6 +1074,119 @@ public class ZTSImpl implements ZTSHandler {
         // create our hostname resolver
 
         hostnameResolver = resolverFactory.create();
+    }
+
+    void loadSelfIdentityManager() {
+
+        final String storeFactoryClass = System.getProperty(ZTSConsts.ZTS_PROP_SELF_IDENTITY_STORE_FACTORY_CLASS);
+        if (StringUtil.isEmpty(storeFactoryClass)) {
+            return;
+        }
+
+        SelfIdentityStoreFactory storeFactory;
+        try {
+            storeFactory = (SelfIdentityStoreFactory) Class.forName(storeFactoryClass)
+                    .getDeclaredConstructor().newInstance();
+        } catch (Exception ex) {
+            LOGGER.error("Invalid SelfIdentityStoreFactory class: {}", storeFactoryClass, ex);
+            throw new IllegalArgumentException("Invalid SelfIdentityStoreFactory class");
+        }
+
+        // if we can't issue our own identity then the cert signer is not
+        // functional, so we're not going to start the server
+
+        try {
+            selfIdentityManager = new SelfIdentityManager(storeFactory.create(),
+                    this::generateServiceX509Certificate);
+            selfIdentityManager.start();
+        } catch (ServerResourceException ex) {
+            LOGGER.error("Unable to initialize self identity", ex);
+            throw new ResourceException(ResourceException.INTERNAL_SERVER_ERROR,
+                    "Unable to initialize self identity: " + ex.getMessage());
+        }
+    }
+
+    Identity generateServiceX509Certificate(final String domainName, final String serviceName,
+            final String csr, int expiryMins) throws ServerResourceException {
+
+        // the service must be registered, unless the validation is disabled,
+        // same as for instance identity certificates
+
+        final DomainData domainData = dataStore.getDomainData(domainName);
+        if (domainData == null) {
+            throw new ServerResourceException(ServerResourceException.NOT_FOUND, "Domain not found: " + domainName);
+        }
+        try {
+            validateInstanceServiceIdentity(domainData, ResourceUtils.serviceResourceName(domainName, serviceName),
+                    "selfidentity");
+        } catch (ResourceException ex) {
+            throw new ServerResourceException(ex.getCode(), ex.getMessage());
+        }
+
+        // run the same csr checks as for service certificate requests
+        // except the ones that depend on a caller (public key, ip address)
+
+        X509ServiceCertRequest certReq;
+        try {
+            certReq = new X509ServiceCertRequest(csr, spiffeUriManager, certificateDataValidator);
+        } catch (CryptoException ex) {
+            throw new ServerResourceException(ServerResourceException.BAD_REQUEST,
+                    "Unable to parse PKCS10 certificate request: " + ex.getMessage());
+        }
+
+        final String csrError = validateServiceCertRequest(certReq, domainName, serviceName, null);
+        if (csrError != null) {
+            throw new ServerResourceException(ServerResourceException.BAD_REQUEST, "Invalid CSR - " + csrError);
+        }
+
+        // determine the expiry time and signer key id the same way as
+        // for service identity certificates
+
+        final int certExpiryTime = getServiceCertRequestExpiryTime(0, expiryMins,
+                domainData.getServiceCertExpiryMins());
+        final String signerKeyId = getPrincipalDomainSignerKeyId(null, domainName, serviceName, null, true);
+
+        Identity identity = ZTSUtils.generateIdentity(instanceCertManager, null, null, csr,
+                ResourceUtils.serviceResourceName(domainName, serviceName), InstanceProvider.ZTS_CERT_USAGE_CLIENT,
+                certExpiryTime, signerKeyId);
+        if (identity == null) {
+            throw new ServerResourceException(ServerResourceException.INTERNAL_SERVER_ERROR,
+                    "Unable to generate certificate");
+        }
+        identity.setCaCertBundle(instanceCertManager.getX509CertificateSigner(null, signerKeyId));
+
+        // log our certificate with the loopback address since the request is
+        // generated by the server itself and our hostname as the instance id
+
+        instanceCertManager.logX509Cert(null, InetAddress.getLoopbackAddress().getHostAddress(),
+                ZTSConsts.ZTS_SERVICE, serverHostName, Crypto.loadX509Certificate(identity.getCertificate()));
+
+        return identity;
+    }
+
+    /**
+     * Validate the self identity certificate request with the same checks as
+     * the service certificate requests except the ones that depend on a caller
+     * (public key and ip address): common name and dns names, Subject O/OU
+     * fields and the spiffe uri.
+     * @return the validation error message or null if the request is valid
+     */
+    String validateServiceCertRequest(X509ServiceCertRequest certReq, final String domainName,
+            final String serviceName, final String namespace) {
+
+        if (!ZTSUtils.verifyCertificateRequest(certReq.getCertReq(), domainName, serviceName)) {
+            return "data mismatch";
+        }
+        if (!certReq.validateSubjectOField(validCertSubjectOrgValues)) {
+            return "invalid Subject O field";
+        }
+        if (verifyCertSubjectOU && !certReq.validateSubjectOUField(null, null, validCertSubjectOrgUnitValues)) {
+            return "invalid Subject OU field";
+        }
+        if (!certReq.validateSpiffeURI(domainName, serviceName, namespace)) {
+            return "spiffe uri mismatch";
+        }
+        return null;
     }
 
     void loadServicePrivateKey() {

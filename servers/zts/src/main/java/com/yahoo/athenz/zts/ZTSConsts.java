@@ -221,6 +221,12 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_PRIVATE_KEY_STORE_FACTORY_CLASS  = "athenz.zts.private_key_store_factory_class";
     public static final String ZTS_PROP_CERT_RECORD_STORE_FACTORY_CLASS  = "athenz.zts.cert_record_store_factory_class";
     public static final String ZTS_PROP_HOSTNAME_RESOLVER_FACTORY_CLASS  = "athenz.zts.hostname_resolver_factory_class";
+    public static final String ZTS_PROP_SELF_IDENTITY_STORE_FACTORY_CLASS = "athenz.zts.self_identity_store_factory_class";
+    public static final String ZTS_PROP_SELF_IDENTITY_CERT_EXPIRY_MINS    = "athenz.zts.self_identity.cert_expiry_mins";
+    public static final String ZTS_PROP_SELF_IDENTITY_KEY_ALGORITHM       = "athenz.zts.self_identity.key_algorithm";
+    public static final String ZTS_PROP_SELF_IDENTITY_REFRESH_INTERVAL_MINS = "athenz.zts.self_identity.refresh_interval_mins";
+    public static final String ZTS_PROP_SPIFFE_TRUST_DOMAIN               = "athenz.zts.spiffe_trust_domain";
+    public static final String ZTS_PROP_SELF_IDENTITY_SPIFFE_URI_FORMAT    = "athenz.zts.self_identity.spiffe_uri_format";
     public static final String ZTS_PROP_SSH_RECORD_STORE_FACTORY_CLASS   = "athenz.zts.ssh_record_store_factory_class";
     public static final String ZTS_PROP_VALIDATE_SERVICE_SKIP_DOMAINS    = "athenz.zts.validate_service_skip_domains";
     public static final String ZTS_PROP_MAX_AUTHZ_DETAILS_LENGTH         = "athenz.zts.max_authz_details_length";

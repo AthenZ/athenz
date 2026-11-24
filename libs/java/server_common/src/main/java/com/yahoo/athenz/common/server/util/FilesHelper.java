@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
 
@@ -36,6 +37,11 @@ public class FilesHelper {
     public Path setPosixFilePermissions(File file, Set<PosixFilePermission> perms)
             throws IOException {
         return Files.setPosixFilePermissions(file.toPath(), perms);
+    }
+
+    public Path move(File source, File target) throws IOException {
+        return Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE,
+                StandardCopyOption.REPLACE_EXISTING);
     }
 
     public void createEmptyFile(File file) throws IOException {
