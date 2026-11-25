@@ -221,6 +221,9 @@ public class RoleToken extends Token {
         }
 
         final String parseToken = unsignedToken != null ? unsignedToken : signedToken;
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Constructing RoleToken with input string: {}", parseToken);
+        }
 
         String roleNames = null;
         for (String item : parseToken.split(";")) {

@@ -231,6 +231,9 @@ public class PrincipalToken extends Token {
         }
 
         final String parseToken = unsignedToken != null ? unsignedToken : signedToken;
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Constructing PrincipalToken with input string: {}", parseToken);
+        }
 
         for (String item : parseToken.split(";")) {
             String [] kv = item.split("=");
