@@ -86,19 +86,20 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
     public Principal authenticate(String signedToken, String remoteAddr, String httpMethod, StringBuilder errMsg) {
 
         errMsg = errMsg == null ? new StringBuilder(512) : errMsg;
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Authenticating RoleToken: {}", Token.getUnsignedToken(signedToken));
-        }
 
         RoleToken roleToken;
         try {
              roleToken = new RoleToken(signedToken);
         } catch (IllegalArgumentException ex) {
+            // Parser exception messages may contain the supplied credential.
             errMsg.append("RoleAuthority:authenticate failed: Invalid token: exc=").
-                   append(ex.getMessage()).append(" : credential=").
-                   append(Token.getUnsignedToken(signedToken));
+                   append(ex.getClass().getSimpleName());
             LOG.error(errMsg.toString());
             return null;
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Authenticating RoleToken: {}", Token.getUnsignedToken(signedToken));
         }
 
         /* if the token's domain is user then we need to check to see if this is a write

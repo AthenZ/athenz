@@ -221,9 +221,6 @@ public class RoleToken extends Token {
         }
 
         final String parseToken = unsignedToken != null ? unsignedToken : signedToken;
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Constructing RoleToken with input string: {}", parseToken);
-        }
 
         String roleNames = null;
         for (String item : parseToken.split(";")) {
@@ -293,9 +290,9 @@ public class RoleToken extends Token {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Values extracted from token version:{} domain:{} roles:{} principal:{}" +
                     " host:{} salt:{} timestamp:{} expiryTime:{} domainCompleteRoleSet:{}" +
-                    " keyId:{} ip:{} proxyUser:{} signature:{}", version, domain, roleNames,
+                    " keyId:{} ip:{} proxyUser:{}", version, domain, roleNames,
                     principal, host, salt, timestamp, expiryTime, domainCompleteRoleSet, keyId,
-                    ip, proxyUser, signature);
+                    ip, proxyUser);
         }
     }
     

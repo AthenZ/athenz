@@ -99,19 +99,20 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
             StringBuilder errMsg) {
 
         errMsg = errMsg == null ? new StringBuilder(512) : errMsg;
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Authenticating PrincipalToken: {}", Token.getUnsignedToken(signedToken));
-        }
 
         PrincipalToken serviceToken;
         try {
             serviceToken = new PrincipalToken(signedToken);
         } catch (IllegalArgumentException ex) {
+            // Parser exception messages may contain the supplied credential.
             errMsg.append("PrincipalAuthority:authenticate: Invalid token: exc=").
-                   append(ex.getMessage()).append(" : credential=").
-                   append(Token.getUnsignedToken(signedToken));
+                   append(ex.getClass().getSimpleName());
             LOG.error(errMsg.toString());
             return null;
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Authenticating PrincipalToken: {}", Token.getUnsignedToken(signedToken));
         }
 
         /* before authenticating verify that if this is a valid
