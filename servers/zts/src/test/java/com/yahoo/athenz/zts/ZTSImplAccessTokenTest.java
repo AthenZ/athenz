@@ -50,6 +50,7 @@ import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.store.MockZMSFileChangeLogStore;
+import com.yahoo.athenz.zts.token.TokenIssuanceConfig;
 import com.yahoo.athenz.zts.token.AccessTokenRequest;
 import com.yahoo.athenz.zts.token.AccessTokenScope;
 import com.yahoo.athenz.zts.token.TokenConfigOptions;
@@ -1918,7 +1919,8 @@ public class ZTSImplAccessTokenTest {
 
         // max length restriction
 
-        ztsImpl.maxAuthzDetailsLength = 10;
+        final TokenIssuanceConfig savedConfig = ztsImpl.tokenIssuanceConfig;
+        ztsImpl.tokenIssuanceConfig = new TokenIssuanceConfig.Builder(savedConfig).maxAuthzDetailsLength(10).build();
         try {
             ztsImpl.postAccessTokenRequest(context,
                     "grant_type=client_credentials&scope=coretech:role.writers&authorization_details=" + authzDetails);
@@ -1926,7 +1928,7 @@ public class ZTSImplAccessTokenTest {
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("Authorization Details exceeds configured length limit"));
         }
-        ztsImpl.maxAuthzDetailsLength = 1024;
+        ztsImpl.tokenIssuanceConfig = savedConfig;
 
         // unknown type of authorization details
 
@@ -2017,7 +2019,8 @@ public class ZTSImplAccessTokenTest {
 
         // max length restriction
 
-        ztsImpl.maxAuthzDetailsLength = 10;
+        final TokenIssuanceConfig savedConfig = ztsImpl.tokenIssuanceConfig;
+        ztsImpl.tokenIssuanceConfig = new TokenIssuanceConfig.Builder(savedConfig).maxAuthzDetailsLength(10).build();
         try {
             ztsImpl.postAccessTokenRequest(context,
                     "grant_type=client_credentials&scope=coretech:role.writers&authorization_details=" + authzDetails);
@@ -2025,7 +2028,7 @@ public class ZTSImplAccessTokenTest {
         } catch (ResourceException ex) {
             assertTrue(ex.getMessage().contains("Authorization Details exceeds configured length limit"));
         }
-        ztsImpl.maxAuthzDetailsLength = 1024;
+        ztsImpl.tokenIssuanceConfig = savedConfig;
 
         // unknown type of authorization details
 

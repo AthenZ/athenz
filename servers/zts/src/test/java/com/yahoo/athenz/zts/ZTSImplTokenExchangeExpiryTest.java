@@ -25,6 +25,7 @@ import com.yahoo.athenz.zms.DomainData;
 import com.yahoo.athenz.zms.Role;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.store.DataStore;
+import com.yahoo.athenz.zts.token.TokenIssuanceConfig;
 import com.yahoo.athenz.zts.token.AccessTokenRequest;
 import com.yahoo.athenz.zts.token.IssuerResolver;
 import com.yahoo.athenz.zts.token.TokenConfigOptions;
@@ -52,8 +53,8 @@ public class ZTSImplTokenExchangeExpiryTest {
     public void setup() {
         // Exercise expiry calculation without starting the server or loading signing keys.
         zts = Mockito.mock(ZTSImpl.class, Mockito.CALLS_REAL_METHODS);
-        zts.roleTokenDefaultTimeout = 2400;
-        zts.roleTokenMaxTimeout = 3600;
+        zts.tokenIssuanceConfig = new TokenIssuanceConfig.Builder().roleTokenDefaultTimeout(2400)
+                .roleTokenMaxTimeout(3600).build();
         zts.metric = Mockito.mock(Metric.class);
     }
 
