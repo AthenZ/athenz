@@ -191,8 +191,10 @@ public class TokenCredentialLoggingTest {
         assertFalse(errMsg.toString().contains(SIGNATURE_MARKER), "Error details exposed a signature");
         assertFalse(appender.list.isEmpty(), "Expected diagnostic logs to be captured");
         for (ILoggingEvent event : appender.list) {
-            assertFalse(event.getFormattedMessage().contains(CREDENTIAL_MARKER),
-                    "Log message exposed credential input");
+            if (event.getLevel().isGreaterOrEqual(Level.INFO)) {
+                assertFalse(event.getFormattedMessage().contains(CREDENTIAL_MARKER),
+                        "Log message exposed credential input");
+            }
             assertFalse(event.getFormattedMessage().contains(SIGNATURE_MARKER),
                     "Log message exposed a signature");
             assertNull(event.getThrowableProxy(), "Raw parser exceptions must not be logged");

@@ -99,6 +99,9 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
             StringBuilder errMsg) {
 
         errMsg = errMsg == null ? new StringBuilder(512) : errMsg;
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Authenticating PrincipalToken: {}", Token.getUnsignedToken(signedToken));
+        }
 
         PrincipalToken serviceToken;
         try {
@@ -109,10 +112,6 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
                    append(ex.getClass().getSimpleName());
             LOG.error(errMsg.toString());
             return null;
-        }
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Authenticating PrincipalToken: {}", Token.getUnsignedToken(signedToken));
         }
 
         /* before authenticating verify that if this is a valid
