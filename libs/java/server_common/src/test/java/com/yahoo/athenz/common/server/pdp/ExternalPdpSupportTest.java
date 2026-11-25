@@ -19,6 +19,8 @@ package com.yahoo.athenz.common.server.pdp;
 import com.yahoo.athenz.common.server.pdp.authzen.*;
 import org.testng.annotations.Test;
 
+import javax.net.ssl.SSLContext;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -251,6 +253,28 @@ public class ExternalPdpSupportTest {
             release.countDown();
             executor.shutdownNow();
         }
+    }
+
+    @Test
+    public void testRequireMtlsOrLoopback() throws Exception {
+        for (String endpoint : new String[] { "https://localhost:8443", "https://LOCALHOST/pdp", "https://127.0.0.1:8443",
+                "https://127.1.2.3", "https://[::1]:8443", "https://[::ffff:127.0.0.1]", "grpc://localhost:9000" }) {
+            ExternalPdpSupport.requireMtlsOrLoopback(new URI(endpoint), null);
+        }
+        for (String endpoint : new String[] { "https://pdp.example.com", "https://10.0.0.1:8443", "https://[2001:db8::1]",
+                "https://localhost.example.com", "https://127.example.com", "grpc://pdp.example.com:9000",
+                "https:///no-host" }) {
+            ExternalPdpException ex = expectThrows(ExternalPdpException.class,
+                    () -> ExternalPdpSupport.requireMtlsOrLoopback(new URI(endpoint), null));
+            assertEquals(ex.getCode(), ExternalPdpException.Code.INTERNAL);
+        }
+        ExternalPdpSupport.requireMtlsOrLoopback(new URI("https://pdp.example.com"), SSLContext.getDefault());
+        ExternalPdpException ex = expectThrows(ExternalPdpException.class,
+                () -> ExternalPdpSupport.requireMtlsOrLoopback(new URI("https:///no-host"), SSLContext.getDefault()));
+        assertEquals(ex.getCode(), ExternalPdpException.Code.INTERNAL);
+
+        assertFalse(ExternalPdpSupport.isLoopbackHost("[zz::1]"));
+        assertFalse(ExternalPdpSupport.isLoopbackHost("127.0.0.256"));
     }
 
     @Test

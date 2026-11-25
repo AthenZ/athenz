@@ -61,7 +61,7 @@ public class AuthZenHttpPdpTest {
         server.handle("/pdp/custom/eval", body -> new TestHttpsServer.Reply(200, "{\"decision\":true}"));
         server.handle("/pdp/bad-json", body -> new TestHttpsServer.Reply(200, "not-json"));
         server.handle("/pdp/null-json", body -> new TestHttpsServer.Reply(200, "null"));
-        server.handle("/pdp/.well-known/authzen-configuration", body -> new TestHttpsServer.Reply(200, discoveryDoc.get()));
+        server.handle("/.well-known/authzen-configuration/pdp", body -> new TestHttpsServer.Reply(200, discoveryDoc.get()));
     }
 
     @AfterClass
@@ -201,11 +201,50 @@ public class AuthZenHttpPdpTest {
     }
 
     @Test
+    public void testDiscoveryPolicyDecisionPoint() throws ExternalPdpException {
+        System.setProperty(AuthZenHttpPdp.PROP_DISCOVERY, "true");
+        final String base = server.baseUrl() + "/pdp";
+
+        // a trailing slash on the identifier is accepted
+        discoveryDoc.set("{\"policy_decision_point\":\"" + base + "/\"}");
+        assertNotNull(pdp(null));
+
+        for (String doc : new String[] { "{}", "{\"policy_decision_point\":\"" + server.baseUrl() + "\"}",
+                "{\"policy_decision_point\":\"" + base + "/tenant1\"}" }) {
+            discoveryDoc.set(doc);
+            ExternalPdpException ex = expectThrows(ExternalPdpException.class, () -> pdp(null));
+            assertEquals(ex.getCode(), ExternalPdpException.Code.INVALID_RESPONSE);
+        }
+    }
+
+    @Test
+    public void testTransportRequiresMtlsOrLoopback() {
+        // initialization fails before any connection is made
+        AuthZenHttpPdp pdp = new AuthZenHttpPdp();
+        ExternalPdpException ex = expectThrows(ExternalPdpException.class, () -> pdp.initialize(
+                new ExternalPdpContext.Builder().endpoint("https://pdp.example.com").executor(executor).build()));
+        assertEquals(ex.getCode(), ExternalPdpException.Code.INTERNAL);
+    }
+
+    @Test
+    public void testDiscoveryUrl() throws Exception {
+        assertEquals(AuthZenHttpPdp.discoveryUrl(new URI("https://pdp.example.com")),
+                "https://pdp.example.com/.well-known/authzen-configuration");
+        assertEquals(AuthZenHttpPdp.discoveryUrl(new URI("https://pdp.example.com/")),
+                "https://pdp.example.com/.well-known/authzen-configuration");
+        assertEquals(AuthZenHttpPdp.discoveryUrl(new URI("https://pdp.example.com:8443/tenant1/")),
+                "https://pdp.example.com:8443/.well-known/authzen-configuration/tenant1");
+        assertEquals(AuthZenHttpPdp.discoveryUrl(new URI("https://pdp.example.com/a/b")),
+                "https://pdp.example.com/.well-known/authzen-configuration/a/b");
+    }
+
+    @Test
     public void testDiscoveryRejectsForeignOrigin() {
         System.setProperty(AuthZenHttpPdp.PROP_DISCOVERY, "true");
         for (String url : new String[] { "https://evil.example.com/eval", "http://localhost:" + server.port() + "/eval",
                 "https://localhost:1/eval", "https://bad host/eval" }) {
-            discoveryDoc.set("{\"access_evaluations_endpoint\":\"" + url + "\"}");
+            discoveryDoc.set("{\"policy_decision_point\":\"" + server.baseUrl() + "/pdp\","
+                    + "\"access_evaluations_endpoint\":\"" + url + "\"}");
             ExternalPdpException ex = expectThrows(ExternalPdpException.class, () -> pdp(null));
             assertEquals(ex.getCode(), ExternalPdpException.Code.INVALID_RESPONSE);
         }
@@ -225,12 +264,22 @@ public class AuthZenHttpPdpTest {
         final AtomicReference<String> secret = new AtomicReference<>();
         final List<String> lookups = new ArrayList<>();
         volatile boolean failing;
+        volatile java.util.concurrent.CountDownLatch entered;
+        volatile java.util.concurrent.CountDownLatch release;
 
         @Override
         public char[] getSecret(String appName, String keygroupName, String keyName) {
             lookups.add(appName + "/" + keygroupName + "/" + keyName);
             if (failing) {
                 throw new IllegalStateException("secret backend unavailable");
+            }
+            if (release != null) {
+                entered.countDown();
+                try {
+                    release.await(5, java.util.concurrent.TimeUnit.SECONDS);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
             }
             String value = secret.get();
             return value == null ? null : value.toCharArray();
@@ -278,6 +327,32 @@ public class AuthZenHttpPdpTest {
         pdp.evaluations(batch("x"));
         assertEquals(keyStore.lookups.size(), lookups);
         assertEquals(server.lastHeaders.get("/pdp/access/v1/evaluations").get("authorization"), "Bearer secret-2");
+    }
+
+    @Test
+    public void testAuthHeaderSingleRefresh() throws Exception {
+        setAuthProps();
+        FakeKeyStore keyStore = new FakeKeyStore();
+        keyStore.secret.set("secret-1");
+        AuthZenHttpPdp pdp = pdp(keyStore);
+
+        final long start = System.currentTimeMillis();
+        pdp.clock = () -> start + 3600 * 1000L + 1;
+        keyStore.secret.set("secret-2");
+        keyStore.entered = new java.util.concurrent.CountDownLatch(1);
+        keyStore.release = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.Future<String> refresher = executor.submit(pdp::currentAuthHeaderValue);
+        assertTrue(keyStore.entered.await(5, java.util.concurrent.TimeUnit.SECONDS));
+
+        // while one caller refreshes, others get the current value without a lookup
+        final int lookups = keyStore.lookups.size();
+        assertEquals(pdp.currentAuthHeaderValue(), "Bearer secret-1");
+        assertEquals(keyStore.lookups.size(), lookups);
+
+        keyStore.release.countDown();
+        assertEquals(refresher.get(5, java.util.concurrent.TimeUnit.SECONDS), "Bearer secret-2");
+        assertEquals(pdp.currentAuthHeaderValue(), "Bearer secret-2");
+        assertEquals(keyStore.lookups.size(), lookups);
     }
 
     @Test

@@ -105,19 +105,31 @@ Set `athenz.zts.external_pdp.endpoint` to one of:
 
 For the built-in HTTPS PDP:
 
-* **TLS is required.** ZTS authenticates to the PDP with mTLS using its own service
-  identity certificate. It uses the same client SSL settings as HTTPS instance
-  providers (`athenz.zts.provider.ssl_client_*`). Point that trust store at the CA
-  that issued your PDP's server certificate.
+* **TLS is required, and so is mTLS for anything but a local PDP.** ZTS
+  authenticates to the PDP with mTLS using its own service identity certificate. It
+  uses the client SSL settings of HTTPS instance providers
+  (`athenz.zts.provider.ssl_client_*`). Point that trust store at the CA that issued
+  your PDP's server certificate. If those settings are missing or invalid, ZTS
+  refuses to start, unless the endpoint is a loopback address.
 * **Sidecars.** A sidecar in the same pod must also serve TLS, for example
   `https://localhost:8443` with a certificate that includes a `localhost` SAN.
+  * **Loopback endpoints** are `localhost`, `127.0.0.0/8` and `[::1]`. Host names
+    are never resolved, so this check makes no DNS lookup.
+  * **Without the `ssl_client_*` settings**, ZTS connects to a loopback endpoint
+    without a client certificate. It verifies the sidecar's certificate against the
+    JVM default trust store, so the sidecar's CA must be in that trust store.
 * **Extra credentials.** If the PDP needs an API key or a bearer token in addition to
   mTLS, configure `athenz.zts.external_pdp.https.auth_header_name` and the
   `auth_secret_*` properties. ZTS reads the secret from its configured
   `PrivateKeyStore` and refreshes it every `auth_secret_refresh_secs` (default 3600
   seconds). Secrets are never put in properties or logs.
-* **Discovery.** With `athenz.zts.external_pdp.https.discovery=true`, ZTS reads
-  `/.well-known/authzen-configuration` once at startup. The discovered endpoints must
+* **Discovery.** With `athenz.zts.external_pdp.https.discovery=true`, ZTS reads the
+  AuthZEN metadata once at startup. As the AuthZEN spec defines, the well-known
+  segment goes between the host and the endpoint path: for
+  `https://pdp.example.com/tenant1` that's
+  `https://pdp.example.com/.well-known/authzen-configuration/tenant1`. The
+  document's `policy_decision_point` must equal the configured endpoint (a trailing
+  slash is ignored), otherwise ZTS fails to start. The discovered endpoints must
   have the same scheme, host and port as the configured endpoint.
 * **No retries.** ZTS calls the PDP once per token request, with no retries,
   redirects or cookies. A failure is handled by the mode's fail behavior (see
@@ -489,7 +501,9 @@ The snippet stores `context.getExecutor()` in an `executor` field during
 * **Thread safety.** The adapter must be thread-safe and return one result per
   evaluation, in request order.
 * **Context.** `ExternalPdpContext` provides:
-  * the ZTS client `SSLContext`,
+  * the ZTS client `SSLContext`, which presents the ZTS service identity
+    certificate. It's `null` if the `athenz.zts.provider.ssl_client_*` settings are
+    missing or invalid.
   * a read-only `RolesProvider` over ZTS domain data (for example, for role tags),
   * the `PrivateKeyStore`,
   * the fan-out executor,
@@ -502,6 +516,91 @@ The snippet stores `context.getExecutor()` in an `executor` field during
   breaking and failover are up to the adapter. An adapter whose circuit breaker is
   open should throw `UNAVAILABLE` right away.
 * **Startup.** If `initialize` fails, ZTS doesn't start.
+* **Authentication is the adapter's choice.** ZTS doesn't know where an adapter
+  connects, so it can't check the adapter's transport.
+  * **Remote PDPs.** An adapter that calls a remote PDP should call
+    `ExternalPdpSupport.requireMtlsOrLoopback(endpoint, context.getSslContext())` in
+    `initialize`. That applies the same rule as the built-in HTTPS PDP: fail startup
+    when there is no client SSL context and the endpoint isn't a loopback address.
+  * **Extra credentials.** Read them from the `PrivateKeyStore`.
+
+### Example: remote PDP with its own REST API
+
+This adapter calls a PDP that exposes `POST /v1/check` with
+`{"principal", "action", "resource"}` and returns `{"allowed": true|false}`. It
+reuses `AuthZenHttpClient`, the transport of the built-in HTTPS PDP, which handles
+TLS, connection pooling, the response size limit and status codes. The adapter only
+translates the request and the response.
+
+```properties
+athenz.zts.external_pdp.endpoint=class://com.example.RestPdpAdapter
+com.example.pdp.url=https://pdp.example.com:4443
+```
+
+```java
+public class RestPdpAdapter implements ExternalPolicyDecisionPoint {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    private AuthZenHttpClient client;
+    private ExecutorService executor;
+    private String checkUrl;
+    private String apiKey;
+
+    @Override
+    public void initialize(ExternalPdpContext context) throws ExternalPdpException {
+        final String baseUrl = System.getProperty("com.example.pdp.url");
+        ExternalPdpSupport.requireMtlsOrLoopback(URI.create(baseUrl), context.getSslContext());
+        checkUrl = baseUrl + "/v1/check";
+        char[] secret = context.getPrivateKeyStore().getSecret("zts", "pdp", "api_key");
+        apiKey = secret == null ? null : new String(secret);
+        executor = context.getExecutor();
+        client = new AuthZenHttpClient(context.getSslContext(), context.getConnectTimeoutMs(),
+                context.getReadTimeoutMs(), context.getMaxConnections(), 65536);
+    }
+
+    @Override
+    public EvaluationResponse evaluate(EvaluationRequest request) throws ExternalPdpException {
+        Map<String, Object> body = Map.of(
+                "principal", request.getSubject().getId(),
+                "action", request.getAction().getName(),
+                "resource", request.getResource().getId());
+        Map<String, String> headers = apiKey == null ? Map.of() : Map.of("X-API-Key", apiKey);
+        try {
+            JsonNode reply = MAPPER.readTree(client.postJson(checkUrl, MAPPER.writeValueAsString(body), headers));
+            return new EvaluationResponse(reply.path("allowed").asBoolean(false), null);
+        } catch (JsonProcessingException ex) {
+            throw new ExternalPdpException(ExternalPdpException.Code.INVALID_RESPONSE, "invalid pdp response", ex);
+        }
+    }
+
+    @Override
+    public EvaluationsResponse evaluations(EvaluationsRequest request) throws ExternalPdpException {
+        return ExternalPdpSupport.expandBatch(this, request, executor);
+    }
+
+    @Override
+    public void close() {
+        if (client != null) {
+            client.close();
+        }
+    }
+}
+```
+
+* **`expandBatch`** fills in each single evaluation from the batch defaults before
+  calling `evaluate`, so `getSubject()` and `getAction()` are always set.
+* **`postJson` failures.** It throws `ExternalPdpException` on its own, and ZTS
+  applies the mode's fail behavior:
+
+  | Failure | Code |
+  |---|---|
+  | Connection failure, `5xx`, `429` | `UNAVAILABLE` |
+  | Timeout | `TIMEOUT` |
+  | Any other non-200 status, or a body larger than the size limit | `INVALID_RESPONSE` |
+* **gRPC, SDKs and other protocols.** Use the same structure with your own client.
+  Build it from `context.getSslContext()` and call `requireMtlsOrLoopback` with a
+  URI for the endpoint, for example `grpc://pdp.example.com:9000`.
 
 ## Additional Claims
 
@@ -598,7 +697,7 @@ block in the shipped `zts.properties` lists all of them.
 | `https.batch_enabled` | `true` | Use the AuthZEN batch endpoint. `false` sends single evaluations in parallel. |
 | `https.evaluations_path` | `/access/v1/evaluations` | Batch endpoint path |
 | `https.evaluation_path` | `/access/v1/evaluation` | Single endpoint path |
-| `https.discovery` | `false` | Read `/.well-known/authzen-configuration` at startup |
+| `https.discovery` | `false` | Read the AuthZEN metadata (`/.well-known/authzen-configuration`, inserted before the endpoint path) at startup |
 | `https.max_response_bytes` | `65536` | Maximum PDP response size |
 | `https.auth_header_name` | | Extra authentication header, for example `Authorization` |
 | `https.auth_header_prefix` | | Header value prefix, for example `Bearer ` |
@@ -625,7 +724,7 @@ block in the shipped `zts.properties` lists all of them.
 
 | Symptom | Check |
 |---|---|
-| ZTS fails to start after enabling | The ZTS log names the failing property or the PDP initialization error. Common causes are a missing `endpoint`, a `class://` class not on the classpath, an adapter that overrides neither `evaluate` nor `evaluations`, an unreachable discovery endpoint, or a missing auth secret. |
+| ZTS fails to start after enabling | The ZTS log names the failing property or the PDP initialization error. Common causes are a missing `endpoint`, a `class://` class not on the classpath, an adapter that overrides neither `evaluate` nor `evaluations`, an unreachable discovery endpoint, a discovery document whose `policy_decision_point` doesn't match the endpoint, missing or invalid `athenz.zts.provider.ssl_client_*` settings for a non-loopback `https://` endpoint, or a missing auth secret. |
 | Every request returns `503` | Decision-log `error_code`. `TIMEOUT` means raise `timeout_ms` or speed up the PDP. `UNAVAILABLE` means the PDP can't be reached or `max_concurrency` was reached. `INVALID_RESPONSE` means the PDP returned the wrong number of results, a `null` result, or a non-200 status. |
 | Role certificate clients get `403` | Expected in FILTER and AUTHORITATIVE. Move them to access tokens. Use AUDIT and `zts_ext_pdp_role_credential_request` to find them in advance. |
 | A role is missing from the token | Decision-log `permitted_roles` and `reasons`. In AUTHORITATIVE, also check `undefined_roles` (the role isn't defined and `require_defined_roles=true`). |

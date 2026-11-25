@@ -22,6 +22,10 @@ import com.yahoo.athenz.common.server.pdp.authzen.EvaluationsOptions;
 import com.yahoo.athenz.common.server.pdp.authzen.EvaluationsRequest;
 import com.yahoo.athenz.common.server.pdp.authzen.EvaluationsResponse;
 
+import javax.net.ssl.SSLContext;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,13 +34,54 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.regex.Pattern;
 
 /**
  * Helpers for {@link ExternalPolicyDecisionPoint} implementations.
  */
 public final class ExternalPdpSupport {
 
+    private static final String HOST_LOCALHOST = "localhost";
+    private static final Pattern IPV4_LOOPBACK = Pattern.compile("127(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}");
+
     private ExternalPdpSupport() {
+    }
+
+    /**
+     * Require mTLS for a PDP endpoint unless it is a loopback address (for
+     * example a sidecar in the same pod). Implementations that call a remote
+     * PDP should call this from initialize() with the context SSL context.
+     * Host names other than localhost are never resolved.
+     * @param endpoint PDP endpoint; any scheme with a host, e.g. https://pdp:4443 or grpc://pdp:9000
+     * @param sslContext client SSL context from {@link ExternalPdpContext#getSslContext()}
+     * @throws ExternalPdpException if the endpoint has no host, or there is no
+     *         client SSL context and the host is not a loopback address
+     */
+    public static void requireMtlsOrLoopback(final URI endpoint, final SSLContext sslContext)
+            throws ExternalPdpException {
+        final String host = endpoint.getHost();
+        if (host == null) {
+            throw new ExternalPdpException(ExternalPdpException.Code.INTERNAL, "pdp endpoint has no host");
+        }
+        if (sslContext == null && !isLoopbackHost(host)) {
+            throw new ExternalPdpException(ExternalPdpException.Code.INTERNAL,
+                    "pdp endpoint requires mTLS (athenz.zts.provider.ssl_client_* settings) unless it is a loopback address");
+        }
+    }
+
+    static boolean isLoopbackHost(final String host) {
+        if (HOST_LOCALHOST.equalsIgnoreCase(host) || IPV4_LOOPBACK.matcher(host).matches()) {
+            return true;
+        }
+        // a bracketed ipv6 literal is parsed without a dns lookup
+        if (!host.startsWith("[")) {
+            return false;
+        }
+        try {
+            return InetAddress.getByName(host).isLoopbackAddress();
+        } catch (UnknownHostException ex) {
+            return false;
+        }
     }
 
     /**

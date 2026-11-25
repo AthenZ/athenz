@@ -33,6 +33,7 @@ public final class ExternalPdpDecision {
     static final String CTX_CLAIMS = "claims";
     static final String CTX_MAX_EXPIRES_IN = "max_expires_in";
     static final String CTX_REASON_ADMIN = "reason_admin";
+    static final String CTX_REASON_USER = "reason_user";
 
     private final boolean gatePermitted;
     private final Map<String, Map<String, Set<String>>> permittedRoles;
@@ -105,7 +106,7 @@ public final class ExternalPdpDecision {
     }
 
     /**
-     * @return reason_admin values returned by the PDP, for the decision log only
+     * @return reason_admin and reason_user values returned by the PDP, for the decision log only
      */
     public List<Object> getReasons() {
         return reasons;
@@ -163,10 +164,20 @@ public final class ExternalPdpDecision {
         }
 
         Builder reason(int index, final Map<String, Object> context) {
-            if (context != null && context.get(CTX_REASON_ADMIN) != null) {
+            if (context == null) {
+                return this;
+            }
+            final Object admin = context.get(CTX_REASON_ADMIN);
+            final Object user = context.get(CTX_REASON_USER);
+            if (admin != null || user != null) {
                 Map<String, Object> reason = new TreeMap<>();
                 reason.put("index", index);
-                reason.put(CTX_REASON_ADMIN, context.get(CTX_REASON_ADMIN));
+                if (admin != null) {
+                    reason.put(CTX_REASON_ADMIN, admin);
+                }
+                if (user != null) {
+                    reason.put(CTX_REASON_USER, user);
+                }
                 reasons.add(reason);
             }
             return this;

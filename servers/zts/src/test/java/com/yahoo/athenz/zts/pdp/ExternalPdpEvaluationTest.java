@@ -100,6 +100,15 @@ public class ExternalPdpEvaluationTest {
         assertNull(decision.getClaims());
         assertNull(decision.getMaxExpiresIn());
         assertTrue(decision.getReasons().isEmpty());
+
+        // user reasons are kept on their own and together with admin reasons
+        Map<String, Object> userOnly = Map.of("reason_user", "mfa required");
+        decision = evaluation().decide(response(userOnly, true, true, false, true, true, true));
+        assertEquals(decision.getReasons(), List.of(Map.of("index", 0, "reason_user", "mfa required")));
+        Map<String, Object> both = Map.of("reason_admin", "policy-7", "reason_user", "mfa required");
+        decision = evaluation().decide(response(both, true, true, false, true, true, true));
+        assertEquals(decision.getReasons(),
+                List.of(Map.of("index", 0, "reason_admin", "policy-7", "reason_user", "mfa required")));
     }
 
     @Test

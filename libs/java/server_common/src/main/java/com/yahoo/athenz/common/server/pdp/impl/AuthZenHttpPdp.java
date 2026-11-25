@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.LongSupplier;
 
 /**
@@ -66,6 +67,7 @@ public class AuthZenHttpPdp implements ExternalPolicyDecisionPoint {
     static final String DEFAULT_EVALUATION_PATH = "/access/v1/evaluation";
     static final String DISCOVERY_PATH = "/.well-known/authzen-configuration";
 
+    static final String META_POLICY_DECISION_POINT = "policy_decision_point";
     static final String META_EVALUATION_ENDPOINT = "access_evaluation_endpoint";
     static final String META_EVALUATIONS_ENDPOINT = "access_evaluations_endpoint";
 
@@ -90,6 +92,7 @@ public class AuthZenHttpPdp implements ExternalPolicyDecisionPoint {
     private long authSecretRefreshMs;
     private volatile String authHeaderValue;
     private volatile long authSecretFetchTime;
+    private final ReentrantLock authSecretRefreshLock = new ReentrantLock();
     LongSupplier clock = System::currentTimeMillis;
 
     @Override
@@ -97,6 +100,7 @@ public class AuthZenHttpPdp implements ExternalPolicyDecisionPoint {
 
         final URI baseUri = parseEndpoint(context.getEndpoint());
         final String baseUrl = stripTrailingSlash(context.getEndpoint());
+        ExternalPdpSupport.requireMtlsOrLoopback(baseUri, context.getSslContext());
 
         final int maxResponseBytes = Integer.parseInt(System.getProperty(PROP_MAX_RESPONSE_BYTES,
                 Integer.toString(DEFAULT_MAX_RESPONSE_BYTES)));
@@ -143,8 +147,14 @@ public class AuthZenHttpPdp implements ExternalPolicyDecisionPoint {
     }
 
     Map<String, Object> discover(final String baseUrl, final URI baseUri) throws ExternalPdpException {
-        final String body = client.getJson(baseUrl + DISCOVERY_PATH, requestHeaders(null));
+        final String body = client.getJson(discoveryUrl(baseUri), requestHeaders(null));
         Map<String, Object> metadata = parse(body, Map.class);
+        // AuthZEN 1.0 section 9.2.3: metadata for another pdp identifier must not be used
+        final Object identifier = metadata.get(META_POLICY_DECISION_POINT);
+        if (identifier == null || !baseUrl.equals(stripTrailingSlash(identifier.toString()))) {
+            throw new ExternalPdpException(ExternalPdpException.Code.INVALID_RESPONSE,
+                    "discovered policy_decision_point does not match the configured pdp endpoint");
+        }
         Map<String, Object> endpoints = new HashMap<>();
         for (String key : new String[] { META_EVALUATION_ENDPOINT, META_EVALUATIONS_ENDPOINT }) {
             Object value = metadata.get(key);
@@ -155,6 +165,14 @@ public class AuthZenHttpPdp implements ExternalPolicyDecisionPoint {
             endpoints.put(key, value.toString());
         }
         return endpoints;
+    }
+
+    // AuthZEN metadata location: the well-known segment goes between the
+    // host and the path of the pdp identifier (same scheme as RFC 8414)
+
+    static String discoveryUrl(final URI baseUri) {
+        final String path = baseUri.getRawPath() == null ? "" : stripTrailingSlash(baseUri.getRawPath());
+        return baseUri.getScheme() + "://" + baseUri.getRawAuthority() + DISCOVERY_PATH + path;
     }
 
     static void verifySameOrigin(final URI baseUri, final String url) throws ExternalPdpException {
@@ -225,9 +243,18 @@ public class AuthZenHttpPdp implements ExternalPolicyDecisionPoint {
         return authHeaderPrefix + new String(secret);
     }
 
+    // one caller refreshes at a time; others keep using the current value
+    // instead of waiting on the secret store
+
     String currentAuthHeaderValue() {
         final long now = clock.getAsLong();
-        if (now - authSecretFetchTime >= authSecretRefreshMs) {
+        if (now - authSecretFetchTime < authSecretRefreshMs || !authSecretRefreshLock.tryLock()) {
+            return authHeaderValue;
+        }
+        try {
+            if (now - authSecretFetchTime < authSecretRefreshMs) {
+                return authHeaderValue;
+            }
             String value;
             try {
                 value = fetchAuthHeaderValue();
@@ -241,8 +268,10 @@ public class AuthZenHttpPdp implements ExternalPolicyDecisionPoint {
                 LOGGER.error("Unable to refresh pdp auth secret, using the previous value");
             }
             authSecretFetchTime = now;
+            return authHeaderValue;
+        } finally {
+            authSecretRefreshLock.unlock();
         }
-        return authHeaderValue;
     }
 
     Map<String, String> requestHeaders(final Map<String, Object> context) {

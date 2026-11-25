@@ -305,7 +305,7 @@ overridden for PDPs that mount AuthZEN elsewhere.
 | `batch_enabled` | `true` | `true`: one `POST {base}{evaluations_path}` per token request. `false`: `AuthZenHttpPdp` fans out `POST {base}{evaluation_path}` per item, in parallel on the context executor and bounded by the deadline (level-B PDPs). |
 | `evaluations_path` | `/access/v1/evaluations` | AuthZEN batch endpoint. |
 | `evaluation_path` | `/access/v1/evaluation` | AuthZEN single endpoint. |
-| `discovery` | `false` | Read `/.well-known/authzen-configuration` once at startup and derive endpoints and batch capability from it. Discovered endpoints must have the same scheme, host and port as the configured base URI. Explicit properties override discovered values. |
+| `discovery` | `false` | Read the AuthZEN metadata once at startup and derive endpoints and batch capability from it. Per AuthZEN 1.0 section 9.2, the well-known segment is inserted between the host and the base path (`https://host/.well-known/authzen-configuration/base-path`). The document's `policy_decision_point` must equal the configured endpoint, ignoring a trailing slash (section 9.2.3). Discovered endpoints must have the same scheme, host and port as the configured base URI. Explicit properties override discovered values. |
 
 **Transport and handling.**
 
@@ -314,6 +314,19 @@ overridden for PDPs that mount AuthZEN elsewhere.
 - **Client authentication:** mTLS with the ZTS service identity certificate, so the PDP can
   authorize its PEP. Sidecars must terminate TLS too (for example
   `https://localhost:8443` with a certificate that has a `localhost` SAN).
+  - **No client certificate.** If the ZTS client SSL context isn't available (the
+    `athenz.zts.provider.ssl_client_*` settings are missing or invalid),
+    `AuthZenHttpPdp` connects without a client certificate. It trusts the server
+    through the JVM default trust store. This is only allowed for a loopback
+    endpoint (`localhost`, `127.0.0.0/8`, `[::1]`), such as a sidecar in the same pod.
+  - **Startup check.** For any other host, initialization fails, so a misconfigured
+    client SSL context can't quietly turn into unauthenticated calls to a remote PDP.
+    Host names are never resolved for this check.
+  - **`class://` adapters** decide their own authentication. They receive the client
+    SSL context, which may be `null`, and the `PrivateKeyStore`. Adapters that call a
+    remote PDP can apply the same rule with
+    `ExternalPdpSupport.requireMtlsOrLoopback(endpoint, sslContext)`, which
+    `AuthZenHttpPdp` also uses.
 - **Additional authentication (optional):** for PDPs that need more than mTLS (an API key
   or a static bearer token), `AuthZenHttpPdp` sends a configured header:
   - The header name comes from `auth_header_name` (for example `Authorization` or `X-API-Key`).
@@ -823,8 +836,8 @@ and add no PDP-specific behavior.
    from day one.
 3. **Transport.** The built-in PDP is HTTPS only. `class://` adapters own their transport
    and should meet the same bar. They get the ZTS client `sslContext` for that purpose.
-   The built-in PDP uses mTLS with the ZTS identity, hostname verification and
-   an optional dedicated trust store. Because the configuration is global, only ZTS
+   The built-in PDP uses mTLS with the ZTS identity and hostname verification. It
+   connects without a client certificate only to a loopback endpoint (section 5.6). Because the configuration is global, only ZTS
    operators can change the endpoint, and domain admins cannot redirect data.
 4. **Other issuance paths.** Role certificates and role tokens are rejected in FILTER and
    AUTHORITATIVE modes (section 6.4), so there is no RBAC-only route to role
