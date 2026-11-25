@@ -161,6 +161,61 @@ public class ExternalPdpSupportTest {
     }
 
     @Test
+    public void testParallelBatchLargerThanExecutorCapacity() throws ExternalPdpException {
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 60, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(1));
+        ExternalPolicyDecisionPoint slowPdp = new ExternalPolicyDecisionPoint() {
+            @Override
+            public void initialize(ExternalPdpContext context) {
+            }
+
+            @Override
+            public EvaluationResponse evaluate(EvaluationRequest request) throws ExternalPdpException {
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException ex) {
+                    throw new ExternalPdpException(ExternalPdpException.Code.TIMEOUT, "interrupted");
+                }
+                return new EvaluationResponse(request.getResource().getId().startsWith("permit"), null);
+            }
+        };
+        try {
+            EvaluationsResponse response = ExternalPdpSupport.expandBatch(slowPdp,
+                    batch(null, "permit1", "deny1", "permit2", "deny2", "permit3", "deny3"), executor);
+            assertEquals(response.getEvaluations().size(), 6);
+            for (int i = 0; i < 6; i++) {
+                assertEquals(response.getEvaluations().get(i).getDecision(), i % 2 == 0);
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    public void testParallelSaturatedByOtherTasks() {
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(1, 1, 60, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(1));
+        CountDownLatch release = new CountDownLatch(1);
+        Runnable blocker = () -> {
+            try {
+                release.await();
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+            }
+        };
+        executor.execute(blocker);
+        executor.execute(blocker);
+        try {
+            ExternalPdpException ex = expectThrows(ExternalPdpException.class,
+                    () -> ExternalPdpSupport.expandBatch(new RecordingPdp(), batch(null, "permit1"), executor));
+            assertEquals(ex.getCode(), ExternalPdpException.Code.UNAVAILABLE);
+        } finally {
+            release.countDown();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
     public void testParallelInterrupted() throws Exception {
         ExecutorService executor = Executors.newFixedThreadPool(1);
         CountDownLatch release = new CountDownLatch(1);

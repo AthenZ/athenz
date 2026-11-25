@@ -25,6 +25,7 @@ import com.yahoo.athenz.common.server.pdp.authzen.EvaluationsResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -93,25 +94,32 @@ public final class ExternalPdpSupport {
         return EvaluationsOptions.PERMIT_ON_FIRST_PERMIT.equals(semantic) && decision;
     }
 
+    // submissions are incremental: when the shared executor is full, the
+    // caller waits for its own oldest task instead of failing the batch, so a
+    // batch larger than the executor capacity is still evaluated
+
     static List<EvaluationResponse> evaluateParallel(final ExternalPolicyDecisionPoint pdp,
             final EvaluationsRequest request, final List<EvaluationRequest> items,
             final ExecutorService executor) throws ExternalPdpException {
 
         List<Future<EvaluationResponse>> futures = new ArrayList<>(items.size());
+        List<EvaluationResponse> results = new ArrayList<>(items.size());
         try {
             for (EvaluationRequest item : items) {
                 final EvaluationRequest single = applyDefaults(request, item);
-                futures.add(executor.submit(() -> pdp.evaluate(single)));
+                while (!submit(executor, futures, () -> pdp.evaluate(single))) {
+                    if (results.size() == futures.size()) {
+                        cancelAll(futures);
+                        throw new ExternalPdpException(ExternalPdpException.Code.UNAVAILABLE,
+                                "evaluation executor saturated");
+                    }
+                    results.add(futures.get(results.size()).get());
+                }
             }
-            List<EvaluationResponse> results = new ArrayList<>(items.size());
-            for (Future<EvaluationResponse> future : futures) {
-                results.add(future.get());
+            while (results.size() < futures.size()) {
+                results.add(futures.get(results.size()).get());
             }
             return results;
-        } catch (RejectedExecutionException ex) {
-            cancelAll(futures);
-            throw new ExternalPdpException(ExternalPdpException.Code.UNAVAILABLE,
-                    "evaluation executor saturated", ex);
         } catch (InterruptedException ex) {
             cancelAll(futures);
             Thread.currentThread().interrupt();
@@ -122,6 +130,16 @@ public final class ExternalPdpSupport {
                 throw (ExternalPdpException) ex.getCause();
             }
             throw new ExternalPdpException(ExternalPdpException.Code.INTERNAL, "evaluation failed", ex.getCause());
+        }
+    }
+
+    static boolean submit(final ExecutorService executor, final List<Future<EvaluationResponse>> futures,
+            final Callable<EvaluationResponse> task) {
+        try {
+            futures.add(executor.submit(task));
+            return true;
+        } catch (RejectedExecutionException ex) {
+            return false;
         }
     }
 

@@ -151,7 +151,7 @@ public class ExternalPdpManager implements Closeable {
     }
 
     /**
-     * Execute a batch evaluation and verify the result count.
+     * Execute a batch evaluation and verify the result count and elements.
      * @param request batch request
      * @param deadline request deadline from {@link #newDeadline()}
      * @return validated batch response
@@ -164,6 +164,10 @@ public class ExternalPdpManager implements Closeable {
                 || response.getEvaluations().size() != request.getEvaluations().size()) {
             throw new ExternalPdpException(ExternalPdpException.Code.INVALID_RESPONSE,
                     "pdp returned an unexpected number of evaluation results");
+        }
+        if (response.getEvaluations().contains(null)) {
+            throw new ExternalPdpException(ExternalPdpException.Code.INVALID_RESPONSE,
+                    "pdp returned a null evaluation result");
         }
         return response;
     }

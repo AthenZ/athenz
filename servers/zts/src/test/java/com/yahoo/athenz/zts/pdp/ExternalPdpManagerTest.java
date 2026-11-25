@@ -203,6 +203,11 @@ public class ExternalPdpManagerTest {
                 () -> manager.evaluations(request(2), manager.newDeadline()));
         assertEquals(ex.getCode(), ExternalPdpException.Code.INVALID_RESPONSE);
 
+        pdp.result.set(new EvaluationsResponse(java.util.Arrays.asList(
+                new com.yahoo.athenz.common.server.pdp.authzen.EvaluationResponse(true, null), null)));
+        ex = expectThrows(ExternalPdpException.class, () -> manager.evaluations(request(2), manager.newDeadline()));
+        assertEquals(ex.getCode(), ExternalPdpException.Code.INVALID_RESPONSE);
+
         pdp.result.set(new EvaluationsResponse(null));
         ex = expectThrows(ExternalPdpException.class, () -> manager.evaluations(request(2), manager.newDeadline()));
         assertEquals(ex.getCode(), ExternalPdpException.Code.INVALID_RESPONSE);

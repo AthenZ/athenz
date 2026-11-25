@@ -214,15 +214,24 @@ public class AuthZenHttpPdpTest {
     @Test
     public void testVerifySameOrigin() throws Exception {
         AuthZenHttpPdp.verifySameOrigin(new URI("https://pdp.athenz.io:4443/base"), "https://PDP.athenz.io:4443/x");
+        AuthZenHttpPdp.verifySameOrigin(new URI("https://pdp.athenz.io:443"), "https://pdp.athenz.io/access/v1/evaluation");
+        AuthZenHttpPdp.verifySameOrigin(new URI("https://pdp.athenz.io"), "https://pdp.athenz.io:443/access/v1/evaluation");
+        ExternalPdpException ex = expectThrows(ExternalPdpException.class,
+                () -> AuthZenHttpPdp.verifySameOrigin(new URI("https://pdp.athenz.io"), "https://pdp.athenz.io:4443/x"));
+        assertEquals(ex.getCode(), ExternalPdpException.Code.INVALID_RESPONSE);
     }
 
     static final class FakeKeyStore implements PrivateKeyStore {
         final AtomicReference<String> secret = new AtomicReference<>();
         final List<String> lookups = new ArrayList<>();
+        volatile boolean failing;
 
         @Override
         public char[] getSecret(String appName, String keygroupName, String keyName) {
             lookups.add(appName + "/" + keygroupName + "/" + keyName);
+            if (failing) {
+                throw new IllegalStateException("secret backend unavailable");
+            }
             String value = secret.get();
             return value == null ? null : value.toCharArray();
         }
@@ -259,6 +268,24 @@ public class AuthZenHttpPdpTest {
         keyStore.secret.set("");
         pdp.evaluations(batch("x"));
         assertEquals(server.lastHeaders.get("/pdp/access/v1/evaluations").get("authorization"), "Bearer secret-2");
+
+        // a store exception keeps the previous value and is not retried until the next interval
+        pdp.clock = () -> start + 5 * 3600 * 1000L;
+        keyStore.failing = true;
+        pdp.evaluations(batch("x"));
+        assertEquals(server.lastHeaders.get("/pdp/access/v1/evaluations").get("authorization"), "Bearer secret-2");
+        final int lookups = keyStore.lookups.size();
+        pdp.evaluations(batch("x"));
+        assertEquals(keyStore.lookups.size(), lookups);
+        assertEquals(server.lastHeaders.get("/pdp/access/v1/evaluations").get("authorization"), "Bearer secret-2");
+    }
+
+    @Test
+    public void testAuthHeaderInitialStoreFailure() {
+        setAuthProps();
+        FakeKeyStore keyStore = new FakeKeyStore();
+        keyStore.failing = true;
+        expectThrows(IllegalStateException.class, () -> pdp(keyStore));
     }
 
     @Test

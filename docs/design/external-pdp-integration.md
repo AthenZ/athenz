@@ -684,13 +684,24 @@ servers/zts/src/main/java/com/yahoo/athenz/zts/pdp/
 - **AUDIT**:
   1. The processor calls the legacy method (for example
      `ztsImpl.processAccessTokenStandardRequest(...)`) and returns its response unmodified.
-  2. On the request thread, it builds the shadow PDP request from the result. If a token
-     was issued, the candidates are the roles in the issued token's scope. If the legacy
-     path denied the request, they are the explicitly requested roles. Building on the
-     request thread is required because the servlet request isn't valid after the
-     response completes.
-  3. It submits the PDP evaluation to a single-threaded, bounded audit executor, and the
-     audit task logs the diff.
+  2. On the request thread, it builds the shadow PDP request. Building on the request
+     thread is required because the servlet request isn't valid after the response
+     completes.
+     - `audit_target=FILTER`: if a token was issued, the candidates are the roles in the
+       issued token's scope (the RBAC result FILTER would narrow). If the legacy path
+       denied the request, they are the explicitly requested roles.
+     - `audit_target=AUTHORITATIVE`: the processor runs the AUTHORITATIVE flow itself up
+       to the PDP call, so candidates (including domain role enumeration and
+       `require_defined_roles`), client role checks for proxy requests and the exchange
+       permissions are exactly the ones AUTHORITATIVE mode would evaluate. This
+       simulation doesn't log errors, emit error metrics or change the request. If the
+       flow rejects the request before the PDP call, the outcome is logged without a
+       PDP evaluation (`target_reject`, or `match_deny` when the legacy path also
+       denied it).
+  3. It submits the PDP evaluation to a single-threaded, bounded audit executor. The
+     audit task computes the token the enforcing mode would issue (the gate, the
+     exchange permissions, the strict claims validation of section 9, and every scope
+     domain keeping at least one role) and logs it against the legacy token.
   4. If the legacy method throws, the request is still evaluated in shadow mode (RBAC
      denied, would the PDP have permitted?). That data is useful when planning
      AUTHORITATIVE adoption.
@@ -724,7 +735,7 @@ helpers are shared. Mitigations:
 
 Enabled only when `athenz.zts.external_pdp.claims_enabled=true` and the mode is FILTER or
 AUTHORITATIVE. Claims are never applied in AUDIT mode, but they are validated and logged
-by name.
+by name, and a strict validation failure is reported as `pdp_deny`.
 
 Claims come from the token gate response (`evaluations[0].context.claims`) and are applied
 to the issued access token through `AccessToken.setCustomClaim`. They are not applied to
@@ -842,7 +853,7 @@ and add no PDP-specific behavior.
   - `zts_ext_pdp_eval`, with attributes `mode`, `flow`, `outcome`
     (`permit`, `partial`, `deny`, `error`, `timeout`, `rejected`, `audit_dropped`)
   - `zts_ext_pdp_eval_latency` (timing)
-  - `zts_ext_pdp_audit_diff` (AUDIT: `match`, `pdp_narrower`, `pdp_deny`, `pdp_permit_legacy_deny`, `match_deny`, `error`, `timeout`)
+  - `zts_ext_pdp_audit_diff` (AUDIT: `match`, `pdp_narrower`, `pdp_broader`, `pdp_mismatch`, `pdp_deny`, `pdp_permit_legacy_deny`, `match_deny`, `target_reject`, `error`, `timeout`)
   - `zts_ext_pdp_claims_rejected`
   - `zts_ext_pdp_role_credential_request` (AUDIT) and
     `zts_ext_pdp_role_credential_rejected` (FILTER, AUTHORITATIVE), with an `api` attribute

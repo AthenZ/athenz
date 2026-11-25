@@ -97,6 +97,13 @@ public final class AdditionalClaimsValidator {
     }
 
     /**
+     * @return result for a claims value that is not a JSON object
+     */
+    public Result malformed() {
+        return new Result(Collections.emptyMap(), Collections.singletonList("claims"), strict);
+    }
+
+    /**
      * @param claims claims returned by the PDP
      * @return validation result
      */

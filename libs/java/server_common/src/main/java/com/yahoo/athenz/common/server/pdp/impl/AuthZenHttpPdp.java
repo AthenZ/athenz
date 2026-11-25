@@ -73,6 +73,7 @@ public class AuthZenHttpPdp implements ExternalPolicyDecisionPoint {
     static final String CONTEXT_REQUEST_ID = "request_id";
 
     private static final String SCHEME_HTTPS = "https";
+    private static final int DEFAULT_HTTPS_PORT = 443;
     private static final int DEFAULT_MAX_RESPONSE_BYTES = 65536;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -165,10 +166,14 @@ public class AuthZenHttpPdp implements ExternalPolicyDecisionPoint {
                     "invalid discovered pdp endpoint", ex);
         }
         if (!SCHEME_HTTPS.equalsIgnoreCase(uri.getScheme()) || !baseUri.getHost().equalsIgnoreCase(uri.getHost())
-                || baseUri.getPort() != uri.getPort()) {
+                || effectivePort(baseUri) != effectivePort(uri)) {
             throw new ExternalPdpException(ExternalPdpException.Code.INVALID_RESPONSE,
                     "discovered pdp endpoint does not match the configured origin");
         }
+    }
+
+    static int effectivePort(final URI uri) {
+        return uri.getPort() == -1 ? DEFAULT_HTTPS_PORT : uri.getPort();
     }
 
     static String resolveUrl(final String baseUrl, final String pathProperty, final String defaultPath,
@@ -223,7 +228,13 @@ public class AuthZenHttpPdp implements ExternalPolicyDecisionPoint {
     String currentAuthHeaderValue() {
         final long now = clock.getAsLong();
         if (now - authSecretFetchTime >= authSecretRefreshMs) {
-            final String value = fetchAuthHeaderValue();
+            String value;
+            try {
+                value = fetchAuthHeaderValue();
+            } catch (RuntimeException ex) {
+                LOGGER.error("Unable to refresh pdp auth secret: {}", ex.getMessage());
+                value = null;
+            }
             if (value != null) {
                 authHeaderValue = value;
             } else {

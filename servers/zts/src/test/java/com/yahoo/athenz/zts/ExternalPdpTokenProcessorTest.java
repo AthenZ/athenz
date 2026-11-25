@@ -700,19 +700,93 @@ public class ExternalPdpTokenProcessorTest {
         assertEquals(roleIds(request), List.of("coretech:role.admin"));
         assertFalse(request.getEvaluations().get(1).getResource().getProperties().containsKey("rbac_granted"));
 
-        // failures and non resource exceptions are also shadowed
+        // pdp failures are also shadowed
         pdp.latch = new CountDownLatch(1);
         pdp.handler = request2 -> {
             throw new ExternalPdpException(ExternalPdpException.Code.TIMEOUT, "slow");
         };
-        assertEquals(status(() -> post(user(), scopeBody("unknown:domain"))), ResourceException.NOT_FOUND);
+        assertEquals(status(() -> post(user(), scopeBody("coretech:role.admin"))), ResourceException.FORBIDDEN);
         assertTrue(pdp.latch.await(5, TimeUnit.SECONDS));
+
+        // requests the authoritative flow rejects before the pdp call are not sent to the pdp
+        final int sent = pdp.requests.size();
+        assertEquals(status(() -> post(user(), scopeBody("unknown:domain"))), ResourceException.NOT_FOUND);
+        assertEquals(pdp.requests.size(), sent);
 
         AccessTokenRequest broken = Mockito.mock(AccessTokenRequest.class);
         Mockito.when(broken.getRequestType()).thenReturn(RequestType.ACCESS_TOKEN);
         Mockito.when(broken.getScope()).thenThrow(new IllegalStateException("bad"));
         assertThrows(IllegalStateException.class, () -> processor.process(context(user(), "coretech"), user(),
                 broken, "user_domain", "postaccesstokenrequest"));
+    }
+
+    @Test
+    public void testAuditAuthoritativeTargetCandidates() throws Exception {
+        enable(ExternalPdpMode.AUDIT, ExternalPdpConfig.PROP_AUDIT_TARGET, "AUTHORITATIVE");
+
+        // domain scope: the candidates are all defined roles, not only the legacy issued ones
+        pdp.latch = new CountDownLatch(1);
+        AccessTokenResponse response = post(user(), scopeBody("coretech:domain"));
+        assertEquals(new TreeSet<>((List<?>) claims(response.getAccess_token()).get("scp")),
+                Set.of("readers", "writers"));
+        assertTrue(pdp.latch.await(5, TimeUnit.SECONDS));
+        EvaluationsRequest request = lastRequest();
+        assertEquals(request.getContext().get("mode"), "AUDIT");
+        assertEquals(new TreeSet<>(roleIds(request)),
+                Set.of("coretech:role.admin", "coretech:role.readers", "coretech:role.writers"));
+        assertFalse(request.getEvaluations().get(1).getResource().getProperties().containsKey("rbac_granted"));
+
+        // the simulation does not emit errors or change the request when the target flow rejects
+        processor.close();
+        System.setProperty(ExternalPdpConfig.PROP_REQUIRE_DEFINED_ROLES, "false");
+        enable(ExternalPdpMode.AUDIT, ExternalPdpConfig.PROP_AUDIT_TARGET, "AUTHORITATIVE");
+        final int sent = pdp.requests.size();
+        assertNotNull(post(user(), scopeBody("coretech:domain")).getAccess_token());
+        assertEquals(pdp.requests.size(), sent);
+    }
+
+    @Test
+    public void testAuditShadowOutcome() {
+        enable(ExternalPdpMode.AUDIT, ExternalPdpConfig.PROP_CLAIMS_ENABLED, "true");
+        Map<String, Set<String>> legacy = Map.of("coretech", Set.of("readers"));
+
+        pdp.handler = FakePdp.deny(Collections.emptySet(), true, Map.of("claims", Map.of("tier", "gold")));
+        assertEquals(processor.runShadow(shadowEvaluation("readers"), legacy, ResourceException.OK, "r1",
+                "access_token", USER, "coretech", Collections.emptyList()), "match");
+        assertEquals(processor.runShadow(shadowEvaluation("readers", "writers"), legacy, ResourceException.OK, "r1",
+                "access_token", USER, "coretech", List.of("coretech:role.unknown")), "pdp_broader");
+
+        // strict claims validation denies the token in enforcing mode
+        pdp.handler = FakePdp.deny(Collections.emptySet(), true, Map.of("claims", Map.of("sub", "other")));
+        assertEquals(processor.runShadow(shadowEvaluation("readers"), legacy, ResourceException.OK, "r1",
+                "access_token", USER, "coretech", Collections.emptyList()), "pdp_deny");
+        pdp.handler = FakePdp.deny(Collections.emptySet(), true, Map.of("claims", "not-an-object"));
+        assertEquals(processor.runShadow(shadowEvaluation("readers"), legacy, ResourceException.OK, "r1",
+                "access_token", USER, "coretech", Collections.emptyList()), "pdp_deny");
+
+        // lenient validation drops the claim but issues the token
+        processor.close();
+        System.setProperty(ExternalPdpConfig.PROP_CLAIMS_STRICT, "false");
+        enable(ExternalPdpMode.AUDIT, ExternalPdpConfig.PROP_CLAIMS_ENABLED, "true");
+        pdp.handler = FakePdp.deny(Collections.emptySet(), true, Map.of("claims", Map.of("sub", "other")));
+        assertEquals(processor.runShadow(shadowEvaluation("readers"), legacy, ResourceException.OK, "r1",
+                "access_token", USER, "coretech", Collections.emptyList()), "match");
+
+        pdp.handler = request -> {
+            throw new ExternalPdpException(ExternalPdpException.Code.UNAVAILABLE, "down");
+        };
+        assertEquals(processor.runShadow(shadowEvaluation("readers"), legacy, ResourceException.OK, "r1",
+                "access_token", USER, "coretech", Collections.emptyList()), "error");
+    }
+
+    private static com.yahoo.athenz.zts.pdp.ExternalPdpEvaluation shadowEvaluation(String... roles) {
+        com.yahoo.athenz.zts.pdp.ExternalPdpEvaluation evaluation = new com.yahoo.athenz.zts.pdp.ExternalPdpEvaluation(
+                new Subject("user", USER, null), null,
+                com.yahoo.athenz.zts.pdp.AuthZenRequestBuilder.tokenResource("coretech", Set.of("coretech")));
+        for (String role : roles) {
+            evaluation.addRole("subject", "coretech", role, true, null, null);
+        }
+        return evaluation;
     }
 
     @Test
@@ -1316,24 +1390,44 @@ public class ExternalPdpTokenProcessorTest {
 
     @Test
     public void testAuditDiff() {
+        Map<String, Set<String>> legacy = Map.of("coretech", Set.of("readers", "writers"));
+        assertEquals(ExternalPdpTokenProcessor.auditDiff(false, legacy, legacy, true), "match");
+        assertEquals(ExternalPdpTokenProcessor.auditDiff(false, Map.of("coretech", Set.of("readers")), legacy, true),
+                "pdp_narrower");
+        assertEquals(ExternalPdpTokenProcessor.auditDiff(false,
+                Map.of("coretech", Set.of("readers", "writers", "admin")), legacy, true), "pdp_broader");
+        assertEquals(ExternalPdpTokenProcessor.auditDiff(false,
+                Map.of("coretech", Set.of("readers"), "weather", Set.of("forecasters")), legacy, true), "pdp_mismatch");
+        assertEquals(ExternalPdpTokenProcessor.auditDiff(false, Map.of("weather", Set.of("forecasters")), legacy, true),
+                "pdp_mismatch");
+        assertEquals(ExternalPdpTokenProcessor.auditDiff(true, null, legacy, true), "pdp_deny");
+        assertEquals(ExternalPdpTokenProcessor.auditDiff(false, legacy, Collections.emptyMap(), false),
+                "pdp_permit_legacy_deny");
+        assertEquals(ExternalPdpTokenProcessor.auditDiff(true, null, Collections.emptyMap(), false), "match_deny");
+    }
+
+    @Test
+    public void testSimulatedRoles() {
         com.yahoo.athenz.zts.pdp.ExternalPdpEvaluation evaluation = new com.yahoo.athenz.zts.pdp.ExternalPdpEvaluation(
                 new Subject("user", USER, null), null,
-                com.yahoo.athenz.zts.pdp.AuthZenRequestBuilder.tokenResource("coretech", Set.of("coretech")));
-        evaluation.addRole("subject", "coretech", "readers", true, true, null);
-        evaluation.addRole("subject", "coretech", "writers", true, true, null);
-        Map<String, Set<String>> issued = Map.of("coretech", Set.of("readers", "writers"));
+                com.yahoo.athenz.zts.pdp.AuthZenRequestBuilder.tokenResource("coretech", Set.of("coretech", "weather")));
+        assertNull(ExternalPdpTokenProcessor.simulatedRoles(evaluation, decide(evaluation, true)));
 
-        assertEquals(ExternalPdpTokenProcessor.auditDiff(evaluation.failOpen(1), issued, true), "match");
-        assertEquals(ExternalPdpTokenProcessor.auditDiff(decide(evaluation, true, true, false), issued, true),
-                "pdp_narrower");
-        assertEquals(ExternalPdpTokenProcessor.auditDiff(decide(evaluation, false, true, true), issued, true),
-                "pdp_deny");
-        assertEquals(ExternalPdpTokenProcessor.auditDiff(decide(evaluation, true, false, false), issued, true),
-                "pdp_deny");
-        assertEquals(ExternalPdpTokenProcessor.auditDiff(decide(evaluation, true, true, false), issued, false),
-                "pdp_permit_legacy_deny");
-        assertEquals(ExternalPdpTokenProcessor.auditDiff(decide(evaluation, false, true, true), issued, false),
-                "match_deny");
+        evaluation.addRole("subject", "coretech", "readers", true, null, null);
+        evaluation.addRole("subject", "coretech", "writers", true, null, null);
+        evaluation.addRole("client", "coretech", "readers", true, null, null);
+        evaluation.addRole("client", "coretech", "writers", true, null, null);
+        evaluation.addRole("subject", "weather", "forecasters", true, null, null);
+
+        // client permitted roles limit the subject roles only for the evaluated domains
+        assertEquals(ExternalPdpTokenProcessor.simulatedRoles(evaluation,
+                decide(evaluation, true, true, true, true, false, true)),
+                Map.of("coretech", Set.of("readers"), "weather", Set.of("forecasters")));
+        // a domain without any permitted role rejects the request
+        assertNull(ExternalPdpTokenProcessor.simulatedRoles(evaluation,
+                decide(evaluation, true, true, true, true, true, false)));
+        assertNull(ExternalPdpTokenProcessor.simulatedRoles(evaluation,
+                decide(evaluation, true, true, false, false, true, true)));
     }
 
     private static com.yahoo.athenz.zts.pdp.ExternalPdpDecision decide(

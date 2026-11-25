@@ -108,12 +108,24 @@ public class ExternalPdpTokenProcessor implements Closeable {
     static final String OUTCOME_REJECTED = "rejected";
     static final String OUTCOME_AUDIT_DROPPED = "audit_dropped";
 
+    static final String DIFF_MATCH = "match";
+    static final String DIFF_MATCH_DENY = "match_deny";
+    static final String DIFF_PDP_DENY = "pdp_deny";
+    static final String DIFF_PDP_NARROWER = "pdp_narrower";
+    static final String DIFF_PDP_BROADER = "pdp_broader";
+    static final String DIFF_PDP_MISMATCH = "pdp_mismatch";
+    static final String DIFF_PDP_PERMIT_LEGACY_DENY = "pdp_permit_legacy_deny";
+    static final String DIFF_TARGET_REJECT = "target_reject";
+
     static final String EXCHANGE_IMPERSONATION = "impersonation";
     static final String EXCHANGE_DELEGATION = "delegation";
 
     private final ExternalPdpConfig config;
     private final ExternalPdpManager manager;
     private final ExternalPdpMode mode;
+    private final ExternalPdpMode contextMode;
+    private final boolean simulation;
+    private final ExternalPdpTokenProcessor authoritativeSimulator;
     private final AuthZenRequestBuilder builder;
     private final AdditionalClaimsValidator claimsValidator;
     private final Services services;
@@ -257,13 +269,40 @@ public class ExternalPdpTokenProcessor implements Closeable {
 
     ExternalPdpTokenProcessor(final ExternalPdpConfig config, final ExternalPdpManager manager,
             final Services services) {
+        this(config, manager, services, config.getMode(), false);
+    }
+
+    // a simulation instance runs the flows of the given mode only up to the PDP
+    // call, so AUDIT mode can shadow-test AUTHORITATIVE with the same candidate
+    // and permission logic; it never logs errors, emits metrics or updates the request
+
+    private ExternalPdpTokenProcessor(final ExternalPdpConfig config, final ExternalPdpManager manager,
+            final Services services, final ExternalPdpMode flowMode, boolean simulation) {
         this.config = config;
         this.manager = manager;
-        this.mode = config.getMode();
+        this.mode = flowMode;
+        this.contextMode = simulation ? ExternalPdpMode.AUDIT : flowMode;
+        this.simulation = simulation;
         this.services = services;
         this.tokenConfig = services.tokenIssuanceConfig;
         this.builder = new AuthZenRequestBuilder(services.userDomain);
         this.claimsValidator = new AdditionalClaimsValidator(config);
+        this.authoritativeSimulator = !simulation && flowMode == ExternalPdpMode.AUDIT
+                && config.getAuditTarget() == ExternalPdpMode.AUTHORITATIVE
+                ? new ExternalPdpTokenProcessor(config, manager, services, ExternalPdpMode.AUTHORITATIVE, true)
+                : null;
+    }
+
+    /**
+     * Thrown by a simulation instance when a flow reaches the PDP call; the
+     * evaluation built by the flow is available in the request state.
+     */
+    static final class SimulationCaptured extends RuntimeException {
+        static final SimulationCaptured INSTANCE = new SimulationCaptured();
+
+        private SimulationCaptured() {
+            super("simulation captured", null, false, false);
+        }
     }
 
     /**
@@ -292,9 +331,11 @@ public class ExternalPdpTokenProcessor implements Closeable {
 
     RuntimeException error(int code, final String msg, final String caller, final String requestDomain,
             final String principalDomain) {
-        LOGGER.error("Error: {} request-domain: {} principal-domain: {} code: {} message: {}",
-                caller, requestDomain, principalDomain, code, msg);
-        ZTSUtils.emitMonmetricError(code, caller, requestDomain, principalDomain, services.metric);
+        if (!simulation) {
+            LOGGER.error("Error: {} request-domain: {} principal-domain: {} code: {} message: {}",
+                    caller, requestDomain, principalDomain, code, msg);
+            ZTSUtils.emitMonmetricError(code, caller, requestDomain, principalDomain, services.metric);
+        }
         return new ResourceException(code, new ResourceError().code(code).message(msg));
     }
 
@@ -333,8 +374,10 @@ public class ExternalPdpTokenProcessor implements Closeable {
         TokenIssuancePolicy.validate(services.validator, val, type, principalDomain, caller, errors);
     }
 
-    static void setRequestDomain(final ResourceContext ctx, final String requestDomainName) {
-        ((RsrcCtxWrapper) ctx).setRequestDomain(requestDomainName);
+    void setRequestDomain(final ResourceContext ctx, final String requestDomainName) {
+        if (!simulation) {
+            ((RsrcCtxWrapper) ctx).setRequestDomain(requestDomainName);
+        }
     }
 
     static String getRequestDomainName(final ResourceContext ctx) {
@@ -593,6 +636,9 @@ public class ExternalPdpTokenProcessor implements Closeable {
     ExternalPdpDecision decide(final ExternalPdpEvaluation evaluation, final PdpRequest pr, final String caller,
             final String domainName, final String principalDomain) {
         pr.evaluation = evaluation;
+        if (simulation) {
+            throw SimulationCaptured.INSTANCE;
+        }
         final Object timer = services.metric.startTiming(METRIC_EVAL_LATENCY, domainName, principalDomain);
         try {
             EvaluationsResponse response = manager.evaluations(evaluation.toRequest(), pr.deadline);
@@ -674,22 +720,10 @@ public class ExternalPdpTokenProcessor implements Closeable {
     void applyClaims(final AccessToken accessToken, final ExternalPdpDecision decision, final PdpRequest pr,
             final String caller, final String domainName, final String principalDomain) {
 
-        if (!config.isClaimsEnabled() || decision.isFailOpen()) {
+        final AdditionalClaimsValidator.Result result = validateClaims(decision);
+        if (result == null) {
             return;
         }
-        if (decision.isClaimsMalformed()) {
-            pr.claimsRejected = Collections.singletonList("claims");
-            services.metric.increment(METRIC_CLAIMS_REJECTED, "flow", pr.flow);
-            if (config.isClaimsStrict()) {
-                throw forbiddenError("Additional token claims rejected", caller, domainName, principalDomain);
-            }
-            return;
-        }
-        final Map<String, Object> claims = decision.getClaims();
-        if (claims == null || claims.isEmpty()) {
-            return;
-        }
-        AdditionalClaimsValidator.Result result = claimsValidator.validate(claims);
         if (!result.getRejected().isEmpty()) {
             pr.claimsRejected = result.getRejected();
             services.metric.increment(METRIC_CLAIMS_REJECTED, "flow", pr.flow);
@@ -704,6 +738,24 @@ public class ExternalPdpTokenProcessor implements Closeable {
             }
         }
         pr.claimNames = names.isEmpty() ? null : names;
+    }
+
+    /**
+     * @param decision pdp decision
+     * @return claims validation result, or null if there are no claims to apply
+     */
+    AdditionalClaimsValidator.Result validateClaims(final ExternalPdpDecision decision) {
+        if (!config.isClaimsEnabled() || decision.isFailOpen()) {
+            return null;
+        }
+        if (decision.isClaimsMalformed()) {
+            return claimsValidator.malformed();
+        }
+        final Map<String, Object> claims = decision.getClaims();
+        if (claims == null || claims.isEmpty()) {
+            return null;
+        }
+        return claimsValidator.validate(claims);
     }
 
     AccessTokenResponse processStandard(final ResourceContext ctx, final Principal principal,
@@ -763,7 +815,7 @@ public class ExternalPdpTokenProcessor implements Closeable {
         final Subject clientSubject = builder.subject(principal);
         final Subject tokenSubject = proxyForPrincipal ? builder.subject(principalName) : clientSubject;
         final Map<String, Object> context = requestContext(ctx, principal, accessTokenRequest, pr.requestId,
-                domainName, null, mode);
+                domainName, null, contextMode);
         ExternalPdpEvaluation evaluation = new ExternalPdpEvaluation(tokenSubject, context,
                 AuthZenRequestBuilder.tokenResource(domainName, scopeDomainNames));
 
@@ -983,7 +1035,7 @@ public class ExternalPdpTokenProcessor implements Closeable {
         final String sourceResource = sourceDomainName + ":" + requestDomainName;
         final Subject clientSubject = builder.subject(principal);
         final Map<String, Object> context = requestContext(ctx, principal, accessTokenRequest, pr.requestId,
-                requestDomainName, exchangeType, mode);
+                requestDomainName, exchangeType, contextMode);
         ExternalPdpEvaluation evaluation = new ExternalPdpEvaluation(builder.subject(subjectPrincipal), context,
                 AuthZenRequestBuilder.tokenResource(requestDomainName, Collections.singleton(requestDomainName)));
 
@@ -1217,7 +1269,7 @@ public class ExternalPdpTokenProcessor implements Closeable {
 
         final Subject clientSubject = builder.subject(principal);
         final Map<String, Object> context = requestContext(ctx, principal, accessTokenRequest, pr.requestId,
-                accessTokenRequest.getAudience(), null, mode);
+                accessTokenRequest.getAudience(), null, contextMode);
         ExternalPdpEvaluation evaluation = new ExternalPdpEvaluation(builder.subject(subjectIdentity), context,
                 AuthZenRequestBuilder.tokenResource(accessTokenRequest.getAudience(), scopeDomainNames));
 
@@ -1419,7 +1471,7 @@ public class ExternalPdpTokenProcessor implements Closeable {
 
         final Subject tokenSubject = builder.subject(principalName);
         final Map<String, Object> context = requestContext(ctx, principal, accessTokenRequest, pr.requestId,
-                domainName, null, mode);
+                domainName, null, contextMode);
         ExternalPdpEvaluation evaluation = new ExternalPdpEvaluation(tokenSubject, context,
                 AuthZenRequestBuilder.tokenResource(domainName, scopeDomainNames));
 
@@ -1568,42 +1620,43 @@ public class ExternalPdpTokenProcessor implements Closeable {
         try {
             response = services.legacyFlow.process(ctx, principal, accessTokenRequest, principalDomain, caller);
         } catch (RuntimeException ex) {
-            submitShadow(ctx, principal, accessTokenRequest, principalDomain, null,
+            submitShadow(ctx, principal, accessTokenRequest, principalDomain, caller, null,
                     ex instanceof ResourceException ? ((ResourceException) ex).getCode() : ResourceException.INTERNAL_SERVER_ERROR);
             throw ex;
         }
-        submitShadow(ctx, principal, accessTokenRequest, principalDomain, response, ResourceException.OK);
+        submitShadow(ctx, principal, accessTokenRequest, principalDomain, caller, response, ResourceException.OK);
         return response;
     }
 
     void submitShadow(final ResourceContext ctx, final Principal principal, final AccessTokenRequest accessTokenRequest,
-            final String principalDomain, final AccessTokenResponse response, int legacyStatus) {
+            final String principalDomain, final String caller, final AccessTokenResponse response, int legacyStatus) {
 
         final String flow = flowName(accessTokenRequest);
-        final ExternalPdpEvaluation evaluation;
-        final Map<String, Set<String>> issuedRoles;
         try {
             final String audience = getRequestDomainName(ctx);
-            issuedRoles = response == null ? requestedRoles(accessTokenRequest, principalDomain)
+            final Map<String, Set<String>> legacyRoles = response == null ? new TreeMap<>()
                     : issuedRoles(response.getAccess_token(), audience);
-            final String subjectName = response == null ? shadowSubjectName(accessTokenRequest, principal)
-                    : issuedSubject(response.getAccess_token(), principal);
-            final Subject subject = subjectName.equals(principal.getFullName()) ? builder.subject(principal)
-                    : builder.subject(subjectName);
-            final String requestId = UUID.randomUUID().toString();
-            evaluation = new ExternalPdpEvaluation(subject, requestContext(ctx, principal, accessTokenRequest,
-                    requestId, audience, null, ExternalPdpMode.AUDIT),
-                    AuthZenRequestBuilder.tokenResource(audience == null ? "" : audience, issuedRoles.keySet()));
-            for (Map.Entry<String, Set<String>> entry : issuedRoles.entrySet()) {
-                final DataCache data = services.dataStore.getDataCache(entry.getKey());
-                for (String role : entry.getValue()) {
-                    evaluation.addRole(KEY_SUBJECT, entry.getKey(), role, data != null && isRoleDefined(data, role),
-                            config.getAuditTarget() == ExternalPdpMode.FILTER ? Boolean.valueOf(response != null) : null,
-                            null);
+            final PdpRequest pr = new PdpRequest(flow, manager.newDeadline());
+            if (authoritativeSimulator == null) {
+                pr.evaluation = filterShadowEvaluation(ctx, principal, accessTokenRequest, principalDomain, response,
+                        legacyRoles, audience, pr.requestId);
+            } else {
+                try {
+                    authoritativeSimulator.processFlow(ctx, principal, accessTokenRequest, principalDomain, caller, pr);
+                } catch (SimulationCaptured captured) {
+                    // the flow built its evaluation and stopped at the pdp call
+                } catch (ResourceException ex) {
+                    final String diff = legacyStatus == ResourceException.OK ? DIFF_TARGET_REJECT : DIFF_MATCH_DENY;
+                    shadowLog(pr.requestId, flow, principal.getFullName(), audience, legacyStatus, legacyRoles)
+                            .with("target_status", ex.getCode())
+                            .with("undefined_roles", pr.undefinedRoles.isEmpty() ? null : pr.undefinedRoles)
+                            .with("outcome", diff).write();
+                    services.metric.increment(METRIC_AUDIT_DIFF, "flow", flow, "outcome", diff);
+                    return;
                 }
             }
-            final boolean queued = manager.submitAudit(() -> runShadow(evaluation, issuedRoles, legacyStatus,
-                    requestId, flow, principal.getFullName(), audience));
+            final boolean queued = manager.submitAudit(() -> runShadow(pr.evaluation, legacyRoles, legacyStatus,
+                    pr.requestId, flow, principal.getFullName(), audience, pr.undefinedRoles));
             if (!queued) {
                 services.metric.increment(METRIC_EVAL, "mode", mode.name(), "flow", flow, "outcome", OUTCOME_AUDIT_DROPPED);
             }
@@ -1612,25 +1665,69 @@ public class ExternalPdpTokenProcessor implements Closeable {
         }
     }
 
-    void runShadow(final ExternalPdpEvaluation evaluation, final Map<String, Set<String>> issuedRoles,
-            int legacyStatus, final String requestId, final String flow, final String principalName,
-            final String audience) {
+    // FILTER can only narrow the RBAC result, so the candidates are the roles
+    // issued by the legacy path or, if it denied the request, the requested roles
 
-        ExternalPdpDecisionLog log = new ExternalPdpDecisionLog(requestId, mode, flow)
+    ExternalPdpEvaluation filterShadowEvaluation(final ResourceContext ctx, final Principal principal,
+            final AccessTokenRequest accessTokenRequest, final String principalDomain,
+            final AccessTokenResponse response, final Map<String, Set<String>> legacyRoles, final String audience,
+            final String requestId) throws java.text.ParseException {
+
+        final Map<String, Set<String>> candidates = response == null
+                ? requestedRoles(accessTokenRequest, principalDomain) : legacyRoles;
+        final String subjectName = response == null ? shadowSubjectName(accessTokenRequest, principal)
+                : issuedSubject(response.getAccess_token(), principal);
+        final Subject subject = subjectName.equals(principal.getFullName()) ? builder.subject(principal)
+                : builder.subject(subjectName);
+        ExternalPdpEvaluation evaluation = new ExternalPdpEvaluation(subject, requestContext(ctx, principal,
+                accessTokenRequest, requestId, audience, null, ExternalPdpMode.AUDIT),
+                AuthZenRequestBuilder.tokenResource(audience == null ? "" : audience, candidates.keySet()));
+        for (Map.Entry<String, Set<String>> entry : candidates.entrySet()) {
+            final DataCache data = services.dataStore.getDataCache(entry.getKey());
+            for (String role : entry.getValue()) {
+                evaluation.addRole(KEY_SUBJECT, entry.getKey(), role, data != null && isRoleDefined(data, role),
+                        response != null, null);
+            }
+        }
+        return evaluation;
+    }
+
+    ExternalPdpDecisionLog shadowLog(final String requestId, final String flow, final String principalName,
+            final String audience, int legacyStatus, final Map<String, Set<String>> legacyRoles) {
+        return new ExternalPdpDecisionLog(requestId, mode, flow)
                 .with("audit_target", config.getAuditTarget().name())
                 .with("principal", principalName)
                 .with("audience", audience)
                 .with("legacy_status", legacyStatus)
-                .with("legacy_roles", issuedRoles);
+                .with("legacy_roles", legacyRoles);
+    }
+
+    String runShadow(final ExternalPdpEvaluation evaluation, final Map<String, Set<String>> legacyRoles,
+            int legacyStatus, final String requestId, final String flow, final String principalName,
+            final String audience, final List<String> undefinedRoles) {
+
+        ExternalPdpDecisionLog log = shadowLog(requestId, flow, principalName, audience, legacyStatus, legacyRoles)
+                .with("candidate_roles", evaluation.getCandidates())
+                .with("undefined_roles", undefinedRoles.isEmpty() ? null : undefinedRoles);
         String diff;
         try {
             ExternalPdpDecision decision = evaluation.decide(
                     manager.evaluations(evaluation.toRequest(), manager.newDeadline()));
-            diff = auditDiff(decision, issuedRoles, legacyStatus == ResourceException.OK);
+            final AdditionalClaimsValidator.Result claims = validateClaims(decision);
+            final Map<String, Set<String>> simulatedRoles = simulatedRoles(evaluation, decision);
+            final boolean denied = simulatedRoles == null || !decision.isGatePermitted()
+                    || !decision.isPermissionGranted(KEY_SOURCE_EXCHANGE)
+                    || !decision.isPermissionGranted(KEY_TARGET_EXCHANGE)
+                    || claims != null && claims.isFailed();
+            diff = auditDiff(denied, simulatedRoles, legacyRoles, legacyStatus == ResourceException.OK);
             log.with("gate", decision.isGatePermitted())
                     .with("permitted_roles", decision.getPermittedRoles())
+                    .with("simulated_roles", simulatedRoles)
                     .with("max_expires_in", decision.getMaxExpiresIn())
-                    .with("claim_names", decision.getClaims() == null ? null : new ArrayList<>(decision.getClaims().keySet()))
+                    .with("claim_names", claims == null || claims.getAccepted().isEmpty() ? null
+                            : new ArrayList<>(claims.getAccepted().keySet()))
+                    .with("claims_rejected", claims == null || claims.getRejected().isEmpty() ? null
+                            : claims.getRejected())
                     .with("reasons", decision.getReasons().isEmpty() ? null : decision.getReasons());
         } catch (ExternalPdpException ex) {
             diff = ex.getCode() == ExternalPdpException.Code.TIMEOUT ? OUTCOME_TIMEOUT : OUTCOME_ERROR;
@@ -1638,24 +1735,61 @@ public class ExternalPdpTokenProcessor implements Closeable {
         }
         log.with("outcome", diff).write();
         services.metric.increment(METRIC_AUDIT_DIFF, "flow", flow, "outcome", diff);
+        return diff;
     }
 
-    static String auditDiff(final ExternalPdpDecision decision, final Map<String, Set<String>> issuedRoles,
-            boolean legacyIssued) {
-        boolean anyPermitted = false;
-        boolean allPermitted = true;
-        for (Map.Entry<String, Set<String>> entry : issuedRoles.entrySet()) {
-            Set<String> permitted = decision.getPermittedRoles(KEY_SUBJECT, entry.getKey());
-            anyPermitted |= !permitted.isEmpty();
-            allPermitted &= permitted.containsAll(entry.getValue());
+    /**
+     * The roles an enforcing flow would issue: subject roles the PDP permitted,
+     * limited to the client permitted roles where the client was evaluated.
+     * @return roles by domain, or null if a candidate domain has no permitted role (the flow rejects the request)
+     */
+    static Map<String, Set<String>> simulatedRoles(final ExternalPdpEvaluation evaluation,
+            final ExternalPdpDecision decision) {
+        final Map<String, Set<String>> subjectCandidates = evaluation.getCandidates().get(KEY_SUBJECT);
+        if (subjectCandidates == null) {
+            return null;
         }
+        final Map<String, Set<String>> clientCandidates = evaluation.getCandidates()
+                .getOrDefault(KEY_CLIENT, Collections.emptyMap());
+        Map<String, Set<String>> roles = new TreeMap<>();
+        for (String domain : subjectCandidates.keySet()) {
+            Set<String> permitted = decision.getPermittedRoles(KEY_SUBJECT, domain);
+            if (clientCandidates.containsKey(domain)) {
+                permitted.retainAll(decision.getPermittedRoles(KEY_CLIENT, domain));
+            }
+            if (permitted.isEmpty()) {
+                return null;
+            }
+            roles.put(domain, permitted);
+        }
+        return roles;
+    }
+
+    static String auditDiff(boolean denied, final Map<String, Set<String>> simulatedRoles,
+            final Map<String, Set<String>> legacyRoles, boolean legacyIssued) {
         if (!legacyIssued) {
-            return decision.isGatePermitted() && anyPermitted ? "pdp_permit_legacy_deny" : "match_deny";
+            return denied ? DIFF_MATCH_DENY : DIFF_PDP_PERMIT_LEGACY_DENY;
         }
-        if (!decision.isGatePermitted() || !anyPermitted) {
-            return "pdp_deny";
+        if (denied) {
+            return DIFF_PDP_DENY;
         }
-        return allPermitted ? "match" : "pdp_narrower";
+        if (simulatedRoles.equals(legacyRoles)) {
+            return DIFF_MATCH;
+        }
+        if (containsAll(legacyRoles, simulatedRoles)) {
+            return DIFF_PDP_NARROWER;
+        }
+        return containsAll(simulatedRoles, legacyRoles) ? DIFF_PDP_BROADER : DIFF_PDP_MISMATCH;
+    }
+
+    static boolean containsAll(final Map<String, Set<String>> outer, final Map<String, Set<String>> inner) {
+        for (Map.Entry<String, Set<String>> entry : inner.entrySet()) {
+            final Set<String> roles = outer.get(entry.getKey());
+            if (roles == null || !roles.containsAll(entry.getValue())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     static Map<String, Set<String>> issuedRoles(final String accessToken, final String audience)
