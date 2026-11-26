@@ -75,6 +75,7 @@ import com.yahoo.athenz.zts.store.CloudStore;
 import com.yahoo.athenz.zts.store.DataStore;
 import com.yahoo.athenz.zts.store.MockCloudStore;
 import com.yahoo.athenz.zts.store.MockZMSFileChangeLogStore;
+import com.yahoo.athenz.zts.token.TokenIssuanceConfig;
 import com.yahoo.athenz.zts.token.AccessTokenScope;
 import com.yahoo.athenz.zts.token.IdTokenScope;
 import com.yahoo.athenz.zts.utils.ZTSUtils;
@@ -2717,14 +2718,14 @@ public class ZTSImplTest {
     @Test
     public void testDetermineAccessIdTokenTimeout() {
         assertEquals(zts.determineAccessIdTokenTimeout(3600), 3600);
-        assertEquals(zts.determineAccessIdTokenTimeout(360000), zts.idTokenMaxTimeout);
+        assertEquals(zts.determineAccessIdTokenTimeout(360000), zts.tokenIssuanceConfig.getIdTokenMaxTimeout());
     }
 
     @Test
     public void testDetermineOIDCIdTokenTimeout() {
-        assertEquals(zts.determineOIDCIdTokenTimeout("athenz", "athenz.api",    null), zts.idTokenMaxTimeout);
-        assertEquals(zts.determineOIDCIdTokenTimeout("athenz", "athenz.api", zts.idTokenMaxTimeout + 1), zts.idTokenMaxTimeout);
-        assertEquals(zts.determineOIDCIdTokenTimeout("athenz", "athenz.api", zts.idTokenMaxTimeout - 1), zts.idTokenMaxTimeout - 1);
+        assertEquals(zts.determineOIDCIdTokenTimeout("athenz", "athenz.api",    null), zts.tokenIssuanceConfig.getIdTokenMaxTimeout());
+        assertEquals(zts.determineOIDCIdTokenTimeout("athenz", "athenz.api", zts.tokenIssuanceConfig.getIdTokenMaxTimeout() + 1), zts.tokenIssuanceConfig.getIdTokenMaxTimeout());
+        assertEquals(zts.determineOIDCIdTokenTimeout("athenz", "athenz.api", zts.tokenIssuanceConfig.getIdTokenMaxTimeout() - 1), zts.tokenIssuanceConfig.getIdTokenMaxTimeout() - 1);
         assertEquals(zts.determineOIDCIdTokenTimeout("user", "user.joe", null), zts.idTokenDefaultTimeout);
         assertEquals(zts.determineOIDCIdTokenTimeout("user", "user.joe", zts.idTokenDefaultTimeout + 1), zts.idTokenDefaultTimeout);
         assertEquals(zts.determineOIDCIdTokenTimeout("user", "user.joe", zts.idTokenDefaultTimeout - 1), zts.idTokenDefaultTimeout - 1);
@@ -10462,7 +10463,7 @@ public class ZTSImplTest {
 
         ZTSImpl ztsImpl = new ZTSImpl(mockCloudStore, store);
 
-        assertNull(ztsImpl.authorizedProxyUsers);
+        assertNull(ztsImpl.tokenIssuanceConfig.getAuthorizedProxyUsers());
         assertNull(ztsImpl.authFreeUriList);
         assertNull(ztsImpl.authFreeUriSet);
         assertNull(ztsImpl.validCertSubjectOrgValues);
@@ -12774,7 +12775,7 @@ public class ZTSImplTest {
         System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "src/test/resources/system_invalid_authz_details.json");
 
         try {
-            zts.loadSystemAuthorizationDetails();
+            TokenIssuanceConfig.loadSystemAuthorizationDetails();
             fail();
         } catch (IllegalArgumentException ex) {
             assertTrue(ex.getMessage().contains("Invalid authorization details file"));
@@ -12785,7 +12786,7 @@ public class ZTSImplTest {
         System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "src/test/resources/system_empty_authz_details.json");
 
         try {
-            zts.loadSystemAuthorizationDetails();
+            TokenIssuanceConfig.loadSystemAuthorizationDetails();
             fail();
         } catch (IllegalArgumentException ex) {
             assertTrue(ex.getMessage().contains("Invalid authorization details file"));
@@ -12796,7 +12797,7 @@ public class ZTSImplTest {
         System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "invalid_authz_details.json");
 
         try {
-            zts.loadSystemAuthorizationDetails();
+            TokenIssuanceConfig.loadSystemAuthorizationDetails();
             fail();
         } catch (IllegalArgumentException ex) {
             assertTrue(ex.getMessage().contains("Invalid authorization details file"));
@@ -12805,17 +12806,18 @@ public class ZTSImplTest {
         // finally a valid authz details file
 
         System.setProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH, "src/test/resources/system_multiple_authz_details.json");
-        zts.loadSystemAuthorizationDetails();
-        assertNotNull(zts.systemAuthzDetails);
+        zts.loadTokenIssuanceConfig();
+        assertNotNull(zts.tokenIssuanceConfig.getSystemAuthzDetails());
 
-        List<AuthzDetailsEntity> entities = zts.systemAuthzDetails.getEntities();
+        List<AuthzDetailsEntity> entities = zts.tokenIssuanceConfig.getSystemAuthzDetails().getEntities();
         assertNotNull(entities);
         assertEquals(entities.size(), 2);
         assertEquals(entities.get(0).getType(), "proxy_access");
         assertEquals(entities.get(1).getType(), "data_access");
 
         System.clearProperty(ZTSConsts.ZTS_PROP_SYSTEM_AUTHZ_DETAILS_PATH);
-        zts.systemAuthzDetails = null;
+        zts.loadTokenIssuanceConfig();
+        assertNull(zts.tokenIssuanceConfig.getSystemAuthzDetails());
     }
 
     @Test
@@ -15939,7 +15941,7 @@ public class ZTSImplTest {
         // for a service domain (non-user), the max timeout (12 hours) should be used
         long iat = claimsSet.getIssueTime().getTime() / 1000;
         long exp = claimsSet.getExpirationTime().getTime() / 1000;
-        assertEquals(exp - iat, ztsImpl.idTokenMaxTimeout);
+        assertEquals(exp - iat, ztsImpl.tokenIssuanceConfig.getIdTokenMaxTimeout());
     }
 
     @Test
@@ -16075,10 +16077,11 @@ public class ZTSImplTest {
         // with the feature disabled we're not going to log anything
         // regardless of the requested role list
 
-        assertFalse(zts.logUnrequestedRolesEnabled);
+        assertFalse(zts.tokenIssuanceConfig.isLogUnrequestedRolesEnabled());
         zts.logUnrequestedRoles("athenz.production", new String[] { "readers" }, roles);
 
-        zts.logUnrequestedRolesEnabled = true;
+        final TokenIssuanceConfig savedConfig = zts.tokenIssuanceConfig;
+        zts.tokenIssuanceConfig = new TokenIssuanceConfig.Builder(savedConfig).logUnrequestedRolesEnabled(true).build();
 
         // with null or empty requested role list there is nothing to log
 
@@ -16098,7 +16101,7 @@ public class ZTSImplTest {
 
         zts.logUnrequestedRoles("athenz.production", new String[] { "editors" }, roles);
 
-        zts.logUnrequestedRolesEnabled = false;
+        zts.tokenIssuanceConfig = savedConfig;
     }
 
     @Test
@@ -16107,7 +16110,7 @@ public class ZTSImplTest {
         System.setProperty(ZTSConsts.ZTS_PROP_LOG_UNREQUESTED_ROLES, "true");
 
         ZTSImpl ztsImpl = new ZTSImpl(cloudStore, store);
-        assertTrue(ztsImpl.logUnrequestedRolesEnabled);
+        assertTrue(ztsImpl.tokenIssuanceConfig.isLogUnrequestedRolesEnabled());
 
         System.clearProperty(ZTSConsts.ZTS_PROP_LOG_UNREQUESTED_ROLES);
     }
