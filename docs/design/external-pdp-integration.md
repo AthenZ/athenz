@@ -305,7 +305,7 @@ overridden for PDPs that mount AuthZEN elsewhere.
 | `batch_enabled` | `true` | `true`: one `POST {base}{evaluations_path}` per token request. `false`: `AuthZenHttpPdp` fans out `POST {base}{evaluation_path}` per item, in parallel on the context executor and bounded by the deadline (level-B PDPs). |
 | `evaluations_path` | `/access/v1/evaluations` | AuthZEN batch endpoint. |
 | `evaluation_path` | `/access/v1/evaluation` | AuthZEN single endpoint. |
-| `discovery` | `false` | Read the AuthZEN metadata once at startup and derive endpoints and batch capability from it. Per AuthZEN 1.0 section 9.2, the well-known segment is inserted between the host and the base path (`https://host/.well-known/authzen-configuration/base-path`). The document's `policy_decision_point` must equal the configured endpoint, ignoring a trailing slash (section 9.2.3). Discovered endpoints must have the same scheme, host and port as the configured base URI. Explicit properties override discovered values. |
+| `discovery` | `false` | Read the AuthZEN metadata once at startup and derive endpoints and batch capability from it. Per AuthZEN 1.0 section 9.2, the well-known segment is inserted between the host and the base path (`https://host/.well-known/authzen-configuration/base-path`). The document's `policy_decision_point` must equal the configured endpoint, ignoring a trailing slash (section 9.2.3). Discovered endpoints must have the same scheme, host and port as the configured base URI. A document without `access_evaluations_endpoint` disables batching. Explicit properties override discovered values. |
 
 **Transport and handling.**
 
@@ -351,7 +351,8 @@ overridden for PDPs that mount AuthZEN elsewhere.
   AuthZEN). ZTS generates a UUID per token request and logs it with the decision.
 - **Status handling:** `200` responses are parsed into the model. Everything else is an
   `ExternalPdpException`. Responses larger than `max_response_bytes` (default 64 KB) are
-  rejected.
+  rejected, and the connection is discarded rather than drained, so a PDP that keeps
+  streaming can't hold a worker past the limit.
 - **Connection management:** pooled Apache connector (the same connector stack as
   `InstanceProviderClient`). Pool size is aligned with the bulkhead size.
 
@@ -521,7 +522,10 @@ receive the same Java objects.
 | JAG exchange check | `zts.jag_exchange` |
 
 Exchange action names match the existing `ZTSConsts.ZTS_ACTION_*` values, so policies
-ported from Athenz map one-to-one.
+ported from Athenz map one-to-one. Per-role exchange permissions are tied to their
+candidate role (`ExternalPdpEvaluation.addRolePermission`) and are checked only for
+the roles the PDP permitted (`ExternalPdpDecision.isPermissionGranted(key, roles)`),
+in the enforcing flows and in the AUDIT simulation.
 
 **Request context** (top-level `context`, inherited by every evaluation)
 

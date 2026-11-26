@@ -1075,8 +1075,9 @@ public class ExternalPdpTokenProcessor implements Closeable {
             }
             for (String role : roles) {
                 evaluation.addRole(KEY_SUBJECT, requestDomainName, role, isRoleDefined(targetData, role), null, null);
-                evaluation.addPermission(KEY_TARGET_EXCHANGE, ZTSConsts.ZTS_ACTION_TOKEN_TARGET_EXCHANGE,
-                        requestDomainName + ":" + ResourceUtils.roleResourceName(sourceDomainName, role), clientSubject);
+                evaluation.addRolePermission(KEY_TARGET_EXCHANGE, ZTSConsts.ZTS_ACTION_TOKEN_TARGET_EXCHANGE,
+                        requestDomainName + ":" + ResourceUtils.roleResourceName(sourceDomainName, role), clientSubject,
+                        requestDomainName, role);
             }
         }
 
@@ -1089,14 +1090,15 @@ public class ExternalPdpTokenProcessor implements Closeable {
             throw forbiddenError("Principal not authorized for token impersonation from source domain",
                     caller, requestDomainName, principalDomain);
         }
-        if (!decision.isPermissionGranted(KEY_TARGET_EXCHANGE)) {
-            throw forbiddenError("Principal not authorized for token exchange for the requested role",
-                    caller, requestDomainName, principalDomain);
-        }
         Set<String> permittedRoles = decision.getPermittedRoles(KEY_SUBJECT, requestDomainName);
         if (permittedRoles.isEmpty()) {
             throw forbiddenError(TokenIssuancePolicy.tokenErrorMessage(caller, subjectPrincipal, requestDomainName,
                     requestedRoles), caller, requestDomainName, principalDomain);
+        }
+        if (!decision.isPermissionGranted(KEY_TARGET_EXCHANGE,
+                Collections.singletonMap(requestDomainName, permittedRoles))) {
+            throw forbiddenError("Principal not authorized for token exchange for the requested role",
+                    caller, requestDomainName, principalDomain);
         }
         pr.finalRoles = Collections.singletonMap(requestDomainName, permittedRoles);
 
@@ -1319,8 +1321,9 @@ public class ExternalPdpTokenProcessor implements Closeable {
                 }
                 for (String subjectRole : subjectRoles) {
                     evaluation.addRole(KEY_SUBJECT, domainName, subjectRole, isRoleDefined(data, subjectRole), null, null);
-                    evaluation.addPermission(KEY_TARGET_EXCHANGE, ZTSConsts.ZTS_ACTION_JAG_EXCHANGE,
-                            ResourceUtils.roleResourceName(domainName, subjectRole), clientSubject);
+                    evaluation.addRolePermission(KEY_TARGET_EXCHANGE, ZTSConsts.ZTS_ACTION_JAG_EXCHANGE,
+                            ResourceUtils.roleResourceName(domainName, subjectRole), clientSubject,
+                            domainName, subjectRole);
                 }
             }
         }
@@ -1330,11 +1333,6 @@ public class ExternalPdpTokenProcessor implements Closeable {
             throw forbiddenError(TokenIssuancePolicy.tokenErrorMessage(caller, subjectIdentity, requestDomainName, null),
                     caller, requestDomainName, principalDomain);
         }
-        if (!decision.isPermissionGranted(KEY_TARGET_EXCHANGE)) {
-            throw forbiddenError("Principal not authorized for token exchange for the requested role",
-                    caller, requestDomainName, principalDomain);
-        }
-
         Map<String, Set<String>> subjectRolesByDomain = new HashMap<>();
         int tokenTimeout = Integer.MAX_VALUE;
         for (String domainName : scopeDomainNames) {
@@ -1347,6 +1345,10 @@ public class ExternalPdpTokenProcessor implements Closeable {
             int domainTokenTimeout = determineTokenTimeout(dataByDomain.get(domainName), subjectRoles, null,
                     accessTokenRequest.getExpiryTime());
             tokenTimeout = Math.min(tokenTimeout, domainTokenTimeout);
+        }
+        if (!decision.isPermissionGranted(KEY_TARGET_EXCHANGE, subjectRolesByDomain)) {
+            throw forbiddenError("Principal not authorized for token exchange for the requested role",
+                    caller, requestDomainName, principalDomain);
         }
         tokenTimeout = applyMaxExpiry(tokenTimeout, decision);
         pr.finalRoles = subjectRolesByDomain;
@@ -1717,7 +1719,7 @@ public class ExternalPdpTokenProcessor implements Closeable {
             final Map<String, Set<String>> simulatedRoles = simulatedRoles(evaluation, decision);
             final boolean denied = simulatedRoles == null || !decision.isGatePermitted()
                     || !decision.isPermissionGranted(KEY_SOURCE_EXCHANGE)
-                    || !decision.isPermissionGranted(KEY_TARGET_EXCHANGE)
+                    || !decision.isPermissionGranted(KEY_TARGET_EXCHANGE, simulatedRoles)
                     || claims != null && claims.isFailed();
             diff = auditDiff(denied, simulatedRoles, legacyRoles, legacyStatus == ResourceException.OK);
             log.with("gate", decision.isGatePermitted())

@@ -111,6 +111,19 @@ public class ExternalPdpTokenProcessorTest {
             return request -> respond(request, deniedIds, gate, gateContext);
         }
 
+        // denies items whose "type/id" is listed, to tell role and permission items with the same id apart
+        static Handler denyTyped(Set<String> deniedTypedIds) {
+            return request -> {
+                List<EvaluationResponse> results = new ArrayList<>();
+                for (int i = 0; i < request.getEvaluations().size(); i++) {
+                    Resource resource = request.getEvaluations().get(i).getResource();
+                    results.add(new EvaluationResponse(i == 0
+                            || !deniedTypedIds.contains(resource.getType() + "/" + resource.getId()), null));
+                }
+                return new EvaluationsResponse(results);
+            };
+        }
+
         static EvaluationsResponse respond(EvaluationsRequest request, Set<String> deniedIds, boolean gate,
                 Map<String, Object> gateContext) {
             List<EvaluationResponse> results = new ArrayList<>();
@@ -962,6 +975,15 @@ public class ExternalPdpTokenProcessorTest {
         assertEquals(status(() -> processor.process(ctx, client, request, "weather", "api")),
                 ResourceException.FORBIDDEN);
 
+        // exchange permissions only matter for the roles the pdp permitted
+        pdp.handler = FakePdp.denyTyped(Set.of("athenz_role/coretech:role.writers",
+                "athenz_resource/coretech:weather:role.writers"));
+        response = processor.process(ctx, client, request, "weather", "api");
+        assertEquals(response.getScope(), "coretech:role.readers");
+        pdp.handler = FakePdp.denyTyped(Set.of("athenz_resource/coretech:weather:role.writers"));
+        assertEquals(status(() -> processor.process(ctx, client, request, "weather", "api")),
+                ResourceException.FORBIDDEN);
+
         AccessTokenRequest undefined = exchangeRequest(null);
         Mockito.when(undefined.getSubjectTokenObj().getClaim(AccessToken.CLAIM_SCOPE_STD))
                 .thenReturn("coretech:role.unknown");
@@ -1123,6 +1145,15 @@ public class ExternalPdpTokenProcessorTest {
                 "coretech", "api")), ResourceException.FORBIDDEN);
         assertEquals(status(() -> processor.process(ctx, client, jagIssueRequest("coretech:role.unknown"),
                 "coretech", "api")), ResourceException.FORBIDDEN);
+
+        // exchange permissions only matter for the roles the pdp permitted
+        final AccessTokenRequest twoRoles = jagIssueRequest("coretech:role.readers coretech:role.writers");
+        pdp.handler = FakePdp.denyTyped(Set.of("athenz_role/coretech:role.writers",
+                "athenz_resource/coretech:role.writers"));
+        assertEquals(processor.process(ctx, client, twoRoles, "coretech", "api").getScope(), "coretech:role.readers");
+        pdp.handler = FakePdp.denyTyped(Set.of("athenz_resource/coretech:role.writers"));
+        assertEquals(status(() -> processor.process(ctx, client, twoRoles, "coretech", "api")),
+                ResourceException.FORBIDDEN);
     }
 
     private AccessTokenRequest jagExchangeRequest(String scope) {
@@ -1251,6 +1282,30 @@ public class ExternalPdpTokenProcessorTest {
         assertEquals(claims(response.getAccess_token()).get("scp"), List.of("admin"));
         assertEquals(status(() -> processor.process(ctx, client, jagExchangeRequest("coretech:role.unknown"),
                 "coretech", "api")), ResourceException.FORBIDDEN);
+    }
+
+    @Test
+    public void testAuditShadowRolePermissions() {
+        enable(ExternalPdpMode.AUDIT);
+        Map<String, Set<String>> legacy = Map.of("coretech", Set.of("readers"));
+        java.util.function.Supplier<com.yahoo.athenz.zts.pdp.ExternalPdpEvaluation> evaluation = () -> {
+            com.yahoo.athenz.zts.pdp.ExternalPdpEvaluation e = new com.yahoo.athenz.zts.pdp.ExternalPdpEvaluation(
+                    new Subject("user", USER, null), null,
+                    com.yahoo.athenz.zts.pdp.AuthZenRequestBuilder.tokenResource("coretech", Set.of("coretech")));
+            for (String role : new String[] { "readers", "writers" }) {
+                e.addRole("subject", "coretech", role, true, null, null);
+                e.addRolePermission("target_exchange", "zts.jag_exchange", "coretech:role." + role, null,
+                        "coretech", role);
+            }
+            return e;
+        };
+
+        pdp.handler = FakePdp.denyTyped(Set.of("athenz_role/coretech:role.writers", "athenz_resource/coretech:role.writers"));
+        assertEquals(processor.runShadow(evaluation.get(), legacy, ResourceException.OK, "r1",
+                "jag_exchange", USER, "coretech", Collections.emptyList()), "match");
+        pdp.handler = FakePdp.denyTyped(Set.of("athenz_resource/coretech:role.writers"));
+        assertEquals(processor.runShadow(evaluation.get(), legacy, ResourceException.OK, "r1",
+                "jag_exchange", USER, "coretech", Collections.emptyList()), "pdp_deny");
     }
 
     // ------------------------------------------------------------ extra branches

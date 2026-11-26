@@ -19,16 +19,17 @@ package com.yahoo.athenz.common.server.pdp.impl;
 import com.yahoo.athenz.common.server.pdp.ExternalPdpException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
-import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.Timeout;
 
@@ -112,7 +113,7 @@ public class AuthZenHttpClient implements Closeable {
         return execute(new HttpGet(url), headers);
     }
 
-    String execute(final ClassicHttpRequest request, final Map<String, String> headers)
+    String execute(final HttpUriRequestBase request, final Map<String, String> headers)
             throws ExternalPdpException {
 
         request.setHeader("Accept", ContentType.APPLICATION_JSON.getMimeType());
@@ -122,7 +123,7 @@ public class AuthZenHttpClient implements Closeable {
 
         HttpResult result;
         try {
-            result = client.execute(request, this::readResponse);
+            result = client.execute(request, response -> readResponse(response, request));
         } catch (InterruptedIOException ex) {
             throw new ExternalPdpException(ExternalPdpException.Code.TIMEOUT, "pdp request timed out", ex);
         } catch (IOException ex) {
@@ -143,7 +144,7 @@ public class AuthZenHttpClient implements Closeable {
         throw new ExternalPdpException(code, "pdp returned status " + result.status);
     }
 
-    HttpResult readResponse(final ClassicHttpResponse response) throws IOException {
+    HttpResult readResponse(final ClassicHttpResponse response, final Cancellable exchange) throws IOException {
         final HttpEntity entity = response.getEntity();
         if (entity == null) {
             return new HttpResult(response.getCode(), "", false);
@@ -154,6 +155,8 @@ public class AuthZenHttpClient implements Closeable {
             int read;
             while ((read = in.read(buffer)) != -1) {
                 if (out.size() + read > maxResponseBytes) {
+                    // closing the stream would drain the rest of the body; discard the connection instead
+                    exchange.cancel();
                     return new HttpResult(response.getCode(), null, true);
                 }
                 out.write(buffer, 0, read);

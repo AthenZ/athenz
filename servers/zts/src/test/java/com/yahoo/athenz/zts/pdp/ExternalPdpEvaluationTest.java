@@ -140,6 +140,37 @@ public class ExternalPdpEvaluationTest {
     }
 
     @Test
+    public void testRolePermissions() throws ExternalPdpException {
+        ExternalPdpEvaluation evaluation = new ExternalPdpEvaluation(new Subject("service", "sports.api", null),
+                null, AuthZenRequestBuilder.tokenResource("sports", List.of("sports")));
+        evaluation.addPermission("source", "zts.token_source_exchange", "weather:sports", null);
+        evaluation.addRole("subject", "sports", "readers", true, null, null);
+        evaluation.addRolePermission("target", "zts.jag_exchange", "sports:role.readers", null, "sports", "readers");
+        evaluation.addRole("subject", "sports", "writers", true, null, null);
+        evaluation.addRolePermission("target", "zts.jag_exchange", "sports:role.writers", null, "sports", "writers");
+        assertEquals(evaluation.toRequest().getEvaluations().get(3).getAction().getName(), "zts.jag_exchange");
+
+        // writers and its permission denied: only the readers permission applies
+        ExternalPdpDecision decision = evaluation.decide(response(null, true, true, true, true, false, false));
+        Map<String, Set<String>> permitted = Map.of("sports", decision.getPermittedRoles("subject", "sports"));
+        assertEquals(permitted, Map.of("sports", Set.of("readers")));
+        assertTrue(decision.isPermissionGranted("source"));
+        assertTrue(decision.isPermissionGranted("target"));
+        assertTrue(decision.isPermissionGranted("target", permitted));
+        assertFalse(decision.isPermissionGranted("target", Map.of("sports", Set.of("readers", "writers"))));
+        // roles without a tied permission and unknown keys are not restricted
+        assertTrue(decision.isPermissionGranted("target", Map.of("weather", Set.of("readers"))));
+        assertTrue(decision.isPermissionGranted("none", permitted));
+
+        // a denied role-independent permission denies the key regardless of roles
+        decision = evaluation.decide(response(null, true, false, true, true, true, true));
+        assertFalse(decision.isPermissionGranted("source", Collections.emptyMap()));
+
+        decision = evaluation.failOpen(60);
+        assertTrue(decision.isPermissionGranted("target", Map.of("sports", Set.of("readers", "writers"))));
+    }
+
+    @Test
     public void testFailOpen() {
         ExternalPdpDecision decision = evaluation().failOpen(120);
         assertTrue(decision.isFailOpen());

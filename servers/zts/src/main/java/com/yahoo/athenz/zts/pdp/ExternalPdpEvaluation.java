@@ -114,6 +114,23 @@ public final class ExternalPdpEvaluation {
     }
 
     /**
+     * Add a permission evaluation that only applies if the given candidate
+     * role is permitted; see {@link ExternalPdpDecision#isPermissionGranted(String, Map)}.
+     * @param key group key for the permission decision
+     * @param action action name
+     * @param resource Athenz resource string
+     * @param subjectOverride subject for this evaluation, null to use the default subject
+     * @param domain domain of the candidate role the permission is tied to
+     * @param role candidate role the permission is tied to
+     */
+    public void addRolePermission(final String key, final String action, final String resource,
+            final Subject subjectOverride, final String domain, final String role) {
+        items.add(new EvaluationRequest(subjectOverride, AuthZenRequestBuilder.action(action),
+                AuthZenRequestBuilder.athenzResource(resource), null));
+        entries.add(new Entry(Kind.PERMISSION, key, domain, role));
+    }
+
+    /**
      * @return the AuthZEN batch request for all collected evaluations
      */
     public EvaluationsRequest toRequest() {
@@ -153,7 +170,7 @@ public final class ExternalPdpEvaluation {
                     builder.role(entry.key, entry.domain, entry.role, result.getDecision());
                     break;
                 default:
-                    builder.permission(entry.key, result.getDecision());
+                    builder.permission(entry.key, entry.domain, entry.role, result.getDecision());
                     break;
             }
         }
@@ -172,7 +189,7 @@ public final class ExternalPdpEvaluation {
             if (entry.kind == Kind.ROLE) {
                 builder.role(entry.key, entry.domain, entry.role, true);
             } else if (entry.kind == Kind.PERMISSION) {
-                builder.permission(entry.key, true);
+                builder.permission(entry.key, entry.domain, entry.role, true);
             }
         }
         return builder.build();

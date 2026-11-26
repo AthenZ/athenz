@@ -205,9 +205,14 @@ public class AuthZenHttpPdpTest {
         System.setProperty(AuthZenHttpPdp.PROP_DISCOVERY, "true");
         final String base = server.baseUrl() + "/pdp";
 
-        // a trailing slash on the identifier is accepted
+        // a trailing slash on the identifier is accepted; with no batch endpoint
+        // advertised, batching is disabled unless explicitly configured
         discoveryDoc.set("{\"policy_decision_point\":\"" + base + "/\"}");
-        assertNotNull(pdp(null));
+        AuthZenHttpPdp pdp = pdp(null);
+        assertFalse(pdp.isBatchEnabled());
+        assertEquals(pdp.getEvaluationUrl(), base + "/access/v1/evaluation");
+        System.setProperty(AuthZenHttpPdp.PROP_BATCH_ENABLED, "true");
+        assertTrue(pdp(null).isBatchEnabled());
 
         for (String doc : new String[] { "{}", "{\"policy_decision_point\":\"" + server.baseUrl() + "\"}",
                 "{\"policy_decision_point\":\"" + base + "/tenant1\"}" }) {

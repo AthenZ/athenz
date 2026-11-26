@@ -130,7 +130,9 @@ For the built-in HTTPS PDP:
   `https://pdp.example.com/.well-known/authzen-configuration/tenant1`. The
   document's `policy_decision_point` must equal the configured endpoint (a trailing
   slash is ignored), otherwise ZTS fails to start. The discovered endpoints must
-  have the same scheme, host and port as the configured endpoint.
+  have the same scheme, host and port as the configured endpoint. If the document
+  has no `access_evaluations_endpoint`, ZTS sends single evaluations unless
+  `batch_enabled=true` is set explicitly.
 * **No retries.** ZTS calls the PDP once per token request, with no retries,
   redirects or cookies. A failure is handled by the mode's fail behavior (see
   [Failure Handling and Errors](#failure-handling-and-errors)).
@@ -203,7 +205,10 @@ being issued for. The calling client is in `context.client`.
 
 The exchange actions and resources are the same ones Athenz RBAC policies use today,
 so existing policies translate one-to-one. Permission evaluations use the client
-principal as their subject.
+principal as their subject. A per-role exchange permission only counts for roles the
+PDP permitted: if the PDP denies `writers`, a denied exchange permission for
+`writers` doesn't reject a token for `readers`. A denied exchange permission for a
+permitted role rejects the request.
 
 Role resource properties:
 

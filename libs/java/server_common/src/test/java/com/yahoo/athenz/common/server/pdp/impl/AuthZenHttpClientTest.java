@@ -28,8 +28,11 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.testng.Assert.*;
 
@@ -96,6 +99,20 @@ public class AuthZenHttpClientTest {
             ExternalPdpException ex = expectThrows(ExternalPdpException.class,
                     () -> client.postJson(server.baseUrl() + "/large", "{}", Collections.emptyMap()));
             assertEquals(ex.getCode(), ExternalPdpException.Code.INVALID_RESPONSE);
+        }
+    }
+
+    @Test
+    public void testStreamingResponseTooLargeAbortsExchange() throws Exception {
+        CountDownLatch clientGone = new CountDownLatch(1);
+        server.handleStream("/stream", "x".repeat(512).getBytes(StandardCharsets.UTF_8), 50, 20000, clientGone);
+        try (AuthZenHttpClient client = client(1024)) {
+            long start = System.currentTimeMillis();
+            ExternalPdpException ex = expectThrows(ExternalPdpException.class,
+                    () -> client.postJson(server.baseUrl() + "/stream", "{}", Collections.emptyMap()));
+            assertEquals(ex.getCode(), ExternalPdpException.Code.INVALID_RESPONSE);
+            assertTrue(System.currentTimeMillis() - start < 5000);
+            assertTrue(clientGone.await(5, TimeUnit.SECONDS));
         }
     }
 

@@ -38,6 +38,7 @@ public final class ExternalPdpDecision {
     private final boolean gatePermitted;
     private final Map<String, Map<String, Set<String>>> permittedRoles;
     private final Map<String, Boolean> permissions;
+    private final Map<String, Map<String, Map<String, Boolean>>> rolePermissions;
     private final Map<String, Object> claims;
     private final boolean claimsMalformed;
     private final Integer maxExpiresIn;
@@ -48,6 +49,7 @@ public final class ExternalPdpDecision {
         gatePermitted = builder.gatePermitted;
         permittedRoles = builder.permittedRoles;
         permissions = builder.permissions;
+        rolePermissions = builder.rolePermissions;
         claims = builder.claims;
         claimsMalformed = builder.claimsMalformed;
         maxExpiresIn = builder.maxExpiresIn;
@@ -82,6 +84,29 @@ public final class ExternalPdpDecision {
      */
     public boolean isPermissionGranted(final String key) {
         return permissions.getOrDefault(key, Boolean.TRUE);
+    }
+
+    /**
+     * @param key permission group key
+     * @param roles the roles being issued, by domain
+     * @return true if the role-independent permissions with the given key were
+     *      permitted and so were the role permissions tied to the given roles;
+     *      permissions tied to other roles are ignored
+     */
+    public boolean isPermissionGranted(final String key, final Map<String, Set<String>> roles) {
+        if (!isPermissionGranted(key)) {
+            return false;
+        }
+        final Map<String, Map<String, Boolean>> byDomain = rolePermissions.getOrDefault(key, Collections.emptyMap());
+        for (Map.Entry<String, Set<String>> entry : roles.entrySet()) {
+            final Map<String, Boolean> byRole = byDomain.getOrDefault(entry.getKey(), Collections.emptyMap());
+            for (String role : entry.getValue()) {
+                if (!byRole.getOrDefault(role, Boolean.TRUE)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -124,6 +149,7 @@ public final class ExternalPdpDecision {
         private boolean gatePermitted = true;
         private final Map<String, Map<String, Set<String>>> permittedRoles = new TreeMap<>();
         private final Map<String, Boolean> permissions = new HashMap<>();
+        private final Map<String, Map<String, Map<String, Boolean>>> rolePermissions = new HashMap<>();
         private Map<String, Object> claims;
         private boolean claimsMalformed;
         private Integer maxExpiresIn;
@@ -160,6 +186,15 @@ public final class ExternalPdpDecision {
 
         Builder permission(final String key, boolean decision) {
             permissions.merge(key, decision, Boolean::logicalAnd);
+            return this;
+        }
+
+        Builder permission(final String key, final String domain, final String role, boolean decision) {
+            if (role == null) {
+                return permission(key, decision);
+            }
+            rolePermissions.computeIfAbsent(key, k -> new HashMap<>()).computeIfAbsent(domain, d -> new HashMap<>())
+                    .merge(role, decision, Boolean::logicalAnd);
             return this;
         }
 

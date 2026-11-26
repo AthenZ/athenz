@@ -155,7 +155,9 @@ public class AuthZenHttpPdp implements ExternalPolicyDecisionPoint {
             throw new ExternalPdpException(ExternalPdpException.Code.INVALID_RESPONSE,
                     "discovered policy_decision_point does not match the configured pdp endpoint");
         }
+        // keeping the identifier distinguishes "discovered, no batch endpoint" from "discovery disabled"
         Map<String, Object> endpoints = new HashMap<>();
+        endpoints.put(META_POLICY_DECISION_POINT, identifier.toString());
         for (String key : new String[] { META_EVALUATION_ENDPOINT, META_EVALUATIONS_ENDPOINT }) {
             Object value = metadata.get(key);
             if (value == null) {

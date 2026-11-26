@@ -41,6 +41,7 @@ import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -143,6 +144,30 @@ final class TestHttpsServer implements AutoCloseable {
                 out.write(bytes);
             } catch (IOException ignored) {
                 // client went away
+            }
+        });
+    }
+
+    /**
+     * Stream a chunked 200 response, one chunk every intervalMs, until the
+     * client goes away or maxMs elapses. The latch is released once the
+     * server notices the client closed the connection.
+     */
+    void handleStream(final String path, final byte[] chunk, long intervalMs, long maxMs,
+            final CountDownLatch clientGone) {
+        server.createContext(path, exchange -> {
+            exchange.getRequestBody().readAllBytes();
+            exchange.getResponseHeaders().add("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, 0);
+            final long end = System.currentTimeMillis() + maxMs;
+            try (OutputStream out = exchange.getResponseBody()) {
+                while (System.currentTimeMillis() < end) {
+                    out.write(chunk);
+                    out.flush();
+                    sleep(intervalMs);
+                }
+            } catch (IOException ignored) {
+                clientGone.countDown();
             }
         });
     }
