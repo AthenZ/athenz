@@ -16,7 +16,10 @@
 package com.yahoo.athenz.common.server.store.impl;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Set;
 
 import com.yahoo.athenz.common.server.ServerResourceException;
 import com.yahoo.athenz.common.server.store.ObjectStore;
@@ -29,6 +32,48 @@ import com.yahoo.athenz.common.server.db.PoolableDataSource;
 import static org.testng.Assert.*;
 
 public class JDBCObjectStoreTest {
+
+    @Test
+    public void testResourceAccessRolePairsPerQueryProperty() throws Exception {
+        String property = JDBCConsts.ZMS_PROP_JDBC_RESOURCE_ACCESS_ROLE_PAIRS_PER_QUERY;
+        String original = System.getProperty(property);
+        try {
+            System.setProperty(property, "2");
+            PoolableDataSource source = Mockito.mock(PoolableDataSource.class);
+            Connection connection = Mockito.mock(Connection.class);
+            PreparedStatement statement = Mockito.mock(PreparedStatement.class);
+            ResultSet resultSet = Mockito.mock(ResultSet.class);
+            Mockito.when(source.getConnection()).thenReturn(connection);
+            Mockito.when(connection.prepareStatement(Mockito.anyString())).thenReturn(statement);
+            Mockito.when(statement.executeQuery()).thenReturn(resultSet);
+
+            JDBCObjectStore store = new JDBCObjectStore(source, null);
+            JDBCConnection jdbcConn = (JDBCConnection) store.getConnection(true, true);
+            assertTrue(jdbcConn.getRoleAssertions(Set.of("101:role1", "101:role2", "102:role3"),
+                    null, "getRoleAssertions").isEmpty());
+            Mockito.verify(connection, Mockito.times(2)).prepareStatement(Mockito.anyString());
+            jdbcConn.close();
+
+            System.setProperty(property, "32768");
+            new JDBCObjectStore(source, null);
+
+            for (String invalid : new String[] { "0", "-1", "invalid" }) {
+                System.setProperty(property, invalid);
+                Mockito.clearInvocations(connection);
+                JDBCConnection fallbackConn = (JDBCConnection) new JDBCObjectStore(source, null).getConnection(true, true);
+                assertTrue(fallbackConn.getRoleAssertions(Set.of("101:role1", "101:role2", "102:role3"),
+                        null, "getRoleAssertions").isEmpty());
+                Mockito.verify(connection).prepareStatement(Mockito.anyString());
+                fallbackConn.close();
+            }
+        } finally {
+            if (original == null) {
+                System.clearProperty(property);
+            } else {
+                System.setProperty(property, original);
+            }
+        }
+    }
 
     @Test
     public void testGetConnection() throws Exception {
