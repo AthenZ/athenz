@@ -94,9 +94,9 @@ public class RoleAuthority implements Authority, AuthorityKeyStore {
         try {
              roleToken = new RoleToken(signedToken);
         } catch (IllegalArgumentException ex) {
+            // Parser exception messages may contain the supplied credential.
             errMsg.append("RoleAuthority:authenticate failed: Invalid token: exc=").
-                   append(ex.getMessage()).append(" : credential=").
-                   append(Token.getUnsignedToken(signedToken));
+                   append(ex.getClass().getSimpleName());
             LOG.error(errMsg.toString());
             return null;
         }

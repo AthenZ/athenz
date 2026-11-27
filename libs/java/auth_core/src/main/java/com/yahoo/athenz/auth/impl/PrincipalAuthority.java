@@ -107,9 +107,9 @@ public class PrincipalAuthority implements Authority, AuthorityKeyStore {
         try {
             serviceToken = new PrincipalToken(signedToken);
         } catch (IllegalArgumentException ex) {
+            // Parser exception messages may contain the supplied credential.
             errMsg.append("PrincipalAuthority:authenticate: Invalid token: exc=").
-                   append(ex.getMessage()).append(" : credential=").
-                   append(Token.getUnsignedToken(signedToken));
+                   append(ex.getClass().getSimpleName());
             LOG.error(errMsg.toString());
             return null;
         }
