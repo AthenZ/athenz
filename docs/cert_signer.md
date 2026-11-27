@@ -2,6 +2,7 @@
 --------------------
 
 * [Cert Signer Interfaces](#cert-signer-interfaces)
+    * [Provider Attributes](#provider-attributes)
 * [Configuration](#configuration)
 * [Provided Implementations](#provided-implementations)
     * [Self Cert Signer](#self-cert-signer)
@@ -38,6 +39,13 @@ This class implements six methods listed below:
       otherwise specified usage type: server or client) and `expiryTime` 
       which specifies requested certificate expiration time in minutes
       and returns a X509 Certificate in PEM format
+  * generateX509Certificate(CertSignerParameters): This method receives the same
+      values as the method above in a single `CertSignerParameters` object, along with
+      any attributes the instance provider marked for the signer (see
+      [Provider Attributes](#provider-attributes)). ZTS always calls this method.
+      The default implementation ignores the attributes and calls the method above,
+      so existing signers work without changes. Signers that want the
+      attributes override this method.
   * getCACertificate(): This method is to retrieve the CA certificate in PEM format that will be
       returned along with the x509 certificate back to the client.
   * generateSSHCertificate(): This method is to generate a SSH Certificate based on the given request.
@@ -50,6 +58,55 @@ This class implements six methods listed below:
 During server startup, ZTS servers will load the configured cert signer factory
 class and invoke the create method. Then it will use the CertSigner object returned
 to issue X509 certificates to requesting services.
+
+### Provider Attributes
+-----------------------
+
+An instance provider can pass key/value attributes it has validated to the
+cert signer, for example so the signer can encode workload identity context
+in a custom certificate extension. During instance register and refresh, the
+provider adds entries prefixed with `certSignerAttr:` to the attributes in the
+`InstanceConfirmation` object it returns:
+
+```
+certSignerAttr:<name> = <value>
+```
+
+ZTS removes these entries from the attributes, strips the prefix, and passes
+them to the signer in `CertSignerParameters.getAttributes()`. They are not
+returned to the client in the `InstanceIdentity` response. Attributes without
+the prefix are never forwarded to the signer. The attributes map is empty for
+role, user and external member certificates.
+
+Java providers can use the helper
+`InstanceUtils.setCertSignerAttribute(confirmation, name, value)`, which adds
+the prefix and ignores empty names and values. Remote (HTTP) providers include
+the prefixed keys in the `attributes` field of their JSON response.
+
+Guidelines for providers:
+
+* Only emit values derived from verified evidence (e.g. a signed instance
+  document or a token whose signature was verified), and only after all
+  validation has passed. Never copy client-supplied data.
+* Emit the attributes from both `confirmInstance` and `refreshInstance`.
+  Otherwise refreshed certificates won't include them.
+* Values are strings. Encode multi-valued data yourself (e.g. comma-separated)
+  and decode it in the signer.
+* Keep the set small, since the signer may include every attribute in every
+  certificate issued for that provider.
+
+The AWS providers (`InstanceAWSProvider`, `InstanceAWSECSProvider` and
+`InstanceAWSLambdaProvider`) set the following attributes (names are available as
+constants in `InstanceProvider`):
+
+| Attribute           | Value                                                    | Source                                                                                                                                      |
+|---------------------|----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| `awsRuntimeAccount` | AWS account id where the workload is running             | Signed instance identity document, account matched by the STS `GetCallerIdentity` ARN, or the `aws_account` claim of the web identity token |
+| `awsRuntimeRegion`  | AWS region where the workload is running                 | Signed instance identity document or the `source_region` claim of the web identity token                                                    |
+
+An attribute is omitted when the attestation data doesn't provide a verified
+value. For example, the region isn't available when a Lambda function or an ECS
+task authenticates with STS credentials only.
 
 ## Configuration
 ----------------

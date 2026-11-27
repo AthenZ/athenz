@@ -74,7 +74,7 @@ public class InstanceCertManagerTest {
         
         final String cert = "cert";
         final String caCert = "caCert";
-        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
+        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class, Mockito.CALLS_REAL_METHODS);
         when(certSigner.generateX509Certificate(any(), any(), any(), any(), anyInt(), any(), any())).thenReturn(cert);
         when(certSigner.getCACertificate(any(), any())).thenReturn(caCert);
         
@@ -180,7 +180,7 @@ public class InstanceCertManagerTest {
     @Test
     public void testGenerateIdentityNullCert() throws ServerResourceException {
         
-        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
+        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class, Mockito.CALLS_REAL_METHODS);
         when(certSigner.generateX509Certificate(any(), any(), any(), any(), anyInt(), any(), any())).thenReturn(null);
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(false));
@@ -196,7 +196,7 @@ public class InstanceCertManagerTest {
 
         System.clearProperty(ZTSConsts.ZTS_PROP_X509_CA_CERT_FNAME);
 
-        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
+        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class, Mockito.CALLS_REAL_METHODS);
         when(certSigner.generateX509Certificate(any(), any(), any(), any(), anyInt(), any(), any()))
                 .thenThrow(new ServerResourceException(400, "invalid get request"));
         when(certSigner.getCACertificate(any(), any()))
@@ -214,7 +214,7 @@ public class InstanceCertManagerTest {
     @Test
     public void testGenerateIdentityEmptyCert() throws ServerResourceException {
         
-        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class);
+        CertSigner certSigner = Mockito.mock(com.yahoo.athenz.common.server.cert.CertSigner.class, Mockito.CALLS_REAL_METHODS);
         when(certSigner.generateX509Certificate(any(), any(), any(), any(), anyInt(), any(), any())).thenReturn("");
 
         InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(false));
@@ -225,6 +225,101 @@ public class InstanceCertManagerTest {
         instanceManager.shutdown();
     }
     
+    private static final class CapturingCertSigner implements CertSigner {
+
+        private final String cert;
+        private final ServerResourceException exception;
+        private CertSignerParameters params;
+
+        CapturingCertSigner(final String cert, final ServerResourceException exception) {
+            this.cert = cert;
+            this.exception = exception;
+        }
+
+        @Override
+        public String generateX509Certificate(CertSignerParameters params) throws ServerResourceException {
+            this.params = params;
+            if (exception != null) {
+                throw exception;
+            }
+            return cert;
+        }
+    }
+
+    @Test
+    public void testGenerateIdentityWithSignerAttributes() {
+
+        CapturingCertSigner certSigner = new CapturingCertSigner("cert", null);
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(false));
+        instanceManager.setCertSigner(certSigner);
+
+        Map<String, String> signerAttrs = new HashMap<>();
+        signerAttrs.put("attr1", "value1");
+
+        InstanceIdentity identity = instanceManager.generateIdentity("aws", "us-west-2", "csr", "cn", "client", 60,
+                Priority.High, "keyid", signerAttrs);
+
+        assertNotNull(identity);
+        assertEquals(identity.getName(), "cn");
+        assertEquals(identity.getX509Certificate(), "cert");
+
+        CertSignerParameters params = certSigner.params;
+        assertEquals(params.getProvider(), "aws");
+        assertEquals(params.getCertIssuer(), "us-west-2");
+        assertEquals(params.getCsr(), "csr");
+        assertEquals(params.getKeyUsage(), "client");
+        assertEquals(params.getExpiryTime(), 60);
+        assertEquals(params.getPriority(), Priority.High);
+        assertEquals(params.getSignerKeyId(), "keyid");
+        assertEquals(params.getAttributes(), Map.of("attr1", "value1"));
+        instanceManager.shutdown();
+    }
+
+    @Test
+    public void testGenerateIdentityLegacyEmptySignerAttributes() {
+
+        CapturingCertSigner certSigner = new CapturingCertSigner("cert", null);
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(false));
+        instanceManager.setCertSigner(certSigner);
+
+        InstanceIdentity identity = instanceManager.generateIdentity("aws", null, "csr", "cn", null, 0,
+                Priority.Unspecified_priority, null);
+        assertNotNull(identity);
+        assertNotNull(certSigner.params.getAttributes());
+        assertTrue(certSigner.params.getAttributes().isEmpty());
+
+        certSigner.params = null;
+        assertEquals(instanceManager.generateX509Certificate("aws", null, "csr", "client", 0,
+                Priority.Unspecified_priority, null), "cert");
+        assertTrue(certSigner.params.getAttributes().isEmpty());
+        instanceManager.shutdown();
+    }
+
+    @Test
+    public void testGenerateIdentityWithSignerAttributesFailures() {
+
+        InstanceCertManager instanceManager = new InstanceCertManager(null, null, null, new DynamicConfigBoolean(false));
+        Map<String, String> signerAttrs = Map.of("attr1", "value1");
+
+        instanceManager.setCertSigner(null);
+        assertNull(instanceManager.generateIdentity("aws", null, "csr", "cn", null, 0,
+                Priority.High, null, signerAttrs));
+
+        instanceManager.setCertSigner(new CapturingCertSigner(null, null));
+        assertNull(instanceManager.generateIdentity("aws", null, "csr", "cn", null, 0,
+                Priority.High, null, signerAttrs));
+
+        instanceManager.setCertSigner(new CapturingCertSigner("", null));
+        assertNull(instanceManager.generateIdentity("aws", null, "csr", "cn", null, 0,
+                Priority.High, null, signerAttrs));
+
+        instanceManager.setCertSigner(new CapturingCertSigner("cert",
+                new ServerResourceException(400, "invalid request")));
+        assertNull(instanceManager.generateIdentity("aws", null, "csr", "cn", null, 0,
+                Priority.High, null, signerAttrs));
+        instanceManager.shutdown();
+    }
+
     @Test
     public void testGetX509CertRecordWithCertificate() throws IOException, ServerResourceException {
 

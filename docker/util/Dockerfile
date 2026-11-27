@@ -39,8 +39,7 @@ RUN addgroup --system --gid ${GID} athenz-utils && \
 # fix to have rdl binary available to be used by client generators.
 RUN go install github.com/ardielle/ardielle-tools/...@latest \
     && mkdir -p /root/go/src/github.com/AthenZ/athenz/clients/go/zms/bin && cp /root/go/bin/rdl /root/go/src/github.com/AthenZ/athenz/clients/go/zms/bin \
-    && mkdir -p /root/go/src/github.com/AthenZ/athenz/clients/go/zts/bin && cp /root/go/bin/rdl /root/go/src/github.com/AthenZ/athenz/clients/go/zts/bin \
-    && mkdir -p /root/go/src/github.com/AthenZ/athenz/clients/go/msd/bin && cp /root/go/bin/rdl /root/go/src/github.com/AthenZ/athenz/clients/go/msd/bin
+    && mkdir -p /root/go/src/github.com/AthenZ/athenz/clients/go/zts/bin && cp /root/go/bin/rdl /root/go/src/github.com/AthenZ/athenz/clients/go/zts/bin
 
 RUN CGO_ENABLED=0 \
   CGO_CXXFLAGS="-g -Ofast -march=native" \
@@ -51,12 +50,10 @@ RUN CGO_ENABLED=0 \
   mvn -B install -Dmaven.test.skip=true -Djacoco.skip=true -DdockerBuild=true \
   -pl core/zms \
   -pl core/zts \
-  -pl core/msd \
   # go projects
   -pl rdl/rdl-gen-athenz-go-client \
   -pl clients/go/zms \
   -pl clients/go/zts \
-  -pl clients/go/msd \
   -pl libs/go/zmscli \
   -pl libs/go/athenzutils \
   -pl libs/go/athenzconf \

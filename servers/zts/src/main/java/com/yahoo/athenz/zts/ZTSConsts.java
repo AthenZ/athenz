@@ -104,6 +104,16 @@ public final class ZTSConsts {
     public static final String ZTS_PROP_SECURE_REQUESTS_ONLY       = "athenz.zts.secure_requests_only";
     public static final String ZTS_PROP_STATUS_CERT_SIGNER         = "athenz.zts.status_cert_signer";
     public static final String ZTS_PROP_INTROSPECT_SUPPORT_ENABLED = "athenz.zts.introspect_support_enabled";
+
+    public static final String ZTS_PROP_DPOP_ENABLED               = "athenz.zts.dpop_enabled";
+    public static final String ZTS_PROP_DPOP_SIGNING_ALGORITHMS    = "athenz.zts.dpop_signing_algorithms";
+    public static final String ZTS_PROP_DPOP_PROOF_MAX_AGE         = "athenz.zts.dpop_proof_max_age";
+    public static final String ZTS_PROP_DPOP_PROOF_CLOCK_SKEW      = "athenz.zts.dpop_proof_clock_skew";
+    public static final String ZTS_PROP_DPOP_ALLOWED_HTU           = "athenz.zts.dpop_allowed_htu";
+    public static final String ZTS_PROP_DPOP_HTU_MATCH_REQUEST_HOST = "athenz.zts.dpop_htu_match_request_host";
+    public static final String ZTS_PROP_DPOP_REQUIRE_CERT_KEY_MATCH = "athenz.zts.dpop_require_cert_key_match";
+    public static final String ZTS_PROP_DPOP_MAX_PROOF_SIZE        = "athenz.zts.dpop_max_proof_size";
+    public static final String ZTS_PROP_DPOP_MIN_RSA_KEY_SIZE      = "athenz.zts.dpop_min_rsa_key_size";
     public static final String ZTS_PROP_USER_CERT_MAX_TIMEOUT      = "athenz.zts.user_cert_max_timeout";
     public static final String ZTS_PROP_USER_CERT_DEFAULT_TIMEOUT  = "athenz.zts.user_cert_default_timeout";
     public static final String ZTS_PROP_USER_CERT_PROVIDER         = "athenz.zts.user_cert_provider";
@@ -296,9 +306,19 @@ public final class ZTSConsts {
     public static final String ZTS_ACTION_ID_TOKEN_EXCHANGE     = "zts.id_token_exchange";
     public static final String ZTS_ACTION_TOKEN_SOURCE_EXCHANGE = "zts.token_source_exchange";
     public static final String ZTS_ACTION_TOKEN_TARGET_EXCHANGE = "zts.token_target_exchange";
+    public static final String ZTS_ACTION_GET_BUNDLE            = "zts.getbundle";
 
     public static final String OAUTH_TOKEN_TYPE_JAG    = "urn:ietf:params:oauth:token-type:id-jag";
     public static final String OAUTH_TOKEN_TYPE_ID     = "urn:ietf:params:oauth:token-type:id_token";
     public static final String OAUTH_TOKEN_TYPE_ACCESS = "urn:ietf:params:oauth:token-type:access_token";
     public static final String OAUTH_TOKEN_TYPE_JWT    = "urn:ietf:params:oauth:token-type:jwt";
+
+    // policy bundle settings
+
+    public static final String ZTS_PROP_BUNDLE_ENABLED         = "athenz.zts.bundle_enabled";
+    public static final String ZTS_PROP_BUNDLE_SIGNING_ENABLED = "athenz.zts.bundle_signing_enabled";
+    public static final String ZTS_PROP_BUNDLE_INCLUDE_JWKS    = "athenz.zts.bundle_include_jwks";
+    public static final String ZTS_PROP_BUNDLE_CACHE_SIZE      = "athenz.zts.bundle_cache_size";
+
+    public static final String MEDIA_TYPE_GZIP = "application/gzip";
 }

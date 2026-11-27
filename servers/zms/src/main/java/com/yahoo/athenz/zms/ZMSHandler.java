@@ -93,6 +93,18 @@ public interface ZMSHandler {
     void setActivePolicyVersion(ResourceContext context, String domainName, String policyName, PolicyOptions policyOptions, String auditRef, String resourceOwner);
     void deletePolicyVersion(ResourceContext context, String domainName, String policyName, String version, String auditRef, String resourceOwner);
     void putResourcePolicyOwnership(ResourceContext context, String domainName, String policyName, String auditRef, ResourcePolicyOwnership resourceOwnership);
+    PolicyBundleList getPolicyBundleList(ResourceContext context, String domainName);
+    PolicyBundles getPolicyBundles(ResourceContext context, String domainName, Boolean includeNonActive);
+    PolicyBundle getPolicyBundle(ResourceContext context, String domainName, String bundleName);
+    Response putPolicyBundle(ResourceContext context, String domainName, String bundleName, String auditRef, Boolean returnObj, PolicyBundle bundle);
+    void deletePolicyBundle(ResourceContext context, String domainName, String bundleName, String auditRef);
+    void putPolicyBundleFile(ResourceContext context, String domainName, String bundleName, String auditRef, PolicyBundleFile file);
+    void deletePolicyBundleFile(ResourceContext context, String domainName, String bundleName, String path, String auditRef);
+    PolicyBundleList getPolicyBundleVersionList(ResourceContext context, String domainName, String bundleName);
+    PolicyBundle getPolicyBundleVersion(ResourceContext context, String domainName, String bundleName, String version);
+    Response putPolicyBundleVersion(ResourceContext context, String domainName, String bundleName, PolicyBundleOptions bundleOptions, String auditRef, Boolean returnObj);
+    void setActivePolicyBundleVersion(ResourceContext context, String domainName, String bundleName, PolicyBundleOptions bundleOptions, String auditRef);
+    void deletePolicyBundleVersion(ResourceContext context, String domainName, String bundleName, String version, String auditRef);
     Response putServiceIdentity(ResourceContext context, String domain, String service, String auditRef, Boolean returnObj, String resourceOwner, ServiceIdentity detail);
     ServiceIdentity getServiceIdentity(ResourceContext context, String domain, String service);
     void deleteServiceIdentity(ResourceContext context, String domain, String service, String auditRef, String resourceOwner);

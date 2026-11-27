@@ -189,7 +189,7 @@ public class InstanceAWSProviderTest {
         data.setDocument("document");
         data.setSignature(null);
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data, "1234", "i-1234",
-                true, privateIp, errMsg));
+                true, privateIp, new HashMap<>(), errMsg));
     }
     
     @Test
@@ -314,6 +314,8 @@ public class InstanceAWSProviderTest {
         Map<String, String> attrs = result.getAttributes();
         assertNotNull(attrs);
         assertEquals(attrs.get("certExpiryTime"), Long.toString(7 * 24 * 60));
+        assertNull(attrs.get("certSignerAttr:awsRuntimeAccount"));
+        assertNull(attrs.get("certSignerAttr:awsRuntimeRegion"));
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
 
@@ -353,7 +355,7 @@ public class InstanceAWSProviderTest {
         data.setDocument("{\"accountId\": \"1234\"}");
         data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2",
-                data, "1235", "i-1234", true, privateIp, errMsg));
+                data, "1235", "i-1234", true, privateIp, new HashMap<>(), errMsg));
     }
     
     @Test
@@ -370,7 +372,7 @@ public class InstanceAWSProviderTest {
         data.setDocument("{\"accountId\": \"1234\",\"region\": \"us-west-2\"}");
         data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2",
-                data, "1235", "i-1234", true, privateIp, errMsg));
+                data, "1235", "i-1234", true, privateIp, new HashMap<>(), errMsg));
     }
     
     @Test
@@ -387,7 +389,7 @@ public class InstanceAWSProviderTest {
         data.setDocument("{\"accountId\": \"1234\",\"region\": \"us-west-2\",\"instanceId\": \"i-234\"}");
         data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2",
-                data, "1234", "i-1234", true, privateIp, errMsg));
+                data, "1234", "i-1234", true, privateIp, new HashMap<>(), errMsg));
     }
     
     @Test
@@ -406,7 +408,7 @@ public class InstanceAWSProviderTest {
                 + bootTime + "\",\"region\": \"us-west-2\",\"instanceId\": \"i-1234\"}");
         data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data,
-                "1234", "i-1234", true, privateIp, errMsg));
+                "1234", "i-1234", true, privateIp, new HashMap<>(), errMsg));
     }
     
     @Test
@@ -424,8 +426,11 @@ public class InstanceAWSProviderTest {
         data.setDocument("{\"accountId\": \"1234\",\"pendingTime\": \""
                 + bootTime + "\",\"region\":\"us-west-2\",\"instanceId\": \"i-1234\"}");
         data.setSignature("signature");
+        Map<String, String> certSignerAttrs = new HashMap<>();
         assertTrue(provider.validateAWSDocument("athenz.aws.us-west-2", data,
-                "1234", "i-1234", true, privateIp, errMsg));
+                "1234", "i-1234", true, privateIp, certSignerAttrs, errMsg));
+        assertEquals(certSignerAttrs, Map.of(InstanceProvider.ZTS_CERT_SIGNER_ATTR_AWS_RUNTIME_ACCOUNT, "1234",
+                InstanceProvider.ZTS_CERT_SIGNER_ATTR_AWS_RUNTIME_REGION, "us-west-2"));
     }
     
     @Test
@@ -487,6 +492,8 @@ public class InstanceAWSProviderTest {
         assertEquals(attrs.get("certSSH"), "true");
         assertEquals(attrs.get("instancePrivateIp"), "10.10.10.11");
         assertNull(attrs.get("certExpiryTime"));
+        assertEquals(attrs.get("certSignerAttr:awsRuntimeAccount"), "1234");
+        assertEquals(attrs.get("certSignerAttr:awsRuntimeRegion"), "us-west-2");
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
 
@@ -759,14 +766,14 @@ public class InstanceAWSProviderTest {
         data.setDocument("document");
         data.setSignature(null);
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data,
-                "awsAccount", "instanceId", true, privateIp, errMsg));
+                "awsAccount", "instanceId", true, privateIp, new HashMap<>(), errMsg));
         
         // unable to parse
         
         data.setDocument("document");
         data.setSignature("signature");
         assertFalse(provider.validateAWSDocument("athenz.aws.us-west-2", data,
-                "awsAccount", "instanceId", true, privateIp, errMsg));
+                "awsAccount", "instanceId", true, privateIp, new HashMap<>(), errMsg));
     }
     
     @Test
@@ -844,6 +851,8 @@ public class InstanceAWSProviderTest {
         InstanceConfirmation result = provider.refreshInstance(confirmation);
         assertEquals(result.getDomain(), "athenz");
         assertNull(result.getAttributes().get("certExpiryTime"));
+        assertEquals(result.getAttributes().get("certSignerAttr:awsRuntimeAccount"), "1234");
+        assertEquals(result.getAttributes().get("certSignerAttr:awsRuntimeRegion"), "us-west-2");
         System.clearProperty(InstanceAWSProvider.AWS_PROP_DNS_SUFFIX);
     }
 

@@ -381,11 +381,11 @@ func encodeParams(objs ...string) string {
 	}
 	return "?" + s[1:]
 }
-{{range .Resources}}
+{{range .Resources}}{{if not .Produces}}
 func (client {{client}}) {{method_sig .}} {
 {{method_body .}}
 }
-{{end}}`
+{{end}}{{end}}`
 
 func (gen *clientGenerator) emitClient() error {
 	commentFun := func(s string) string {

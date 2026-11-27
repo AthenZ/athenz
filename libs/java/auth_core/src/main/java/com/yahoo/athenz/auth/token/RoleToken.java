@@ -293,9 +293,9 @@ public class RoleToken extends Token {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Values extracted from token version:{} domain:{} roles:{} principal:{}" +
                     " host:{} salt:{} timestamp:{} expiryTime:{} domainCompleteRoleSet:{}" +
-                    " keyId:{} ip:{} proxyUser:{} signature:{}", version, domain, roleNames,
+                    " keyId:{} ip:{} proxyUser:{}", version, domain, roleNames,
                     principal, host, salt, timestamp, expiryTime, domainCompleteRoleSet, keyId,
-                    ip, proxyUser, signature);
+                    ip, proxyUser);
         }
     }
     

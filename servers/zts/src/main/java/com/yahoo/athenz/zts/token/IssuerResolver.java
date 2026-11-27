@@ -191,7 +191,8 @@ public class IssuerResolver {
         return issuer;
     }
 
-    String getHostMappedIssuer(HttpServletRequest httpServletRequest) {
+    /** Returns the issuer mapped to the request's Host header, or {@code null} if none is configured. */
+    public String getHostMappedIssuer(HttpServletRequest httpServletRequest) {
 
         // Extract host header from the request
 

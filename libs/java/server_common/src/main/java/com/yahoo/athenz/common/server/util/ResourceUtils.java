@@ -50,4 +50,8 @@ public class ResourceUtils {
     public static String entityResourceName(String domainName, String entityName) {
         return generateResourceName(domainName, entityName, ServerCommonConsts.OBJECT_ENTITY);
     }
+
+    public static String policyBundleResourceName(String domainName, String bundleName) {
+        return generateResourceName(domainName, bundleName, ServerCommonConsts.OBJECT_BUNDLE);
+    }
 }

@@ -51,8 +51,8 @@ Navigate to `docker/` directory:
 - **UI** (`ui/`): React-based management interface
 
 ### Client Libraries
-- **Java clients** (`clients/java/`): zms, zts, zpe, msd clients
-- **Go clients** (`clients/go/`): zms, zts, msd clients  
+- **Java clients** (`clients/java/`): zms, zts, zpe clients
+- **Go clients** (`clients/go/`): zms, zts clients  
 - **Node.js clients** (`clients/nodejs/`): zts, zpe clients
 
 ### Core Libraries

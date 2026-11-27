@@ -1163,6 +1163,13 @@
                         "optional": true,
                         "comment": "list of supported id claims",
                         "items": "String"
+                    },
+                    {
+                        "name": "dpop_signing_alg_values_supported",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "list of supported DPoP proof JWS algorithms",
+                        "items": "String"
                     }
                 ],
                 "closed": false
@@ -1216,6 +1223,13 @@
                         "type": "Array",
                         "optional": false,
                         "comment": "list of supported algorithms for issued access tokens",
+                        "items": "String"
+                    },
+                    {
+                        "name": "dpop_signing_alg_values_supported",
+                        "type": "Array",
+                        "optional": true,
+                        "comment": "list of supported DPoP proof JWS algorithms",
                         "items": "String"
                     }
                 ],

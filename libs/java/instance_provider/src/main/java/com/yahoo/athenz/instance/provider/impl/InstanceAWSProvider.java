@@ -249,8 +249,8 @@ public class InstanceAWSProvider implements InstanceProvider {
 
     protected boolean validateAWSDocument(final String provider, AWSAttestationData info,
             final String awsAccount, final String instanceId, boolean checkTime,
-            StringBuilder privateIp, StringBuilder errMsg) {
-        
+            StringBuilder privateIp, Map<String, String> certSignerAttrs, StringBuilder errMsg) {
+
         final String document = info.getDocument();
         
         // convert our document into a struct that we can extract data
@@ -274,8 +274,9 @@ public class InstanceAWSProvider implements InstanceProvider {
         }
         
         // verify that the account lookup and the account in the document match
-        
-        if (!validateAWSAccount(awsAccount, instanceDocument.getString(ATTR_ACCOUNT_ID), errMsg)) {
+
+        final String docAccount = instanceDocument.getString(ATTR_ACCOUNT_ID);
+        if (!validateAWSAccount(awsAccount, docAccount, errMsg)) {
             return false;
         }
         
@@ -295,7 +296,15 @@ public class InstanceAWSProvider implements InstanceProvider {
 
         // verify that the boot up time for the instance is now
 
-        return !checkTime || validateInstanceBootTime(instanceDocument, errMsg);
+        if (checkTime && !validateInstanceBootTime(instanceDocument, errMsg)) {
+            return false;
+        }
+
+        // the document is signed by aws so we can pass its account and region to the cert signer
+
+        certSignerAttrs.put(ZTS_CERT_SIGNER_ATTR_AWS_RUNTIME_ACCOUNT, docAccount);
+        certSignerAttrs.put(ZTS_CERT_SIGNER_ATTR_AWS_RUNTIME_REGION, region);
+        return true;
     }
     
     protected String getInstanceId(AWSAttestationData info, Struct instanceDocument, final String reqInstanceId) {
@@ -362,11 +371,12 @@ public class InstanceAWSProvider implements InstanceProvider {
 
         boolean instanceDocumentCreds = info.getDocument() != null;
         StringBuilder privateIp = new StringBuilder(64);
+        Map<String, String> certSignerAttrs = new HashMap<>();
         if (instanceDocumentCreds) {
             StringBuilder errMsg = new StringBuilder(256);
             if (!validateAWSDocument(confirmation.getProvider(), info, awsAccount,
                     instanceId.toString(), InstanceUtils.shouldCheckBootTime(instanceAttributes),
-                    privateIp, errMsg)) {
+                    privateIp, certSignerAttrs, errMsg)) {
                 throw error("Unable to validate AWS document: " + errMsg);
             }
         }
@@ -379,6 +389,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         // set the attributes to be returned to the ZTS server
 
         setConfirmationAttributes(confirmation, instanceDocumentCreds, privateIp.toString(), instanceId.toString());
+        certSignerAttrs.forEach((name, value) -> InstanceUtils.setCertSignerAttribute(confirmation, name, value));
 
         // verify the instance identity via the configured attestation validator.
         // depending on the attestation data this either validates the STS
@@ -443,10 +454,11 @@ public class InstanceAWSProvider implements InstanceProvider {
 
         boolean instanceDocumentCreds = info.getDocument() != null;
         StringBuilder privateIp = new StringBuilder(64);
+        Map<String, String> certSignerAttrs = new HashMap<>();
         if (instanceDocumentCreds) {
             StringBuilder errMsg = new StringBuilder(256);
             if (!validateAWSDocument(confirmation.getProvider(), info, awsAccount,
-                    instanceId.toString(), false, privateIp, errMsg)) {
+                    instanceId.toString(), false, privateIp, certSignerAttrs, errMsg)) {
                 throw error("Unable to validate AWS document: " + errMsg);
             }
         }
@@ -459,6 +471,7 @@ public class InstanceAWSProvider implements InstanceProvider {
         // set the attributes to be returned to the ZTS server
 
         setConfirmationAttributes(confirmation, instanceDocumentCreds, privateIp.toString(), instanceId.toString());
+        certSignerAttrs.forEach((name, value) -> InstanceUtils.setCertSignerAttribute(confirmation, name, value));
         
         // verify the instance identity via the configured attestation validator.
         // depending on the attestation data this either validates the STS

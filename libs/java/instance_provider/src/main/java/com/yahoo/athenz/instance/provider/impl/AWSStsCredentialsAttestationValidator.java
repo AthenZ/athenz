@@ -20,6 +20,7 @@ import com.yahoo.athenz.auth.Principal;
 import com.yahoo.athenz.common.server.util.Utils;
 import com.yahoo.athenz.instance.provider.AWSAttestationValidator;
 import com.yahoo.athenz.instance.provider.InstanceConfirmation;
+import com.yahoo.athenz.instance.provider.InstanceProvider;
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,6 +115,8 @@ public class AWSStsCredentialsAttestationValidator implements AWSAttestationVali
             for (String account : Utils.parseAwsAccounts(awsAccount)) {
                 final String arn = "arn:aws:sts::" + account + ":assumed-role/" + info.getRole() + "/";
                 if (response.arn().startsWith(arn)) {
+                    InstanceUtils.setCertSignerAttribute(confirmation,
+                            InstanceProvider.ZTS_CERT_SIGNER_ATTR_AWS_RUNTIME_ACCOUNT, account);
                     return true;
                 }
             }

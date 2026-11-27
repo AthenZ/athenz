@@ -35,6 +35,7 @@ public class OpenIDConfigTest {
         cfg1.setToken_endpoint("token-endpoint");
         cfg1.setIssuer("issuer");
         cfg1.setJwks_uri("jwks-uri");
+        cfg1.setDpop_signing_alg_values_supported(Collections.singletonList("ES256"));
         cfg1.setClaims_supported(Collections.singletonList("openid"));
         cfg1.setId_token_signing_alg_values_supported(Collections.singletonList("RS256"));
         cfg1.setResponse_types_supported(Collections.singletonList("token"));
@@ -44,6 +45,7 @@ public class OpenIDConfigTest {
         cfg2.setToken_endpoint("token-endpoint");
         cfg2.setIssuer("issuer");
         cfg2.setJwks_uri("jwks-uri");
+        cfg2.setDpop_signing_alg_values_supported(Collections.singletonList("ES256"));
         cfg2.setClaims_supported(Collections.singletonList("openid"));
         cfg2.setId_token_signing_alg_values_supported(Collections.singletonList("RS256"));
         cfg2.setResponse_types_supported(Collections.singletonList("token"));
@@ -58,6 +60,7 @@ public class OpenIDConfigTest {
         assertEquals("token-endpoint", cfg1.getToken_endpoint());
         assertEquals("issuer", cfg1.getIssuer());
         assertEquals("jwks-uri", cfg1.getJwks_uri());
+        assertEquals(Collections.singletonList("ES256"), cfg1.getDpop_signing_alg_values_supported());
         assertEquals(Collections.singletonList("openid"), cfg1.getClaims_supported());
         assertEquals(Collections.singletonList("RS256"), cfg1.getId_token_signing_alg_values_supported());
         assertEquals(Collections.singletonList("token"), cfg1.getResponse_types_supported());
@@ -110,5 +113,12 @@ public class OpenIDConfigTest {
         cfg2.setSubject_types_supported(null);
         assertNotEquals(cfg1, cfg2);
         cfg2.setSubject_types_supported(Collections.singletonList("public"));
+
+        cfg2.setDpop_signing_alg_values_supported(Collections.singletonList("RS256"));
+        assertNotEquals(cfg1, cfg2);
+        cfg2.setDpop_signing_alg_values_supported(null);
+        assertNotEquals(cfg1, cfg2);
+        cfg2.setDpop_signing_alg_values_supported(Collections.singletonList("ES256"));
+        assertEquals(cfg1, cfg2);
     }
 }

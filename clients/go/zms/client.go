@@ -3020,6 +3020,408 @@ func (client ZMSClient) PutResourcePolicyOwnership(domainName DomainName, policy
 	}
 }
 
+func (client ZMSClient) GetPolicyBundleList(domainName DomainName) (*PolicyBundleList, error) {
+	var data *PolicyBundleList
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/bundle"
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) GetPolicyBundles(domainName DomainName, includeNonActive *bool) (*PolicyBundles, error) {
+	var data *PolicyBundles
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/bundles" + encodeParams(encodeOptionalBoolParam("includeNonActive", includeNonActive))
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) GetPolicyBundle(domainName DomainName, bundleName EntityName) (*PolicyBundle, error) {
+	var data *PolicyBundle
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/bundle/" + fmt.Sprint(bundleName)
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) PutPolicyBundle(domainName DomainName, bundleName EntityName, auditRef string, returnObj *bool, bundle *PolicyBundle) (*PolicyBundle, error) {
+	var data *PolicyBundle
+	headers := map[string]string{
+		"Athenz-Return-Object": strconv.FormatBool(*returnObj),
+		"Y-Audit-Ref":          auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/bundle/" + fmt.Sprint(bundleName)
+	contentBytes, err := json.Marshal(bundle)
+	if err != nil {
+		return data, err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204, 200:
+		if 204 != resp.StatusCode {
+			err = json.NewDecoder(resp.Body).Decode(&data)
+			if err != nil {
+				return data, err
+			}
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) DeletePolicyBundle(domainName DomainName, bundleName EntityName, auditRef string) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/bundle/" + fmt.Sprint(bundleName)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) PutPolicyBundleFile(domainName DomainName, bundleName EntityName, auditRef string, file *PolicyBundleFile) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/bundle/" + fmt.Sprint(bundleName) + "/file"
+	contentBytes, err := json.Marshal(file)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) DeletePolicyBundleFile(domainName DomainName, bundleName EntityName, path string, auditRef string) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/bundle/" + fmt.Sprint(bundleName) + "/file" + encodeParams(encodeStringParam("path", string(path), ""))
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) GetPolicyBundleVersionList(domainName DomainName, bundleName EntityName) (*PolicyBundleList, error) {
+	var data *PolicyBundleList
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/bundle/" + fmt.Sprint(bundleName) + "/version"
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) GetPolicyBundleVersion(domainName DomainName, bundleName EntityName, version SimpleName) (*PolicyBundle, error) {
+	var data *PolicyBundle
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/bundle/" + fmt.Sprint(bundleName) + "/version/" + fmt.Sprint(version)
+	resp, err := client.httpGet(url, nil)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 200:
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			return data, err
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) PutPolicyBundleVersion(domainName DomainName, bundleName EntityName, bundleOptions *PolicyBundleOptions, auditRef string, returnObj *bool) (*PolicyBundle, error) {
+	var data *PolicyBundle
+	headers := map[string]string{
+		"Athenz-Return-Object": strconv.FormatBool(*returnObj),
+		"Y-Audit-Ref":          auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/bundle/" + fmt.Sprint(bundleName) + "/version/create"
+	contentBytes, err := json.Marshal(bundleOptions)
+	if err != nil {
+		return data, err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return data, err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204, 200:
+		if 204 != resp.StatusCode {
+			err = json.NewDecoder(resp.Body).Decode(&data)
+			if err != nil {
+				return data, err
+			}
+		}
+		return data, nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return data, err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return data, errobj
+	}
+}
+
+func (client ZMSClient) SetActivePolicyBundleVersion(domainName DomainName, bundleName EntityName, bundleOptions *PolicyBundleOptions, auditRef string) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/bundle/" + fmt.Sprint(bundleName) + "/version/active"
+	contentBytes, err := json.Marshal(bundleOptions)
+	if err != nil {
+		return err
+	}
+	resp, err := client.httpPut(url, headers, contentBytes)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
+func (client ZMSClient) DeletePolicyBundleVersion(domainName DomainName, bundleName EntityName, version SimpleName, auditRef string) error {
+	headers := map[string]string{
+		"Y-Audit-Ref": auditRef,
+	}
+	url := client.URL + "/domain/" + fmt.Sprint(domainName) + "/bundle/" + fmt.Sprint(bundleName) + "/version/" + fmt.Sprint(version)
+	resp, err := client.httpDelete(url, headers)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	switch resp.StatusCode {
+	case 204:
+		return nil
+	default:
+		var errobj rdl.ResourceError
+		contentBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		json.Unmarshal(contentBytes, &errobj)
+		if errobj.Code == 0 {
+			errobj.Code = resp.StatusCode
+		}
+		if errobj.Message == "" {
+			errobj.Message = string(contentBytes)
+		}
+		return errobj
+	}
+}
+
 func (client ZMSClient) PutServiceIdentity(domain DomainName, service SimpleName, auditRef string, returnObj *bool, resourceOwner string, detail *ServiceIdentity) (*ServiceIdentity, error) {
 	var data *ServiceIdentity
 	headers := map[string]string{

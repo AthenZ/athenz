@@ -41,6 +41,22 @@ public interface CertSigner {
     }
 
     /**
+     * Generate a signed X509 Certificate based on the given parameters.
+     * In addition to the arguments of the method above, the parameters
+     * include attributes that the instance provider validated and marked
+     * for the signer (the provider prefix is removed from the names).
+     * The signer decides whether and how to encode them in the certificate.
+     * The default implementation ignores the attributes and calls the
+     * method above, so existing signers work unchanged.
+     * @param params certificate signer parameters
+     * @return X509 Certificate in PEM format
+     */
+    default String generateX509Certificate(CertSignerParameters params) throws ServerResourceException {
+        return generateX509Certificate(params.getProvider(), params.getCertIssuer(), params.getCsr(),
+                params.getKeyUsage(), params.getExpiryTime(), params.getPriority(), params.getSignerKeyId());
+    }
+
+    /**
      * Retrieve the CA certificate in PEM format. This will be returned
      * along with the x509 certificate back to the client. The function
      * should return all the CAs defined for the provider

@@ -2613,6 +2613,244 @@ public class ZMSClient implements Closeable {
     }
 
     /**
+     * Retrieve the list of policy bundle names provisioned in the domain
+     *
+     * @param domainName name of the domain
+     * @return list of bundle names
+     * @throws ZMSClientException in case of failure
+     */
+    public PolicyBundleList getPolicyBundleList(String domainName) {
+        updatePrincipal();
+        try {
+            return client.getPolicyBundleList(domainName);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Retrieve all policy bundles (including their files) provisioned in the domain
+     *
+     * @param domainName name of the domain
+     * @param includeNonActive include non-active bundle versions
+     * @return list of bundles
+     * @throws ZMSClientException in case of failure
+     */
+    public PolicyBundles getPolicyBundles(String domainName, Boolean includeNonActive) {
+        updatePrincipal();
+        try {
+            return client.getPolicyBundles(domainName, includeNonActive);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Retrieve the active version of the specified policy bundle
+     *
+     * @param domainName name of the domain
+     * @param bundleName name of the bundle
+     * @return policy bundle object
+     * @throws ZMSClientException in case of failure
+     */
+    public PolicyBundle getPolicyBundle(String domainName, String bundleName) {
+        updatePrincipal();
+        try {
+            return client.getPolicyBundle(domainName, bundleName);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Create or update the specified policy bundle. If the bundle version is not specified, the active version is created or updated. If the version is specified and the bundle exists, that version is updated or created as a non-active version
+     *
+     * @param domainName name of the domain
+     * @param bundleName name of the bundle
+     * @param auditRef string containing audit specification or ticket number
+     * @param returnObj return the updated object from the server
+     * @param bundle policy bundle object
+     * @return policy bundle object if returnObj is true, otherwise null
+     * @throws ZMSClientException in case of failure
+     */
+    public PolicyBundle putPolicyBundle(String domainName, String bundleName, String auditRef, Boolean returnObj, PolicyBundle bundle) {
+        updatePrincipal();
+        try {
+            return client.putPolicyBundle(domainName, bundleName, auditRef, returnObj, bundle);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Delete the specified policy bundle including all of its versions
+     *
+     * @param domainName name of the domain
+     * @param bundleName name of the bundle
+     * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void deletePolicyBundle(String domainName, String bundleName, String auditRef) {
+        updatePrincipal();
+        try {
+            client.deletePolicyBundle(domainName, bundleName, auditRef);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Add or replace a single file in the active version of the specified policy bundle
+     *
+     * @param domainName name of the domain
+     * @param bundleName name of the bundle
+     * @param auditRef string containing audit specification or ticket number
+     * @param file bundle file object
+     * @throws ZMSClientException in case of failure
+     */
+    public void putPolicyBundleFile(String domainName, String bundleName, String auditRef, PolicyBundleFile file) {
+        updatePrincipal();
+        try {
+            client.putPolicyBundleFile(domainName, bundleName, auditRef, file);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Delete a single file from the active version of the specified policy bundle
+     *
+     * @param domainName name of the domain
+     * @param bundleName name of the bundle
+     * @param auditRef string containing audit specification or ticket number
+     * @param path path of the file to be removed, relative to the bundle root
+     * @throws ZMSClientException in case of failure
+     */
+    public void deletePolicyBundleFile(String domainName, String bundleName, String auditRef, String path) {
+        updatePrincipal();
+        try {
+            client.deletePolicyBundleFile(domainName, bundleName, path, auditRef);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Retrieve the list of versions of the specified policy bundle
+     *
+     * @param domainName name of the domain
+     * @param bundleName name of the bundle
+     * @return list of bundle versions
+     * @throws ZMSClientException in case of failure
+     */
+    public PolicyBundleList getPolicyBundleVersionList(String domainName, String bundleName) {
+        updatePrincipal();
+        try {
+            return client.getPolicyBundleVersionList(domainName, bundleName);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Retrieve the specified version of the policy bundle
+     *
+     * @param domainName name of the domain
+     * @param bundleName name of the bundle
+     * @param version bundle version
+     * @return policy bundle object
+     * @throws ZMSClientException in case of failure
+     */
+    public PolicyBundle getPolicyBundleVersion(String domainName, String bundleName, String version) {
+        updatePrincipal();
+        try {
+            return client.getPolicyBundleVersion(domainName, bundleName, version);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Create a new non-active policy bundle version based on the given source version (active version if not specified)
+     *
+     * @param domainName name of the domain
+     * @param bundleName name of the bundle
+     * @param bundleOptions new version and the source version
+     * @param auditRef string containing audit specification or ticket number
+     * @param returnObj return the updated object from the server
+     * @return policy bundle object if returnObj is true, otherwise null
+     * @throws ZMSClientException in case of failure
+     */
+    public PolicyBundle putPolicyBundleVersion(String domainName, String bundleName, PolicyBundleOptions bundleOptions, String auditRef, Boolean returnObj) {
+        updatePrincipal();
+        try {
+            return client.putPolicyBundleVersion(domainName, bundleName, bundleOptions, auditRef, returnObj);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Mark the specified policy bundle version as active
+     *
+     * @param domainName name of the domain
+     * @param bundleName name of the bundle
+     * @param bundleOptions version to be activated
+     * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void setActivePolicyBundleVersion(String domainName, String bundleName, PolicyBundleOptions bundleOptions, String auditRef) {
+        updatePrincipal();
+        try {
+            client.setActivePolicyBundleVersion(domainName, bundleName, bundleOptions, auditRef);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
+     * Delete the specified non-active policy bundle version
+     *
+     * @param domainName name of the domain
+     * @param bundleName name of the bundle
+     * @param version bundle version
+     * @param auditRef string containing audit specification or ticket number
+     * @throws ZMSClientException in case of failure
+     */
+    public void deletePolicyBundleVersion(String domainName, String bundleName, String version, String auditRef) {
+        updatePrincipal();
+        try {
+            client.deletePolicyBundleVersion(domainName, bundleName, version, auditRef);
+        } catch (ClientResourceException ex) {
+            throw new ZMSClientException(ex.getCode(), ex.getData());
+        } catch (Exception ex) {
+            throw new ZMSClientException(ClientResourceException.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    /**
      * Retrieve the specified entity from the ZMS Server
      *
      * @param domainName name of the domain

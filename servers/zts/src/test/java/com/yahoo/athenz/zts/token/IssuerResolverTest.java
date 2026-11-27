@@ -461,6 +461,79 @@ public class IssuerResolverTest {
     }
 
     @Test
+    public void testGetHostMappedIssuerWithMatchingHost() throws IOException {
+        String mappingFile = TEST_DIR + "/mapping.json";
+        String jsonContent = "[{\"host\":\"example.com\",\"issuer\":\"https://example.com/issuer\"}]";
+        Files.write(Paths.get(mappingFile), jsonContent.getBytes());
+
+        System.setProperty(ZTSConsts.ZTS_PROP_HOST_ISSUER_MAPPING_FILE, mappingFile);
+
+        IssuerResolver resolver = new IssuerResolver(
+            DEFAULT_OAUTH_ISSUER,
+            DEFAULT_OPENID_ISSUER,
+            DEFAULT_OIDC_PORT_ISSUER,
+            OIDC_PORT,
+            HTTPS_PORT
+        );
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(request.getHeader("Host")).thenReturn("example.com");
+
+        assertEquals(resolver.getHostMappedIssuer(request), "https://example.com/issuer");
+    }
+
+    @Test
+    public void testGetHostMappedIssuerWithUnmappedHost() throws IOException {
+        String mappingFile = TEST_DIR + "/mapping.json";
+        String jsonContent = "[{\"host\":\"example.com\",\"issuer\":\"https://example.com/issuer\"}]";
+        Files.write(Paths.get(mappingFile), jsonContent.getBytes());
+
+        System.setProperty(ZTSConsts.ZTS_PROP_HOST_ISSUER_MAPPING_FILE, mappingFile);
+
+        IssuerResolver resolver = new IssuerResolver(
+            DEFAULT_OAUTH_ISSUER,
+            DEFAULT_OPENID_ISSUER,
+            DEFAULT_OIDC_PORT_ISSUER,
+            OIDC_PORT,
+            HTTPS_PORT
+        );
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(request.getHeader("Host")).thenReturn("unknown.com");
+
+        assertNull(resolver.getHostMappedIssuer(request));
+    }
+
+    @Test
+    public void testGetHostMappedIssuerWithNoMappingConfigured() {
+        IssuerResolver resolver = new IssuerResolver(
+            DEFAULT_OAUTH_ISSUER,
+            DEFAULT_OPENID_ISSUER,
+            DEFAULT_OIDC_PORT_ISSUER,
+            OIDC_PORT,
+            HTTPS_PORT
+        );
+
+        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+        Mockito.when(request.getHeader("Host")).thenReturn("example.com");
+
+        assertNull(resolver.getHostMappedIssuer(request));
+    }
+
+    @Test
+    public void testGetHostMappedIssuerWithNullRequest() {
+        IssuerResolver resolver = new IssuerResolver(
+            DEFAULT_OAUTH_ISSUER,
+            DEFAULT_OPENID_ISSUER,
+            DEFAULT_OIDC_PORT_ISSUER,
+            OIDC_PORT,
+            HTTPS_PORT
+        );
+
+        assertNull(resolver.getHostMappedIssuer(null));
+    }
+
+    @Test
     public void testGetIDTokenIssuerWithOidcPortSameAsHttpsPort() {
         // When OIDC port equals HTTPS port, should use OpenID issuer
         IssuerResolver resolver = new IssuerResolver(

@@ -15,6 +15,7 @@ include "Entity.rdli";
 include "Role.rdli";
 include "Group.rdli";
 include "Policy.rdli";
+include "PolicyBundle.rdli";
 include "ServiceIdentity.rdli";
 include "Tenancy.rdli";
 include "Access.rdli";

@@ -321,13 +321,12 @@ public class PrincipalToken extends Token {
         if (LOG.isDebugEnabled()) {
             LOG.debug("Values extracted from token version:{} domain:{} service:{} host:{}" +
                     " ip:{} id:{} keyService:{} originalRequestor:{} salt:{} timestamp:{}" +
-                    " expiryTime:{} signature:{}", version, domain, name, host, ip, keyId,
-                    keyService, originalRequestor, salt, timestamp, expiryTime, signature);
+                    " expiryTime:{}", version, domain, name, host, ip, keyId,
+                    keyService, originalRequestor, salt, timestamp, expiryTime);
             if (authorizedServices != null) {
                 LOG.debug("Authorized service details from token authorizedServices:{}" +
-                        " authorizedServiceName:{} authorizedServiceKeyId:{} authorizedServiceSignature:{}",
-                        String.join(",", authorizedServices), authorizedServiceName, authorizedServiceKeyId,
-                        authorizedServiceSignature);
+                        " authorizedServiceName:{} authorizedServiceKeyId:{}",
+                        String.join(",", authorizedServices), authorizedServiceName, authorizedServiceKeyId);
             }
         }
     }

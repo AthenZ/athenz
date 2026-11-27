@@ -40,7 +40,7 @@ func main() {
 
 	schema, err := rdl.ParseRDLFile(*pSchemaFile, false, false, false)
 	if err == nil {
-		GenerateZMSJavaServer(banner, schema, *pOutdir, "", *pBase)
+		GenerateAthenzJavaServer(banner, schema, *pOutdir, "", *pBase)
 		os.Exit(0)
 	}
 	fmt.Fprintf(os.Stderr, "*** %v\n", err)
@@ -48,8 +48,8 @@ func main() {
 }
 
 // GenerateJavaServer generates the server code for the RDL-defined service
-func GenerateZMSJavaServer(banner string, schema *rdl.Schema, outdir string, ns string, base string) error {
-	fmt.Fprintln(os.Stderr, "Starting ZMS Server code generation...")
+func GenerateAthenzJavaServer(banner string, schema *rdl.Schema, outdir string, ns string, base string) error {
+	fmt.Fprintln(os.Stderr, "Starting Athenz Server code generation...")
 	reg := rdl.NewTypeRegistry(schema)
 	packageDir, err := javaGenerationDir(outdir, schema, ns)
 	if err != nil {
@@ -313,7 +313,7 @@ public class {{cName}}Resources {
         Object data = e.getData();
         Object entity = eClass.isInstance(data) ? data : null;
         if (entity != null) {
-            return new WebApplicationException(Response.status(code).entity(entity).build());
+            return new WebApplicationException(Response.status(code).entity(entity).type(MediaType.APPLICATION_JSON).build());
         } else {
             return new WebApplicationException(code);
         }
@@ -571,19 +571,28 @@ func (gen *javaServerGenerator) handlerSignature(r *rdl.Resource) string {
 	// even if we have no content we need to have the produce annotation
 	// because our errors are coming back as json objects
 	var spec string
-	switch r.Method {
-	case "OPTIONS":
-	case "POST", "PUT", "PATCH":
-		if len(r.Consumes) > 0 {
-			for _, v := range r.Consumes {
-				spec += "@Consumes(\"" + v + "\")\n    "
-			}
-		} else {
-			spec += "@Consumes(MediaType.APPLICATION_JSON)\n    "
+	if len(r.Produces) > 0 {
+		// produces has a single entry with comma separated values: "a, b, c"
+		var produces []string
+		for _, v := range strings.Split(r.Produces[0], "|") {
+			produces = append(produces, "\""+strings.TrimSpace(v)+"\"")
 		}
-		fallthrough
-	default:
-		spec += "@Produces(MediaType.APPLICATION_JSON)\n    "
+		spec += "@Produces({ " + strings.Join(produces, ", ") + " })\n    "
+	} else {
+		switch r.Method {
+			case "OPTIONS":
+			case "POST", "PUT", "PATCH":
+				if len(r.Consumes) > 0 {
+					for _, v := range r.Consumes {
+						spec += "@Consumes(\"" + v + "\")\n    "
+					}
+				} else {
+					spec += "@Consumes(MediaType.APPLICATION_JSON)\n    "
+				}
+				fallthrough
+			default:
+				spec += "@Produces(MediaType.APPLICATION_JSON)\n    "
+			}
 	}
 	escapedComment := strings.Replace(r.Comment, `"`, `\"`, -1)
 	spec += "@Operation(description = \"" + escapedComment + "\")\n    "

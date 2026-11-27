@@ -48,6 +48,8 @@ public class OAuth2Token {
     public static final String CLAIM_MAY_ACT = "may_act";
     public static final String CLAIM_PRINCIPAL_ISSUER = "principal_issuer";
     public static final String CLAIM_CLIENT_ID = "client_id";
+    public static final String CLAIM_CONFIRM = "cnf";
+    public static final String CLAIM_CONFIRM_JWK_THUMBPRINT = "jkt";
 
     protected int version;
     protected long expiryTime;
@@ -479,6 +481,20 @@ public class OAuth2Token {
 
     public Object getClaim(final String name) {
         return claimsSet.getClaim(name);
+    }
+
+    /**
+     * A cnf.jkt value that is not a string is returned as text so a malformed
+     * binding is never mistaken for a token that is not DPoP bound.
+     * @return the DPoP jwk thumbprint (cnf.jkt) or null if the token is not DPoP bound
+     */
+    public String getConfirmJwkThumbprint() {
+        final Object confirm = claimsSet == null ? null : claimsSet.getClaim(CLAIM_CONFIRM);
+        if (!(confirm instanceof Map)) {
+            return null;
+        }
+        final Object jkt = ((Map<?, ?>) confirm).get(CLAIM_CONFIRM_JWK_THUMBPRINT);
+        return jkt == null ? null : jkt.toString();
     }
 
     public String getTokenType() {

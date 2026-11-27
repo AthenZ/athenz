@@ -91,6 +91,17 @@ Pji5iP4d9rQEOm/G9PXZ3/ZZEz5DuYs=
 -----END UNSUPPORTED PRIVATE KEY-----
 `)
 
+// openssl ecparam -genkey output: the key is preceded by an EC PARAMETERS block
+var ecdsaPrivateKeyPEMWithParams = append([]byte(`-----BEGIN EC PARAMETERS-----
+BgUrgQQAIg==
+-----END EC PARAMETERS-----
+`), ecdsaPrivateKeyPEM...)
+
+var ecParamsOnlyPEM = []byte(`-----BEGIN EC PARAMETERS-----
+BgUrgQQAIg==
+-----END EC PARAMETERS-----
+`)
+
 func TestExtractSignerInfo(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -99,6 +110,8 @@ func TestExtractSignerInfo(t *testing.T) {
 		wantErr       bool
 	}{
 		{"ecdsa PrivateKey PEM", ecdsaPrivateKeyPEM, x509.ECDSAWithSHA256, false},
+		{"ecdsa PrivateKey PEM with EC PARAMETERS", ecdsaPrivateKeyPEMWithParams, x509.ECDSAWithSHA256, false},
+		{"EC PARAMETERS without private key", ecParamsOnlyPEM, x509.UnknownSignatureAlgorithm, true},
 		{"rsa PrivateKey PEM", rsaPrivateKeyPEM, x509.SHA256WithRSA, false},
 		{"ecdsa PrivateKey PEM in PKCS#8 format", ecdsaPrivateKeyPEM, x509.ECDSAWithSHA256, false},
 		{"rsa PrivateKey PEM in PKCS#8 format", rsaPrivateKeyPEM, x509.SHA256WithRSA, false},

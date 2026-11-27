@@ -7503,6 +7503,355 @@ func (self *PolicyList) Validate() error {
 	return nil
 }
 
+// PolicyBundleFile - A single file in a policy bundle - policy source (Rego
+// module), schema or data file. The path is relative to the bundle root.
+type PolicyBundleFile struct {
+
+	//
+	// relative path of the file in the bundle, e.g. "authz.rego" or
+	// "regions/data.json"
+	//
+	Path string `json:"path"`
+
+	//
+	// content of the file
+	//
+	Content string `json:"content"`
+
+	//
+	// sha-256 digest (hex) of the content - computed by the server
+	//
+	Sha256 string `json:"sha256" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewPolicyBundleFile - creates an initialized PolicyBundleFile instance, returns a pointer to it
+func NewPolicyBundleFile(init ...*PolicyBundleFile) *PolicyBundleFile {
+	var o *PolicyBundleFile
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(PolicyBundleFile)
+	}
+	return o
+}
+
+type rawPolicyBundleFile PolicyBundleFile
+
+// UnmarshalJSON is defined for proper JSON decoding of a PolicyBundleFile
+func (self *PolicyBundleFile) UnmarshalJSON(b []byte) error {
+	var m rawPolicyBundleFile
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := PolicyBundleFile(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *PolicyBundleFile) Validate() error {
+	if self.Path == "" {
+		return fmt.Errorf("PolicyBundleFile.path is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "String", self.Path)
+		if !val.Valid {
+			return fmt.Errorf("PolicyBundleFile.path does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Content == "" {
+		return fmt.Errorf("PolicyBundleFile.content is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "String", self.Content)
+		if !val.Valid {
+			return fmt.Errorf("PolicyBundleFile.content does not contain a valid String (%v)", val.Error)
+		}
+	}
+	if self.Sha256 != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Sha256)
+		if !val.Valid {
+			return fmt.Errorf("PolicyBundleFile.sha256 does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// PolicyBundle - A policy bundle is a named, versioned set of policy files for
+// an external policy engine (e.g. OPA/Rego). ZMS stores and signs the bundle;
+// ZTS serves it to authorized workloads. The content is not interpreted by the
+// Athenz authorization engine.
+type PolicyBundle struct {
+
+	//
+	// name of the bundle, e.g. sports:bundle.api
+	//
+	Name ResourceName `json:"name"`
+
+	//
+	// policy engine for the bundle content: rego
+	//
+	Engine SimpleName `json:"engine"`
+
+	//
+	// list of files in the bundle
+	//
+	Files []*PolicyBundleFile `json:"files"`
+
+	//
+	// optional OPA manifest roots; derived from domain/bundle name if not
+	// specified
+	//
+	Roots []string `json:"roots,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// optional version string, defaults to 0
+	//
+	Version SimpleName `json:"version,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// if multi-version bundle then indicates active version
+	//
+	Active *bool `json:"active,omitempty" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// a description of the bundle
+	//
+	Description string `json:"description" rdl:"optional" yaml:",omitempty"`
+
+	//
+	// last modification timestamp of this bundle
+	//
+	Modified *rdl.Timestamp `json:"modified,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewPolicyBundle - creates an initialized PolicyBundle instance, returns a pointer to it
+func NewPolicyBundle(init ...*PolicyBundle) *PolicyBundle {
+	var o *PolicyBundle
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(PolicyBundle)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *PolicyBundle) Init() *PolicyBundle {
+	if self.Files == nil {
+		self.Files = make([]*PolicyBundleFile, 0)
+	}
+	return self
+}
+
+type rawPolicyBundle PolicyBundle
+
+// UnmarshalJSON is defined for proper JSON decoding of a PolicyBundle
+func (self *PolicyBundle) UnmarshalJSON(b []byte) error {
+	var m rawPolicyBundle
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := PolicyBundle(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *PolicyBundle) Validate() error {
+	if self.Name == "" {
+		return fmt.Errorf("PolicyBundle.name is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "ResourceName", self.Name)
+		if !val.Valid {
+			return fmt.Errorf("PolicyBundle.name does not contain a valid ResourceName (%v)", val.Error)
+		}
+	}
+	if self.Engine == "" {
+		return fmt.Errorf("PolicyBundle.engine is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.Engine)
+		if !val.Valid {
+			return fmt.Errorf("PolicyBundle.engine does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.Files == nil {
+		return fmt.Errorf("PolicyBundle: Missing required field: files")
+	}
+	if self.Version != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.Version)
+		if !val.Valid {
+			return fmt.Errorf("PolicyBundle.version does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.Description != "" {
+		val := rdl.Validate(ZMSSchema(), "String", self.Description)
+		if !val.Valid {
+			return fmt.Errorf("PolicyBundle.description does not contain a valid String (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
+// PolicyBundles - The representation of list of policy bundle objects
+type PolicyBundles struct {
+
+	//
+	// list of policy bundle objects
+	//
+	List []*PolicyBundle `json:"list"`
+}
+
+// NewPolicyBundles - creates an initialized PolicyBundles instance, returns a pointer to it
+func NewPolicyBundles(init ...*PolicyBundles) *PolicyBundles {
+	var o *PolicyBundles
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(PolicyBundles)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *PolicyBundles) Init() *PolicyBundles {
+	if self.List == nil {
+		self.List = make([]*PolicyBundle, 0)
+	}
+	return self
+}
+
+type rawPolicyBundles PolicyBundles
+
+// UnmarshalJSON is defined for proper JSON decoding of a PolicyBundles
+func (self *PolicyBundles) UnmarshalJSON(b []byte) error {
+	var m rawPolicyBundles
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := PolicyBundles(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *PolicyBundles) Validate() error {
+	if self.List == nil {
+		return fmt.Errorf("PolicyBundles: Missing required field: list")
+	}
+	return nil
+}
+
+// PolicyBundleList - The representation for an enumeration of policy bundles
+// in the namespace
+type PolicyBundleList struct {
+
+	//
+	// list of bundle names (or versions)
+	//
+	Names []EntityName `json:"names"`
+}
+
+// NewPolicyBundleList - creates an initialized PolicyBundleList instance, returns a pointer to it
+func NewPolicyBundleList(init ...*PolicyBundleList) *PolicyBundleList {
+	var o *PolicyBundleList
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(PolicyBundleList)
+	}
+	return o.Init()
+}
+
+// Init - sets up the instance according to its default field values, if any
+func (self *PolicyBundleList) Init() *PolicyBundleList {
+	if self.Names == nil {
+		self.Names = make([]EntityName, 0)
+	}
+	return self
+}
+
+type rawPolicyBundleList PolicyBundleList
+
+// UnmarshalJSON is defined for proper JSON decoding of a PolicyBundleList
+func (self *PolicyBundleList) UnmarshalJSON(b []byte) error {
+	var m rawPolicyBundleList
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := PolicyBundleList(m)
+		*self = *((&o).Init())
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *PolicyBundleList) Validate() error {
+	if self.Names == nil {
+		return fmt.Errorf("PolicyBundleList: Missing required field: names")
+	}
+	return nil
+}
+
+// PolicyBundleOptions - Options for Policy Bundle version management requests
+type PolicyBundleOptions struct {
+
+	//
+	// bundle version
+	//
+	Version SimpleName `json:"version"`
+
+	//
+	// optional source version used when creating a new version, defaults to 0
+	//
+	FromVersion SimpleName `json:"fromVersion,omitempty" rdl:"optional" yaml:",omitempty"`
+}
+
+// NewPolicyBundleOptions - creates an initialized PolicyBundleOptions instance, returns a pointer to it
+func NewPolicyBundleOptions(init ...*PolicyBundleOptions) *PolicyBundleOptions {
+	var o *PolicyBundleOptions
+	if len(init) == 1 {
+		o = init[0]
+	} else {
+		o = new(PolicyBundleOptions)
+	}
+	return o
+}
+
+type rawPolicyBundleOptions PolicyBundleOptions
+
+// UnmarshalJSON is defined for proper JSON decoding of a PolicyBundleOptions
+func (self *PolicyBundleOptions) UnmarshalJSON(b []byte) error {
+	var m rawPolicyBundleOptions
+	err := json.Unmarshal(b, &m)
+	if err == nil {
+		o := PolicyBundleOptions(m)
+		*self = o
+		err = self.Validate()
+	}
+	return err
+}
+
+// Validate - checks for missing required fields, etc
+func (self *PolicyBundleOptions) Validate() error {
+	if self.Version == "" {
+		return fmt.Errorf("PolicyBundleOptions.version is missing but is a required field")
+	} else {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.Version)
+		if !val.Valid {
+			return fmt.Errorf("PolicyBundleOptions.version does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	if self.FromVersion != "" {
+		val := rdl.Validate(ZMSSchema(), "SimpleName", self.FromVersion)
+		if !val.Valid {
+			return fmt.Errorf("PolicyBundleOptions.fromVersion does not contain a valid SimpleName (%v)", val.Error)
+		}
+	}
+	return nil
+}
+
 // Tenancy - A representation of tenant.
 type Tenancy struct {
 
@@ -8383,6 +8732,11 @@ type DomainData struct {
 	Groups []*Group `json:"groups"`
 
 	//
+	// list of active policy bundles defined in the domain
+	//
+	PolicyBundles []*PolicyBundle `json:"policyBundles"`
+
+	//
 	// last modification timestamp
 	//
 	Modified rdl.Timestamp `json:"modified"`
@@ -8431,6 +8785,9 @@ func (self *DomainData) Init() *DomainData {
 	}
 	if self.Groups == nil {
 		self.Groups = make([]*Group, 0)
+	}
+	if self.PolicyBundles == nil {
+		self.PolicyBundles = make([]*PolicyBundle, 0)
 	}
 	return self
 }
@@ -8605,6 +8962,9 @@ func (self *DomainData) Validate() error {
 	}
 	if self.Groups == nil {
 		return fmt.Errorf("DomainData: Missing required field: groups")
+	}
+	if self.PolicyBundles == nil {
+		return fmt.Errorf("DomainData: Missing required field: policyBundles")
 	}
 	if self.Modified.IsZero() {
 		return fmt.Errorf("DomainData: Missing required field: modified")

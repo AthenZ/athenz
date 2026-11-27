@@ -18,6 +18,7 @@ package com.yahoo.athenz.instance.provider.impl;
 import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.server.util.IPBlock;
 import com.yahoo.athenz.common.server.util.config.dynamic.DynamicConfigBoolean;
+import com.yahoo.athenz.instance.provider.InstanceConfirmation;
 import com.yahoo.athenz.instance.provider.InstanceProvider;
 import com.yahoo.athenz.instance.provider.ProviderResourceException;
 import org.mockito.Mockito;
@@ -728,5 +729,92 @@ public class InstanceUtilsTest {
                 Integer.toString(ServerCommonConsts.ZMS_DOMAIN_FEATURE_ALLOW_SERVICE_UNDERSCORE));
         attributes.put(InstanceProvider.ZTS_INSTANCE_SERVICE_FEATURE_FLAGS, "0");
         assertTrue(InstanceUtils.shouldCheckBootTime(attributes));
+    }
+
+    @Test
+    public void testSetCertSignerAttributeNullMap() {
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        InstanceUtils.setCertSignerAttribute(confirmation, "attr1", "value1");
+
+        assertEquals(confirmation.getAttributes(), Map.of("certSignerAttr:attr1", "value1"));
+    }
+
+    @Test
+    public void testSetCertSignerAttributeExistingMap() {
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_CERT_USAGE, "client");
+        InstanceConfirmation confirmation = new InstanceConfirmation().setAttributes(attributes);
+
+        InstanceUtils.setCertSignerAttribute(confirmation, "attr1", "value1");
+        InstanceUtils.setCertSignerAttribute(confirmation, "attr2", "value2");
+
+        assertEquals(confirmation.getAttributes(), Map.of(InstanceProvider.ZTS_CERT_USAGE, "client",
+                "certSignerAttr:attr1", "value1", "certSignerAttr:attr2", "value2"));
+    }
+
+    @Test
+    public void testSetCertSignerAttributeEmptyNameOrValue() {
+
+        InstanceConfirmation confirmation = new InstanceConfirmation();
+        InstanceUtils.setCertSignerAttribute(confirmation, null, "value1");
+        InstanceUtils.setCertSignerAttribute(confirmation, "", "value1");
+        InstanceUtils.setCertSignerAttribute(confirmation, "attr1", null);
+        InstanceUtils.setCertSignerAttribute(confirmation, "attr1", "");
+
+        assertNull(confirmation.getAttributes());
+    }
+
+    @Test
+    public void testExtractCertSignerAttributesNullOrEmpty() {
+
+        assertTrue(InstanceUtils.extractCertSignerAttributes(null).isEmpty());
+        assertTrue(InstanceUtils.extractCertSignerAttributes(new HashMap<>()).isEmpty());
+    }
+
+    @Test
+    public void testExtractCertSignerAttributesNoMatch() {
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CLIENT_IP, "10.1.1.1");
+        attributes.put("certSignerAttr", "value1");
+        attributes.put(null, "value2");
+
+        assertTrue(InstanceUtils.extractCertSignerAttributes(attributes).isEmpty());
+        assertEquals(attributes.size(), 3);
+    }
+
+    @Test
+    public void testExtractCertSignerAttributes() {
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(InstanceProvider.ZTS_INSTANCE_CLIENT_IP, "10.1.1.1");
+        attributes.put("certSignerAttr:attr1", "value1");
+        attributes.put("certSignerAttr:attr2", "value2");
+        attributes.put("certSignerAttr:", "value3");
+
+        Map<String, String> signerAttributes = InstanceUtils.extractCertSignerAttributes(attributes);
+
+        assertEquals(signerAttributes, Map.of("attr1", "value1", "attr2", "value2"));
+        assertEquals(attributes, Map.of(InstanceProvider.ZTS_INSTANCE_CLIENT_IP, "10.1.1.1"));
+    }
+
+    @Test
+    public void testExtractCertSignerAttributesTreeMap() {
+
+        // with three keys the middle one is the tree root with two children. removing
+        // it makes TreeMap copy the successor's key/value into the removed entry node
+
+        Map<String, String> attributes = new TreeMap<>();
+        attributes.put("aaa", "value0");
+        attributes.put("certSignerAttr:awsRuntimeAccount", "123456789012");
+        attributes.put("certSignerAttr:awsRuntimeRegion", "us-west-2");
+
+        Map<String, String> signerAttributes = InstanceUtils.extractCertSignerAttributes(attributes);
+
+        assertEquals(signerAttributes, Map.of("awsRuntimeAccount", "123456789012",
+                "awsRuntimeRegion", "us-west-2"));
+        assertEquals(attributes, Map.of("aaa", "value0"));
     }
 }

@@ -22,6 +22,7 @@ import com.google.common.cache.CacheBuilder;
 import com.yahoo.athenz.auth.AuthorityConsts;
 import com.yahoo.athenz.auth.KeyStore;
 import com.yahoo.athenz.auth.util.StringUtils;
+import com.yahoo.athenz.common.ServerCommonConsts;
 import com.yahoo.athenz.common.metrics.Metric;
 import com.yahoo.athenz.common.server.db.RolesProvider;
 import com.yahoo.athenz.common.server.key.PubKeysProvider;
@@ -37,6 +38,7 @@ import com.yahoo.athenz.zts.*;
 import com.yahoo.rdl.*;
 import com.yahoo.athenz.auth.util.Crypto;
 import com.yahoo.athenz.common.config.AthenzConfig;
+import com.yahoo.athenz.zts.bundle.SignatureHasher;
 import com.yahoo.athenz.zts.cache.DataCache;
 import com.yahoo.athenz.zts.cache.DataCacheProvider;
 import com.yahoo.athenz.zts.cache.MemberRole;
@@ -274,7 +276,7 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
                 return true;
             }
 
-            processDomainData(domainData);
+            processDomainData(domainData, false);
 
             if (saveInStore) {
                 changeLogStore.saveLocalDomain(domainName, signedDomain);
@@ -486,7 +488,7 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
                 return true;
             }
 
-            processDomainData(domainData);
+            processDomainData(domainData, true);
 
             if (saveInStore) {
                 changeLogStore.saveLocalDomain(domainName, jwsDomain);
@@ -1203,6 +1205,65 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
         }
     }
 
+    private static String sha256Hex(final String content) {
+        try {
+            return new SignatureHasher(SignatureHasher.Algorithm.SHA256).hashFileHex(content);
+        } catch (Exception ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    boolean validatePolicyBundleFiles(PolicyBundle bundle) {
+
+        // the zms signature covers the sha-256 digest of each file
+        // so we need to verify that the content matches the digest
+
+        List<PolicyBundleFile> files = bundle.getFiles();
+        if (files == null || files.isEmpty()) {
+            LOGGER.error("validatePolicyBundleFiles: bundle {} has no files", bundle.getName());
+            return false;
+        }
+        for (PolicyBundleFile file : files) {
+            final String digest = file.getContent() == null ? null : sha256Hex(file.getContent());
+            if (digest == null || !digest.equals(file.getSha256())) {
+                LOGGER.error("validatePolicyBundleFiles: bundle {} file {} digest mismatch",
+                        bundle.getName(), file.getPath());
+                return false;
+            }
+        }
+        return true;
+    }
+
+    void processDomainPolicyBundles(DomainData domainData, DataCache domainCache) {
+
+        List<PolicyBundle> bundles = domainData.getPolicyBundles();
+        if (bundles == null || bundles.isEmpty()) {
+            return;
+        }
+
+        // the bundles are part of the domain data and thus covered by
+        // the domain signature that has already been validated. we still
+        // verify that the file digests match the content. a bundle that
+        // fails validation is skipped but the rest of the domain data
+        // is still processed
+
+        final String domainName = domainData.getName();
+        final String bundlePrefix = domainName + ServerCommonConsts.BUNDLE_SEP;
+        for (PolicyBundle bundle : bundles) {
+            if (bundle.getActive() == Boolean.FALSE || bundle.getName() == null
+                    || !bundle.getName().startsWith(bundlePrefix)) {
+                LOGGER.error("skipping bundle {}, active state: {}", bundle.getName(),
+                    bundle.getActive());
+                continue;
+            }
+            if (!validatePolicyBundleFiles(bundle)) {
+                metric.increment("bundle_validation_failure", domainName);
+                continue;
+            }
+            domainCache.addPolicyBundle(bundle.getName().substring(bundlePrefix.length()), bundle);
+        }
+    }
+
     void processDomainServiceIdentities(DomainData domainData, DataCache domainCache) {
 
         List<com.yahoo.athenz.zms.ServiceIdentity> services = domainData.getServices();
@@ -1228,6 +1289,18 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
     }
 
     public void processDomainData(DomainData domainData) {
+        processDomainData(domainData, true);
+    }
+
+    /**
+     * Process the domain data and update the cache
+     * @param domainData domain data
+     * @param policyBundlesAuthenticated true if the domain data was
+     *        received in a verified jws payload. The legacy signed domain
+     *        signature does not cover the policy bundles so bundles are
+     *        only accepted from jws domains
+     */
+    public void processDomainData(DomainData domainData, boolean policyBundlesAuthenticated) {
 
         // generate our cache object */
 
@@ -1252,6 +1325,15 @@ public class DataStore implements DataCacheProvider, RolesProvider, PubKeysProvi
         // process entities
 
         processDomainEntities(domainData, domainCache);
+
+        // process policy bundles
+
+        if (policyBundlesAuthenticated) {
+            processDomainPolicyBundles(domainData, domainCache);
+        } else if (domainData.getPolicyBundles() != null && !domainData.getPolicyBundles().isEmpty()) {
+            LOGGER.error("ignoring policy bundles of domain {}: not received in a signed jws domain - "
+                    + "enable athenz.zts.zms_domain_jws_support", domainData.getName());
+        }
 
         // Athenz System domain special role processing
 

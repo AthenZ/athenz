@@ -3006,6 +3006,403 @@ public class ZMSRDLGeneratedClient {
         }
     }
 
+    public PolicyBundleList getPolicyBundleList(String domainName) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/bundle")
+            .resolveTemplate("domainName", domainName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), PolicyBundleList.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public PolicyBundles getPolicyBundles(String domainName, Boolean includeNonActive) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/bundles")
+            .resolveTemplate("domainName", domainName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        if (includeNonActive != null) {
+            uriBuilder.setParameter("includeNonActive", String.valueOf(includeNonActive));
+        }
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), PolicyBundles.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public PolicyBundle getPolicyBundle(String domainName, String bundleName) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/bundle/{bundleName}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("bundleName", bundleName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), PolicyBundle.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public PolicyBundle putPolicyBundle(String domainName, String bundleName, String auditRef, Boolean returnObj, PolicyBundle bundle) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/bundle/{bundleName}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("bundleName", bundleName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(bundle), ContentType.APPLICATION_JSON);
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.put()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (returnObj != null) {
+            httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+            case 200:
+                if (code == 204) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), PolicyBundle.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public PolicyBundle deletePolicyBundle(String domainName, String bundleName, String auditRef) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/bundle/{bundleName}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("bundleName", bundleName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.delete()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public PolicyBundleFile putPolicyBundleFile(String domainName, String bundleName, String auditRef, PolicyBundleFile file) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/bundle/{bundleName}/file")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("bundleName", bundleName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(file), ContentType.APPLICATION_JSON);
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.put()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public PolicyBundle deletePolicyBundleFile(String domainName, String bundleName, String path, String auditRef) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/bundle/{bundleName}/file")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("bundleName", bundleName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        if (path != null) {
+            uriBuilder.setParameter("path", path);
+        }
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.delete()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public PolicyBundleList getPolicyBundleVersionList(String domainName, String bundleName) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/bundle/{bundleName}/version")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("bundleName", bundleName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), PolicyBundleList.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public PolicyBundle getPolicyBundleVersion(String domainName, String bundleName, String version) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/bundle/{bundleName}/version/{version}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("bundleName", bundleName)
+            .resolveTemplate("version", version);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.get()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 200:
+                return jsonMapper.readValue(httpResponseEntity.getContent(), PolicyBundle.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public PolicyBundle putPolicyBundleVersion(String domainName, String bundleName, PolicyBundleOptions bundleOptions, String auditRef, Boolean returnObj) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/bundle/{bundleName}/version/create")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("bundleName", bundleName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(bundleOptions), ContentType.APPLICATION_JSON);
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.put()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        if (returnObj != null) {
+            httpUriRequest.addHeader("Athenz-Return-Object", String.valueOf(returnObj));
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+            case 200:
+                if (code == 204) {
+                    return null;
+                }
+                return jsonMapper.readValue(httpResponseEntity.getContent(), PolicyBundle.class);
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public PolicyBundle setActivePolicyBundleVersion(String domainName, String bundleName, PolicyBundleOptions bundleOptions, String auditRef) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/bundle/{bundleName}/version/active")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("bundleName", bundleName);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        HttpEntity httpEntity = new StringEntity(jsonMapper.writeValueAsString(bundleOptions), ContentType.APPLICATION_JSON);
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.put()
+            .setUri(uriBuilder.build())
+            .setEntity(httpEntity)
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
+    public PolicyBundle deletePolicyBundleVersion(String domainName, String bundleName, String version, String auditRef) throws URISyntaxException, IOException {
+        UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domainName}/bundle/{bundleName}/version/{version}")
+            .resolveTemplate("domainName", domainName)
+            .resolveTemplate("bundleName", bundleName)
+            .resolveTemplate("version", version);
+        URIBuilder uriBuilder = new URIBuilder(uriTemplateBuilder.getUri());
+        ClassicHttpRequest httpUriRequest = ClassicRequestBuilder.delete()
+            .setUri(uriBuilder.build())
+            .build();
+        if (credsHeader != null) {
+            httpUriRequest.addHeader(credsHeader, credsToken);
+        }
+        if (auditRef != null) {
+            httpUriRequest.addHeader("Y-Audit-Ref", auditRef);
+        }
+        HttpEntity httpResponseEntity = null;
+        try (CloseableHttpResponse httpResponse = client.execute(httpUriRequest, httpContext)) {
+            int code = httpResponse.getCode();
+            httpResponseEntity = httpResponse.getEntity();
+            switch (code) {
+            case 204:
+                return null;
+            default:
+                final String errorData = (httpResponseEntity == null) ? null : getStringResponseEntity(httpResponseEntity);
+                throw (errorData != null && !errorData.isEmpty())
+                    ? new ClientResourceException(code, jsonMapper.readValue(errorData, ClientResourceError.class))
+                    : new ClientResourceException(code);
+            }
+        } finally {
+            EntityUtils.consumeQuietly(httpResponseEntity);
+        }
+    }
+
     public ServiceIdentity putServiceIdentity(String domain, String service, String auditRef, Boolean returnObj, String resourceOwner, ServiceIdentity detail) throws URISyntaxException, IOException {
         UriTemplateBuilder uriTemplateBuilder = new UriTemplateBuilder(baseUrl, "/domain/{domain}/service/{service}")
             .resolveTemplate("domain", domain)

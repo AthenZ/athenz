@@ -39,6 +39,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import static com.yahoo.athenz.common.server.util.config.ConfigManagerSingleton.CONFIG_MANAGER;
+import static com.yahoo.athenz.instance.provider.InstanceProvider.ZTS_CERT_SIGNER_ATTR_AWS_RUNTIME_ACCOUNT;
+import static com.yahoo.athenz.instance.provider.InstanceProvider.ZTS_CERT_SIGNER_ATTR_AWS_RUNTIME_REGION;
 import static com.yahoo.athenz.instance.provider.InstanceProvider.ZTS_INSTANCE_ATTESTATION_DATA_SUBJECT;
 import static com.yahoo.athenz.instance.provider.InstanceProvider.ZTS_INSTANCE_AWS_PRINCIPAL_TAG_PREFIX;
 
@@ -88,6 +90,7 @@ public class AWSWebIdentityTokenAttestationValidator implements AWSAttestationVa
     static final String STS_CLAIM_AWS_ACCOUNT   = "aws_account";
     static final String STS_CLAIM_ORG_ID        = "org_id";
     static final String STS_CLAIM_PRINCIPAL_TAGS = "principal_tags";
+    static final String STS_CLAIM_SOURCE_REGION = "source_region";
 
     static final String ACTION_LAUNCH = "launch";
     static final String AWS_PROP_WEB_IDENTITY_DISCOVERY_PROXY = "athenz.zts.aws_web_identity_discovery_proxy";
@@ -256,7 +259,17 @@ public class AWSWebIdentityTokenAttestationValidator implements AWSAttestationVa
 
         // run the adopter specific principal validation (also the escape hatch above)
 
-        return validatePrincipal(confirmation, idToken, stsClaim, errMsg);
+        if (!validatePrincipal(confirmation, idToken, stsClaim, errMsg)) {
+            return false;
+        }
+
+        // all checks passed so the signed token claims can be passed to the cert signer
+
+        InstanceUtils.setCertSignerAttribute(confirmation, ZTS_CERT_SIGNER_ATTR_AWS_RUNTIME_ACCOUNT,
+                getStringValue(stsClaim.get(STS_CLAIM_AWS_ACCOUNT)));
+        InstanceUtils.setCertSignerAttribute(confirmation, ZTS_CERT_SIGNER_ATTR_AWS_RUNTIME_REGION,
+                getStringValue(stsClaim.get(STS_CLAIM_SOURCE_REGION)));
+        return true;
     }
 
     boolean validateRole(final InstanceConfirmation confirmation, final IdToken idToken, StringBuilder errMsg) {

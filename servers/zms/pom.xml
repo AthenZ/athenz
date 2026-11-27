@@ -17,7 +17,7 @@
   <parent>
     <groupId>com.yahoo.athenz</groupId>
     <artifactId>athenz</artifactId>
-    <version>1.12.52-SNAPSHOT</version>
+    <version>1.12.53-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -180,6 +180,28 @@
   <build>
     <finalName>zms</finalName>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven-compiler-plugin.version}</version>
+        <configuration>
+          <source>17</source>
+          <target>17</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${maven-javadoc-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <configuration>
+              <source>17</source>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>

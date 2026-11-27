@@ -196,6 +196,23 @@ public interface ObjectStoreConnection extends Closeable {
     List<String> listEntities(String domainName) throws ServerResourceException;
     int countEntities(String domainName) throws ServerResourceException;
 
+    // Policy Bundle commands
+    // if the version argument is null or empty, the active version is used
+
+    PolicyBundle getPolicyBundle(String domainName, String bundleName, String version) throws ServerResourceException;
+    List<PolicyBundle> getPolicyBundles(String domainName, boolean includeNonActive) throws ServerResourceException;
+    boolean insertPolicyBundle(String domainName, PolicyBundle bundle) throws ServerResourceException;
+    boolean updatePolicyBundle(String domainName, PolicyBundle bundle) throws ServerResourceException;
+    boolean deletePolicyBundle(String domainName, String bundleName) throws ServerResourceException;
+    boolean deletePolicyBundleVersion(String domainName, String bundleName, String version) throws ServerResourceException;
+    boolean setActivePolicyBundleVersion(String domainName, String bundleName, String version) throws ServerResourceException;
+    List<String> listPolicyBundles(String domainName) throws ServerResourceException;
+    List<String> listPolicyBundleVersions(String domainName, String bundleName) throws ServerResourceException;
+    int countPolicyBundles(String domainName) throws ServerResourceException;
+    boolean insertPolicyBundleFile(String domainName, String bundleName, String version, PolicyBundleFile file) throws ServerResourceException;
+    boolean deletePolicyBundleFile(String domainName, String bundleName, String version, String path) throws ServerResourceException;
+    boolean deletePolicyBundleFiles(String domainName, String bundleName, String version) throws ServerResourceException;
+
     // Quota commands
 
     Quota getQuota(String domainName) throws ServerResourceException;
