@@ -17,6 +17,8 @@ import React from 'react';
 import AddRuleForm from '../../../components/policy/AddRuleForm';
 import { renderWithRedux } from '../../../tests_utils/ComponentsTestUtils';
 import { resetIdCounter } from 'downshift';
+import { fireEvent } from '@testing-library/react';
+import { WELL_KNOWN_POLICY_ACTIONS } from '../../../components/constants/constants';
 
 describe('AddRuleForm', () => {
     beforeEach(() => resetIdCounter());
@@ -29,5 +31,27 @@ describe('AddRuleForm', () => {
         const { getByTestId } = renderWithRedux(<AddRuleForm />);
         const addRuleForm = getByTestId('add-rule-form');
         expect(addRuleForm).toMatchSnapshot();
+    });
+    it('should suggest well known actions and accept custom ones', () => {
+        const onChange = jest.fn();
+        const { getByTestId, getByPlaceholderText } = renderWithRedux(
+            <AddRuleForm isPolicy={true} onChange={onChange} />
+        );
+        const actionInput = getByPlaceholderText('Rule Action');
+        const suggestions = getByTestId('rule-action-suggestions');
+        expect(actionInput.getAttribute('list')).toEqual(
+            'rule-action-suggestions-new-policy'
+        );
+        expect(suggestions.getAttribute('id')).toEqual(
+            'rule-action-suggestions-new-policy'
+        );
+        expect(
+            Array.from(suggestions.querySelectorAll('option')).map(
+                (option) => option.value
+            )
+        ).toEqual(WELL_KNOWN_POLICY_ACTIONS);
+
+        fireEvent.change(actionInput, { target: { value: 'custom_action' } });
+        expect(onChange).toHaveBeenCalledWith('action', 'custom_action');
     });
 });
