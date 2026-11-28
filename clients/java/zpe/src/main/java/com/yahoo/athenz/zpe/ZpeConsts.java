@@ -22,6 +22,9 @@ public final class ZpeConsts {
     public static final String ZPE_ACTION_MATCH_STRUCT   = "actionMatchStruct";
     public static final String ZPE_RESOURCE_MATCH_STRUCT = "resourceMatchStruct";
     public static final String ZPE_ROLE_MATCH_STRUCT     = "roleMatchStruct";
+
+    public static final String ZPE_ACTION_EXACT_MATCH_STRUCT   = "actionExactMatchStruct";
+    public static final String ZPE_RESOURCE_EXACT_MATCH_STRUCT = "resourceExactMatchStruct";
     
     public static final String ZPE_FIELD_ACTION      = "action";
     public static final String ZPE_FIELD_RESOURCE    = "resource";
@@ -73,4 +76,5 @@ public final class ZpeConsts {
     public static final String ZPE_PROP_SKIP_POLICY_DIR_CHECK        = "athenz.zpe.skip_policy_dir_check";
     public static final String ZPE_PROP_CHECK_POLICY_ZMS_SIGNATURE   = "athenz.zpe.check_policy_zms_signature";
     public static final String ZPE_PROP_X509_CA_ISSUERS              = "athenz.zpe.x509.ca.issuers";
+    public static final String ZPE_PROP_AUTHZ_CASE_SENSITIVE_MODE    = "athenz.zpe.authz_case_sensitive_mode";
 }
